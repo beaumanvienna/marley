@@ -2,3 +2,57 @@ marley : many awesome retro linux emulators
 
 https://launchpad.net/~beauman/+archive/ubuntu/marley
 https://github.com/beaumanvienna/
+
+#*** Installation for Ubuntu 18.04 ***
+#=====================================
+
+
+# update SDL to 2.0.12 (optional)
+sudo add-apt-repository ppa:beauman/marley
+sudo apt update
+sudo apt upgrade
+
+#install as binary version
+#-------------------------
+sudo apt install marley
+
+#Compile from source
+#-------------------
+
+#clone & and check out revision
+git clone https://github.com/beaumanvienna/marley
+cd marley
+#change to the version you like to work with, e.g. master
+git checkout master
+
+#Install build dependencies specified in debian/control (search for 'Build-Depends'), e.g. 
+#Build-Depends: debhelper, 
+#		cmake,
+#		chrpath,
+#		libsdl2-dev,
+#        libsdl2-image-dev
+# and install with aptitude:
+
+sudo apt install debhelper cmake chrpath libsdl2-dev libsdl2-image-dev
+
+#Configure and make
+aclocal 
+autoconf
+automake --add-missing --foreign
+./configure
+make
+
+#make install
+
+#Install package dependencies specified in debian/control (search for 'Depends', ignore stuff in curly brackets), e.g. 
+sudo apt install libsdl2-2.0-0 libsdl2-image-2.0-0
+
+#install to /usr/bin (the Debian package uses /usr/games)
+sudo make install
+make clean
+make distclean
+
+#if marley was also installed via the Ubuntu package manager check which version is used with which marley
+
+#start it
+marley
