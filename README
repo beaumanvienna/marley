@@ -42,9 +42,14 @@ automake --add-missing --foreign
 ./configure
 make
 
-#make install
+#install package dependencies 
 
 #Install package dependencies specified in debian/control (search for 'Depends', ignore stuff in curly brackets), e.g. 
+#Depends: ${shlibs:Depends}, 
+#        ${misc:Depends}, 
+#        libsdl2-2.0-0, 
+#        libsdl2-image-2.0-0
+    
 sudo apt install libsdl2-2.0-0 libsdl2-image-2.0-0
 
 #install to /usr/bin (the Debian package uses /usr/games)
@@ -52,7 +57,7 @@ sudo make install
 make clean
 make distclean
 
-#if marley was also installed via the Ubuntu package manager check which version is used with which marley
+#if marley was also installed via the Ubuntu package manager check which version is used with 'which marley'
 
 #start it
 marley
