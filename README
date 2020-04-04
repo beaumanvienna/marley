@@ -31,6 +31,7 @@ git checkout master
 #		chrpath,
 #		libsdl2-dev,
 #        libsdl2-image-dev
+#
 # and install with aptitude:
 
 sudo apt install debhelper cmake chrpath libsdl2-dev libsdl2-image-dev
@@ -49,6 +50,8 @@ make
 #        ${misc:Depends}, 
 #        libsdl2-2.0-0, 
 #        libsdl2-image-2.0-0
+#
+# and install with aptitude:
     
 sudo apt install libsdl2-2.0-0 libsdl2-image-2.0-0
 
