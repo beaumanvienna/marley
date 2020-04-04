@@ -1,0 +1,8 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: marley
+Upstream-Contact: JC <jc.lache@web.de>
+Source: https://github.com/beaumanvienna/marley
+
+Files: *
+Copyright: 2020 JC <jc.lache@web.de>
+License: LGPL-2.1+

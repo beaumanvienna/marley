@@ -1,0 +1,21 @@
+Source: marley
+Section: games
+Priority: optional
+Maintainer: JC <jc.lache@web.de>
+Build-Depends: debhelper, 
+		cmake,
+		chrpath,
+		libsdl2-dev,
+        libsdl2-image-dev
+Standards-Version: 3.9.5
+Vcs-Git: https://github.com/beaumanvienna/marley
+
+Package: marley
+Architecture: any
+Depends: ${shlibs:Depends}, 
+        ${misc:Depends}, 
+        libsdl2-2.0-0, 
+        libsdl2-image-2.0-0
+Homepage: https://launchpad.net/~beauman
+Description: Many Awesome Retro Linux Emulators, Yay!
+ This is the launcher program.
