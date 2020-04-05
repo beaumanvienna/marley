@@ -1,4 +1,4 @@
-AC_INIT([marley], 0.1)
+AC_INIT([marley], 0.0.2)
 AM_INIT_AUTOMAKE
 AC_PROG_CXX
 AC_CONFIG_FILES(Makefile)
