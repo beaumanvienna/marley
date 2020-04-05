@@ -434,13 +434,18 @@ int main( int argc, char* args[] )
         {    
             //Main loop flag
             bool quit = false;
+            
+            bool controller0 = false;
+            bool controller1 = false;
 
             //Event handler
             SDL_Event e;
 
-            //Normalized direction
-            int xDir = 0;
-            int yDir = 0;
+            int xDir0 = 0;
+            int yDir0 = 0;
+            
+            int xDir1 = 0;
+            int yDir1 = 0;
 
             //main loop
             while( !quit )
@@ -485,47 +490,67 @@ int main( int argc, char* args[] )
                             //Motion on gamepad x
                             if (abs(e.jaxis.value) > ANALOG_DEAD_ZONE)
                             {
+                                
                                 id = e.jaxis.which;
-                                printf("controller id: %i \n",id);
-                                printf( "e.jaxis.value: %i\n",abs(e.jaxis.value));
+                                printf("controller id (e.jaxis.which): %i \n",id);
+                                
+                                controller0 = false;
+                                controller1 = false;
+                                
+                                
+                                if ( e.jaxis.which == SDL_JoystickInstanceID(gGamepad[0]))
+                                {
+                                    controller0 = true;
+                                    printf("controller #0 event\n");
+                                } else if ( e.jaxis.which == SDL_JoystickInstanceID(gGamepad[1]))
+                                {
+                                    controller1 = true;
+                                    printf("controller #1 event\n");
+                                } else
+                                {
+                                    printf("no joy\n");
+                                }
+                                //printf( "e.jaxis.value: %i\n",abs(e.jaxis.value));
                             }
                             
-                            
-                            //X axis motion
-                            if( e.jaxis.axis == 0 )
+                            if (controller0)
                             {
-                                //Left of dead zone
-                                if( e.jaxis.value < -ANALOG_DEAD_ZONE )
+                                //X axis motion
+                                if( e.jaxis.axis == 0 )
                                 {
-                                    xDir = -1;
+                                    //Left of dead zone
+                                    if( e.jaxis.value < -ANALOG_DEAD_ZONE )
+                                    {
+                                        xDir0 = -1;
+                                    }
+                                    //Right of dead zone
+                                    else if( e.jaxis.value > ANALOG_DEAD_ZONE )
+                                    {
+                                        xDir0 =  1;
+                                    }
+                                    else
+                                    {
+                                        xDir0 = 0;
+                                    }
                                 }
-                                //Right of dead zone
-                                else if( e.jaxis.value > ANALOG_DEAD_ZONE )
+                                //Y axis motion
+                                else if( e.jaxis.axis == 1 )
                                 {
-                                    xDir =  1;
-                                }
-                                else
-                                {
-                                    xDir = 0;
-                                }
-                            }
-                            //Y axis motion
-                            else if( e.jaxis.axis == 1 )
-                            {
-                                //printf( "Y axis motion\n" );
-                                //Below of dead zone
-                                if( e.jaxis.value < -ANALOG_DEAD_ZONE )
-                                {
-                                    yDir = -1;
-                                }
-                                //Above of dead zone
-                                else if( e.jaxis.value > ANALOG_DEAD_ZONE )
-                                {
-                                    yDir =  1;
-                                }
-                                else
-                                {
-                                    yDir = 0;
+                                    //printf( "Y axis motion\n" );
+                                    //Below of dead zone
+                                    if( e.jaxis.value < -ANALOG_DEAD_ZONE )
+                                    {
+                                        yDir0 = -1;
+                                    }
+                                    //Above of dead zone
+                                    else if( e.jaxis.value > ANALOG_DEAD_ZONE )
+                                    {
+                                        yDir0 =  1;
+                                    }
+                                    else
+                                    {
+                                        yDir0 = 0;
+                                    }
                                 }
                             }
                             break;
@@ -541,17 +566,17 @@ int main( int argc, char* args[] )
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
                 SDL_RenderClear( gRenderer );
 
-                //Calculate angle
-                double joystickAngle = atan2( (double)yDir, (double)xDir ) * ( 180.0 / M_PI );
+                //Angle first controller
+                double joystickAngle0 = atan2( (double)yDir0, (double)xDir0 ) * ( 180.0 / M_PI );
                 
                 //Correct angle
-                if( xDir == 0 && yDir == 0 )
+                if( xDir0 == 0 && yDir0 == 0 )
                 {
-                    joystickAngle = 0;
+                    joystickAngle0 = 0;
                 }
 
                 //Render joystick 8 way angle
-                gArrowTexture.render( ( WINDOW_WIDTH - gArrowTexture.getWidth() ) / 2, ( WINDOW_HEIGHT - gArrowTexture.getHeight() ) / 2, NULL, joystickAngle );
+                gArrowTexture.render( ( WINDOW_WIDTH - gArrowTexture.getWidth() ) / 2, ( WINDOW_HEIGHT - gArrowTexture.getHeight() ) / 2, NULL, joystickAngle0 );
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
