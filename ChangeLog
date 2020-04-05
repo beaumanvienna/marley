@@ -1,0 +1,5 @@
+* Sat Apr  4 11:20:49 PDT 2020 project created with version 0.0.1 and uplaoded to https://launchpad.net/~beauman/+archive/ubuntu/marley
+    Please also refer to debian/changelog
+* Sat Apr  Sat Apr  4 22:50:00 PDT 2020 changed to 0.0.2
+    Hotplug feature added: Marley supports two controllers at a time, which can be unplugged and plugged in any order. Once a controller is designated
+    as controller1 or controller2, it will stay this way, even if the other is off. If a new controller is plug the lower free available slot will be used.
