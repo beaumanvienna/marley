@@ -20,13 +20,20 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include <iostream>
 #include <stdio.h>
 #include <string>
 #include <cmath>
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define MAX_GAMEPADS 128
+using namespace std;
+
+//supported number of controllers in GUI
+#define MAX_GAMEPADS 16
+
+//SDL increases the id for a controller every time it reconnects
+#define MAX_GAMEPADS_PLUGGED 128
 
 const int WINDOW_WIDTH = 1024;
 const int WINDOW_HEIGHT = 768;
@@ -97,7 +104,15 @@ SDL_Renderer* gRenderer = NULL;
 LTexture gArrowTexture;
 
 //Gamepad array
-SDL_Joystick* gGamepad[MAX_GAMEPADS];
+SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
+
+typedef struct DesignatedControllers { 
+    SDL_Joystick* joy; 
+    int instance; 
+    string name; 
+} T_DesignatedControllers;
+//designated controllers
+T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 
 SDL_JoystickGUID guid;
 char guid_str[1024];
@@ -216,20 +231,46 @@ int LTexture::getHeight()
     return mHeight;
 }
 
-bool closeJoy(int i)
+bool closeJoy(int instance_id)
 {
-    printf("closeJoy(int %i)\n",i);
+    int designation, designation_instance, n, num_controller;
+    printf("closeJoy(int %i)\n",instance_id);
     //Close gamepad
-    SDL_JoystickClose( gGamepad[i] );
-    gGamepad[i] = NULL;
-    printf("remaining controllers: %i\n",SDL_NumJoysticks());
+    SDL_JoystickClose( gGamepad[instance_id] );
+    if (instance_id < MAX_GAMEPADS_PLUGGED)
+    {
+        gGamepad[instance_id] = NULL;
+    
+        for (designation=0;designation<MAX_GAMEPADS;designation++)
+        {        
+            designation_instance= gDesignatedControllers[designation].instance;
+            //printf(" *** designation %i designation_instance %i instance %i\n",designation,designation_instance,instance_id);
+            if ((designation_instance == instance_id) && (designation_instance != -1))
+            {
+                printf("removing designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
+                gDesignatedControllers[designation].instance = -1;
+                gDesignatedControllers[designation].name = "NULL";
+                gDesignatedControllers[designation].joy = NULL;
+            }
+        }
+           
+        printf("remaining controllers: %i\n",SDL_NumJoysticks());
+        for (designation=0;designation<MAX_GAMEPADS;designation++)
+        {        
+            designation_instance= gDesignatedControllers[designation].instance;
+            if (designation_instance != -1)
+            {
+               printf("remaining: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
+            }
+        }
+    }
     printf("closeJoy() end \n");
     return true;
 }
 
 bool printJoyInfo(int i)
 {
-    SDL_Joystick *joy;
+    SDL_Joystick *joy = SDL_JoystickOpen(i);
     char guid_str[1024];
     const char* name = SDL_JoystickName(joy);
     int num_axes = SDL_JoystickNumAxes(joy);
@@ -238,36 +279,63 @@ bool printJoyInfo(int i)
     int num_balls = SDL_JoystickNumBalls(joy);
     char *mapping;
     
-    printf("******************************************************************************************\n");
-    printf("printJoyInfo(int %i)\n",i);
+    printf("printJoyInfo(int %i)",i);
+    printf("  *************************************************************************\n");
+    
 
-    joy = SDL_JoystickOpen(i);
+    
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
     
     SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
     
     
-    printf("Name: %s\n", SDL_JoystickNameForIndex(i));
-    printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
-    printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
-    printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
+    printf("Name: %s  ", SDL_JoystickNameForIndex(i));
+    printf("Number of Axes: %d  ", SDL_JoystickNumAxes(joy));
+    printf("Number of Buttons: %d  ", SDL_JoystickNumButtons(joy));
+    printf("Number of Balls: %d  ", SDL_JoystickNumBalls(joy));
     printf("%s \"%s\" axes:%d buttons:%d hats:%d balls:%d\n", guid_str, name, num_axes, num_buttons, num_hats, num_balls);
 
     
-    SDL_Log("Index \'%i\' is a compatible gamepad, named \'%s\'", i, SDL_GameControllerNameForIndex(i));
+    SDL_Log("Index \'%i\' is a compatible gamepad, named \'%s\' mapped as \"%s\".", i, SDL_GameControllerNameForIndex(i),mapping);
     ctrl = SDL_GameControllerOpen(i);
     mapping = SDL_GameControllerMapping(ctrl);
-    SDL_Log("gamepad %i is mapped as \"%s\".", i, mapping);
+    
     SDL_free(mapping);
     
-    printf("******************************************************************************************\n");
-    printf("\n");printf("\n");printf("\n");printf("\n");printf("\n");printf("\n");
+}
+bool checkControllerIsSupported(int i)
+{
+    // This function is rough draft.
+    // There might be controllers that SDL allows but Marley not
+    // The Wii Mote is such an example because it is detected with five instances. 
+    // For the time being, instances of the Wii Mote will not be designated as marley controllers.
+    
+    SDL_Joystick *joy = SDL_JoystickOpen(i);
+    
+    bool ok= false;
+    string unsupported = "Nintendo Wii";
+    string name = SDL_JoystickName(joy);
+    int str_pos = name.find(unsupported);
+    
+    // check for unsupported
+    if (str_pos>=0)
+    {
+        printf("checkControllerIsSupported: not supported, ignoring controller: %s\n",name.c_str());
+        ok=false;
+    } 
+    else
+    {
+        printf("checkControllerIsSupported: supported controller: %s  ",name.c_str());
+        ok=true;
+    }
+    return ok;
 }
 
 bool openJoy(int i)
 {
-    printf("openJoy(int %i)\n",i);
-    if (i<MAX_GAMEPADS)
+    int designation, designation_instance;
+    printf("openJoy(int %i)   ",i);
+    if (i<MAX_GAMEPADS_PLUGGED)
     {
         SDL_Joystick *joy;
         joy = SDL_JoystickOpen(i);
@@ -282,7 +350,31 @@ bool openJoy(int i)
             else
             {
                 printJoyInfo(i);
-                printf("opened %i\n",i);
+                printf("opened %i  ",i);
+                printf("active controllers: %i\n",SDL_NumJoysticks());
+                if ( checkControllerIsSupported(i))
+                {
+                    for (designation=0;designation< MAX_GAMEPADS; designation++)
+                    {
+                        if (gDesignatedControllers[designation].instance == -1)
+                        {
+                            // instance is what e.jaxis.which returns
+                            gDesignatedControllers[designation].instance = SDL_JoystickInstanceID(gGamepad[i]);
+                            gDesignatedControllers[designation].name = SDL_JoystickNameForIndex(i);
+                            printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
+                            designation = MAX_GAMEPADS;
+                        }
+                    }
+                    
+                    for (designation=0;designation<MAX_GAMEPADS;designation++)
+                    {        
+                        designation_instance= gDesignatedControllers[designation].instance;
+                        if (designation_instance != -1)
+                        {
+                           printf("active: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
+                        }
+                    }
+                }
             }
             
         } else {
@@ -330,10 +422,19 @@ bool init()
         linked.major, linked.minor, linked.patch);
         
         
-        for (int i=0; i< MAX_GAMEPADS; i++)
+        for (int i=0; i< MAX_GAMEPADS_PLUGGED; i++)
         {
             gGamepad[i] = NULL;
         }
+        
+        
+        for (int i=0; i< MAX_GAMEPADS; i++)
+        {
+            gDesignatedControllers[i].instance = -1;
+            gDesignatedControllers[i].name = "NULL";
+            gDesignatedControllers[i].joy = NULL;
+        }
+        
         
         //Set texture filtering to linear
         if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
@@ -417,7 +518,7 @@ void close()
 
 int main( int argc, char* args[] )
 {
-    int k,l,id;
+    int k,l,m,id;
     //Start up SDL and create window
     if( !init() )
     {
@@ -468,6 +569,16 @@ int main( int argc, char* args[] )
                                         {
                                             printJoyInfo(l);
                                         }
+                                        m=0; //count designated controllers
+                                        for (l=0; l < MAX_GAMEPADS;l++)
+                                        {
+                                            if ( gDesignatedControllers[l].instance != -1 )
+                                            {
+                                                printf("found designated controller %i with SDL instance %i %s\n",l, gDesignatedControllers[l].instance,gDesignatedControllers[l].name.c_str());
+                                                m++;
+                                            }
+                                        }
+                                        printf("%i designated controllers found\n",m);
                                     } else
                                     {
                                         printf("************* no controllers found ************* \n");
@@ -479,7 +590,7 @@ int main( int argc, char* args[] )
                             }
                             break;
                         case SDL_JOYDEVICEADDED: 
-                            printf("************* New device ************* \n");
+                            printf("New device ");
                             openJoy(e.jdevice.which);
                             break;
                         case SDL_JOYDEVICEREMOVED: 
@@ -490,27 +601,12 @@ int main( int argc, char* args[] )
                             //Motion on gamepad x
                             if (abs(e.jaxis.value) > ANALOG_DEAD_ZONE)
                             {
-                                
-                                id = e.jaxis.which;
-                                printf("controller id (e.jaxis.which): %i \n",id);
-                                
+                                controller0 = (e.jaxis.which == gDesignatedControllers[0].instance);
+                                controller1 = (e.jaxis.which == gDesignatedControllers[1].instance);
+                            } else
+                            {
                                 controller0 = false;
                                 controller1 = false;
-                                
-                                
-                                if ( e.jaxis.which == SDL_JoystickInstanceID(gGamepad[0]))
-                                {
-                                    controller0 = true;
-                                    printf("controller #0 event\n");
-                                } else if ( e.jaxis.which == SDL_JoystickInstanceID(gGamepad[1]))
-                                {
-                                    controller1 = true;
-                                    printf("controller #1 event\n");
-                                } else
-                                {
-                                    printf("no joy\n");
-                                }
-                                //printf( "e.jaxis.value: %i\n",abs(e.jaxis.value));
                             }
                             
                             if (controller0)
