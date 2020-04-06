@@ -20,72 +20,10 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include <iostream>
-#include <stdio.h>
-#include <string>
-#include <cmath>
-#include <SDL.h>
-#include <SDL_image.h>
+#include "include/gui.h"
+#include "include/controller.h"
 
-using namespace std;
-
-//supported number of controllers in GUI
-#define MAX_GAMEPADS 16
-
-//SDL increases the id for a controller every time it reconnects
-#define MAX_GAMEPADS_PLUGGED 128
-
-const int WINDOW_WIDTH = 1024;
-const int WINDOW_HEIGHT = 768;
-const int ANALOG_DEAD_ZONE = 1000;
-
-//texture wrapper class
-class LTexture
-{
-    public:
-        //Initializes variables
-        LTexture();
-
-        //Deallocates memory
-        ~LTexture();
-
-        //Loads image at specified path
-        bool loadFromFile( std::string path );
-        
-        #if defined(_SDL_TTF_H) || defined(SDL_TTF_H)
-        //Creates image from font string
-        bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
-        #endif
-
-        //Deallocates texture
-        void free();
-
-        //Set color modulation
-        void setColor( Uint8 red, Uint8 green, Uint8 blue );
-
-        //Set blending
-        void setBlendMode( SDL_BlendMode blending );
-
-        //Set alpha modulation
-        void setAlpha( Uint8 alpha );
-        
-        //Renders texture at given point
-        void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
-
-        //Gets image dimensions
-        int getWidth();
-        int getHeight();
-
-    private:
-        //The actual hardware texture
-        SDL_Texture* mTexture;
-
-        //Image dimensions
-        int mWidth;
-        int mHeight;
-};
-
-//Starts up SDL and creates window
+//initializes SDL and creates main window
 bool init();
 
 //Loads media
@@ -94,23 +32,6 @@ bool loadMedia();
 //Frees media and shuts down SDL
 void close();
 
-//rendering window 
-SDL_Window* gWindow = NULL;
-
-//window renderer
-SDL_Renderer* gRenderer = NULL;
-
-//Scene textures
-LTexture gArrowTexture;
-
-//Gamepad array
-SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
-
-typedef struct DesignatedControllers { 
-    SDL_Joystick* joy; 
-    int instance; 
-    string name; 
-} T_DesignatedControllers;
 //designated controllers
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 
