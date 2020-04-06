@@ -22,6 +22,10 @@
 
 #include "../include/gui.h"
 #include "../include/controller.h"
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
+#include <fstream>
 
 //initializes SDL and creates main window
 bool init()
@@ -82,6 +86,7 @@ void closeAll()
 int main( int argc, char* argv[] )
 {
     int k,l,m,id;
+    string game, cmd;
     
     for (int i = 1; i < argc; i++) 
     {
@@ -102,6 +107,21 @@ int main( int argc, char* argv[] )
             printf("Use your controller or arrow keys/enter/ESC on your keyboard to navigate.\n\n");
             printf("Visit https://github.com/beaumanvienna/marley for more information\n\n");
             return 0;
+        }
+        if ((str.find(".cue") > 0) || (str.find("PS1") > 0))
+        {
+            int pos1=str.find(".cue");
+            int pos2=str.find("PS1");
+                       
+            if (( access( str.c_str(), F_OK ) != -1 ))
+            {
+                printf("file %s found\n", str.c_str());
+                game=str;
+            }
+            else
+            {
+                printf("Not found: %s \n", str.c_str());
+            }
         }
     }
     
@@ -240,7 +260,13 @@ int main( int argc, char* argv[] )
                         case SDL_QUIT: 
                             quit = true;
                             break;
+                        case SDL_JOYBUTTONDOWN: 
+                            cmd = "mednafen "+game;
+                            printf("launching %s\n",cmd.c_str());
+                            system(cmd.c_str());
+                            break;
                         default: 
+                            //printf("other event\n");
                             (void) 0;
                     }
                 }
