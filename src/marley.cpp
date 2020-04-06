@@ -85,10 +85,22 @@ int main( int argc, char* argv[] )
     
     for (int i = 1; i < argc; i++) 
     {
-        if (!strcmp(argv[i], "--version")) 
+        string str = argv[i];
+        if (str.find("--version") == 0) 
         {
             // version from configure.ac
             printf("This is marley version %s\n",PACKAGE_VERSION);
+            return 0;
+        }
+        if ((str.find("--help") == 0) || (str.find("-?") == 0))
+        {
+            printf("This is marley version %s\n",PACKAGE_VERSION);
+            printf("\nOptions:\n\n");
+            printf("  --version             : print version\n");
+            printf("  --fullscreen, -f      : start in fullscreen mode\n");
+            printf("  --no-fullscreen, -n   : start in normal mode\n\n");
+            printf("Use your controller or arrow keys/enter/ESC on your keyboard to navigate.\n\n");
+            printf("Visit https://github.com/beaumanvienna/marley for more information\n\n");
             return 0;
         }
     }
