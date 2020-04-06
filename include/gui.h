@@ -90,7 +90,4 @@ using namespace std;
     //Scene textures
     extern LTexture gArrowTexture;
     
-    
-    
-    
 #endif
