@@ -27,7 +27,7 @@
 bool init()
 {
     //Initialization flag
-    bool success = true;
+    bool ok = true;
     int i,j;
     SDL_Joystick *joy;
     
@@ -38,7 +38,7 @@ bool init()
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-        success = false;
+        ok = false;
     }
     else
     {
@@ -54,96 +54,24 @@ bool init()
         linked.major, linked.minor, linked.patch);
         
         
-        for (int i=0; i< MAX_GAMEPADS_PLUGGED; i++)
-        {
-            gGamepad[i] = NULL;
-        }
+        initJoy();
+        ok = initGUI();
         
-        
-        for (int i=0; i< MAX_GAMEPADS; i++)
-        {
-            gDesignatedControllers[i].instance = -1;
-            gDesignatedControllers[i].name = "NULL";
-            gDesignatedControllers[i].joy = NULL;
-        }
-        
-        
-        //Set texture filtering to linear
-        if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-        {
-            printf( "Warning: Linear texture filtering not enabled!" );
-        }
-
-        //Create main window
-        gWindow = SDL_CreateWindow( "marley", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN );
-        if( gWindow == NULL )
-        {
-            printf( "Main window could not be created! SDL Error: %s\n", SDL_GetError() );
-            success = false;
-        }
-        else
-        {
-            //Create vsynced renderer for main window
-            gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-            if( gRenderer == NULL )
-            {
-                printf( "Renderer could not be created. SDL error: %s\n", SDL_GetError() );
-                success = false;
-            }
-            else
-            {
-                //Initialize renderer color
-                SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-
-                //Initialize PNG loading
-                int imgFlags = IMG_INIT_PNG;
-                if( !( IMG_Init( imgFlags ) & imgFlags ) )
-                {
-                    printf( "SDL_image could not initialize. SDL_image error: %s\n", IMG_GetError() );
-                    success = false;
-                }
-            }
-        }
         printf( "init() end\n");
     }
 
-    return success;
-}
-
-//Loads media
-bool loadMedia()
-{
-    //Loading flag
-    bool success = true;
-
-    //Load texture
-    if( !gArrowTexture.loadFromFile( "pictures/arrow.png" ) )
-    {
-        printf( "Failed to load arrow texture!\n" );
-        success = false;
-    }
-    
-    return success;
+    return ok;
 }
 
 //Frees media and shuts down SDL
-void close()
+void closeAll()
 {
     //Free loaded textures
     gArrowTexture.free();
 
        
-    int j = SDL_NumJoysticks();
-    for (int i=0; i<j; i++)
-    {
-        closeJoy(i);
-    }
-
-    //Destroy main window    
-    SDL_DestroyRenderer( gRenderer );
-    SDL_DestroyWindow( gWindow );
-    gWindow = NULL;
-    gRenderer = NULL;
+    closeAllJoy();
+    closeGUI();
 
     //Quit SDL subsystems
     IMG_Quit();
@@ -314,8 +242,8 @@ int main( int argc, char* args[] )
         }
     }
 
-    //Free resources and close SDL
-    close();
+    //Free resources, shut down SDL
+    closeAll();
 
     return 0;
 }

@@ -143,3 +143,67 @@ int LTexture::getHeight()
     return mHeight;
 }
 
+bool initGUI(void)
+{
+    bool ok = true;
+    //Set texture filtering to linear
+    if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
+    {
+        printf( "Warning: Linear texture filtering not enabled!" );
+    }
+
+    //Create main window
+    gWindow = SDL_CreateWindow( "marley", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN );
+    if( gWindow == NULL )
+    {
+        printf( "Main window could not be created! SDL Error: %s\n", SDL_GetError() );
+        ok = false;
+    }
+    else
+    {
+        //Create vsynced renderer for main window
+        gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+        if( gRenderer == NULL )
+        {
+            printf( "Renderer could not be created. SDL error: %s\n", SDL_GetError() );
+            ok = false;
+        }
+        else
+        {
+            //Initialize renderer color
+            SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+
+            //Initialize PNG loading
+            int imgFlags = IMG_INIT_PNG;
+            if( !( IMG_Init( imgFlags ) & imgFlags ) )
+            {
+                printf( "SDL_image could not initialize. SDL_image error: %s\n", IMG_GetError() );
+                ok = false;
+            }
+        }
+    }
+    return ok;
+}
+
+bool loadMedia(void)
+{
+    //Loading flag
+    bool ok = true;
+
+    //Load texture
+    if( !gArrowTexture.loadFromFile( "pictures/arrow.png" ) )
+    {
+        printf( "Failed to load arrow texture!\n" );
+        ok = false;
+    }
+    
+    return ok;
+}
+bool closeGUI(void)
+{
+    //Destroy main window    
+    SDL_DestroyRenderer( gRenderer );
+    SDL_DestroyWindow( gWindow );
+    gWindow = NULL;
+    gRenderer = NULL;
+}

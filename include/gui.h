@@ -80,6 +80,9 @@ using namespace std;
             int mHeight;
     };
     
+    bool initGUI(void);
+    bool loadMedia(void);
+    bool closeGUI(void);
     
     //rendering window 
     extern SDL_Window* gWindow;

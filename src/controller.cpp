@@ -28,10 +28,33 @@ SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 //designated controllers
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 
-SDL_JoystickGUID guid;
-char guid_str[1024];
+bool initJoy(void)
+{
+    int i;
+    for (int i=0; i< MAX_GAMEPADS_PLUGGED; i++)
+    {
+        gGamepad[i] = NULL;
+    }
+    
+    
+    for (int i=0; i< MAX_GAMEPADS; i++)
+    {
+        gDesignatedControllers[i].instance = -1;
+        gDesignatedControllers[i].name = "NULL";
+        gDesignatedControllers[i].joy = NULL;
+    }
+    return true;
+}
 
-SDL_GameController *ctrl;
+bool closeAllJoy(void)
+{
+    int j = SDL_NumJoysticks();
+    for (int i=0; i<j; i++)
+    {
+        closeJoy(i);
+    }
+    return true;
+}
 
 bool closeJoy(int instance_id)
 {
@@ -80,6 +103,7 @@ bool printJoyInfo(int i)
     int num_hats = SDL_JoystickNumHats(joy);
     int num_balls = SDL_JoystickNumBalls(joy);
     char *mapping;
+    SDL_GameController *gController;
     
     printf("printJoyInfo(int %i)",i);
     printf("  *************************************************************************\n");
@@ -99,11 +123,11 @@ bool printJoyInfo(int i)
 
     
     SDL_Log("Index \'%i\' is a compatible gamepad, named \'%s\' mapped as \"%s\".", i, SDL_GameControllerNameForIndex(i),mapping);
-    ctrl = SDL_GameControllerOpen(i);
-    mapping = SDL_GameControllerMapping(ctrl);
+    gController = SDL_GameControllerOpen(i);
+    mapping = SDL_GameControllerMapping(gController);
     
     SDL_free(mapping);
-    
+    return true;
 }
 bool checkControllerIsSupported(int i)
 {

@@ -33,34 +33,35 @@ using namespace std;
 #define CONTROLLER_H
 
     //supported number of controllers in GUI
-    #define MAX_GAMEPADS 16
+    #define MAX_GAMEPADS 2
 
-    //SDL increases the id for a controller every time it reconnects
+    //SDL increases the instance for a controller every 
+    //time a controller reconnects
     #define MAX_GAMEPADS_PLUGGED 128
 
     // supporess controller noise
-    const int ANALOG_DEAD_ZONE = 1000;
+    const int ANALOG_DEAD_ZONE = 2000;
 
+    // controllers detected by SDL 
+    // will be assigned a slot
+    // (designated controller 0, controller 1)
     typedef struct DesignatedControllers { 
         SDL_Joystick* joy; 
         int instance; 
         string name; 
     } T_DesignatedControllers;
     
+    bool initJoy(void);
     bool openJoy(int i);
     bool checkControllerIsSupported(int i);
     bool printJoyInfo(int i);
     bool closeJoy(int instance_id);
+    bool closeAllJoy(void);
 
-    //Gamepad array
+    //Gamepad array for all instances
     extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 
     //designated controllers
     extern T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
-
-    extern SDL_JoystickGUID guid;
-    extern char guid_str[1024];
-
-    extern SDL_GameController *ctrl;
 
 #endif
