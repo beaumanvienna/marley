@@ -12,4 +12,8 @@ config.log
 config.status
 marley
 marley.o
+src/.dirstamp
+src/controller.o
+src/gui.o
+
 

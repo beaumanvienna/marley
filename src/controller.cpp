@@ -20,7 +20,7 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "include/controller.h"
+#include "../include/controller.h"
 
 //Gamepad array
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
