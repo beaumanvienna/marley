@@ -48,6 +48,7 @@ bool init()
 
         SDL_VERSION(&compiled);
         SDL_GetVersion(&linked);
+        printf("This is marley version %s\n",PACKAGE_VERSION);
         printf("We compiled against SDL version %d.%d.%d ...\n",
         compiled.major, compiled.minor, compiled.patch);
         printf("But we are linking against SDL version %d.%d.%d.\n",
@@ -78,9 +79,21 @@ void closeAll()
     SDL_Quit();
 }
 
-int main( int argc, char* args[] )
+int main( int argc, char* argv[] )
 {
     int k,l,m,id;
+    
+    for (int i = 1; i < argc; i++) 
+    {
+        if (!strcmp(argv[i], "--version")) 
+        {
+            // version from configure.ac
+            printf("This is marley version %s\n",PACKAGE_VERSION);
+            return 0;
+        }
+    }
+    
+    
     //Start up SDL and create window
     if( !init() )
     {
