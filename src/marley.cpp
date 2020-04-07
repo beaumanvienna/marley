@@ -39,7 +39,7 @@ bool init()
 
     printf( "init()\n");
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK ) < 0 )
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         ok = false;
@@ -88,6 +88,8 @@ int main( int argc, char* argv[] )
     int k,l,m,id;
     string game, cmd;
     
+    gFullscreen=false;
+    game="";
     for (int i = 1; i < argc; i++) 
     {
         string str = argv[i];
@@ -102,25 +104,24 @@ int main( int argc, char* argv[] )
             printf("This is marley version %s\n",PACKAGE_VERSION);
             printf("\nOptions:\n\n");
             printf("  --version             : print version\n");
-            printf("  --fullscreen, -f      : start in fullscreen mode\n");
-            printf("  --no-fullscreen, -n   : start in normal mode\n\n");
+            printf("  --fullscreen, -f      : start in fullscreen mode\n\n");
             printf("Use your controller or arrow keys/enter/ESC on your keyboard to navigate.\n\n");
             printf("Visit https://github.com/beaumanvienna/marley for more information\n\n");
             return 0;
         }
-        if ((str.find(".cue") > 0) || (str.find("PS1") > 0))
+        
+        if ((str.find("--fullscreen") == 0) || (str.find("-f") == 0))
         {
-            int pos1=str.find(".cue");
-            int pos2=str.find("PS1");
-                       
+            gFullscreen=true;
+        } 
+        
+        if ((str.find(".cue") > 0) && (str.find("PS1") > 0))
+        {
             if (( access( str.c_str(), F_OK ) != -1 ))
             {
-                printf("file %s found\n", str.c_str());
+                //file exists
+                printf("Found PS1 ROM %s\n", str.c_str());
                 game=str;
-            }
-            else
-            {
-                printf("Not found: %s \n", str.c_str());
             }
         }
     }
@@ -142,12 +143,13 @@ int main( int argc, char* argv[] )
         {    
             //Main loop flag
             bool quit = false;
+            bool emuReturn;
             
             bool controller0 = false;
             bool controller1 = false;
 
             //Event handler
-            SDL_Event e;
+            SDL_Event ev;
 
             int xDir0 = 0;
             int yDir0 = 0;
@@ -159,13 +161,13 @@ int main( int argc, char* argv[] )
             while( !quit )
             {
                 //Handle events on queue
-                while( SDL_PollEvent( &e ) != 0 )
+                while( SDL_PollEvent( &ev ) != 0 )
                 {
                     // main event loop
-                    switch (e.type)
+                    switch (ev.type)
                     {
                         case SDL_KEYDOWN: 
-                            switch( e.key.keysym.sym )
+                            switch( ev.key.keysym.sym )
                             {
                                 case SDLK_l:
                                     k = SDL_NumJoysticks();
@@ -191,6 +193,9 @@ int main( int argc, char* argv[] )
                                         printf("************* no controllers found ************* \n");
                                     }
                                     break;
+                                case SDLK_ESCAPE:
+                                    quit = true;
+                                    break;
                                 default:
                                     printf("key not recognized \n");
                                     break;
@@ -198,18 +203,18 @@ int main( int argc, char* argv[] )
                             break;
                         case SDL_JOYDEVICEADDED: 
                             printf("New device ");
-                            openJoy(e.jdevice.which);
+                            openJoy(ev.jdevice.which);
                             break;
                         case SDL_JOYDEVICEREMOVED: 
                             printf("xxxxxxxxxxxxxxx device removed xxxxxxxxxxxxxxx \n");
-                            closeJoy(e.jdevice.which);
+                            closeJoy(ev.jdevice.which);
                             break;
                         case SDL_JOYAXISMOTION: 
                             //Motion on gamepad x
-                            if (abs(e.jaxis.value) > ANALOG_DEAD_ZONE)
+                            if (abs(ev.jaxis.value) > ANALOG_DEAD_ZONE)
                             {
-                                controller0 = (e.jaxis.which == gDesignatedControllers[0].instance);
-                                controller1 = (e.jaxis.which == gDesignatedControllers[1].instance);
+                                controller0 = (ev.jaxis.which == gDesignatedControllers[0].instance);
+                                controller1 = (ev.jaxis.which == gDesignatedControllers[1].instance);
                             } else
                             {
                                 controller0 = false;
@@ -219,15 +224,15 @@ int main( int argc, char* argv[] )
                             if (controller0)
                             {
                                 //X axis motion
-                                if( e.jaxis.axis == 0 )
+                                if( ev.jaxis.axis == 0 )
                                 {
                                     //Left of dead zone
-                                    if( e.jaxis.value < -ANALOG_DEAD_ZONE )
+                                    if( ev.jaxis.value < -ANALOG_DEAD_ZONE )
                                     {
                                         xDir0 = -1;
                                     }
                                     //Right of dead zone
-                                    else if( e.jaxis.value > ANALOG_DEAD_ZONE )
+                                    else if( ev.jaxis.value > ANALOG_DEAD_ZONE )
                                     {
                                         xDir0 =  1;
                                     }
@@ -237,16 +242,16 @@ int main( int argc, char* argv[] )
                                     }
                                 }
                                 //Y axis motion
-                                else if( e.jaxis.axis == 1 )
+                                else if( ev.jaxis.axis == 1 )
                                 {
                                     //printf( "Y axis motion\n" );
                                     //Below of dead zone
-                                    if( e.jaxis.value < -ANALOG_DEAD_ZONE )
+                                    if( ev.jaxis.value < -ANALOG_DEAD_ZONE )
                                     {
                                         yDir0 = -1;
                                     }
                                     //Above of dead zone
-                                    else if( e.jaxis.value > ANALOG_DEAD_ZONE )
+                                    else if( ev.jaxis.value > ANALOG_DEAD_ZONE )
                                     {
                                         yDir0 =  1;
                                     }
@@ -261,19 +266,27 @@ int main( int argc, char* argv[] )
                             quit = true;
                             break;
                         case SDL_JOYBUTTONDOWN: 
-                            cmd = "mednafen "+game;
-                            printf("launching %s\n",cmd.c_str());
-                            system(cmd.c_str());
+                            if (game != "")
+                            {
+                                cmd = "mednafen \""+game+"\"";
+                                printf("launching %s\n",cmd.c_str());
+                                emuReturn = system(cmd.c_str());
+                            } else
+                            {
+                                printf("no valid ROM found\n");
+                            }
                             break;
                         default: 
                             //printf("other event\n");
                             (void) 0;
                     }
                 }
-
+                
+                /*
                 //Clear screen
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
                 SDL_RenderClear( gRenderer );
+                */
 
                 //Angle first controller
                 double joystickAngle0 = atan2( (double)yDir0, (double)xDir0 ) * ( 180.0 / M_PI );
@@ -286,8 +299,14 @@ int main( int argc, char* argv[] )
 
                 //Render joystick 8 way angle
                 gArrowTexture.render( ( WINDOW_WIDTH - gArrowTexture.getWidth() ) / 2, ( WINDOW_HEIGHT - gArrowTexture.getHeight() ) / 2, NULL, joystickAngle0 );
-
+                
+                
+                //SDL_QueryTexture(gArrowTexture,NULL,NULL,&gDest.w,&gDest.h);
+                
+                //Clear screen
+                SDL_RenderClear( gRenderer );
                 //Update screen
+                SDL_RenderCopy(gRenderer,gBgTex,NULL,NULL);
                 SDL_RenderPresent( gRenderer );
             }
         }

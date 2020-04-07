@@ -28,8 +28,16 @@ SDL_Window* gWindow = NULL;
 //window renderer
 SDL_Renderer* gRenderer = NULL;
 
+//background texture
+SDL_Texture* gBgTex = NULL;
+
 //Scene textures
 LTexture gArrowTexture;
+
+//rectangle for sprite
+SDL_Rect gDest;
+
+bool gFullscreen;
 
 LTexture::LTexture()
 {
@@ -146,40 +154,72 @@ int LTexture::getHeight()
 bool initGUI(void)
 {
     bool ok = true;
+    Uint32 windowFlags;
+    int imgFlags;
+    SDL_Surface *background;
+    /*
     //Set texture filtering to linear
     if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
     {
         printf( "Warning: Linear texture filtering not enabled!" );
+    }*/
+    
+    windowFlags = SDL_WINDOW_SHOWN;
+    if (gFullscreen)
+    {
+        windowFlags = windowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
     //Create main window
-    gWindow = SDL_CreateWindow( "marley", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN );
+    gWindow = SDL_CreateWindow( "marley", 
+                                SDL_WINDOWPOS_CENTERED, 
+                                SDL_WINDOWPOS_CENTERED, 
+                                WINDOW_WIDTH, 
+                                WINDOW_HEIGHT, 
+                                windowFlags );
     if( gWindow == NULL )
     {
-        printf( "Main window could not be created! SDL Error: %s\n", SDL_GetError() );
+        printf( "Error creating main window. SDL Error: %s\n", SDL_GetError() );
         ok = false;
     }
     else
     {
-        //Create vsynced renderer for main window
+        //Create renderer for main window
         gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
         if( gRenderer == NULL )
         {
-            printf( "Renderer could not be created. SDL error: %s\n", SDL_GetError() );
+            printf( "Error creating renderer. SDL error: %s\n", SDL_GetError() );
             ok = false;
         }
         else
         {
-            //Initialize renderer color
-            SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
-            //Initialize PNG loading
-            int imgFlags = IMG_INIT_PNG;
+            //Initialize libsdl-image for png files
+            imgFlags = IMG_INIT_PNG;
             if( !( IMG_Init( imgFlags ) & imgFlags ) )
             {
-                printf( "SDL_image could not initialize. SDL_image error: %s\n", IMG_GetError() );
+                printf( "Error initialzing image support. SDL_image error: %s\n", IMG_GetError() );
                 ok = false;
             }
+            
+            // load background image
+            background = IMG_Load("pictures/beach.png");
+            if (!background)
+            {
+                printf("backround could not be loaded\n");
+            }
+            gBgTex=SDL_CreateTextureFromSurface(gRenderer,background);
+            if (!gBgTex)
+            {
+                printf("texture for background could not be created.\n");
+            }
+            SDL_FreeSurface(background);
+            
+            SDL_RenderClear(gRenderer);
+            
+            //draw backround to the main window
+            SDL_RenderCopy(gRenderer,gBgTex,NULL,NULL);
+            SDL_RenderPresent(gRenderer);
         }
     }
     return ok;

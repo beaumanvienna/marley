@@ -93,4 +93,10 @@ using namespace std;
     //Scene textures
     extern LTexture gArrowTexture;
     
+    extern SDL_Texture* gBgTex;
+    
+    extern SDL_Rect gDest;
+    
+    extern bool gFullscreen;
+    
 #endif
