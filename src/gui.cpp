@@ -28,127 +28,62 @@ SDL_Window* gWindow = NULL;
 //window renderer
 SDL_Renderer* gRenderer = NULL;
 
-//background texture
-SDL_Texture* gBgTex = NULL;
-
-//Scene textures
-LTexture gArrowTexture;
+//textures
+SDL_Texture* gTextures[NUM_TEXTURES];
 
 //rectangle for sprite
 SDL_Rect gDest;
 
 bool gFullscreen;
 
-LTexture::LTexture()
+bool loadMedia()
 {
-    //Initialize
-    mTexture = NULL;
-    mWidth = 0;
-    mHeight = 0;
-}
-
-LTexture::~LTexture()
-{
-    //Deallocate
-    free();
-}
-
-
-bool LTexture::loadFromFile( std::string path )
-{
-    //Get rid of preexisting texture
-    free();
-
-    //The final texture
-    SDL_Texture* newTexture = NULL;
-
-    //Load image at specified path
-    SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-    if( loadedSurface == NULL )
+    bool ok = true;
+    
+    // load background image
+    gTextures[TEX_BACKGROUND] = loadTextureFromFile("pictures/beach.png");
+    if (!gTextures[TEX_BACKGROUND])
     {
-        printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+        ok = false;
+    }
+    //load arrow
+    gTextures[TEX_ARROW] = loadTextureFromFile("pictures/arrow.png");
+    if (!gTextures[TEX_ARROW])
+    {
+        ok = false;
+    }
+    return ok;
+}
+
+bool freeTextures(void)
+{
+    for (int i;i<NUM_TEXTURES;i++)
+    {
+        SDL_DestroyTexture(gTextures[i]);
+    }
+    return true;
+}
+
+SDL_Texture* loadTextureFromFile(string str)
+{
+    SDL_Surface* surf = NULL;
+    SDL_Texture* texture = NULL;
+    
+    surf = IMG_Load(str.c_str());
+    if (!surf)
+    {
+        printf("File %s could not be loaded\n",str.c_str());
     }
     else
     {
-        //Color key image
-        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
-
-        //Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
-        if( newTexture == NULL )
+        texture =SDL_CreateTextureFromSurface(gRenderer,surf);
+        if (!texture)
         {
-            printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+            printf("texture for background could not be created.\n");
         }
-        else
-        {
-            //Get image dimensions
-            mWidth = loadedSurface->w;
-            mHeight = loadedSurface->h;
-        }
-
-        //Get rid of old loaded surface
-        SDL_FreeSurface( loadedSurface );
+        SDL_FreeSurface(surf);
     }
-
-    //Return success
-    mTexture = newTexture;
-    return mTexture != NULL;
-}
-
-void LTexture::free()
-{
-    //Free texture if it exists
-    if( mTexture != NULL )
-    {
-        SDL_DestroyTexture( mTexture );
-        mTexture = NULL;
-        mWidth = 0;
-        mHeight = 0;
-    }
-}
-
-void LTexture::setColor( Uint8 red, Uint8 green, Uint8 blue )
-{
-    //Modulate texture rgb
-    SDL_SetTextureColorMod( mTexture, red, green, blue );
-}
-
-void LTexture::setBlendMode( SDL_BlendMode blending )
-{
-    //Set blending function
-    SDL_SetTextureBlendMode( mTexture, blending );
-}
-        
-void LTexture::setAlpha( Uint8 alpha )
-{
-    //Modulate texture alpha
-    SDL_SetTextureAlphaMod( mTexture, alpha );
-}
-
-void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
-{
-    //Set rendering space and render to screen
-    SDL_Rect renderQuad = { x, y, mWidth, mHeight };
-
-    //Set clip rendering dimensions
-    if( clip != NULL )
-    {
-        renderQuad.w = clip->w;
-        renderQuad.h = clip->h;
-    }
-
-    //Render to screen
-    SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
-}
-
-int LTexture::getWidth()
-{
-    return mWidth;
-}
-
-int LTexture::getHeight()
-{
-    return mHeight;
+    return texture;
 }
 
 bool initGUI(void)
@@ -156,13 +91,6 @@ bool initGUI(void)
     bool ok = true;
     Uint32 windowFlags;
     int imgFlags;
-    SDL_Surface *background;
-    /*
-    //Set texture filtering to linear
-    if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-    {
-        printf( "Warning: Linear texture filtering not enabled!" );
-    }*/
     
     windowFlags = SDL_WINDOW_SHOWN;
     if (gFullscreen)
@@ -202,43 +130,23 @@ bool initGUI(void)
                 ok = false;
             }
             
-            // load background image
-            background = IMG_Load("pictures/beach.png");
-            if (!background)
+            //Load media
+            if( !loadMedia() )
             {
-                printf("backround could not be loaded\n");
+                printf( "Failed to load media!\n" );
             }
-            gBgTex=SDL_CreateTextureFromSurface(gRenderer,background);
-            if (!gBgTex)
-            {
-                printf("texture for background could not be created.\n");
-            }
-            SDL_FreeSurface(background);
             
             SDL_RenderClear(gRenderer);
             
-            //draw backround to the main window
-            SDL_RenderCopy(gRenderer,gBgTex,NULL,NULL);
+            //draw backround to main window
+            SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
             SDL_RenderPresent(gRenderer);
         }
     }
     return ok;
 }
 
-bool loadMedia(void)
-{
-    //Loading flag
-    bool ok = true;
 
-    //Load texture
-    if( !gArrowTexture.loadFromFile( "pictures/arrow.png" ) )
-    {
-        printf( "Failed to load arrow texture!\n" );
-        ok = false;
-    }
-    
-    return ok;
-}
 bool closeGUI(void)
 {
     //Destroy main window    
