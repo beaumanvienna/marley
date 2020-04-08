@@ -32,9 +32,12 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES 2
-    #define TEX_BACKGROUND 0
-    #define TEX_ARROW 1
+    #define NUM_TEXTURES    5
+        #define TEX_BACKGROUND      0
+        #define TEX_ARROW           1
+        #define TEX_PS3             2
+        #define TEX_XBOX360         3
+        #define TEX_GENERIC_CTRL    4
 
     #define WINDOW_WIDTH 1024
     #define WINDOW_HEIGHT 768
@@ -54,10 +57,8 @@ using namespace std;
     
     //textures
     extern SDL_Texture* gTextures[NUM_TEXTURES];
-    
-    //sprite
-    extern SDL_Rect gDest;
-    
+   
+    // fullscreen flag
     extern bool gFullscreen;
     
 #endif

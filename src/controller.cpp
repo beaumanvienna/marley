@@ -105,9 +105,7 @@ bool printJoyInfo(int i)
     char *mapping;
     SDL_GameController *gController;
     
-    printf("printJoyInfo(int %i)",i);
-    printf("  *************************************************************************\n");
-    
+    printf("printJoyInfo(int %i\n)",i);
 
     
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);

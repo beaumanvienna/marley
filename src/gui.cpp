@@ -31,27 +31,46 @@ SDL_Renderer* gRenderer = NULL;
 //textures
 SDL_Texture* gTextures[NUM_TEXTURES];
 
-//rectangle for sprite
-SDL_Rect gDest;
-
 bool gFullscreen;
 
 bool loadMedia()
 {
     bool ok = true;
     
-    // load background image
+    // background
     gTextures[TEX_BACKGROUND] = loadTextureFromFile("pictures/beach.png");
     if (!gTextures[TEX_BACKGROUND])
     {
         ok = false;
     }
-    //load arrow
+    //arrow
     gTextures[TEX_ARROW] = loadTextureFromFile("pictures/arrow.png");
     if (!gTextures[TEX_ARROW])
     {
         ok = false;
     }
+    
+    //PS3 dualshock
+    gTextures[TEX_PS3] = loadTextureFromFile("pictures/PS3-DualShock.png");
+    if (!gTextures[TEX_PS3])
+    {
+        ok = false;
+    }
+
+    //XBox 360 controller
+    gTextures[TEX_XBOX360] = loadTextureFromFile("pictures/Xbox-360-S-Controller.png");
+    if (!gTextures[TEX_XBOX360])
+    {
+        ok = false;
+    }
+    
+    //Generic controller
+    gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile("pictures/generic-controller.png");
+    if (!gTextures[TEX_GENERIC_CTRL])
+    {
+        ok = false;
+    }
+    
     return ok;
 }
 
@@ -134,6 +153,7 @@ bool initGUI(void)
             if( !loadMedia() )
             {
                 printf( "Failed to load media!\n" );
+                ok = false;
             }
             
             SDL_RenderClear(gRenderer);

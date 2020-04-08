@@ -27,6 +27,8 @@
 #include <string>
 #include <fstream>
 
+bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
+
 //initializes SDL and creates main window
 bool init()
 {
@@ -96,7 +98,11 @@ int main( int argc, char* argv[] )
     int k,l,m,id;
     string game, cmd;
     bool ignore=false;
-    double angle = 0;
+    double angle0 = 0;
+    double angle1 = 0;
+    
+    //render destination 
+    SDL_Rect destination;
     
     gFullscreen=false;
     game="";
@@ -147,11 +153,13 @@ int main( int argc, char* argv[] )
         //Main loop flag
         bool quit = false;
         bool emuReturn;
+        double x0=0;
+        double y0=0;
+        double x1=0;
+        double y1=0;
 
         //Event handler
         SDL_Event event;
-        int xDir0 = 0;
-        int yDir0 = 0;
 
         //main loop
         while( !quit )
@@ -201,85 +209,46 @@ int main( int argc, char* argv[] )
                         }
                         break;
                     case SDL_JOYDEVICEADDED: 
-                        printf("New device ");
+                        printf("\n*** New device found");
                         openJoy(event.jdevice.which);
                         break;
                     case SDL_JOYDEVICEREMOVED: 
-                        printf("xxxxxxxxxxxxxxx device removed xxxxxxxxxxxxxxx \n");
+                        printf("*** device removed\n");
                         closeJoy(event.jdevice.which);
                         break;
                     case SDL_JOYAXISMOTION: 
-                        //Motion on gamepad x
                         if (abs(event.jaxis.value) > ANALOG_DEAD_ZONE)
                         {
-                            //X axis motion
-                            if( event.jaxis.axis == 0 )
+                            if (event.jdevice.which == gDesignatedControllers[0].instance)
                             {
-                                //Left of dead zone
-                                if( event.jaxis.value < -ANALOG_DEAD_ZONE )
-                                {
-                                    xDir0 = -1;
-                                }
-                                //Right of dead zone
-                                else if( event.jaxis.value > ANALOG_DEAD_ZONE )
-                                {
-                                    xDir0 =  1;
-                                }
-                                else
-                                {
-                                    xDir0 = 0;
-                                }
+                                joyMotion(event,0,&x0,&y0);
                             }
-                            //Y axis motion
-                            else if( event.jaxis.axis == 1 )
+                            else if (event.jdevice.which == gDesignatedControllers[1].instance)
                             {
-                                //printf( "Y axis motion\n" );
-                                //Below of dead zone
-                                if( event.jaxis.value < -ANALOG_DEAD_ZONE )
-                                {
-                                    yDir0 = -1;
-                                }
-                                //Above of dead zone
-                                else if( event.jaxis.value > ANALOG_DEAD_ZONE )
-                                {
-                                    yDir0 =  1;
-                                }
-                                else
-                                {
-                                    yDir0 = 0;
-                                }
+                                joyMotion(event,1,&x1,&y1);
                             }
-                        }
-                        if ((xDir0 == -1) && (yDir0 == 1))
-                        {
-                            angle = 180;
-                        }
-                        if ((xDir0 == 1) && (yDir0 == 1))
-                        {
-                            angle = 0;
-                        }
-                        if ((xDir0 == -1) && (yDir0 == -1))
-                        {
-                            angle = 90;
-                        }
-                        if ((xDir0 == 1) && (yDir0 == -1))
-                        {
-                            angle = 270;
+                            //printf("%i %i %i %i \n",x0,y0,x1,y1);
+                            angle0=atan2(y0,x0)*180.0 / 3.141;
+                            angle1=atan2(y1,x1)*180.0 / 3.141;
                         }
                         break;
                     case SDL_QUIT: 
                         quit = true;
                         break;
                     case SDL_JOYBUTTONDOWN: 
-                        if (game != "")
+                        if ((event.jbutton.button==7) || (event.jbutton.button==9))
                         {
-                            cmd = "mednafen \""+game+"\"";
-                            printf("launching %s\n",cmd.c_str());
-                            emuReturn = system(cmd.c_str());
-                            ignore=true;
-                        } else
-                        {
-                            printf("no valid ROM found\n");
+                            if (game != "")
+                            {
+                                cmd = "mednafen \""+game+"\"";
+                                printf("launching %s\n",cmd.c_str());
+                                emuReturn = system(cmd.c_str());
+                                ignore=true;
+                                
+                            } else
+                            {
+                                printf("no valid ROM found\n");
+                            }
                         }
                         break;
                     default: 
@@ -288,20 +257,72 @@ int main( int argc, char* argv[] )
                 }
             }
             
-            
-            
             //Clear screen
             SDL_RenderClear( gRenderer );
-            //Update screen
+            //background
             SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
             
             
-            //Set rendering space and render to screen
-            gDest = { 300, 100, 500, 500 };
+            int ctrlTex;
+            //designated controller 0: Load image and render to screen
+            if (gDesignatedControllers[0].instance != -1)
+            {
+                ctrlTex = TEX_GENERIC_CTRL;
+                string name = gDesignatedControllers[0].name;
+                string str;
+                
+                //controller 0 arrow: Set rendering space and render to screen
+                destination = { 200, 100, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0, NULL, SDL_FLIP_NONE );
 
-            //Render to screen
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &gDest, angle, NULL, SDL_FLIP_NONE );
+                //check if PS3
+                str = "Sony PLAYSTATION(R)3";
+                int str_pos = name.find(str);
+                if (str_pos>=0)
+                {
+                    ctrlTex = TEX_PS3;
+                } 
+                
+                //check if XBOX 360
+                str = "360";
+                str_pos = name.find(str);
+                if (str_pos>=0)
+                {
+                    ctrlTex = TEX_XBOX360;
+                }
+                destination = { 500, 100, 250, 250 };
+                SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            }
             
+            //designated controller 1: load image and render to screen
+            if (gDesignatedControllers[1].instance != -1)
+            {
+                ctrlTex = TEX_GENERIC_CTRL;
+                string name = gDesignatedControllers[1].name;
+                string str;
+                
+                //controller 1 arrow: Set rendering space and render to screen
+                destination = { 200, 500, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1, NULL, SDL_FLIP_NONE );
+
+                //check if PS3
+                str = "Sony PLAYSTATION(R)3";
+                int str_pos = name.find(str);
+                if (str_pos>=0)
+                {
+                    ctrlTex = TEX_PS3;
+                } 
+                
+                //check if XBOX 360
+                str = "360";
+                str_pos = name.find(str);
+                if (str_pos>=0)
+                {
+                    ctrlTex = TEX_XBOX360;
+                }
+                destination = { 500, 500, 250, 250 };
+                SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            }
             
             //SDL_RenderCopy(gRenderer, gTextures[TEX_ARROW], NULL, NULL);
             SDL_RenderPresent( gRenderer );
@@ -313,4 +334,19 @@ int main( int argc, char* argv[] )
     closeAll();
 
     return 0;
+}
+
+//Motion on gamepad x
+bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
+{
+    if( event.jaxis.axis == 0 )
+    {
+        //X axis motion
+        x[0]=event.jaxis.value;
+    }
+    else if( event.jaxis.axis == 1 )
+    {
+        //Y axis motion
+        y[0]=event.jaxis.value;
+    }
 }
