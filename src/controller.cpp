@@ -30,20 +30,35 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 
 bool initJoy(void)
 {
+    bool ok = true;
     int i;
-    for (int i=0; i< MAX_GAMEPADS_PLUGGED; i++)
+    
+    SDL_Init(SDL_INIT_GAMECONTROLLER);
+    
+    if( SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb.txt") == -1 )
+    {
+        //this is not a crtical error, no need to return "false"
+        printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
+    }
+    
+    if( SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb_internal.txt") == -1 )
+    {
+        //this is not a crtical error, no need to return "false"
+        printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
+    }
+    
+    for (i=0; i< MAX_GAMEPADS_PLUGGED; i++)
     {
         gGamepad[i] = NULL;
     }
     
-    
-    for (int i=0; i< MAX_GAMEPADS; i++)
+    for (i=0; i< MAX_GAMEPADS; i++)
     {
         gDesignatedControllers[i].instance = -1;
         gDesignatedControllers[i].name = "NULL";
         gDesignatedControllers[i].joy = NULL;
     }
-    return true;
+    return ok;
 }
 
 bool closeAllJoy(void)
@@ -103,9 +118,9 @@ bool printJoyInfo(int i)
     int num_hats = SDL_JoystickNumHats(joy);
     int num_balls = SDL_JoystickNumBalls(joy);
     char *mapping;
-    SDL_GameController *gController;
+    SDL_GameController *gameCtrl;
     
-    printf("printJoyInfo(int %i\n)",i);
+    printf("printJoyInfo(int %i)\n",i);
 
     
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
@@ -118,11 +133,16 @@ bool printJoyInfo(int i)
     printf("Number of Buttons: %d  ", SDL_JoystickNumButtons(joy));
     printf("Number of Balls: %d  ", SDL_JoystickNumBalls(joy));
     printf("%s \"%s\" axes:%d buttons:%d hats:%d balls:%d\n", guid_str, name, num_axes, num_buttons, num_hats, num_balls);
-
     
-    SDL_Log("Index \'%i\' is a compatible gamepad, named \'%s\' mapped as \"%s\".", i, SDL_GameControllerNameForIndex(i),mapping);
-    gController = SDL_GameControllerOpen(i);
-    mapping = SDL_GameControllerMapping(gController);
+    if (SDL_IsGameController(i)) {
+        SDL_Log("Index \'%i\' is a compatible controller, named \'%s\'", i, SDL_GameControllerNameForIndex(i));
+        gameCtrl = SDL_GameControllerOpen(i);
+        mapping = SDL_GameControllerMapping(gameCtrl);
+        SDL_Log("Controller %i is mapped as \"%s\".", i, mapping);
+        SDL_free(mapping);
+    } else {
+        SDL_Log("Index \'%i\' is not a compatible controller.", i);
+    }
     
     SDL_free(mapping);
     return true;
@@ -169,7 +189,7 @@ bool openJoy(int i)
             gGamepad[i] = joy;
             if( gGamepad[i] == NULL )
             {
-                printf( "Warning: Unable to open 1st game gamepad! SDL Error: %s\n", SDL_GetError() );
+                printf( "Warning: Unable to open game gamepad! SDL Error: %s\n", SDL_GetError() );
             }
             else
             {
@@ -178,6 +198,7 @@ bool openJoy(int i)
                 printf("active controllers: %i\n",SDL_NumJoysticks());
                 if ( checkControllerIsSupported(i))
                 {
+                    //search for 1st empty slot
                     for (designation=0;designation< MAX_GAMEPADS; designation++)
                     {
                         if (gDesignatedControllers[designation].instance == -1)
@@ -189,7 +210,7 @@ bool openJoy(int i)
                             designation = MAX_GAMEPADS;
                         }
                     }
-                    
+                    //print all designated controllers to terminal
                     for (designation=0;designation<MAX_GAMEPADS;designation++)
                     {        
                         designation_instance= gDesignatedControllers[designation].instance;

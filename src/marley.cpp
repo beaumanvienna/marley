@@ -28,6 +28,7 @@
 #include <fstream>
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
+bool joyButton(SDL_Event event, int designatedCtrl);
 
 //initializes SDL and creates main window
 bool init()
@@ -209,11 +210,11 @@ int main( int argc, char* argv[] )
                         }
                         break;
                     case SDL_JOYDEVICEADDED: 
-                        printf("\n*** New device found");
+                        printf("\n*** Found new controller ");
                         openJoy(event.jdevice.which);
                         break;
                     case SDL_JOYDEVICEREMOVED: 
-                        printf("*** device removed\n");
+                        printf("*** controller removed\n");
                         closeJoy(event.jdevice.which);
                         break;
                     case SDL_JOYAXISMOTION: 
@@ -235,20 +236,15 @@ int main( int argc, char* argv[] )
                     case SDL_QUIT: 
                         quit = true;
                         break;
-                    case SDL_JOYBUTTONDOWN: 
-                        if ((event.jbutton.button==7) || (event.jbutton.button==9))
+                    case SDL_CONTROLLERBUTTONDOWN: 
+                    
+                        if (event.jdevice.which == gDesignatedControllers[0].instance)
                         {
-                            if (game != "")
-                            {
-                                cmd = "mednafen \""+game+"\"";
-                                printf("launching %s\n",cmd.c_str());
-                                emuReturn = system(cmd.c_str());
-                                ignore=true;
-                                
-                            } else
-                            {
-                                printf("no valid ROM found\n");
-                            }
+                            joyButton(event,0);
+                        }
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                        {
+                            joyButton(event,1);
                         }
                         break;
                     default: 
@@ -349,4 +345,74 @@ bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
         //Y axis motion
         y[0]=event.jaxis.value;
     }
+}
+
+
+bool joyButton(SDL_Event event, int designatedCtrl)
+{
+    switch( event.cbutton.button )
+    {
+        case SDL_CONTROLLER_BUTTON_A:
+            printf("a\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_B:
+            printf("b\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_X:
+            printf("x\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_Y:
+            printf("y\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_START:
+            printf("start\n");
+            break;
+        
+        case SDL_CONTROLLER_BUTTON_BACK:
+            printf("back\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_GUIDE:
+            printf("guide\n");
+            /*
+             if (game != "")
+            {
+                cmd = "mednafen \""+game+"\"";
+                printf("launching %s\n",cmd.c_str());
+                emuReturn = system(cmd.c_str());
+                ignore=true;
+            } else
+            {
+                printf("no valid ROM found\n");
+            }
+            */
+            break;
+        case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+            printf("left stick\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+            printf("right stick\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+            printf("left shoulder\n");
+            break;
+            
+         case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+            printf("right shoulder\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:
+            printf("dpad up\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            printf("dpad down\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            printf("left up\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            printf("dpad right\n");
+            break;
+        default:
+            printf("other\n");
+            break;
+    }     
 }
