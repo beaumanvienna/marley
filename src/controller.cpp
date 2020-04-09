@@ -21,6 +21,9 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "../include/controller.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 //Gamepad array
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
@@ -37,13 +40,7 @@ bool initJoy(void)
     
     if( SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb.txt") == -1 )
     {
-        //this is not a crtical error, no need to return "false"
-        printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
-    }
-    
-    if( SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb_internal.txt") == -1 )
-    {
-        //this is not a crtical error, no need to return "false"
+        //this is not a critical error, no need to return "false"
         printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
     }
     
@@ -57,6 +54,7 @@ bool initJoy(void)
         gDesignatedControllers[i].instance = -1;
         gDesignatedControllers[i].name = "NULL";
         gDesignatedControllers[i].joy = NULL;
+        gDesignatedControllers[i].mappingOK = false;
     }
     return ok;
 }
@@ -68,6 +66,9 @@ bool closeAllJoy(void)
     {
         closeJoy(i);
     }
+    // remove temp file
+    remove( "resources/gamecontrollerdb_internal.txt" );
+    
     return true;
 }
 
@@ -91,6 +92,7 @@ bool closeJoy(int instance_id)
                 gDesignatedControllers[designation].instance = -1;
                 gDesignatedControllers[designation].name = "NULL";
                 gDesignatedControllers[designation].joy = NULL;
+                gDesignatedControllers[designation].mappingOK = false;
             }
         }
            
@@ -111,7 +113,7 @@ bool closeJoy(int instance_id)
 bool printJoyInfo(int i)
 {
     SDL_Joystick *joy = SDL_JoystickOpen(i);
-    char guid_str[1024];
+    char guidStr[1024];
     const char* name = SDL_JoystickName(joy);
     int num_axes = SDL_JoystickNumAxes(joy);
     int num_buttons = SDL_JoystickNumButtons(joy);
@@ -125,14 +127,14 @@ bool printJoyInfo(int i)
     
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
     
-    SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
+    SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
     
     printf("Name: %s  ", SDL_JoystickNameForIndex(i));
     printf("Number of Axes: %d  ", SDL_JoystickNumAxes(joy));
     printf("Number of Buttons: %d  ", SDL_JoystickNumButtons(joy));
     printf("Number of Balls: %d  ", SDL_JoystickNumBalls(joy));
-    printf("%s \"%s\" axes:%d buttons:%d hats:%d balls:%d\n", guid_str, name, num_axes, num_buttons, num_hats, num_balls);
+    printf("%s \"%s\" axes:%d buttons:%d hats:%d balls:%d\n", guidStr, name, num_axes, num_buttons, num_hats, num_balls);
     
     if (SDL_IsGameController(i)) {
         SDL_Log("Index \'%i\' is a compatible controller, named \'%s\'", i, SDL_GameControllerNameForIndex(i));
@@ -206,7 +208,10 @@ bool openJoy(int i)
                             // instance is what e.jaxis.which returns
                             gDesignatedControllers[designation].instance = SDL_JoystickInstanceID(gGamepad[i]);
                             gDesignatedControllers[designation].name = SDL_JoystickNameForIndex(i);
+                            SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
+                            checkMapping(guid, &gDesignatedControllers[designation].mappingOK,gDesignatedControllers[designation].name);
                             printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
+                            //cancel loop
                             designation = MAX_GAMEPADS;
                         }
                     }
@@ -235,6 +240,99 @@ bool openJoy(int i)
     {   
         return false;
     }
+}
+
+//030000006f0e00001301000002010000
+//030000006f0e00001302000000010000,Afterglow,a:b0,b:b1,back:b6,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b8,leftshoulder:b4,leftstick:b9,lefttrigger:a2,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b10,righttrigger:a5,rightx:a3,righty:a4,start:b7,x:b2,y:b3,platform:Linux,
+
+bool findGuidInFile(string filename, string text2match, int length, string* lineRet)
+{
+    const char* file = filename.c_str();
+    bool ok = false;
+    string line;
+    string text = text2match.substr(0,length);
+    
+    //printf("findGuidInFile: %s length %i\n",text.c_str(),length);
+    lineRet[0] = "";
+    
+    ifstream myfile (file);
+    if (!myfile.is_open())
+    {
+        printf("Could not open file: findGuidInFile(%s,%s,%i)\n",filename.c_str(),text2match.c_str(),length);
+    }
+    else 
+    {
+        while ( getline (myfile,line) && !ok)
+        {
+            if (line.find(text.c_str()) == 0)
+            {
+                //printf("found!\n");
+                ok = true;
+                lineRet[0]=line;
+            }
+        }
+        myfile.close();
+    }
+   
+    return ok;
+}
+
+
+bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
+{
+    char guidStr[1024];
+    string line, append;
+    
+    //set up guidStr
+    SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
+    printf("checkMapping for GUID: %s\n",guidStr);
+    
+    //check public db
+    mappingOK[0] = findGuidInFile("resources/gamecontrollerdb.txt", guidStr,32,&line);
+    
+    if (mappingOK[0])
+    {
+        printf("guid found in public db\n");
+    }
+    else
+    {
+        printf("guid not found in public db\n");
+        for (int i=27;i>18;i--)
+        {
+            
+            //check in public db
+            mappingOK[0] = findGuidInFile("resources/gamecontrollerdb.txt",guidStr,i,&line);
+            
+            if (mappingOK[0])
+            {
+                // initialize controller with this line
+                //printf("line: %s\n",line.c_str());
+                int pos = line.find(",");
+                append = line.substr(pos+1,line.length()-pos-1);
+                
+                pos = append.find(",");
+                append = append.substr(pos+1,append.length()-pos-1);
+                
+                line = guidStr;
+                append=line+","+name+","+append;
+                
+                
+                std::ofstream outfile;
+
+                outfile.open("resources/gamecontrollerdb_internal.txt", std::ios_base::app); 
+                if(outfile) 
+                {
+                    outfile << append + "\n"; 
+                    outfile.close();
+                    SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb_internal.txt");
+                    mappingOK[0]=true;
+                }
+                
+                break;
+            }
+        }
+    }    
+    return mappingOK[0];
 }
 
 

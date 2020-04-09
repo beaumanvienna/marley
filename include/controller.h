@@ -48,12 +48,14 @@ using namespace std;
     typedef struct DesignatedControllers { 
         SDL_Joystick* joy; 
         int instance; 
-        string name; 
+        string name;
+        bool mappingOK; 
     } T_DesignatedControllers;
     
     bool initJoy(void);
     bool openJoy(int i);
     bool checkControllerIsSupported(int i);
+    bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK,string name);
     bool printJoyInfo(int i);
     bool closeJoy(int instance_id);
     bool closeAllJoy(void);

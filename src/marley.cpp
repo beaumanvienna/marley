@@ -28,7 +28,7 @@
 #include <fstream>
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
-bool joyButton(SDL_Event event, int designatedCtrl);
+bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC);
 
 //initializes SDL and creates main window
 bool init()
@@ -98,7 +98,7 @@ int main( int argc, char* argv[] )
 {
     int k,l,m,id;
     string game, cmd;
-    bool ignore=false;
+    bool ignoreESC=false;
     double angle0 = 0;
     double angle1 = 0;
     
@@ -199,7 +199,7 @@ int main( int argc, char* argv[] )
                                 }
                                 break;
                             case SDLK_ESCAPE:
-                                if(!ignore)
+                                if(!ignoreESC)
                                 {
                                     quit = true;
                                 }
@@ -240,15 +240,15 @@ int main( int argc, char* argv[] )
                     
                         if (event.jdevice.which == gDesignatedControllers[0].instance)
                         {
-                            joyButton(event,0);
+                            joyButton(event,0,game,&ignoreESC);
                         }
                         else if (event.jdevice.which == gDesignatedControllers[1].instance)
                         {
-                            joyButton(event,1);
+                            joyButton(event,1,game,&ignoreESC);
                         }
                         break;
                     default: 
-                        ignore = false;
+                        ignoreESC = false;
                         (void) 0;
                 }
             }
@@ -348,8 +348,10 @@ bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 }
 
 
-bool joyButton(SDL_Event event, int designatedCtrl)
+bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC)
 {
+    bool emuReturn;
+    string cmd;
     switch( event.cbutton.button )
     {
         case SDL_CONTROLLER_BUTTON_A:
@@ -373,18 +375,17 @@ bool joyButton(SDL_Event event, int designatedCtrl)
             break;
         case SDL_CONTROLLER_BUTTON_GUIDE:
             printf("guide\n");
-            /*
-             if (game != "")
+            
+            if (game != "")
             {
                 cmd = "mednafen \""+game+"\"";
                 printf("launching %s\n",cmd.c_str());
                 emuReturn = system(cmd.c_str());
-                ignore=true;
+                ignoreESC[0]=true;
             } else
             {
                 printf("no valid ROM found\n");
             }
-            */
             break;
         case SDL_CONTROLLER_BUTTON_LEFTSTICK:
             printf("left stick\n");
