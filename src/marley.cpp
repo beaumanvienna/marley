@@ -26,9 +26,12 @@
 #include <unistd.h>
 #include <string>
 #include <fstream>
+#include <dirent.h>
+#include <errno.h>
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC);
+bool checkConf(void);
 
 //initializes SDL and creates main window
 bool init()
@@ -73,6 +76,8 @@ bool init()
         }
         //printf( "init() end\n");
     }
+    
+    checkConf();
 
     return ok;
 }
@@ -368,14 +373,6 @@ bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC
             break;
         case SDL_CONTROLLER_BUTTON_START:
             printf("start\n");
-            break;
-        
-        case SDL_CONTROLLER_BUTTON_BACK:
-            printf("back\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_GUIDE:
-            printf("guide\n");
-            
             if (game != "")
             {
                 cmd = "mednafen \""+game+"\"";
@@ -386,6 +383,12 @@ bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC
             {
                 printf("no valid ROM found\n");
             }
+            break;
+        case SDL_CONTROLLER_BUTTON_BACK:
+            printf("back\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_GUIDE:
+            printf("guide\n");
             break;
         case SDL_CONTROLLER_BUTTON_LEFTSTICK:
             printf("left stick\n");
@@ -416,4 +419,108 @@ bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC
             printf("other\n");
             break;
     }     
+}
+
+bool createTemplate(string name)
+{
+    std::ofstream outfile;
+
+    outfile.open(name.c_str(), std::ios_base::app); 
+    if(outfile) 
+    {
+        //printf("writing to file\n");
+        outfile << "#directories (marley will search here for games and BIOS files)\n"; 
+        outfile << "search_dir=\n"; 
+        outfile << "search_dir=\n"; 
+        outfile << "\n"; 
+        outfile.close();
+    }
+    else
+    {
+        printf("Could not create config file %s\n",name.c_str());
+    }
+}
+
+bool loadConfig(ifstream* configFile)
+{
+    string entry, line, slash;
+    int pos;
+    DIR* dir;
+    
+    while ( getline (configFile[0],line))
+    {
+        if (line.find("search_dir=") == 0)
+        {
+            pos=10;
+            entry = line.substr(pos+1,line.length()-pos);
+            dir = opendir(entry.c_str());
+            if (dir) 
+            {
+                // Directory exists
+                closedir(dir);
+                slash = entry.substr(entry.length()-1,1);
+                if (slash != "/")
+                {
+                    entry += "/";
+                }
+                printf("found search directory: %s\n",entry.c_str());
+            }
+        }
+    }
+    configFile[0].close();
+}
+
+bool checkConf(void)
+{
+    const char *homedir;
+    string filename, entry, line, slash;
+    int pos;
+    DIR* dir;
+    
+    if ((homedir = getenv("HOME")) != NULL) 
+    {
+        filename = homedir;
+        
+        // add slash to end if necessary
+        slash = filename.substr(filename.length()-1,1);
+        if (slash != "/")
+        {
+            filename += "/";
+        }
+        
+        filename = filename + ".marley";
+        
+        DIR* dir = opendir(filename.c_str());
+        if (dir) 
+        {
+            // Directory exists
+            closedir(dir);
+            filename = filename + "/" + "marley.conf";
+            ifstream configFile (filename.c_str());
+            if (!configFile.is_open())
+            {
+                printf("Could not open config file: %s, creating template\n",filename.c_str());
+                createTemplate(filename);
+            }
+            else 
+            {
+                loadConfig(&configFile);
+            }
+        } 
+        else if (ENOENT == errno) 
+        {
+            // Directory does not exist
+            printf("creating directory %s ",filename.c_str());
+            if (mkdir(filename.c_str(), S_IRWXU ) == 0)
+            {
+                printf("(ok)\n");
+                filename = filename + "/" + "marley.conf";
+                createTemplate(filename);
+            }
+            else
+            {
+                printf("(failed)\n");
+            }
+        }
+    }    
 }

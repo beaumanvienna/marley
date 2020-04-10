@@ -146,7 +146,6 @@ bool printJoyInfo(int i)
         SDL_Log("Index \'%i\' is not a compatible controller.", i);
     }
     
-    SDL_free(mapping);
     return true;
 }
 bool checkControllerIsSupported(int i)
@@ -332,6 +331,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
             }
         }
     }    
+
     return mappingOK[0];
 }
 
