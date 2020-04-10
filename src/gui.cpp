@@ -111,6 +111,8 @@ bool initGUI(void)
     Uint32 windowFlags;
     int imgFlags;
     
+    SDL_ShowCursor(SDL_DISABLE);
+    
     windowFlags = SDL_WINDOW_SHOWN;
     if (gFullscreen)
     {
