@@ -241,8 +241,7 @@ bool openJoy(int i)
     }
 }
 
-//030000006f0e00001301000002010000
-//030000006f0e00001302000000010000,Afterglow,a:b0,b:b1,back:b6,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b8,leftshoulder:b4,leftstick:b9,lefttrigger:a2,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b10,righttrigger:a5,rightx:a3,righty:a4,start:b7,x:b2,y:b3,platform:Linux,
+
 
 bool findGuidInFile(string filename, string text2match, int length, string* lineRet)
 {

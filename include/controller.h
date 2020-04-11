@@ -39,7 +39,7 @@ using namespace std;
     //time a controller reconnects
     #define MAX_GAMEPADS_PLUGGED 128
 
-    // supporess controller noise
+    // suppress controller noise
     const int ANALOG_DEAD_ZONE = 2000;
 
     // controllers detected by SDL 

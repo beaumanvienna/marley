@@ -31,6 +31,8 @@ SDL_Renderer* gRenderer = NULL;
 //textures
 SDL_Texture* gTextures[NUM_TEXTURES];
 
+int gState = 0;
+
 bool gFullscreen;
 
 bool loadMedia()
@@ -67,6 +69,20 @@ bool loadMedia()
     //Generic controller
     gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile("pictures/generic-controller.png");
     if (!gTextures[TEX_GENERIC_CTRL])
+    {
+        ok = false;
+    }
+    
+    //rudder to start configuration run
+    gTextures[TEX_RUDDER] = loadTextureFromFile("pictures/rudder.png");
+    if (!gTextures[TEX_RUDDER])
+    {
+        ok = false;
+    }
+    
+    //rudder to start configuration run
+    gTextures[TEX_RUDDER_GREY] = loadTextureFromFile("pictures/rudder_grey.png");
+    if (!gTextures[TEX_RUDDER_GREY])
     {
         ok = false;
     }
@@ -120,7 +136,9 @@ bool initGUI(void)
     }
 
     //Create main window
-    gWindow = SDL_CreateWindow( "marley", 
+    string str = "marley ";
+    str += PACKAGE_VERSION;
+    gWindow = SDL_CreateWindow( str.c_str(), 
                                 SDL_WINDOWPOS_CENTERED, 
                                 SDL_WINDOWPOS_CENTERED, 
                                 WINDOW_WIDTH, 
@@ -142,7 +160,9 @@ bool initGUI(void)
         }
         else
         {
-
+            
+            SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+            
             //Initialize libsdl-image for png files
             imgFlags = IMG_INIT_PNG;
             if( !( IMG_Init( imgFlags ) & imgFlags ) )

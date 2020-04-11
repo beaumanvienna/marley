@@ -32,12 +32,18 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    5
+    #define NUM_TEXTURES    7
         #define TEX_BACKGROUND      0
         #define TEX_ARROW           1
         #define TEX_PS3             2
         #define TEX_XBOX360         3
         #define TEX_GENERIC_CTRL    4
+        #define TEX_RUDDER          5
+        #define TEX_RUDDER_GREY     6
+    
+    #define STATE_ZERO      0
+    #define STATE_CONF0     1
+    #define STATE_CONF1     2
 
     #define WINDOW_WIDTH 1024
     #define WINDOW_HEIGHT 768
@@ -60,5 +66,8 @@ using namespace std;
    
     // fullscreen flag
     extern bool gFullscreen;
+    
+    // statemachine
+    extern int gState;
     
 #endif

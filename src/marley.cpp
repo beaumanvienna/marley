@@ -29,9 +29,12 @@
 #include <dirent.h>
 #include <errno.h>
 
+#define PI 3.14159
+
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC);
 bool checkConf(void);
+bool statemachine(int cmd);
 
 //initializes SDL and creates main window
 bool init()
@@ -104,8 +107,14 @@ int main( int argc, char* argv[] )
     int k,l,m,id;
     string game, cmd;
     bool ignoreESC=false;
-    double angle0 = 0;
-    double angle1 = 0;
+    double angle0L = 0;
+    double angle1L = 0;
+    double angle0R = 0;
+    double angle1R = 0;
+    double amplitude0L = 0;
+    double amplitude1L = 0;
+    double amplitude0R = 0;
+    double amplitude1R = 0;
     
     //render destination 
     SDL_Rect destination;
@@ -233,9 +242,21 @@ int main( int argc, char* argv[] )
                             {
                                 joyMotion(event,1,&x1,&y1);
                             }
-                            //printf("%i %i %i %i \n",x0,y0,x1,y1);
-                            angle0=atan2(y0,x0)*180.0 / 3.141;
-                            angle1=atan2(y1,x1)*180.0 / 3.141;
+                            
+                            if((event.jaxis.axis == 0) || (event.jaxis.axis == 1))
+                            {
+                                angle0L=atan2(y0,x0)*180.0 / PI;
+                                angle1L=atan2(y1,x1)*180.0 / PI;
+                                amplitude0L=sqrt(x0*x0+y0*y0);
+                                amplitude1L=sqrt(x1*x1+y1*y1);
+                            } 
+                            else if((event.jaxis.axis == 3) || (event.jaxis.axis == 4))
+                            {
+                                angle0R=atan2(y0,x0)*180.0 / PI;
+                                angle1R=atan2(y1,x1)*180.0 / PI;
+                                amplitude0R=sqrt(x0*x0+y0*y0);
+                                amplitude1R=sqrt(x1*x1+y1*y1);
+                            }
                         }
                         break;
                     case SDL_QUIT: 
@@ -264,7 +285,7 @@ int main( int argc, char* argv[] )
             SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
             
             
-            int ctrlTex;
+            int ctrlTex, height;
             //designated controller 0: Load image and render to screen
             if (gDesignatedControllers[0].instance != -1)
             {
@@ -272,9 +293,36 @@ int main( int argc, char* argv[] )
                 string name = gDesignatedControllers[0].name;
                 string str;
                 
+                height=int(amplitude0L/200);
+                if (height>250) height=250;
+                destination = { 50, 100, 50, height };
+                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
                 //controller 0 arrow: Set rendering space and render to screen
-                destination = { 200, 100, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0, NULL, SDL_FLIP_NONE );
+                destination = { 100, 100, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
+                
+                height=int(amplitude0R/200);
+                if (height>250) height=250;
+                destination = { 300, 100, 50, height };
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 0 arrow: Set rendering space and render to screen
+                destination = { 350, 100, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
+                
+                //icon for configuration run
+                destination = { 600, 160, 80, 80 };
+                
+                if (gState == STATE_CONF0)
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                } 
+                else
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                }
 
                 //check if PS3
                 str = "Sony PLAYSTATION(R)3";
@@ -291,7 +339,7 @@ int main( int argc, char* argv[] )
                 {
                     ctrlTex = TEX_XBOX360;
                 }
-                destination = { 500, 100, 250, 250 };
+                destination = { 700, 100, 250, 250 };
                 SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
@@ -302,9 +350,24 @@ int main( int argc, char* argv[] )
                 string name = gDesignatedControllers[1].name;
                 string str;
                 
+                height=int(amplitude1L/200);
+                if (height>250) height=250;
+                destination = { 50, 500, 50, height };
+                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
                 //controller 1 arrow: Set rendering space and render to screen
-                destination = { 200, 500, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1, NULL, SDL_FLIP_NONE );
+                destination = { 100, 500, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
+                
+                height=int(amplitude1R/200);
+                if (height>250) height=250;
+                destination = { 300, 500, 50, height };
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 1 arrow: Set rendering space and render to screen
+                destination = { 350, 500, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
 
                 //check if PS3
                 str = "Sony PLAYSTATION(R)3";
@@ -321,7 +384,7 @@ int main( int argc, char* argv[] )
                 {
                     ctrlTex = TEX_XBOX360;
                 }
-                destination = { 500, 500, 250, 250 };
+                destination = { 700, 500, 250, 250 };
                 SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
@@ -340,12 +403,12 @@ int main( int argc, char* argv[] )
 //Motion on gamepad x
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 {
-    if( event.jaxis.axis == 0 )
+    if((event.jaxis.axis == 0) || (event.jaxis.axis == 3))
     {
         //X axis motion
         x[0]=event.jaxis.value;
     }
-    else if( event.jaxis.axis == 1 )
+    else if((event.jaxis.axis == 1) || (event.jaxis.axis == 4))
     {
         //Y axis motion
         y[0]=event.jaxis.value;
@@ -408,6 +471,7 @@ bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
             printf("dpad down\n");
+            statemachine(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
             printf("left up\n");
@@ -419,6 +483,27 @@ bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC
             printf("other\n");
             break;
     }     
+}
+
+bool statemachine(int cmd)
+{
+    switch (cmd)
+    {
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            if (gState == STATE_ZERO)
+            {
+                gState=STATE_CONF0;
+            }
+            else
+            {
+                gState=STATE_ZERO;
+            }
+            break;
+        default:
+            (void) 0;
+            break;
+    }
+    return 0;
 }
 
 bool createTemplate(string name)
