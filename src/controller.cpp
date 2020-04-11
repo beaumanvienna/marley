@@ -21,6 +21,7 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "../include/controller.h"
+#include "../include/statemachine.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -104,6 +105,14 @@ bool closeJoy(int instance_id)
             {
                printf("remaining: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
             }
+        }
+        if ((gDesignatedControllers[0].instance != -1) && (gState == STATE_CONF0))
+        {
+            gState=STATE_ZERO;
+        }
+        if ((gDesignatedControllers[1].instance != -1) && (gState == STATE_CONF1))
+        {
+            gState=STATE_ZERO;
         }
     }
     printf("closeJoy() end \n");

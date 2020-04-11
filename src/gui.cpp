@@ -21,6 +21,7 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "../include/gui.h"
+#include "../include/statemachine.h"
 
 //rendering window 
 SDL_Window* gWindow = NULL;
@@ -30,8 +31,6 @@ SDL_Renderer* gRenderer = NULL;
 
 //textures
 SDL_Texture* gTextures[NUM_TEXTURES];
-
-int gState = 0;
 
 bool gFullscreen;
 
@@ -83,6 +82,48 @@ bool loadMedia()
     //rudder to start configuration run
     gTextures[TEX_RUDDER_GREY] = loadTextureFromFile("pictures/rudder_grey.png");
     if (!gTextures[TEX_RUDDER_GREY])
+    {
+        ok = false;
+    }
+    
+    //play icon
+    gTextures[TEX_ICON_PLAY] = loadTextureFromFile("pictures/Play.png");
+    if (!gTextures[TEX_ICON_PLAY])
+    {
+        ok = false;
+    }
+    
+    //play icon inactive
+    gTextures[TEX_ICON_PLAY_IN] = loadTextureFromFile("pictures/Play_inactive.png");
+    if (!gTextures[TEX_ICON_PLAY_IN])
+    {
+        ok = false;
+    }
+    
+    //Setup icon
+    gTextures[TEX_ICON_SETUP] = loadTextureFromFile("pictures/Setup.png");
+    if (!gTextures[TEX_ICON_SETUP])
+    {
+        ok = false;
+    }
+    
+    //Setup icon inactive
+    gTextures[TEX_ICON_SETUP_IN] = loadTextureFromFile("pictures/Setup_inactive.png");
+    if (!gTextures[TEX_ICON_SETUP_IN])
+    {
+        ok = false;
+    }
+    
+    //Off icon
+    gTextures[TEX_ICON_OFF] = loadTextureFromFile("pictures/Off.png");
+    if (!gTextures[TEX_ICON_OFF])
+    {
+        ok = false;
+    }
+    
+    //Off icon inactive
+    gTextures[TEX_ICON_OFF_IN] = loadTextureFromFile("pictures/Off_inactive.png");
+    if (!gTextures[TEX_ICON_OFF_IN])
     {
         ok = false;
     }
@@ -196,4 +237,62 @@ bool closeGUI(void)
     SDL_DestroyWindow( gWindow );
     gWindow = NULL;
     gRenderer = NULL;
+}
+    
+bool renderIcons(string name)
+{
+    //render destination 
+    SDL_Rect destination;
+    SDL_Surface* surfaceMessage = NULL; 
+    SDL_Texture* message = NULL;     
+    
+    
+    destination = { 50, 10, 132, 45 };
+    if (gState == STATE_PLAY)
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    } 
+    else
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    }
+    
+    destination = { 200, 10, 132, 45 };
+    if (gState == STATE_SETUP)
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    } 
+    else
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    }
+    
+    destination = { 1100, 10, 132, 45 };
+    if (gState == STATE_OFF)
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    } 
+    else
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    }
+    
+    SDL_Color inactive = {125, 46, 115};  
+    SDL_Color active = {222, 81, 223};  
+    
+    destination = { 50, 660, 1000, 36 };
+    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+    SDL_RenderFillRect(gRenderer, &destination);
+    
+    if (gState == STATE_LAUNCH)
+    {
+        surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), active); 
+    } 
+    else
+    {
+        surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), inactive); 
+    }
+    message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+    SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    
 }

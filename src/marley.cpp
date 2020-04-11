@@ -22,6 +22,7 @@
 
 #include "../include/gui.h"
 #include "../include/controller.h"
+#include "../include/statemachine.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
@@ -32,9 +33,10 @@
 #define PI 3.14159
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
-bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC);
+bool joyButton(SDL_Event event, int designatedCtrl, bool* ignoreESC);
 bool checkConf(void);
-bool statemachine(int cmd);
+
+TTF_Font* gFont = NULL;
 
 //initializes SDL and creates main window
 bool init()
@@ -65,7 +67,15 @@ bool init()
         compiled.major, compiled.minor, compiled.patch);
         printf("But we are linking against SDL version %d.%d.%d.\n",
         linked.major, linked.minor, linked.patch);
-        
+
+        TTF_Init();
+        string font = "resources/OpenSans-Bold.ttf";
+        gFont = TTF_OpenFont(font.c_str(), 24);
+        if (gFont == NULL)
+        {
+            printf("%s not found\n",font.c_str());
+            ok = false;
+        }
         
         if(!initJoy())
         {
@@ -105,7 +115,7 @@ void closeAll()
 int main( int argc, char* argv[] )
 {
     int k,l,m,id;
-    string game, cmd;
+    string cmd;
     bool ignoreESC=false;
     double angle0L = 0;
     double angle1L = 0;
@@ -120,7 +130,7 @@ int main( int argc, char* argv[] )
     SDL_Rect destination;
     
     gFullscreen=false;
-    game="";
+    gGame="";
     for (int i = 1; i < argc; i++) 
     {
         string str = argv[i];
@@ -153,7 +163,7 @@ int main( int argc, char* argv[] )
             {
                 //file exists
                 printf("Found PS1 ROM %s\n", str.c_str());
-                game=str;
+                gGame=str;
             }
         }
     }
@@ -166,7 +176,6 @@ int main( int argc, char* argv[] )
     else
     {
         //Main loop flag
-        bool quit = false;
         bool emuReturn;
         double x0=0;
         double y0=0;
@@ -175,9 +184,11 @@ int main( int argc, char* argv[] )
 
         //Event handler
         SDL_Event event;
+        
+        gQuit=false;
 
         //main loop
-        while( !quit )
+        while( !gQuit )
         {
             //Handle events on queue
             while( SDL_PollEvent( &event ) != 0 )
@@ -213,10 +224,6 @@ int main( int argc, char* argv[] )
                                 }
                                 break;
                             case SDLK_ESCAPE:
-                                if(!ignoreESC)
-                                {
-                                    quit = true;
-                                }
                                 break;
                             default:
                                 printf("key not recognized \n");
@@ -260,17 +267,17 @@ int main( int argc, char* argv[] )
                         }
                         break;
                     case SDL_QUIT: 
-                        quit = true;
+                        gQuit = true;
                         break;
                     case SDL_CONTROLLERBUTTONDOWN: 
                     
                         if (event.jdevice.which == gDesignatedControllers[0].instance)
                         {
-                            joyButton(event,0,game,&ignoreESC);
+                            joyButton(event,0,&ignoreESC);
                         }
                         else if (event.jdevice.which == gDesignatedControllers[1].instance)
                         {
-                            joyButton(event,1,game,&ignoreESC);
+                            joyButton(event,1,&ignoreESC);
                         }
                         break;
                     default: 
@@ -283,7 +290,7 @@ int main( int argc, char* argv[] )
             SDL_RenderClear( gRenderer );
             //background
             SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
-            
+            renderIcons(gGame);
             
             int ctrlTex, height;
             //designated controller 0: Load image and render to screen
@@ -352,22 +359,34 @@ int main( int argc, char* argv[] )
                 
                 height=int(amplitude1L/200);
                 if (height>250) height=250;
-                destination = { 50, 500, 50, height };
+                destination = { 50, 400, 50, height };
                 SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 1 arrow: Set rendering space and render to screen
-                destination = { 100, 500, 200, 200 };
+                destination = { 100, 400, 200, 200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
                 
                 height=int(amplitude1R/200);
                 if (height>250) height=250;
-                destination = { 300, 500, 50, height };
+                destination = { 300, 400, 50, height };
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 1 arrow: Set rendering space and render to screen
-                destination = { 350, 500, 200, 200 };
+                destination = { 350, 400, 200, 200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
+                
+                //icon for configuration run
+                destination = { 600, 460, 80, 80 };
+                
+                if (gState == STATE_CONF1)
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                } 
+                else
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                }
 
                 //check if PS3
                 str = "Sony PLAYSTATION(R)3";
@@ -384,11 +403,10 @@ int main( int argc, char* argv[] )
                 {
                     ctrlTex = TEX_XBOX360;
                 }
-                destination = { 700, 500, 250, 250 };
+                destination = { 700, 400, 250, 250 };
                 SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
-            //SDL_RenderCopy(gRenderer, gTextures[TEX_ARROW], NULL, NULL);
             SDL_RenderPresent( gRenderer );
         }
         
@@ -416,95 +434,67 @@ bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 }
 
 
-bool joyButton(SDL_Event event, int designatedCtrl, string game, bool* ignoreESC)
+bool joyButton(SDL_Event event, int designatedCtrl, bool* ignoreESC)
 {
     bool emuReturn;
     string cmd;
+    
     switch( event.cbutton.button )
     {
         case SDL_CONTROLLER_BUTTON_A:
-            printf("a\n");
+            //printf("a\n");
             break;
         case SDL_CONTROLLER_BUTTON_B:
-            printf("b\n");
+            //printf("b\n");
             break;
         case SDL_CONTROLLER_BUTTON_X:
-            printf("x\n");
+            //printf("x\n");
             break;
         case SDL_CONTROLLER_BUTTON_Y:
-            printf("y\n");
+            //printf("y\n");
             break;
         case SDL_CONTROLLER_BUTTON_START:
-            printf("start\n");
-            if (game != "")
-            {
-                cmd = "mednafen \""+game+"\"";
-                printf("launching %s\n",cmd.c_str());
-                emuReturn = system(cmd.c_str());
-                ignoreESC[0]=true;
-            } else
-            {
-                printf("no valid ROM found\n");
-            }
+            //printf("start\n");
             break;
         case SDL_CONTROLLER_BUTTON_BACK:
-            printf("back\n");
+            //printf("back\n");
             break;
         case SDL_CONTROLLER_BUTTON_GUIDE:
-            printf("guide\n");
+            //printf("guide\n");
             break;
         case SDL_CONTROLLER_BUTTON_LEFTSTICK:
-            printf("left stick\n");
+            //printf("left stick\n");
             break;
         case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-            printf("right stick\n");
+            //printf("right stick\n");
             break;
         case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-            printf("left shoulder\n");
+            //printf("left shoulder\n");
             break;
-            
          case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-            printf("right shoulder\n");
+            //printf("right shoulder\n");
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_UP:
-            printf("dpad up\n");
+            //printf("dpad up\n");
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-            printf("dpad down\n");
-            statemachine(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+            //printf("dpad down\n");
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-            printf("left up\n");
+            //printf("left up\n");
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-            printf("dpad right\n");
+            //printf("dpad right\n");
             break;
         default:
-            printf("other\n");
-            break;
-    }     
-}
-
-bool statemachine(int cmd)
-{
-    switch (cmd)
-    {
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-            if (gState == STATE_ZERO)
-            {
-                gState=STATE_CONF0;
-            }
-            else
-            {
-                gState=STATE_ZERO;
-            }
-            break;
-        default:
+            //printf("other\n");
             (void) 0;
             break;
-    }
-    return 0;
+    }     
+    statemachine(event.cbutton.button);
 }
+
+
 
 bool createTemplate(string name)
 {

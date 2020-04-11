@@ -26,13 +26,14 @@
 #include <cmath>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 
 using namespace std;
 
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    7
+    #define NUM_TEXTURES    13
         #define TEX_BACKGROUND      0
         #define TEX_ARROW           1
         #define TEX_PS3             2
@@ -40,18 +41,22 @@ using namespace std;
         #define TEX_GENERIC_CTRL    4
         #define TEX_RUDDER          5
         #define TEX_RUDDER_GREY     6
-    
-    #define STATE_ZERO      0
-    #define STATE_CONF0     1
-    #define STATE_CONF1     2
+        #define TEX_ICON_PLAY       7
+        #define TEX_ICON_PLAY_IN    8
+        #define TEX_ICON_SETUP      9
+        #define TEX_ICON_SETUP_IN  10
+        #define TEX_ICON_OFF       11
+        #define TEX_ICON_OFF_IN    12
 
-    #define WINDOW_WIDTH 1024
-    #define WINDOW_HEIGHT 768
+
+    #define WINDOW_WIDTH 1280
+    #define WINDOW_HEIGHT 720
     
     bool initGUI(void);
     bool loadMedia(void);
     bool closeGUI(void);
     bool freeTextures(void);
+    bool renderIcons(string name);
     
     SDL_Texture* loadTextureFromFile(string str);
     
@@ -67,7 +72,6 @@ using namespace std;
     // fullscreen flag
     extern bool gFullscreen;
     
-    // statemachine
-    extern int gState;
+    extern TTF_Font* gFont;
     
 #endif
