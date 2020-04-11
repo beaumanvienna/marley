@@ -6,7 +6,9 @@ Build-Depends: debhelper,
 		cmake,
 		chrpath,
 		libsdl2-dev,
-        libsdl2-image-dev
+        libsdl2-image-dev,
+        libsdl2-ttf2.0-dev
+        
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/beaumanvienna/marley
 
@@ -16,6 +18,7 @@ Depends: ${shlibs:Depends},
         ${misc:Depends}, 
         libsdl2-2.0-0, 
         libsdl2-image-2.0-0,
+        libsdl2-ttf2.0-0,
         mednafen
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
