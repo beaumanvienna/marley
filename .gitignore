@@ -15,5 +15,5 @@ marley.o
 src/.dirstamp
 src/controller.o
 src/gui.o
-
+src/statemachine.o
 
