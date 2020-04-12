@@ -17,7 +17,7 @@ Depends: ${shlibs:Depends},
         ${misc:Depends}, 
         libsdl2-2.0-0, 
         libsdl2-image-2.0-0,
-        libsdl2-ttf,
+        libsdl2-ttf-2.0-0,
         mednafen
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
