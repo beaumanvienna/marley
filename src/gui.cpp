@@ -39,90 +39,90 @@ bool loadMedia()
     bool ok = true;
     
     // background
-    gTextures[TEX_BACKGROUND] = loadTextureFromFile("pictures/beach.png");
+    gTextures[TEX_BACKGROUND] = loadTextureFromFile(PICTURES "beach.png");
     if (!gTextures[TEX_BACKGROUND])
     {
         ok = false;
     }
     //arrow
-    gTextures[TEX_ARROW] = loadTextureFromFile("pictures/arrow.png");
+    gTextures[TEX_ARROW] = loadTextureFromFile(PICTURES "arrow.png");
     if (!gTextures[TEX_ARROW])
     {
         ok = false;
     }
     
     //PS3 dualshock
-    gTextures[TEX_PS3] = loadTextureFromFile("pictures/PS3-DualShock.png");
+    gTextures[TEX_PS3] = loadTextureFromFile(PICTURES "PS3-DualShock.png");
     if (!gTextures[TEX_PS3])
     {
         ok = false;
     }
 
     //XBox 360 controller
-    gTextures[TEX_XBOX360] = loadTextureFromFile("pictures/Xbox-360-S-Controller.png");
+    gTextures[TEX_XBOX360] = loadTextureFromFile(PICTURES "Xbox-360-S-Controller.png");
     if (!gTextures[TEX_XBOX360])
     {
         ok = false;
     }
     
     //Generic controller
-    gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile("pictures/generic-controller.png");
+    gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile(PICTURES "generic-controller.png");
     if (!gTextures[TEX_GENERIC_CTRL])
     {
         ok = false;
     }
     
     //rudder to start configuration run
-    gTextures[TEX_RUDDER] = loadTextureFromFile("pictures/rudder.png");
+    gTextures[TEX_RUDDER] = loadTextureFromFile(PICTURES "rudder.png");
     if (!gTextures[TEX_RUDDER])
     {
         ok = false;
     }
     
     //rudder to start configuration run
-    gTextures[TEX_RUDDER_GREY] = loadTextureFromFile("pictures/rudder_grey.png");
+    gTextures[TEX_RUDDER_GREY] = loadTextureFromFile(PICTURES "rudder_grey.png");
     if (!gTextures[TEX_RUDDER_GREY])
     {
         ok = false;
     }
     
     //play icon
-    gTextures[TEX_ICON_PLAY] = loadTextureFromFile("pictures/Play.png");
+    gTextures[TEX_ICON_PLAY] = loadTextureFromFile(PICTURES "Play.png");
     if (!gTextures[TEX_ICON_PLAY])
     {
         ok = false;
     }
     
     //play icon inactive
-    gTextures[TEX_ICON_PLAY_IN] = loadTextureFromFile("pictures/Play_inactive.png");
+    gTextures[TEX_ICON_PLAY_IN] = loadTextureFromFile(PICTURES "Play_inactive.png");
     if (!gTextures[TEX_ICON_PLAY_IN])
     {
         ok = false;
     }
     
     //Setup icon
-    gTextures[TEX_ICON_SETUP] = loadTextureFromFile("pictures/Setup.png");
+    gTextures[TEX_ICON_SETUP] = loadTextureFromFile(PICTURES "Setup.png");
     if (!gTextures[TEX_ICON_SETUP])
     {
         ok = false;
     }
     
     //Setup icon inactive
-    gTextures[TEX_ICON_SETUP_IN] = loadTextureFromFile("pictures/Setup_inactive.png");
+    gTextures[TEX_ICON_SETUP_IN] = loadTextureFromFile(PICTURES "Setup_inactive.png");
     if (!gTextures[TEX_ICON_SETUP_IN])
     {
         ok = false;
     }
     
     //Off icon
-    gTextures[TEX_ICON_OFF] = loadTextureFromFile("pictures/Off.png");
+    gTextures[TEX_ICON_OFF] = loadTextureFromFile(PICTURES "Off.png");
     if (!gTextures[TEX_ICON_OFF])
     {
         ok = false;
     }
     
     //Off icon inactive
-    gTextures[TEX_ICON_OFF_IN] = loadTextureFromFile("pictures/Off_inactive.png");
+    gTextures[TEX_ICON_OFF_IN] = loadTextureFromFile(PICTURES "Off_inactive.png");
     if (!gTextures[TEX_ICON_OFF_IN])
     {
         ok = false;

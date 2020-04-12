@@ -1,3 +1,11 @@
+marley (0.0.3) bionic; urgency=medium
+
+  * added db for gamepads, amplitude bars for analog 
+    sticks, Icons for interaction plus statemachine, 
+    .marley config file, desktopp application icon
+   
+ -- JC Lache <jc.lache@we.de>  Sat, 11 APR 2020 18:26:04 -0800
+ 
 marley (0.0.2) bionic; urgency=medium
 
   * Initial upload with basic gamepad testing

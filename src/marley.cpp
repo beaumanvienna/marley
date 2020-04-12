@@ -69,7 +69,7 @@ bool init()
         linked.major, linked.minor, linked.patch);
 
         TTF_Init();
-        string font = "resources/OpenSans-Bold.ttf";
+        string font = RESOURCES "font.ttf";
         gFont = TTF_OpenFont(font.c_str(), 24);
         if (gFont == NULL)
         {

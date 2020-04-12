@@ -21,6 +21,7 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "../include/controller.h"
+#include "../include/gui.h"
 #include "../include/statemachine.h"
 #include <iostream>
 #include <fstream>
@@ -39,7 +40,7 @@ bool initJoy(void)
     
     SDL_Init(SDL_INIT_GAMECONTROLLER);
     
-    if( SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb.txt") == -1 )
+    if( SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb.txt") == -1 )
     {
         //this is not a critical error, no need to return "false"
         printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
@@ -68,7 +69,7 @@ bool closeAllJoy(void)
         closeJoy(i);
     }
     // remove temp file
-    remove( "resources/gamecontrollerdb_internal.txt" );
+    remove( RESOURCES "gamecontrollerdb_internal.txt" );
     
     return true;
 }
@@ -295,7 +296,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
     printf("checkMapping for GUID: %s\n",guidStr);
     
     //check public db
-    mappingOK[0] = findGuidInFile("resources/gamecontrollerdb.txt", guidStr,32,&line);
+    mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt", guidStr,32,&line);
     
     if (mappingOK[0])
     {
@@ -308,7 +309,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
         {
             
             //check in public db
-            mappingOK[0] = findGuidInFile("resources/gamecontrollerdb.txt",guidStr,i,&line);
+            mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt",guidStr,i,&line);
             
             if (mappingOK[0])
             {
@@ -326,12 +327,12 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
                 
                 std::ofstream outfile;
 
-                outfile.open("resources/gamecontrollerdb_internal.txt", std::ios_base::app); 
+                outfile.open(RESOURCES "gamecontrollerdb_internal.txt", std::ios_base::app); 
                 if(outfile) 
                 {
                     outfile << append + "\n"; 
                     outfile.close();
-                    SDL_GameControllerAddMappingsFromFile("resources/gamecontrollerdb_internal.txt");
+                    SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb_internal.txt");
                     mappingOK[0]=true;
                 }
                 

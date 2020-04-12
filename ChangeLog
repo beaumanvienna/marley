@@ -1,3 +1,4 @@
+* Sat Apr 11 18:21:26 PDT 2020 added db for gamepads, amplitude bars for analog sticks, Icons for interaction plus statemachine, .marley config file, desktopp application icon
 * Sat Apr  4 11:20:49 PDT 2020 project created with version 0.0.1 and uplaoded to https://launchpad.net/~beauman/+archive/ubuntu/marley
     Please also refer to debian/changelog
 * Sat Apr  Sat Apr  4 22:50:00 PDT 2020 changed to 0.0.2

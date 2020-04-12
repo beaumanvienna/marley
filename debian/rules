@@ -2,7 +2,19 @@
 
 %:
 	dh $@
+
+override_dh_auto_configure: 
+	sed -i 's/AC_DEFINE(\[PICTURES]\,\["pictures\/"])/AC_DEFINE(\[PICTURES]\,\["\/usr\/games\/Marley\/pictures\/"])/g' configure.ac
+	sed -i 's/AC_DEFINE(\[RESOURCES]\,\["resources\/"])/AC_DEFINE(\[RESOURCES]\,\["\/usr\/games\/Marley\/resources\/"])/g' configure.ac
+	aclocal 
+	autoconf
+	automake --add-missing --foreign
+	./configure
 	
 override_dh_auto_build:
 
 override_dh_auto_install:
+
+override_dh_fixperms:
+
+	

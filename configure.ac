@@ -1,6 +1,8 @@
-AC_INIT([marley], 0.0.2)
+AC_INIT([marley], 0.0.3)
 AM_INIT_AUTOMAKE
 AC_PROG_CXX
+AC_DEFINE([PICTURES],["pictures/"])
+AC_DEFINE([RESOURCES],["resources/"])
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT
 AM_INIT_AUTOMAKE([subdir-objects])

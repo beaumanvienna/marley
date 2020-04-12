@@ -2,10 +2,10 @@ Format: 3.0 (native)
 Source: marley
 Binary: marley
 Architecture: any
-Version: 0.0.2
+Version: 0.0.3
 Maintainer: JC <jc.lache@web.de>
 Homepage: https://launchpad.net/~beauman
-Standards-Version: 3.9.5
-Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath
+Standards-Version: 4.1.4
+Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath,libsdl2-ttf-dev
 Package-List: 
  marley deb games extra
