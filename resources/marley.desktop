@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=0.0.3
+Name=marley
+GenericName=marley
+Comment=Launcher for emulators
+Exec=/usr/games/marley
+Icon=/usr/share/icons/marley.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;Player;TV;
+
+Actions=Fullscreen;Standalone;
