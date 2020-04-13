@@ -1440,7 +1440,7 @@ std::string GetBaseDirectory(void)
 
   ol = _wgetenv(L"HOME");
   if(ol)
-   return UTF16_to_UTF8((const char16_t*)ol, nullptr, true) + PSS + ".mednafen";
+   return UTF16_to_UTF8((const char16_t*)ol, nullptr, true) + PSS + ".marley/mednafen";
  }
 
  {
@@ -1465,7 +1465,7 @@ std::string GetBaseDirectory(void)
 
  ol = getenv("HOME");
  if(ol)
-  return std::string(ol) + PSS + ".mednafen";
+  return std::string(ol) + PSS + ".marley/mednafen";
 
  #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
  {
@@ -1474,7 +1474,7 @@ std::string GetBaseDirectory(void)
   psw = getpwuid(getuid());
 
   if(psw != NULL && psw->pw_dir[0] != 0 && strcmp(psw->pw_dir, "/dev/null"))
-   return std::string(psw->pw_dir) + PSS + ".mednafen";
+   return std::string(psw->pw_dir) + PSS + ".marley/mednafen";
  }
  #endif
  return "";

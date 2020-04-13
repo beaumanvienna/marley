@@ -478,6 +478,13 @@ static void TestSignedOverflow(void)
   assert((int32)(a ^ 0x80000000) < a);
   assert((int32)(b ^ 0x80000000) < b);
  }
+ 
+ #warning "jc: modified"
+ MDFNTestsCPP_SLS_Var = (int32)0xDEADBEEF;
+ MDFNTestsCPP_SLS_Var8 = (int8)0xEF;
+ MDFNTestsCPP_SLS_Var16 = (int16)0xBEEF;
+ MDFNTestsCPP_SLS_Var_NT = (int32)0xDEADBEEF;
+ MDFNTestsCPP_SLS_Var_NT2 = (int32)0x7EADBEEF;
 
  for(unsigned i = 0; i < 64; i++)
  {
@@ -487,13 +494,14 @@ static void TestSignedOverflow(void)
  }
 
  {
+     
   int8 a = MDFNTestsCPP_SLS_Var8;
   int16 b = MDFNTestsCPP_SLS_Var16;
   int32 c = MDFNTestsCPP_SLS_Var;
   int64 d = (int64)MDFNTestsCPP_SLS_Var * (int64)MDFNTestsCPP_SLS_Var;
   int32 e = c;
   int64 f = c;
-
+    
   for(int i = 0; i < 64; i++)
   {
    a += a * i + b;
@@ -2500,6 +2508,8 @@ bool MDFN_RunMathTests(void)
 
  TestModTern();
  TestBWNotMask31GTZ();
+ #warning "jc: modified"
+ MDFN_tests_TestTernary_val=0;
  TestTernary();
  TestLLVM15470();
 

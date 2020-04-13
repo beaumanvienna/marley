@@ -237,8 +237,6 @@ static std::vector<DriveMediaStatus> DMStatus, DMStatusSaveStateTemp;
 static std::vector<uint32> DMSNoMedia;
 static bool ValidateDMS(const std::vector<DriveMediaStatus>& dms);
 
-bool firstRun=true;
-
 static void SettingChanged(const char* name)
 {
  if(!strcmp(name, "video.deinterlacer"))
@@ -1473,13 +1471,13 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 
 	// DO NOT REMOVE/DISABLE THESE MATH AND COMPILER SANITY TESTS.  THEY EXIST FOR A REASON.
 	//uint64 st = Time::MonoUS();
-    if (firstRun)
+    
+    
+    if(!MDFN_RunMathTests())
     {
-        if(!MDFN_RunMathTests())
-        {
-         return(0);
-        }
+     return(0);
     }
+    
 	//printf("tests time: %llu\n", Time::MonoUS() - st);
 
 	for(unsigned x = 0; x < 16; x++)
@@ -1544,7 +1542,6 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 	#ifdef WANT_DEBUGGER
 	MDFNDBG_Init();
 	#endif
-    firstRun=false;
         return(1);
 }
 
