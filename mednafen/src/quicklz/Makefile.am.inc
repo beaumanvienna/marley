@@ -3,6 +3,6 @@ libmdfnquicklz_a_CFLAGS	=	@AM_CFLAGS@ @NO_STRICT_ALIASING_FLAGS@ -Wno-shadow -Wn
 
 libmdfnquicklz_a_SOURCES=	quicklz/quicklz.c
 
-mednafen_LDADD          +=      libmdfnquicklz.a
-mednafen_DEPENDENCIES   +=      libmdfnquicklz.a
+mednafen_marley_LDADD          +=      libmdfnquicklz.a
+mednafen_marley_DEPENDENCIES   +=      libmdfnquicklz.a
 

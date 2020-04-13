@@ -11,6 +11,6 @@ libngp_a_SOURCES 	=	ngp/bios.cpp ngp/biosHLE.cpp ngp/dma.cpp ngp/flash.cpp ngp/g
 	ngp/TLCS-900h/TLCS900h_interpret_src.cpp	\
 	ngp/TLCS-900h/TLCS900h_interpret_dst.cpp
 
-mednafen_LDADD          +=      libngp.a
-mednafen_DEPENDENCIES   +=      libngp.a
+mednafen_marley_LDADD          +=      libngp.a
+mednafen_marley_DEPENDENCIES   +=      libngp.a
 

@@ -1,1 +1,1 @@
-mednafen_SOURCES	+=	cdplay/cdplay.cpp
+mednafen_marley_SOURCES	+=	cdplay/cdplay.cpp

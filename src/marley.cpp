@@ -20,6 +20,7 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include "../include/marley.h"
 #include "../include/gui.h"
 #include "../include/controller.h"
 #include "../include/statemachine.h"
@@ -146,8 +147,10 @@ int main( int argc, char* argv[] )
             printf("\nOptions:\n\n");
             printf("  --version             : print version\n");
             printf("  --fullscreen, -f      : start in fullscreen mode\n\n");
-            printf("Use your controller or arrow keys/enter/ESC on your keyboard to navigate.\n\n");
+            printf("Use your controller or arrow keys/enter on your keyboard to navigate.\n\n");
             printf("Use \"l\" to print a list of detected controllers to the command line.\n\n");
+            printf("Use \"f\" to toggle fullscreen.\n\n");
+            printf("Use \"1\" to exit.\n\n");
             printf("Visit https://github.com/beaumanvienna/marley for more information.\n\n");
             return 0;
         }
@@ -223,7 +226,29 @@ int main( int argc, char* argv[] )
                                     printf("************* no controllers found ************* \n");
                                 }
                                 break;
+                            case SDLK_f:
+                                gFullscreen= !gFullscreen;
+                                if (gFullscreen)
+                                {
+                                    setFullscreen();
+                                }
+                                else
+                                {
+                                    setWindowed();
+                                }
+                                break;
+                            case SDLK_1:
+                                    gQuit=true;
+                                break;
                             case SDLK_ESCAPE:
+                                if (!gIgnore)
+                                {
+                                    //gQuit=true;
+                                }
+                                else
+                                {
+                                    gIgnore = false;
+                                }
                                 break;
                             default:
                                 printf("key not recognized \n");

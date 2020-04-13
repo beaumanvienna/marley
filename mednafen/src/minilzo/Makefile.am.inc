@@ -1,1 +1,1 @@
-mednafen_SOURCES	+=	minilzo/minilzo.c
+mednafen_marley_SOURCES	+=	minilzo/minilzo.c

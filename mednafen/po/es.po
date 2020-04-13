@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mednafen\n"
 "Report-Msgid-Bugs-To: http://forum.fobby.net/\n"
-"POT-Creation-Date: 2020-02-25 15:41-0800\n"
+"POT-Creation-Date: 2020-04-12 09:29-0700\n"
 "PO-Revision-Date: 2006-01-29 23:54-0600\n"
 "Last-Translator: Merp\n"
 "Language-Team: Spanish\n"
@@ -22,24 +22,24 @@ msgstr ""
 #: src/Time.cpp:158 src/Time.cpp:211 src/mthreading/MThreading_Win32.cpp:160
 #: src/mthreading/MThreading_Win32.cpp:259
 #: src/mthreading/MThreading_Win32.cpp:380
-#: src/mthreading/MThreading_POSIX.cpp:154
-#: src/mthreading/MThreading_POSIX.cpp:185
-#: src/mthreading/MThreading_POSIX.cpp:234
-#: src/mthreading/MThreading_POSIX.cpp:261
-#: src/mthreading/MThreading_POSIX.cpp:291
-#: src/mthreading/MThreading_POSIX.cpp:300
-#: src/mthreading/MThreading_POSIX.cpp:309
-#: src/mthreading/MThreading_POSIX.cpp:320
-#: src/mthreading/MThreading_POSIX.cpp:327
-#: src/mthreading/MThreading_POSIX.cpp:348
-#: src/mthreading/MThreading_POSIX.cpp:389
-#: src/mthreading/MThreading_POSIX.cpp:399
-#: src/mthreading/MThreading_POSIX.cpp:409
-#: src/mthreading/MThreading_POSIX.cpp:432
-#: src/mthreading/MThreading_POSIX.cpp:533
-#: src/mthreading/MThreading_POSIX.cpp:545
-#: src/mthreading/MThreading_POSIX.cpp:644
-#: src/mthreading/MThreading_POSIX.cpp:651
+#: src/mthreading/MThreading_POSIX.cpp:158
+#: src/mthreading/MThreading_POSIX.cpp:189
+#: src/mthreading/MThreading_POSIX.cpp:238
+#: src/mthreading/MThreading_POSIX.cpp:265
+#: src/mthreading/MThreading_POSIX.cpp:295
+#: src/mthreading/MThreading_POSIX.cpp:304
+#: src/mthreading/MThreading_POSIX.cpp:313
+#: src/mthreading/MThreading_POSIX.cpp:324
+#: src/mthreading/MThreading_POSIX.cpp:331
+#: src/mthreading/MThreading_POSIX.cpp:352
+#: src/mthreading/MThreading_POSIX.cpp:393
+#: src/mthreading/MThreading_POSIX.cpp:403
+#: src/mthreading/MThreading_POSIX.cpp:413
+#: src/mthreading/MThreading_POSIX.cpp:436
+#: src/mthreading/MThreading_POSIX.cpp:537
+#: src/mthreading/MThreading_POSIX.cpp:549
+#: src/mthreading/MThreading_POSIX.cpp:712
+#: src/mthreading/MThreading_POSIX.cpp:719
 #, c-format
 msgid "%s failed: %s"
 msgstr ""
@@ -406,21 +406,21 @@ msgstr ""
 
 #: src/mthreading/MThreading_Win32.cpp:431
 #: src/mthreading/MThreading_Win32.cpp:436
-#: src/mthreading/MThreading_POSIX.cpp:268
-#: src/mthreading/MThreading_POSIX.cpp:278
+#: src/mthreading/MThreading_POSIX.cpp:272
+#: src/mthreading/MThreading_POSIX.cpp:282
 #, c-format
 msgid "Setting affinity to 0x%016llx failed: %s"
 msgstr ""
 
-#: src/mthreading/MThreading_POSIX.cpp:191
+#: src/mthreading/MThreading_POSIX.cpp:195
 msgid "Thread being joined exited improperly."
 msgstr ""
 
-#: src/mthreading/MThreading_POSIX.cpp:254
+#: src/mthreading/MThreading_POSIX.cpp:258
 msgid "Affinity mask specifies CPU beyond capacity of the CPU set."
 msgstr ""
 
-#: src/mthreading/MThreading_POSIX.cpp:278
+#: src/mthreading/MThreading_POSIX.cpp:282
 msgid "pthread_setaffinity_np() not available."
 msgstr ""
 
@@ -1407,9 +1407,9 @@ msgid ""
 msgstr ""
 
 #: src/drivers/video.cpp:168 src/drivers/video.cpp:186 src/ss/ss.cpp:1368
-#: src/ss/ss.cpp:1369 src/ss/ss.cpp:1370 src/ss/ss.cpp:1385
-#: src/nes/nes.cpp:455 src/snes_faust/snes.cpp:1260 src/vb/vb.cpp:909
-#: src/pce_fast/huc.cpp:308 src/psx/psx.cpp:1644 src/pce/pce.cpp:673
+#: src/ss/ss.cpp:1369 src/ss/ss.cpp:1370 src/ss/ss.cpp:1385 src/nes/nes.cpp:455
+#: src/snes_faust/snes.cpp:1260 src/vb/vb.cpp:909 src/pce_fast/huc.cpp:308
+#: src/psx/psx.cpp:1644 src/pce/pce.cpp:673
 msgid "Disabled"
 msgstr ""
 
@@ -3606,9 +3606,8 @@ msgstr ""
 msgid "Data only"
 msgstr ""
 
-#: src/ss/ss.cpp:1182 src/ss/ss.cpp:1218 src/nes/fds.cpp:569
-#: src/gb/gb.cpp:1948 src/gb/gb.cpp:1978 src/apple2/disk2.inc:971
-#: src/apple2/disk2.inc:976
+#: src/ss/ss.cpp:1182 src/ss/ss.cpp:1218 src/nes/fds.cpp:569 src/gb/gb.cpp:1948
+#: src/gb/gb.cpp:1978 src/apple2/disk2.inc:971 src/apple2/disk2.inc:976
 msgid "Unknown"
 msgstr ""
 

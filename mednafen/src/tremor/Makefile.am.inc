@@ -8,6 +8,6 @@ libvorbisidec_a_SOURCES = tremor/mdct.c tremor/block.c tremor/window.c \
                         tremor/res012.c tremor/mapping0.c tremor/registry.c tremor/codebook.c \
 			tremor/sharedbook.c tremor/framing.c tremor/bitwise.c
 
-mednafen_LDADD          +=      libvorbisidec.a
-mednafen_DEPENDENCIES   +=      libvorbisidec.a
+mednafen_marley_LDADD          +=      libvorbisidec.a
+mednafen_marley_DEPENDENCIES   +=      libvorbisidec.a
 

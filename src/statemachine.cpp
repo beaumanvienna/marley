@@ -20,15 +20,17 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include <string>
+#include "../include/marley.h"
 #include "../include/statemachine.h"
 #include "../include/gui.h"
 #include "../include/controller.h"
+#include <string>
 #include <SDL.h>
 
 int gState = 0;
 string gGame="";
 bool gQuit=false;
+bool gIgnore = false;
 
 bool statemachine(int cmd)
 {
@@ -162,9 +164,30 @@ bool statemachine(int cmd)
                 case STATE_LAUNCH:
                     if (gGame != "")
                     {
-                        execute = "mednafen \""+gGame+"\"";
-                        //printf("launching %s\n",execute.c_str());
-                        emuReturn = system(execute.c_str());
+                        #ifdef MEDNAFEN
+                            int argc = 2;
+                            
+                            string str = "mednafen";
+                            int n = str.length(); 
+                            char arg1[n + 1]; 
+                            strcpy(arg1, str.c_str()); 
+                            
+                            n = gGame.length(); 
+                            char arg2[n + 1]; 
+                            strcpy(arg2, gGame.c_str()); 
+                            
+                            char *argv[] ={arg1,arg2};
+                            printf("arg1: %s arg2: %s \n",arg1,arg2);
+                            mednafen_main(argc,argv);
+                            gIgnore = true;
+                            SDL_JoystickEventState(SDL_ENABLE);
+                            str = "marley ";
+                            str += PACKAGE_VERSION;
+                            SDL_SetWindowTitle(gWindow, str.c_str());
+                        #else
+                            execute = "mednafen \""+gGame+"\"";
+                            emuReturn = system(execute.c_str());
+                        #endif
                     } else
                     {
                         printf("no valid ROM found\n");

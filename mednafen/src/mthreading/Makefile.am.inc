@@ -1,6 +1,6 @@
 if WIN32
-mednafen_SOURCES += mthreading/MThreading_Win32.cpp
+mednafen_marley_SOURCES += mthreading/MThreading_Win32.cpp
 else
-mednafen_SOURCES += mthreading/MThreading_POSIX.cpp
+mednafen_marley_SOURCES += mthreading/MThreading_POSIX.cpp
 endif
 

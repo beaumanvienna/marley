@@ -39,6 +39,8 @@
 #include "help.h"
 #include "video-state.h"
 
+#include "../../../include/gui.h"
+
 #ifdef WANT_FANCY_SCALERS
 #include "scalebit.h"
 #include "hqxx-common.h"
@@ -502,6 +504,8 @@ void Video_Kill(void)
 {
  SyncCleanup();
 
+ #warning "JC: modified"
+ /*
  if(window)
  {
   if(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
@@ -522,7 +526,7 @@ void Video_Kill(void)
   //SDL_FreeSurface(IconSurface);
   //IconSurface = nullptr;
  }
-
+ */
  screen = nullptr;
  VideoGI = nullptr;
  screen_w = 0;
@@ -568,8 +572,15 @@ static void GenerateWindowedDestRect(void)
 
  screen_dest_rect.x = 0;
  screen_dest_rect.y = 0;
+ #warning "JC: modified"
+ int w,h;
+ SDL_GetWindowSize(gWindow,&w,&h);
+ screen_dest_rect.w = w;
+ screen_dest_rect.h = h;
+ /*
  screen_dest_rect.w = floor(0.5 + VideoGI->nominal_width * exs);
  screen_dest_rect.h = floor(0.5 + VideoGI->nominal_height * eys);
+ */
 
  if(rotated == MDFN_ROTATE90 || rotated == MDFN_ROTATE270)
   std::swap(screen_dest_rect.w, screen_dest_rect.h);
@@ -577,6 +588,15 @@ static void GenerateWindowedDestRect(void)
 
 static bool GenerateFullscreenDestRect(void)
 {
+    
+   #warning "JC: modified"
+   int w,h;
+   SDL_GetWindowSize(gWindow,&w,&h);
+   screen_dest_rect.x = 0;
+   screen_dest_rect.y = 0;  
+   screen_dest_rect.w = w;
+   screen_dest_rect.h = h;  
+   /*
  if(video_settings.stretch)
  {
   int nom_width, nom_height;
@@ -642,9 +662,10 @@ static bool GenerateFullscreenDestRect(void)
    }
 
    //printf("%f %f\n", exs, eys);
-
+   
    screen_dest_rect.w = floor(0.5 + exs * nom_width);
    screen_dest_rect.h = floor(0.5 + eys * nom_height);
+   
 
    // Centering:
    int nx = (int)((screen_w - screen_dest_rect.w) / 2);
@@ -654,6 +675,7 @@ static bool GenerateFullscreenDestRect(void)
    int ny = (int)((screen_h - screen_dest_rect.h) / 2);
    if(ny < 0) ny = 0;
    screen_dest_rect.y = ny;
+   
   }
   else 	// Full-stretch
   {
@@ -666,6 +688,7 @@ static bool GenerateFullscreenDestRect(void)
    exs = (double)screen_w / nom_width;
    eys = (double)screen_h / nom_height;
   }
+  
  }
  else
  {
@@ -685,7 +708,7 @@ static bool GenerateFullscreenDestRect(void)
  // Quick and dirty kludge for VB's "hli" and "vli" 3D modes.
  screen_dest_rect.x &= ~1;
  screen_dest_rect.y &= ~1;
-
+ */
  return screen_dest_rect.w < 16384 && screen_dest_rect.h < 16384;
 }
 
@@ -703,6 +726,8 @@ void Video_SetWMInputBehavior(const WMInputBehavior& beeeeees)
 
  //printf("Grab: %d, RelM: %d, Curse: %d\n", grab, relm, curse);
 
+ #warning "JC: modified"
+ /*
  if(grab)
  {
   SDL_ShowWindow(window);
@@ -718,6 +743,7 @@ void Video_SetWMInputBehavior(const WMInputBehavior& beeeeees)
   SDL_SetWindowGrab(window, SDL_FALSE);
 
  SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, grab ? "1" : "0");
+ */
 }
 
 #if 0
@@ -835,8 +861,10 @@ void Video_Sync(MDFNGI *gi)
  video_settings.shader_params.goat_slen = MDFN_GetSettingB(snp + "shader.goat.slen");
  video_settings.shader_params.goat_fprog = MDFN_GetSettingB(snp + "shader.goat.fprog");
  //
-
- video_settings.fullscreen = MDFN_GetSettingB("video.fs");
+ #warning "JC: modified"
+ video_settings.fullscreen = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN);
+ //video_settings.fullscreen = MDFN_GetSettingB("video.fs");
+ 
  video_settings.fs_display = MDFN_GetSettingI("video.fs.display");
  vdriver = MDFN_GetSettingI("video.driver");
  if(vdriver == VDRIVER__COUNT) // "default"
@@ -846,10 +874,12 @@ void Video_Sync(MDFNGI *gi)
  video_settings.shader_str = MDFN_GetSettingS(snp + "shader");
  //
  //
+ 
  if(0)
  {
   // Gotta keep the compiler on its toes(the floor is SPAGHETTI)!
   TryWindowed:;
+  
   MDFNI_SetSettingB("video.fs", false);
   video_settings.fullscreen = 0;
   if(window)
@@ -858,6 +888,7 @@ void Video_Sync(MDFNGI *gi)
     SDL_SetWindowFullscreen(window, 0);
   }
  }
+ 
 
  GenerateWindowedDestRect();
  screen_w = screen_dest_rect.w;
@@ -868,14 +899,15 @@ void Video_Sync(MDFNGI *gi)
  if(screen_dest_rect.w > 16383 || screen_dest_rect.h > 16383)
   throw MDFN_Error(0, _("Window size(%dx%d) is too large!"), screen_dest_rect.w, screen_dest_rect.h);
 
- SDL_SetWindowFullscreen(window, 0);
+ #warning "JC: modified"
+ //SDL_SetWindowFullscreen(window, 0);
  SDL_PumpEvents();
  SDL_SetWindowSize(window, screen_dest_rect.w, screen_dest_rect.h);
  SDL_PumpEvents();
  SDL_SetWindowPosition(window, winpos_x, winpos_y);
  winpos_applied = true;
  SDL_PumpEvents();
- SDL_SetWindowTitle(window, (gi && gi->name.size()) ? gi->name.c_str() : "Mednafen");
+ SDL_SetWindowTitle(window, (gi && gi->name.size()) ? gi->name.c_str() : "Marley");
  SDL_PumpEvents();
  SDL_ShowWindow(window);
  SDL_PumpEvents();
@@ -926,7 +958,8 @@ void Video_Sync(MDFNGI *gi)
    }
   }
  }
-
+#warning "JC: modified"
+/*
 #if 1
  // Kludge, TODO: figure out where the bug exists in SDL or wherever...
  {
@@ -936,7 +969,7 @@ void Video_Sync(MDFNGI *gi)
   SDL_SetWindowPosition(window, x, y);
  }
 #endif
-
+*/
  //
  //
  //
@@ -1098,12 +1131,14 @@ void Video_Sync(MDFNGI *gi)
   int old_mousey = 0;
   SDL_GetGlobalMouseState(&old_mousex, &old_mousey);
 #endif
-
+ #warning "JC: modified"
+ /*
   if(SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) < 0)
   {
    MDFN_Notify(MDFN_NOTICE_WARNING, _("Reverting to windowed mode because SDL_SetWindowFullscreen() failed: %s"), SDL_GetError());
    goto TryWindowed;
   }
+  */
 
 #if 0
   // ugggh
@@ -1291,6 +1326,9 @@ void Video_Init(void)
  //
  IconSurface = SDL_CreateRGBSurfaceFrom((void*)icon_128x128, 128, 128, 32, 128 * 4, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 
+ #warning "JC: modified"
+ window=gWindow;
+ /*
  for(unsigned i = (vdriver != VDRIVER_OPENGL); i < 2; i++)
  {
   if(!(window = SDL_CreateWindow("Mednafen", winpos_x, winpos_y, 64, 64, SDL_WINDOW_HIDDEN | (i ? 0 : SDL_WINDOW_OPENGL))))
@@ -1303,6 +1341,7 @@ void Video_Init(void)
  }
 
  SDL_SetWindowIcon(window, IconSurface);
+ */
 }
 
 static uint32 howlong = 0;

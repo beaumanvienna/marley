@@ -11,7 +11,7 @@ MEDNAFEN_VERSION_NUMERIC=0x00102401
 #                        0xJJJnnnRR
 
 AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE([mednafen], $MEDNAFEN_VERSION)
+AM_INIT_AUTOMAKE([mednafen_marley], $MEDNAFEN_VERSION)
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
@@ -103,10 +103,10 @@ if test x$enable_dev_build = xyes; then
                 AC_DEFINE([MDFN_ENABLE_DEV_BUILD], [1], [Define if we are compiling with expensive Mednafen developer features enabled.])
 fi
 
-dnl -fno-fast-math and -fno-unsafe-math-optimizations to make sure it's disabled, as the fast-math feature on certain older
-dnl versions of gcc produces horribly broken code(and even when it's working correctly, it can have somewhat unpredictable effects).
+dnl -fno-fast-math and -fno-unsafe-math-optimizations to make sure its disabled, as the fast-math feature on certain older
+dnl versions of gcc produces horribly broken code(and even when its working correctly, it can have somewhat unpredictable effects).
 dnl
-dnl -fno-aggressive-loop-optimizations because I don't trust gcc's aggressive loop optimizations, and there miiight be old code
+dnl -fno-aggressive-loop-optimizations because I dont trust gccs aggressive loop optimizations, and there miiight be old code
 dnl in Mednafen that would cause problems.
 dnl
 dnl -fomit-frame-pointer is required for some x86 inline assembly to compile.
@@ -483,7 +483,7 @@ if test x$enable_wswan = xyes; then
 fi
 
 ##
-## ALSA and JACK checking code ripped from SDL's autoconf file, with heavy modifications
+## ALSA and JACK checking code ripped from SDLs autoconf file, with heavy modifications
 ##
 #
 # ALSA
@@ -811,7 +811,7 @@ fi
 
 
 dnl
-dnl FIXME: Make sure POSIX/BSD sockets API detection doesn't have any false positives(like when targeting Windows).
+dnl FIXME: Make sure POSIX/BSD sockets API detection doesnt have any false positives(like when targeting Windows).
 dnl
 AM_CONDITIONAL(HAVE_POSIX_SOCKETS, false)
 dnl

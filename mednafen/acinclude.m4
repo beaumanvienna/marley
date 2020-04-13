@@ -18,13 +18,13 @@ fi
 
 dnl Note:
 dnl =====
-dnl I have not implemented the following suggestion because I don't have
-dnl access to such a broken environment to test the macro.  So I'm just
+dnl I have not implemented the following suggestion because I dont have
+dnl access to such a broken environment to test the macro.  So Im just
 dnl appending the comments here in case you have, and want to fix
 dnl AC_FUNC_MKDIR that way.
 dnl
 dnl |Thomas E. Dickey (dickey@herndon4.his.com) said:
-dnl |  it doesn't cover the problem areas (compilers that mistreat mkdir
+dnl |  it doesnt cover the problem areas (compilers that mistreat mkdir
 dnl |  may prototype it in dir.h and dirent.h, for instance).
 dnl |
 dnl |Alexandre:
@@ -34,7 +34,7 @@ dnl |  suitable for this?)
 dnl |
 dnl |Thomas:
 dnl |  I think that might be a good starting point (with the set of recommended
-dnl |  ifdef's and includes for AC_HEADER_DIRENT, of course).
+dnl |  ifdefs and includes for AC_HEADER_DIRENT, of course).
 
 dnl Configure Paths for Alsa
 dnl Some modifications by Richard Boulton <richard-alsa@tartarus.org>
@@ -150,7 +150,7 @@ exit(0);
 )
 AC_LANG_RESTORE
 
-dnl Now that we know that we have the right version, let's see if we have the library and not just the headers.
+dnl Now that we know that we have the right version, lets see if we have the library and not just the headers.
 if test "x$enable_alsatest" = "xyes"; then
 AC_CHECK_LIB([asound], [snd_ctl_open],,
 	[ifelse([$3], , [AC_MSG_ERROR(No linkable libasound was found.)])

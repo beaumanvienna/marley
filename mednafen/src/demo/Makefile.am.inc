@@ -1,1 +1,1 @@
-mednafen_SOURCES	+=	demo/demo.cpp
+mednafen_marley_SOURCES	+=	demo/demo.cpp

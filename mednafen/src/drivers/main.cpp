@@ -2093,6 +2093,7 @@ __attribute__((force_align_arg_pointer))	// Not sure what's going on to cause th
 int main(int argc, char *argv[])
 {
 	// SuppressErrorPopups must be set very early.
+    printf("hello\n");
 	{
 	 char* mnp = getenv("MEDNAFEN_NOPOPUPS");
 

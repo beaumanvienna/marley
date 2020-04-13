@@ -2,19 +2,19 @@ AUTOMAKE_OPTIONS = subdir-objects
 DEFS = @DEFS@ @SNDFILE_CFLAGS@
 DEFAULT_INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_builddir)/intl
 
-bin_PROGRAMS	=	mednafen
+bin_PROGRAMS	=	mednafen_marley
 
 SUBDIRS			=
 noinst_LIBRARIES	=
-mednafen_LDADD		=
-mednafen_DEPENDENCIES	=
-mednafen_SOURCES 	= 	debug.cpp error.cpp mempatcher.cpp settings.cpp endian.cpp Time.cpp mednafen.cpp git.cpp file.cpp general.cpp memory.cpp netplay.cpp state.cpp state_rewind.cpp movie.cpp player.cpp PSFLoader.cpp SSFLoader.cpp SNSFLoader.cpp SPCReader.cpp tests.cpp qtrecord.cpp IPSPatcher.cpp
-mednafen_SOURCES	+=	VirtualFS.cpp NativeVFS.cpp Stream.cpp MemoryStream.cpp ExtMemStream.cpp FileStream.cpp MTStreamReader.cpp
+mednafen_marley_LDADD		=
+mednafen_marley_DEPENDENCIES	=
+mednafen_marley_SOURCES 	= 	debug.cpp error.cpp mempatcher.cpp settings.cpp endian.cpp Time.cpp mednafen.cpp git.cpp file.cpp general.cpp memory.cpp netplay.cpp state.cpp state_rewind.cpp movie.cpp player.cpp PSFLoader.cpp SSFLoader.cpp SNSFLoader.cpp SPCReader.cpp tests.cpp qtrecord.cpp IPSPatcher.cpp
+mednafen_marley_SOURCES	+=	VirtualFS.cpp NativeVFS.cpp Stream.cpp MemoryStream.cpp ExtMemStream.cpp FileStream.cpp MTStreamReader.cpp
 
 if HAVE_SDL
 SUBDIRS 		+=	drivers
-mednafen_LDADD          +=	drivers/libmdfnsdl.a
-mednafen_DEPENDENCIES   +=	drivers/libmdfnsdl.a
+mednafen_marley_LDADD          +=	drivers/libmdfnsdl.a
+mednafen_marley_DEPENDENCIES   +=	drivers/libmdfnsdl.a
 
 #
 # Resource file wasn't linking in properly when it was in an archive, so we resort to this!
@@ -23,29 +23,29 @@ if WIN32
 .rc.o:
 	@WINDRES@ -o $@ $<
 
-mednafen_SOURCES	+=	win32-common.cpp drivers/win-resource.rc
+mednafen_marley_SOURCES	+=	win32-common.cpp drivers/win-resource.rc
 endif
 
 endif
 
 if DOS
 SUBDIRS			+=	drivers_dos
-mednafen_LDADD		+=	drivers_dos/libmdfndos.a
-mednafen_DEPENDENCIES	+=	drivers_dos/libmdfndos.a
+mednafen_marley_LDADD		+=	drivers_dos/libmdfndos.a
+mednafen_marley_DEPENDENCIES	+=	drivers_dos/libmdfndos.a
 endif
 
 if ENABLE_LIBXXX_MODE
 SUBDIRS			+=	drivers_libxxx
-mednafen_LDADD		+=	drivers_libxxx/libmdfnxxx.a
-mednafen_DEPENDENCIES	+=	drivers_libxxx/libmdfnxxx.a
+mednafen_marley_LDADD		+=	drivers_libxxx/libmdfnxxx.a
+mednafen_marley_DEPENDENCIES	+=	drivers_libxxx/libmdfnxxx.a
 endif
 
 SUBDIRS			+=	sexyal
-mednafen_LDADD		+=	sexyal/libsexyal.a @ALSA_LIBS@ @JACK_LIBS@
-mednafen_DEPENDENCIES	+=	sexyal/libsexyal.a
+mednafen_marley_LDADD		+=	sexyal/libsexyal.a @ALSA_LIBS@ @JACK_LIBS@
+mednafen_marley_DEPENDENCIES	+=	sexyal/libsexyal.a
 
 if HAVE_SDL
-mednafen_LDADD		+=	@SDL_LIBS@
+mednafen_marley_LDADD		+=	@SDL_LIBS@
 endif
 
 include cdplay/Makefile.am.inc
@@ -114,14 +114,14 @@ endif
 SS_SUBDIRS =
 if WANT_SS_EMU
 SS_SUBDIRS 		=	ss
-mednafen_LDADD          +=      ss/libss.a
-mednafen_DEPENDENCIES   +=      ss/libss.a
+mednafen_marley_LDADD          +=      ss/libss.a
+mednafen_marley_DEPENDENCIES   +=      ss/libss.a
 endif
 
 if WANT_SSFPLAY_EMU
 SS_SUBDIRS 		=	ss
-mednafen_LDADD          +=      ss/libssfplay.a
-mednafen_DEPENDENCIES   +=      ss/libssfplay.a
+mednafen_marley_LDADD          +=      ss/libssfplay.a
+mednafen_marley_DEPENDENCIES   +=      ss/libssfplay.a
 endif
 
 SUBDIRS	+= $(SS_SUBDIRS)
@@ -157,29 +157,29 @@ include cputest/Makefile.am.inc
 include cheat_formats/Makefile.am.inc
 
 if HAVE_EXTERNAL_LZO2
-mednafen_LDADD		+=	@LZO2_LIBS@
+mednafen_marley_LDADD		+=	@LZO2_LIBS@
 DEFS			+=	@LZO2_CFLAGS@
 else
 include minilzo/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_TREMOR
-mednafen_LDADD		+=	@TREMOR_LIBS@
+mednafen_marley_LDADD		+=	@TREMOR_LIBS@
 else
 include tremor/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_MPCDEC
-mednafen_LDADD		+=	@MPCDEC_LIBS@
+mednafen_marley_LDADD		+=	@MPCDEC_LIBS@
 else
 include mpcdec/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_TRIO
-mednafen_LDADD		+=	@TRIO_LIBS@
+mednafen_marley_LDADD		+=	@TRIO_LIBS@
 else
 include trio/Makefile.am.inc
 endif
 
-mednafen_LDADD		+= 	@SNDFILE_LIBS@ @ZLIB_LIBS@ @LIBINTL@ @LIBICONV@
+mednafen_marley_LDADD		+= 	@SNDFILE_LIBS@ @ZLIB_LIBS@ @LIBINTL@ @LIBICONV@
 

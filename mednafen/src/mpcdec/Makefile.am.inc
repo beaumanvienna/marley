@@ -6,6 +6,6 @@ libmpcdec_a_SOURCES = mpcdec/huffman.c mpcdec/mpc_decoder.c mpcdec/mpc_reader.c 
         mpcdec/requant.c mpcdec/streaminfo.c mpcdec/synth_filter.c mpcdec/mpc_bits_reader.c mpcdec/mpc_demux.c \
 	mpcdec/crc32.c
 
-mednafen_LDADD          +=	libmpcdec.a
-mednafen_DEPENDENCIES   +=	libmpcdec.a
+mednafen_marley_LDADD          +=	libmpcdec.a
+mednafen_marley_DEPENDENCIES   +=	libmpcdec.a
 

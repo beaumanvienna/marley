@@ -26,55 +26,15 @@
 #include <cmath>
 #include <SDL.h>
 #include <SDL_image.h>
-#include <SDL_ttf.h>
-
-using namespace std;
-
-#ifndef GUI_H
-#define GUI_H
-
-    #define NUM_TEXTURES    13
-        #define TEX_BACKGROUND      0
-        #define TEX_ARROW           1
-        #define TEX_PS3             2
-        #define TEX_XBOX360         3
-        #define TEX_GENERIC_CTRL    4
-        #define TEX_RUDDER          5
-        #define TEX_RUDDER_GREY     6
-        #define TEX_ICON_PLAY       7
-        #define TEX_ICON_PLAY_IN    8
-        #define TEX_ICON_SETUP      9
-        #define TEX_ICON_SETUP_IN  10
-        #define TEX_ICON_OFF       11
-        #define TEX_ICON_OFF_IN    12
 
 
-    #define WINDOW_WIDTH 1280
-    #define WINDOW_HEIGHT 720
-    
-    bool initGUI(void);
-    bool loadMedia(void);
-    bool closeGUI(void);
-    bool freeTextures(void);
-    bool renderIcons(string name);
-    bool setFullscreen(void);
-    bool setWindowed(void);
-    
-    SDL_Texture* loadTextureFromFile(string str);
-    
-    //rendering window 
-    extern SDL_Window* gWindow;
+#ifndef MARLEY_H
+#define MARLEY_H
 
-    //window renderer
-    extern SDL_Renderer* gRenderer;
+    #define MEDNAFEN 1
     
-    //textures
-    extern SDL_Texture* gTextures[NUM_TEXTURES];
-   
-    // fullscreen flag
-    extern bool gFullscreen;
-    extern bool gIgnore;
-    
-    extern TTF_Font* gFont;
-    
+    #ifdef MEDNAFEN
+        #include "../mednafen/src/drivers/main_marley.h"
+    #endif
+
 #endif

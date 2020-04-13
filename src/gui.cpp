@@ -170,7 +170,7 @@ bool initGUI(void)
     
     SDL_ShowCursor(SDL_DISABLE);
     
-    windowFlags = SDL_WINDOW_SHOWN;
+    windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
     if (gFullscreen)
     {
         windowFlags = windowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -296,3 +296,14 @@ bool renderIcons(string name)
     SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     
 }
+
+
+bool setFullscreen(void)
+{
+    SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+}
+bool setWindowed(void)
+{
+    SDL_SetWindowFullscreen(gWindow, 0);
+}
+                                    

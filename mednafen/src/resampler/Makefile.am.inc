@@ -1,1 +1,1 @@
-mednafen_SOURCES	+= resampler/resample.c
+mednafen_marley_SOURCES	+= resampler/resample.c

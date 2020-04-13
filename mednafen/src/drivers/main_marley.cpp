@@ -2090,9 +2090,11 @@ extern "C"
 
 __attribute__((force_align_arg_pointer))	// Not sure what's going on to cause this to be needed.
 #endif
-int main(int argc, char *argv[])
+#warning "JC: modified"
+int mednafen_main(int argc, char *argv[])
 {
 	// SuppressErrorPopups must be set very early.
+    printf("mednafen-marley: argc %i\n",argc);
 	{
 	 char* mnp = getenv("MEDNAFEN_NOPOPUPS");
 
@@ -2482,7 +2484,8 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
 	//
 
 	CloseGame();
-
+#warning "JC: modified"
+/*
 	for(int i = 0; i < 2; i++)
 	{
 	 SoftFB[i].surface.reset(nullptr);
@@ -2512,8 +2515,8 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
 	MDFNI_Kill();
 
 	SDL_Quit();
-
-        return ret;
+*/
+    return ret;
 }
 
 

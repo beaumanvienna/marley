@@ -16,4 +16,9 @@ src/.dirstamp
 src/controller.o
 src/gui.o
 src/statemachine.o
-
+mednafen/po/de.po~
+mednafen/po/es.po~
+mednafen/po/ru.po~
+mednafen/mednafen
+mednafen/po/mednafen_marley.pot
+mednafen/src/drivers/main.h.gch

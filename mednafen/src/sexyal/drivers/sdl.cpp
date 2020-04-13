@@ -273,6 +273,7 @@ static int RawClose(SexyAL_device *device)
    if(sw->StandAlone)
    {
     SDL_Quit();
+    printf("jc: sdl_quit\n");
     //puts("SDL quit");
    }
    //

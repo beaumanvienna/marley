@@ -66,6 +66,6 @@ libsnes_a_SOURCES	+=	snes/src/chip/st010/st010.cpp
 
 libsnes_a_SOURCES	+=	snes/src/chip/superfx/superfx.cpp
 
-mednafen_LDADD          +=      libsnes.a
-mednafen_DEPENDENCIES   +=      libsnes.a
+mednafen_marley_LDADD          +=      libsnes.a
+mednafen_marley_DEPENDENCIES   +=      libsnes.a
 
