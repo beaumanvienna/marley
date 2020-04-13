@@ -180,10 +180,7 @@ bool statemachine(int cmd)
                             printf("arg1: %s arg2: %s \n",arg1,arg2);
                             mednafen_main(argc,argv);
                             gIgnore = true;
-                            SDL_JoystickEventState(SDL_ENABLE);
-                            str = "marley ";
-                            str += PACKAGE_VERSION;
-                            SDL_SetWindowTitle(gWindow, str.c_str());
+                            restoreSDL();
                         #else
                             execute = "mednafen \""+gGame+"\"";
                             emuReturn = system(execute.c_str());

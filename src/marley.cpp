@@ -624,3 +624,10 @@ bool checkConf(void)
         }
     }    
 }
+
+
+bool restoreSDL(void)
+{
+    restoreController();
+    restoreGUI();
+}

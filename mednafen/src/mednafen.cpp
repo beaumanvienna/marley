@@ -237,6 +237,8 @@ static std::vector<DriveMediaStatus> DMStatus, DMStatusSaveStateTemp;
 static std::vector<uint32> DMSNoMedia;
 static bool ValidateDMS(const std::vector<DriveMediaStatus>& dms);
 
+bool firstRun=true;
+
 static void SettingChanged(const char* name)
 {
  if(!strcmp(name, "video.deinterlacer"))
@@ -1453,13 +1455,31 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 {
 	// FIXME static
 	static std::vector<MDFNSetting> dynamic_settings;
+    
+    CustomPalette = NULL;
+    CustomPaletteNumEntries = 0;
+
+    MDFNGameInfo = NULL;
+
+    qtrecorder = NULL;
+    wavrecorder = NULL;
+
+
+    FFDiscard = false; // TODO:  Setting to discard sound samples instead of increasing pitch
+
+    #warning "jc: modified"
+    MDFN_ResetSettings();
+    dynamic_settings.clear();
 
 	// DO NOT REMOVE/DISABLE THESE MATH AND COMPILER SANITY TESTS.  THEY EXIST FOR A REASON.
 	//uint64 st = Time::MonoUS();
-	if(!MDFN_RunMathTests())
-	{
-	 return(0);
-	}
+    if (firstRun)
+    {
+        if(!MDFN_RunMathTests())
+        {
+         return(0);
+        }
+    }
 	//printf("tests time: %llu\n", Time::MonoUS() - st);
 
 	for(unsigned x = 0; x < 16; x++)
@@ -1485,6 +1505,7 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 
 	 if(!MDFNSystems[i]->soundchan)
 	  printf("0 sound channels for %s????\n", sysname);
+     
 
 	 if(MDFNSystems[i]->soundchan == 2)
 	 {
@@ -1507,9 +1528,8 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 
 	// First merge all settable settings, then load the settings from the SETTINGS FILE OF DOOOOM
 	MDFN_MergeSettings(MednafenSettings);
-        MDFN_MergeSettings(dynamic_settings);
+    MDFN_MergeSettings(dynamic_settings);
 	MDFN_MergeSettings(MDFNMP_Settings);
-
 	if(DriverSettings.size())
  	 MDFN_MergeSettings(DriverSettings);
 
@@ -1518,15 +1538,13 @@ int MDFNI_Initialize(const char *basedir, const std::vector<MDFNSetting> &Driver
 	 if(MDFNSystems[x]->Settings)
 	  MDFN_MergeSettings(MDFNSystems[x]->Settings);
 	}
-
 	MDFN_MergeSettings(RenamedSettings);
-
 	MDFN_FinalizeSettings();
 
 	#ifdef WANT_DEBUGGER
 	MDFNDBG_Init();
 	#endif
-
+    firstRun=false;
         return(1);
 }
 

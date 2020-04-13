@@ -28,6 +28,7 @@ namespace Mednafen
 {
 
 bool MDFN_LoadSettings(const std::string& path, bool override = false);
+void MDFN_ResetSettings(void);
 void MDFN_MergeSettings(const MDFNSetting *);
 void MDFN_MergeSettings(const std::vector<MDFNSetting> &);
 void MDFN_FinalizeSettings(void);

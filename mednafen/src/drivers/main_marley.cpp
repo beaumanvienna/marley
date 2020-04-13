@@ -2093,8 +2093,9 @@ __attribute__((force_align_arg_pointer))	// Not sure what's going on to cause th
 #warning "JC: modified"
 int mednafen_main(int argc, char *argv[])
 {
+    MDFNSystems.clear();
+    NeoDriverSettings.clear(); 
 	// SuppressErrorPopups must be set very early.
-    printf("mednafen-marley: argc %i\n",argc);
 	{
 	 char* mnp = getenv("MEDNAFEN_NOPOPUPS");
 

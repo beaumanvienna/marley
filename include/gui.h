@@ -59,6 +59,8 @@ using namespace std;
     bool renderIcons(string name);
     bool setFullscreen(void);
     bool setWindowed(void);
+    bool restoreGUI();
+    bool createRenderer(void);
     
     SDL_Texture* loadTextureFromFile(string str);
     

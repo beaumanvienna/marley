@@ -345,3 +345,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 }
 
 
+bool restoreController(void)
+{
+    SDL_JoystickEventState(SDL_ENABLE);
+}

@@ -36,5 +36,7 @@
     #ifdef MEDNAFEN
         #include "../mednafen/src/drivers/main_marley.h"
     #endif
+    
+    bool restoreSDL(void);
 
 #endif

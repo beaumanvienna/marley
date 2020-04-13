@@ -192,38 +192,16 @@ bool initGUI(void)
     }
     else
     {
-        //Create renderer for main window
-        gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-        if( gRenderer == NULL )
+        //Initialize libsdl-image for png files
+        imgFlags = IMG_INIT_PNG;
+        if( !( IMG_Init( imgFlags ) & imgFlags ) )
         {
-            printf( "Error creating renderer. SDL error: %s\n", SDL_GetError() );
+            printf( "Error initialzing image support. SDL_image error: %s\n", IMG_GetError() );
             ok = false;
         }
-        else
+        if (!createRenderer())
         {
-            
-            SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
-            
-            //Initialize libsdl-image for png files
-            imgFlags = IMG_INIT_PNG;
-            if( !( IMG_Init( imgFlags ) & imgFlags ) )
-            {
-                printf( "Error initialzing image support. SDL_image error: %s\n", IMG_GetError() );
-                ok = false;
-            }
-            
-            //Load media
-            if( !loadMedia() )
-            {
-                printf( "Failed to load media!\n" );
-                ok = false;
-            }
-            
-            SDL_RenderClear(gRenderer);
-            
-            //draw backround to main window
-            SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
-            SDL_RenderPresent(gRenderer);
+            ok =false;
         }
     }
     return ok;
@@ -306,4 +284,51 @@ bool setWindowed(void)
 {
     SDL_SetWindowFullscreen(gWindow, 0);
 }
+
+bool createRenderer(void)
+{
+    bool ok = true;
+    
+    //Create renderer for main window
+    gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+    if( gRenderer == NULL )
+    {
+        printf( "Error creating renderer. SDL error: %s\n", SDL_GetError() );
+        ok = false;
+    }
+    else
+    {
+        
+        SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+        //Load media
+        if( !loadMedia() )
+        {
+            printf( "Failed to load media!\n" );
+            ok = false;
+        }
+        SDL_RenderClear(gRenderer);
+        
+        //draw backround to main window
+        SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
+        SDL_RenderPresent(gRenderer);
+    }
+    
+    
+    return ok;
+}
                                     
+bool restoreGUI(void)
+{
+    bool ok = true;
+    string str;
+    
+    str = "marley ";
+    str += PACKAGE_VERSION;
+    SDL_SetWindowTitle(gWindow, str.c_str());    
+    
+    freeTextures();
+    SDL_DestroyRenderer( gRenderer );
+    createRenderer();
+    
+    return ok;
+}

@@ -529,6 +529,11 @@ void MDFN_MergeSettings(const MDFNSetting *setting)
  }
 }
 
+void MDFN_ResetSettings(void)
+{
+    MDFN_KillSettings();
+}
+
 void MDFN_MergeSettings(const std::vector<MDFNSetting> &setting)
 {
  assert(!SettingsFinalized);
@@ -554,6 +559,7 @@ void MDFN_FinalizeSettings(void)
  //
  // Ensure no duplicates.
  //
+ 
  for(size_t i = 0; i < CurrentSettings.size(); i++)
  {
   for(size_t j = i + 1; j < CurrentSettings.size() && CurrentSettings[j].name_hash == CurrentSettings[i].name_hash; j++)
