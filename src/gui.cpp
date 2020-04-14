@@ -203,6 +203,7 @@ bool initGUI(void)
         {
             ok =false;
         }
+        SDL_DisableScreenSaver();
     }
     return ok;
 }
