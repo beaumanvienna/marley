@@ -24,6 +24,7 @@
 #include "Joystick.h"
 #include "Joystick_SDL.h"
 #include <mednafen/hash/md5.h>
+#include "../../../include/controller.h"
 
 #include <SDL.h>
 
@@ -44,6 +45,9 @@ class Joystick_SDL : public Joystick
  unsigned sdl_num_hats;
  unsigned sdl_num_balls;
  unsigned sdl_num_buttons;
+ #warning "jc: modified"
+ const char* sdl_name;
+ SDL_GameController* sdl_game_controller;
 };
 
 unsigned Joystick_SDL::HatToButtonCompat(unsigned hat)
@@ -53,7 +57,13 @@ unsigned Joystick_SDL::HatToButtonCompat(unsigned hat)
 
 Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
 {
- sdl_joy = SDL_JoystickOpen(index);
+ printf("jc: Joystick_SDL\n");
+    
+ #warning "jc: modified"
+ sdl_joy = gDesignatedControllers[index].joy;
+ sdl_game_controller = gDesignatedControllers[index].gameCtrl;
+ //sdl_joy = SDL_JoystickOpen(index);
+ 
  if(sdl_joy == NULL)
  {
   throw MDFN_Error(0, "SDL_JoystickOpen(%u) failed: %s", index, SDL_GetError());
@@ -62,7 +72,9 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
  try
  {
   name = SDL_JoystickName(sdl_joy);
-
+  #warning "jc: modified"
+  sdl_name = SDL_JoystickName(sdl_joy);
+  
   sdl_num_axes = SDL_JoystickNumAxes(sdl_joy);
   sdl_num_balls = SDL_JoystickNumBalls(sdl_joy);
   sdl_num_buttons = SDL_JoystickNumButtons(sdl_joy);
@@ -75,6 +87,13 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
    //
    // Don't use SDL's GUID, as it's just equivalent to part of the joystick name on many platforms.
    // 
+   #warning "JC: modified"
+   // at this point, all sdl controller look the same and will get the same ID "bad food beef babe"
+   //  0xbaadf00d00000000beefbabe00000000
+   // (actual mapping is done in marley)
+   unsigned long long l[2] = {0x0DF0ADBA, 0xBEBAEFBE};
+   memcpy(&id[0], l, 16);
+  /*
    md5_context h;
    uint8 d[16];
 
@@ -87,7 +106,9 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
    MDFN_en16msb(&id[10], sdl_num_buttons);
    MDFN_en16msb(&id[12], sdl_num_hats);
    MDFN_en16msb(&id[14], sdl_num_balls);
+   */
   }
+  
   num_axes = sdl_num_axes;
   num_rel_axes = sdl_num_balls * 2;
   num_buttons = sdl_num_buttons + (sdl_num_hats * 4);
@@ -95,6 +116,7 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
   axis_state.resize(num_axes);
   rel_axis_state.resize(num_rel_axes);
   button_state.resize(num_buttons);
+  printf("JC:  %s axes:%d buttons:%d hats:%d balls:%d\n", sdl_name, sdl_num_axes, sdl_num_buttons, sdl_num_hats, sdl_num_balls);
  }
  catch(...)
  {
@@ -109,13 +131,15 @@ Joystick_SDL::~Joystick_SDL()
 {
  if(sdl_joy)
  {
-  SDL_JoystickClose(sdl_joy);
+  #warning "JC: modified"
+  //SDL_JoystickClose(sdl_joy);
   sdl_joy = NULL;
  }
 }
 
 void Joystick_SDL::UpdateInternal(void)
 {
+
  for(unsigned i = 0; i < sdl_num_axes; i++)
  {
   axis_state[i] = SDL_JoystickGetAxis(sdl_joy, i);
@@ -133,11 +157,18 @@ void Joystick_SDL::UpdateInternal(void)
   rel_axis_state[i * 2 + 1] = dy;
  }
 
+ #warning "JC: modified"
+ int n= sdl_num_buttons + 4*sdl_num_hats;
+ for(unsigned i = 0; i < n; i++)
+ {
+  button_state[i] = SDL_GameControllerGetButton(sdl_game_controller, (SDL_GameControllerButton)i);
+ }
+ /*
  for(unsigned i = 0; i < sdl_num_buttons; i++)
  {
   button_state[i] = SDL_JoystickGetButton(sdl_joy, i);
  }
-
+ 
  for(unsigned i = 0; i < sdl_num_hats; i++)
  {
   uint8 hs = SDL_JoystickGetHat(sdl_joy, i);
@@ -147,6 +178,7 @@ void Joystick_SDL::UpdateInternal(void)
   button_state[sdl_num_buttons + (i * 4) + 2] = (bool)(hs & SDL_HAT_DOWN);
   button_state[sdl_num_buttons + (i * 4) + 3] = (bool)(hs & SDL_HAT_LEFT);
  }
+ */
 }
 
 class JoystickDriver_SDL : public JoystickDriver
@@ -167,6 +199,23 @@ class JoystickDriver_SDL : public JoystickDriver
 
 JoystickDriver_SDL::JoystickDriver_SDL()
 {
+ printf("JC: JoystickDriver_SDL\n");
+ #warning "jc: modified"
+ 
+ for(int n = 0; n < MAX_GAMEPADS; n++)
+ {
+   if (gDesignatedControllers[n].joy != NULL)
+   {
+       printf("jc: joystick added\n");
+     Joystick_SDL *jsdl = new Joystick_SDL(n);
+     joys.push_back(jsdl);
+   }
+   else
+   {
+      printf("jc: empty\n");    
+   }
+ }
+ /*
  SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 
  for(int n = 0; n < SDL_NumJoysticks(); n++)
@@ -181,16 +230,20 @@ JoystickDriver_SDL::JoystickDriver_SDL()
    MDFND_OutputNotice(MDFN_NOTICE_ERROR, e.what());
   }
  }
+ */
 }
 
 JoystickDriver_SDL::~JoystickDriver_SDL()
 {
+    
  for(unsigned int n = 0; n < joys.size(); n++)
  {
   delete joys[n];
  }
 
- SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+ #warning "JC: modified"
+ //SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+
 }
 
 unsigned JoystickDriver_SDL::NumJoysticks(void)

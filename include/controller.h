@@ -47,6 +47,7 @@ using namespace std;
     // (designated controller 0, controller 1)
     typedef struct DesignatedControllers { 
         SDL_Joystick* joy; 
+        SDL_GameController* gameCtrl;
         int instance; 
         string name;
         bool mappingOK; 

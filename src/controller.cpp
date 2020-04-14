@@ -57,6 +57,7 @@ bool initJoy(void)
         gDesignatedControllers[i].name = "NULL";
         gDesignatedControllers[i].joy = NULL;
         gDesignatedControllers[i].mappingOK = false;
+        gDesignatedControllers[i].gameCtrl = NULL;
     }
     return ok;
 }
@@ -95,6 +96,7 @@ bool closeJoy(int instance_id)
                 gDesignatedControllers[designation].name = "NULL";
                 gDesignatedControllers[designation].joy = NULL;
                 gDesignatedControllers[designation].mappingOK = false;
+                gDesignatedControllers[designation].gameCtrl = NULL;
             }
         }
            
@@ -215,8 +217,11 @@ bool openJoy(int i)
                         if (gDesignatedControllers[designation].instance == -1)
                         {
                             // instance is what e.jaxis.which returns
-                            gDesignatedControllers[designation].instance = SDL_JoystickInstanceID(gGamepad[i]);
+                            int instance = SDL_JoystickInstanceID(gGamepad[i]);
+                            gDesignatedControllers[designation].instance = instance;
                             gDesignatedControllers[designation].name = SDL_JoystickNameForIndex(i);
+                            gDesignatedControllers[designation].joy = joy;
+                            gDesignatedControllers[designation].gameCtrl = SDL_GameControllerFromInstanceID(instance);
                             SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
                             checkMapping(guid, &gDesignatedControllers[designation].mappingOK,gDesignatedControllers[designation].name);
                             printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);

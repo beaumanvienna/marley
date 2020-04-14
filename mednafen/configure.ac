@@ -786,8 +786,8 @@ else
 			],
 			[
 				AC_MSG_RESULT([yes])
-				AM_CONDITIONAL(HAVE_LINUX_JOYSTICK, true)
-				AC_DEFINE([HAVE_LINUX_JOYSTICK], [1], [Define if we are compiling with Linux joystick support.])
+				AM_CONDITIONAL(HAVE_SDL, true)
+				AC_DEFINE([HAVE_SDL], [1], [Define if we are compiling with SDL joystick support.])
 			],
 			AC_MSG_ERROR([*** Linux joystick APIs not found!]))
 		],

@@ -1456,17 +1456,29 @@ std::string GetBaseDirectory(void)
  }
 #else
  char *ol;
-
+ #warning "JC: modified"
+ /*
  ol = getenv("MEDNAFEN_HOME");
  if(ol != NULL && ol[0] != 0)
  {
   return std::string(ol);
+ }*/
+ std::string homedir, slash;
+ if ((homedir = getenv("HOME")) != "") 
+ {
+    // add slash to end if necessary
+    slash = homedir.substr(homedir.length()-1,1);
+    if (slash != "/")
+    {
+        homedir += "/";
+    }
+    
+    homedir = homedir + ".marley/mednafen";
+
+    return homedir;
  }
 
- ol = getenv("HOME");
- if(ol)
-  return std::string(ol) + PSS + ".marley/mednafen";
-
+/*
  #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
  {
   struct passwd *psw;
@@ -1477,6 +1489,7 @@ std::string GetBaseDirectory(void)
    return std::string(psw->pw_dir) + PSS + ".marley/mednafen";
  }
  #endif
+ */
  return "";
 #endif
 }
@@ -1653,7 +1666,6 @@ void PumpWrap(void)
 		break;
 	}
 	break;
-
    case SDL_QUIT:
 	NeedExitNow = 1;
 	break;
@@ -2095,6 +2107,7 @@ int mednafen_main(int argc, char *argv[])
 {
     MDFNSystems.clear();
     NeoDriverSettings.clear(); 
+    
 	// SuppressErrorPopups must be set very early.
 	{
 	 char* mnp = getenv("MEDNAFEN_NOPOPUPS");
@@ -2222,6 +2235,7 @@ int mednafen_main(int argc, char *argv[])
 	 MDFN_Notify(MDFN_NOTICE_ERROR, _("Could not initialize SDL: %s\n"), SDL_GetError());
 	 return -1;
 	}
+    
 	SDL_JoystickEventState(SDL_IGNORE);
 	SDL_DisableScreenSaver();
 	//SDL_StopTextInput();
@@ -2485,8 +2499,7 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
 	//
 
 	CloseGame();
-#warning "JC: modified"
-/*
+    
 	for(int i = 0; i < 2; i++)
 	{
 	 SoftFB[i].surface.reset(nullptr);
@@ -2510,6 +2523,9 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
 
 	// lockfs.reset() after SaveSettings()
 	lockfs.reset(nullptr);
+    
+    #warning "JC: modified"
+/*
 
 	Video_Kill();
 
