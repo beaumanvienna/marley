@@ -254,6 +254,15 @@ int main( int argc, char* argv[] )
                             case SDLK_1:
                                     gQuit=true;
                                 break;
+                            case SDLK_UP:
+                            case SDLK_DOWN:
+                            case SDLK_LEFT:
+                            case SDLK_RIGHT:
+                                    statemachine(event.key.keysym.sym);
+                                break;
+                            case SDLK_RETURN:
+                                    statemachine(SDL_CONTROLLER_BUTTON_A);
+                                break;
                             case SDLK_ESCAPE:
                                 if (!gIgnore)
                                 {

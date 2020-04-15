@@ -33,7 +33,7 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    13
+    #define NUM_TEXTURES    15
         #define TEX_BACKGROUND      0
         #define TEX_ARROW           1
         #define TEX_PS3             2
@@ -47,6 +47,8 @@ using namespace std;
         #define TEX_ICON_SETUP_IN  10
         #define TEX_ICON_OFF       11
         #define TEX_ICON_OFF_IN    12
+        #define TEX_ICON_NO_CTRL   13
+        #define TEX_ICON_NO_FW_PSX 14
 
 
     #define WINDOW_WIDTH 1280

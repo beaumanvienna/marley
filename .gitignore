@@ -24,3 +24,5 @@ mednafen/po/mednafen_marley.pot
 mednafen/src/drivers/main.h.gch
 mednafen/po/remove-potcdate.sed
 mednafen/ar-lib
+src/emu.o
+src/*.o

@@ -26,47 +26,13 @@
 #include <cmath>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 
 using namespace std;
 
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef EMU_H
+#define EMU_H
 
-    //supported number of controllers in GUI
-    #define MAX_GAMEPADS 2
-
-    //SDL increases the instance for a controller every 
-    //time a controller reconnects
-    #define MAX_GAMEPADS_PLUGGED 128
-
-    // suppress controller noise
-    const int ANALOG_DEAD_ZONE = 2000;
-
-    // controllers detected by SDL 
-    // will be assigned a slot
-    // (designated controller 0, controller 1)
-    typedef struct DesignatedControllers { 
-        SDL_Joystick* joy; 
-        SDL_GameController* gameCtrl;
-        int instance; 
-        string name;
-        bool mappingOK; 
-    } T_DesignatedControllers;
+    extern bool gPSX_firmware;
     
-    bool initJoy(void);
-    bool openJoy(int i);
-    bool checkControllerIsSupported(int i);
-    bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK,string name);
-    bool printJoyInfo(int i);
-    bool closeJoy(int instance_id);
-    bool closeAllJoy(void);
-    bool restoreController(void);
-
-    //Gamepad array for all instances
-    extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
-
-    //designated controllers
-    extern T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
-    extern int gNumDesignatedControllers;
-
 #endif

@@ -37,7 +37,7 @@ bool statemachine(int cmd)
     string execute;
     bool emuReturn;
     
-    
+    printf("gState: %i   cmd: %i\n",gState,cmd);
     switch (cmd)
     {
         case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
@@ -47,7 +47,14 @@ bool statemachine(int cmd)
             switch (gState)
             {
                 case STATE_ZERO:
-                    gState=STATE_PLAY;
+                    if (gNumDesignatedControllers)
+                    {
+                        gState=STATE_PLAY;
+                    }
+                    else
+                    {
+                        gState=STATE_OFF;
+                    }
                     break;
                 case STATE_PLAY:
                     gState=STATE_SETUP;
@@ -93,7 +100,14 @@ bool statemachine(int cmd)
             switch (gState)
             {
                 case STATE_ZERO:
-                    gState=STATE_LAUNCH;
+                    if (gNumDesignatedControllers)
+                    {
+                        gState=STATE_LAUNCH;;
+                    }
+                    else
+                    {
+                        gState=STATE_OFF;
+                    }
                     break;
                 case STATE_PLAY:
                     gState=STATE_LAUNCH;
@@ -102,7 +116,10 @@ bool statemachine(int cmd)
                     gState=STATE_PLAY;
                     break;
                 case STATE_OFF:
-                    gState=STATE_SETUP;
+                    if (gNumDesignatedControllers)
+                    {
+                        gState=STATE_SETUP;
+                    }
                     break;
                  case STATE_CONF0:
                     gState=STATE_OFF;

@@ -32,6 +32,7 @@ SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 
 //designated controllers
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
+int gNumDesignatedControllers;
 
 bool initJoy(void)
 {
@@ -59,6 +60,7 @@ bool initJoy(void)
         gDesignatedControllers[i].mappingOK = false;
         gDesignatedControllers[i].gameCtrl = NULL;
     }
+    gNumDesignatedControllers = 0;
     return ok;
 }
 
@@ -97,6 +99,7 @@ bool closeJoy(int instance_id)
                 gDesignatedControllers[designation].joy = NULL;
                 gDesignatedControllers[designation].mappingOK = false;
                 gDesignatedControllers[designation].gameCtrl = NULL;
+                gNumDesignatedControllers--;
             }
         }
            
@@ -227,6 +230,7 @@ bool openJoy(int i)
                             gDesignatedControllers[designation].gameCtrl = SDL_GameControllerFromInstanceID(instance);
                             SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
                             checkMapping(guid, &gDesignatedControllers[designation].mappingOK,gDesignatedControllers[designation].name);
+                            gNumDesignatedControllers++;
                             printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
                             //cancel loop
                             designation = MAX_GAMEPADS;

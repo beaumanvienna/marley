@@ -22,6 +22,8 @@
 
 #include "../include/gui.h"
 #include "../include/statemachine.h"
+#include "../include/controller.h"
+#include "../include/emu.h"
 
 //rendering window 
 SDL_Window* gWindow = NULL;
@@ -128,6 +130,20 @@ bool loadMedia()
         ok = false;
     }
     
+    //no controller
+    gTextures[TEX_ICON_NO_CTRL] = loadTextureFromFile(PICTURES "noController.png");
+    if (!gTextures[TEX_ICON_NO_CTRL])
+    {
+        ok = false;
+    }  
+    
+    //no PSX firnware
+    gTextures[TEX_ICON_NO_FW_PSX] = loadTextureFromFile(PICTURES "firmware_PSX.png");
+    if (!gTextures[TEX_ICON_NO_FW_PSX])
+    {
+        ok = false;
+    }
+    
     return ok;
 }
 
@@ -225,27 +241,6 @@ bool renderIcons(string name)
     SDL_Surface* surfaceMessage = NULL; 
     SDL_Texture* message = NULL;     
     
-    
-    destination = { 50, 10, 132, 45 };
-    if (gState == STATE_PLAY)
-    {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-    } 
-    else
-    {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-    }
-    
-    destination = { 200, 10, 132, 45 };
-    if (gState == STATE_SETUP)
-    {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-    } 
-    else
-    {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-    }
-    
     destination = { 1100, 10, 132, 45 };
     if (gState == STATE_OFF)
     {
@@ -256,24 +251,60 @@ bool renderIcons(string name)
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     
-    SDL_Color inactive = {125, 46, 115};  
-    SDL_Color active = {222, 81, 223};  
-    
-    destination = { 50, 660, 1000, 36 };
-    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
-    SDL_RenderFillRect(gRenderer, &destination);
-    
-    if (gState == STATE_LAUNCH)
+    if (gNumDesignatedControllers)
     {
-        surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), active); 
-    } 
+    
+        destination = { 50, 10, 132, 45 };
+        if (gState == STATE_PLAY)
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        } 
+        else
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        }
+        
+        destination = { 200, 10, 132, 45 };
+        if (gState == STATE_SETUP)
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        } 
+        else
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        }
+        
+        SDL_Color inactive = {125, 46, 115};  
+        SDL_Color active = {222, 81, 223};  
+        
+        destination = { 50, 660, 1000, 36 };
+        SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+        SDL_RenderFillRect(gRenderer, &destination);
+        
+        if (gState == STATE_LAUNCH)
+        {
+            surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), active); 
+        } 
+        else
+        {
+            surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), inactive); 
+        }
+        message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+        SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    }
     else
     {
-        surfaceMessage = TTF_RenderText_Solid(gFont, name.c_str(), inactive); 
+        destination = { 50, 10, 900, 45 };
+        
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
-    message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-    SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     
+    if (!gPSX_firmware)
+    {
+        destination = { 50, 70, 900, 45 };
+        
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_FW_PSX], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+    }
 }
 
 
