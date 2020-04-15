@@ -7,7 +7,21 @@ Build-Depends: debhelper,
 		chrpath,
 		libsdl2-dev,
         libsdl2-image-dev,
-        libsdl2-ttf-dev
+        libsdl2-ttf-dev,
+        autotools-dev, 
+        dh-autoreconf, 
+        libasound2-dev [linux-any], 
+        libgl1-mesa-dev | libgl-dev,
+        libjack-dev, 
+        liblzo2-dev, 
+        libmpcdec-dev, 
+        libsamplerate0-dev, 
+        libsndio-dev,
+        libsndfile1-dev | libsndfile-dev, 
+        libtrio-dev, 
+        libvorbisidec-dev, 
+        x11proto-core-dev, 
+        zlib1g-dev | libz-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
@@ -18,7 +32,18 @@ Depends: ${shlibs:Depends},
         libsdl2-2.0-0, 
         libsdl2-image-2.0-0,
         libsdl2-ttf-2.0-0,
-        mednafen
+        libasound2,
+        libc6,
+        libgcc1,
+        libgl1,
+        libjack0,
+        liblzo2-2,
+        libmpcdec6,
+        libsndfile1,
+        libstdc++6,
+        libvorbisidec1,
+        zlib1g,
+        libtrio2
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
  This is the launcher program.

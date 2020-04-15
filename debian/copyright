@@ -3,11 +3,15 @@ Upstream-Name: marley
 Upstream-Contact: JC <jc.lache@web.de>
 Source: https://github.com/beaumanvienna/marley
 
-Files: *
+Files: include/* src/*
 Copyright: 2020 JC <jc.lache@web.de>
 License: LGPL-2.1+
-
 
 Files: resources/*.ttf
 Copyright: www.opensans.com https://www.facebook.com/opensans/
 License: Apache License Version 2.0, January 2004
+
+Files: mednafen/*
+Copyright: refer to mednafen/copyright
+
+
