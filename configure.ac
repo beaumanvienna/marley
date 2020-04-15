@@ -9,7 +9,7 @@ AC_DEFINE([RESOURCES],["resources/"])
 AC_PROG_RANLIB
 AM_INIT_AUTOMAKE([subdir-objects])
 
-AC_CONFIG_COMMANDS_PRE([cd mednafen && aclocal && autoconf && automake --add-missing --foreign && ./configure])
+AC_CONFIG_COMMANDS_PRE([cd mednafen && aclocal && autoconf && automake --add-missing --foreign && ./configure&&cd ..])
 
 
 AC_CONFIG_FILES([Makefile])
