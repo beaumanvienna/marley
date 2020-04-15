@@ -64,9 +64,9 @@ bool init()
         SDL_VERSION(&compiled);
         SDL_GetVersion(&linked);
         
-        printf("We compiled against SDL version %d.%d.%d ...\n",
+        printf("We compiled against SDL version %d.%d.%d.\n",
         compiled.major, compiled.minor, compiled.patch);
-        printf("But we are linking against SDL version %d.%d.%d.\n",
+        printf("We are linking against SDL version %d.%d.%d.\n",
         linked.major, linked.minor, linked.patch);
 
         TTF_Init();
@@ -151,6 +151,7 @@ int main( int argc, char* argv[] )
             printf("Use \"l\" to print a list of detected controllers to the command line.\n\n");
             printf("Use \"f\" to toggle fullscreen.\n\n");
             printf("Use \"1\" to exit.\n\n");
+            printf("Use \"p\" to print the current gamepad mapping(s).\n\n");
             printf("Visit https://github.com/beaumanvienna/marley for more information.\n\n");
             return 0;
         }
@@ -235,6 +236,19 @@ int main( int argc, char* argv[] )
                                 else
                                 {
                                     setWindowed();
+                                }
+                                break;
+                            case SDLK_p:
+                                
+                                for (l=0; l < MAX_GAMEPADS;l++)
+                                {
+                                    if ( gDesignatedControllers[l].instance != -1 )
+                                    {
+                                        char *mapping;
+                                        mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl);
+                                        printf("\n\n%s\n\n",mapping);
+                                        SDL_free(mapping);
+                                    }
                                 }
                                 break;
                             case SDLK_1:

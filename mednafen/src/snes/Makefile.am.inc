@@ -66,6 +66,6 @@ libsnes_a_SOURCES	+=	snes/src/chip/st010/st010.cpp
 
 libsnes_a_SOURCES	+=	snes/src/chip/superfx/superfx.cpp
 
-mednafen_marley_LDADD          +=      libsnes.a
-mednafen_marley_DEPENDENCIES   +=      libsnes.a
+libmednafen_marley_a_LIBADD          +=      snes/libsnes_a-interface.o snes/src/lib/libco/libsnes_a-libco.o snes/src/cartridge/libsnes_a-cartridge.o snes/src/cheat/libsnes_a-cheat.o snes/src/memory/libsnes_a-memory.o snes/src/memory/smemory/libsnes_a-smemory.o snes/src/cpu/libsnes_a-cpu.o snes/src/cpu/core/libsnes_a-core.o snes/src/cpu/scpu/libsnes_a-scpu.o snes/src/smp/libsnes_a-smp.o snes/src/sdsp/libsnes_a-sdsp.o snes/src/ppu/libsnes_a-ppu.o snes/src/system/libsnes_a-system.o snes/src/chip/sa1/libsnes_a-sa1.o snes/src/chip/bsx/libsnes_a-bsx.o snes/src/chip/srtc/libsnes_a-srtc.o snes/src/chip/sdd1/libsnes_a-sdd1.o snes/src/chip/spc7110/libsnes_a-spc7110.o snes/src/chip/cx4/libsnes_a-cx4.o snes/src/chip/dsp1/libsnes_a-dsp1.o snes/src/chip/dsp2/libsnes_a-dsp2.o snes/src/chip/dsp3/libsnes_a-dsp3.o snes/src/chip/dsp4/libsnes_a-dsp4.o snes/src/chip/obc1/libsnes_a-obc1.o snes/src/chip/st010/libsnes_a-st010.o snes/src/chip/superfx/libsnes_a-superfx.o 
+libmednafen_marley_a_DEPENDENCIES   +=      libsnes.a
 

@@ -1,1 +1,1 @@
-mednafen_marley_SOURCES	+=	minilzo/minilzo.c
+libmednafen_marley_a_SOURCES	+=	minilzo/minilzo.c

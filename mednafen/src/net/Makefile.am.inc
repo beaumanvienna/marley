@@ -1,10 +1,10 @@
-mednafen_marley_SOURCES += net/Net.cpp
+libmednafen_marley_a_SOURCES += net/Net.cpp
 
 if HAVE_POSIX_SOCKETS
-mednafen_marley_SOURCES += net/Net_POSIX.cpp
+libmednafen_marley_a_SOURCES += net/Net_POSIX.cpp
 endif
 
 if WIN32
-mednafen_marley_SOURCES += net/Net_WS2.cpp
+libmednafen_marley_a_SOURCES += net/Net_WS2.cpp
 endif
 

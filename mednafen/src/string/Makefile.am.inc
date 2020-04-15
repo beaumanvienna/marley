@@ -1,2 +1,2 @@
-mednafen_marley_SOURCES	+=	string/escape.cpp string/string.cpp
+libmednafen_marley_a_SOURCES	+=	string/escape.cpp string/string.cpp
 

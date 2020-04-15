@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mednafen\n"
 "Report-Msgid-Bugs-To: http://forum.fobby.net/\n"
-"POT-Creation-Date: 2020-04-12 09:29-0700\n"
+"POT-Creation-Date: 2020-04-14 20:57-0700\n"
 "PO-Revision-Date: 2006-01-29 23:54-0600\n"
 "Last-Translator: Merp\n"
 "Language-Team: Spanish\n"
@@ -1244,11 +1244,11 @@ msgstr ""
 msgid "Compiled with GNU libstdc++ %lu\n"
 msgstr ""
 
-#: src/drivers/main.cpp:1758 src/drivers/video.cpp:1176
+#: src/drivers/main.cpp:1758 src/drivers/video.cpp:1211
 msgid "Yes"
 msgstr ""
 
-#: src/drivers/main.cpp:1760 src/drivers/video.cpp:1176
+#: src/drivers/main.cpp:1760 src/drivers/video.cpp:1211
 msgid "No"
 msgstr ""
 
@@ -1283,51 +1283,51 @@ msgstr ""
 msgid "Error converting value of setting \"%s\" to UTF-8."
 msgstr ""
 
-#: src/drivers/main.cpp:2188
+#: src/drivers/main.cpp:2189
 #, c-format
 msgid "Starting Mednafen %s\n"
 msgstr "Mednafen %s está comenzando\n"
 
-#: src/drivers/main.cpp:2191
+#: src/drivers/main.cpp:2192
 msgid "Build information:\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2201
+#: src/drivers/main.cpp:2202
 #, c-format
 msgid "Base directory: %s\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2211
+#: src/drivers/main.cpp:2212
 #, c-format
 msgid "CoInitializeEx() failed: %s\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2219
+#: src/drivers/main.cpp:2220
 #, c-format
 msgid "Could not initialize SDL: %s\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2228
+#: src/drivers/main.cpp:2229
 #, c-format
 msgid "Could not create mutex: %s\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2253
+#: src/drivers/main.cpp:2254
 #, c-format
 msgid "Error creating directories: %s\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2259
+#: src/drivers/main.cpp:2260
 msgid "Opening lockfile...\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2274
+#: src/drivers/main.cpp:2275
 msgid ""
 "Error, but proceeding anyway per environment variable \"MEDNAFEN_ALLOWMULTI"
 "\".\n"
 msgstr ""
 
-#: src/drivers/main.cpp:2278
+#: src/drivers/main.cpp:2279
 msgid ""
 "Multiple instances of Mednafen using the same base directory should not run "
 "simultaneously, otherwise settings file changes may be lost, along with "
@@ -1336,29 +1336,29 @@ msgid ""
 "to bypass this check."
 msgstr ""
 
-#: src/drivers/main.cpp:2284 src/drivers/main.cpp:2291 src/mednafen.cpp:777
+#: src/drivers/main.cpp:2285 src/drivers/main.cpp:2292 src/mednafen.cpp:777
 #: src/mednafen.cpp:786 src/cdrom/CDAccess_Image.cpp:367
 #, c-format
 msgid "Error: %s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:135
+#: src/drivers/video.cpp:137
 msgid "Default"
 msgstr ""
 
-#: src/drivers/video.cpp:135
+#: src/drivers/video.cpp:137
 msgid ""
 "Selects the default video driver.  Currently, this is OpenGL for all "
 "platforms, but may change in the future if better platform-specific drivers "
 "are added."
 msgstr ""
 
-#: src/drivers/video.cpp:137
+#: src/drivers/video.cpp:139
 msgid ""
 "All video-related Mednafen features are available with this video driver."
 msgstr ""
 
-#: src/drivers/video.cpp:138
+#: src/drivers/video.cpp:140
 msgid ""
 "Slower with lower-quality scaling than OpenGL, but if you don't have "
 "hardware-accelerated OpenGL rendering, it will probably be faster than "
@@ -1366,29 +1366,29 @@ msgid ""
 "shaders do not work with this output method, of course."
 msgstr ""
 
-#: src/drivers/video.cpp:151
+#: src/drivers/video.cpp:153
 msgid "Video output driver."
 msgstr ""
 
-#: src/drivers/video.cpp:153
+#: src/drivers/video.cpp:155
 msgid "Enable fullscreen mode."
 msgstr ""
 
-#: src/drivers/video.cpp:154
+#: src/drivers/video.cpp:156
 msgid "Display to use with fullscreen mode."
 msgstr ""
 
-#: src/drivers/video.cpp:154
+#: src/drivers/video.cpp:156
 msgid ""
 "Specify -1 to use the display on which the center of the window lies in "
 "windowed mode."
 msgstr ""
 
-#: src/drivers/video.cpp:159
+#: src/drivers/video.cpp:161
 msgid "Attempt to synchronize OpenGL page flips to vertical retrace period."
 msgstr ""
 
-#: src/drivers/video.cpp:160
+#: src/drivers/video.cpp:162
 msgid ""
 "Note: Additionally, if the environment variable \"__GL_SYNC_TO_VBLANK\" does "
 "not exist, then it will be created and set to the value specified for this "
@@ -1396,212 +1396,212 @@ msgid ""
 "synchronization when running under Linux with NVidia's drivers."
 msgstr ""
 
-#: src/drivers/video.cpp:163
+#: src/drivers/video.cpp:165
 msgid "Attempt to disable desktop composition."
 msgstr ""
 
-#: src/drivers/video.cpp:163
+#: src/drivers/video.cpp:165
 msgid ""
 "Currently, this setting only has an effect on Windows Vista and Windows "
 "7(and probably the equivalent server versions as well)."
 msgstr ""
 
-#: src/drivers/video.cpp:168 src/drivers/video.cpp:186 src/ss/ss.cpp:1368
+#: src/drivers/video.cpp:170 src/drivers/video.cpp:188 src/ss/ss.cpp:1368
 #: src/ss/ss.cpp:1369 src/ss/ss.cpp:1370 src/ss/ss.cpp:1385 src/nes/nes.cpp:455
 #: src/snes_faust/snes.cpp:1260 src/vb/vb.cpp:909 src/pce_fast/huc.cpp:308
 #: src/psx/psx.cpp:1644 src/pce/pce.cpp:673
 msgid "Disabled"
 msgstr ""
 
-#: src/drivers/video.cpp:173 src/ss/ss.cpp:1180 src/ss/ss.cpp:2109
+#: src/drivers/video.cpp:175 src/ss/ss.cpp:1180 src/ss/ss.cpp:2109
 #: src/ss/db.cpp:471
 msgid "Full"
 msgstr ""
 
-#: src/drivers/video.cpp:173
+#: src/drivers/video.cpp:175
 msgid "Full-screen stretch, disregarding aspect ratio."
 msgstr ""
 
-#: src/drivers/video.cpp:176
+#: src/drivers/video.cpp:178
 msgid "Aspect Preserve"
 msgstr ""
 
-#: src/drivers/video.cpp:176
+#: src/drivers/video.cpp:178
 msgid ""
 "Full-screen stretch as far as the aspect ratio(in this sense, the equivalent "
 "xscalefs == yscalefs) can be maintained."
 msgstr ""
 
-#: src/drivers/video.cpp:178
+#: src/drivers/video.cpp:180
 msgid "Aspect Preserve + Integer Scale"
 msgstr ""
 
-#: src/drivers/video.cpp:178
+#: src/drivers/video.cpp:180
 msgid ""
 "Full-screen stretch, same as \"aspect\" except that the equivalent xscalefs "
 "and yscalefs are rounded down to the nearest integer."
 msgstr ""
 
-#: src/drivers/video.cpp:179
+#: src/drivers/video.cpp:181
 msgid "Aspect Preserve + Integer Multiple-of-2 Scale"
 msgstr ""
 
-#: src/drivers/video.cpp:179
+#: src/drivers/video.cpp:181
 msgid ""
 "Full-screen stretch, same as \"aspect_int\", but rounds down to the nearest "
 "multiple of 2."
 msgstr ""
 
-#: src/drivers/video.cpp:188
+#: src/drivers/video.cpp:190
 msgid "Bilinear"
 msgstr ""
 
-#: src/drivers/video.cpp:191
+#: src/drivers/video.cpp:193
 msgid "Linear (X)"
 msgstr ""
 
-#: src/drivers/video.cpp:191
+#: src/drivers/video.cpp:193
 msgid "Interpolation only on the X axis."
 msgstr ""
 
-#: src/drivers/video.cpp:192
+#: src/drivers/video.cpp:194
 msgid "Linear (Y)"
 msgstr ""
 
-#: src/drivers/video.cpp:192
+#: src/drivers/video.cpp:194
 msgid "Interpolation only on the Y axis."
 msgstr ""
 
-#: src/drivers/video.cpp:227
+#: src/drivers/video.cpp:229
 msgid "None/Disabled"
 msgstr ""
 
-#: src/drivers/video.cpp:228
+#: src/drivers/video.cpp:230
 msgid "Auto Interpolation"
 msgstr ""
 
-#: src/drivers/video.cpp:228
+#: src/drivers/video.cpp:230
 msgid ""
 "Will automatically interpolate on each axis if the corresponding effective "
 "scaling factor is not an integer."
 msgstr ""
 
-#: src/drivers/video.cpp:229
+#: src/drivers/video.cpp:231
 msgid "Sharper Auto Interpolation"
 msgstr ""
 
-#: src/drivers/video.cpp:229
+#: src/drivers/video.cpp:231
 msgid ""
 "Same as \"autoip\", but when interpolation is done, it is done in a manner "
 "that will reduce blurriness if possible."
 msgstr ""
 
-#: src/drivers/video.cpp:231
+#: src/drivers/video.cpp:233
 msgid "GPU-intensive."
 msgstr ""
 
-#: src/drivers/video.cpp:232
+#: src/drivers/video.cpp:234
 msgid "Sharper bilinear interpolation."
 msgstr ""
 
-#: src/drivers/video.cpp:233
+#: src/drivers/video.cpp:235
 msgid "Linear interpolation on X axis only."
 msgstr ""
 
-#: src/drivers/video.cpp:234
+#: src/drivers/video.cpp:236
 msgid "Linear interpolation on Y axis only."
 msgstr ""
 
-#: src/drivers/video.cpp:235
+#: src/drivers/video.cpp:237
 msgid "Sharper version of \"ipxnoty\"."
 msgstr ""
 
-#: src/drivers/video.cpp:236
+#: src/drivers/video.cpp:238
 msgid "Sharper version of \"ipynotx\"."
 msgstr ""
 
-#: src/drivers/video.cpp:238
+#: src/drivers/video.cpp:240
 msgid "Simple approximation of a color TV CRT look."
 msgstr ""
 
-#: src/drivers/video.cpp:238
+#: src/drivers/video.cpp:240
 msgid ""
 "Intended for fullscreen modes with a vertical resolution of around 1000 to "
 "1500 pixels.  Doesn't simulate halation and electron beam energy "
 "distribution nuances."
 msgstr ""
 
-#: src/drivers/video.cpp:245
+#: src/drivers/video.cpp:247
 msgid "Goatron"
 msgstr ""
 
-#: src/drivers/video.cpp:245
+#: src/drivers/video.cpp:247
 msgid "Brightest."
 msgstr ""
 
-#: src/drivers/video.cpp:250
+#: src/drivers/video.cpp:252
 msgid "Borg"
 msgstr ""
 
-#: src/drivers/video.cpp:250
+#: src/drivers/video.cpp:252
 msgid "Darkest."
 msgstr ""
 
-#: src/drivers/video.cpp:251
+#: src/drivers/video.cpp:253
 msgid "Slenderman"
 msgstr ""
 
-#: src/drivers/video.cpp:251
+#: src/drivers/video.cpp:253
 msgid "Spookiest?"
 msgstr ""
 
-#: src/drivers/video.cpp:258
+#: src/drivers/video.cpp:260
 msgid "Full-screen horizontal resolution."
 msgstr ""
 
-#: src/drivers/video.cpp:259
+#: src/drivers/video.cpp:261
 msgid "Full-screen vertical resolution."
 msgstr ""
 
-#: src/drivers/video.cpp:260
+#: src/drivers/video.cpp:262
 msgid ""
 "A value of \"0\" will cause the current desktop horizontal resolution to be "
 "used."
 msgstr ""
 
-#: src/drivers/video.cpp:261
+#: src/drivers/video.cpp:263
 msgid ""
 "A value of \"0\" will cause the current desktop vertical resolution to be "
 "used."
 msgstr ""
 
-#: src/drivers/video.cpp:263
+#: src/drivers/video.cpp:265
 msgid "Scaling factor for the X axis in windowed mode."
 msgstr ""
 
-#: src/drivers/video.cpp:264
+#: src/drivers/video.cpp:266
 msgid "Scaling factor for the Y axis in windowed mode."
 msgstr ""
 
-#: src/drivers/video.cpp:266
+#: src/drivers/video.cpp:268
 msgid "Scaling factor for the X axis in fullscreen mode."
 msgstr ""
 
-#: src/drivers/video.cpp:267
+#: src/drivers/video.cpp:269
 msgid "Scaling factor for the Y axis in fullscreen mode."
 msgstr ""
 
-#: src/drivers/video.cpp:268
+#: src/drivers/video.cpp:270
 msgid ""
 "For this setting to have any effect, the \"<system>.stretch\" setting must "
 "be set to \"0\"."
 msgstr ""
 
-#: src/drivers/video.cpp:270
+#: src/drivers/video.cpp:272
 msgid "Enable scanlines with specified opacity."
 msgstr ""
 
-#: src/drivers/video.cpp:271
+#: src/drivers/video.cpp:273
 msgid ""
 "Opacity is specified in %; IE a value of \"100\" will give entirely black "
 "scanlines.\n"
@@ -1612,19 +1612,19 @@ msgid ""
 "field's lines."
 msgstr ""
 
-#: src/drivers/video.cpp:273
+#: src/drivers/video.cpp:275
 msgid "Stretch to fill screen."
 msgstr ""
 
-#: src/drivers/video.cpp:274
+#: src/drivers/video.cpp:276
 msgid "Enable (bi)linear interpolation."
 msgstr ""
 
-#: src/drivers/video.cpp:276
+#: src/drivers/video.cpp:278
 msgid "Enable specified special video scaler."
 msgstr ""
 
-#: src/drivers/video.cpp:277
+#: src/drivers/video.cpp:279
 msgid ""
 "The destination rectangle is NOT altered by this setting, so if you have "
 "xscale and yscale set to \"2\", and try to use a 3x scaling filter like "
@@ -1634,11 +1634,11 @@ msgid ""
 "fullscreen stretching at this resolution looks quite nice)."
 msgstr ""
 
-#: src/drivers/video.cpp:279
+#: src/drivers/video.cpp:281
 msgid "Enable specified OpenGL shader."
 msgstr ""
 
-#: src/drivers/video.cpp:280
+#: src/drivers/video.cpp:282
 msgid ""
 "Obviously, this will only work with the OpenGL \"video.driver\" setting, and "
 "only on cards and OpenGL implementations that support shaders, otherwise you "
@@ -1647,27 +1647,27 @@ msgid ""
 "ignored."
 msgstr ""
 
-#: src/drivers/video.cpp:361
+#: src/drivers/video.cpp:363
 msgid "Constant RGB horizontal divergence."
 msgstr ""
 
-#: src/drivers/video.cpp:364
+#: src/drivers/video.cpp:366
 msgid "Constant RGB vertical divergence."
 msgstr ""
 
-#: src/drivers/video.cpp:367
+#: src/drivers/video.cpp:369
 msgid "Mask pattern."
 msgstr ""
 
-#: src/drivers/video.cpp:370
+#: src/drivers/video.cpp:372
 msgid "Transparency of otherwise-opaque mask areas."
 msgstr ""
 
-#: src/drivers/video.cpp:373
+#: src/drivers/video.cpp:375
 msgid "Force interlaced video to be treated as progressive."
 msgstr ""
 
-#: src/drivers/video.cpp:373
+#: src/drivers/video.cpp:375
 msgid ""
 "When disabled, the default, the \"video.deinterlacer\" setting is "
 "effectively ignored with respect to what appears on the screen.  When "
@@ -1675,178 +1675,156 @@ msgid ""
 "*.goat.slen setting, or else the scanline effect may look objectionable."
 msgstr ""
 
-#: src/drivers/video.cpp:376
+#: src/drivers/video.cpp:378
 msgid "Enable scanlines effect."
 msgstr ""
 
-#: src/drivers/video.cpp:607
-msgid ""
-"WARNING: Resolution is too low for stretch mode selected.  Falling back to "
-"\"aspect\" mode.\n"
-msgstr ""
-
-#: src/drivers/video.cpp:621
-msgid ""
-"WARNING: Resolution is too low for stretch mode selected.  Falling back to "
-"\"aspect_int\" mode.\n"
-msgstr ""
-
-#: src/drivers/video.cpp:751
+#: src/drivers/video.cpp:777
 msgid "Initializing video...\n"
 msgstr ""
 
-#: src/drivers/video.cpp:869
+#: src/drivers/video.cpp:900
 #, c-format
 msgid "Window size(%dx%d) is too large!"
 msgstr ""
 
-#: src/drivers/video.cpp:906
+#: src/drivers/video.cpp:938
 msgid "Reverting to soft SDL driver because window is not OpenGL-capable."
 msgstr ""
 
-#: src/drivers/video.cpp:920
+#: src/drivers/video.cpp:952
 #, c-format
 msgid ""
 "Reverting to soft SDL driver because of error creating OpenGL context: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:969
+#: src/drivers/video.cpp:1002
 #, c-format
 msgid ""
 "Reverting to windowed mode because SDL_GetWindowDisplayIndex() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:988
+#: src/drivers/video.cpp:1021
 #, c-format
 msgid "Reverting to windowed mode because SDL_GetNumVideoDisplays() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1010 src/drivers/video.cpp:1074
+#: src/drivers/video.cpp:1043 src/drivers/video.cpp:1107
 #, c-format
 msgid ""
 "Reverting to windowed mode because SDL_GetCurrentDisplayMode() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1016
+#: src/drivers/video.cpp:1049
 #, c-format
 msgid "Reverting to windowed mode because SDL_DisplayBounds() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1062
+#: src/drivers/video.cpp:1095
 #, c-format
 msgid "Reverting to windowed mode because SDL_GetDisplayBounds() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1086
+#: src/drivers/video.cpp:1119
 #, c-format
 msgid "Reverting to windowed mode because no modes big enough for %dx%d."
 msgstr ""
 
-#: src/drivers/video.cpp:1092
+#: src/drivers/video.cpp:1125
 #, c-format
 msgid ""
 "Reverting to windowed mode because SDL_SetWindowDisplayMode() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1104
-#, c-format
-msgid "Reverting to windowed mode because SDL_SetWindowFullscreen() failed: %s"
-msgstr ""
-
-#: src/drivers/video.cpp:1120
+#: src/drivers/video.cpp:1155
 #, c-format
 msgid ""
 "Reverting to windowed mode because screen destination rectangle(%dx%d) is "
 "too large!"
 msgstr ""
 
-#: src/drivers/video.cpp:1126
+#: src/drivers/video.cpp:1161
 #, c-format
 msgid "Driver: %s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1126
+#: src/drivers/video.cpp:1161
 msgid "OpenGL"
 msgstr ""
 
-#: src/drivers/video.cpp:1126
+#: src/drivers/video.cpp:1161
 msgid "Software SDL"
 msgstr ""
 
-#: src/drivers/video.cpp:1140
+#: src/drivers/video.cpp:1175
 #, c-format
 msgid "Display Mode: %u x %u x %u bpp @ %dHz  (Window: %u x %u)\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1142
+#: src/drivers/video.cpp:1177
 #, c-format
 msgid "Display Mode: %u x %u x %u bpp  (Window: %u x %u)\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1147 src/drivers/video.cpp:1586
+#: src/drivers/video.cpp:1182 src/drivers/video.cpp:1625
 #, c-format
 msgid "SDL_GetWindowSurface() failed: %s"
 msgstr ""
 
-#: src/drivers/video.cpp:1150
+#: src/drivers/video.cpp:1185
 #, c-format
 msgid "Window surface bit depth(%ubpp) is not supported by Mednafen."
 msgstr ""
 
-#: src/drivers/video.cpp:1173
+#: src/drivers/video.cpp:1208
 #, c-format
 msgid "Shader: %s%s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1176
+#: src/drivers/video.cpp:1211
 #, c-format
 msgid "Fullscreen: %s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1177
+#: src/drivers/video.cpp:1212
 #, c-format
 msgid "Special Scaler: %s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1177 src/ss/ss.cpp:1207 src/ss/ss.cpp:2037
+#: src/drivers/video.cpp:1212 src/ss/ss.cpp:1207 src/ss/ss.cpp:2037
 #: src/ss/ss.cpp:2065 src/ss/ss.cpp:2117 src/snes_faust/snes.cpp:1232
 #: src/gb/gb.cpp:1953
 msgid "None"
 msgstr ""
 
-#: src/drivers/video.cpp:1180
+#: src/drivers/video.cpp:1215
 msgid "Scanlines: Off\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1182
+#: src/drivers/video.cpp:1217
 #, c-format
 msgid "Scanlines: %d%% opacity%s\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1182
+#: src/drivers/video.cpp:1217
 msgid " (with interlace field obscure)"
 msgstr ""
 
-#: src/drivers/video.cpp:1184
+#: src/drivers/video.cpp:1219
 #, c-format
 msgid "Destination Rectangle: X=%d, Y=%d, W=%d, H=%d\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1188
+#: src/drivers/video.cpp:1223
 msgid ""
 "Warning:  Destination rectangle exceeds screen dimensions.  This is ok if "
 "you really do want the clipping...\n"
 msgstr ""
 
-#: src/drivers/video.cpp:1200
+#: src/drivers/video.cpp:1235
 #, c-format
 msgid ""
 "Reverting to soft SDL driver because of error initializing OpenGL blitter: %s"
-msgstr ""
-
-#: src/drivers/video.cpp:1299
-#, c-format
-msgid "SDL_CreateWindow() failed: %s\n"
 msgstr ""
 
 #: src/drivers/input.cpp:905
@@ -3475,7 +3453,7 @@ msgstr ""
 msgid ";File format: <key><single space><value><LF or CR+LF>\n"
 msgstr ""
 
-#: src/settings.cpp:871
+#: src/settings.cpp:877
 #, c-format
 msgid "Unknown setting \"%s\""
 msgstr ""
@@ -6963,25 +6941,25 @@ msgstr ""
 msgid "Emulation modules: %s\n"
 msgstr ""
 
-#: src/mednafen.cpp:1869
+#: src/mednafen.cpp:1884
 msgid "Can't rewind during netplay."
 msgstr ""
 
-#: src/mednafen.cpp:2261
+#: src/mednafen.cpp:2276
 #, c-format
 msgid ""
 "Denied attempt to put drive into non-existent state(drive_idx=0x%08x, "
 "state_idx=0x%08x, media_idx=0x%08x, orientation_idx=0x%08x)."
 msgstr ""
 
-#: src/mednafen.cpp:2271
+#: src/mednafen.cpp:2286
 #, c-format
 msgid ""
 "Denied attempt to put non-existent medium into drive(drive_idx=0x%08x, "
 "state_idx=0x%08x, media_idx=0x%08x, orientation_idx=0x%08x)."
 msgstr ""
 
-#: src/mednafen.cpp:2277
+#: src/mednafen.cpp:2292
 #, c-format
 msgid ""
 "Denied attempt to put medium with non-existent orientation into "
@@ -6989,14 +6967,14 @@ msgid ""
 "orientation_idx=0x%08x)."
 msgstr ""
 
-#: src/mednafen.cpp:2297
+#: src/mednafen.cpp:2312
 #, c-format
 msgid ""
 "Denied attempt to put incompatible medium into drive(drive_idx=0x%08x, "
 "state_idx=0x%08x, media_idx=0x%08x, orientation_idx=0x%08x)."
 msgstr ""
 
-#: src/mednafen.cpp:2314
+#: src/mednafen.cpp:2329
 #, c-format
 msgid ""
 "Denied attempt to put in-use medium into another drive(drive_idx=0x%08x, "
@@ -7004,7 +6982,7 @@ msgid ""
 "check_drive_idx=0x%08x)."
 msgstr ""
 
-#: src/mednafen.cpp:2351
+#: src/mednafen.cpp:2366
 #, c-format
 msgid ""
 "Rejected attempt to insert medium into non-existent drive(drive_idx=0x%08x, "

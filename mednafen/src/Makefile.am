@@ -2,51 +2,28 @@ AUTOMAKE_OPTIONS = subdir-objects
 DEFS = @DEFS@ @SNDFILE_CFLAGS@
 DEFAULT_INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_builddir)/intl
 
-bin_PROGRAMS	=	mednafen_marley
+lib_LIBRARIES	=	libmednafen_marley.a
 
 SUBDIRS			=
 noinst_LIBRARIES	=
-mednafen_marley_LDADD		=
-mednafen_marley_DEPENDENCIES	=
-mednafen_marley_SOURCES 	= 	debug.cpp error.cpp mempatcher.cpp settings.cpp endian.cpp Time.cpp mednafen.cpp git.cpp file.cpp general.cpp memory.cpp netplay.cpp state.cpp state_rewind.cpp movie.cpp player.cpp PSFLoader.cpp SSFLoader.cpp SNSFLoader.cpp SPCReader.cpp tests.cpp qtrecord.cpp IPSPatcher.cpp
-mednafen_marley_SOURCES	+=	VirtualFS.cpp NativeVFS.cpp Stream.cpp MemoryStream.cpp ExtMemStream.cpp FileStream.cpp MTStreamReader.cpp
+libmednafen_marley_a_LIBADD		=
+libmednafen_marley_a_DEPENDENCIES	=
+libmednafen_marley_a_SOURCES 	= 	debug.cpp error.cpp mempatcher.cpp settings.cpp endian.cpp Time.cpp mednafen.cpp git.cpp file.cpp general.cpp memory.cpp netplay.cpp state.cpp state_rewind.cpp movie.cpp player.cpp PSFLoader.cpp SSFLoader.cpp SNSFLoader.cpp SPCReader.cpp tests.cpp qtrecord.cpp IPSPatcher.cpp 
+libmednafen_marley_a_SOURCES	+=	VirtualFS.cpp NativeVFS.cpp Stream.cpp MemoryStream.cpp ExtMemStream.cpp FileStream.cpp MTStreamReader.cpp
 
-if HAVE_SDL
+
 SUBDIRS 		+=	drivers
-mednafen_marley_LDADD          +=	drivers/libmdfnsdl.a
-mednafen_marley_DEPENDENCIES   +=	drivers/libmdfnsdl.a
+libmednafen_marley_a_LIBADD          +=	drivers/main_marley.o drivers/args.o drivers/help.o drivers/ers.o drivers/sound.o drivers/netplay.o drivers/input.o drivers/mouse.o drivers/keyboard.o drivers/Joystick.o drivers/Joystick_SDL.o drivers/console.o drivers/cheat.o drivers/fps.o drivers/video-state.o drivers/remote.o drivers/rmdui.o drivers/opengl.o drivers/shader.o drivers/nongl.o drivers/nnx.o drivers/video.o drivers/hqxx-common.o drivers/hq2x.o drivers/hq3x.o drivers/hq4x.o drivers/scale2x.o drivers/scale3x.o drivers/scalebit.o drivers/2xSaI.o drivers/debugger.o drivers/gfxdebugger.o drivers/memdebugger.o drivers/logdebugger.o drivers/prompt.o 
+libmednafen_marley_a_DEPENDENCIES   +=	drivers/libmdfnsdl_marley.a
 
-#
-# Resource file wasn't linking in properly when it was in an archive, so we resort to this!
-#
-if WIN32
-.rc.o:
-	@WINDRES@ -o $@ $<
 
-mednafen_marley_SOURCES	+=	win32-common.cpp drivers/win-resource.rc
-endif
+SUBDIRS 		+=	drivers
+libmednafen_marley_a_LIBADD          +=	drivers/main_marley.o drivers/args.o drivers/help.o drivers/ers.o drivers/sound.o drivers/netplay.o drivers/input.o drivers/mouse.o drivers/keyboard.o drivers/Joystick.o drivers/Joystick_SDL.o drivers/console.o drivers/cheat.o drivers/fps.o drivers/video-state.o drivers/remote.o drivers/rmdui.o drivers/opengl.o drivers/shader.o drivers/nongl.o drivers/nnx.o drivers/video.o drivers/hqxx-common.o drivers/hq2x.o drivers/hq3x.o drivers/hq4x.o drivers/scale2x.o drivers/scale3x.o drivers/scalebit.o drivers/2xSaI.o drivers/debugger.o drivers/gfxdebugger.o drivers/memdebugger.o drivers/logdebugger.o drivers/prompt.o 
 
-endif
-
-if DOS
-SUBDIRS			+=	drivers_dos
-mednafen_marley_LDADD		+=	drivers_dos/libmdfndos.a
-mednafen_marley_DEPENDENCIES	+=	drivers_dos/libmdfndos.a
-endif
-
-if ENABLE_LIBXXX_MODE
-SUBDIRS			+=	drivers_libxxx
-mednafen_marley_LDADD		+=	drivers_libxxx/libmdfnxxx.a
-mednafen_marley_DEPENDENCIES	+=	drivers_libxxx/libmdfnxxx.a
-endif
 
 SUBDIRS			+=	sexyal
-mednafen_marley_LDADD		+=	sexyal/libsexyal.a @ALSA_LIBS@ @JACK_LIBS@
-mednafen_marley_DEPENDENCIES	+=	sexyal/libsexyal.a
-
-if HAVE_SDL
-mednafen_marley_LDADD		+=	@SDL_LIBS@
-endif
+libmednafen_marley_a_LIBADD		+=	sexyal/sexyal.o sexyal/convert.o sexyal/drivers/dummy.o   sexyal/drivers/oss.o  sexyal/drivers/jack.o sexyal/drivers/sdl.o sexyal/drivers/alsa.o 
+libmednafen_marley_a_DEPENDENCIES	+=	sexyal/libsexyal.a
 
 include cdplay/Makefile.am.inc
 include demo/Makefile.am.inc
@@ -114,14 +91,14 @@ endif
 SS_SUBDIRS =
 if WANT_SS_EMU
 SS_SUBDIRS 		=	ss
-mednafen_marley_LDADD          +=      ss/libss.a
-mednafen_marley_DEPENDENCIES   +=      ss/libss.a
+libmednafen_marley_a_LIBADD          +=     ss/db.o ss/cdb.o ss/sound.o ss/cart.o ss/cart/backup.o ss/cart/cs1ram.o ss/cart/debug.o ss/cart/extram.o ss/cart/rom.o ss/cart/ar4mp.o ss/ss.o ss/scu_dsp_gen.o ss/scu_dsp_mvi.o ss/scu_dsp_jmp.o ss/scu_dsp_misc.o ss/vdp1.o ss/vdp1_line.o ss/vdp1_sprite.o ss/vdp1_poly.o ss/vdp2.o ss/vdp2_render.o ss/smpc.o ss/input/multitap.o ss/input/gamepad.o ss/input/3dpad.o ss/input/mouse.o ss/input/wheel.o ss/input/mission.o ss/input/gun.o ss/input/keyboard.o ss/input/jpkeyboard.o
+libmednafen_marley_a_DEPENDENCIES   +=      ss/libss.a
 endif
 
 if WANT_SSFPLAY_EMU
 SS_SUBDIRS 		=	ss
-mednafen_marley_LDADD          +=      ss/libssfplay.a
-mednafen_marley_DEPENDENCIES   +=      ss/libssfplay.a
+libmednafen_marley_a_LIBADD          +=     ss/ssf.o
+libmednafen_marley_a_DEPENDENCIES   +=      ss/libssfplay.a
 endif
 
 SUBDIRS	+= $(SS_SUBDIRS)
@@ -157,29 +134,28 @@ include cputest/Makefile.am.inc
 include cheat_formats/Makefile.am.inc
 
 if HAVE_EXTERNAL_LZO2
-mednafen_marley_LDADD		+=	@LZO2_LIBS@
-DEFS			+=	@LZO2_CFLAGS@
+
 else
 include minilzo/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_TREMOR
-mednafen_marley_LDADD		+=	@TREMOR_LIBS@
+
 else
 include tremor/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_MPCDEC
-mednafen_marley_LDADD		+=	@MPCDEC_LIBS@
+
 else
 include mpcdec/Makefile.am.inc
 endif
 
 if HAVE_EXTERNAL_TRIO
-mednafen_marley_LDADD		+=	@TRIO_LIBS@
+
 else
 include trio/Makefile.am.inc
 endif
 
-mednafen_marley_LDADD		+= 	@SNDFILE_LIBS@ @ZLIB_LIBS@ @LIBINTL@ @LIBICONV@
+
 

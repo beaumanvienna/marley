@@ -22,3 +22,4 @@ mednafen/po/ru.po~
 mednafen/mednafen
 mednafen/po/mednafen_marley.pot
 mednafen/src/drivers/main.h.gch
+mednafen/po/remove-potcdate.sed

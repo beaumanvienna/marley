@@ -131,31 +131,35 @@ bool printJoyInfo(int i)
     int num_buttons = SDL_JoystickNumButtons(joy);
     int num_hats = SDL_JoystickNumHats(joy);
     int num_balls = SDL_JoystickNumBalls(joy);
+    int instance = SDL_JoystickInstanceID(joy);
     char *mapping;
     SDL_GameController *gameCtrl;
-    
-    printf("printJoyInfo(int %i)\n",i);
-
     
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
     
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
-    
-    printf("Name: %s  ", SDL_JoystickNameForIndex(i));
+    printf("Index: %i  ", i);
+    printf("Instance: %i  ", instance);
+    printf("Name: %s\n", SDL_JoystickNameForIndex(i));
     printf("Number of Axes: %d  ", SDL_JoystickNumAxes(joy));
     printf("Number of Buttons: %d  ", SDL_JoystickNumButtons(joy));
-    printf("Number of Balls: %d  ", SDL_JoystickNumBalls(joy));
-    printf("%s \"%s\" axes:%d buttons:%d hats:%d balls:%d\n", guidStr, name, num_axes, num_buttons, num_hats, num_balls);
+    printf("Number of Balls: %d,  ", SDL_JoystickNumBalls(joy));
+    //printf("GUID: %s", guidStr); //printed later
     
-    if (SDL_IsGameController(i)) {
-        SDL_Log("Index \'%i\' is a compatible controller, named \'%s\'", i, SDL_GameControllerNameForIndex(i));
+    if (SDL_IsGameController(i)) 
+    {
         gameCtrl = SDL_GameControllerOpen(i);
         mapping = SDL_GameControllerMapping(gameCtrl);
-        SDL_Log("Controller %i is mapped as \"%s\".", i, mapping);
-        SDL_free(mapping);
-    } else {
-        SDL_Log("Index \'%i\' is not a compatible controller.", i);
+        if (mapping) 
+        {
+            printf(" compatible and mapped as\n\n%s\n\n", mapping);
+            SDL_free(mapping);
+        }
+    }
+    else 
+    {
+        printf("\nIndex \'%i\' is not a compatible controller.", i);
     }
     
     return true;
@@ -177,12 +181,11 @@ bool checkControllerIsSupported(int i)
     // check for unsupported
     if (str_pos>=0)
     {
-        printf("checkControllerIsSupported: not supported, ignoring controller: %s\n",name.c_str());
+        printf("not supported, ignoring controller: %s\n",name.c_str());
         ok=false;
     } 
     else
     {
-        printf("checkControllerIsSupported: supported controller: %s  ",name.c_str());
         ok=true;
     }
     return ok;
@@ -191,7 +194,7 @@ bool checkControllerIsSupported(int i)
 bool openJoy(int i)
 {
     int designation, designation_instance;
-    printf("openJoy(int %i)   ",i);
+    
     if (i<MAX_GAMEPADS_PLUGGED)
     {
         SDL_Joystick *joy;
@@ -298,18 +301,18 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
     
     //set up guidStr
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
-    printf("checkMapping for GUID: %s\n",guidStr);
     
     //check public db
     mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt", guidStr,32,&line);
     
     if (mappingOK[0])
     {
-        printf("guid found in public db\n");
+        printf("GUID found in public db\n");
     }
     else
     {
-        printf("guid not found in public db\n");
+        string lineOriginal;
+        printf("GUID not found in public db");
         for (int i=27;i>18;i--)
         {
             
@@ -319,7 +322,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
             if (mappingOK[0])
             {
                 // initialize controller with this line
-                //printf("line: %s\n",line.c_str());
+                lineOriginal = line;
                 int pos = line.find(",");
                 append = line.substr(pos+1,line.length()-pos-1);
                 
@@ -344,6 +347,8 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
                 break;
             }
         }
+        if (mappingOK[0]) printf("\n%s: trying to load mapping from closest match\n%s\n",guidStr, lineOriginal.c_str());
+        printf("\n");
     }    
 
     return mappingOK[0];

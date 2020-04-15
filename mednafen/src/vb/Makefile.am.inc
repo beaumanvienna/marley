@@ -1,5 +1,5 @@
-mednafen_marley_SOURCES 	+= 	vb/vb.cpp vb/timer.cpp vb/input.cpp vb/vip.cpp vb/vsu.cpp
+libmednafen_marley_a_SOURCES 	+= 	vb/vb.cpp vb/timer.cpp vb/input.cpp vb/vip.cpp vb/vsu.cpp
 
 if WANT_DEBUGGER
-mednafen_marley_SOURCES	+=	vb/debug.cpp
+libmednafen_marley_a_SOURCES	+=	vb/debug.cpp
 endif

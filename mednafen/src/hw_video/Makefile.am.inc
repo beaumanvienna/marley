@@ -1,4 +1,4 @@
 if NEED_HUC6270_EMU
-mednafen_marley_SOURCES	+= hw_video/huc6270/vdc.cpp
+libmednafen_marley_a_SOURCES	+= hw_video/huc6270/vdc.cpp
 endif
 

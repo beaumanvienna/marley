@@ -1,4 +1,5 @@
 AC_INIT([src/mednafen.cpp])
+AC_CONFIG_AUX_DIR([.])
 AC_GNU_SOURCE
 AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_MACRO_DIR([m4])
@@ -31,6 +32,8 @@ CPP="$CPP -std=gnu99"
 AX_CFLAGS_GCC_OPTION([-fsigned-char], CC)
 AX_CXXFLAGS_GCC_OPTION([-fsigned-char], CXX)
 
+AM_PROG_AR
+AC_PROG_RANLIB
 AC_PROG_INSTALL
 
 gl_VISIBILITY
@@ -895,5 +898,6 @@ AC_DEFINE_UNQUOTED([MEDNAFEN_VERSION_NUMERIC],$MEDNAFEN_VERSION_NUMERIC, [Mednaf
 AC_SUBST([AM_CFLAGS], "$ALTIVEC_FLAGS $OPTIMIZER_FLAGS $WARNING_FLAGS $CODEGEN_FLAGS $CODEGEN_CFLAGS")
 AC_SUBST([AM_CXXFLAGS], "$ALTIVEC_FLAGS $OPTIMIZER_FLAGS $WARNING_FLAGS $CODEGEN_FLAGS $CODEGEN_CXXFLAGS")
 
+AC_CONFIG_FILES([Makefile po/Makefile.in intl/Makefile src/Makefile src/drivers/Makefile src/drivers_libxxx/Makefile src/drivers_dos/Makefile src/sexyal/Makefile src/ss/Makefile])
 dnl Output Makefiles
-AC_OUTPUT([Makefile po/Makefile.in intl/Makefile src/Makefile src/drivers/Makefile src/drivers_libxxx/Makefile src/drivers_dos/Makefile src/sexyal/Makefile src/ss/Makefile])
+AC_OUTPUT()
