@@ -898,6 +898,6 @@ AC_DEFINE_UNQUOTED([MEDNAFEN_VERSION_NUMERIC],$MEDNAFEN_VERSION_NUMERIC, [Mednaf
 AC_SUBST([AM_CFLAGS], "$ALTIVEC_FLAGS $OPTIMIZER_FLAGS $WARNING_FLAGS $CODEGEN_FLAGS $CODEGEN_CFLAGS")
 AC_SUBST([AM_CXXFLAGS], "$ALTIVEC_FLAGS $OPTIMIZER_FLAGS $WARNING_FLAGS $CODEGEN_FLAGS $CODEGEN_CXXFLAGS")
 
-AC_CONFIG_FILES([Makefile po/Makefile.in intl/Makefile src/Makefile src/drivers/Makefile src/drivers_libxxx/Makefile src/drivers_dos/Makefile src/sexyal/Makefile src/ss/Makefile])
+AC_CONFIG_FILES([Makefile po/Makefile intl/Makefile src/Makefile src/drivers/Makefile src/drivers_libxxx/Makefile src/drivers_dos/Makefile src/sexyal/Makefile src/ss/Makefile])
 dnl Output Makefiles
 AC_OUTPUT()
