@@ -1633,7 +1633,9 @@ void PumpWrap(void)
  int numevents = 0;
 
  if(SignalSafeExitWanted)
+ {
   NeedExitNow = true;
+ }
 
  while(SDL_PollEvent(&event))
  {
@@ -1666,8 +1668,11 @@ void PumpWrap(void)
 		break;
 	}
 	break;
+   case SDL_KEYDOWN:
+    if(event.key.keysym.sym == SDLK_ESCAPE) NeedExitNow = 1;
+    break;
    case SDL_QUIT:
-	NeedExitNow = 1;
+    NeedExitNow = 1;
 	break;
 
    case SDL_USEREVENT:
@@ -2107,6 +2112,7 @@ int mednafen_main(int argc, char *argv[])
 {
     MDFNSystems.clear();
     NeoDriverSettings.clear(); 
+    SignalSafeExitWanted=false;
     
 	// SuppressErrorPopups must be set very early.
 	{
@@ -2420,6 +2426,7 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
  {
   MDFND_OutputNotice(MDFN_NOTICE_ERROR, e.what());
   ret = -1;
+  printf("catch(std::exception& e) \n");
   NeedExitNow = 1;
  }
 

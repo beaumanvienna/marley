@@ -153,8 +153,10 @@ int main( int argc, char* argv[] )
             printf("Use your controller or arrow keys/enter on your keyboard to navigate.\n\n");
             printf("Use \"l\" to print a list of detected controllers to the command line.\n\n");
             printf("Use \"f\" to toggle fullscreen.\n\n");
-            printf("Use \"1\" to exit.\n\n");
             printf("Use \"p\" to print the current gamepad mapping(s).\n\n");
+            printf("Use \"F5\" to save and \"F7\" to load game states.\n\n");
+            printf("Use the guide button to exit a game with no questions asked. The guide button is the big one in the middle.\n\n");
+            printf("Use \"ESC\" to exit.\n\n");
             printf("Visit https://github.com/beaumanvienna/marley for more information.\n\n");
             return 0;
         }
@@ -252,7 +254,7 @@ int main( int argc, char* argv[] )
                                     }
                                 }
                                 break;
-                            case SDLK_1:
+                            case SDLK_ESCAPE:
                                     gQuit=true;
                                 break;
                             case SDLK_UP:
@@ -263,16 +265,6 @@ int main( int argc, char* argv[] )
                                 break;
                             case SDLK_RETURN:
                                     statemachine(SDL_CONTROLLER_BUTTON_A);
-                                break;
-                            case SDLK_ESCAPE:
-                                if (!gIgnore)
-                                {
-                                    //gQuit=true;
-                                }
-                                else
-                                {
-                                    gIgnore = false;
-                                }
                                 break;
                             default:
                                 printf("key not recognized \n");
