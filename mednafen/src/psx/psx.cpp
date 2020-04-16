@@ -32,6 +32,7 @@
 #include <mednafen/player.h>
 #include <mednafen/hash/sha256.h>
 #include <mednafen/cheat_formats/psx.h>
+#include "../../../include/emu.h"
 
 #include <zlib.h>
 
@@ -1714,7 +1715,11 @@ static MDFN_COLD void InitCommon(std::vector<CDInterface*> *CDInterfaces, const 
   abort();
 
  {
-  std::string biospath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS(biospath_sname));
+  #warning "JC: modified"
+  std::string biospath; 
+  biospath = gPathToFirnwarePSX;
+  biospath += MDFN_GetSettingS(biospath_sname);
+  //std::string biospath = MDFN_MakeFName(MDFNMKF_FIRMWARE, 0, MDFN_GetSettingS(biospath_sname));
   FileStream BIOSFile(biospath, FileStream::MODE_READ);
 
   if(BIOSFile.size() != 524288)

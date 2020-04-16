@@ -23,10 +23,6 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
-#include <cmath>
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
 
 using namespace std;
 
@@ -34,5 +30,11 @@ using namespace std;
 #define EMU_H
 
     extern bool gPSX_firmware;
+    extern string gBaseDir;
+    extern string gPathToFirnwarePSX;
+    extern string gPathToGames;
+    
+    bool initEMU(void);
+    bool checkFirmwarePSX(void);
     
 #endif

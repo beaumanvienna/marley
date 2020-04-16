@@ -1,8 +1,10 @@
 //
 // This file should only be included *ONCE* from drivers/input.cpp!!!
 //
-
-#define MKDEF(sc) 	 "keyboard 0x0 " KBD_SCANCODE_STRING(sc)
+#warning "jc: modified"
+#define MKDEF_MARLEY(sc) 	 "joystick 0xbaadf00d00000000beefbabe00000000 "  #sc
+#define MKDEF_MARLEY2(sc) 	 "joystick 0xbaadf00d00000000beefbabe00000001 "  #sc
+#define MKDEF(sc) 	 "keyboard 0x0 "  KBD_SCANCODE_STRING(sc)
 #define MKDEF2(sca, scb) "keyboard 0x0 " KBD_SCANCODE_STRING(sca) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scb)
 #define MKDEF3(sca, scb, scc) "keyboard 0x0 " KBD_SCANCODE_STRING(sca) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scb) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scc)
 #define MKDEF4(sca, scb, scc, scd) "keyboard 0x0 " KBD_SCANCODE_STRING(sca) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scb) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scc) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scd)
@@ -765,8 +767,46 @@ static const char* const SNESSuperScopeConfig[] =
  MKMOUSEB("right"),	// Cursor
 };
 
+#warning "jc: modified"
 static const char* const PSXPadConfig[] =
 {
+  MKDEF_MARLEY(button_4),
+  MKDEF_MARLEY(button_6),
+  MKDEF_MARLEY(button_11),
+  MKDEF_MARLEY(button_14),
+  MKDEF_MARLEY(button_12),
+  MKDEF_MARLEY(button_13),
+
+  MKDEF_MARLEY(abs_2-+),
+  MKDEF_MARLEY(abs_5-+),
+  MKDEF_MARLEY(button_9),
+  MKDEF_MARLEY(button_10),
+
+  MKDEF_MARLEY(button_3),
+  MKDEF_MARLEY(button_1),
+  MKDEF_MARLEY(button_0),
+  MKDEF_MARLEY(button_2),
+};
+static const char* const PSXPadConfig2[] =
+{
+  MKDEF_MARLEY2(button_4),
+  MKDEF_MARLEY2(button_6),
+  MKDEF_MARLEY2(button_11),
+  MKDEF_MARLEY2(button_14),
+  MKDEF_MARLEY2(button_12),
+  MKDEF_MARLEY2(button_13),
+
+  MKDEF_MARLEY2(abs_2-+),
+  MKDEF_MARLEY2(abs_5-+),
+  MKDEF_MARLEY2(button_9),
+  MKDEF_MARLEY2(button_10),
+
+  MKDEF_MARLEY2(button_3),
+  MKDEF_MARLEY2(button_1),
+  MKDEF_MARLEY2(button_0),
+  MKDEF_MARLEY2(button_2),
+};
+    /*
  MKDEF(TAB),
  MKDEF(RETURN),
  MKDEF(W),
@@ -783,7 +823,7 @@ static const char* const PSXPadConfig[] =
  MKDEF(KP_6),
  MKDEF(KP_2),
  MKDEF(KP_4),
-};
+};*/
 
 static const char* const PSXDancePadConfig[] =
 {
@@ -951,6 +991,7 @@ const std::map<const char*, DefaultSettingsMeow, cstrcomp> defset =
 
  //
  DPDC("psx.input.port1.gamepad", PSXPadConfig),
+ DPDC("psx.input.port2.gamepad", PSXPadConfig2),
 
  DPDC("psx.input.port1.dancepad", PSXDancePadConfig),
 

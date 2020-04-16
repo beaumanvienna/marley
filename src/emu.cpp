@@ -24,5 +24,76 @@
 #include "../include/gui.h"
 #include "../include/statemachine.h"
 #include "../include/controller.h"
+#include <string>
+#include <iostream>
+#include <fstream>
 
 bool gPSX_firmware;
+string gPathToFirnwarePSX;
+string gPathToGames;
+string gBaseDir;
+
+bool checkFirmwarePSX(void)
+{
+    if (gPathToFirnwarePSX!="")
+    {
+        int count = 0;
+        string jp = gPathToFirnwarePSX + "scph5500.bin";
+        string na = gPathToFirnwarePSX + "scph5501.bin";
+        string eu = gPathToFirnwarePSX + "scph5502.bin";
+    
+        ifstream jpF (jp.c_str());
+        ifstream naF (na.c_str());
+        ifstream euF (eu.c_str());
+        
+        gPSX_firmware = false;
+        
+        if (jpF.is_open())
+        {
+            gPSX_firmware = true;
+            count++;
+        }
+        else
+        {
+            printf("%s not found\n",jp.c_str());
+        }
+        
+        if (naF.is_open())
+        {
+            gPSX_firmware = true;
+            count++;
+        }
+        else
+        {
+            printf("%s not found\n",na.c_str());
+        }
+        
+        if (euF.is_open())
+        {
+            gPSX_firmware = true;
+            count++;
+        }
+        else
+        {
+            printf("%s not found\n",eu.c_str());
+        }
+        
+        if (gPSX_firmware)
+        {
+            if (count<3)
+            {
+                printf("Not all PSX firmware files found. You might not be able to play games from all regions.\n");
+            }
+        }
+        else
+        {
+            gPathToFirnwarePSX="";
+        }
+    }
+}
+
+bool initEMU(void)
+{
+    //check for PSX firmware
+    checkFirmwarePSX();
+}

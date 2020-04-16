@@ -24,6 +24,7 @@
 #include "../include/gui.h"
 #include "../include/controller.h"
 #include "../include/statemachine.h"
+#include "../include/emu.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
@@ -92,6 +93,7 @@ bool init()
     }
     
     checkConf();
+    initEMU();
 
     return ok;
 }
@@ -551,10 +553,15 @@ bool createTemplate(string name)
     outfile.open(name.c_str(), std::ios_base::app); 
     if(outfile) 
     {
-        //printf("writing to file\n");
-        outfile << "#directories (marley will search here for games and BIOS files)\n"; 
-        outfile << "search_dir=\n"; 
-        outfile << "search_dir=\n"; 
+        //printf("writing to file\n"); 
+        string l1 = "# marley ";
+        l1 += PACKAGE_VERSION;
+        l1 += "\n\n\n";
+        outfile << l1;
+        outfile << "#directories (marley will search here for the PSX firmware files)\n"; 
+        outfile << "search_dir_firmware_PSX=/home/marley/gaming/firmware/\n\n"; 
+        outfile << "#directories (marley will search here for games)\n"; 
+        outfile << "search_dir_games=/home/marley/gaming/\n\n"; 
         outfile << "\n"; 
         outfile.close();
     }
@@ -570,11 +577,14 @@ bool loadConfig(ifstream* configFile)
     int pos;
     DIR* dir;
     
+    gPathToFirnwarePSX="";
+    gPathToGames="";
+    
     while ( getline (configFile[0],line))
     {
-        if (line.find("search_dir=") == 0)
+        if (line.find("search_dir_firmware_PSX=") == 0)
         {
-            pos=10;
+            pos=23;
             entry = line.substr(pos+1,line.length()-pos);
             dir = opendir(entry.c_str());
             if (dir) 
@@ -586,10 +596,37 @@ bool loadConfig(ifstream* configFile)
                 {
                     entry += "/";
                 }
-                printf("found search directory: %s\n",entry.c_str());
+                gPathToFirnwarePSX = entry;
+            }
+            else
+            {
+                printf("Marley could not find firmware path for PSX %s\n",entry.c_str());
+            }
+        }
+        if (line.find("search_dir_games=") == 0)
+        {
+            pos=16;
+            entry = line.substr(pos+1,line.length()-pos);
+            dir = opendir(entry.c_str());
+            if (dir) 
+            {
+                // Directory exists
+                closedir(dir);
+                slash = entry.substr(entry.length()-1,1);
+                if (slash != "/")
+                {
+                    entry += "/";
+                }
+                gPathToGames = entry;
             }
         }
     }
+    
+    if (gPathToFirnwarePSX == "")
+    {
+        printf("No valid firmware path for PSX found\n");
+    }
+    
     configFile[0].close();
 }
 
@@ -611,14 +648,15 @@ bool checkConf(void)
             filename += "/";
         }
         
-        filename = filename + ".marley";
-        
+        filename = filename + ".marley/";
+        gBaseDir = "";
         DIR* dir = opendir(filename.c_str());
         if (dir) 
         {
             // Directory exists
             closedir(dir);
-            filename = filename + "/" + "marley.conf";
+            gBaseDir=filename;
+            filename += "marley.cfg";
             ifstream configFile (filename.c_str());
             if (!configFile.is_open())
             {
@@ -637,7 +675,7 @@ bool checkConf(void)
             if (mkdir(filename.c_str(), S_IRWXU ) == 0)
             {
                 printf("(ok)\n");
-                filename = filename + "/" + "marley.conf";
+                filename += "marley.cfg";
                 createTemplate(filename);
             }
             else

@@ -57,8 +57,6 @@ unsigned Joystick_SDL::HatToButtonCompat(unsigned hat)
 
 Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
 {
- printf("jc: Joystick_SDL\n");
-    
  #warning "jc: modified"
  sdl_joy = gDesignatedControllers[index].joy;
  sdl_game_controller = gDesignatedControllers[index].gameCtrl;
@@ -116,7 +114,6 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
   axis_state.resize(num_axes);
   rel_axis_state.resize(num_rel_axes);
   button_state.resize(num_buttons);
-  printf("JC:  %s axes:%d buttons:%d hats:%d balls:%d\n", sdl_name, sdl_num_axes, sdl_num_buttons, sdl_num_hats, sdl_num_balls);
  }
  catch(...)
  {
@@ -199,20 +196,14 @@ class JoystickDriver_SDL : public JoystickDriver
 
 JoystickDriver_SDL::JoystickDriver_SDL()
 {
- printf("JC: JoystickDriver_SDL\n");
  #warning "jc: modified"
  
  for(int n = 0; n < MAX_GAMEPADS; n++)
  {
    if (gDesignatedControllers[n].joy != NULL)
    {
-       printf("jc: joystick added\n");
      Joystick_SDL *jsdl = new Joystick_SDL(n);
      joys.push_back(jsdl);
-   }
-   else
-   {
-      printf("jc: empty\n");    
    }
  }
  /*

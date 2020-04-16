@@ -37,7 +37,7 @@ bool statemachine(int cmd)
     string execute;
     bool emuReturn;
     
-    printf("gState: %i   cmd: %i\n",gState,cmd);
+    //printf("gState: %i   cmd: %i\n",gState,cmd);
     switch (cmd)
     {
         case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
