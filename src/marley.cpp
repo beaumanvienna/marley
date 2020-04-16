@@ -145,7 +145,8 @@ int main( int argc, char* argv[] )
         }
         if ((str.find("--help") == 0) || (str.find("-?") == 0))
         {
-            printf("This is marley version %s\n",PACKAGE_VERSION);
+            printf("This is marley version %s\n\n",PACKAGE_VERSION);
+            printSupportedEmus();
             printf("\nOptions:\n\n");
             printf("  --version             : print version\n");
             printf("  --fullscreen, -f      : start in fullscreen mode\n\n");
@@ -162,16 +163,14 @@ int main( int argc, char* argv[] )
         {
             gFullscreen=true;
         } 
-        
-        if ((str.find(".cue") > 0) && (str.find("PS1") > 0))
+                    
+        if (( access( str.c_str(), F_OK ) != -1 ))
         {
-            if (( access( str.c_str(), F_OK ) != -1 ))
-            {
-                //file exists
-                printf("Found PS1 ROM %s\n", str.c_str());
-                gGame=str;
-            }
+            //file exists
+            printf("Found ROM %s\n", str.c_str());
+            gGame=str;
         }
+        
     }
 
     //Start up SDL and create window

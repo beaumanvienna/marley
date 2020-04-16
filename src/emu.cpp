@@ -27,11 +27,13 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 bool gPSX_firmware;
 string gPathToFirnwarePSX;
 string gPathToGames;
 string gBaseDir;
+std::vector<string> gSupportedEmulators = {"psx","md (sega)","snes","nes"}; 
 
 bool checkFirmwarePSX(void)
 {
@@ -92,8 +94,26 @@ bool checkFirmwarePSX(void)
     }
 }
 
+bool printSupportedEmus(void)
+{
+    bool notEmpty;
+    int i;
+    notEmpty = (gSupportedEmulators.size() > 0);
+    if (notEmpty)
+    {
+        printf("Supported emulators: ");
+        for (i=0;i<gSupportedEmulators.size()-1;i++)
+        {
+            printf("%s, ",gSupportedEmulators[i].c_str());
+        }
+        printf("%s\n",gSupportedEmulators[i].c_str());    
+    }
+}
+
 bool initEMU(void)
 {
     //check for PSX firmware
     checkFirmwarePSX();
+    
+    printSupportedEmus();
 }

@@ -1,8 +1,8 @@
 //
 // This file should only be included *ONCE* from drivers/input.cpp!!!
 //
-#warning "jc: modified"
-#define MKDEF_MARLEY(sc) 	 "joystick 0xbaadf00d00000000beefbabe00000000 "  #sc
+#warning "JC: modified"
+#define MKDEF_MARLEY(sc) 	 "joystick 0xbaadf00d00000000beefbabe00000000 "  #sc  // all sdl controllers look the same to mednafen and are designated "bad food beef babe". Mapping done in marley. 
 #define MKDEF_MARLEY2(sc) 	 "joystick 0xbaadf00d00000000beefbabe00000001 "  #sc
 #define MKDEF(sc) 	 "keyboard 0x0 "  KBD_SCANCODE_STRING(sc)
 #define MKDEF2(sca, scb) "keyboard 0x0 " KBD_SCANCODE_STRING(sca) " || " "keyboard 0x0 " KBD_SCANCODE_STRING(scb)
@@ -14,12 +14,35 @@
 
 #define MKMOUSEAXRELPAIR(a) "mouse 0x0 rel_" a "-", "mouse 0x0 rel_" a "+"
 
+#warning "JC: modified"
 static const char* const NESGamePadConfig[] =
 {
-        /* Gamepad 1 */
+    MKDEF_MARLEY(button_0), 
+    MKDEF_MARLEY(button_1), 
+    MKDEF_MARLEY(button_4), 
+    MKDEF_MARLEY(button_6), 
+    MKDEF_MARLEY(button_11),
+    MKDEF_MARLEY(button_12),
+    MKDEF_MARLEY(button_13), 
+    MKDEF_MARLEY(button_14),
+};
+static const char* const NESGamePadConfig2[] =
+{
+    MKDEF_MARLEY(button_0), 
+    MKDEF_MARLEY(button_1), 
+    MKDEF_MARLEY(button_4), 
+    MKDEF_MARLEY(button_6), 
+    MKDEF_MARLEY(button_11),
+    MKDEF_MARLEY(button_12),
+    MKDEF_MARLEY(button_13), 
+    MKDEF_MARLEY(button_14),
+
+};
+/*static const char* const NESGamePadConfig[] =
+{
          MKDEF(KP_3), MKDEF(KP_2), MKDEF(TAB), MKDEF(RETURN), MKDEF(W),MKDEF(S),
                 MKDEF(A), MKDEF(D)
-};
+};*/
 
 static const char* const GBPadConfig[] =
 {
@@ -379,11 +402,34 @@ static const char* const CDPlayInputConfig[] =
 	MKDEF(PAGEDOWN),
 };
 
-
+#warning "JC: modified"
 static const char* const MDPad3Config[] =
 {
- MKDEF(W), MKDEF(S), MKDEF(A), MKDEF(D), MKDEF(KP_2), MKDEF(KP_3), MKDEF(KP_1), MKDEF(RETURN)
+ MKDEF_MARLEY(button_11), 
+ MKDEF_MARLEY(button_12), 
+ MKDEF_MARLEY(button_13), 
+ MKDEF_MARLEY(button_14), 
+ MKDEF_MARLEY(button_1), 
+ MKDEF_MARLEY(button_2), 
+ MKDEF_MARLEY(button_0), 
+ MKDEF_MARLEY(button_6)
 };
+static const char* const MDPad3Config2[] =
+{
+ MKDEF_MARLEY2(button_11), 
+ MKDEF_MARLEY2(button_12), 
+ MKDEF_MARLEY2(button_13), 
+ MKDEF_MARLEY2(button_14), 
+ MKDEF_MARLEY2(button_1), 
+ MKDEF_MARLEY2(button_2), 
+ MKDEF_MARLEY2(button_0), 
+ MKDEF_MARLEY2(button_6)
+};
+
+/*static const char* const MDPad3Config[] =
+{
+ MKDEF(W), MKDEF(S), MKDEF(A), MKDEF(D), MKDEF(KP_2), MKDEF(KP_3), MKDEF(KP_1), MKDEF(RETURN)
+};*/
 
 static const char* const MDPad6Config[] =
 {
@@ -729,8 +775,38 @@ static const char* const A2PTwopieceKeyboard[] =
 //
 //
 //
-
+#warning "JC: modified"
 static const char* const SNESPadConfig[] =
+{
+  MKDEF_MARLEY(button_0),
+  MKDEF_MARLEY(button_2),
+  MKDEF_MARLEY(button_6),
+  MKDEF_MARLEY(button_4),
+  MKDEF_MARLEY(button_11),
+  MKDEF_MARLEY(button_12),
+  MKDEF_MARLEY(button_13),
+  MKDEF_MARLEY(button_14),
+  MKDEF_MARLEY(button_1),
+  MKDEF_MARLEY(button_3),
+  MKDEF_MARLEY(button_9),
+  MKDEF_MARLEY(button_10),
+};
+static const char* const SNESPadConfig2[] =
+{
+  MKDEF_MARLEY2(button_0),
+  MKDEF_MARLEY2(button_2),
+  MKDEF_MARLEY2(button_6),
+  MKDEF_MARLEY2(button_4),
+  MKDEF_MARLEY2(button_11),
+  MKDEF_MARLEY2(button_12),
+  MKDEF_MARLEY2(button_13),
+  MKDEF_MARLEY2(button_14),
+  MKDEF_MARLEY2(button_1),
+  MKDEF_MARLEY2(button_3),
+  MKDEF_MARLEY2(button_9),
+  MKDEF_MARLEY2(button_10),
+};
+/*static const char* const SNESPadConfig[] =
 {
  MKDEF(KP_2),
  MKDEF(KP_4),
@@ -744,7 +820,7 @@ static const char* const SNESPadConfig[] =
  MKDEF(KP_8),
  MKDEF(KP_7),
  MKDEF(KP_9),
-};
+};*/
 
 
 static const char* const SNESMouseConfig[] =
@@ -896,7 +972,9 @@ struct cstrcomp
 const std::map<const char*, DefaultSettingsMeow, cstrcomp> defset =
 {
  #define DPDC(a, b) { a, { b, sizeof(b) / sizeof(b[0]) } }
+ #warning "JC: madified"
  DPDC("nes.input.port1.gamepad", NESGamePadConfig),
+ DPDC("nes.input.port2.gamepad", NESGamePadConfig2),
 
  DPDC("nes.input.port1.powerpada", PowerPadConfig),
  DPDC("nes.input.port2.powerpada", PowerPadConfig),
@@ -965,9 +1043,9 @@ const std::map<const char*, DefaultSettingsMeow, cstrcomp> defset =
  DPDC("gg.input.builtin.gamepad", GGPadConfig),
 
 
- //
+ #warning "JC: modified"
  DPDC("md.input.port1.gamepad", MDPad3Config),
-
+ DPDC("md.input.port2.gamepad", MDPad3Config2),
  DPDC("md.input.port1.gamepad6", MDPad6Config),
 
  DPDC("md.input.port1.megamouse", MDMegaMouseConfig),
@@ -980,8 +1058,9 @@ const std::map<const char*, DefaultSettingsMeow, cstrcomp> defset =
  DPDC("md.input.port8.megamouse", MDMegaMouseConfig),
 
 
- //
+ #warning "JC: modified"
  DPDC("snes.input.port1.gamepad", SNESPadConfig),
+ DPDC("snes.input.port2.gamepad", SNESPadConfig2),
  DPDC("snes.input.port1.mouse", SNESMouseConfig),
  DPDC("snes.input.port2.mouse", SNESMouseConfig),
  DPDC("snes.input.port2.superscope", SNESSuperScopeConfig),

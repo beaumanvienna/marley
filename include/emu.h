@@ -36,5 +36,6 @@ using namespace std;
     
     bool initEMU(void);
     bool checkFirmwarePSX(void);
+    bool printSupportedEmus(void);
     
 #endif
