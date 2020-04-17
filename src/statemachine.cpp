@@ -176,7 +176,7 @@ bool statemachine(int cmd)
                 
                     if (gCurrentGame == 0)
                     {
-                        gState=STATE_PLAY;
+                        gState=STATE_OFF;
                     }
                     else
                     {

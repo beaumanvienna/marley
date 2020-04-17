@@ -38,5 +38,15 @@
     #endif
     
     bool restoreSDL(void);
+    
+    extern double angle0L;
+    extern double angle1L;
+    extern double angle0R;
+    extern double angle1R;
+    extern double amplitude0L;
+    extern double amplitude1L;
+    extern double amplitude0R;
+    extern double amplitude1R;
+
 
 #endif

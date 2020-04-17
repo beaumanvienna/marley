@@ -35,7 +35,7 @@ using namespace std;
 
     #define NUM_TEXTURES    20
         #define TEX_BACKGROUND          0
-        #define TEX_ARROW               1
+        #define TEX_BARREL              1
         #define TEX_PS3                 2
         #define TEX_XBOX360             3
         #define TEX_GENERIC_CTRL        4
@@ -63,7 +63,7 @@ using namespace std;
     bool loadMedia(void);
     bool closeGUI(void);
     bool freeTextures(void);
-    bool renderIcons(void);
+    bool renderScreen(void);
     bool setFullscreen(void);
     bool setWindowed(void);
     bool restoreGUI();
