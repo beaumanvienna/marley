@@ -33,27 +33,31 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    16
-        #define TEX_BACKGROUND      0
-        #define TEX_ARROW           1
-        #define TEX_PS3             2
-        #define TEX_XBOX360         3
-        #define TEX_GENERIC_CTRL    4
-        #define TEX_RUDDER          5
-        #define TEX_RUDDER_GREY     6
-        #define TEX_ICON_PLAY       7
-        #define TEX_ICON_PLAY_IN    8
-        #define TEX_ICON_SETUP      9
-        #define TEX_ICON_SETUP_IN  10
-        #define TEX_ICON_OFF       11
-        #define TEX_ICON_OFF_IN    12
-        #define TEX_ICON_NO_CTRL   13
-        #define TEX_ICON_NO_FW_PSX 14
-        #define TEX_ICON_NO_GAMES  15
+    #define NUM_TEXTURES    20
+        #define TEX_BACKGROUND          0
+        #define TEX_ARROW               1
+        #define TEX_PS3                 2
+        #define TEX_XBOX360             3
+        #define TEX_GENERIC_CTRL        4
+        #define TEX_RUDDER              5
+        #define TEX_RUDDER_GREY         6
+        #define TEX_ICON_PLAY           7
+        #define TEX_ICON_PLAY_IN        8
+        #define TEX_ICON_SETUP          9
+        #define TEX_ICON_SETUP_IN       10
+        #define TEX_ICON_OFF            11
+        #define TEX_ICON_OFF_IN         12
+        #define TEX_ICON_NO_CTRL        13
+        #define TEX_ICON_NO_FW_PSX      14
+        #define TEX_ICON_NO_GAMES       15
+        #define TEX_ICON_GAMES_FLR      16
+        #define TEX_ICON_GAMES_FLR_IN   17
+        #define TEX_ICON_FW_FLR         18
+        #define TEX_ICON_FW_FLR_IN      19
 
 
     #define WINDOW_WIDTH 1280
-    #define WINDOW_HEIGHT 720
+    #define WINDOW_HEIGHT 750
     
     bool initGUI(void);
     bool loadMedia(void);
@@ -79,6 +83,7 @@ using namespace std;
     // fullscreen flag
     extern bool gFullscreen;
     extern bool gIgnore;
+    extern bool gSetupIsRunning;
     
     extern TTF_Font* gFont;
     

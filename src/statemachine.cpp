@@ -35,6 +35,7 @@ int gCurrentGame;
 std::vector<string> gGame;
 bool gQuit=false;
 bool gIgnore = false;
+bool gSetupIsRunning=false;
 
 bool statemachine(int cmd)
 {
@@ -74,13 +75,13 @@ bool statemachine(int cmd)
                     gState=STATE_OFF;
                     break;
                 case STATE_OFF:
-                    if (gDesignatedControllers[0].instance != -1)
+                    if (gGamesFound)
                     {
-                        gState=STATE_CONF0;
-                    } 
-                    else if (gDesignatedControllers[1].instance != -1)
+                        gState=STATE_LAUNCH;
+                    }
+                    else
                     {
-                        gState=STATE_CONF1;
+                        gState=STATE_SETUP;
                     }
                     break;
                  case STATE_CONF0:
@@ -90,25 +91,14 @@ bool statemachine(int cmd)
                     } 
                     else 
                     {
-                        if (gGamesFound)
-                        {
-                            gState=STATE_LAUNCH;
-                        }
-                        else
-                        {
-                            gState=STATE_SETUP;
-                        }
+                        gState=STATE_FLR_GAMES;
                     }
                     break;
                 case STATE_CONF1:
-                    if (gGamesFound)
-                    {
-                        gState=STATE_LAUNCH;
-                    }
-                    else
-                    {
-                        gState=STATE_SETUP;
-                    }
+                    gState=STATE_FLR_GAMES;
+                    break;
+                case STATE_FLR_GAMES:
+                    gState=STATE_FLR_FW;
                     break;
                 case STATE_LAUNCH:
                     if (gCurrentGame == (gGame.size()-1))
@@ -168,7 +158,8 @@ bool statemachine(int cmd)
                     }
                     break;
                  case STATE_CONF0:
-                    gState=STATE_OFF;
+                    gState=STATE_SETUP;
+                    gSetupIsRunning=false;
                     break;
                 case STATE_CONF1:
                     if (gDesignatedControllers[0].instance != -1)
@@ -177,30 +168,38 @@ bool statemachine(int cmd)
                     } 
                     else 
                     {
-                        gState=STATE_OFF;
+                        gSetupIsRunning=false;
+                        gState=STATE_SETUP;
                     }
                     break;
                 case STATE_LAUNCH:
                 
-                if (gCurrentGame == 0)
+                    if (gCurrentGame == 0)
                     {
-                        if (gDesignatedControllers[1].instance != -1)
-                        {
-                            gState=STATE_CONF1;
-                        } 
-                        else if (gDesignatedControllers[0].instance != -1)
-                        {
-                            gState=STATE_CONF0;
-                        }
-                        else
-                        {
-                            gState=STATE_OFF;
-                        }
+                        gState=STATE_PLAY;
                     }
                     else
                     {
                         gCurrentGame--;
                     }
+                    break;
+                case STATE_FLR_GAMES:
+                    if (gDesignatedControllers[1].instance != -1)
+                    {
+                        gState=STATE_CONF1;
+                    } 
+                    else if (gDesignatedControllers[0].instance != -1)
+                    {
+                        gState=STATE_CONF0;
+                    }
+                    else 
+                    {
+                        gSetupIsRunning=false;
+                        gState=STATE_SETUP;
+                    }
+                    break;
+                case STATE_FLR_FW:
+                        gState=STATE_FLR_GAMES;
                     break;
                 default:
                     (void) 0;
@@ -217,7 +216,15 @@ bool statemachine(int cmd)
                     gState=STATE_LAUNCH;
                     break;
                 case STATE_SETUP:
-                    
+                    if (gDesignatedControllers[0].instance != -1)
+                    {
+                        gState=STATE_CONF0;
+                    } 
+                    else if (gDesignatedControllers[1].instance != -1)
+                    {
+                        gState=STATE_CONF1;
+                    }
+                    gSetupIsRunning=true;
                     break;
                 case STATE_OFF:
                     gQuit=true;
@@ -226,11 +233,7 @@ bool statemachine(int cmd)
                     //ctrlConf(0);
                     break;
                 case STATE_CONF1:
-                    if (gDesignatedControllers[1].instance != -1)
-                    {
-                        gState=STATE_ZERO;
-                    }
-                    //ctrlConf(0);
+                    //ctrlConf(1);
                     break;
                 case STATE_LAUNCH:
                     if (gGame[gCurrentGame] != "")

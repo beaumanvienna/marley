@@ -112,13 +112,10 @@ bool closeJoy(int instance_id)
                printf("remaining: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
             }
         }
-        if ((gDesignatedControllers[0].instance != -1) && (gState == STATE_CONF0))
+        if ( ((gDesignatedControllers[0].instance != -1) && (gState == STATE_CONF0)) || ((gDesignatedControllers[1].instance != -1) && (gState == STATE_CONF1)) )
         {
             gState=STATE_ZERO;
-        }
-        if ((gDesignatedControllers[1].instance != -1) && (gState == STATE_CONF1))
-        {
-            gState=STATE_ZERO;
+            gSetupIsRunning=false;
         }
     }
     printf("closeJoy() end \n");

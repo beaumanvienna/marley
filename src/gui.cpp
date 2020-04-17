@@ -150,6 +150,35 @@ bool loadMedia()
     {
         ok = false;
     }
+
+    //games folder
+    gTextures[TEX_ICON_GAMES_FLR] = loadTextureFromFile(PICTURES "path_to_games.png");
+    if (!gTextures[TEX_ICON_GAMES_FLR])
+    {
+        ok = false;
+    }
+    
+    //games folder
+    gTextures[TEX_ICON_GAMES_FLR_IN] = loadTextureFromFile(PICTURES "path_to_games_inactive.png");
+    if (!gTextures[TEX_ICON_GAMES_FLR_IN])
+    {
+        ok = false;
+    }
+    
+    //firmware folder
+    gTextures[TEX_ICON_FW_FLR] = loadTextureFromFile(PICTURES "path_to_fw.png");
+    if (!gTextures[TEX_ICON_FW_FLR])
+    {
+        ok = false;
+    }
+    
+    //firmware folder
+    gTextures[TEX_ICON_FW_FLR_IN] = loadTextureFromFile(PICTURES "path_to_fw_inactive.png");
+    if (!gTextures[TEX_ICON_FW_FLR_IN])
+    {
+        ok = false;
+    }
+    
     
     return ok;
 }
@@ -289,75 +318,95 @@ bool renderIcons(void)
         {
             SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
         }
-        
-        if (gGamesFound)
+        if (!gSetupIsRunning)
         {
-            string name_short;
-            
-            SDL_Color inactive = {125, 46, 115};  
-            SDL_Color active = {222, 81, 223};  
-            
-            destination = { 50, 660, 1180, 36 };
-            SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
-            SDL_RenderFillRect(gRenderer, &destination);
-            
-            if(gGame[gCurrentGame].find("/") != string::npos)
+            if (gGamesFound)
             {
-                name_short = gGame[gCurrentGame].substr(gGame[gCurrentGame].find_last_of("/") + 1);
+                string name_short;
+                
+                SDL_Color inactive = {125, 46, 115};  
+                SDL_Color active = {222, 81, 223};  
+                
+                destination = { 50, 675, 1180, 36 };
+                SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                if(gGame[gCurrentGame].find("/") != string::npos)
+                {
+                    name_short = gGame[gCurrentGame].substr(gGame[gCurrentGame].find_last_of("/") + 1);
+                }
+                else
+                {
+                    name_short=gGame[gCurrentGame];
+                }
+                
+                if(name_short.find(".") != string::npos)
+                {
+                    name_short = name_short.substr(0,name_short.find_last_of("."));
+                }
+                
+                if(name_short.length()>58)
+                {
+                    name_short = name_short.substr(0,58);
+                }
+                
+                if (gState == STATE_LAUNCH)
+                {
+                    surfaceMessage = TTF_RenderText_Solid(gFont, name_short.c_str(), active); 
+                } 
+                else
+                {
+                    surfaceMessage = TTF_RenderText_Solid(gFont, name_short.c_str(), inactive); 
+                }
+                int strLength = name_short.length();
+                destination = { 50, 675, strLength*20, 36 };
+                message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             else
             {
-                name_short=gGame[gCurrentGame];
+                
+                destination = { 50, 675, 345, 45 };
+                if (gState == STATE_SETUP)
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                }
             }
-            
-            if(name_short.find(".") != string::npos)
-            {
-                name_short = name_short.substr(0,name_short.find_last_of("."));
-            }
-            
-            if(name_short.length()>58)
-            {
-                name_short = name_short.substr(0,58);
-            }
-            
-            if (gState == STATE_LAUNCH)
-            {
-                surfaceMessage = TTF_RenderText_Solid(gFont, name_short.c_str(), active); 
-            } 
-            else
-            {
-                surfaceMessage = TTF_RenderText_Solid(gFont, name_short.c_str(), inactive); 
-            }
-            int strLength = name_short.length();
-            destination = { 50, 660, strLength*20, 36 };
-            message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-            SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
         }
-        else
+        else  // setup
         {
-            
-            destination = { 50, 660, 345, 45 };
-            if (gState == STATE_SETUP)
+            destination = { 50, 620, 530, 45 };
+            if (gState == STATE_FLR_GAMES)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             } 
             else
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            }
+            
+            destination = { 50, 675, 530, 45 };
+            if (gState == STATE_FLR_FW)
+            {
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            } 
+            else
+            {
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
         }
     }
     else
     {
-        destination = { 50, 10, 900, 45 };
+        destination = { 50, 10, 560, 45 };
         
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     
     if (!gPSX_firmware)
     {
-        destination = { 50, 70, 900, 45 };
+        destination = { 50, 65, 560, 45 };
         
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_FW_PSX], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }

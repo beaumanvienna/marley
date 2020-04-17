@@ -341,41 +341,48 @@ int main( int argc, char* argv[] )
             //designated controller 0: Load image and render to screen
             if (gDesignatedControllers[0].instance != -1)
             {
-                ctrlTex = TEX_GENERIC_CTRL;
                 string name = gDesignatedControllers[0].name;
                 string str;
+                ctrlTex = TEX_GENERIC_CTRL;
                 
-                height=int(amplitude0L/200);
-                if (height>250) height=250;
-                destination = { 50, 100, 50, height };
-                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
-                SDL_RenderFillRect(gRenderer, &destination);
-                
-                //controller 0 arrow: Set rendering space and render to screen
-                destination = { 100, 100, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
-                
-                height=int(amplitude0R/200);
-                if (height>250) height=250;
-                destination = { 300, 100, 50, height };
-                SDL_RenderFillRect(gRenderer, &destination);
-                
-                //controller 0 arrow: Set rendering space and render to screen
-                destination = { 350, 100, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
-                
-                //icon for configuration run
-                destination = { 600, 160, 80, 80 };
-                
-                if (gState == STATE_CONF0)
+                if (gSetupIsRunning)
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-                } 
-                else
-                {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    
+                    destination = { 50, 140, 700, 200 };
+                    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    height=int(amplitude0L/200);
+                    if (height>250) height=250;
+                    destination = { 50, 140, 50, height };
+                    SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    //controller 0 arrow: Set rendering space and render to screen
+                    destination = { 100, 140, 200, 200 };
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
+                    
+                    height=int(amplitude0R/200);
+                    if (height>250) height=250;
+                    destination = { 300, 140, 50, height };
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    //controller 0 arrow: Set rendering space and render to screen
+                    destination = { 350, 140, 200, 200 };
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
+                    
+                    //icon for configuration run
+                    destination = { 600, 200, 80, 80 };
+                    
+                    if (gState == STATE_CONF0)
+                    {
+                        SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    } 
+                    else
+                    {
+                        SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    }
                 }
-
                 //check if PS3
                 str = "Sony PLAYSTATION(R)3";
                 int str_pos = name.find(str);
@@ -391,46 +398,54 @@ int main( int argc, char* argv[] )
                 {
                     ctrlTex = TEX_XBOX360;
                 }
-                destination = { 700, 100, 250, 250 };
+                destination = { 900, 130, 250, 250 };
                 SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
             //designated controller 1: load image and render to screen
             if (gDesignatedControllers[1].instance != -1)
             {
-                ctrlTex = TEX_GENERIC_CTRL;
-                string name = gDesignatedControllers[1].name;
                 string str;
+                string name = gDesignatedControllers[1].name;
+                ctrlTex = TEX_GENERIC_CTRL;
                 
-                height=int(amplitude1L/200);
-                if (height>250) height=250;
-                destination = { 50, 400, 50, height };
-                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
-                SDL_RenderFillRect(gRenderer, &destination);
-                
-                //controller 1 arrow: Set rendering space and render to screen
-                destination = { 100, 400, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
-                
-                height=int(amplitude1R/200);
-                if (height>250) height=250;
-                destination = { 300, 400, 50, height };
-                SDL_RenderFillRect(gRenderer, &destination);
-                
-                //controller 1 arrow: Set rendering space and render to screen
-                destination = { 350, 400, 200, 200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
-                
-                //icon for configuration run
-                destination = { 600, 460, 80, 80 };
-                
-                if (gState == STATE_CONF1)
+                if (gSetupIsRunning)
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-                } 
-                else
-                {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    
+                    destination = { 50, 390, 700, 200 };
+                    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    height=int(amplitude1L/200);
+                    if (height>250) height=250;
+                    destination = { 50, 390, 50, height };
+                    SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    //controller 1 arrow: Set rendering space and render to screen
+                    destination = { 100, 390, 200, 200 };
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
+                    
+                    height=int(amplitude1R/200);
+                    if (height>250) height=250;
+                    destination = { 300, 390, 50, height };
+                    SDL_RenderFillRect(gRenderer, &destination);
+                    
+                    //controller 1 arrow: Set rendering space and render to screen
+                    destination = { 350, 390, 200, 200 };
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ARROW], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
+                    
+                    //icon for configuration run
+                    destination = { 600, 450, 80, 80 };
+                    
+                    if (gState == STATE_CONF1)
+                    {
+                        SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    } 
+                    else
+                    {
+                        SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    }
                 }
 
                 //check if PS3
@@ -448,7 +463,7 @@ int main( int argc, char* argv[] )
                 {
                     ctrlTex = TEX_XBOX360;
                 }
-                destination = { 700, 400, 250, 250 };
+                destination = { 900, 380, 250, 250 };
                 SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             

@@ -33,6 +33,8 @@ using namespace std;
     #define STATE_SETUP     4
     #define STATE_OFF       5
     #define STATE_LAUNCH    6
+    #define STATE_FLR_GAMES 7
+    #define STATE_FLR_FW    8
 
     bool statemachine(int cmd);
     
