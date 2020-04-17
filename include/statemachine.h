@@ -20,7 +20,7 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-
+#include <vector>
 using namespace std;
 
 #ifndef STATEMACHINE_H
@@ -39,7 +39,8 @@ using namespace std;
      // statemachine
     extern int gState;
     
-    extern string gGame;
+    extern int gCurrentGame;
+    extern std::vector<string> gGame;
     
     extern bool gQuit;
 

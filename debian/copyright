@@ -8,8 +8,8 @@ Copyright: 2020 JC <jc.lache@web.de>
 License: LGPL-2.1+
 
 Files: resources/*.ttf
-Copyright: www.opensans.com https://www.facebook.com/opensans/
-License: Apache License Version 2.0, January 2004
+Copyright: Stepan Roh <src@users.sourceforge.net> Ubuntu package fonts-dejavu-core
+License: GPL-2+
 
 Files: mednafen/*
 Copyright: refer to mednafen/copyright

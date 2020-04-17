@@ -20,20 +20,40 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+
+
+
+
+#include <dirent.h>
+#include <errno.h>
+#include <fstream>
+#include <iostream>
+#include <string.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cctype>
+#include <list>
+#include <iterator>
+#include <algorithm>
+
 #include "../include/emu.h"
 #include "../include/gui.h"
 #include "../include/statemachine.h"
 #include "../include/controller.h"
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
+
+using namespace std;
 
 bool gPSX_firmware;
 string gPathToFirnwarePSX;
 string gPathToGames;
 string gBaseDir;
-std::vector<string> gSupportedEmulators = {"psx","md (sega)","snes","nes"}; 
+vector<string> gSupportedEmulators = {"psx","md (sega)","snes","nes"}; 
+vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes"};
+bool gGamesFound;
 
 bool checkFirmwarePSX(void)
 {
@@ -116,4 +136,219 @@ bool initEMU(void)
     checkFirmwarePSX();
     
     printSupportedEmus();
+    buildGameList();
 }
+
+bool exists(const char *fileName)
+{
+    ifstream infile(fileName);
+    return infile.good();
+}
+
+bool isDirectory(const char *filename)
+{
+    struct stat p_lstatbuf;
+    struct stat p_statbuf;
+    bool ok = false;
+
+    if (lstat(filename, &p_lstatbuf) < 0) 
+    {
+        //printf("abort\n");
+    }
+    else
+    {
+        if (S_ISLNK(p_lstatbuf.st_mode) == 1) 
+        {
+            //printf("%s is a symbolic link\n", filename);
+        } 
+        else 
+        {
+            if (stat(filename, &p_statbuf) < 0) 
+            {
+                //printf("abort\n");
+            }
+            else
+            {
+                if (S_ISDIR(p_statbuf.st_mode) == 1) 
+                {
+                    //printf("%s is a directory\n", filename);
+                    ok = true;
+                } 
+            }
+        }
+    }
+    return ok;
+}
+
+bool stripList(list<string> *tmpList,list<string> *toBeRemoved)
+{
+    list<string>::iterator iteratorTmpList;
+    list<string>::iterator iteratorToBeRemoved;
+    
+    string strRemove, strRemove_no_path, strList, strList_no_path;
+    int i,j;
+    
+    iteratorToBeRemoved = toBeRemoved[0].begin();
+    
+    for (i=0;i<toBeRemoved[0].size();i++)
+    {
+        strRemove = *iteratorToBeRemoved;
+        iteratorToBeRemoved++;
+        iteratorTmpList = tmpList[0].begin();
+        
+        strRemove_no_path = strRemove;
+        if(strRemove_no_path.find("/") != string::npos)
+        {
+            strRemove_no_path = strRemove.substr(strRemove_no_path.find_last_of("/") + 1);
+        }
+        
+        for (j=0;j<tmpList[0].size();j++)
+        {
+            strList = *iteratorTmpList;
+            
+            strList_no_path = strList;
+            if(strList_no_path.find("/") != string::npos)
+            {
+                strList_no_path = strList_no_path.substr(strList_no_path.find_last_of("/") + 1);
+            }
+            
+            if ( strRemove_no_path == strList_no_path )
+            {
+                tmpList[0].erase(iteratorTmpList++);
+                break;
+            }
+            else
+            {
+                iteratorTmpList++;
+            }
+        }
+    }
+}
+
+bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
+{
+    string line, name;
+
+    ifstream cueFile (str_with_path.c_str());
+    if (!cueFile.is_open())
+    {
+        printf("Could not open cue file: %s\n",str_with_path.c_str());
+    }
+    else 
+    {
+        while ( getline (cueFile,line))
+        {
+            if (line.find("FILE ") == 0)
+            {
+                str_with_path.substr(str_with_path.find_last_of(".") + 1);
+                
+                int start  = line.find("\"")+1;
+                int length = line.find_last_of("\"")-start;
+                name = line.substr(start,length);
+                
+                toBeRemoved[0].push_back(name);
+            }
+        }
+    }
+}
+
+void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved)
+{
+    string str_with_path, str_without_path;
+    string ext, str_with_path_lower_case;
+    DIR *dir;
+    
+    struct dirent *ent;
+    if ((dir = opendir (directory)) != NULL) 
+    {
+        // print all the files and directories within directory
+        while ((ent = readdir (dir)) != NULL) 
+        {
+            str_with_path = directory;
+            str_with_path +=ent->d_name;
+            
+            if (isDirectory(str_with_path.c_str()))
+            {
+                str_without_path =ent->d_name;
+                if ((str_without_path != ".") && (str_without_path != ".."))
+                {
+                    str_with_path +="/";
+                    findAllFiles(str_with_path.c_str(),tmpList,toBeRemoved);
+                }
+            }
+            else
+            {
+                ext = str_with_path.substr(str_with_path.find_last_of(".") + 1);
+                
+                std::transform(ext.begin(), ext.end(), ext.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                str_with_path_lower_case=str_with_path;
+                std::transform(str_with_path_lower_case.begin(), str_with_path_lower_case.end(), str_with_path_lower_case.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                for (int i=0;i<gFileTypes.size();i++)
+                {
+                    if ((ext == gFileTypes[i])  && \
+                        (str_with_path_lower_case.find("battlenet") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("ps3") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("ps4") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("xbox") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("bios") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("firmware") ==  string::npos))
+                    {
+                        tmpList[0].push_back(str_with_path);
+                        
+                        //check if cue file
+                        if (ext == "cue")
+                        {
+                            checkForCueFiles(str_with_path,toBeRemoved);
+                        }
+                    }
+                }
+            }
+        }
+        closedir (dir);
+        
+    } 
+}
+bool finalizeList(std::list<string> *tmpList)
+{
+    list<string>::iterator iteratorTmpList;
+    string strList;
+    
+    iteratorTmpList = tmpList[0].begin();
+    
+    for (int i=0;i<tmpList[0].size();i++)
+    {
+        strList = *iteratorTmpList;
+        gGame.push_back(strList);
+        iteratorTmpList++;
+    }
+    
+    for (int i=0;i<gGame.size();i++)
+    {
+        printf("found ROM: %s\n",gGame[i].c_str());
+    }
+    
+    if (!gGame.size())
+    {
+        gGamesFound = false;
+    }
+    else
+    {
+        gGamesFound = true;
+    }
+}
+
+bool buildGameList(void)
+{
+    std::list<string> tmpList;
+    std::list<string> toBeRemoved;
+    
+    findAllFiles(gPathToGames.c_str(),&tmpList,&toBeRemoved);
+    stripList (&tmpList,&toBeRemoved);
+    finalizeList(&tmpList);
+}
+
+

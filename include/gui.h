@@ -33,7 +33,7 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    15
+    #define NUM_TEXTURES    16
         #define TEX_BACKGROUND      0
         #define TEX_ARROW           1
         #define TEX_PS3             2
@@ -49,6 +49,7 @@ using namespace std;
         #define TEX_ICON_OFF_IN    12
         #define TEX_ICON_NO_CTRL   13
         #define TEX_ICON_NO_FW_PSX 14
+        #define TEX_ICON_NO_GAMES  15
 
 
     #define WINDOW_WIDTH 1280
@@ -58,7 +59,7 @@ using namespace std;
     bool loadMedia(void);
     bool closeGUI(void);
     bool freeTextures(void);
-    bool renderIcons(string name);
+    bool renderIcons(void);
     bool setFullscreen(void);
     bool setWindowed(void);
     bool restoreGUI();

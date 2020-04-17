@@ -133,7 +133,12 @@ int main( int argc, char* argv[] )
     SDL_Rect destination;
     
     gFullscreen=false;
-    gGame="";
+    
+    gCurrentGame=0;
+    for (int i = 1; i < gGame.size(); i++) 
+    {
+        gGame[i]="";
+    }
     for (int i = 1; i < argc; i++) 
     {
         string str = argv[i];
@@ -169,8 +174,7 @@ int main( int argc, char* argv[] )
         if (( access( str.c_str(), F_OK ) != -1 ))
         {
             //file exists
-            printf("Found ROM %s\n", str.c_str());
-            gGame=str;
+            gGame.push_back(str);
         }
         
     }
@@ -331,7 +335,7 @@ int main( int argc, char* argv[] )
             SDL_RenderClear( gRenderer );
             //background
             SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
-            renderIcons(gGame);
+            renderIcons();
             
             int ctrlTex, height;
             //designated controller 0: Load image and render to screen
@@ -642,7 +646,7 @@ bool checkConf(void)
         filename = filename + ".marley/";
         gBaseDir = "";
         DIR* dir = opendir(filename.c_str());
-        if (dir) 
+        if ((dir) && (isDirectory(filename.c_str()) ))
         {
             // Directory exists
             closedir(dir);

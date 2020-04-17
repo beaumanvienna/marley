@@ -33,9 +33,12 @@ using namespace std;
     extern string gBaseDir;
     extern string gPathToFirnwarePSX;
     extern string gPathToGames;
+    extern bool gGamesFound;
     
     bool initEMU(void);
     bool checkFirmwarePSX(void);
     bool printSupportedEmus(void);
+    bool buildGameList(void);
+    bool isDirectory(const char *path);
     
 #endif
