@@ -432,6 +432,33 @@ bool renderIcons(void)
                 SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
+            if ( (gPathToFirnwarePSX.length()) || (gTextInputForFirmwareFolder))
+            {
+                string text;
+                if (gTextInputForFirmwareFolder)
+                {
+                    text = gText;
+                }
+                else
+                {
+                    text = gPathToFirnwarePSX;
+                }
+                if (text.length()>26)
+                {
+                    text = text.substr(text.length()-26,26);
+                }
+                destination = { 600+xOffset, 675+yOffset, 530, 45 };
+                SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                int strLength = text.length();
+                destination = { 600+xOffset, 675+yOffset, strLength*20, 45 };
+                SDL_Color active = {222, 81, 223};  
+                surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
+                message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            }
+            
         }
     }
     else

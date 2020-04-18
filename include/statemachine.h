@@ -48,7 +48,10 @@ using namespace std;
     extern bool gSetupIsRunning;
     extern bool gTextInput;
     extern string gText;
-    extern string gTextForGamingFolder;
     extern bool gTextInputForGamingFolder;
+    extern string gTextForGamingFolder;
+    extern bool gTextInputForFirmwareFolder;
+    extern string gTextForFirmwareFolder;
+    
 
 #endif

@@ -107,10 +107,6 @@ bool checkFirmwarePSX(void)
                 printf("Not all PSX firmware files found. You might not be able to play games from all regions.\n");
             }
         }
-        else
-        {
-            gPathToFirnwarePSX="";
-        }
     }
 }
 

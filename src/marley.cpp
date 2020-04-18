@@ -476,6 +476,29 @@ bool createTemplate(string name)
     }
 }
 
+bool setPathToFirmware(string str)
+{
+    DIR* dir;
+    string filename=str;
+    string slash;
+    bool ok = false;
+    
+    dir = opendir(filename.c_str());
+    if ((dir) && (isDirectory(filename.c_str()) ))
+    {
+        // Directory exists
+        closedir(dir);
+        slash = filename.substr(filename.length()-1,1);
+        if (slash != "/")
+        {
+            filename += "/";
+        }
+        gPathToFirnwarePSX = filename;
+        ok = true;
+    }
+    return ok;    
+}
+
 bool setPathToGames(string str)
 {
     DIR* dir;
@@ -514,19 +537,7 @@ bool loadConfig(ifstream* configFile)
         {
             pos=23;
             entry = line.substr(pos+1,line.length()-pos);
-            dir = opendir(entry.c_str());
-            if (dir) 
-            {
-                // Directory exists
-                closedir(dir);
-                slash = entry.substr(entry.length()-1,1);
-                if (slash != "/")
-                {
-                    entry += "/";
-                }
-                gPathToFirnwarePSX = entry;
-            }
-            else
+            if ( !(setPathToFirmware(entry)) )
             {
                 printf("Marley could not find firmware path for PSX %s\n",entry.c_str());
             }

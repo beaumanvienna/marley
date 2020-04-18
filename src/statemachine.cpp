@@ -38,8 +38,10 @@ bool gIgnore = false;
 bool gSetupIsRunning=false;
 bool gTextInput=false;
 bool gTextInputForGamingFolder = false;
+bool gTextInputForFirmwareFolder = false;
 string gText;
 string gTextForGamingFolder;
+string gTextForFirmwareFolder;
 
 bool statemachine(int cmd)
 {
@@ -283,6 +285,53 @@ bool statemachine(int cmd)
                             gTextForGamingFolder=gText;
                         }
                         gTextInputForGamingFolder=false;
+                        gTextInput = false;
+                    }
+                    break;
+                case STATE_FLR_FW:
+                    if (!gTextInputForFirmwareFolder)
+                    {
+                        gTextInputForFirmwareFolder=true;
+                        gTextInput = true;
+                        
+                        const char *homedir;
+                        string slash;
+    
+                        if ((homedir = getenv("HOME")) != NULL) 
+                        {
+                            gText = homedir;
+                            
+                            slash = gText.substr(gText.length()-1,1);
+                            if (slash != "/")
+                            {
+                                gText += "/";
+                            }
+                        }
+                        else
+                        {
+                            gText = "";
+                        }
+                    }
+                    else
+                    {
+                        if (gTextInput) // input exit with RETURN
+                        {
+                            if (setPathToFirmware(gText))
+                            {
+                                
+                                string setting = "search_dir_firmware_PSX=";
+                                setting += gText;
+                                addSettingToConfigFile(setting);
+                                
+                                gTextForFirmwareFolder=gText;
+                                checkFirmwarePSX();
+                            }
+                        }
+                        else // input exit with ESC
+                        {
+                            gTextForFirmwareFolder=gText;
+                        }
+                        gTextInputForFirmwareFolder=false;
                         gTextInput = false;
                     }
                     break;

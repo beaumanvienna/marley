@@ -40,6 +40,7 @@ using namespace std;
     
     bool restoreSDL(void);
     bool setPathToGames(string filename);
+    bool setPathToFirmware(string str);
     bool addSettingToConfigFile(string setting);
     
     extern double angle0L;
