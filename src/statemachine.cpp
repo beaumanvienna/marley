@@ -36,11 +36,15 @@ std::vector<string> gGame;
 bool gQuit=false;
 bool gIgnore = false;
 bool gSetupIsRunning=false;
+bool gTextInput=false;
+bool gTextInputForGamingFolder = false;
+string gText;
+string gTextForGamingFolder;
 
 bool statemachine(int cmd)
 {
     string execute;
-    bool emuReturn;
+    bool emuReturn = false;
     
     //printf("gState: %i   cmd: %i\n",gState,cmd);
     switch (cmd)
@@ -234,6 +238,53 @@ bool statemachine(int cmd)
                     break;
                 case STATE_CONF1:
                     //ctrlConf(1);
+                    break;
+                case STATE_FLR_GAMES:
+                    if (!gTextInputForGamingFolder)
+                    {
+                        gTextInputForGamingFolder=true;
+                        gTextInput = true;
+                        
+                        const char *homedir;
+                        string slash;
+    
+                        if ((homedir = getenv("HOME")) != NULL) 
+                        {
+                            gText = homedir;
+                            
+                            slash = gText.substr(gText.length()-1,1);
+                            if (slash != "/")
+                            {
+                                gText += "/";
+                            }
+                        }
+                        else
+                        {
+                            gText = "";
+                        }
+                    }
+                    else
+                    {
+                        if (gTextInput) // input exit with RETURN
+                        {
+                            if (setPathToGames(gText))
+                            {
+                                
+                                string setting = "search_dir_games=";
+                                setting += gText;
+                                addSettingToConfigFile(setting);
+                                
+                                gTextForGamingFolder=gText;
+                                buildGameList();
+                            }
+                        }
+                        else // input exit with ESC
+                        {
+                            gTextForGamingFolder=gText;
+                        }
+                        gTextInputForGamingFolder=false;
+                        gTextInput = false;
+                    }
                     break;
                 case STATE_LAUNCH:
                     if (gGame[gCurrentGame] != "")

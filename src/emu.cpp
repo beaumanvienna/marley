@@ -132,11 +132,27 @@ bool printSupportedEmus(void)
 
 bool initEMU(void)
 {
-    //check for PSX firmware
-    checkFirmwarePSX();
-    
     printSupportedEmus();
-    buildGameList();
+    
+    //check for PSX firmware
+    if (gPathToFirnwarePSX == "")
+    {
+        printf("No valid firmware path for PSX found in marley.cfg\n");
+    }
+    else
+    {
+        checkFirmwarePSX();
+    }
+    
+    if (gGame.size())
+    {
+            printf("Available games:\n");
+    }
+    
+    for (int i=0;i<gGame.size();i++)
+    {
+        printf("%s\n",gGame[i].c_str());
+    }
 }
 
 bool exists(const char *fileName)
@@ -312,6 +328,26 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
         
     } 
 }
+
+bool findInVector(vector<string>* vec, string str)
+{
+    bool ok = false;
+    string element;
+    
+    vector<string>::iterator it;
+    
+    for(it=vec[0].begin();it<vec[0].end();it++)
+    {
+        element = *it;
+        if (element == str)
+        {
+            ok = true;
+            break;
+        }
+    }
+    return ok;
+}
+
 bool finalizeList(std::list<string> *tmpList)
 {
     list<string>::iterator iteratorTmpList;
@@ -322,13 +358,11 @@ bool finalizeList(std::list<string> *tmpList)
     for (int i=0;i<tmpList[0].size();i++)
     {
         strList = *iteratorTmpList;
-        gGame.push_back(strList);
+        if (!findInVector(&gGame,strList)) //avoid duplicates
+        {
+            gGame.push_back(strList);
+        }
         iteratorTmpList++;
-    }
-    
-    for (int i=0;i<gGame.size();i++)
-    {
-        printf("found ROM: %s\n",gGame[i].c_str());
     }
     
     if (!gGame.size())
@@ -347,7 +381,7 @@ bool buildGameList(void)
     std::list<string> toBeRemoved;
     
     findAllFiles(gPathToGames.c_str(),&tmpList,&toBeRemoved);
-    stripList (&tmpList,&toBeRemoved);
+    stripList (&tmpList,&toBeRemoved); // strip cue file entries
     finalizeList(&tmpList);
 }
 

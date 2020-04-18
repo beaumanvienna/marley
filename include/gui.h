@@ -83,7 +83,6 @@ using namespace std;
     // fullscreen flag
     extern bool gFullscreen;
     extern bool gIgnore;
-    extern bool gSetupIsRunning;
     
     extern TTF_Font* gFont;
     

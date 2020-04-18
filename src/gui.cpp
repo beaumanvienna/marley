@@ -376,10 +376,10 @@ bool renderIcons(void)
             {
                 
                 destination = { 50+xOffset, 675+yOffset, 345, 45 };
-                if (gState == STATE_SETUP)
-                {
+                //if (gState == STATE_SETUP)
+                //{
                     SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-                }
+                //}
             }
         }
         else  // setup
@@ -398,10 +398,38 @@ bool renderIcons(void)
             if (gState == STATE_FLR_FW)
             {
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                
             } 
             else
             {
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            }
+            
+            if ( (gPathToGames.length()) || (gTextInputForGamingFolder))
+            {
+                string text;
+                if (gTextInputForGamingFolder)
+                {
+                    text = gText;
+                }
+                else
+                {
+                    text = gPathToGames;
+                }
+                if (text.length()>26)
+                {
+                    text = text.substr(text.length()-26,26);
+                }
+                destination = { 600+xOffset, 620+yOffset, 530, 45 };
+                SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                int strLength = text.length();
+                destination = { 600+xOffset, 620+yOffset, strLength*20, 45 };
+                SDL_Color active = {222, 81, 223};  
+                surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
+                message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
         }
@@ -529,7 +557,7 @@ bool renderScreen(void)
             SDL_RenderFillRect(gRenderer, &destination);
             
             //controller 0 barrel: Set rendering space and render to screen
-            destination = { 350+xOffset, 140, 200, 200 };
+            destination = { 350+xOffset, 140+yOffset, 200, 200 };
             SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
             
             //icon for configuration run
@@ -624,7 +652,7 @@ bool renderScreen(void)
         {
             ctrlTex = TEX_XBOX360;
         }
-        destination = { 900+xOffset, 380+yOffset, 250, 250 };
+        destination = { 900+xOffset, 370+yOffset, 250, 250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     

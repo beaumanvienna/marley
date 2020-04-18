@@ -45,5 +45,10 @@ using namespace std;
     extern std::vector<string> gGame;
     
     extern bool gQuit;
+    extern bool gSetupIsRunning;
+    extern bool gTextInput;
+    extern string gText;
+    extern string gTextForGamingFolder;
+    extern bool gTextInputForGamingFolder;
 
 #endif

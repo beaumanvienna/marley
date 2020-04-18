@@ -207,71 +207,103 @@ int main( int argc, char* argv[] )
                 switch (event.type)
                 {
                     case SDL_KEYDOWN: 
-                        switch( event.key.keysym.sym )
+                        if (!gTextInput)
                         {
-                            case SDLK_l:
-                                k = SDL_NumJoysticks();
-                                if (k)
-                                {
-                                    printf("************* List all (number: %i) ************* \n",k);
-                                    for (l=0; l<k; l++)
+                            switch( event.key.keysym.sym )
+                            {
+                                case SDLK_l:
+                                    k = SDL_NumJoysticks();
+                                    if (k)
                                     {
-                                        printJoyInfo(l);
+                                        printf("************* List all (number: %i) ************* \n",k);
+                                        for (l=0; l<k; l++)
+                                        {
+                                            printJoyInfo(l);
+                                        }
+                                        m=0; //count designated controllers
+                                        for (l=0; l < MAX_GAMEPADS;l++)
+                                        {
+                                            if ( gDesignatedControllers[l].instance != -1 )
+                                            {
+                                                printf("found designated controller %i with SDL instance %i %s\n",l, gDesignatedControllers[l].instance,gDesignatedControllers[l].name.c_str());
+                                                m++;
+                                            }
+                                        }
+                                        printf("%i designated controllers found\n",m);
+                                    } else
+                                    {
+                                        printf("************* no controllers found ************* \n");
                                     }
-                                    m=0; //count designated controllers
+                                    break;
+                                case SDLK_f:
+                                    gFullscreen= !gFullscreen;
+                                    if (gFullscreen)
+                                    {
+                                        setFullscreen();
+                                    }
+                                    else
+                                    {
+                                        setWindowed();
+                                    }
+                                    break;
+                                case SDLK_p:
+                                    
                                     for (l=0; l < MAX_GAMEPADS;l++)
                                     {
                                         if ( gDesignatedControllers[l].instance != -1 )
                                         {
-                                            printf("found designated controller %i with SDL instance %i %s\n",l, gDesignatedControllers[l].instance,gDesignatedControllers[l].name.c_str());
-                                            m++;
+                                            char *mapping;
+                                            mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl);
+                                            printf("\n\n%s\n\n",mapping);
+                                            SDL_free(mapping);
                                         }
                                     }
-                                    printf("%i designated controllers found\n",m);
-                                } else
-                                {
-                                    printf("************* no controllers found ************* \n");
-                                }
-                                break;
-                            case SDLK_f:
-                                gFullscreen= !gFullscreen;
-                                if (gFullscreen)
-                                {
-                                    setFullscreen();
-                                }
-                                else
-                                {
-                                    setWindowed();
-                                }
-                                break;
-                            case SDLK_p:
-                                
-                                for (l=0; l < MAX_GAMEPADS;l++)
-                                {
-                                    if ( gDesignatedControllers[l].instance != -1 )
+                                    break;
+                                case SDLK_ESCAPE:
+                                        gQuit=true;
+                                    break;
+                                case SDLK_UP:
+                                case SDLK_DOWN:
+                                case SDLK_LEFT:
+                                case SDLK_RIGHT:
+                                        statemachine(event.key.keysym.sym);
+                                    break;
+                                case SDLK_RETURN:
+                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    break;
+                                default:
+                                    printf("key not recognized \n");
+                                    break;
+                            }
+                        }
+                        else // text input mode
+                        {
+                            string str;
+                            switch( event.key.keysym.sym )
+                            {
+                                case SDLK_BACKSPACE:
+                                    if ( gText.length() > 0 )
                                     {
-                                        char *mapping;
-                                        mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl);
-                                        printf("\n\n%s\n\n",mapping);
-                                        SDL_free(mapping);
+                                        gText.pop_back();
                                     }
-                                }
-                                break;
-                            case SDLK_ESCAPE:
-                                    gQuit=true;
-                                break;
-                            case SDLK_UP:
-                            case SDLK_DOWN:
-                            case SDLK_LEFT:
-                            case SDLK_RIGHT:
-                                    statemachine(event.key.keysym.sym);
-                                break;
-                            case SDLK_RETURN:
-                                    statemachine(SDL_CONTROLLER_BUTTON_A);
-                                break;
-                            default:
-                                printf("key not recognized \n");
-                                break;
+                                    break;
+                                case SDLK_ESCAPE:
+                                        gTextInput=false;
+                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    break;
+                                case SDLK_RETURN:
+                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    break;
+                                default:
+                                    (void) 0;
+                                    break;
+                            }
+                        }
+                        break;
+                    case SDL_TEXTINPUT: 
+                        if (gTextInput)
+                        {
+                            gText += event.text.text;
                         }
                         break;
                     case SDL_JOYDEVICEADDED: 
@@ -327,6 +359,7 @@ int main( int argc, char* argv[] )
                     default: 
                         ignoreESC = false;
                         (void) 0;
+                        break;
                 }
             }
             renderScreen();
@@ -443,6 +476,29 @@ bool createTemplate(string name)
     }
 }
 
+bool setPathToGames(string str)
+{
+    DIR* dir;
+    string filename=str;
+    string slash;
+    bool ok = false;
+    
+    dir = opendir(filename.c_str());
+    if ((dir) && (isDirectory(filename.c_str()) ))
+    {
+        // Directory exists
+        closedir(dir);
+        slash = filename.substr(filename.length()-1,1);
+        if (slash != "/")
+        {
+            filename += "/";
+        }
+        gPathToGames = filename;
+        ok = true;
+    }
+    return ok;    
+}
+
 bool loadConfig(ifstream* configFile)
 {
     string entry, line, slash;
@@ -479,24 +535,11 @@ bool loadConfig(ifstream* configFile)
         {
             pos=16;
             entry = line.substr(pos+1,line.length()-pos);
-            dir = opendir(entry.c_str());
-            if (dir) 
+            if ( setPathToGames(entry) )
             {
-                // Directory exists
-                closedir(dir);
-                slash = entry.substr(entry.length()-1,1);
-                if (slash != "/")
-                {
-                    entry += "/";
-                }
-                gPathToGames = entry;
+                buildGameList();
             }
         }
-    }
-    
-    if (gPathToFirnwarePSX == "")
-    {
-        printf("No valid firmware path for PSX found\n");
     }
     
     configFile[0].close();
@@ -556,6 +599,30 @@ bool checkConf(void)
             }
         }
     }    
+}
+
+bool addSettingToConfigFile(string setting)
+{
+    bool ok = false;
+    string filename = gBaseDir;
+        
+    filename += "marley.cfg";
+    
+    std::ofstream configFile;
+    configFile.open (filename.c_str(), std::ofstream::app);    
+    if (configFile.fail())
+    {
+        printf("Could not open config file: %s, no setting added\n",filename.c_str());
+    }
+    else 
+    {
+        configFile << setting; 
+        configFile << "\n"; 
+        printf("added to configuration file: %s\n",setting.c_str());
+        configFile.close();
+    }
+    
+    return ok;
 }
 
 

@@ -27,6 +27,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
+using namespace std;
 
 #ifndef MARLEY_H
 #define MARLEY_H
@@ -38,6 +39,8 @@
     #endif
     
     bool restoreSDL(void);
+    bool setPathToGames(string filename);
+    bool addSettingToConfigFile(string setting);
     
     extern double angle0L;
     extern double angle1L;
