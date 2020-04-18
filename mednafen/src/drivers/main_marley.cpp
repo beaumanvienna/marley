@@ -1643,6 +1643,12 @@ void PumpWrap(void)
    CheatIF_MT_EventHook(&event);
 
   NetplayEventHook(&event);
+  
+  #warning "JC: modified"
+    if ( (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE) )
+    {
+     NeedExitNow = 1;
+    }
 
   /* Handle the event, and THEN hand it over to the GUI. Order is important due to global variable mayhem(CEVT_TOGGLEFS. */
   switch(event.type)
@@ -1668,9 +1674,6 @@ void PumpWrap(void)
 		break;
 	}
 	break;
-   case SDL_KEYDOWN:
-    if(event.key.keysym.sym == SDLK_ESCAPE) NeedExitNow = 1;
-    break;
    case SDL_QUIT:
     NeedExitNow = 1;
 	break;
@@ -1717,7 +1720,8 @@ void PumpWrap(void)
 		 numevents++;
 		}
 		break;
-	}
+     }
+     
 	}
 	break;
 
@@ -2426,7 +2430,6 @@ for(int zgi = 1; zgi < argc; zgi++)// start game load test loop
  {
   MDFND_OutputNotice(MDFN_NOTICE_ERROR, e.what());
   ret = -1;
-  printf("catch(std::exception& e) \n");
   NeedExitNow = 1;
  }
 
