@@ -35,10 +35,10 @@
 #define PI 3.14159
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
-bool joyButton(SDL_Event event, int designatedCtrl, bool* ignoreESC);
 bool checkConf(void);
 
 TTF_Font* gFont = NULL;
+int gActiveController=-1;
 
 //initializes SDL and creates main window
 bool init()
@@ -266,9 +266,11 @@ int main( int argc, char* argv[] )
                                 case SDLK_DOWN:
                                 case SDLK_LEFT:
                                 case SDLK_RIGHT:
+                                        gActiveController=-1;
                                         statemachine(event.key.keysym.sym);
                                     break;
                                 case SDLK_RETURN:
+                                        gActiveController=-1;
                                         statemachine(SDL_CONTROLLER_BUTTON_A);
                                     break;
                                 default:
@@ -341,19 +343,51 @@ int main( int argc, char* argv[] )
                                 amplitude1R=sqrt(x1*x1+y1*y1);
                             }
                         }
+                        if (gControllerConf)
+                        {
+                            if (abs(event.jaxis.value) > 16384)
+                            {
+                                if (event.jdevice.which == gDesignatedControllers[0].instance)
+                                {
+                                    gActiveController=0;  
+                                    statemachineConfAxis(event.jaxis.axis);
+                                }
+                                else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                                {
+                                    gActiveController=1;  
+                                    statemachineConfAxis(event.jaxis.axis);
+                                }
+                            }
+                        }
                         break;
                     case SDL_QUIT: 
                         gQuit = true;
                         break;
+                    case SDL_JOYBUTTONDOWN: 
+                        if (gControllerConf)
+                        {
+                            if (event.jdevice.which == gDesignatedControllers[0].instance)
+                            {
+                                gActiveController=0;  
+                                statemachineConf(event.jbutton.button);
+                            }
+                            else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                            {
+                                gActiveController=1;  
+                                statemachineConf(event.jbutton.button);
+                            }
+                        }
+                        break;
                     case SDL_CONTROLLERBUTTONDOWN: 
-                    
                         if (event.jdevice.which == gDesignatedControllers[0].instance)
                         {
-                            joyButton(event,0,&ignoreESC);
+                            gActiveController=0;  
+                            statemachine(event.cbutton.button);
                         }
                         else if (event.jdevice.which == gDesignatedControllers[1].instance)
                         {
-                            joyButton(event,1,&ignoreESC);
+                            gActiveController=1;  
+                            statemachine(event.cbutton.button);
                         }
                         break;
                     default: 
@@ -387,68 +421,6 @@ bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
         y[0]=event.jaxis.value;
     }
 }
-
-
-bool joyButton(SDL_Event event, int designatedCtrl, bool* ignoreESC)
-{
-    bool emuReturn;
-    string cmd;
-    
-    switch( event.cbutton.button )
-    {
-        case SDL_CONTROLLER_BUTTON_A:
-            //printf("a\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_B:
-            //printf("b\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_X:
-            //printf("x\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_Y:
-            //printf("y\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_START:
-            //printf("start\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_BACK:
-            //printf("back\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_GUIDE:
-            //printf("guide\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_LEFTSTICK:
-            //printf("left stick\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-            //printf("right stick\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-            //printf("left shoulder\n");
-            break;
-         case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-            //printf("right shoulder\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_DPAD_UP:
-            //printf("dpad up\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-            //printf("dpad down\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-            //printf("left up\n");
-            break;
-        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-            //printf("dpad right\n");
-            break;
-        default:
-            //printf("other\n");
-            (void) 0;
-            break;
-    }     
-    statemachine(event.cbutton.button);
-}
-
 
 
 bool createTemplate(string name)

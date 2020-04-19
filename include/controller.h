@@ -61,6 +61,7 @@ using namespace std;
     bool closeJoy(int instance_id);
     bool closeAllJoy(void);
     bool restoreController(void);
+    void setMapping(void);
 
     //Gamepad array for all instances
     extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];

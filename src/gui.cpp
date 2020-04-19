@@ -384,6 +384,21 @@ bool renderIcons(void)
         }
         else  // setup
         {
+            
+            if (gControllerConf)
+            {
+                int yConfOffset = 250*gControllerConfNum;
+                
+                int strLength = gConfText.length();
+                destination = { 150+xOffset, 215+yOffset+yConfOffset, strLength*20, 45 };
+                SDL_Color active = {222, 81, 223};  
+                surfaceMessage = TTF_RenderText_Solid(gFont, gConfText.c_str(), active); 
+                message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                
+            }
+            
+            
             destination = { 50+xOffset, 620+yOffset, 530, 45 };
             if (gState == STATE_FLR_GAMES)
             {
@@ -416,11 +431,11 @@ bool renderIcons(void)
                 {
                     text = gPathToGames;
                 }
-                if (text.length()>26)
+                if (text.length()>30)
                 {
-                    text = text.substr(text.length()-26,26);
+                    text = text.substr(text.length()-30,30);
                 }
-                destination = { 600+xOffset, 620+yOffset, 530, 45 };
+                destination = { 600+xOffset, 620+yOffset, 630, 45 };
                 SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
@@ -443,11 +458,11 @@ bool renderIcons(void)
                 {
                     text = gPathToFirnwarePSX;
                 }
-                if (text.length()>26)
+                if (text.length()>30)
                 {
-                    text = text.substr(text.length()-26,26);
+                    text = text.substr(text.length()-30,30);
                 }
-                destination = { 600+xOffset, 675+yOffset, 530, 45 };
+                destination = { 600+xOffset, 675+yOffset, 630, 45 };
                 SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
@@ -551,7 +566,6 @@ bool renderScreen(void)
     SDL_RenderClear( gRenderer );
     //background
     SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
-    renderIcons();
     
     int ctrlTex, height;
     //designated controller 0: Load image and render to screen
@@ -564,39 +578,42 @@ bool renderScreen(void)
         if (gSetupIsRunning)
         {
             
-            destination = { 50+xOffset, 140+yOffset, 700, 200 };
+            destination = { 50+xOffset, 140+yOffset, 720, 200 };
             SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
             SDL_RenderFillRect(gRenderer, &destination);
             
-            height=int(amplitude0L/200);
-            if (height>250) height=250;
-            destination = { 50+xOffset, 140+yOffset, 50, height };
-            SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
-            SDL_RenderFillRect(gRenderer, &destination);
-            
-            //controller 0 barrel: Set rendering space and render to screen
-            destination = { 100+xOffset, 140+yOffset, 200, 200 };
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
-            
-            height=int(amplitude0R/200);
-            if (height>250) height=250;
-            destination = { 300+xOffset, 140+yOffset, 50, height };
-            SDL_RenderFillRect(gRenderer, &destination);
-            
-            //controller 0 barrel: Set rendering space and render to screen
-            destination = { 350+xOffset, 140+yOffset, 200, 200 };
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
-            
-            //icon for configuration run
-            destination = { 600+xOffset, 200+yOffset, 80, 80 };
-            
-            if (gState == STATE_CONF0)
+            if (gControllerConfNum != 0)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-            } 
-            else
-            {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                height=int(amplitude0L/200);
+                if (height>250) height=250;
+                destination = { 50+xOffset, 140+yOffset, 50, height };
+                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 0 barrel: Set rendering space and render to screen
+                destination = { 100+xOffset, 140+yOffset, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
+                
+                height=int(amplitude0R/200);
+                if (height>250) height=250;
+                destination = { 300+xOffset, 140+yOffset, 50, height };
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 0 barrel: Set rendering space and render to screen
+                destination = { 350+xOffset, 140+yOffset, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
+                
+                //icon for configuration run
+                destination = { 600+xOffset, 200+yOffset, 80, 80 };
+                
+                if (gState == STATE_CONF0)
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                } 
+                else
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                }
             }
         }
         //check if PS3
@@ -628,39 +645,43 @@ bool renderScreen(void)
         if (gSetupIsRunning)
         {
             
-            destination = { 50+xOffset, 390+yOffset, 700, 200 };
+            destination = { 50+xOffset, 390+yOffset, 720, 200 };
             SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
             SDL_RenderFillRect(gRenderer, &destination);
             
-            height=int(amplitude1L/200);
-            if (height>250) height=250;
-            destination = { 50+xOffset, 390+yOffset, 50, height };
-            SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
-            SDL_RenderFillRect(gRenderer, &destination);
-            
-            //controller 1 barrel: Set rendering space and render to screen
-            destination = { 100+xOffset, 390+yOffset, 200, 200 };
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
-            
-            height=int(amplitude1R/200);
-            if (height>250) height=250;
-            destination = { 300+xOffset, 390+yOffset, 50, height };
-            SDL_RenderFillRect(gRenderer, &destination);
-            
-            //controller 1 barrel: Set rendering space and render to screen
-            destination = { 350+xOffset, 390+yOffset, 200, 200 };
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
-            
-            //icon for configuration run
-            destination = { 600+xOffset, 450+yOffset, 80, 80 };
-            
-            if (gState == STATE_CONF1)
+            if (gControllerConfNum != 1)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
-            } 
-            else
-            {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            
+                height=int(amplitude1L/200);
+                if (height>250) height=250;
+                destination = { 50+xOffset, 390+yOffset, 50, height };
+                SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 1 barrel: Set rendering space and render to screen
+                destination = { 100+xOffset, 390+yOffset, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
+                
+                height=int(amplitude1R/200);
+                if (height>250) height=250;
+                destination = { 300+xOffset, 390+yOffset, 50, height };
+                SDL_RenderFillRect(gRenderer, &destination);
+                
+                //controller 1 barrel: Set rendering space and render to screen
+                destination = { 350+xOffset, 390+yOffset, 200, 200 };
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
+                            
+                //icon for configuration run
+                destination = { 600+xOffset, 450+yOffset, 80, 80 };
+                
+                if (gState == STATE_CONF1)
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                } 
+                else
+                {
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                }
             }
         }
 
@@ -682,7 +703,7 @@ bool renderScreen(void)
         destination = { 900+xOffset, 370+yOffset, 250, 250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
-    
+    renderIcons();
     SDL_RenderPresent( gRenderer );
 
 }

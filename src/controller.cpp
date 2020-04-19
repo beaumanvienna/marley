@@ -23,6 +23,7 @@
 #include "../include/controller.h"
 #include "../include/gui.h"
 #include "../include/statemachine.h"
+#include "../include/marley.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -359,4 +360,69 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 bool restoreController(void)
 {
     SDL_JoystickEventState(SDL_ENABLE);
+}
+
+
+void setMapping(void)
+{
+    /*
+    typedef enum
+    {
+        STATE_CONF_BUTTON_A=0,
+        STATE_CONF_BUTTON_B,
+        STATE_CONF_BUTTON_X,
+        STATE_CONF_BUTTON_Y,
+        STATE_CONF_BUTTON_BACK,
+        STATE_CONF_BUTTON_GUIDE,
+        STATE_CONF_BUTTON_START,
+        STATE_CONF_BUTTON_LEFTSTICK,
+        STATE_CONF_BUTTON_RIGHTSTICK,
+        STATE_CONF_BUTTON_LEFTSHOULDER,
+        STATE_CONF_BUTTON_RIGHTSHOULDER,
+        STATE_CONF_BUTTON_DPAD_UP,
+        STATE_CONF_BUTTON_DPAD_DOWN,
+        STATE_CONF_BUTTON_DPAD_LEFT,
+        STATE_CONF_BUTTON_DPAD_RIGHT,
+        STATE_CONF_AXIS_LEFTSTICK_X,
+        STATE_CONF_AXIS_LEFTSTICK_Y,
+        STATE_CONF_AXIS_RIGHTSTICK_X,
+        STATE_CONF_AXIS_RIGHTSTICK_Y,
+        STATE_CONF_AXIS_LEFTTRIGGER,
+        STATE_CONF_AXIS_RIGHTTRIGGER,
+        STATE_CONF_MAX
+    } configStates;
+     
+    */
+        
+    char guidStr[1024];
+    SDL_JoystickGUID guid;
+    string name;
+    SDL_Joystick *joy;
+    
+    name = gDesignatedControllers[gActiveController].name;
+    joy = gDesignatedControllers[gActiveController].joy;
+    guid = SDL_JoystickGetGUID(joy);
+    SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
+    
+    printf("\n\n");
+    printf("%s,%s,",guidStr,name.c_str());
+    printf("a:b%i,b:b%i,back:b%i,dpdown:b%i,dpleft:b%i,dpright:b%i,dpup:b%i,guide:b%i,leftshoulder:b%i,leftstick:b%i,",\
+        gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
+        gControllerButton[STATE_CONF_BUTTON_BACK],gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN],\
+        gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT],gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT],\
+        gControllerButton[STATE_CONF_BUTTON_DPAD_UP],gControllerButton[STATE_CONF_BUTTON_GUIDE],\
+        gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER],gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
+    printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
+        gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X],gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
+    printf("rightshoulder:b%i,rightstick:b%i,",\
+        gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER],gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]);
+    printf("righttrigger:a%i,rightx:a%i,righty:a%i,",gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER],\
+        gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X],gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]);
+    printf("start:b%i,x:b%i,y:b%i,platform:Linux,",gControllerButton[STATE_CONF_BUTTON_START],\
+        gControllerButton[STATE_CONF_BUTTON_X],gControllerButton[STATE_CONF_BUTTON_Y]);
+    printf("\n\n");
+    
+    //
+
+    
 }

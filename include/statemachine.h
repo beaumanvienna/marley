@@ -35,8 +35,36 @@ using namespace std;
     #define STATE_LAUNCH    6
     #define STATE_FLR_GAMES 7
     #define STATE_FLR_FW    8
+    
+    typedef enum
+    {
+        STATE_CONF_BUTTON_A=0,
+        STATE_CONF_BUTTON_B,
+        STATE_CONF_BUTTON_X,
+        STATE_CONF_BUTTON_Y,
+        STATE_CONF_BUTTON_BACK,
+        STATE_CONF_BUTTON_GUIDE,
+        STATE_CONF_BUTTON_START,
+        STATE_CONF_BUTTON_LEFTSTICK,
+        STATE_CONF_BUTTON_RIGHTSTICK,
+        STATE_CONF_BUTTON_LEFTSHOULDER,
+        STATE_CONF_BUTTON_RIGHTSHOULDER,
+        STATE_CONF_BUTTON_DPAD_UP,
+        STATE_CONF_BUTTON_DPAD_DOWN,
+        STATE_CONF_BUTTON_DPAD_LEFT,
+        STATE_CONF_BUTTON_DPAD_RIGHT,
+        STATE_CONF_AXIS_LEFTSTICK_X,
+        STATE_CONF_AXIS_LEFTSTICK_Y,
+        STATE_CONF_AXIS_RIGHTSTICK_X,
+        STATE_CONF_AXIS_RIGHTSTICK_Y,
+        STATE_CONF_AXIS_LEFTTRIGGER,
+        STATE_CONF_AXIS_RIGHTTRIGGER,
+        STATE_CONF_MAX
+    } configStates;
 
     bool statemachine(int cmd);
+    bool statemachineConf(int cmd);
+    bool statemachineConfAxis(int cmd);
     
      // statemachine
     extern int gState;
@@ -52,6 +80,10 @@ using namespace std;
     extern string gTextForGamingFolder;
     extern bool gTextInputForFirmwareFolder;
     extern string gTextForFirmwareFolder;
+    extern int gControllerButton[STATE_CONF_MAX];
     
-
+    extern bool gControllerConf;
+    extern int gControllerConfNum;
+    extern string gConfText;
+    
 #endif
