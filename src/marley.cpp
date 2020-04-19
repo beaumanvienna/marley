@@ -645,8 +645,9 @@ bool checkConf(void)
 bool addSettingToConfigFile(string setting)
 {
     bool ok = false;
-    string filename = gBaseDir;
-        
+    string filename;
+    
+    filename = gBaseDir;
     filename += "marley.cfg";
     
     std::ofstream configFile;
@@ -666,12 +667,72 @@ bool addSettingToConfigFile(string setting)
     return ok;
 }
 
+void removeDuplicatesInDB(void)
+{
+    string line, guidStr;
+    long guid;
+    vector<string> entryVec;
+    vector<string> guidVec;
+    string filename;
+    bool found;
+    
+    filename = gBaseDir;
+    filename += "internaldb.txt";
+    
+    ifstream internalDB(filename);
+    if (!internalDB.is_open())
+    {
+        printf("Could not open file: removeDuplicate(), file %s \n",filename.c_str());
+    }
+    else 
+    {
+        while ( getline (internalDB,line))
+        {
+            guidStr = line.substr(0,line.find(","));
+            
+            try
+            {
+                guid = stoi(guidStr);
+            }
+            catch(...)
+            {
+                guid=0;
+            }
+            if (guid)
+            {
+                found = false;
+                for (int i = 0;i < guidVec.size();i++)
+                {
+                    if (guidVec[i]==guidStr)
+                    {
+                        entryVec[i]=line;
+                        found=true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    guidVec.push_back(guidStr);
+                    entryVec.push_back(line);
+                }
+            }
+        }
+        
+        internalDB.close();
+        remove(filename.c_str());
+        for (int i=0;i < entryVec.size();i++)
+        {
+            addControllerToInternalDB(entryVec[i].c_str());
+        }
+    }
+}
+
 bool addControllerToInternalDB(string entry)
 {
     bool ok = false;
     string filename = gBaseDir;
         
-    filename += "internaldb.cfg";
+    filename += "internaldb.txt";
     
     std::ofstream db;
     db.open (filename.c_str(), std::ofstream::app);    
@@ -683,8 +744,8 @@ bool addControllerToInternalDB(string entry)
     {
         db << entry; 
         db << "\n"; 
-        printf("added to internal db: %s\n",entry.c_str());
         db.close();
+        ok = true;
     }
     
     return ok;

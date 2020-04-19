@@ -43,6 +43,7 @@ using namespace std;
     bool setPathToFirmware(string str);
     bool addSettingToConfigFile(string setting);
     bool addControllerToInternalDB(string entry);
+    void removeDuplicatesInDB(void);
     
     extern double angle0L;
     extern double angle1L;

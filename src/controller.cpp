@@ -74,12 +74,16 @@ bool initJoy(void)
 bool closeAllJoy(void)
 {
     int j = SDL_NumJoysticks();
+    string filename;
+    
     for (int i=0; i<j; i++)
     {
         closeJoy(i);
     }
+    
     // remove temp file
-    remove( RESOURCES "gamecontrollerdb_internal.txt" );
+    filename = gBaseDir + "tmpdb.txt";
+    remove( filename.c_str() );
     
     return true;
 }
@@ -276,17 +280,16 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
     string line;
     string text = text2match.substr(0,length);
     
-    //printf("findGuidInFile: %s length %i\n",text.c_str(),length);
     lineRet[0] = "";
     
-    ifstream myfile (file);
-    if (!myfile.is_open())
+    ifstream fileHandle (file);
+    if (!fileHandle.is_open())
     {
         printf("Could not open file: findGuidInFile(%s,%s,%i)\n",filename.c_str(),text2match.c_str(),length);
     }
     else 
     {
-        while ( getline (myfile,line) && !ok)
+        while ( getline (fileHandle,line) && !ok)
         {
             if (line.find(text.c_str()) == 0)
             {
@@ -295,7 +298,7 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
                 lineRet[0]=line;
             }
         }
-        myfile.close();
+        fileHandle.close();
     }
    
     return ok;
@@ -305,60 +308,72 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
 bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 {
     char guidStr[1024];
-    string line, append;
+    string line, append, filename;
+    
+    mappingOK[0] = false;
     
     //set up guidStr
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
-    //check public db
-    mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt", guidStr,32,&line);
-    
-    if (mappingOK[0])
+    filename = gBaseDir + "internaldb.txt";
+    if (findGuidInFile(filename.c_str(), guidStr,32,&line))
     {
-        printf("GUID found in public db\n");
+        printf("GUID found in internal db\n");
+        mappingOK[0] = true;
     }
     else
     {
-        string lineOriginal;
-        printf("GUID not found in public db");
-        for (int i=27;i>18;i--)
+
+        //check public db
+        mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt", guidStr,32,&line);
+        
+        if (mappingOK[0])
         {
-            
-            //check in public db
-            mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt",guidStr,i,&line);
-            
-            if (mappingOK[0])
-            {
-                // initialize controller with this line
-                lineOriginal = line;
-                int pos = line.find(",");
-                append = line.substr(pos+1,line.length()-pos-1);
-                
-                pos = append.find(",");
-                append = append.substr(pos+1,append.length()-pos-1);
-                
-                line = guidStr;
-                append=line+","+name+","+append;
-                
-                
-                std::ofstream outfile;
-
-                outfile.open(RESOURCES "gamecontrollerdb_internal.txt", std::ios_base::app); 
-                if(outfile) 
-                {
-                    outfile << append + "\n"; 
-                    outfile.close();
-                    SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb_internal.txt");
-                    mappingOK[0]=true;
-                }
-                
-                break;
-            }
+            printf("GUID found in public db\n");
         }
-        if (mappingOK[0]) printf("\n%s: trying to load mapping from closest match\n%s\n",guidStr, lineOriginal.c_str());
-        printf("\n");
-    }    
+        else
+        {
+            string lineOriginal;
+            printf("GUID not found in public db");
+            for (int i=27;i>18;i--)
+            {
+                
+                //check in public db
+                mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt",guidStr,i,&line);
+                
+                if (mappingOK[0])
+                {
+                    // initialize controller with this line
+                    lineOriginal = line;
+                    int pos = line.find(",");
+                    append = line.substr(pos+1,line.length()-pos-1);
+                    
+                    pos = append.find(",");
+                    append = append.substr(pos+1,append.length()-pos-1);
+                    
+                    line = guidStr;
+                    append=line+","+name+","+append;
+                    
+                    
+                    std::ofstream outfile;
+                    filename = gBaseDir + "tmpdb.txt";
 
+                    outfile.open(filename.c_str(), std::ios_base::app); 
+                    if(outfile) 
+                    {
+                        outfile << append + "\n"; 
+                        outfile.close();
+                        SDL_GameControllerAddMappingsFromFile(filename.c_str());
+                        mappingOK[0]=true;
+                    }
+                    
+                    break;
+                }
+            }
+            if (mappingOK[0]) printf("\n%s: trying to load mapping from closest match\n%s\n",guidStr, lineOriginal.c_str());
+            printf("\n");
+        }    
+    }
     return mappingOK[0];
 }
 
@@ -382,12 +397,12 @@ void setMapping(void)
     guid = SDL_JoystickGetGUID(joy);
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
-    printf("\n\n");
-    printf("%s,%s,",guidStr,name.c_str());
+    //printf("\n\n");
+    //printf("%s,%s,",guidStr,name.c_str());
     entry = guidStr;
     entry = entry + "," + name + ",";
     
-    printf("a:b%i,b:b%i,back:b%i,",gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
+    //printf("a:b%i,b:b%i,back:b%i,",gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
         gControllerButton[STATE_CONF_BUTTON_BACK]);
     entry += "a:b";
     entry += to_string(gControllerButton[STATE_CONF_BUTTON_A]);
@@ -399,79 +414,83 @@ void setMapping(void)
     
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN] != -1)
     {
-        printf("dpdown:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
+        //printf("dpdown:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
         entry = entry + "dpdown:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]) + ",";
     }
     else
     {
-        printf("dpdown:h%i.%i,",gHat[1],gHatValue[1]);
+        //printf("dpdown:h%i.%i,",gHat[1],gHatValue[1]);
         entry = entry + "dpdown:h" + to_string(gHat[1]) + "." + to_string(gHatValue[1]) + ",";
     }
     
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT] != -1)
     {
-        printf("dpleft:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
+        //printf("dpleft:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
         entry = entry + "dpleft:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]) + ",";
     }
     else
     {
-        printf("dpleft:h%i.%i,",gHat[2],gHatValue[2]);
+        //printf("dpleft:h%i.%i,",gHat[2],gHatValue[2]);
         entry = entry + "dpleft:h" + to_string(gHat[2]) + "." + to_string(gHatValue[2]) + ",";
     }
     
     if ( gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT] != -1)
     {
-        printf("dpright:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
+        //printf("dpright:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
         entry = entry + "dpright:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]) + ",";
     }
     else
     {
-        printf("dpright:h%i.%i,",gHat[3],gHatValue[3]);
+        //printf("dpright:h%i.%i,",gHat[3],gHatValue[3]);
         entry = entry + "dpright:h" + to_string(gHat[3]) + "." + to_string(gHatValue[3]) + ",";
     }
     
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_UP] != -1)
     {
-        printf("dpup:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
+        //printf("dpup:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
         entry = entry + "dpup:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_UP]) + ",";
     }
     else
     {
-        printf("dpup:h%i.%i,",gHat[0],gHatValue[0]);
+        //printf("dpup:h%i.%i,",gHat[0],gHatValue[0]);
         entry = entry + "dpup:h" + to_string(gHat[0]) + "." + to_string(gHatValue[0]) + ",";
     }
     
-    printf("guide:b%i,leftshoulder:b%i,leftstick:b%i,",gControllerButton[STATE_CONF_BUTTON_GUIDE],\
+    //printf("guide:b%i,leftshoulder:b%i,leftstick:b%i,",gControllerButton[STATE_CONF_BUTTON_GUIDE],\
         gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER],gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
     entry = entry + "guide:b" + to_string(gControllerButton[STATE_CONF_BUTTON_GUIDE]) +\
             ",leftshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER]) +\
             ",leftstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]) + ",";
     
-    printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
+    //printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
         gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X],gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
     entry = entry + "lefttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) +\
             ",leftx:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) +\
             ",lefty:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]) + ",";
     
-    printf("rightshoulder:b%i,rightstick:b%i,",\
+    //printf("rightshoulder:b%i,rightstick:b%i,",\
         gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER],gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]);
     entry = entry + "rightshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER]) +\
             ",rightstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]) + ",";
     
-    printf("righttrigger:a%i,rightx:a%i,righty:a%i,",gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER],\
+    //printf("righttrigger:a%i,rightx:a%i,righty:a%i,",gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER],\
         gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X],gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]);
     entry = entry + "righttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER]) +\
         ",rightx:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) +\
         ",righty:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]) + ",";
     
-    printf("start:b%i,x:b%i,y:b%i,platform:Linux,",gControllerButton[STATE_CONF_BUTTON_START],\
+    //printf("start:b%i,x:b%i,y:b%i,platform:Linux,",gControllerButton[STATE_CONF_BUTTON_START],\
         gControllerButton[STATE_CONF_BUTTON_X],gControllerButton[STATE_CONF_BUTTON_Y]);
     entry = entry + "start:b" + to_string(gControllerButton[STATE_CONF_BUTTON_START]) +\
         ",x:b" + to_string(gControllerButton[STATE_CONF_BUTTON_X]) +\
         ",y:b" + to_string(gControllerButton[STATE_CONF_BUTTON_Y]) + ",platform:Linux,";
     
-    printf("\n\n");
+    //printf("\n\n");
     
-    addControllerToInternalDB(entry);
+    if (addControllerToInternalDB(entry)) 
+    {
+        printf("added to internal db: %s\n",entry.c_str());
+    }
     
+    removeDuplicatesInDB();
 }
