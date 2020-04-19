@@ -493,4 +493,11 @@ void setMapping(void)
     }
     
     removeDuplicatesInDB();
+    
+    string internal = gBaseDir;
+    internal += "internaldb.txt";
+    if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
+    {
+        printf( "Warning: Unable to open internaldb.txt\n");
+    }
 }
