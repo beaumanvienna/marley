@@ -36,6 +36,7 @@
 
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
+bool setBaseDir(void);
 
 TTF_Font* gFont = NULL;
 int gActiveController=-1;
@@ -78,6 +79,8 @@ bool init()
             printf("%s not found\n",font.c_str());
             ok = false;
         }
+        
+        setBaseDir();
         
         if(!initJoy())
         {
@@ -428,6 +431,12 @@ int main( int argc, char* argv[] )
     return 0;
 }
 
+bool restoreSDL(void)
+{
+    restoreController();
+    restoreGUI();
+}
+
 //Motion on gamepad x
 bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 {
@@ -446,6 +455,7 @@ bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 
 bool createTemplate(string name)
 {
+    bool ok=false;
     std::ofstream outfile;
 
     outfile.open(name.c_str(), std::ios_base::app); 
@@ -462,11 +472,13 @@ bool createTemplate(string name)
         outfile << "search_dir_games=/home/marley/gaming/\n\n"; 
         outfile << "\n"; 
         outfile.close();
+        ok=true;
     }
     else
     {
         printf("Could not create config file %s\n",name.c_str());
     }
+    return ok;
 }
 
 bool setPathToFirmware(string str)
@@ -549,12 +561,14 @@ bool loadConfig(ifstream* configFile)
     configFile[0].close();
 }
 
-bool checkConf(void)
+bool setBaseDir(void)
 {
     const char *homedir;
-    string filename, entry, line, slash;
-    int pos;
+    string filename, slash;
     DIR* dir;
+    bool ok = false;
+    
+    gBaseDir = "";
     
     if ((homedir = getenv("HOME")) != NULL) 
     {
@@ -568,24 +582,13 @@ bool checkConf(void)
         }
         
         filename = filename + ".marley/";
-        gBaseDir = "";
+        
         DIR* dir = opendir(filename.c_str());
         if ((dir) && (isDirectory(filename.c_str()) ))
         {
             // Directory exists
             closedir(dir);
-            gBaseDir=filename;
-            filename += "marley.cfg";
-            ifstream configFile (filename.c_str());
-            if (!configFile.is_open())
-            {
-                printf("Could not open config file: %s, creating template\n",filename.c_str());
-                createTemplate(filename);
-            }
-            else 
-            {
-                loadConfig(&configFile);
-            }
+            ok = true;
         } 
         else if (ENOENT == errno) 
         {
@@ -594,8 +597,7 @@ bool checkConf(void)
             if (mkdir(filename.c_str(), S_IRWXU ) == 0)
             {
                 printf("(ok)\n");
-                filename += "marley.cfg";
-                createTemplate(filename);
+                ok = true;
             }
             else
             {
@@ -603,6 +605,41 @@ bool checkConf(void)
             }
         }
     }    
+    if (ok) gBaseDir=filename;
+    return ok;
+}
+
+bool checkConf(void)
+{
+    string filename;
+    int pos;
+    DIR* dir;
+    bool ok = false;
+
+    if ( gBaseDir != "") 
+    {
+        
+        DIR* dir = opendir(gBaseDir.c_str());
+        if ((dir) && (isDirectory(gBaseDir.c_str()) ))
+        {
+            // Directory exists
+            closedir(dir);
+            filename = gBaseDir;
+            filename += "marley.cfg";
+            ifstream configFile (filename.c_str());
+            if (!configFile.is_open())
+            {
+                printf("Could not open config file: %s, creating template\n",filename.c_str());
+                ok = createTemplate(filename);
+            }
+            else 
+            {
+                loadConfig(&configFile);
+                ok = true;
+            }
+        } 
+    }    
+    return ok;
 }
 
 bool addSettingToConfigFile(string setting)
@@ -629,8 +666,28 @@ bool addSettingToConfigFile(string setting)
     return ok;
 }
 
-bool restoreSDL(void)
+bool addControllerToInternalDB(string entry)
 {
-    restoreController();
-    restoreGUI();
+    bool ok = false;
+    string filename = gBaseDir;
+        
+    filename += "internaldb.cfg";
+    
+    std::ofstream db;
+    db.open (filename.c_str(), std::ofstream::app);    
+    if (db.fail())
+    {
+        printf("Could not open config file: %s, no entry added\n",filename.c_str());
+    }
+    else 
+    {
+        db << entry; 
+        db << "\n"; 
+        printf("added to internal db: %s\n",entry.c_str());
+        db.close();
+    }
+    
+    return ok;
 }
+
+

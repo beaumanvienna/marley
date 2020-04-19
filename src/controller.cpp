@@ -24,6 +24,7 @@
 #include "../include/gui.h"
 #include "../include/statemachine.h"
 #include "../include/marley.h"
+#include "../include/emu.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -41,11 +42,16 @@ bool initJoy(void)
     int i;
     
     SDL_Init(SDL_INIT_GAMECONTROLLER);
+    string internal = gBaseDir;
+    internal += "internaldb.txt";
     
+    if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
+    {
+        printf( "Warning: Unable to open internaldb.txt\n");
+    }
     if( SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb.txt") == -1 )
     {
-        //this is not a critical error, no need to return "false"
-        printf( "Warning: Unable to open gamecontrollerdb.txt! SDL Error: %s\n", SDL_GetError() );
+        printf( "Warning: Unable to open gamecontrollerdb.txt\n");
     }
     
     for (i=0; i< MAX_GAMEPADS_PLUGGED; i++)
@@ -365,38 +371,10 @@ bool restoreController(void)
 
 void setMapping(void)
 {
-    /*
-    typedef enum
-    {
-        STATE_CONF_BUTTON_A=0,
-        STATE_CONF_BUTTON_B,
-        STATE_CONF_BUTTON_X,
-        STATE_CONF_BUTTON_Y,
-        STATE_CONF_BUTTON_BACK,
-        STATE_CONF_BUTTON_GUIDE,
-        STATE_CONF_BUTTON_START,
-        STATE_CONF_BUTTON_LEFTSTICK,
-        STATE_CONF_BUTTON_RIGHTSTICK,
-        STATE_CONF_BUTTON_LEFTSHOULDER,
-        STATE_CONF_BUTTON_RIGHTSHOULDER,
-        STATE_CONF_BUTTON_DPAD_UP,
-        STATE_CONF_BUTTON_DPAD_DOWN,
-        STATE_CONF_BUTTON_DPAD_LEFT,
-        STATE_CONF_BUTTON_DPAD_RIGHT,
-        STATE_CONF_AXIS_LEFTSTICK_X,
-        STATE_CONF_AXIS_LEFTSTICK_Y,
-        STATE_CONF_AXIS_RIGHTSTICK_X,
-        STATE_CONF_AXIS_RIGHTSTICK_Y,
-        STATE_CONF_AXIS_LEFTTRIGGER,
-        STATE_CONF_AXIS_RIGHTTRIGGER,
-        STATE_CONF_MAX
-    } configStates;
-     
-    */
-        
+
     char guidStr[1024];
     SDL_JoystickGUID guid;
-    string name;
+    string name, entry;
     SDL_Joystick *joy;
     
     name = gDesignatedControllers[gActiveController].name;
@@ -406,59 +384,94 @@ void setMapping(void)
     
     printf("\n\n");
     printf("%s,%s,",guidStr,name.c_str());
+    entry = guidStr;
+    entry = entry + "," + name + ",";
+    
     printf("a:b%i,b:b%i,back:b%i,",gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
         gControllerButton[STATE_CONF_BUTTON_BACK]);
-        
+    entry += "a:b";
+    entry += to_string(gControllerButton[STATE_CONF_BUTTON_A]);
+    entry += ",b:b";
+    entry += to_string(gControllerButton[STATE_CONF_BUTTON_B]);
+    entry += ",back:b";
+    entry += to_string(gControllerButton[STATE_CONF_BUTTON_BACK]);
+    entry += ",";
+    
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN] != -1)
     {
         printf("dpdown:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
+        entry = entry + "dpdown:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]) + ",";
     }
     else
     {
         printf("dpdown:h%i.%i,",gHat[1],gHatValue[1]);
+        entry = entry + "dpdown:h" + to_string(gHat[1]) + "." + to_string(gHatValue[1]) + ",";
     }
     
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT] != -1)
     {
         printf("dpleft:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
+        entry = entry + "dpleft:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]) + ",";
     }
     else
     {
         printf("dpleft:h%i.%i,",gHat[2],gHatValue[2]);
+        entry = entry + "dpleft:h" + to_string(gHat[2]) + "." + to_string(gHatValue[2]) + ",";
     }
     
     if ( gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT] != -1)
     {
         printf("dpright:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
+        entry = entry + "dpright:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]) + ",";
     }
     else
     {
         printf("dpright:h%i.%i,",gHat[3],gHatValue[3]);
+        entry = entry + "dpright:h" + to_string(gHat[3]) + "." + to_string(gHatValue[3]) + ",";
     }
     
     if (gControllerButton[STATE_CONF_BUTTON_DPAD_UP] != -1)
     {
         printf("dpup:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
+        entry = entry + "dpup:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_UP]) + ",";
     }
     else
     {
         printf("dpup:h%i.%i,",gHat[0],gHatValue[0]);
+        entry = entry + "dpup:h" + to_string(gHat[0]) + "." + to_string(gHatValue[0]) + ",";
     }
     
     printf("guide:b%i,leftshoulder:b%i,leftstick:b%i,",gControllerButton[STATE_CONF_BUTTON_GUIDE],\
         gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER],gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
+    entry = entry + "guide:b" + to_string(gControllerButton[STATE_CONF_BUTTON_GUIDE]) +\
+            ",leftshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER]) +\
+            ",leftstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]) + ",";
     
     printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
         gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X],gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
+    entry = entry + "lefttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) +\
+            ",leftx:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) +\
+            ",lefty:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]) + ",";
+    
     printf("rightshoulder:b%i,rightstick:b%i,",\
         gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER],gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]);
+    entry = entry + "rightshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER]) +\
+            ",rightstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]) + ",";
+    
     printf("righttrigger:a%i,rightx:a%i,righty:a%i,",gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER],\
         gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X],gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]);
+    entry = entry + "righttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER]) +\
+        ",rightx:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) +\
+        ",righty:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]) + ",";
+    
     printf("start:b%i,x:b%i,y:b%i,platform:Linux,",gControllerButton[STATE_CONF_BUTTON_START],\
         gControllerButton[STATE_CONF_BUTTON_X],gControllerButton[STATE_CONF_BUTTON_Y]);
+    entry = entry + "start:b" + to_string(gControllerButton[STATE_CONF_BUTTON_START]) +\
+        ",x:b" + to_string(gControllerButton[STATE_CONF_BUTTON_X]) +\
+        ",y:b" + to_string(gControllerButton[STATE_CONF_BUTTON_Y]) + ",platform:Linux,";
+    
     printf("\n\n");
     
-    //
-
+    addControllerToInternalDB(entry);
     
 }

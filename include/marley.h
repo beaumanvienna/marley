@@ -42,6 +42,7 @@ using namespace std;
     bool setPathToGames(string filename);
     bool setPathToFirmware(string str);
     bool addSettingToConfigFile(string setting);
+    bool addControllerToInternalDB(string entry);
     
     extern double angle0L;
     extern double angle1L;
