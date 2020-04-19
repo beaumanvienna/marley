@@ -406,12 +406,48 @@ void setMapping(void)
     
     printf("\n\n");
     printf("%s,%s,",guidStr,name.c_str());
-    printf("a:b%i,b:b%i,back:b%i,dpdown:b%i,dpleft:b%i,dpright:b%i,dpup:b%i,guide:b%i,leftshoulder:b%i,leftstick:b%i,",\
-        gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
-        gControllerButton[STATE_CONF_BUTTON_BACK],gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN],\
-        gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT],gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT],\
-        gControllerButton[STATE_CONF_BUTTON_DPAD_UP],gControllerButton[STATE_CONF_BUTTON_GUIDE],\
+    printf("a:b%i,b:b%i,back:b%i,",gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
+        gControllerButton[STATE_CONF_BUTTON_BACK]);
+        
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN] != -1)
+    {
+        printf("dpdown:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
+    }
+    else
+    {
+        printf("dpdown:h%i.%i,",gHat[1],gHatValue[1]);
+    }
+    
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT] != -1)
+    {
+        printf("dpleft:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
+    }
+    else
+    {
+        printf("dpleft:h%i.%i,",gHat[2],gHatValue[2]);
+    }
+    
+    if ( gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT] != -1)
+    {
+        printf("dpright:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
+    }
+    else
+    {
+        printf("dpright:h%i.%i,",gHat[3],gHatValue[3]);
+    }
+    
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_UP] != -1)
+    {
+        printf("dpup:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
+    }
+    else
+    {
+        printf("dpup:h%i.%i,",gHat[0],gHatValue[0]);
+    }
+    
+    printf("guide:b%i,leftshoulder:b%i,leftstick:b%i,",gControllerButton[STATE_CONF_BUTTON_GUIDE],\
         gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER],gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
+    
     printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
         gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X],gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
     printf("rightshoulder:b%i,rightstick:b%i,",\

@@ -65,6 +65,7 @@ using namespace std;
     bool statemachine(int cmd);
     bool statemachineConf(int cmd);
     bool statemachineConfAxis(int cmd);
+    bool statemachineConfHat(int hat, int value);
     
      // statemachine
     extern int gState;
@@ -81,6 +82,7 @@ using namespace std;
     extern bool gTextInputForFirmwareFolder;
     extern string gTextForFirmwareFolder;
     extern int gControllerButton[STATE_CONF_MAX];
+    extern int gHat[4],gHatValue[4];
     
     extern bool gControllerConf;
     extern int gControllerConfNum;

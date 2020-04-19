@@ -316,6 +316,27 @@ int main( int argc, char* argv[] )
                         printf("*** controller removed\n");
                         closeJoy(event.jdevice.which);
                         break;
+                    case SDL_JOYHATMOTION: 
+                    
+                        if (gControllerConf)
+                        {
+                            if ( (event.jhat.value == SDL_HAT_UP) || (event.jhat.value == SDL_HAT_DOWN) || \
+                                    (event.jhat.value == SDL_HAT_LEFT) || (event.jhat.value == SDL_HAT_RIGHT) )
+                            {
+                                if (event.jdevice.which == gDesignatedControllers[0].instance)
+                                {
+                                    gActiveController=0;  
+                                    statemachineConfHat(event.jhat.hat,event.jhat.value);
+                                }
+                                else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                                {
+                                    gActiveController=1;  
+                                    statemachineConfHat(event.jhat.hat,event.jhat.value);
+                                }
+                            }
+                        }
+                    
+                        break;
                     case SDL_JOYAXISMOTION: 
                         if (abs(event.jaxis.value) > ANALOG_DEAD_ZONE)
                         {
@@ -607,7 +628,6 @@ bool addSettingToConfigFile(string setting)
     
     return ok;
 }
-
 
 bool restoreSDL(void)
 {

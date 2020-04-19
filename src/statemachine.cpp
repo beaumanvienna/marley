@@ -48,6 +48,8 @@ int confState;
 string gConfText;
 int gControllerButton[STATE_CONF_MAX];
 int xCount,yCount,xValue,yValue;
+int gHat[4],gHatValue[4];
+int hatIterator;
 
 
 bool checkAxis(int cmd);
@@ -252,6 +254,13 @@ bool statemachine(int cmd)
                         {
                             gControllerButton[i]=SDL_CONTROLLER_BUTTON_INVALID;
                         }
+                        
+                        for (int i = 0; i < 4;i++)
+                        {
+                            gHat[i] = -1;
+                            gHatValue[i] = -1;
+                        }
+                        hatIterator = 0;
                         
                         gControllerConf=true;
                         if (gState==STATE_CONF0)
@@ -632,3 +641,40 @@ bool checkTrigger(int cmd)
     return ok;
 }
 
+
+bool statemachineConfHat(int hat, int value)
+{    
+    printf("ConfHat hat: %i, value: %i\n",hat,value);
+    
+    gHat[hatIterator] = hat;
+    gHatValue[hatIterator] = value;
+    
+    hatIterator++;
+    
+    if (gActiveController == gControllerConfNum)
+    {
+        
+        switch (confState)
+        {
+            case STATE_CONF_BUTTON_DPAD_UP:
+                confState = STATE_CONF_BUTTON_DPAD_DOWN;
+                gConfText = "press dpad down";
+                break;
+            case STATE_CONF_BUTTON_DPAD_DOWN:
+                confState = STATE_CONF_BUTTON_DPAD_LEFT;
+                gConfText = "press dpad left";
+                break;
+            case STATE_CONF_BUTTON_DPAD_LEFT: 
+                confState = STATE_CONF_BUTTON_DPAD_RIGHT;
+                gConfText = "press dpad right";
+                break;
+            case STATE_CONF_BUTTON_DPAD_RIGHT: 
+                confState = STATE_CONF_BUTTON_A;
+                gConfText = "press button A (lower)";
+                break;
+            default:
+                (void) 0;
+                break;
+        }
+    }
+}
