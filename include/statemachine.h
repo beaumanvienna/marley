@@ -66,6 +66,7 @@ using namespace std;
     bool statemachineConf(int cmd);
     bool statemachineConfAxis(int cmd);
     bool statemachineConfHat(int hat, int value);
+    void resetStatemachine(void);
     
      // statemachine
     extern int gState;

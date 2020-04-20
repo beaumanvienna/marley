@@ -263,18 +263,25 @@ int main( int argc, char* argv[] )
                                     }
                                     break;
                                 case SDLK_ESCAPE:
+                                    if (gState == STATE_OFF)
+                                    {
                                         gQuit=true;
+                                    }
+                                    else
+                                    {
+                                        resetStatemachine();
+                                    }
                                     break;
                                 case SDLK_UP:
                                 case SDLK_DOWN:
                                 case SDLK_LEFT:
                                 case SDLK_RIGHT:
-                                        gActiveController=-1;
-                                        statemachine(event.key.keysym.sym);
+                                    gActiveController=-1;
+                                    statemachine(event.key.keysym.sym);
                                     break;
                                 case SDLK_RETURN:
-                                        gActiveController=-1;
-                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    gActiveController=-1;
+                                    statemachine(SDL_CONTROLLER_BUTTON_A);
                                     break;
                                 default:
                                     printf("key not recognized \n");
