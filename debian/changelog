@@ -1,3 +1,10 @@
+marley (0.0.4) bionic; urgency=medium
+
+  * setup added 
+  * this is a stable version 
+   
+ -- JC Lache <jc.lache@web.de>  Sun, 19 APR 2020 20:30:00 -0800
+
 marley (0.0.3.2) bionic; urgency=medium
 
   * mednaffen added 

@@ -2,7 +2,7 @@ Format: 3.0 (native)
 Source: marley
 Binary: marley
 Architecture: any
-Version: 0.0.3.2
+Version: 0.0.4
 Maintainer: JC <jc.lache@web.de>
 Homepage: https://launchpad.net/~beauman
 Standards-Version: 4.1.4
