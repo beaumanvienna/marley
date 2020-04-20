@@ -76,6 +76,16 @@ bool statemachine(int cmd)
     {
         switch (cmd)
         {
+            case SDL_CONTROLLER_BUTTON_GUIDE:
+                if (gState == STATE_OFF)
+                {
+                    gQuit=true;
+                }
+                else
+                {
+                    resetStatemachine();
+                }
+                break;
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
             case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: 
             case SDLK_DOWN:

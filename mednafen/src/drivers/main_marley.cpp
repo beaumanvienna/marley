@@ -1210,7 +1210,9 @@ int CloseGame(void)
 }
 
 static void GameThread_HandleEvents(void);
-static int volatile NeedExitNow = 0;	// Set 'true' in various places, including signal handler.
+#warning "JC: modified"
+//static int volatile NeedExitNow = 0;	// Set 'true' in various places, including signal handler.
+int NeedExitNow = 0;
 double CurGameSpeed = 1;
 
 void MainRequestExit(void)

@@ -27,7 +27,8 @@
 #include "../../../include/controller.h"
 
 #include <SDL.h>
-
+#warning "JC: modified"
+extern int NeedExitNow;
 class Joystick_SDL : public Joystick
 {
  public:
@@ -160,6 +161,8 @@ void Joystick_SDL::UpdateInternal(void)
  {
   button_state[i] = SDL_GameControllerGetButton(sdl_game_controller, (SDL_GameControllerButton)i);
  }
+ #warning "JC: modified"
+ if (button_state[SDL_CONTROLLER_BUTTON_GUIDE] == 1) NeedExitNow = 1;
  /*
  for(unsigned i = 0; i < sdl_num_buttons; i++)
  {
