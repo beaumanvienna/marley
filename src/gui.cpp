@@ -61,6 +61,13 @@ bool loadMedia()
     {
         ok = false;
     }
+    
+    //PS4 dualshock
+    gTextures[TEX_PS4] = loadTextureFromFile(PICTURES "PS4-DualShock.png");
+    if (!gTextures[TEX_PS4])
+    {
+        ok = false;
+    }
 
     //XBox 360 controller
     gTextures[TEX_XBOX360] = loadTextureFromFile(PICTURES "Xbox-360-S-Controller.png");
@@ -572,8 +579,8 @@ bool renderScreen(void)
     if (gDesignatedControllers[0].instance != -1)
     {
         string name = gDesignatedControllers[0].name;
+        string nameDB = gDesignatedControllers[0].nameDB;
         string str;
-        ctrlTex = TEX_GENERIC_CTRL;
         
         if (gSetupIsRunning)
         {
@@ -616,21 +623,9 @@ bool renderScreen(void)
                 }
             }
         }
-        //check if PS3
-        str = "Sony PLAYSTATION(R)3";
-        int str_pos = name.find(str);
-        if (str_pos>=0)
-        {
-            ctrlTex = TEX_PS3;
-        } 
         
-        //check if XBOX 360
-        str = "360";
-        str_pos = name.find(str);
-        if (str_pos>=0)
-        {
-            ctrlTex = TEX_XBOX360;
-        }
+        ctrlTex = checkType(name,nameDB);
+        
         destination = { 900+xOffset, 130+yOffset, 250, 250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
@@ -640,6 +635,7 @@ bool renderScreen(void)
     {
         string str;
         string name = gDesignatedControllers[1].name;
+        string nameDB = gDesignatedControllers[1].nameDB;
         ctrlTex = TEX_GENERIC_CTRL;
         
         if (gSetupIsRunning)
@@ -684,22 +680,9 @@ bool renderScreen(void)
                 }
             }
         }
-
-        //check if PS3
-        str = "Sony PLAYSTATION(R)3";
-        int str_pos = name.find(str);
-        if (str_pos>=0)
-        {
-            ctrlTex = TEX_PS3;
-        } 
         
-        //check if XBOX 360
-        str = "360";
-        str_pos = name.find(str);
-        if (str_pos>=0)
-        {
-            ctrlTex = TEX_XBOX360;
-        }
+        ctrlTex = checkType(name,nameDB);
+        
         destination = { 900+xOffset, 370+yOffset, 250, 250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }

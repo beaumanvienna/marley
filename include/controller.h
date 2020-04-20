@@ -50,6 +50,7 @@ using namespace std;
         SDL_GameController* gameCtrl;
         int instance; 
         string name;
+        string nameDB;
         bool mappingOK; 
     } T_DesignatedControllers;
     
@@ -62,6 +63,7 @@ using namespace std;
     bool closeAllJoy(void);
     bool restoreController(void);
     void setMapping(void);
+    int checkType(string name, string nameDB);
 
     //Gamepad array for all instances
     extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];

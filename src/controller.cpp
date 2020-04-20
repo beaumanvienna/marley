@@ -28,6 +28,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 //Gamepad array
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
@@ -62,7 +63,8 @@ bool initJoy(void)
     for (i=0; i< MAX_GAMEPADS; i++)
     {
         gDesignatedControllers[i].instance = -1;
-        gDesignatedControllers[i].name = "NULL";
+        gDesignatedControllers[i].name = "";
+        gDesignatedControllers[i].nameDB = "";
         gDesignatedControllers[i].joy = NULL;
         gDesignatedControllers[i].mappingOK = false;
         gDesignatedControllers[i].gameCtrl = NULL;
@@ -106,7 +108,8 @@ bool closeJoy(int instance_id)
             {
                 printf("removing designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
                 gDesignatedControllers[designation].instance = -1;
-                gDesignatedControllers[designation].name = "NULL";
+                gDesignatedControllers[designation].name = "";
+                gDesignatedControllers[designation].nameDB = "";
                 gDesignatedControllers[designation].joy = NULL;
                 gDesignatedControllers[designation].mappingOK = false;
                 gDesignatedControllers[designation].gameCtrl = NULL;
@@ -205,6 +208,7 @@ bool checkControllerIsSupported(int i)
 bool openJoy(int i)
 {
     int designation, designation_instance;
+    char *mapping;
     
     if (i<MAX_GAMEPADS_PLUGGED)
     {
@@ -233,12 +237,33 @@ bool openJoy(int i)
                             // instance is what e.jaxis.which returns
                             int instance = SDL_JoystickInstanceID(gGamepad[i]);
                             gDesignatedControllers[designation].instance = instance;
-                            gDesignatedControllers[designation].name = SDL_JoystickNameForIndex(i);
+                            
+                            string jName = SDL_JoystickNameForIndex(i);
+                            transform(jName.begin(), jName.end(), jName.begin(),
+                                [](unsigned char c){ return tolower(c); });
+                            
+                            gDesignatedControllers[designation].name = jName;
                             gDesignatedControllers[designation].joy = joy;
                             gDesignatedControllers[designation].gameCtrl = SDL_GameControllerFromInstanceID(instance);
                             SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
                             checkMapping(guid, &gDesignatedControllers[designation].mappingOK,gDesignatedControllers[designation].name);
                             gNumDesignatedControllers++;
+                            
+                            mapping = SDL_GameControllerMapping(gDesignatedControllers[designation].gameCtrl);
+                            if (mapping) 
+                            {
+                                string str = mapping;
+                                SDL_free(mapping);
+                                str = str.substr(str.find(",")+1,str.length()-(str.find(",")+1));
+                                str = str.substr(0,str.find(","));
+                                
+                                transform(str.begin(), str.end(), str.begin(),
+                                    [](unsigned char c){ return tolower(c); });
+                                
+                                gDesignatedControllers[designation].nameDB = str;
+                                //printf(" nameDB   \n%s\n",str.c_str());
+                            }
+                            
                             printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
                             //cancel loop
                             designation = MAX_GAMEPADS;
@@ -500,4 +525,34 @@ void setMapping(void)
     {
         printf( "Warning: Unable to open internaldb.txt\n");
     }
+}
+
+int checkType(string name, string nameDB)
+{
+    int ctrlTex = TEX_GENERIC_CTRL;
+
+    //check if PS3
+    int str_pos  =   name.find("sony playstation(r)3");
+    int str_pos2 = nameDB.find("ps3");
+    if ( (str_pos>=0) || ((str_pos2>=0)) )
+    {
+        ctrlTex = TEX_PS3;
+    } 
+    
+    //check if XBOX
+    str_pos  =   name.find("box");
+    str_pos2 = nameDB.find("box");
+    if ( (str_pos>=0) || ((str_pos2>=0)) )
+    {
+        ctrlTex = TEX_XBOX360;
+    }
+    
+    //check if PS4
+    str_pos  =   name.find("ps4");
+    str_pos2 = nameDB.find("ps4");
+    if ( (str_pos>=0) || ((str_pos2>=0)) )
+    {
+        ctrlTex = TEX_PS4;
+    }
+    return ctrlTex;
 }
