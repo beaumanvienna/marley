@@ -1,0 +1,2 @@
+/usr/bin/ar qcTP libfmt.a  CMakeFiles/fmt.dir/src/format.cc.o CMakeFiles/fmt.dir/src/posix.cc.o
+/usr/bin/ranlib libfmt.a

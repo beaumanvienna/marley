@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../Source/Core/Core/Host.h
+string
+-
+
+/home/yo/packaging/dolphin/dolphin-5.0/Source/UnitTests/StubHost.cpp
+memory
+-
+string
+-
+Core/Host.h
+/home/yo/packaging/dolphin/dolphin-5.0/Source/UnitTests/Core/Host.h
+
