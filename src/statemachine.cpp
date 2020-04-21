@@ -396,6 +396,26 @@ bool statemachine(int cmd)
                     case STATE_LAUNCH:
                         if (gGame[gCurrentGame] != "")
                         {
+                            #ifdef DOLPHIN
+                                int argc = 2;
+                                
+                                string str = "dolphin-emu";
+                                int n = str.length(); 
+                                char arg1[n + 1]; 
+                                strcpy(arg1, str.c_str()); 
+                                
+                                n = gGame[gCurrentGame].length(); 
+                                char arg2[n + 1]; 
+                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
+                                
+                                char *argv[] ={arg1,arg2};
+                                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                                dolphin_main(argc,argv);
+                                gIgnore = true;
+                                restoreSDL();
+                            #endif
+                            
+                            
                             #ifdef MEDNAFEN
                                 int argc = 2;
                                 
@@ -413,9 +433,9 @@ bool statemachine(int cmd)
                                 mednafen_main(argc,argv);
                                 gIgnore = true;
                                 restoreSDL();
-                            #else
-                                execute = "mednafen \""+gGame[gCurrentGame]+"\"";
-                                emuReturn = system(execute.c_str());
+                            //#else
+                            //    execute = "mednafen \""+gGame[gCurrentGame]+"\"";
+                            //    emuReturn = system(execute.c_str());
                             #endif
                         } else
                         {

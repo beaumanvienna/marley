@@ -26,3 +26,4 @@ mednafen/po/remove-potcdate.sed
 mednafen/ar-lib
 src/emu.o
 src/*.o
+dolphin/build/

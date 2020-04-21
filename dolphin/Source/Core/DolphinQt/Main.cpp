@@ -97,7 +97,7 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
 // /SubSystem:Windows
-int main(int argc, char* argv[])
+int dolphin_main(int argc, char* argv[])
 {
 #ifdef _WIN32
   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
