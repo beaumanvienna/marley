@@ -1,2 +1,0 @@
-/usr/bin/ar qcTP libxxhash.a  CMakeFiles/xxhash.dir/xxhash.c.o
-/usr/bin/ranlib libxxhash.a

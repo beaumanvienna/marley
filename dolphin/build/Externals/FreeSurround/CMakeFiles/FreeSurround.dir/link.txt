@@ -1,2 +1,0 @@
-/usr/bin/ar qcTP libFreeSurround.a  CMakeFiles/FreeSurround.dir/source/ChannelMaps.cpp.o CMakeFiles/FreeSurround.dir/source/KissFFT.cpp.o CMakeFiles/FreeSurround.dir/source/KissFFTR.cpp.o CMakeFiles/FreeSurround.dir/source/FreeSurroundDecoder.cpp.o
-/usr/bin/ranlib libFreeSurround.a

@@ -13,7 +13,8 @@ message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 set(CMAKE_AUTOMOC ON)
 
-add_executable(dolphin-emu
+#add_executable(dolphin-emu
+add_library(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
   CheatsManager.cpp

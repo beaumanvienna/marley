@@ -1,2 +1,0 @@
-/usr/bin/ar qcTP libbdisasm.a  CMakeFiles/bdisasm.dir/dis_decode.cc.o CMakeFiles/bdisasm.dir/dis_groups.cc.o CMakeFiles/bdisasm.dir/resolve.cc.o CMakeFiles/bdisasm.dir/syntax.cc.o
-/usr/bin/ranlib libbdisasm.a

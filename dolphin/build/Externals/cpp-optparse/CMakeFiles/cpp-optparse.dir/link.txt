@@ -1,2 +1,0 @@
-/usr/bin/ar qcTP libcpp-optparse.a  CMakeFiles/cpp-optparse.dir/OptionParser.cpp.o
-/usr/bin/ranlib libcpp-optparse.a

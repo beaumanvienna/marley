@@ -1,2 +1,0 @@
-/usr/bin/ar qcTP libdiscord-rpc.a  CMakeFiles/discord-rpc.dir/discord_rpc.cpp.o CMakeFiles/discord-rpc.dir/rpc_connection.cpp.o CMakeFiles/discord-rpc.dir/serialization.cpp.o CMakeFiles/discord-rpc.dir/connection_unix.cpp.o CMakeFiles/discord-rpc.dir/discord_register_linux.cpp.o
-/usr/bin/ranlib libdiscord-rpc.a
