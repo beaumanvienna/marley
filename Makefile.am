@@ -1,4 +1,5 @@
 SUBDIRS = mednafen
+SUBDIRS += dolphin
 
 
 
