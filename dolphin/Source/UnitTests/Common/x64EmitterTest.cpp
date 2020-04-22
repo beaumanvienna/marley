@@ -94,7 +94,7 @@ protected:
     emitter->AllocCodeSpace(4096);
     code_buffer = emitter->GetWritableCodePtr();
 
-    disasm.reset(new disassembler);
+    disasm.reset(new DO_disassembler);
     disasm->set_syntax_intel();
   }
 
@@ -162,7 +162,7 @@ protected:
   }
 
   std::unique_ptr<X64CodeBlock> emitter;
-  std::unique_ptr<disassembler> disasm;
+  std::unique_ptr<DO_disassembler> disasm;
   u8* code_buffer;
 };
 

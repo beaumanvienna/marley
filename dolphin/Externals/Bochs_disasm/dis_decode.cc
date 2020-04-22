@@ -70,13 +70,13 @@ static const unsigned char instruction_has_modrm[512] = {
   /*       0 1 2 3 4 5 6 7 8 9 a b c d e f           */
 };
 
-unsigned disassembler::disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
+unsigned DO_disassembler::disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
 {
   x86_insn insn = decode(is_32, is_64, cs_base, ip, instr, disbuf);
   return insn.ilen;
 }
 
-x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
+x86_insn DO_disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
 {
   if (is_64) is_32 = 1;
   x86_insn insn(is_32, is_64);
@@ -345,7 +345,7 @@ x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, 
          break;
 
        default:
-         printf("Internal disassembler error - unknown attribute !\n");
+         printf("Internal DO_disassembler error - unknown attribute !\n");
          return x86_insn(is_32, is_64);
     }
 
@@ -429,7 +429,7 @@ x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, 
   return insn;
 }
 
-unsigned disassembler::decode_vex(x86_insn *insn)
+unsigned DO_disassembler::decode_vex(x86_insn *insn)
 {
   insn->is_vex = 1;
 
@@ -462,7 +462,7 @@ unsigned disassembler::decode_vex(x86_insn *insn)
   return b2 & 0x3;
 }
 
-unsigned disassembler::decode_evex(x86_insn *insn)
+unsigned DO_disassembler::decode_evex(x86_insn *insn)
 {
   insn->is_evex = 1;
 
@@ -509,7 +509,7 @@ unsigned disassembler::decode_evex(x86_insn *insn)
   return sse_prefix;
 }
 
-unsigned disassembler::decode_xop(x86_insn *insn)
+unsigned DO_disassembler::decode_xop(x86_insn *insn)
 {
   insn->is_xop = 1;
 
@@ -539,7 +539,7 @@ unsigned disassembler::decode_xop(x86_insn *insn)
   return b2 & 0x3;
 }
 
-void disassembler::dis_sprintf(const char *fmt, ...)
+void DO_disassembler::dis_sprintf(const char *fmt, ...)
 {
   va_list ap;
 
@@ -550,7 +550,7 @@ void disassembler::dis_sprintf(const char *fmt, ...)
   disbufptr += strlen(disbufptr);
 }
 
-void disassembler::dis_putc(char symbol)
+void DO_disassembler::dis_putc(char symbol)
 {
   *disbufptr++ = symbol;
   *disbufptr = 0;

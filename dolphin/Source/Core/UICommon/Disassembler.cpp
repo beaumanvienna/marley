@@ -124,7 +124,7 @@ public:
   HostDisassemblerX86();
 
 private:
-  disassembler m_disasm;
+  DO_disassembler m_disasm;
 
   std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
                                    u32* host_instructions_count, u64 starting_pc) override;

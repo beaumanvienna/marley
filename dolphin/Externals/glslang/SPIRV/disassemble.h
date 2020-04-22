@@ -37,8 +37,8 @@
 //
 
 #pragma once
-#ifndef disassembler_H
-#define disassembler_H
+#ifndef DO_disassembler_H
+#define DO_disassembler_H
 
 #include <iostream>
 #include <vector>

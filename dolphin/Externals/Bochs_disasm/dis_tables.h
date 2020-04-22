@@ -60,148 +60,148 @@
 #define GRPSSENONE(n)   _GRPSSENONE, &n
 /* ************************************************************************ */
 
-#define Apw &disassembler::Apw
-#define Apd &disassembler::Apd
+#define Apw &DO_disassembler::Apw
+#define Apd &DO_disassembler::Apd
 
-#define AL_Reg &disassembler::AL_Reg
-#define CL_Reg &disassembler::CL_Reg
-#define AX_Reg &disassembler::AX_Reg
-#define DX_Reg &disassembler::DX_Reg
+#define AL_Reg &DO_disassembler::AL_Reg
+#define CL_Reg &DO_disassembler::CL_Reg
+#define AX_Reg &DO_disassembler::AX_Reg
+#define DX_Reg &DO_disassembler::DX_Reg
 
-#define EAX_Reg &disassembler::EAX_Reg
-#define RAX_Reg &disassembler::RAX_Reg
-#define RCX_Reg &disassembler::RCX_Reg
+#define EAX_Reg &DO_disassembler::EAX_Reg
+#define RAX_Reg &DO_disassembler::RAX_Reg
+#define RCX_Reg &DO_disassembler::RCX_Reg
 
-#define CS &disassembler::CS
-#define DS &disassembler::DS
-#define ES &disassembler::ES
-#define SS &disassembler::SS
-#define FS &disassembler::FS
-#define GS &disassembler::GS
+#define CS &DO_disassembler::CS
+#define DS &DO_disassembler::DS
+#define ES &DO_disassembler::ES
+#define SS &DO_disassembler::SS
+#define FS &DO_disassembler::FS
+#define GS &DO_disassembler::GS
 
-#define Sw &disassembler::Sw
+#define Sw &DO_disassembler::Sw
 
-#define Cd &disassembler::Cd
-#define Cq &disassembler::Cq
+#define Cd &DO_disassembler::Cd
+#define Cq &DO_disassembler::Cq
 
-#define Dd &disassembler::Dd
-#define Dq &disassembler::Dq
+#define Dd &DO_disassembler::Dd
+#define Dq &DO_disassembler::Dq
 
-#define Reg8 &disassembler::Reg8
-#define   RX &disassembler::RX
-#define  ERX &disassembler::ERX
-#define  RRX &disassembler::RRX
+#define Reg8 &DO_disassembler::Reg8
+#define   RX &DO_disassembler::RX
+#define  ERX &DO_disassembler::ERX
+#define  RRX &DO_disassembler::RRX
 
-#define Eb  &disassembler::Eb
-#define Ew  &disassembler::Ew
-#define Ed  &disassembler::Ed
-#define Eq  &disassembler::Eq
-#define Ey  &disassembler::Ey
-#define Ebd &disassembler::Ebd
-#define Ewd &disassembler::Ewd
+#define Eb  &DO_disassembler::Eb
+#define Ew  &DO_disassembler::Ew
+#define Ed  &DO_disassembler::Ed
+#define Eq  &DO_disassembler::Eq
+#define Ey  &DO_disassembler::Ey
+#define Ebd &DO_disassembler::Ebd
+#define Ewd &DO_disassembler::Ewd
 
-#define Gb &disassembler::Gb
-#define Gw &disassembler::Gw
-#define Gd &disassembler::Gd
-#define Gq &disassembler::Gq
-#define Gy &disassembler::Gy
+#define Gb &DO_disassembler::Gb
+#define Gw &DO_disassembler::Gw
+#define Gd &DO_disassembler::Gd
+#define Gq &DO_disassembler::Gq
+#define Gy &DO_disassembler::Gy
 
-#define By &disassembler::By
+#define By &DO_disassembler::By
 
-#define I1 &disassembler::I1
-#define Ib &disassembler::Ib
-#define Iw &disassembler::Iw
-#define Id &disassembler::Id
-#define Iq &disassembler::Iq
+#define I1 &DO_disassembler::I1
+#define Ib &DO_disassembler::Ib
+#define Iw &DO_disassembler::Iw
+#define Id &DO_disassembler::Id
+#define Iq &DO_disassembler::Iq
 
-#define IbIb &disassembler::IbIb
-#define IwIb &disassembler::IwIb
+#define IbIb &DO_disassembler::IbIb
+#define IwIb &DO_disassembler::IwIb
 
-#define sIbw &disassembler::sIbw
-#define sIbd &disassembler::sIbd
-#define sIbq &disassembler::sIbq
-#define sIdq &disassembler::sIdq
+#define sIbw &DO_disassembler::sIbw
+#define sIbd &DO_disassembler::sIbd
+#define sIbq &DO_disassembler::sIbq
+#define sIdq &DO_disassembler::sIdq
 
-#define ST0 &disassembler::ST0
-#define STi &disassembler::STi
+#define ST0 &DO_disassembler::ST0
+#define STi &DO_disassembler::STi
 
-#define Rw &disassembler::Rw
-#define Rd &disassembler::Rd
-#define Rq &disassembler::Rq
-#define Ry &disassembler::Ry
+#define Rw &DO_disassembler::Rw
+#define Rd &DO_disassembler::Rd
+#define Rq &DO_disassembler::Rq
+#define Ry &DO_disassembler::Ry
 
-#define Pq &disassembler::Pq
-#define Qd &disassembler::Qd
-#define Qq &disassembler::Qq
-#define Nq &disassembler::Nq
+#define Pq &DO_disassembler::Pq
+#define Qd &DO_disassembler::Qd
+#define Qq &DO_disassembler::Qq
+#define Nq &DO_disassembler::Nq
 
-#define  Vq &disassembler::Vq
-#define Vdq &disassembler::Vdq
-#define Vss &disassembler::Vss
-#define Vsd &disassembler::Vsd
-#define Vps &disassembler::Vps
-#define Vpd &disassembler::Vpd
-#define VIb &disassembler::VIb
+#define  Vq &DO_disassembler::Vq
+#define Vdq &DO_disassembler::Vdq
+#define Vss &DO_disassembler::Vss
+#define Vsd &DO_disassembler::Vsd
+#define Vps &DO_disassembler::Vps
+#define Vpd &DO_disassembler::Vpd
+#define VIb &DO_disassembler::VIb
 
-#define Ups &disassembler::Ups
-#define Upd &disassembler::Upd
-#define Udq &disassembler::Udq
-#define Uq  &disassembler::Uq
+#define Ups &DO_disassembler::Ups
+#define Upd &DO_disassembler::Upd
+#define Udq &DO_disassembler::Udq
+#define Uq  &DO_disassembler::Uq
 
-#define  Wb &disassembler::Wb
-#define  Ww &disassembler::Ww
-#define  Wd &disassembler::Wd
-#define  Wq &disassembler::Wq
-#define Wdq &disassembler::Wdq
-#define Wss &disassembler::Wss
-#define Wsd &disassembler::Wsd
-#define Wps &disassembler::Wps
-#define Wpd &disassembler::Wpd
+#define  Wb &DO_disassembler::Wb
+#define  Ww &DO_disassembler::Ww
+#define  Wd &DO_disassembler::Wd
+#define  Wq &DO_disassembler::Wq
+#define Wdq &DO_disassembler::Wdq
+#define Wss &DO_disassembler::Wss
+#define Wsd &DO_disassembler::Wsd
+#define Wps &DO_disassembler::Wps
+#define Wpd &DO_disassembler::Wpd
 
-#define Hdq &disassembler::Hdq
-#define Hps &disassembler::Hps
-#define Hpd &disassembler::Hpd
-#define Hss &disassembler::Hss
-#define Hsd &disassembler::Hsd
+#define Hdq &DO_disassembler::Hdq
+#define Hps &DO_disassembler::Hps
+#define Hpd &DO_disassembler::Hpd
+#define Hss &DO_disassembler::Hss
+#define Hsd &DO_disassembler::Hsd
 
-#define Ob &disassembler::Ob
-#define Ow &disassembler::Ow
-#define Od &disassembler::Od
-#define Oq &disassembler::Oq
+#define Ob &DO_disassembler::Ob
+#define Ow &DO_disassembler::Ow
+#define Od &DO_disassembler::Od
+#define Oq &DO_disassembler::Oq
 
-#define  Ma &disassembler::Ma
-#define  Mp &disassembler::Mp
-#define  Ms &disassembler::Ms
-#define  Mx &disassembler::Mx
-#define  Mb &disassembler::Mb
-#define  Mw &disassembler::Mw
-#define  Md &disassembler::Md
-#define  Mq &disassembler::Mq
-#define  Mt &disassembler::Mt
-#define Mdq &disassembler::Mdq
-#define Mps &disassembler::Mps
-#define Mpd &disassembler::Mpd
-#define Mss &disassembler::Mss
-#define Msd &disassembler::Msd
+#define  Ma &DO_disassembler::Ma
+#define  Mp &DO_disassembler::Mp
+#define  Ms &DO_disassembler::Ms
+#define  Mx &DO_disassembler::Mx
+#define  Mb &DO_disassembler::Mb
+#define  Mw &DO_disassembler::Mw
+#define  Md &DO_disassembler::Md
+#define  Mq &DO_disassembler::Mq
+#define  Mt &DO_disassembler::Mt
+#define Mdq &DO_disassembler::Mdq
+#define Mps &DO_disassembler::Mps
+#define Mpd &DO_disassembler::Mpd
+#define Mss &DO_disassembler::Mss
+#define Msd &DO_disassembler::Msd
 
-#define VSib &disassembler::VSib
+#define VSib &DO_disassembler::VSib
 
-#define Xb &disassembler::Xb
-#define Xw &disassembler::Xw
-#define Xd &disassembler::Xd
-#define Xq &disassembler::Xq
+#define Xb &DO_disassembler::Xb
+#define Xw &DO_disassembler::Xw
+#define Xd &DO_disassembler::Xd
+#define Xq &DO_disassembler::Xq
 
-#define Yb &disassembler::Yb
-#define Yw &disassembler::Yw
-#define Yd &disassembler::Yd
-#define Yq &disassembler::Yq
+#define Yb &DO_disassembler::Yb
+#define Yw &DO_disassembler::Yw
+#define Yd &DO_disassembler::Yd
+#define Yq &DO_disassembler::Yq
 
-#define sYq  &disassembler::sYq
-#define sYdq &disassembler::sYdq
+#define sYq  &DO_disassembler::sYq
+#define sYdq &DO_disassembler::sYdq
 
-#define Jb &disassembler::Jb
-#define Jw &disassembler::Jw
-#define Jd &disassembler::Jd
+#define Jb &DO_disassembler::Jb
+#define Jw &DO_disassembler::Jw
+#define Jd &DO_disassembler::Jd
 
 #define XX 0
 

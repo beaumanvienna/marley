@@ -29,6 +29,7 @@
 #include "../include/gui.h"
 #include "../include/controller.h"
 #include "../include/emu.h"
+#include <algorithm>
 
 int gState = 0;
 int gCurrentGame;
@@ -396,47 +397,59 @@ bool statemachine(int cmd)
                     case STATE_LAUNCH:
                         if (gGame[gCurrentGame] != "")
                         {
-                            #ifdef DOLPHIN
-                                int argc = 2;
+                            int argc;
+                            char arg1[64]; 
+                            char arg2[1024];
+                            char *argv[2]; 
+                            int n;
+                            string str, ext;
+                            
+                            argc = 2;
+                            str = gGame[gCurrentGame];
+                            ext = str.substr(str.find_last_of(".") + 1);
+                            std::transform(ext.begin(), ext.end(), ext.begin(),
+                                [](unsigned char c){ return std::tolower(c); });
+#ifdef DOLPHIN
+                            
+                            if (ext == "iso")
+                            {
                                 
-                                string str = "dolphin-emu";
-                                int n = str.length(); 
-                                char arg1[n + 1]; 
+                                
+                                str = "dolphin-emu";
+                                n = str.length(); 
                                 strcpy(arg1, str.c_str()); 
                                 
                                 n = gGame[gCurrentGame].length(); 
-                                char arg2[n + 1]; 
                                 strcpy(arg2, gGame[gCurrentGame].c_str()); 
                                 
-                                char *argv[] ={arg1,arg2};
+                                argv[0] = arg1;
+                                argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
                                 dolphin_main(argc,argv);
                                 gIgnore = true;
                                 restoreSDL();
-                            #endif
+                            }
+#endif
                             
                             
-                            #ifdef MEDNAFEN
-                                int argc = 2;
-                                
-                                string str = "mednafen";
-                                int n = str.length(); 
-                                char arg1[n + 1]; 
+#ifdef MEDNAFEN
+                            if (ext != "iso")
+                            {
+                                str = "mednafen";
+                                n = str.length(); 
                                 strcpy(arg1, str.c_str()); 
                                 
                                 n = gGame[gCurrentGame].length(); 
-                                char arg2[n + 1]; 
                                 strcpy(arg2, gGame[gCurrentGame].c_str()); 
                                 
-                                char *argv[] ={arg1,arg2};
+                                argv[0] = arg1;
+                                argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
                                 mednafen_main(argc,argv);
                                 gIgnore = true;
                                 restoreSDL();
-                            //#else
-                            //    execute = "mednafen \""+gGame[gCurrentGame]+"\"";
-                            //    emuReturn = system(execute.c_str());
-                            #endif
+                            }
+#endif
                         } else
                         {
                             printf("no valid ROM found\n");

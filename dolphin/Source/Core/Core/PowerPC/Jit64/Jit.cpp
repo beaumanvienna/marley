@@ -1189,7 +1189,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
     DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %08x %s\n", op.address, disasm.c_str());
   }
 
-  disassembler x64disasm;
+  DO_disassembler x64disasm;
   x64disasm.set_syntax_intel();
 
   u64 disasmPtr = reinterpret_cast<u64>(normalEntry);

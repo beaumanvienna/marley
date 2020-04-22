@@ -120,7 +120,7 @@ static const char *att_vector_reg_name[4] = {
 
 #define NULL_SEGMENT_REGISTER 7
 
-void disassembler::initialize_modrm_segregs()
+void DO_disassembler::initialize_modrm_segregs()
 {
   sreg_mod00_rm16[0] = segment_name[DS_REG];
   sreg_mod00_rm16[1] = segment_name[DS_REG];
@@ -179,7 +179,7 @@ void disassembler::initialize_modrm_segregs()
 // Intel STYLE
 //////////////////
 
-void disassembler::set_syntax_intel()
+void DO_disassembler::set_syntax_intel()
 {
   intel_mode = 1;
 
@@ -196,7 +196,7 @@ void disassembler::set_syntax_intel()
   initialize_modrm_segregs();
 }
 
-void disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
+void DO_disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
 {
   // print opcode
   dis_sprintf("%s ", entry->IntelOpcode);
@@ -222,7 +222,7 @@ void disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmO
 // AT&T STYLE
 //////////////////
 
-void disassembler::set_syntax_att()
+void DO_disassembler::set_syntax_att()
 {
   intel_mode = 0;
 
@@ -239,13 +239,13 @@ void disassembler::set_syntax_att()
   initialize_modrm_segregs();
 }
 
-void disassembler::toggle_syntax_mode()
+void DO_disassembler::toggle_syntax_mode()
 {
   if (intel_mode) set_syntax_att();
   else set_syntax_intel();
 }
 
-void disassembler::print_disassembly_att(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
+void DO_disassembler::print_disassembly_att(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
 {
   // print opcode
   dis_sprintf("%s ", entry->AttOpcode);

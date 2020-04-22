@@ -32,11 +32,11 @@ using namespace std;
 #ifndef MARLEY_H
 #define MARLEY_H
 
-    //#define MEDNAFEN 1
+    #define MEDNAFEN 1
     #define DOLPHIN 1
     
     #ifdef MEDNAFEN
-        #include "../mednafen/src/drivers/main_marley.h"
+        int mednafen_main(int argc, char* argv[]);
     #endif
     
     #ifdef DOLPHIN

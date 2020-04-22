@@ -8,8 +8,8 @@ AM_LDFLAGS		= --std=c++11 -fno-pie -no-pie -s
 bin_PROGRAMS 	= marley		
 marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp
 
-#marley_LDADD 	= mednafen/src/libmednafen_marley.a
-marley_LDADD 	= -lSDL2 -lSDL2_image -lSDL2_ttf 
+marley_LDADD 	= mednafen/src/libmednafen_marley.a
+marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
 
 marley_LDADD 	+= dolphin/build/Source/Core/DolphinQt/libdolphin-emu.a

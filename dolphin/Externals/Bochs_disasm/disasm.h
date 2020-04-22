@@ -118,11 +118,11 @@ enum {
         INVALID_SEG2
 };
 
-class disassembler;
+class DO_disassembler;
 struct x86_insn;
 
-typedef void (disassembler::*BxDisasmPtr_t)(const x86_insn *insn);
-typedef void (disassembler::*BxDisasmResolveModrmPtr_t)(const x86_insn *insn, unsigned attr);
+typedef void (DO_disassembler::*BxDisasmPtr_t)(const x86_insn *insn);
+typedef void (DO_disassembler::*BxDisasmResolveModrmPtr_t)(const x86_insn *insn, unsigned attr);
 
 struct BxDisasmOpcodeInfo_t
 {
@@ -237,9 +237,9 @@ BX_CPP_INLINE x86_insn::x86_insn(bx_bool is32, bx_bool is64)
   evex_z = 0;
 }
 
-class disassembler {
+class DO_disassembler {
 public:
-  disassembler(): offset_mode_hex(0), print_mem_datasize(1) { set_syntax_intel(); }
+  DO_disassembler(): offset_mode_hex(0), print_mem_datasize(1) { set_syntax_intel(); }
 
   unsigned disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf);
 
