@@ -1,4 +1,6 @@
-add_executable(dolphin-nogui
+#JC: modified
+#add_executable(dolphin-nogui
+add_library(dolphin-nogui
   Platform.cpp
   Platform.h
   PlatformHeadless.cpp
@@ -31,5 +33,6 @@ if(USE_DISCORD_PRESENCE)
 endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-nogui)
-install(TARGETS dolphin-nogui RUNTIME DESTINATION ${bindir})
+#JC: modified
+#install(TARGETS dolphin-nogui RUNTIME DESTINATION ${bindir})
 
