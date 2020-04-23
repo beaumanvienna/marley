@@ -59,8 +59,8 @@ unsigned Joystick_SDL::HatToButtonCompat(unsigned hat)
 Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
 {
  #warning "jc: modified"
- sdl_joy = gDesignatedControllers[index].joy;
- sdl_game_controller = gDesignatedControllers[index].gameCtrl;
+ sdl_joy = gDesignatedControllers[index].joy[0]; 
+ sdl_game_controller = gDesignatedControllers[index].gameCtrl[0];
  //sdl_joy = SDL_JoystickOpen(index);
  
  if(sdl_joy == NULL)
@@ -156,7 +156,7 @@ void Joystick_SDL::UpdateInternal(void)
  }
 
  #warning "JC: modified"
- int n= sdl_num_buttons + 4*sdl_num_hats;
+ unsigned int n= sdl_num_buttons + 4*sdl_num_hats;
  for(unsigned i = 0; i < n; i++)
  {
   button_state[i] = SDL_GameControllerGetButton(sdl_game_controller, (SDL_GameControllerButton)i);
@@ -203,7 +203,7 @@ JoystickDriver_SDL::JoystickDriver_SDL()
  
  for(int n = 0; n < MAX_GAMEPADS; n++)
  {
-   if (gDesignatedControllers[n].joy != NULL)
+   if (gDesignatedControllers[n].numberOfDevices != 0)
    {
      Joystick_SDL *jsdl = new Joystick_SDL(n);
      joys.push_back(jsdl);

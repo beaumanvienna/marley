@@ -33,6 +33,8 @@
 //Gamepad array
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 
+int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
+
 //designated controllers
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
@@ -48,7 +50,6 @@ bool initJoy(void)
     
     if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
     {
-        printf( "Warning: Unable to open internaldb.txt\n");
     }
     if( SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb.txt") == -1 )
     {
@@ -62,12 +63,18 @@ bool initJoy(void)
     
     for (i=0; i< MAX_GAMEPADS; i++)
     {
-        gDesignatedControllers[i].instance = -1;
-        gDesignatedControllers[i].name = "";
-        gDesignatedControllers[i].nameDB = "";
-        gDesignatedControllers[i].joy = NULL;
+        for (int j=0; j<MAX_DEVICES_PER_CONTROLLER;j++)
+        {
+            gDesignatedControllers[i].instance[j] = -1;
+            gDesignatedControllers[i].name[j] = "";
+            gDesignatedControllers[i].nameDB[j] = "";
+            gDesignatedControllers[i].joy[j] = NULL;
+            gDesignatedControllers[i].mappingOKDevice[j] = false;
+            gDesignatedControllers[i].gameCtrl[j] = NULL;
+        }
         gDesignatedControllers[i].mappingOK = false;
-        gDesignatedControllers[i].gameCtrl = NULL;
+        gDesignatedControllers[i].controllerType = -1;
+        gDesignatedControllers[i].numberOfDevices = 0;
     }
     gNumDesignatedControllers = 0;
     return ok;
@@ -92,47 +99,67 @@ bool closeAllJoy(void)
 
 bool closeJoy(int instance_id)
 {
-    int designation, designation_instance, n, num_controller;
+    int designation, instance, n, num_controller, ctrlType, devPerType;
     printf("closeJoy(int %i)\n",instance_id);
+    
     //Close gamepad
     SDL_JoystickClose( gGamepad[instance_id] );
+    
+    // remove designated controller / from designated controller
     if (instance_id < MAX_GAMEPADS_PLUGGED)
     {
         gGamepad[instance_id] = NULL;
     
         for (designation=0;designation<MAX_GAMEPADS;designation++)
-        {        
-            designation_instance= gDesignatedControllers[designation].instance;
-            //printf(" *** designation %i designation_instance %i instance %i\n",designation,designation_instance,instance_id);
-            if ((designation_instance == instance_id) && (designation_instance != -1))
+        {   
+            ctrlType = gDesignatedControllers[designation].controllerType;
+            devPerType = devicesPerType[ctrlType];
+            for (int j=0; j < devPerType; j++)
             {
-                printf("removing designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
-                gDesignatedControllers[designation].instance = -1;
-                gDesignatedControllers[designation].name = "";
-                gDesignatedControllers[designation].nameDB = "";
-                gDesignatedControllers[designation].joy = NULL;
-                gDesignatedControllers[designation].mappingOK = false;
-                gDesignatedControllers[designation].gameCtrl = NULL;
-                gNumDesignatedControllers--;
+                instance= gDesignatedControllers[designation].instance[j];
+                
+                if ((instance == instance_id) && (instance != -1))
+                {
+                    printf("removing from designated controller %i (instance %i)",designation,gDesignatedControllers[designation].instance[j]);
+                    gDesignatedControllers[designation].instance[j] = -1;
+                    gDesignatedControllers[designation].name[j] = "";
+                    gDesignatedControllers[designation].nameDB[j] = "";
+                    gDesignatedControllers[designation].joy[j] = NULL;
+                    gDesignatedControllers[designation].mappingOKDevice[j] = false;
+                    gDesignatedControllers[designation].gameCtrl[j] = NULL;
+                    gDesignatedControllers[designation].numberOfDevices--;
+                    
+                    printf(" number of devices on this controller remaining: %i\n",gDesignatedControllers[designation].numberOfDevices);
+                    
+                    if (gDesignatedControllers[designation].numberOfDevices == 0) 
+                    {
+                        gDesignatedControllers[designation].mappingOK = false;
+                        gDesignatedControllers[designation].controllerType = -1;
+                        gNumDesignatedControllers--;
+                    }
+                }
             }
         }
            
-        printf("remaining controllers: %i\n",SDL_NumJoysticks());
+        printf("remaining devices: %i, remaining designated controllers: %i\n",SDL_NumJoysticks(),gNumDesignatedControllers);
         for (designation=0;designation<MAX_GAMEPADS;designation++)
-        {        
-            designation_instance= gDesignatedControllers[designation].instance;
-            if (designation_instance != -1)
+        {
+            for (int j=0;j<devPerType;j++)
             {
-               printf("remaining: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
+                instance= gDesignatedControllers[designation].instance[j];
+                if (instance != -1)
+                {
+                   printf("remaining: instance %i on designated controller %i\n",gDesignatedControllers[designation].instance[j],designation);
+                }
             }
         }
-        if ( ((gDesignatedControllers[0].instance != -1) && (gState == STATE_CONF0)) || ((gDesignatedControllers[1].instance != -1) && (gState == STATE_CONF1)) )
+        if ( ((gDesignatedControllers[0].numberOfDevices == 0) && (gState == STATE_CONF0)) ||\
+                ((gDesignatedControllers[1].numberOfDevices == 0) && (gState == STATE_CONF1)) )
         {
             gState=STATE_ZERO;
             gSetupIsRunning=false;
         }
     }
-    printf("closeJoy() end \n");
     return true;
 }
 
@@ -182,13 +209,11 @@ bool checkControllerIsSupported(int i)
 {
     // This function is rough draft.
     // There might be controllers that SDL allows but Marley not
-    // The Wii Mote is such an example because it is detected with five instances. 
-    // For the time being, instances of the Wii Mote will not be designated as marley controllers.
     
     SDL_Joystick *joy = SDL_JoystickOpen(i);
     
     bool ok= false;
-    string unsupported = "Nintendo Wii";
+    string unsupported = "to be defined";
     string name = SDL_JoystickName(joy);
     int str_pos = name.find(unsupported);
     
@@ -207,7 +232,9 @@ bool checkControllerIsSupported(int i)
 
 bool openJoy(int i)
 {
-    int designation, designation_instance;
+    int designation, instance, devPerType;
+    int device, numberOfDevices, ctrlType;
+    bool mappingOK;
     char *mapping;
     
     if (i<MAX_GAMEPADS_PLUGGED)
@@ -232,50 +259,85 @@ bool openJoy(int i)
                     //search for 1st empty slot
                     for (designation=0;designation< MAX_GAMEPADS; designation++)
                     {
-                        if (gDesignatedControllers[designation].instance == -1)
+                        numberOfDevices = gDesignatedControllers[designation].numberOfDevices;
+                        ctrlType = gDesignatedControllers[designation].controllerType;
+                        if (numberOfDevices != 0)
                         {
-                            // instance is what e.jaxis.which returns
-                            int instance = SDL_JoystickInstanceID(gGamepad[i]);
-                            gDesignatedControllers[designation].instance = instance;
-                            
-                            string jName = SDL_JoystickNameForIndex(i);
-                            transform(jName.begin(), jName.end(), jName.begin(),
-                                [](unsigned char c){ return tolower(c); });
-                            
-                            gDesignatedControllers[designation].name = jName;
-                            gDesignatedControllers[designation].joy = joy;
-                            gDesignatedControllers[designation].gameCtrl = SDL_GameControllerFromInstanceID(instance);
-                            SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
-                            checkMapping(guid, &gDesignatedControllers[designation].mappingOK,gDesignatedControllers[designation].name);
-                            gNumDesignatedControllers++;
-                            
-                            mapping = SDL_GameControllerMapping(gDesignatedControllers[designation].gameCtrl);
-                            if (mapping) 
+                            devPerType = devicesPerType[ctrlType];
+                        }
+                        else
+                        {
+                            devPerType = 0;
+                        }
+                        
+                        if ( (numberOfDevices == 0) || ( (devPerType - numberOfDevices) > 0) )
+                        {
+                            if (numberOfDevices < MAX_DEVICES_PER_CONTROLLER)
                             {
-                                string str = mapping;
-                                SDL_free(mapping);
-                                str = str.substr(str.find(",")+1,str.length()-(str.find(",")+1));
-                                str = str.substr(0,str.find(","));
+                                device = gDesignatedControllers[designation].numberOfDevices;
+                                gDesignatedControllers[designation].numberOfDevices++;
                                 
-                                transform(str.begin(), str.end(), str.begin(),
+                                instance = SDL_JoystickInstanceID(gGamepad[i]);
+                                gDesignatedControllers[designation].instance[device] = instance;
+                                
+                                
+                                string jName = SDL_JoystickNameForIndex(i);
+                                transform(jName.begin(), jName.end(), jName.begin(),
                                     [](unsigned char c){ return tolower(c); });
+                                gDesignatedControllers[designation].name[device] = jName;
                                 
-                                gDesignatedControllers[designation].nameDB = str;
-                                //printf(" nameDB   \n%s\n",str.c_str());
+                                if (jName.find("nintendo wii remote") == 0)
+                                {
+                                    gDesignatedControllers[designation].controllerType = CTRL_TYPE_WIIMOTE;
+                                }
+                                else
+                                {
+                                    gDesignatedControllers[designation].controllerType = CTRL_TYPE_STD;
+                                }
+                                gDesignatedControllers[designation].joy[device] = joy;
+                                gDesignatedControllers[designation].gameCtrl[device] = SDL_GameControllerFromInstanceID(instance);
+                                SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
+                                checkMapping(guid, &mappingOK,gDesignatedControllers[designation].name[device]);
+                                gDesignatedControllers[designation].mappingOK = mappingOK;
+                                
+                                ctrlType = gDesignatedControllers[designation].controllerType;
+                                if (gDesignatedControllers[designation].numberOfDevices == devicesPerType[ctrlType])
+                                {
+                                    gNumDesignatedControllers++;
+                                }
+                                
+                                mapping = SDL_GameControllerMapping(gDesignatedControllers[designation].gameCtrl[device]);
+                                if (mapping) 
+                                {
+                                    string str = mapping;
+                                    SDL_free(mapping);
+                                    //remove guid
+                                    str = str.substr(str.find(",")+1,str.length()-(str.find(",")+1));
+                                    // extract name from db
+                                    str = str.substr(0,str.find(","));
+                                    
+                                    transform(str.begin(), str.end(), str.begin(),
+                                        [](unsigned char c){ return tolower(c); });
+                                    
+                                    gDesignatedControllers[designation].nameDB[device] = str;
+                                }
+                                
+                                printf("adding to designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance[device]);
+                                //cancel loop
+                                designation = MAX_GAMEPADS;
                             }
-                            
-                            printf("adding designated controller %i (instance %i)\n",designation,gDesignatedControllers[designation].instance);
-                            //cancel loop
-                            designation = MAX_GAMEPADS;
                         }
                     }
                     //print all designated controllers to terminal
                     for (designation=0;designation<MAX_GAMEPADS;designation++)
                     {        
-                        designation_instance= gDesignatedControllers[designation].instance;
-                        if (designation_instance != -1)
+                        for (int j=0;j < gDesignatedControllers[designation].numberOfDevices;j++)
                         {
-                           printf("active: instance %i designated as %i\n",gDesignatedControllers[designation].instance,designation);
+                            instance= gDesignatedControllers[designation].instance[j];
+                            if (instance != -1)
+                            {
+                               printf("active: instance %i on designated controller %i\n",gDesignatedControllers[designation].instance[j],designation);
+                            }
                         }
                     }
                 }
@@ -359,7 +421,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
         else
         {
             string lineOriginal;
-            printf("GUID not found in public db");
+            printf("GUID %s not found in public db", guidStr);
             for (int i=27;i>18;i--)
             {
                 
@@ -411,7 +473,8 @@ bool restoreController(void)
 
 void setMapping(void)
 {
-
+    
+/*
     char guidStr[1024];
     SDL_JoystickGUID guid;
     string name, entry;
@@ -525,6 +588,7 @@ void setMapping(void)
     {
         printf( "Warning: Unable to open internaldb.txt\n");
     }
+*/
 }
 
 int checkType(string name, string nameDB)
@@ -554,5 +618,14 @@ int checkType(string name, string nameDB)
     {
         ctrlTex = TEX_PS4;
     }
+    
+    //check if Wiimote
+    str_pos  =   name.find("nintendo wii");
+    str_pos2 = nameDB.find("nintendo wii");
+    if ( (str_pos>=0) || ((str_pos2>=0)) )
+    {
+        ctrlTex = TEX_WIIMOTE;
+    }
+    
     return ctrlTex;
 }

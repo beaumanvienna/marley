@@ -38,20 +38,32 @@ using namespace std;
     //SDL increases the instance for a controller every 
     //time a controller reconnects
     #define MAX_GAMEPADS_PLUGGED 128
+    #define MAX_DEVICES_PER_CONTROLLER 5 //the Wiimote has up to 5 SDL joystick instances
+    
+    #define CTRL_TYPE_STD       0 // ps3, ps4, x-box, ...
+    #define CTRL_TYPE_WIIMOTE   1 
+    
+    #define CTRL_TYPE_STD_DEVICES       1 
+    #define CTRL_TYPE_WIIMOTE_DEVICES   5 //wiimote has multiple SDL_Joystick instances
 
     // suppress controller noise
     const int ANALOG_DEAD_ZONE = 2000;
-
+    
+    typedef SDL_Joystick* pSDL_Joystick;
+    typedef SDL_GameController* pSDL_GameController;
     // controllers detected by SDL 
     // will be assigned a slot
     // (designated controller 0, controller 1)
     typedef struct DesignatedControllers { 
-        SDL_Joystick* joy; 
-        SDL_GameController* gameCtrl;
-        int instance; 
-        string name;
-        string nameDB;
-        bool mappingOK; 
+        pSDL_Joystick joy[MAX_DEVICES_PER_CONTROLLER];
+        pSDL_GameController gameCtrl[MAX_DEVICES_PER_CONTROLLER];
+        int instance[MAX_DEVICES_PER_CONTROLLER];
+        string name[MAX_DEVICES_PER_CONTROLLER];
+        string nameDB[MAX_DEVICES_PER_CONTROLLER];
+        bool mappingOKDevice[MAX_DEVICES_PER_CONTROLLER];
+        bool mappingOK;
+        int controllerType;
+        int numberOfDevices;
     } T_DesignatedControllers;
     
     bool initJoy(void);

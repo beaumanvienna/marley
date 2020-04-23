@@ -127,7 +127,7 @@ bool statemachine(int cmd)
                         }
                         break;
                      case STATE_CONF0:
-                        if (gDesignatedControllers[1].instance != -1)
+                        if (gDesignatedControllers[1].numberOfDevices != 0)
                         {
                             gState=STATE_CONF1;
                         } 
@@ -204,7 +204,7 @@ bool statemachine(int cmd)
                         gSetupIsRunning=false;
                         break;
                     case STATE_CONF1:
-                        if (gDesignatedControllers[0].instance != -1)
+                        if (gDesignatedControllers[0].numberOfDevices != 0)
                         {
                             gState=STATE_CONF0;
                         } 
@@ -226,11 +226,11 @@ bool statemachine(int cmd)
                         }
                         break;
                     case STATE_FLR_GAMES:
-                        if (gDesignatedControllers[1].instance != -1)
+                        if (gDesignatedControllers[1].numberOfDevices != 0)
                         {
                             gState=STATE_CONF1;
                         } 
-                        else if (gDesignatedControllers[0].instance != -1)
+                        else if (gDesignatedControllers[0].numberOfDevices != 0)
                         {
                             gState=STATE_CONF0;
                         }
@@ -258,11 +258,11 @@ bool statemachine(int cmd)
                         gState=STATE_LAUNCH;
                         break;
                     case STATE_SETUP:
-                        if (gDesignatedControllers[0].instance != -1)
+                        if (gDesignatedControllers[0].numberOfDevices != 0)
                         {
                             gState=STATE_CONF0;
                         } 
-                        else if (gDesignatedControllers[1].instance != -1)
+                        else if (gDesignatedControllers[1].numberOfDevices != 0)
                         {
                             gState=STATE_CONF1;
                         }

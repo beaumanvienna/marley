@@ -76,6 +76,13 @@ bool loadMedia()
         ok = false;
     }
     
+    //Wiimote
+    gTextures[TEX_WIIMOTE] = loadTextureFromFile(PICTURES "Wiimote.png");
+    if (!gTextures[TEX_WIIMOTE])
+    {
+        ok = false;
+    }
+    
     //Generic controller
     gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile(PICTURES "generic-controller.png");
     if (!gTextures[TEX_GENERIC_CTRL])
@@ -576,10 +583,10 @@ bool renderScreen(void)
     
     int ctrlTex, height;
     //designated controller 0: Load image and render to screen
-    if (gDesignatedControllers[0].instance != -1)
+    if (gDesignatedControllers[0].numberOfDevices != 0)
     {
-        string name = gDesignatedControllers[0].name;
-        string nameDB = gDesignatedControllers[0].nameDB;
+        string name = gDesignatedControllers[0].name[0];
+        string nameDB = gDesignatedControllers[0].nameDB[0];
         string str;
         
         if (gSetupIsRunning)
@@ -631,11 +638,11 @@ bool renderScreen(void)
     }
     
     //designated controller 1: load image and render to screen
-    if (gDesignatedControllers[1].instance != -1)
+    if (gDesignatedControllers[1].numberOfDevices != 0)
     {
         string str;
-        string name = gDesignatedControllers[1].name;
-        string nameDB = gDesignatedControllers[1].nameDB;
+        string name = gDesignatedControllers[1].name[0];
+        string nameDB = gDesignatedControllers[1].nameDB[0];
         ctrlTex = TEX_GENERIC_CTRL;
         
         if (gSetupIsRunning)

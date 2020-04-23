@@ -226,9 +226,13 @@ int main( int argc, char* argv[] )
                                         m=0; //count designated controllers
                                         for (l=0; l < MAX_GAMEPADS;l++)
                                         {
-                                            if ( gDesignatedControllers[l].instance != -1 )
+                                            if ( gDesignatedControllers[l].numberOfDevices != 0 )
                                             {
-                                                printf("found designated controller %i with SDL instance %i %s\n",l, gDesignatedControllers[l].instance,gDesignatedControllers[l].name.c_str());
+                                                for (int j=0; j<gDesignatedControllers[l].numberOfDevices;j++)
+                                                {
+                                                    printf("found on designated controller %i with SDL instance %i %s\n",\
+                                                        l, gDesignatedControllers[l].instance[j],gDesignatedControllers[l].name[j].c_str());
+                                                }
                                                 m++;
                                             }
                                         }
@@ -253,12 +257,15 @@ int main( int argc, char* argv[] )
                                     
                                     for (l=0; l < MAX_GAMEPADS;l++)
                                     {
-                                        if ( gDesignatedControllers[l].instance != -1 )
+                                        if ( gDesignatedControllers[l].numberOfDevices != 0 )
                                         {
                                             char *mapping;
-                                            mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl);
-                                            printf("\n\n%s\n\n",mapping);
-                                            SDL_free(mapping);
+                                            for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
+                                            {
+                                                mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
+                                                printf("\n\n%s\n\n",mapping);
+                                                SDL_free(mapping);
+                                            }
                                         }
                                     }
                                     break;
@@ -333,12 +340,12 @@ int main( int argc, char* argv[] )
                             if ( (event.jhat.value == SDL_HAT_UP) || (event.jhat.value == SDL_HAT_DOWN) || \
                                     (event.jhat.value == SDL_HAT_LEFT) || (event.jhat.value == SDL_HAT_RIGHT) )
                             {
-                                if (event.jdevice.which == gDesignatedControllers[0].instance)
+                                if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                                 {
                                     gActiveController=0;  
                                     statemachineConfHat(event.jhat.hat,event.jhat.value);
                                 }
-                                else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                                else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                                 {
                                     gActiveController=1;  
                                     statemachineConfHat(event.jhat.hat,event.jhat.value);
@@ -350,11 +357,11 @@ int main( int argc, char* argv[] )
                     case SDL_JOYAXISMOTION: 
                         if (abs(event.jaxis.value) > ANALOG_DEAD_ZONE)
                         {
-                            if (event.jdevice.which == gDesignatedControllers[0].instance)
+                            if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                             {
                                 joyMotion(event,0,&x0,&y0);
                             }
-                            else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                            else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                             {
                                 joyMotion(event,1,&x1,&y1);
                             }
@@ -378,12 +385,12 @@ int main( int argc, char* argv[] )
                         {
                             if (abs(event.jaxis.value) > 16384)
                             {
-                                if (event.jdevice.which == gDesignatedControllers[0].instance)
+                                if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                                 {
                                     gActiveController=0;  
                                     statemachineConfAxis(event.jaxis.axis);
                                 }
-                                else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                                else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                                 {
                                     gActiveController=1;  
                                     statemachineConfAxis(event.jaxis.axis);
@@ -397,12 +404,12 @@ int main( int argc, char* argv[] )
                     case SDL_JOYBUTTONDOWN: 
                         if (gControllerConf)
                         {
-                            if (event.jdevice.which == gDesignatedControllers[0].instance)
+                            if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                             {
                                 gActiveController=0;  
                                 statemachineConf(event.jbutton.button);
                             }
-                            else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                            else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                             {
                                 gActiveController=1;  
                                 statemachineConf(event.jbutton.button);
@@ -410,12 +417,12 @@ int main( int argc, char* argv[] )
                         }
                         break;
                     case SDL_CONTROLLERBUTTONDOWN: 
-                        if (event.jdevice.which == gDesignatedControllers[0].instance)
+                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                         {
                             gActiveController=0;  
                             statemachine(event.cbutton.button);
                         }
-                        else if (event.jdevice.which == gDesignatedControllers[1].instance)
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                         {
                             gActiveController=1;  
                             statemachine(event.cbutton.button);
