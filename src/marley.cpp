@@ -417,12 +417,12 @@ int main( int argc, char* argv[] )
                         }
                         break;
                     case SDL_CONTROLLERBUTTONDOWN: 
-                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                        if (event.cdevice.which == gDesignatedControllers[0].instance[0])
                         {
                             gActiveController=0;  
                             statemachine(event.cbutton.button);
                         }
-                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                        else if (event.cdevice.which == gDesignatedControllers[1].instance[0])
                         {
                             gActiveController=1;  
                             statemachine(event.cbutton.button);
