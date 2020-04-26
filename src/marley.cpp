@@ -25,6 +25,7 @@
 #include "../include/controller.h"
 #include "../include/statemachine.h"
 #include "../include/emu.h"
+#include "../include/wii.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
@@ -96,6 +97,7 @@ bool init()
     }
     
     checkConf();
+    initWii();
     initEMU();
 
     return ok;
@@ -203,6 +205,7 @@ int main( int argc, char* argv[] )
         //main loop
         while( !gQuit )
         {
+            mainLoopWii();
             //Handle events on queue
             while( SDL_PollEvent( &event ) != 0 )
             {
@@ -441,6 +444,7 @@ int main( int argc, char* argv[] )
 
     //Free resources, shut down SDL
     closeAll();
+    shutdownWii();
 
     return 0;
 }

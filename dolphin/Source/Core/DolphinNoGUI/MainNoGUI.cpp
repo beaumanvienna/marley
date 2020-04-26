@@ -237,11 +237,11 @@ int dolphin_main(int argc, char* argv[])
 #endif
 
   s_platform->MainLoop();
-  Core::Stop();
+  //Core::Stop();
 
-  Core::Shutdown();
+  //Core::Shutdown();
   s_platform.reset();
-  UICommon::Shutdown();
+  //UICommon::Shutdown();
 
   return 0;
 }

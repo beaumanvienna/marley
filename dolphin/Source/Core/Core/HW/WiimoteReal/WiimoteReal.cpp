@@ -76,6 +76,7 @@ static WiimoteScanner s_wiimote_scanner;
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
 static void TryToFillWiimoteSlot(u32 index)
 {
+    printf("TryToFillWiimoteSlot(u32 index) index=%i\n", index);
   std::lock_guard lk(g_wiimotes_mutex);
 
   if (g_wiimotes[index] || WiimoteCommon::GetSource(index) != WiimoteSource::Real)
@@ -126,7 +127,12 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   if (!wiimote->Connect(POOL_WIIMOTE_INDEX))
   {
     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
+    printf("AddWiimoteToPool Failed to connect real wiimote\n");
     return;
+  }
+  else
+  {
+      printf("AddWiimoteToPool successfully connected\n");
   }
 
   std::lock_guard lk(g_wiimotes_mutex);
@@ -650,6 +656,7 @@ void WiimoteScanner::ThreadFunc()
   Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
+  printf("WiimoteScanner Wiimote scanning thread has started\n");
 
   // Create and destroy scanner backends here to ensure all operations stay on the same thread. The
   // HIDAPI backend on macOS has an error condition when IOHIDManagerCreate and IOHIDManagerClose
@@ -667,8 +674,9 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_scan_thread_running.IsSet())
   {
+      printf("WiimoteScanner m_scan_thread_running\n");
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
-
+    
     // Does stuff needed to detect disconnects on Windows
     for (const auto& backend : m_backends)
       backend->Update();
@@ -726,6 +734,7 @@ void WiimoteScanner::ThreadFunc()
     // Stop scanning if not in continous mode.
     auto scan_mode = WiimoteScanMode::SCAN_ONCE;
     m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
+    
   }
 
   {
@@ -736,6 +745,7 @@ void WiimoteScanner::ThreadFunc()
   pool_thread.join();
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
+  printf("WiimoteScanner Wiimote scanning thread has stopped\n");
 }
 
 bool Wiimote::Connect(int index)
@@ -845,6 +855,7 @@ void LoadSettings()
 // config dialog calls this when some settings change
 void Initialize(::Wiimote::InitializeMode init_mode)
 {
+    
   if (!g_real_wiimotes_initialized)
   {
     s_wiimote_scanner.StartThread();
@@ -873,6 +884,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
 
   g_real_wiimotes_initialized = true;
+  
 }
 
 // called on emulation shutdown
@@ -923,6 +935,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
   if (!wm->Connect(i))
   {
     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
+    printf("TryToConnectWiimoteToSlot Failed to connect real wiimote\n");
     return false;
   }
 
@@ -934,9 +947,11 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
   wm->QueueReport(led_report);
 
   g_wiimotes[i] = std::move(wm);
+  
   Core::RunAsCPUThread([i] { ::Wiimote::Connect(i, true); });
 
   NOTICE_LOG(WIIMOTE, "Connected real wiimote to slot %i.", i + 1);
+  printf("TryToConnectWiimoteToSlot Connected real wiimote to slot %i\n", i + 1);
 
   return true;
 }
