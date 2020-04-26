@@ -601,7 +601,7 @@ bool setBaseDir(void)
         
         filename = filename + ".marley/";
         
-        DIR* dir = opendir(filename.c_str());
+        dir = opendir(filename.c_str());
         if ((dir) && (isDirectory(filename.c_str()) ))
         {
             // Directory exists

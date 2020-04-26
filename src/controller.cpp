@@ -213,7 +213,7 @@ bool checkControllerIsSupported(int i)
     SDL_Joystick *joy = SDL_JoystickOpen(i);
     
     bool ok= false;
-    string unsupported = "to be defined";
+    string unsupported = "Nintendo Wii";
     string name = SDL_JoystickName(joy);
     int str_pos = name.find(unsupported);
     

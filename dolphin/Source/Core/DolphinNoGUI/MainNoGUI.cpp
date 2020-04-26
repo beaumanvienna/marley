@@ -31,7 +31,7 @@
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
-
+extern std::string gBaseDir;
 static std::unique_ptr<Platform> s_platform;
 
 static void signal_handler(int)
@@ -192,10 +192,8 @@ int dolphin_main(int argc, char* argv[])
     return 0;
   }
 
-  std::string user_directory;
-  if (options.is_set("user"))
-    user_directory = static_cast<const char*>(options.get("user"));
-
+  std::string user_directory = gBaseDir;
+  user_directory += "dolphin-emu";
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
 

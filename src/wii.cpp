@@ -29,13 +29,17 @@
 #define DOLPHIN_HEADRES_FOR_WIIMOTE 1
 #include "../include/wii.h"
 
+using namespace std;
+
 bool initWii(void)
 {
     bool ok = true;
     
     printf("InitWii\n");
     
-    UICommon::SetUserDirectory("");
+    string user_directory = gBaseDir;
+    user_directory += "dolphin-emu";
+    UICommon::SetUserDirectory(user_directory);
     UICommon::CreateDirectories();
     UICommon::Init();
 

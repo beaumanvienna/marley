@@ -33,6 +33,15 @@
 
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
+#include <fstream>
+#include <dirent.h>
+#include <errno.h>
+
+bool isDirectory(const char *filename);
+bool setBaseDir(void);
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
@@ -95,6 +104,91 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
   return false;
 }
 
+bool isDirectory(const char *filename)
+{
+    struct stat p_lstatbuf;
+    struct stat p_statbuf;
+    bool ok = false;
+
+    if (lstat(filename, &p_lstatbuf) < 0) 
+    {
+        //printf("abort\n");
+    }
+    else
+    {
+        if (S_ISLNK(p_lstatbuf.st_mode) == 1) 
+        {
+            //printf("%s is a symbolic link\n", filename);
+        } 
+        else 
+        {
+            if (stat(filename, &p_statbuf) < 0) 
+            {
+                //printf("abort\n");
+            }
+            else
+            {
+                if (S_ISDIR(p_statbuf.st_mode) == 1) 
+                {
+                    //printf("%s is a directory\n", filename);
+                    ok = true;
+                } 
+            }
+        }
+    }
+    return ok;
+}
+
+std::string gBaseDir;
+
+bool setBaseDir(void)
+{
+    const char *homedir;
+    std::string filename, slash;
+    DIR* dir;
+    bool ok = false;
+    
+    gBaseDir = "";
+    
+    if ((homedir = getenv("HOME")) != NULL) 
+    {
+        filename = homedir;
+        
+        // add slash to end if necessary
+        slash = filename.substr(filename.length()-1,1);
+        if (slash != "/")
+        {
+            filename += "/";
+        }
+        
+        filename = filename + ".marley/";
+        
+        dir = opendir(filename.c_str());
+        if ((dir) && (isDirectory(filename.c_str()) ))
+        {
+            // Directory exists
+            closedir(dir);
+            ok = true;
+        } 
+        else if (ENOENT == errno) 
+        {
+            // Directory does not exist
+            printf("creating directory %s ",filename.c_str());
+            if (mkdir(filename.c_str(), S_IRWXU ) == 0)
+            {
+                printf("(ok)\n");
+                ok = true;
+            }
+            else
+            {
+                printf("(failed)\n");
+            }
+        }
+    }    
+    if (ok) gBaseDir=filename;
+    return ok;
+}
+
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
 // /SubSystem:Windows
 int main(int argc, char* argv[])
@@ -133,8 +227,10 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
   FreeConsole();
 #endif
-
-  UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
+  setBaseDir();
+  std::string user_directory = gBaseDir;
+  user_directory += "dolphin-emu";
+  UICommon::SetUserDirectory(user_directory);
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
