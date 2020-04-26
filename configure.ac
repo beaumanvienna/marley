@@ -10,7 +10,7 @@ AC_PROG_RANLIB
 AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_CONFIG_COMMANDS_PRE([cd mednafen && aclocal && autoconf && automake --add-missing --foreign && ./configure&&cd ..])
-AC_CONFIG_COMMANDS_PRE([cd dolphin && rm -rf build && mkdir build && cd build && cmake ..&&cd ../..])
+AC_CONFIG_COMMANDS_PRE([cd dolphin && mkdir -p build && cd build && cmake ..&&cd ../..])
 
 
 AC_CONFIG_FILES([Makefile])
