@@ -160,7 +160,7 @@ void Wiimote::WriteReport(Report rpt)
     
     for (unsigned int i=0;i<rpt.size();i++)
     {
-        printf("[%i] %i, ",i,rpt[i]);
+        printf("[%i] 0x%02x, ",i,rpt[i]);
     }
     printf("\n");
     
@@ -262,42 +262,37 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   }
 }
 
-u16 Wiimote::getWiiButtons(int init)
+u16 Wiimote::getWiiButtons(int cmd)
 {
-    //printf("jc1 Wiimote::getWiiButtons()\n");
-    if (init)
+    m_channel=1;
+    if (cmd)
     {
         
-        if(init==1) 
+        if(cmd==1) 
         {
-            printf("jc1 Wiimote::getWiiButtons() 2\n");
-            Report rpt = {0xa2,0x12,0x00,0x30};
+            printf("jc1 Wiimote::getWiiButtons() 1\n");
+            // Reporting Mode "Core Buttons", continous
+            Report rpt = {0xa2,0x12,0x06,0x30};
             WriteReport(rpt);
         }
-        if(init==2) 
-        {
-            printf("jc1 Wiimote::getWiiButtons() 3\n");
-            Report rpt = {0xa2,0x17,0x00,0x00,0x17,0x70,0x00,0x1};
-            WriteReport(rpt);        
-        }
-
-        
 
         if (!Write())
         {
-          printf("Wiimote::Write failed.  Disconnecting Wiimote \n");
+          printf("Wiimote::Write failed \n");
         }
     }
     Read();
     
     
     Report& rpt_in = ProcessReadQueue();
+    
     if (rpt_in.size() >= 4)
     {
         const auto mode = InputReportID(rpt_in[1]);
     
         if (DataReportBuilder::IsValidMode(mode))
         {
+            
           auto builder = MakeDataReportManipulator(mode, rpt_in.data() + 2);
           ButtonData buttons = {};
           builder->GetCoreData(&buttons);
@@ -305,7 +300,6 @@ u16 Wiimote::getWiiButtons(int init)
           return buttons.hex;
         }
     }
-    printf("no rpt\n");
     return 0;
 }
 
@@ -360,19 +354,27 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 void Wiimote::Read()
 {
-    printf("jc Wiimote::Read()\n");
   Report rpt(MAX_PAYLOAD);
   auto const result = IORead(rpt.data());
 
   if (result > 0 && m_channel > 0)
   {
+      printf("jc Wiimote::Read data received  ");
+      
+    for (unsigned int i=0;i<rpt.size();i++)
+    {
+        printf("[%i] 0x%02x, ",i,rpt[i]);
+    }
+    printf("\n");
+    
+      
     if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
     {
       static sf::UdpSocket Socket;
       Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                   SConfig::GetInstance().iBBDumpPort);
     }
-
+    
     // Add it to queue
     rpt.resize(result);
     m_read_reports.Push(std::move(rpt));
@@ -380,6 +382,7 @@ void Wiimote::Read()
   else if (0 == result)
   {
     ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
+    printf("jc Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
     DisconnectInternal();
   }
 }
@@ -389,7 +392,6 @@ bool Wiimote::Write()
   // nothing written, but this is not an error
   if (m_write_reports.Empty())
   {
-      printf("jc Wiimote::Write() empty report\n");
     return true;
   }
   else
@@ -492,6 +494,7 @@ bool Wiimote::IsBalanceBoard()
 
 static bool IsDataReport(const Report& rpt)
 {
+    
   return rpt.size() >= 2 && rpt[1] >= u8(InputReportID::ReportCore);
 }
 
@@ -503,14 +506,16 @@ bool Wiimote::GetNextReport(Report* report)
 // Returns the next report that should be sent
 Report& Wiimote::ProcessReadQueue()
 {
+    
   // Pop through the queued reports
   while (GetNextReport(&m_last_input_report))
   {
     if (!IsDataReport(m_last_input_report))
     {
       // A non-data report, use it.
+      printf("ProcessReadQueue() return non-data report\n");
       return m_last_input_report;
-
+       
       // Forget the last data report as it may be of the wrong type
       // or contain outdated button data
       // or it's not supposed to be sent at this time
@@ -520,8 +525,9 @@ Report& Wiimote::ProcessReadQueue()
 
   // If the last report wasn't a data report it's irrelevant.
   if (!IsDataReport(m_last_input_report))
+  {
     m_last_input_report.clear();
-
+  }
   // If it was a data report, we repeat that until something else comes in.
   return m_last_input_report;
 }
@@ -533,7 +539,6 @@ void Wiimote::Update()
     HandleWiimoteDisconnect(m_index);
     return;
   }
-  //CheckForButtonPress();
 
   // Pop through the queued reports
   const Report& rpt = ProcessReadQueue();
