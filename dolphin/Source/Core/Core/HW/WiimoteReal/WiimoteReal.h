@@ -62,6 +62,7 @@ public:
 
   void ControlChannel(const u16 channel, const void* const data, const u32 size);
   void InterruptChannel(const u16 channel, const void* const data, const u32 size);
+  u16 getWiiButtons(int init);
   void Update();
   bool CheckForButtonPress();
 

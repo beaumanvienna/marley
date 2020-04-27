@@ -212,6 +212,7 @@ bool WiimoteLinux::ConnectInternal()
 
 void WiimoteLinux::DisconnectInternal()
 {
+    printf("WiimoteLinux::DisconnectInternal\n");
   close(m_cmd_sock);
   close(m_int_sock);
 

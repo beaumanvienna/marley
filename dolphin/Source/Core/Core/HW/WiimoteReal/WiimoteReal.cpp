@@ -156,6 +156,15 @@ void Wiimote::Shutdown()
 // to be called from CPU thread
 void Wiimote::WriteReport(Report rpt)
 {
+    printf("jc Wiimote::WriteReport ");
+    
+    for (unsigned int i=0;i<rpt.size();i++)
+    {
+        printf("[%i] %i, ",i,rpt[i]);
+    }
+    printf("\n");
+    
+    
   if (rpt.size() >= 3)
   {
     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
@@ -253,8 +262,57 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   }
 }
 
+u16 Wiimote::getWiiButtons(int init)
+{
+    //printf("jc1 Wiimote::getWiiButtons()\n");
+    if (init)
+    {
+        
+        if(init==1) 
+        {
+            printf("jc1 Wiimote::getWiiButtons() 2\n");
+            Report rpt = {0xa2,0x12,0x00,0x30};
+            WriteReport(rpt);
+        }
+        if(init==2) 
+        {
+            printf("jc1 Wiimote::getWiiButtons() 3\n");
+            Report rpt = {0xa2,0x17,0x00,0x00,0x17,0x70,0x00,0x1};
+            WriteReport(rpt);        
+        }
+
+        
+
+        if (!Write())
+        {
+          printf("Wiimote::Write failed.  Disconnecting Wiimote \n");
+        }
+    }
+    Read();
+    
+    
+    Report& rpt_in = ProcessReadQueue();
+    if (rpt_in.size() >= 4)
+    {
+        const auto mode = InputReportID(rpt_in[1]);
+    
+        if (DataReportBuilder::IsValidMode(mode))
+        {
+          auto builder = MakeDataReportManipulator(mode, rpt_in.data() + 2);
+          ButtonData buttons = {};
+          builder->GetCoreData(&buttons);
+
+          return buttons.hex;
+        }
+    }
+    printf("no rpt\n");
+    return 0;
+}
+
 void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
 {
+    
+    printf("jc Wiimote::InterruptChannel channel %i, size %i)\n",channel,size);
   // first interrupt/control channel sent
   if (channel != m_channel)
   {
@@ -302,6 +360,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 void Wiimote::Read()
 {
+    printf("jc Wiimote::Read()\n");
   Report rpt(MAX_PAYLOAD);
   auto const result = IORead(rpt.data());
 
@@ -329,7 +388,14 @@ bool Wiimote::Write()
 {
   // nothing written, but this is not an error
   if (m_write_reports.Empty())
+  {
+      printf("jc Wiimote::Write() empty report\n");
     return true;
+  }
+  else
+  {
+      printf("jc Wiimote::Write() sending data\n");
+  }
 
   Report const& rpt = m_write_reports.Front();
 
@@ -467,6 +533,7 @@ void Wiimote::Update()
     HandleWiimoteDisconnect(m_index);
     return;
   }
+  //CheckForButtonPress();
 
   // Pop through the queued reports
   const Report& rpt = ProcessReadQueue();
@@ -491,7 +558,7 @@ bool Wiimote::CheckForButtonPress()
       auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
-
+if (buttons.hex) printf("jc button %i \n",buttons.hex);
       return buttons.hex != 0;
     }
   }

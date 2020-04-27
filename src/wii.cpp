@@ -47,10 +47,32 @@ bool initWii(void)
 
     return ok;
 }
-
+using namespace WiimoteReal;
+bool init = true;
 bool mainLoopWii(void)
 {
+    u16 buttons;
     Core::HostDispatchJobs();
+    /*if (g_wiimotes[0]) 
+    {   
+        if (init)
+        {
+            SDL_Delay(200);
+            g_wiimotes[0]->getWiiButtons(1);
+            SDL_Delay(200);
+            g_wiimotes[0]->getWiiButtons(2);
+            init = false;
+        }
+        else
+        {
+            g_wiimotes[0]->getWiiButtons(0);
+        }
+        
+        if (buttons)
+        {
+            printf("button %i \n",buttons);
+        }   
+    }*/
 }
 
 bool shutdownWii(void)
