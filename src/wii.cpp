@@ -29,6 +29,14 @@
 #define DOLPHIN_HEADRES_FOR_WIIMOTE 1
 #include "../include/wii.h"
 
+bool up, up_prev;
+bool down, down_prev;
+bool lft, lft_prev;
+bool rght, rght_prev;
+bool a,a_prev;
+bool b,b_prev;
+bool guide,guide_prev;
+
 using namespace std;
 
 bool initWii(void)
@@ -44,11 +52,16 @@ bool initWii(void)
     UICommon::Init();
 
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+    
+    up = up_prev = down, down_prev = false;
+    lft = lft_prev = rght = rght_prev = false;
+    a = a_prev = b = b_prev = guide = guide_prev = false;
 
     return ok;
 }
 using namespace WiimoteReal;
 bool init = true;
+
 bool mainLoopWii(void)
 {
     u16 buttons;
@@ -58,7 +71,7 @@ bool mainLoopWii(void)
     {   
         if (init)
         {
-            SDL_Delay(200);
+            SDL_Delay(400);
             buttons = g_wiimotes[0]->getWiiButtons(1);
             init = false;
         }
@@ -67,10 +80,33 @@ bool mainLoopWii(void)
             buttons = g_wiimotes[0]->getWiiButtons(0);
         }
         
-        if (buttons)
+        /*if (buttons)
         {
             printf("wii.cpp button %i \n",buttons);
-        }   
+        } */  
+        up      = (buttons & 0x0008);
+        down    = (buttons & 0x0004);
+        lft     = (buttons & 0x0001);
+        rght    = (buttons & 0x0002);
+        a       = (buttons & 0x0800);
+        b       = (buttons & 0x0400);
+        guide   = (buttons & 0x8000);
+        
+        if ((up != up_prev) && (up))            statemachine(SDL_CONTROLLER_BUTTON_DPAD_UP);
+        if ((down != down_prev) && (down))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+        if ((lft != lft_prev) && (lft))         statemachine(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+        if ((rght != rght_prev) && (rght))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        if ((a != a_prev) && (a))               statemachine(SDL_CONTROLLER_BUTTON_A);
+        if ((b != b_prev) && (b))               statemachine(SDL_CONTROLLER_BUTTON_A);
+        if ((guide != guide_prev) && (guide))   statemachine(SDL_CONTROLLER_BUTTON_GUIDE);
+        
+        up_prev     = up;
+        down_prev   = down;
+        lft_prev    = lft;
+        rght_prev   = rght;
+        a_prev      = a;
+        b_prev      = b;
+        guide_prev  = guide;
     }
 }
 
