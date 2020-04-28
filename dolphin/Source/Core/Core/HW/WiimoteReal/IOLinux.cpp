@@ -303,21 +303,23 @@ int WiimoteLinux::IORead(u8* buf)
         r = 0;
       }
       #warning "jc: debug code"
+      /*
         if (r >= 1)
         {
-            printf("IORead data received !! ");
+            printf("IORead %i bytes received !! ",r);
             for (int i=0;i<r;i++)
             {
                 printf("[%i] 0x%02x, ",i,buf[i]);
             }
             printf("\n");
 
-        }
+        }*/
         
         
       busy = false;
       return r;
     }
+    return -1;
 }
 
 int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
