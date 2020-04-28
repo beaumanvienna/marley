@@ -38,13 +38,13 @@ using namespace std;
     //SDL increases the instance for a controller every 
     //time a controller reconnects
     #define MAX_GAMEPADS_PLUGGED 128
-    #define MAX_DEVICES_PER_CONTROLLER 5 //the Wiimote has up to 5 SDL joystick instances
+    #define MAX_DEVICES_PER_CONTROLLER 1 
     
     #define CTRL_TYPE_STD       0 // ps3, ps4, x-box, ...
     #define CTRL_TYPE_WIIMOTE   1 
     
     #define CTRL_TYPE_STD_DEVICES       1 
-    #define CTRL_TYPE_WIIMOTE_DEVICES   5 //wiimote has multiple SDL_Joystick instances
+    #define CTRL_TYPE_WIIMOTE_DEVICES   1 
 
     // suppress controller noise
     const int ANALOG_DEAD_ZONE = 2000;
@@ -76,6 +76,8 @@ using namespace std;
     bool restoreController(void);
     void setMapping(void);
     int checkType(string name, string nameDB);
+    bool openWiimote(int nb);
+    bool closeWiimote(int nb);
 
     //Gamepad array for all instances
     extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];

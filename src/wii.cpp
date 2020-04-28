@@ -36,6 +36,7 @@ bool rght, rght_prev;
 bool a,a_prev;
 bool b,b_prev;
 bool guide,guide_prev;
+bool wiimoteOnline, wiimoteOnline_prev;
 
 using namespace std;
 
@@ -56,6 +57,7 @@ bool initWii(void)
     up = up_prev = down, down_prev = false;
     lft = lft_prev = rght = rght_prev = false;
     a = a_prev = b = b_prev = guide = guide_prev = false;
+    wiimoteOnline = wiimoteOnline_prev = false;
 
     return ok;
 }
@@ -69,6 +71,7 @@ bool mainLoopWii(void)
     Core::HostDispatchJobs();
     if (g_wiimotes[0]) 
     {   
+        wiimoteOnline = true;
         if (init)
         {
             SDL_Delay(400);
@@ -80,10 +83,6 @@ bool mainLoopWii(void)
             buttons = g_wiimotes[0]->getWiiButtons(0);
         }
         
-        /*if (buttons)
-        {
-            printf("wii.cpp button %i \n",buttons);
-        } */  
         up      = (buttons & 0x0008);
         down    = (buttons & 0x0004);
         lft     = (buttons & 0x0001);
@@ -108,6 +107,29 @@ bool mainLoopWii(void)
         b_prev      = b;
         guide_prev  = guide;
     }
+    else
+    {
+        up = up_prev = down, down_prev = false;
+        lft = lft_prev = rght = rght_prev = false;
+        a = a_prev = b = b_prev = guide = guide_prev = false;
+        wiimoteOnline = false;
+    }
+    if (wiimoteOnline != wiimoteOnline_prev)
+    {
+        if (wiimoteOnline)
+        {
+            //detected
+            printf("Wiimote detected\n");
+            openWiimote(0);
+        }
+        else
+        {
+            //removed
+            printf("Wiimote removed\n");
+            closeWiimote(0);
+        }
+    }
+    wiimoteOnline_prev = wiimoteOnline;
 }
 
 bool shutdownWii(void)

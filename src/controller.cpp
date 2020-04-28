@@ -620,12 +620,61 @@ int checkType(string name, string nameDB)
     }
     
     //check if Wiimote
-    str_pos  =   name.find("nintendo wii");
-    str_pos2 = nameDB.find("nintendo wii");
+    str_pos  =   name.find("wiimote");
+    str_pos2 = nameDB.find("wiimote");
     if ( (str_pos>=0) || ((str_pos2>=0)) )
     {
         ctrlTex = TEX_WIIMOTE;
     }
     
     return ctrlTex;
+}
+
+
+bool openWiimote(int nb)
+{
+    //search for 1st empty slot
+    for (int designation=0;designation< MAX_GAMEPADS; designation++)
+    {
+        
+        if (gDesignatedControllers[designation].numberOfDevices == 0)
+        {
+            
+            gDesignatedControllers[designation].numberOfDevices=1;
+            gDesignatedControllers[designation].instance[0] = -1;
+            gDesignatedControllers[designation].name[0] = "wiimote";
+            gDesignatedControllers[designation].nameDB[0] = "wiimote";
+            gDesignatedControllers[designation].controllerType = CTRL_TYPE_WIIMOTE;
+            gDesignatedControllers[designation].joy[0] = NULL;
+            gDesignatedControllers[designation].gameCtrl[0] = NULL;
+            gDesignatedControllers[designation].mappingOK = true;
+            
+            gNumDesignatedControllers++;
+            
+            break;
+        }
+    }
+}
+bool closeWiimote(int nb)
+{
+    //search for 1st empty slot
+    for (int designation=0;designation< MAX_GAMEPADS; designation++)
+    {
+        if (gDesignatedControllers[designation].controllerType == CTRL_TYPE_WIIMOTE)
+        {
+            
+            gDesignatedControllers[designation].numberOfDevices=0;
+            gDesignatedControllers[designation].instance[0] = -1;
+            gDesignatedControllers[designation].name[0] = "";
+            gDesignatedControllers[designation].nameDB[0] = "";
+            gDesignatedControllers[designation].controllerType = -1;
+            gDesignatedControllers[designation].joy[0] = NULL;
+            gDesignatedControllers[designation].gameCtrl[0] = NULL;
+            gDesignatedControllers[designation].mappingOK = false;
+            
+            gNumDesignatedControllers--;
+            
+            break;
+        }
+    }
 }
