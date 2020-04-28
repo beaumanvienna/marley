@@ -746,7 +746,7 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_scan_thread_running.IsSet())
   {
-      printf("WiimoteScanner m_scan_thread_running\n");
+      //printf("WiimoteScanner m_scan_thread_running\n");
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
     
     // Does stuff needed to detect disconnects on Windows
