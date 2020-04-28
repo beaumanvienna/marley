@@ -359,13 +359,13 @@ void Wiimote::Read()
 
   if (result > 0 && m_channel > 0)
   {
-      printf("jc Wiimote::Read data received  ");
+      /*printf("jc Wiimote::Read data received  ");
       
     for (unsigned int i=0;i<rpt.size();i++)
     {
         printf("[%i] 0x%02x, ",i,rpt[i]);
     }
-    printf("\n");
+    printf("\n");*/
     
       
     if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
