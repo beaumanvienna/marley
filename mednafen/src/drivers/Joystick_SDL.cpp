@@ -203,7 +203,7 @@ JoystickDriver_SDL::JoystickDriver_SDL()
  
  for(int n = 0; n < MAX_GAMEPADS; n++)
  {
-   if (gDesignatedControllers[n].numberOfDevices != 0)
+   if (gDesignatedControllers[n].joy[0] != NULL)
    {
      Joystick_SDL *jsdl = new Joystick_SDL(n);
      joys.push_back(jsdl);
