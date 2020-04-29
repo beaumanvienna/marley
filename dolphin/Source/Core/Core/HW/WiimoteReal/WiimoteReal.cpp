@@ -243,7 +243,8 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   {
     if (m_really_disconnect)
     {
-      DisconnectInternal();
+        #warning "jc: modified" // no disconnect after emu stops
+      //DisconnectInternal();
     }
     else
     {
