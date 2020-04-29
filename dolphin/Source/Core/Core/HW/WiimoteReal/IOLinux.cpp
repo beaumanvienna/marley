@@ -270,14 +270,14 @@ int WiimoteLinux::IORead(u8* buf)
           ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
           printf("WiimoteScanner Unable to read from wakeup pipe\n");
         }
-        printf("WiimoteLinux::IORead return -1\n");
+        //printf("WiimoteLinux::IORead return -1\n");
         busy = false;
         return -1;
       }
 
       if (!(poll_sock.revents & POLLIN))
       {
-          printf("WiimoteLinux::IORead return -1\n");
+          //printf("WiimoteLinux::IORead return -1\n");
           busy = false;
         return -1;
       }

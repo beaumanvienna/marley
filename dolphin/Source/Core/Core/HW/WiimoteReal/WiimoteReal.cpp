@@ -132,7 +132,7 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   }
   else
   {
-      printf("AddWiimoteToPool successfully connected\n");
+      //printf("AddWiimoteToPool successfully connected\n");
   }
 
   std::lock_guard lk(g_wiimotes_mutex);
@@ -156,13 +156,13 @@ void Wiimote::Shutdown()
 // to be called from CPU thread
 void Wiimote::WriteReport(Report rpt)
 {
-    printf("jc Wiimote::WriteReport ");
+    /*printf("jc Wiimote::WriteReport ");
     
     for (unsigned int i=0;i<rpt.size();i++)
     {
         printf("[%i] 0x%02x, ",i,rpt[i]);
     }
-    printf("\n");
+    printf("\n");*/
     
     
   if (rpt.size() >= 3)
@@ -271,7 +271,7 @@ u16 Wiimote::getWiiButtons(int cmd)
         
         if(cmd==1) 
         {
-            printf("jc1 Wiimote::getWiiButtons() 1\n");
+            //printf("jc1 Wiimote::getWiiButtons() 1\n");
             // Reporting Mode "Core Buttons", continous
             Report rpt = {0xa2,0x12,0x06,0x30};
             WriteReport(rpt);
@@ -307,7 +307,7 @@ u16 Wiimote::getWiiButtons(int cmd)
 void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
 {
     
-    printf("jc Wiimote::InterruptChannel channel %i, size %i)\n",channel,size);
+    //printf("jc Wiimote::InterruptChannel channel %i, size %i)\n",channel,size);
   // first interrupt/control channel sent
   if (channel != m_channel)
   {
@@ -397,7 +397,7 @@ bool Wiimote::Write()
   }
   else
   {
-      printf("jc Wiimote::Write() sending data\n");
+      //printf("jc Wiimote::Write() sending data\n");
   }
 
   Report const& rpt = m_write_reports.Front();
@@ -514,7 +514,7 @@ Report& Wiimote::ProcessReadQueue()
     if (!IsDataReport(m_last_input_report))
     {
       // A non-data report, use it.
-      printf("ProcessReadQueue() return non-data report\n");
+      //printf("ProcessReadQueue() return non-data report\n");
       return m_last_input_report;
        
       // Forget the last data report as it may be of the wrong type
@@ -564,7 +564,7 @@ bool Wiimote::CheckForButtonPress()
       auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
-if (buttons.hex) printf("jc button %i \n",buttons.hex);
+
       return buttons.hex != 0;
     }
   }
