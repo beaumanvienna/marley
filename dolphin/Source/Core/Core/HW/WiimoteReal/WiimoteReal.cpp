@@ -635,13 +635,16 @@ static unsigned int CalculateWantedBB()
     ++wanted_bb;
   return wanted_bb;
 }
-
+bool scan_thread_already_running = false;
 void WiimoteScanner::StartThread()
 {
-  if (m_scan_thread_running.IsSet())
-    return;
-  m_scan_thread_running.Set();
-  m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
+  if (!scan_thread_already_running)
+  {
+      if (m_scan_thread_running.IsSet())
+        return;
+      m_scan_thread_running.Set();
+      m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
+  }
 }
 
 void WiimoteScanner::StopThread()

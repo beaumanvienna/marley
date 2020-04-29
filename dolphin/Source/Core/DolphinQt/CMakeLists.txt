@@ -13,7 +13,8 @@ message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 set(CMAKE_AUTOMOC ON)
 
-add_executable(dolphin-emu
+#add_executable(dolphin-emu
+add_library(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
   CheatsManager.cpp
@@ -455,7 +456,7 @@ if(APPLE)
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
 else()
-  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
+#  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
 
 if(USE_DISCORD_PRESENCE)
