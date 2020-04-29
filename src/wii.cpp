@@ -62,7 +62,7 @@ bool initWii(void)
     return ok;
 }
 using namespace WiimoteReal;
-bool init = true;
+
 
 bool mainLoopWii(void)
 {
@@ -72,16 +72,7 @@ bool mainLoopWii(void)
     if (g_wiimotes[0]) 
     {   
         wiimoteOnline = true;
-        if (init)
-        {
-            SDL_Delay(400);
-            buttons = g_wiimotes[0]->getWiiButtons(1);
-            init = false;
-        }
-        else
-        {
-            buttons = g_wiimotes[0]->getWiiButtons(0);
-        }
+        buttons = g_wiimotes[0]->getWiiButtons(0);
         
         up      = (buttons & 0x0008);
         down    = (buttons & 0x0004);
@@ -116,15 +107,21 @@ bool mainLoopWii(void)
     }
     if (wiimoteOnline != wiimoteOnline_prev)
     {
-        if (wiimoteOnline)
+        if ( (wiimoteOnline) && (g_wiimotes[0]) )
         {
-            //detected
+                        
+            //new wiimote detected
             printf("Wiimote detected\n");
             openWiimote(0);
+    
+            SDL_Delay(400);
+            //send command to request report for buttons
+            buttons = g_wiimotes[0]->getWiiButtons(1);
+            
         }
         else
         {
-            //removed
+            //connection to wiimote lost
             printf("Wiimote removed\n");
             closeWiimote(0);
         }
