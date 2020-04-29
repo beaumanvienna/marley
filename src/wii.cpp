@@ -44,7 +44,7 @@ bool initWii(void)
 {
     bool ok = true;
     
-    printf("InitWii\n");
+    //printf("InitWii\n");
     
     string user_directory = gBaseDir;
     user_directory += "dolphin-emu";

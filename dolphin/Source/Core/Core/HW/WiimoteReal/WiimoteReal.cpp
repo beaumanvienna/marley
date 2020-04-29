@@ -76,7 +76,7 @@ static WiimoteScanner s_wiimote_scanner;
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
 static void TryToFillWiimoteSlot(u32 index)
 {
-    printf("TryToFillWiimoteSlot(u32 index) index=%i\n", index);
+    //printf("TryToFillWiimoteSlot(u32 index) index=%i\n", index);
   std::lock_guard lk(g_wiimotes_mutex);
 
   if (g_wiimotes[index] || WiimoteCommon::GetSource(index) != WiimoteSource::Real)

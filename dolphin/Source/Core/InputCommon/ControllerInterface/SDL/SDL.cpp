@@ -32,6 +32,7 @@ static std::string GetJoystickName(int index)
 
 static void OpenAndAddDevice(int index)
 {
+    printf("OpenAndAddDevice\n");
   SDL_Joystick* const dev = SDL_JoystickOpen(index);
   if (dev)
   {

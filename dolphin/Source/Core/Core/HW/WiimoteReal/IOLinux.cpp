@@ -72,7 +72,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   }
 
   DEBUG_LOG(WIIMOTE, "Found %i Bluetooth device(s).", found_devices);
-  printf("WiimoteScanner Found %i Bluetooth device(s)\n", found_devices);
+  //printf("WiimoteScanner Found %i Bluetooth device(s)\n", found_devices);
 
   // Display discovered devices
   for (int i = 0; i < found_devices; ++i)
