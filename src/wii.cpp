@@ -131,8 +131,8 @@ bool mainLoopWii(void)
 
 bool shutdownWii(void)
 {
-    Core::Stop();
-    Core::Shutdown();
+    //Core::Stop();
+    //Core::Shutdown();
     UICommon::Shutdown();
 }
 
