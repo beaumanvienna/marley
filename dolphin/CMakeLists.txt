@@ -56,7 +56,7 @@ option(OPROFILING "Enable profiling" OFF)
 option(DSPTOOL "Build dsptool" OFF)
 
 # Enable SDL for default on operating systems that aren't Android, Linux or Windows.
-if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT MSVC)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
 else()
   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)

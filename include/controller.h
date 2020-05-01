@@ -58,6 +58,7 @@ using namespace std;
         pSDL_Joystick joy[MAX_DEVICES_PER_CONTROLLER];
         pSDL_GameController gameCtrl[MAX_DEVICES_PER_CONTROLLER];
         int instance[MAX_DEVICES_PER_CONTROLLER];
+        int index[MAX_DEVICES_PER_CONTROLLER];
         string name[MAX_DEVICES_PER_CONTROLLER];
         string nameDB[MAX_DEVICES_PER_CONTROLLER];
         bool mappingOKDevice[MAX_DEVICES_PER_CONTROLLER];

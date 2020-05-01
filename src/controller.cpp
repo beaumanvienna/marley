@@ -66,6 +66,7 @@ bool initJoy(void)
         for (int j=0; j<MAX_DEVICES_PER_CONTROLLER;j++)
         {
             gDesignatedControllers[i].instance[j] = -1;
+            gDesignatedControllers[i].index[j] = -1;
             gDesignatedControllers[i].name[j] = "";
             gDesignatedControllers[i].nameDB[j] = "";
             gDesignatedControllers[i].joy[j] = NULL;
@@ -122,6 +123,7 @@ bool closeJoy(int instance_id)
                 {
                     printf("removing from designated controller %i (instance %i)",designation,gDesignatedControllers[designation].instance[j]);
                     gDesignatedControllers[designation].instance[j] = -1;
+                    gDesignatedControllers[designation].index[j] = -1;
                     gDesignatedControllers[designation].name[j] = "";
                     gDesignatedControllers[designation].nameDB[j] = "";
                     gDesignatedControllers[designation].joy[j] = NULL;
@@ -279,7 +281,7 @@ bool openJoy(int i)
                                 
                                 instance = SDL_JoystickInstanceID(gGamepad[i]);
                                 gDesignatedControllers[designation].instance[device] = instance;
-                                
+                                gDesignatedControllers[designation].index[device] = i;
                                 
                                 string jName = SDL_JoystickNameForIndex(i);
                                 transform(jName.begin(), jName.end(), jName.begin(),
@@ -642,6 +644,7 @@ bool openWiimote(int nb)
             
             gDesignatedControllers[designation].numberOfDevices=1;
             gDesignatedControllers[designation].instance[0] = -1;
+            gDesignatedControllers[designation].index[0] = -1;
             gDesignatedControllers[designation].name[0] = "wiimote";
             gDesignatedControllers[designation].nameDB[0] = "wiimote";
             gDesignatedControllers[designation].controllerType = CTRL_TYPE_WIIMOTE;
@@ -665,6 +668,7 @@ bool closeWiimote(int nb)
             
             gDesignatedControllers[designation].numberOfDevices=0;
             gDesignatedControllers[designation].instance[0] = -1;
+            gDesignatedControllers[designation].index[0] = -1;
             gDesignatedControllers[designation].name[0] = "";
             gDesignatedControllers[designation].nameDB[0] = "";
             gDesignatedControllers[designation].controllerType = -1;
