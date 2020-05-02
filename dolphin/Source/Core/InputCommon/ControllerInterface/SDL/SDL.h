@@ -7,7 +7,7 @@
 #include <SDL.h>
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
-#define USE_SDL_HAPTIC
+//#define USE_SDL_HAPTIC
 #endif
 
 #ifdef USE_SDL_HAPTIC
@@ -29,11 +29,11 @@ private:
   {
   public:
     std::string GetName() const override;
-    Button(u8 index, SDL_Joystick* js) : m_js(js), m_index(index) {}
+    Button(u8 index, SDL_GameController* js) : m_js(js), m_index(index) {}
     ControlState GetState() const override;
 
   private:
-    SDL_Joystick* const m_js;
+    SDL_GameController* const m_js;
     const u8 m_index;
   };
 
@@ -41,11 +41,11 @@ private:
   {
   public:
     std::string GetName() const override;
-    Axis(u8 index, SDL_Joystick* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
+    Axis(u8 index, SDL_GameController* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
     ControlState GetState() const override;
 
   private:
-    SDL_Joystick* const m_js;
+    SDL_GameController* const m_js;
     const Sint16 m_range;
     const u8 m_index;
   };
@@ -54,13 +54,13 @@ private:
   {
   public:
     std::string GetName() const override;
-    Hat(u8 index, SDL_Joystick* js, u8 direction) : m_js(js), m_direction(direction), m_index(index)
+    Hat(u8 index, SDL_GameController* js, u8 direction) : m_js(js), m_direction(direction), m_index(index)
     {
     }
     ControlState GetState() const override;
 
   private:
-    SDL_Joystick* const m_js;
+    SDL_GameController* const m_js;
     const u8 m_direction;
     const u8 m_index;
   };
@@ -141,15 +141,15 @@ private:
 public:
   void UpdateInput() override;
 
-  Joystick(SDL_Joystick* const joystick, const int sdl_index);
+  Joystick(SDL_GameController* const joystick, const int sdl_index);
   ~Joystick();
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  SDL_Joystick* GetSDLJoystick() const;
+  SDL_GameController* GetSDLJoystick() const;
 
 private:
-  SDL_Joystick* const m_joystick;
+  SDL_GameController* const m_joystick;
   std::string m_name;
 
 #ifdef USE_SDL_HAPTIC

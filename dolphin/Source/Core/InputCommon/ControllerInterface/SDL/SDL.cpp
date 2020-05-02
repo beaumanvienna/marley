@@ -14,44 +14,66 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "../../../../../../include/controller.h"
 
-#ifdef _WIN32
-#pragma comment(lib, "SDL2.lib")
-#endif
+
 
 namespace ciface::SDL
 {
 static std::string GetJoystickName(int index)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-  return SDL_JoystickNameForIndex(index);
-#else
-  return SDL_JoystickName(index);
-#endif
+    std::string s = "0xbaadf00dbeefbabe - ";
+    s+=to_string(index);
+  return s;
 }
 
 static void OpenAndAddDevice(int index)
 {
-    printf("OpenAndAddDevice\n");
-  SDL_Joystick* const dev = SDL_JoystickOpen(index);
-  if (dev)
-  {
-    auto js = std::make_shared<Joystick>(dev, index);
-    // only add if it has some inputs/outputs
-    if (!js->Inputs().empty() || !js->Outputs().empty())
-      g_controller_interface.AddDevice(std::move(js));
-  }
+    #warning "JC modified"
+    /*
+    SDL_Joystick* const dev = SDL_JoystickOpen(index);
+    if (dev)
+    {
+        auto js = std::make_shared<Joystick>(dev, index);
+        // only add if it has some inputs/outputs
+        if (!js->Inputs().empty() || !js->Outputs().empty())
+        {
+          g_controller_interface.AddDevice(std::move(js));
+          
+        }
+    }*/
+    
+    
+    
+    for(int n = 0; n < MAX_GAMEPADS; n++)
+    {
+        if (gDesignatedControllers[n].joy[0] != NULL)
+        {
+            SDL_GameController* const dev = gDesignatedControllers[n].gameCtrl[0];
+            
+            
+            auto js = std::make_shared<Joystick>(dev, gDesignatedControllers[n].index[0]);
+            
+            // only add if it has some inputs/outputs
+            if (!js->Inputs().empty() || !js->Outputs().empty())
+            {
+                g_controller_interface.AddDevice(std::move(js));
+            }
+        }
+    }
 }
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+
 static Common::Event s_init_event;
 static Uint32 s_stop_event_type;
 static Uint32 s_populate_event_type;
 static Common::Event s_populated_event;
 static std::thread s_hotplug_thread;
 
+// this function won't be called anymore
 static bool HandleEventAndContinue(const SDL_Event& e)
 {
+    
   if (e.type == SDL_JOYDEVICEADDED)
   {
     OpenAndAddDevice(e.jdevice.which);
@@ -60,13 +82,15 @@ static bool HandleEventAndContinue(const SDL_Event& e)
   {
     g_controller_interface.RemoveDevice([&e](const auto* device) {
       const Joystick* joystick = dynamic_cast<const Joystick*>(device);
-      return joystick && SDL_JoystickInstanceID(joystick->GetSDLJoystick()) == e.jdevice.which;
+      return joystick;// && SDL_JoystickInstanceID(joystick->GetSDLJoystick()) == e.jdevice.which;
     });
   }
   else if (e.type == s_populate_event_type)
   {
     for (int i = 0; i < SDL_NumJoysticks(); ++i)
-      OpenAndAddDevice(i);
+    {
+        OpenAndAddDevice(i);
+    }
     s_populated_event.Set();
   }
   else if (e.type == s_stop_event_type)
@@ -76,119 +100,115 @@ static bool HandleEventAndContinue(const SDL_Event& e)
 
   return true;
 }
-#endif
+
 
 void Init()
 {
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-  if (SDL_Init(SDL_INIT_JOYSTICK) != 0)
-    ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
-  return;
-#else
+    #warning "jc: modified"
+    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+    {
+      ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
+      return;
+    }
+    
+    SDL_JoystickEventState(SDL_IGNORE);
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+    {
+      OpenAndAddDevice(i);
+    }
+    
   s_hotplug_thread = std::thread([] {
-    Common::ScopeGuard quit_guard([] {
+    /*Common::ScopeGuard quit_guard([] {
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
       SDL_Quit();
-    });
+    });*/
 
     {
       Common::ScopeGuard init_guard([] { s_init_event.Set(); });
 
-      if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+      /*if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
       {
         ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
         return;
-      }
+      }*/
 
-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
+      /*const Uint32 custom_events_start = SDL_RegisterEvents(2);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
         ERROR_LOG(SERIALINTERFACE, "SDL failed to register custom events");
         return;
       }
       s_stop_event_type = custom_events_start;
-      s_populate_event_type = custom_events_start + 1;
+      s_populate_event_type = custom_events_start + 1;*/
 
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
       // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
       // duplicate devices.
+      
+      
+    
+      /*
       SDL_Event e;
       while (SDL_PollEvent(&e) != 0)
       {
         if (!HandleEventAndContinue(e))
           return;
-      }
+      }*/
+      
     }
-
-    SDL_Event e;
+    
+    /*SDL_Event e;
     while (SDL_WaitEvent(&e) != 0)
     {
       if (!HandleEventAndContinue(e))
         return;
-    }
+    }*/
+    
   });
 
   s_init_event.Wait();
-#endif
+
 }
 
 void DeInit()
 {
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-  SDL_Quit();
-#else
+
+#warning "jc: modified"
+
   if (!s_hotplug_thread.joinable())
     return;
 
-  SDL_Event stop_event{s_stop_event_type};
-  SDL_PushEvent(&stop_event);
+  //SDL_Event stop_event{s_stop_event_type};
+  //SDL_PushEvent(&stop_event);
 
   s_hotplug_thread.join();
-#endif
 }
 
 void PopulateDevices()
 {
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-  if (!SDL_WasInit(SDL_INIT_JOYSTICK))
-    return;
 
-  for (int i = 0; i < SDL_NumJoysticks(); ++i)
-    OpenAndAddDevice(i);
-#else
   if (!s_hotplug_thread.joinable())
     return;
 
-  SDL_Event populate_event{s_populate_event_type};
-  SDL_PushEvent(&populate_event);
+  //SDL_Event populate_event{s_populate_event_type};
+  //SDL_PushEvent(&populate_event);
 
-  s_populated_event.Wait();
-#endif
+  //s_populated_event.Wait();
+  
+  for (int i = 0; i < SDL_NumJoysticks(); ++i)
+    {
+        OpenAndAddDevice(i);
+    }
+    s_populated_event.Set();
+
 }
 
-Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
+Joystick::Joystick(SDL_GameController* const joystick, const int sdl_index)
     : m_joystick(joystick), m_name(StripSpaces(GetJoystickName(sdl_index)))
 {
-// really bad HACKS:
-// to not use SDL for an XInput device
-// too many people on the forums pick the SDL device and ask:
-// "why don't my 360 gamepad triggers/rumble work correctly"
-#ifdef _WIN32
-  // checking the name is probably good (and hacky) enough
-  // but I'll double check with the num of buttons/axes
-  std::string lcasename = GetName();
-  std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
 
-  if ((std::string::npos != lcasename.find("xbox 360")) &&
-      (10 == SDL_JoystickNumButtons(joystick)) && (5 == SDL_JoystickNumAxes(joystick)) &&
-      (1 == SDL_JoystickNumHats(joystick)) && (0 == SDL_JoystickNumBalls(joystick)))
-  {
-    // this device won't be used
-    return;
-  }
-#endif
-
+/*
   if (SDL_JoystickNumButtons(joystick) > 255 || SDL_JoystickNumAxes(joystick) > 255 ||
       SDL_JoystickNumHats(joystick) > 255 || SDL_JoystickNumBalls(joystick) > 255)
   {
@@ -196,22 +216,28 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     // Some crazy devices(HP webcam 2100) end up as HID devices
     // SDL tries parsing these as joysticks
     return;
-  }
+  }*/
 
   // get buttons
-  for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
+  for (u8 i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i)
+  {
     AddInput(new Button(i, m_joystick));
+  }
 
-  // get hats
-  for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
+  // no hats on the SDL_GameController
+  // everything is mapped as buttons
+  /*
+  for (u8 i = 0; i < 1; ++i)
   {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
+    {
       AddInput(new Hat(i, m_joystick, d));
-  }
+    }
+  }*/
 
   // get axes
-  for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i)
+  for (u8 i = 0; i != SDL_CONTROLLER_AXIS_MAX; ++i)
   {
     // each axis gets a negative and a positive input instance associated with it
     AddAnalogInputs(new Axis(i, m_joystick, -32768), new Axis(i, m_joystick, 32767));
@@ -266,7 +292,9 @@ Joystick::~Joystick()
 #endif
 
   // close joystick
-  SDL_JoystickClose(m_joystick);
+  #warning "jc: modfied"
+  // keep the controller for marley
+  //SDL_JoystickClose(m_joystick);
 }
 
 #ifdef USE_SDL_HAPTIC
@@ -443,7 +471,8 @@ bool Joystick::LeftRightEffect::UpdateParameters(s16 value)
 void Joystick::UpdateInput()
 {
   // TODO: Don't call this for every Joystick, only once per ControllerInterface::UpdateInput()
-  SDL_JoystickUpdate();
+  SDL_GameControllerUpdate();
+  
 }
 
 std::string Joystick::GetName() const
@@ -456,7 +485,7 @@ std::string Joystick::GetSource() const
   return "SDL";
 }
 
-SDL_Joystick* Joystick::GetSDLJoystick() const
+SDL_GameController* Joystick::GetSDLJoystick() const
 {
   return m_joystick;
 }
@@ -478,16 +507,19 @@ std::string Joystick::Hat::GetName() const
 
 ControlState Joystick::Button::GetState() const
 {
-  return SDL_JoystickGetButton(m_js, m_index);
+    Uint8 b = SDL_GameControllerGetButton(m_js, (SDL_GameControllerButton)m_index);
+  return b;
 }
 
 ControlState Joystick::Axis::GetState() const
 {
-  return ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
+  return ControlState(SDL_GameControllerGetAxis(m_js, (SDL_GameControllerAxis)m_index)) / m_range;
 }
 
 ControlState Joystick::Hat::GetState() const
 {
-  return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
+  // this function won't be called anymore
+  //return (SDL_GameControllerGetHat(m_js, (SDL_GameControllerHat)m_index) & (1 << m_direction)) > 0;
+  return 0;
 }
 }  // namespace ciface::SDL
