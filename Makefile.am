@@ -13,8 +13,8 @@ marley_LDADD 	= mednafen/src/libmednafen_marley.a
 marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
 
-#marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
-marley_LDADD 	+= dolphin/build/Source/Core/DolphinQt/libdolphin-emu.a
+marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
+#marley_LDADD 	+= dolphin/build/Source/Core/DolphinQt/libdolphin-emu.a
 marley_LDADD 	+= dolphin/build/Source/Core/Core/libcore.a 
 marley_LDADD 	+= dolphin/build/Source/Core/UICommon/libuicommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/imgui/libimgui.a 
