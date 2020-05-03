@@ -915,8 +915,17 @@ void LoadSettings()
     secname += static_cast<char>('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
+    #define MAX_GAMEPADS_MARLEY 2
     unsigned int source = 0;
-    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
+    if (i<MAX_GAMEPADS_MARLEY)
+    {
+        sec.Get("Source", &source, int(WiimoteSource::Real));
+    }
+    else
+    {
+        sec.Get("Source", &source, int(WiimoteSource::None));
+    }
+    
     WiimoteCommon::SetSource(i, WiimoteSource(source));
   }
 

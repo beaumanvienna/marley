@@ -676,9 +676,9 @@ bool Wiimote::CheckForButtonPress()
   return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
 }
 
-void Wiimote::LoadDefaults(const ControllerInterface& ciface)
+void Wiimote::LoadDefaults(const ControllerInterface& ciface,int n)
 {
-  EmulatedController::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface,n);
 
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
@@ -748,7 +748,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
-  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
+  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface,0);
 }
 
 Extension* Wiimote::GetNoneExtension() const

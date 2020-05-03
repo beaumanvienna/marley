@@ -98,6 +98,7 @@ void SConfig::SaveSettings()
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
   SaveJitDebugSettings(ini);
+  SaveDisplaySettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -360,6 +361,13 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
   section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
+void SConfig::SaveDisplaySettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Display");
+
+  section->Set("Fullscreen", true);
+}
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -418,10 +426,10 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 {
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-  interface->Get("ConfirmStop", &bConfirmStop, true);
+  interface->Get("ConfirmStop", &bConfirmStop, false);
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
-  interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("HideCursor", &bHideCursor, true);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
@@ -506,13 +514,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   for (size_t i = 0; i < std::size(m_SIDevice); ++i)
   {
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
-              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
+              (i == 0) || (i == 1)? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
     core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
     core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
   }
   core->Get("WiiSDCard", &m_WiiSDCard, true);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
-  core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
+  core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, true);
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
   core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);
   core->Get("RunCompareServer", &bRunCompareServer, false);
@@ -530,7 +538,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("GFXBackend", &m_strVideoBackend, "");
+  core->Get("GFXBackend", &m_strVideoBackend, "Vulkan");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
@@ -600,7 +608,7 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
 
   analytics->Get("ID", &m_analytics_id, "");
   analytics->Get("Enabled", &m_analytics_enabled, false);
-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+  analytics->Get("PermissionAsked", &m_analytics_permission_asked, true);
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
@@ -792,7 +800,7 @@ void SConfig::LoadDefaults()
 
   m_analytics_id = "";
   m_analytics_enabled = false;
-  m_analytics_permission_asked = false;
+  m_analytics_permission_asked = true;
 
   bLoopFifoReplay = true;
 

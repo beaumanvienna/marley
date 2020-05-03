@@ -219,7 +219,7 @@ public:
   ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
   int FindGroupByID(int id) const;
   int GetIndexForGroup(int group, int id) const;
-  void LoadDefaults(const ControllerInterface& ciface) override;
+  void LoadDefaults(const ControllerInterface& ciface,int n) override;
 
 private:
   std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;

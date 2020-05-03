@@ -79,20 +79,7 @@ bool InputConfig::LoadConfig(bool isGC)
         }
       }
     }
-#if defined(ANDROID)
-    // For use on android touchscreen IR pointer
-    // Check for IR values
-    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
-        control_section->Exists("IRVerticalOffset"))
-    {
-      use_ir_config = true;
-      control_section->Get("IRTotalYaw", &ir_values[0]);
-      control_section->Get("IRTotalPitch", &ir_values[1]);
-      control_section->Get("IRVerticalOffset", &ir_values[2]);
-    }
-#endif
   }
-
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
   {
     int n = 0;
@@ -116,15 +103,7 @@ bool InputConfig::LoadConfig(bool isGC)
       {
         config = *inifile.GetOrCreateSection(controller->GetName());
       }
-#if defined(ANDROID)
-      // Only set for wii pads
-      if (!isGC && use_ir_config)
-      {
-        config.Set("IR/Total Yaw", ir_values[0]);
-        config.Set("IR/Total Pitch", ir_values[1]);
-        config.Set("IR/Vertical Offset", ir_values[2]);
-      }
-#endif
+      std::string cname = controller->GetName();
       controller->LoadConfig(&config);
       // Update refs
       controller->UpdateReferences(g_controller_interface);
@@ -136,8 +115,13 @@ bool InputConfig::LoadConfig(bool isGC)
   }
   else
   {
-    m_controllers[0]->LoadDefaults(g_controller_interface);
+
+    #warning "jc: modified"      
+    m_controllers[0]->LoadDefaults(g_controller_interface,0);
+    if (m_ini_name == "GCPadNew") m_controllers[1]->LoadDefaults(g_controller_interface,1);
+    if (m_ini_name != "WiimoteNew") SaveConfig();
     m_controllers[0]->UpdateReferences(g_controller_interface);
+    
     return false;
   }
 }

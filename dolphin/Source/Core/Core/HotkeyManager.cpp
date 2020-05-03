@@ -398,9 +398,9 @@ int HotkeyManager::GetIndexForGroup(int group, int id) const
   return id - s_groups_info[group].first;
 }
 
-void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
+void HotkeyManager::LoadDefaults(const ControllerInterface& ciface,int n)
 {
-  EmulatedController::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface,n);
 
 #ifdef _WIN32
   const std::string NON = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";

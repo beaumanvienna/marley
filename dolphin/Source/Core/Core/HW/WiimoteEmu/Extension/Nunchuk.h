@@ -168,7 +168,7 @@ public:
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
 
-  void LoadDefaults(const ControllerInterface& ciface) override;
+  void LoadDefaults(const ControllerInterface& ciface,int n) override;
 
 private:
   ControllerEmu::Tilt* m_tilt;

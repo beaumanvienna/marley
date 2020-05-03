@@ -136,7 +136,7 @@ public:
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const;
 
-  virtual void LoadDefaults(const ControllerInterface& ciface);
+  virtual void LoadDefaults(const ControllerInterface& ciface, int n);
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");

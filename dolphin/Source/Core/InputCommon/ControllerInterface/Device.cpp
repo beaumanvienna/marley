@@ -213,8 +213,33 @@ std::string DeviceContainer::GetDefaultDeviceString() const
     return "";
 
   DeviceQualifier device_qualifier;
-  device_qualifier.FromDevice(m_devices[0].get());
-  return device_qualifier.ToString();
+
+  int index = 0;
+  int i = 0;
+  std::string s;
+  
+  for (const auto& d : m_devices)
+  {
+    device_qualifier.FromDevice(d.get());
+    std::string q = device_qualifier.ToString();
+    if (q.find("SDL") == 0)
+    {
+        index = i;
+        break;
+    }
+    else
+    {
+        i++;
+    }
+  }
+  
+  if(index)
+  {
+      device_qualifier.FromDevice(m_devices[index].get());
+      s = device_qualifier.ToString();
+  }
+  
+  return s;
 }
 
 Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const

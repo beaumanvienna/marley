@@ -190,7 +190,7 @@ void Nunchuk::DoState(PointerWrap& p)
   p.Do(m_shake_state);
 }
 
-void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
+void Nunchuk::LoadDefaults(const ControllerInterface& ciface,int n)
 {
   // Stick
   m_stick->SetControlExpression(0, "W");  // up

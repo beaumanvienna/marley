@@ -60,7 +60,7 @@ const ConfigInfo<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""
 ConfigInfo<u32> GetInfoForSIDevice(u32 channel)
 {
   return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
-          static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
+          static_cast<u32>((channel == 0) || (channel == 1) ? SerialInterface::SIDEVICE_GC_CONTROLLER :
                                           SerialInterface::SIDEVICE_NONE)};
 }
 
@@ -78,7 +78,7 @@ const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, tru
 const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
 const ConfigInfo<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
-    {System::Main, "Core", "WiimoteContinuousScanning"}, false};
+    {System::Main, "Core", "WiimoteContinuousScanning"}, true};
 const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"},
                                                    false};
 const ConfigInfo<bool> MAIN_RUN_COMPARE_SERVER{{System::Main, "Core", "RunCompareServer"}, false};
@@ -111,7 +111,7 @@ const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscCha
 
 const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
     {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
-const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
+const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, true};
 const ConfigInfo<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
 const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
 const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};

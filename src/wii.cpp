@@ -44,8 +44,6 @@ bool initWii(void)
 {
     bool ok = true;
     
-    //printf("InitWii\n");
-    
     string user_directory = gBaseDir;
     user_directory += "dolphin-emu";
     UICommon::SetUserDirectory(user_directory);
@@ -53,6 +51,7 @@ bool initWii(void)
     UICommon::Init();
 
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+    UICommon::SaveWiimoteSources();
     
     up = up_prev = down, down_prev = false;
     lft = lft_prev = rght = rght_prev = false;
@@ -122,7 +121,7 @@ bool mainLoopWii(void)
         else
         {
             //connection to wiimote lost
-            printf("Wiimote removed\n");
+            printf  ("Wiimote removed\n");
             closeWiimote(0);
         }
     }

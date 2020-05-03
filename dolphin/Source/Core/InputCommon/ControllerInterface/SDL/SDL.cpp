@@ -35,7 +35,7 @@ static void OpenAndAddDevice(int slot)
     {
         SDL_GameController* const dev = gDesignatedControllers[slot].gameCtrl[0];
         
-        auto js = std::make_shared<Joystick>(dev, gDesignatedControllers[slot].index[0]);
+        auto js = std::make_shared<Joystick>(dev, slot);
         
         // only add if it has some inputs/outputs
         if (!js->Inputs().empty() || !js->Outputs().empty())
@@ -61,9 +61,15 @@ void Init()
     }
     
     SDL_JoystickEventState(SDL_IGNORE);
+    
+    int slot = 0;
     for (int i = 0; i < MAX_GAMEPADS; i++)
     {
-      OpenAndAddDevice(i);
+        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
+        {
+            OpenAndAddDevice(slot);
+            slot++;
+        }
     }
     
     s_hotplug_thread = std::thread([] 
@@ -93,9 +99,14 @@ void PopulateDevices()
     if (!s_hotplug_thread.joinable())
       return;
 
+    int slot = 0;
     for (int i = 0; i < MAX_GAMEPADS; i++)
     {
-        OpenAndAddDevice(i);
+        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
+        {
+            OpenAndAddDevice(slot);
+            slot++;
+        }
     }
     s_populated_event.Set();
 }

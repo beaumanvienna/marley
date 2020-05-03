@@ -125,9 +125,9 @@ KeyboardStatus GCKeyboard::GetInput() const
   return kb;
 }
 
-void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
+void GCKeyboard::LoadDefaults(const ControllerInterface& ciface,int n)
 {
-  EmulatedController::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface,n);
 
   // Buttons
   m_keys0x->SetControlExpression(5, "A");

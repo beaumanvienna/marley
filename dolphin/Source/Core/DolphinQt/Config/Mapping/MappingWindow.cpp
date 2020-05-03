@@ -435,7 +435,7 @@ ControllerEmu::EmulatedController* MappingWindow::GetController() const
 
 void MappingWindow::OnDefaultFieldsPressed()
 {
-  m_controller->LoadDefaults(g_controller_interface);
+  m_controller->LoadDefaults(g_controller_interface,0);
   m_controller->UpdateReferences(g_controller_interface);
 
   const auto lock = GetController()->GetStateLock();

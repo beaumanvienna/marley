@@ -44,7 +44,7 @@ public:
 
   ControllerEmu::ControlGroup* GetGroup(PadGroup group);
 
-  void LoadDefaults(const ControllerInterface& ciface) override;
+  void LoadDefaults(const ControllerInterface& ciface,int n) override;
 
   static const u8 MAIN_STICK_GATE_RADIUS = 87;
   static const u8 C_STICK_GATE_RADIUS = 74;
