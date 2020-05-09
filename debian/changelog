@@ -1,3 +1,10 @@
+marley (0.0.5) bionic; urgency=medium
+
+  * Dolphin added (Wii, Gamecube, Wiimote support)
+  * this is an unstable version 
+   
+ -- JC Lache <jc.lache@web.de>  Sat, 09 MAY 2020 14:15:00 -0800
+
 marley (0.0.4) bionic; urgency=medium
 
   * setup added 
@@ -7,7 +14,7 @@ marley (0.0.4) bionic; urgency=medium
 
 marley (0.0.3.2) bionic; urgency=medium
 
-  * mednaffen added 
+  * mednafen added 
    
  -- JC Lache <jc.lache@we.de>  Sat, 15 APR 2020 08:21:00 -0800
  

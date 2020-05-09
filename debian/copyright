@@ -14,4 +14,12 @@ License: GPL-2+
 Files: mednafen/*
 Copyright: refer to mednafen/copyright
 
+Files: dolphin/*
+Copyright: refer to dolphin/copyright
+
+Playstation is a trademark of Sony Interactive Entertainment Inc. 
+Gamecube and Wii are trademarks of Nintendo of America Inc.
+The marley team is not affiliated with or endorsed by these companies in any way.
+This emulator bundle should only be used to play games one legally own.
+
 

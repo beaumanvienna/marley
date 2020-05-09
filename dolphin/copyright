@@ -1,0 +1,630 @@
+Format-Specification: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Dolphin
+Source: https://github.com/dolphin-emu/dolphin.git
+Comment: This package was debianized by
+ Glenn Rice <glennricster@gmail.com> on Wed, 13 Jan 2010 16:03:57 -0600
+
+Files: *
+Copyright: 2003-2015 Dolphin Emulator Project
+License: GPL-2+
+
+Files: Source/Core/AudioCommon/aldlist.cpp
+Copyright: 2009 Dolphin Emulator Project
+           2006 Creative Labs Inc.
+License: BSD-3-clause and GPL-2+
+
+Files: Source/Core/AudioCommon/DPL2Decoder.cpp
+Copyright: 2013 Dolphin Emulator Project
+           2004-2006 Milan Cutka
+           2001 Anders Johansson <ajh@atri.curtin.edu.au>
+           based on mplayer HRTF plugin by ylai
+License: GPL-2+
+
+Files: Source/Core/Common/Crypto/bn.cpp
+       Source/Core/Common/Crypto/ec.h
+Copyright: 2007-2008 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2
+
+Files: Source/Core/Common/Crypto/ec.cpp
+Copyright: 2010 Dolphin Emulator Project
+           2007-2008 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2+
+
+Files: Source/Core/Common/BitField.h
+Copyright: 2014 Dolphin Emulator Project
+           2014 Tony Wasserka
+License: BSD-3-clause and GPL-2+
+
+Files: Source/Core/Common/BitSet.h
+Copyright: 2014, 2015 Dolphin Emulator Project
+License: public-domain
+
+Files: Source/Core/Common/GekkoDisassembler.*
+Copyright: 2014 Dolphin Emulator Project
+           1998-2001, 2009, 2011 Frank Wille
+License: BSD-2-clause and GPL-2+
+
+Files: Source/Core/Common/SDCardUtil.cpp
+Copyright: 2009 Dolphin Emulator Project
+           2007 The Android Open Source Project
+License: BSD-3-clause and GPL-2+
+
+Files: Source/Core/Common/StdMakeUnique.h
+Copyright: 2014 Dolphin Emulator Project
+           2009-2014 by the libc++ contributors
+License: Expat and GPL-2+
+
+Files: Source/Core/Common/Traversal*
+Copyright: 2015 Dolphin Emulator Project
+           comex
+License: public-domain
+
+Files: Source/Core/Core/HW/BBA-TAP/TAP_Win32.h
+Copyright: 2002-2005 OpenVPN Solutions LLC
+           2003 Damion K. Wilson
+License: GPL-2
+Comment: not used on linux binaries.
+
+Files: Source/Core/Core/HW/WiimoteEmu/Encryption.*
+Copyright: 2008 Dolphin Emulator Project
+           Hector Martin <hector@marcansoft.com>
+License: GPL-2+
+
+Files: Source/Core/Core/HW/EXI_DeviceIPL.cpp
+Copyright: 2008 Dolphin Emulator Project
+           2008 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2+
+
+Files: Source/Core/Core/HW/Sram.h
+Copyright: 2009 Dolphin Emulator Project
+           2004 Michael Wiedenbauer (shagkur)
+           2004 Dave Murphy (WinterMute)
+License: Zlib and GPL-2+
+
+Files: Source/Core/Core/HW/WiiSaveCrypted.cpp
+Copyright: 2010 Dolphin Emulator Project
+           2007-2008 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2+
+
+Files: Source/Core/Core/IPC_HLE/l2cap.h
+       Source/Core/Core/IPC_HLE/hci.h
+Copyright: 2008 Dolphin Emulator Project
+           2006 Itronix Inc.
+           2005 Iain Hibbert.
+           2001 Maksim Yevmenkin <m_evmenkin@yahoo.com>
+License: BSD-3-clause and GPL-2+
+Comment: previously licensed as BSD-2-clause by Maksim Yevmenkin
+
+Files: Source/Core/Core/DSP/DSPAssembler.cpp
+Copyright: 2009 Dolphin Emulator Project
+           2005 Duddie, wntrmute, Hermes
+License: GPL-2+
+
+Files: Source/Core/Core/DSP/DSPAssembler.h
+       Source/Core/Core/DSP/DSPDisassembler.*
+       Source/Core/Core/DSP/DSPIntUtil.h
+       Source/Core/Core/DSP/DSPIntExtOps.*
+       Source/Core/Core/DSP/DSPTables.*
+       docs/DSP/DSP_InterC/DSP_InterC/DSPExt.*
+       docs/DSP/DSP_InterC/DSP_InterC/DSPOpcodes.h
+       docs/DSP/DSP_InterC/DSP_InterC/gdsp_opcodes_helper.h
+Copyright: 2008, 2009 Dolphin Emulator Project
+           2005 Duddie <duddie@walla.com>
+License: GPL-2+
+
+Files: Source/Core/Core/DSP/DSPCore.*
+       Source/Core/Core/DSP/DSPHWInterface.*
+       Source/Core/Core/DSP/DSPIntArithmetic.cpp
+       Source/Core/Core/DSP/DSPIntBranch.cpp
+       Source/Core/Core/DSP/DSPIntCCUtil.*
+       Source/Core/Core/DSP/DSPInterpreter.*
+       Source/Core/Core/DSP/DSPIntLoadStore.cpp
+       Source/Core/Core/DSP/DSPIntMisc.cpp
+       Source/Core/Core/DSP/DSPIntMultiplier.cpp
+       Source/Core/Core/DSP/DSPMemoryMap.*
+       Source/Core/Core/DSP/DSPStacks.*
+       Source/Core/Core/DSP/DSPIntCCUtil.cpp
+       Source/Core/Core/DSP/Jit/DSPJitArithmetic.cpp
+       Source/Core/Core/DSP/Jit/DSPJitCCUtil.cpp
+       Source/Core/Core/DSP/Jit/DSPJitLoadStore.cpp
+       Source/Core/Core/DSP/Jit/DSPJitMultiplier.cpp
+       docs/DSP/DSP_InterC/DSP_InterC/DSPOpcodes.h
+Copyright: 2008, 2009 Dolphin Emulator Project
+           2004 Duddie and Tratax
+License: GPL-2+
+
+Files: Source/Core/Core/PowerPC/GDBStub.*
+Copyright: 2013 Dolphin Emulator Project
+           Sven Peter <sven@fail0verflow.com>
+License: GPL-2+
+
+Files: Source/Core/Core/ARDecrypt.cpp
+Copyright: 2008 Dolphin Emulator Project
+           2003-2004 Parasyte
+License: GPL-2+
+
+Files: Source/Core/Core/ec_wii.cpp
+Copyright: 2013 Dolphin Emulator Project
+           2007-2008 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2+
+
+Files: Source/Core/Core/ec_wii.h
+Copyright: 2013 Dolphin Emulator Project
+           2007-2008 Segher Boessenkool <segher@kernel.crashing.org>
+           2008, 2009 Haxx Enterprises <bushing@gmail.com>
+           2008, 2009 Sven Peter <svenpeter@gmail.com>
+           2008, 2009 Hector Martin "marcan" <marcan@marcansoft.com>
+License: GPL-2+
+
+Files: Source/Core/InputCommon/ControllerInterface/Xlib/XInput2.*
+Copyright: 2013 Max Eliaser
+License: GPL-2+
+
+Files: Source/Core/VideoBackends/Software/Clipper.cpp
+Copyright: 2009 Dolphin Emulator Project
+           2007-2008 Markus Trenkwalder
+License: BSD-3-clause and GPL-2+
+
+Files: Source/DSPTool/Testdata/hermes.*
+Copyright: 2008 Hermes <www.entuwii.net>
+License: BSD-3-clause
+
+Files: Tools/ReadDolphinMap.idc
+Copyright: 2014 Carl Kenner
+License: ???
+
+Files: docs/ActionReplay/GCNCodeTypes.txt
+Copyright: kenobi
+License: ???
+
+Files: docs/DSP/free_dsp_rom/*
+Copyright: 2013 delroth
+           2011 LM
+License: ???
+
+Files: docs/DSP/GC_DSP.pdf
+Copyright: 2005 Duddie
+License: GFDL-1.2+
+
+Files: docs/gc-font-tool.cpp
+Copyright: 2015 Dolphin Emulator Project
+           2015 James Cowgill <james410@cowgill.org.uk>
+License: GPL-2+
+
+Files: Data/Sys/GC/font_ansi.bin
+       Data/Sys/GC/font_sjis.bin
+Copyright: 2006-2014 Google Corporation
+License: Apache-2.0
+
+Files: Data/Sys/Shaders/FXAA.glsl
+Copyright: 2013 mudlord
+License: permissive
+    Everyone is permitted to copy and distribute verbatim or modified
+    copies of this license document, and changing it is allowed as long
+    as the name is changed.
+ .
+              DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+      TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ .
+    0. You just DO WHAT THE FUCK YOU WANT TO.
+
+Files: Data/Sys/Shaders/Anaglyph/dubois.glsl
+Copyright: 2009 Eric Dubois
+License: ???
+
+Files: Data/Sys/Themes/Boomy/*
+Copyright: Milosz Wlazlo <miloszwl@miloszwl.com>
+License:
+    Boomy toolbar icon set license
+ .
+    This is a legal agreement between You, the user, and Milosz Wlazlo.
+    By downloading the Boomy icon set, You agree to the following:
+ .
+    All icons in the Boomy toolbar package are for personal use only. You may
+    also use the icons in open source and freeware projects as long as you
+    give credits to the author of the icons and link to his website
+    (miloszwl.deviantart.com).
+ .
+    The image data may be changed by You in a limited way, only by combining
+    the included icons and adjusting hue, saturation, brightness.
+ .
+    All icons are provided "As is". The Miloszwl.com shall not be liable for
+    any kind of harm caused by use of, or the inability to use, this icon set
+    or any individual image.
+ .
+    You agree that all ownership and copyrights of the icons remain the
+    property of Milosz Wlazlo (Miloszwl.com). You may not resell or
+    redistribute the icons in any kind of commercial project or internet
+    icon archive.
+
+Files: Externals/Bochs_disasm/*
+Copyright: 2005-2012 Stanislav Shwartsman <sshwarts at sourceforge net>
+License: LGPL-2.1+
+
+Files: Externals/enet/*
+Copyright: 2002-2015 Lee Salzman
+License: Expat
+
+Files: Externals/GL/GL/glext.h
+Copyright: 2013-2014 The Khronos Group Inc.
+License: Expat-like
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and/or associated documentation files (the
+    "Materials"), to deal in the Materials without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Materials, and to
+    permit persons to whom the Materials are furnished to do so, subject to
+    the following conditions:
+ .
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Materials.
+ .
+    THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+
+Files: Externals/GL/GL/gl.h
+Copyright: 2009  VMware, Inc.  All Rights Reserved.
+           1999-2006  Brian Paul   All Rights Reserved.
+License: Expat
+
+Files: Externals/gtest/*
+Copyright: 2003-2009 Google Inc.
+License: BSD-3-clause
+
+Files: Externals/libiconv-1.14/*
+Copyright: 1999-2011 Free Software Foundation, Inc.
+License: LGPL-2+
+
+Files: Externals/libiconv-1.14/src/iconv.c
+Copyright: 2000-2009, 2011 Free Software Foundation, Inc.
+License: GPL-3+
+
+Files: Externals/libpng/*
+Copyright: 1998-2012 Glenn Randers-Pehrson
+           1996, 1997 Andreas Dilger
+           1995, 1996 Guy Eric Schalnat, Group 42, Inc.
+License: Zlib
+
+Files: Externals/libusb/*
+Copyright: 2012-2013 Toby Gray <toby.gray@realvnc.com>
+           2012-2013 Martin Pieuchot <mpi@openbsd.org>
+           2011-2013 Hans de Goede <hdegoede@redhat.com>
+           2010-2012 Peter Stuge <peter@stuge.se>
+           2010-2012 Michael Plante <michael.plante@gmail.com>
+           2009-2013 Ludovic Rousseau <ludovic.rousseau@gmail.com>
+           2009-2013 Pete Batard <pete@akeo.ie>
+           2008-2013 Nathan Hjelm <hjelmn@users.sourceforge.net>
+           2007-2009 Daniel Drake <dsd@gentoo.org>
+           2001 Johannes Erdfelt <johannes@erdfelt.com>
+License: LGPL-2.1+
+Comment: Many other contributors, see Externals/libusb/AUTHORS
+
+Files: Externals/LZO/*
+Copyright: 1996-2010 Markus Franz Xaver Johannes Oberhumer <markus@oberhumer.com>
+License: GPL-2+
+
+Files: Externals/miniupnpc/*
+Copyright: 2005-2011 Thomas BERNARD
+License: BSD-3-clause
+
+Files: Externals/OpenAL/*
+Copyright: 2008 OpenAL Soft
+License: LGPL-2+
+
+Files: Externals/polarssl/*
+Copyright: 2006-2014 Brainspark B.V.
+License: GPL-2+
+
+Files: Externals/portaudio/*
+Copyright: 1999-2011 Ross Bencina and Phil Burk
+License: Expat with non-binding requests exception
+    The text above constitutes the entire PortAudio license; however, 
+    the PortAudio community also makes the following non-binding requests:
+ .
+    Any person wishing to distribute modifications to the Software is
+    requested to send the modifications to the original developer so that
+    they can be incorporated into the canonical version. It is also 
+    requested that these non-binding requests be included along with the 
+    license above.
+
+Files: Externals/SFML/*
+Copyright: 2007-2013 Laurent Gomila <laurent.gom@gmail.com>
+License: Zlib
+
+Files: Externals/SOIL/*
+Copyright: 2007 Jonathan Dummer
+License: public-domain
+
+Files: Externals/soundtouch/*
+Copyright: 2008-2014 Olli Parviainen <oparviai 'at' iki.fi>
+License: LGPL-2.1+
+
+Files: Externals/wxWidgets3/*
+Copyright: 1998-2013 wxWidgets team
+License: LGPL-2 with EXCEPTION NOTICE
+    wxWindows Library Licence, Version 3.1
+ .
+    Copyright (c) 1998-2005 Julian Smart, Robert Roebling et al
+ .
+    Everyone is permitted to copy and distribute verbatim copies
+    of this licence document, but changing it is not allowed.
+ .
+    WXWINDOWS LIBRARY LICENCE
+    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ .
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Library General Public Licence as published by
+    the Free Software Foundation; either version 2 of the Licence, or (at your
+    option) any later version.
+ .
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Library General Public
+    Licence for more details.
+ .
+    You should have received a copy of the GNU Library General Public Licence
+    along with this software, usually in a file named COPYING.LIB.  If not,
+    write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+    Floor, Boston, MA 02110-1301 USA.
+ .
+    EXCEPTION NOTICE
+ .
+    1. As a special exception, the copyright holders of this library give
+    permission for additional uses of the text contained in this release of the
+    library as licenced under the wxWindows Library Licence, applying either
+    version 3.1 of the Licence, or (at your option) any later version of the
+    Licence as published by the copyright holders of version 3.1 of the Licence
+    document.
+ .
+    2. The exception is that you may use, copy, link, modify and distribute
+    under your own terms, binary object code versions of works based on the
+    Library.
+ .
+    3. If you copy code from files distributed under the terms of the GNU
+    General Public Licence or the GNU Library General Public Licence into a
+    copy of this library, as this licence permits, the exception does not apply
+    to the code that you add in this way.  To avoid misleading anyone as to the
+    status of such modified files, you must delete this exception notice from
+    such code and/or adjust the licensing conditions notice accordingly.
+ .
+    4. If you write modifications of your own for this library, it is your
+    choice whether to permit this exception to apply to your modifications.  If
+    you do not wish that, you must delete the exception notice from such code
+    and/or adjust the licensing conditions notice accordingly.
+
+Files: Externals/xxhash/*
+Copyright: 2012-2014 Yann Collet
+License: BSD-2-clause
+
+Files: Externals/zlib/*
+Copyright: 1995-2013 Jean-loup Gailly <jloup@gzip.org>
+           1995-2013 Mark Adler <madler@alumni.caltech.edu>
+License: Zlib
+
+Files: debian/*
+Copyright: 2010-2015 Glenn Rice <glennricster@gmail.com>
+           2015-2017 Sergio Benjamim (sergio-br2) <sergio_br2@yahoo.com.br>
+License: GPL-2+
+
+
+License: Apache-2.0
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+ .
+        http://www.apache.org/licenses/LICENSE-2.0
+ .
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ .
+    On Debian systems, the full text of the Apache License 2.0
+    can be found in the file
+    `/usr/share/common-licenses/Apache-2.0'.
+
+
+License: BSD-2-clause
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+ .
+    1. Redistributions of source code must retain the above copyright notice,
+       this list of conditions and the following disclaimer.
+ .
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
+ .
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+
+License: BSD-3-clause
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+ .
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+    3. Neither the name of the organization nor the names of its
+       contributors may be used to endorse or promote products derived from
+       this software without specific prior written permission.
+ .
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+
+License: Expat
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+ .
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+ .
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
+
+License: GFDL-1.2+
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.2
+    or any later version published by the Free Software Foundation;
+    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+    A copy of the license is included in the section entitled "GNU
+    Free Documentation License".
+    .
+    On Debian systems, the full text of the GNU Free Documentation
+    License Version 1.2 can be found in the file
+    `/usr/share/common-licenses/GFDL-1.2'.
+
+
+License: GPL-2
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 2.0.
+ .
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ .
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+    On Debian systems, the full text of the GNU General Public
+    License version 2 can be found in the file
+    `/usr/share/common-licenses/GPL-2'.
+
+
+License: GPL-2+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+ .
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ .
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+    On Debian systems, the full text of the GNU General Public
+    License version 2 can be found in the file
+    `/usr/share/common-licenses/GPL-2'.
+
+
+License: GPL-3+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+ .
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ .
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+    On Debian systems, the full text of the GNU General Public
+    License version 3 can be found in the file
+    `/usr/share/common-licenses/GPL-3'.
+
+
+License: LGPL-2+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+ .
+    You should have received a copy of the GNU Library General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ .
+    On Debian systems, the full text of the GNU Library General Public
+    License version 2 can be found in the file
+    `/usr/share/common-licenses/LGPL-2'.
+
+
+License: LGPL-2.1+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ .
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ .
+    On Debian systems, the full text of the GNU Lesser General Public
+    License version 2.1 can be found in the file
+    `/usr/share/common-licenses/LGPL-2.1'.
+
+
+License: Zlib
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+ .
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+ .
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
