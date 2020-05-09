@@ -53,6 +53,8 @@ namespace ciface::XInput2
 // This function will add zero or more KeyboardMouse objects to devices.
 void PopulateDevices(void* const hwnd)
 {
+    #warning "JC: modified (we need none of this)"
+    return;
   Display* dpy = XOpenDisplay(nullptr);
 
   // xi_opcode is important; it will be used to identify XInput events by

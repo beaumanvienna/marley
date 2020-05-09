@@ -538,7 +538,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("GFXBackend", &m_strVideoBackend, "Vulkan");
+  core->Get("GFXBackend", &m_strVideoBackend, "OGL");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);

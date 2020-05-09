@@ -17,8 +17,9 @@
 #include "../../../../../../include/controller.h"
 
 
-
+bool requestShutdownGUIDE;
 namespace ciface::SDL
+
 {
 static std::string GetJoystickName(int index)
 {
@@ -53,6 +54,7 @@ static std::thread s_hotplug_thread;
 
 void Init()
 {
+    requestShutdownGUIDE = false;
     #warning "jc: modified"
     if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
     {
@@ -394,6 +396,10 @@ std::string Joystick::Hat::GetName() const
 ControlState Joystick::Button::GetState() const
 {
     Uint8 b = SDL_GameControllerGetButton(m_js, (SDL_GameControllerButton)m_index);
+    if (b)
+    {
+        if (m_index == SDL_CONTROLLER_BUTTON_GUIDE) requestShutdownGUIDE=true;
+    }
   return b;
 }
 

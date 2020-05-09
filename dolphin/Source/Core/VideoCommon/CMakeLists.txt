@@ -127,7 +127,7 @@ add_library(videocommon
   XFStructs.cpp
   XFStructs.h
 )
-
+#target_compile_definitions(videocommon PRIVATE JC_DEBUGGING=1)
 target_link_libraries(videocommon
 PUBLIC
   core

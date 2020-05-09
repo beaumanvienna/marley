@@ -27,7 +27,7 @@ PRIVATE
   uicommon
   cpp-optparse
 )
-
+target_include_directories(dolphin-nogui PRIVATE /usr/include/SDL2)
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-nogui PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()

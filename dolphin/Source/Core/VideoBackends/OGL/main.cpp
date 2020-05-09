@@ -167,13 +167,40 @@ bool VideoBackend::FillBackendInfo()
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
+    #ifdef JC_DEBUGGING
+	printf("jc VideoBackend::Initialize(const WindowSystemInfo& wsi)\n");
+    #endif
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
                         Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
     return false;
-
-  if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
+    
+    
+  bool ok = InitializeGLExtensions(main_gl_context.get());
+  #ifdef JC_DEBUGGING
+  if (ok)
+  {
+      printf("jc InitializeGLExtensions(main_gl_context.get(); ok\n");
+  }
+  else
+  {
+      printf("jc InitializeGLExtensions(main_gl_context.get(); not ok\n");
+  }
+  #endif
+  
+  bool ok2 = FillBackendInfo();
+  #ifdef JC_DEBUGGING
+  if (ok2)
+  {
+      printf("jc FillBackendInfo(); ok\n");
+  }
+  else
+  {
+      printf("jc FillBackendInfo(); not ok\n");
+  }
+  #endif
+  if ((!ok) || (!ok2))
     return false;
 
   InitializeShared();
@@ -197,6 +224,10 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   g_shader_cache->InitializeShaderCache();
+  #ifdef JC_DEBUGGING
+  printf("jc VideoBackend::Initialize() end\n");
+  g_ActiveConfig.listParameters();
+  #endif
   return true;
 }
 

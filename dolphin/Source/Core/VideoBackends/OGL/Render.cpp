@@ -342,6 +342,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       m_current_depth_state(RenderState::GetInvalidDepthState()),
       m_current_blend_state(RenderState::GetInvalidBlendingState())
 {
+  #ifdef JC_DEBUGGING  
+  printf("jc  Renderer::Renderer \n");
+  #endif
   // Create the window framebuffer.
   if (!m_main_gl_context->IsHeadless())
   {
@@ -350,6 +353,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
         std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
     m_current_framebuffer = m_system_framebuffer.get();
+    #ifdef JC_DEBUGGING
+    printf("jc  Renderer::Renderer m_main_gl_context->GetBackBufferWidth(): %i,m_main_gl_context->GetBackBufferHeight(): %i\n",m_main_gl_context->GetBackBufferWidth(),m_main_gl_context->GetBackBufferHeight());
+    #endif
   }
 
   bool bSuccess = true;
@@ -736,7 +742,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // Else some of the next calls might crash.
     return;
   }
-
+  #ifdef JC_DEBUGGING
+  printf("jc  Renderer::Renderer g_Config.VerifyValidity();\n");
+  #endif
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 

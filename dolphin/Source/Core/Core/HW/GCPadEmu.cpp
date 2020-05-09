@@ -26,6 +26,7 @@ static const u16 button_bitmasks[] = {
     PAD_BUTTON_Y,
     PAD_TRIGGER_Z,
     PAD_BUTTON_START,
+    PAD_BUTTON_GUIDE,
     0  // MIC HAX
 };
 
@@ -38,7 +39,7 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
                                     PAD_BUTTON_RIGHT};
 
 
-static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
+static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start","Guide"};
 
 static const char* const named_triggers[] = {
     // i18n: The left trigger button (labeled L on real controllers)
@@ -193,6 +194,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface,int n)
   m_buttons->SetControlExpression(3, "`Button 3`");  // Y
   m_buttons->SetControlExpression(4, "`Button 10`");  // Z
   m_buttons->SetControlExpression(5, "`Button 6`");  // Start
+  m_buttons->SetControlExpression(6, "`Button 5`");  // Guide
 
 
   // stick modifiers to 50 %

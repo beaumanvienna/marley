@@ -128,6 +128,8 @@ add_library(common
   WindowSystemInfo.h
   WorkQueueThread.h
 )
+#target_compile_definitions(common PRIVATE JC_DEBUGGING=1)
+target_include_directories(common PRIVATE /usr/include/SDL2)
 
 target_link_libraries(common
 PUBLIC

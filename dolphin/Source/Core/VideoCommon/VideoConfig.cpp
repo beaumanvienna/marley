@@ -59,6 +59,9 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Refresh()
 {
+    #ifdef JC_DEBUGGING
+    printf("jc VideoConfig::Refresh() \n");
+    #endif
   if (!s_has_registered_callback)
   {
     // There was a race condition between the video thread and the host thread here, if
@@ -115,8 +118,9 @@ void VideoConfig::Refresh()
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
   bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
   iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
-  iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
-  iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
+  #warning "JC: modified. Asynchronous shader compling disabled. This could introduce stuttering"
+  iShaderCompilerThreads = 0;//Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
+  iShaderPrecompilerThreads = 0; //Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
   bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
   bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
@@ -165,9 +169,17 @@ void VideoConfig::Refresh()
 
 void VideoConfig::VerifyValidity()
 {
+    #ifdef JC_DEBUGGING
+    printf("jc VideoConfig::VerifyValidity()\n");
+    #endif
   // TODO: Check iMaxAnisotropy value
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+  {
+      #ifdef JC_DEBUGGING
+      printf("jc VideoConfig::VerifyValidity() (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))\n");
+      #endif
     iAdapter = 0;
+  }
 
   if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
       backend_info.AAModes.end())
@@ -183,6 +195,9 @@ void VideoConfig::VerifyValidity()
       stereo_mode = StereoMode::Off;
     }
   }
+  #ifdef JC_DEBUGGING
+  listParameters();
+  #endif
 }
 
 bool VideoConfig::UsingUberShaders() const
@@ -221,4 +236,260 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
     return static_cast<u32>(iShaderPrecompilerThreads);
   else
     return GetNumAutoShaderCompilerThreads();
+}
+
+
+
+
+
+
+
+
+
+
+void VideoConfig::listParameters()
+{
+    return;
+    printf("jc g_ActiveConfig.listParameters(); \n");
+    // General
+  if (bVSync) printf("jc bVSync\n");
+  if (bVSyncActive) printf("jc bVSyncActive\n");
+  if (bWidescreenHack) printf("jc bWidescreenHack\n");
+
+    switch (aspect_mode)
+    {
+        case AspectMode::Auto:
+            printf("jc aspect_mode Auto\n");
+            break;
+        case AspectMode::AnalogWide:
+            printf("jc aspect_mode AnalogWide\n");
+            break;
+        case AspectMode::Analog:
+            printf("jc aspect_mode Analog\n");
+            break;
+        case AspectMode::Stretch:
+            printf("jc aspect_mode Stretch\n");
+            break;
+        default:
+            printf("jc aspect_mode bad\n");
+            break;
+    }
+    switch (suggested_aspect_mode)
+    {
+        case AspectMode::Auto:
+            printf("jc suggested_aspect_mode Auto\n");
+            break;
+        case AspectMode::AnalogWide:
+            printf("jc suggested_aspect_mode AnalogWide\n");
+            break;
+        case AspectMode::Analog:
+            printf("jc suggested_aspect_mode Analog\n");
+            break;
+        case AspectMode::Stretch:
+            printf("jc suggested_aspect_mode Stretch\n");
+            break;
+        default:
+            printf("jc suggested_aspect_mode bad\n");
+            break;
+    }
+
+  if (bCrop) printf("jc bCrop\n");  // Aspect ratio controls.
+  if (bShaderCache) printf("jc bShaderCache\n");
+
+  // Enhancements
+  printf("jc u32 iMultisamples %i\n",iMultisamples);
+  if (bSSAA) printf("jc bSSAA\n");
+  printf("jc int iEFBScale %i\n",iEFBScale);
+  if (bForceFiltering) printf("jc bForceFiltering\n");
+  if (iMaxAnisotropy) printf("jc int iMaxAnisotropy\n");
+  printf("jc std::string sPostProcessingShader %s\n",sPostProcessingShader.c_str());
+  if (bForceTrueColor) printf("jc bForceTrueColor\n");
+  if (bDisableCopyFilter) printf("jc bDisableCopyFilter\n");
+  if (bArbitraryMipmapDetection) printf("jc bArbitraryMipmapDetection\n");
+  if (fArbitraryMipmapDetectionThreshold) printf("jc float fArbitraryMipmapDetectionThreshold\n");
+
+  // Information
+  if (bShowFPS) printf("jc bShowFPS\n");
+  if (bShowNetPlayPing) printf("jc bShowNetPlayPing\n");
+  if (bShowNetPlayMessages) printf("jc bShowNetPlayMessages\n");
+  if (bOverlayStats) printf("jc bOverlayStats\n");
+  if (bOverlayProjStats) printf("jc bOverlayProjStats\n");
+  if (bTexFmtOverlayEnable) printf("jc bTexFmtOverlayEnable\n");
+  if (bTexFmtOverlayCenter) printf("jc bTexFmtOverlayCenter\n");
+  if (bLogRenderTimeToFile) printf("jc bLogRenderTimeToFile\n");
+
+  // Render
+  if (bWireFrame) printf("jc bWireFrame\n");
+  if (bDisableFog) printf("jc bDisableFog\n");
+
+  // Utility
+  if (bDumpTextures) printf("jc bDumpTextures\n");
+  if (bHiresTextures) printf("jc bHiresTextures\n");
+  if (bCacheHiresTextures) printf("jc bCacheHiresTextures\n");
+  if (bDumpEFBTarget) printf("jc bDumpEFBTarget\n");
+  if (bDumpXFBTarget) printf("jc bDumpXFBTarget\n");
+  if (bDumpFramesAsImages) printf("jc bDumpFramesAsImages\n");
+  if (bUseFFV1) printf("jc bUseFFV1\n");
+  printf("jc std::string sDumpCodec %s\n",sDumpCodec.c_str());
+  printf("jc std::string sDumpEncoder %s\n",sDumpEncoder.c_str());
+  printf("jc std::string sDumpFormat %s\n",sDumpFormat.c_str());
+  printf("jc std::string sDumpPath %s\n",sDumpPath.c_str());
+  if (bInternalResolutionFrameDumps) printf("jc bInternalResolutionFrameDumps\n");
+  if (bFreeLook) printf("jc bFreeLook\n");
+  if (bBorderlessFullscreen) printf("jc bBorderlessFullscreen\n");
+  if (bEnableGPUTextureDecoding) printf("jc bEnableGPUTextureDecoding\n");
+  printf("jc int iBitrateKbps %i\n",iBitrateKbps);
+
+  // Hacks
+  if (bEFBAccessEnable) printf("jc bEFBAccessEnable\n");
+  if (bEFBAccessDeferInvalidation) printf("jc bEFBAccessDeferInvalidation\n");
+  if (bPerfQueriesEnable) printf("jc bPerfQueriesEnable\n");
+  if (bBBoxEnable) printf("jc bBBoxEnable\n");
+  if (bForceProgressive) printf("jc bForceProgressive\n");
+
+  if (bEFBEmulateFormatChanges) printf("jc bEFBEmulateFormatChanges\n");
+  if (bSkipEFBCopyToRam) printf("jc bSkipEFBCopyToRam\n");
+  if (bSkipXFBCopyToRam) printf("jc bSkipXFBCopyToRam\n");
+  if (bDisableCopyToVRAM) printf("jc bDisableCopyToVRAM\n");
+  if (bDeferEFBCopies) printf("jc bDeferEFBCopies\n");
+  if (bImmediateXFB) printf("jc bImmediateXFB\n");
+  if (bSkipPresentingDuplicateXFBs) printf("jc bSkipPresentingDuplicateXFBs\n");
+  if (bCopyEFBScaled) printf("jc bCopyEFBScaled\n");
+  printf("jc int iSafeTextureCache_ColorSamples %i\n",iSafeTextureCache_ColorSamples);
+  printf("jc float fAspectRatioHackW %f\n",fAspectRatioHackW);
+  printf("jc float fAspectRatioHackH %f\n",fAspectRatioHackH);
+  if (bEnablePixelLighting) printf("jc bEnablePixelLighting\n");
+  if (bFastDepthCalc) printf("jc bFastDepthCalc\n");
+  if (bVertexRounding) printf("jc bVertexRounding\n");
+  printf("jc int iEFBAccessTileSize %i\n",iEFBAccessTileSize);
+  printf("jc int iLog %i\n",iLog);           // CONF_ bits
+  printf("jc int iSaveTargetId %i\n",iSaveTargetId);  // TODO: Should be dropped
+  
+      switch (stereo_mode)
+    {
+        case StereoMode::Off:
+            printf("jc stereo_mode Off\n");
+            break;
+        case StereoMode::SBS:
+            printf("jc stereo_mode SBS\n");
+            break;
+        case StereoMode::TAB:
+            printf("jc stereo_mode TAB\n");
+            break;
+        case StereoMode::Anaglyph:
+            printf("jc stereo_mode Anaglyph\n");
+            break;
+        case StereoMode::QuadBuffer:
+            printf("jc stereo_mode QuadBuffer\n");
+            break;
+        case StereoMode::Passive:
+            printf("jc stereo_mode Passive\n");
+            break;
+        default:
+            printf("jc stereo_mode bad\n");
+            break;
+    }
+  
+  printf("jc int iStereoDepth %i\n",iStereoDepth);
+  printf("jc int iStereoConvergence %i\n",iStereoConvergence);
+  printf("jc int iStereoConvergencePercentage %i\n",iStereoConvergencePercentage);
+  if (bStereoSwapEyes) printf("jc bStereoSwapEyes\n");
+  if (bStereoEFBMonoDepth) printf("jc bStereoEFBMonoDepth\n");
+  printf("jc int iStereoDepthPercentage %i\n",iStereoDepthPercentage);
+
+  // D3D only config, mostly to be merged into the above
+  printf("jc int iAdapter %i\n",iAdapter);
+
+  // VideoSW Debugging
+  printf("jc int drawStart %i\n",drawStart);
+  printf("jc int drawEnd %i\n",drawEnd);
+  if (bZComploc) printf("jc bZComploc\n");
+  if (bZFreeze) printf("jc bZFreeze\n");
+  if (bDumpObjects) printf("jc bDumpObjects\n");
+  if (bDumpTevStages) printf("jc bDumpTevStages\n");
+  if (bDumpTevTextureFetches) printf("jc bDumpTevTextureFetches\n");
+
+  // Enable API validation layers, currently only supported with Vulkan.
+  if (bEnableValidationLayer) printf("jc bEnableValidationLayer\n");
+
+  // Multithreaded submission, currently only supported with Vulkan.
+  if (bBackendMultithreading) printf("jc bBackendMultithreading\n");
+
+  // Early command buffer execution interval in number of draws.
+  // Currently only supported with Vulkan.
+  printf("jc int iCommandBufferExecuteInterval %i\n",iCommandBufferExecuteInterval);
+
+  // Shader compilation settings.
+  if (bWaitForShadersBeforeStarting) printf("jc bWaitForShadersBeforeStarting\n");
+//ShaderCompilationMode iShaderCompilationMode;
+
+  // Number of shader compiler threads.
+  // 0 disables background compilation.
+  // -1 uses an automatic number based on the CPU threads.
+  printf("jc int iShaderCompilerThreads %i\n",iShaderCompilerThreads);
+  printf("jc int iShaderPrecompilerThreads %i\n",iShaderPrecompilerThreads);
+
+
+  #ifdef JC_DEBUGGING  
+  switch (backend_info.api_type)
+    {
+        case APIType::OpenGL:
+            printf("jc api_type OpenGL\n");
+            break;
+        case APIType::D3D:
+            printf("jc api_type D3D\n");
+            break;
+        case APIType::Vulkan:
+            printf("jc api_type Vulkan\n");
+            break;
+        case APIType::Nothing:
+            printf("jc api_type Nothing\n");
+            break;
+        default:
+            printf("jc api_type bad\n");
+            break;
+    }
+    #endif
+
+    //std::vector<std::string> Adapters;  // for D3D
+    //std::vector<u32> AAModes;
+
+    // TODO: merge AdapterName and Adapters array
+    printf("jc std::string AdapterName %s\n",backend_info.AdapterName.c_str());
+    printf("jc u32 MaxTextureSize %i\n",backend_info.MaxTextureSize);
+    ;
+    if (backend_info.bUsesLowerLeftOrigin) printf("jc backend_info.bUsesLowerLeftOrigin\n");
+
+    if (backend_info.bSupportsExclusiveFullscreen) printf("jc backend_info.bSupportsExclusiveFullscreen\n");
+    if (backend_info.bSupportsDualSourceBlend) printf("jc backend_info.bSupportsDualSourceBlend\n");
+    if (backend_info.bSupportsPrimitiveRestart) printf("jc backend_info.bSupportsPrimitiveRestart\n");
+    if (backend_info.bSupportsOversizedViewports) printf("jc backend_info.bSupportsOversizedViewports\n");
+    if (backend_info.bSupportsGeometryShaders) printf("jc backend_info.bSupportsGeometryShaders\n");
+    if (backend_info.bSupportsComputeShaders) printf("jc backend_info.bSupportsComputeShaders\n");
+    if (backend_info.bSupports3DVision) printf("jc backend_info.bSupports3DVision\n");
+    if (backend_info.bSupportsEarlyZ) printf("jc backend_info.bSupportsEarlyZ\n");         // needed by PixelShaderGen, so must stay in VideoCommon
+    if (backend_info.bSupportsBindingLayout) printf("jc backend_info.bSupportsBindingLayout\n");  // Needed by ShaderGen, so must stay in VideoCommon
+    if (backend_info.bSupportsBBox) printf("jc backend_info.bSupportsBBox\n");
+    if (backend_info.bSupportsGSInstancing) printf("jc backend_info.bSupportsGSInstancing\n");  // Needed by GeometryShaderGen, so must stay in VideoCommon
+    if (backend_info.bSupportsPostProcessing) printf("jc backend_info.bSupportsPostProcessing\n");
+    if (backend_info.bSupportsPaletteConversion) printf("jc backend_info.bSupportsPaletteConversion\n");
+    if (backend_info.bSupportsClipControl) printf("jc backend_info.bSupportsClipControl\n");  // Needed by VertexShaderGen, so must stay in VideoCommon
+    if (backend_info.bSupportsSSAA) printf("jc backend_info.bSupportsSSAA\n");
+    if (backend_info.bSupportsFragmentStoresAndAtomics) printf("jc backend_info.bSupportsFragmentStoresAndAtomics\n");  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
+    if (backend_info.bSupportsDepthClamp) printf("jc backend_info.bSupportsDepthClamp\n");  // Needed by VertexShaderGen, so must stay in VideoCommon
+    if (backend_info.bSupportsReversedDepthRange) printf("jc backend_info.bSupportsReversedDepthRange\n");
+    if (backend_info.bSupportsLogicOp) printf("jc backend_info.bSupportsLogicOp\n");
+    if (backend_info.bSupportsMultithreading) printf("jc backend_info.bSupportsMultithreading\n");
+    if (backend_info.bSupportsGPUTextureDecoding) printf("jc backend_info.bSupportsGPUTextureDecoding\n");
+    if (backend_info.bSupportsST3CTextures) printf("jc backend_info.bSupportsST3CTextures\n");
+    if (backend_info.bSupportsCopyToVram) printf("jc backend_info.bSupportsCopyToVram\n");
+    if (backend_info.bSupportsBitfield) printf("jc backend_info.bSupportsBitfield\n");                // Needed by UberShaders, so must stay in VideoCommon
+    if (backend_info.bSupportsDynamicSamplerIndexing) printf("jc backend_info.bSupportsDynamicSamplerIndexing\n");  // Needed by UberShaders, so must stay in VideoCommon
+    if (backend_info.bSupportsBPTCTextures) printf("jc backend_info.bSupportsBPTCTextures\n");
+    if (backend_info.bSupportsFramebufferFetch) printf("jc backend_info.bSupportsFramebufferFetch\n");  // Used as an alternative to dual-source blend on GLES
+    if (backend_info.bSupportsBackgroundCompiling) printf("jc backend_info.bSupportsBackgroundCompiling\n");
+    if (backend_info.bSupportsLargePoints) printf("jc backend_info.bSupportsLargePoints\n");
+    if (backend_info.bSupportsPartialDepthCopies) printf("jc backend_info.bSupportsPartialDepthCopies\n");
+    if (backend_info.bSupportsShaderBinaries) printf("jc backend_info.bSupportsShaderBinaries\n");
+    if (backend_info.bSupportsPipelineCacheData) printf("jc backend_info.bSupportsPipelineCacheData\n");
 }

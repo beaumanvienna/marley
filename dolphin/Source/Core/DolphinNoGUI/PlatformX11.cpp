@@ -21,11 +21,12 @@
 #include <X11/keysym.h>
 #include "UICommon/X11Utils.h"
 #include "VideoCommon/RenderBase.h"
+#include "../../../../include/gui.h"
 
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
 #endif
-
+extern bool requestShutdownGUIDE;
 namespace
 {
 class PlatformX11 : public Platform
@@ -45,7 +46,7 @@ private:
   void ProcessEvents();
 
   Display* m_display = nullptr;
-  Window m_window = {};
+  SDL_Window* m_window;
   Cursor m_blank_cursor = None;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   X11Utils::XRRConfiguration* m_xrr_config = nullptr;
@@ -58,6 +59,8 @@ private:
 
 PlatformX11::~PlatformX11()
 {
+    #warning "JC: modified"
+    /*
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   delete m_xrr_config;
 #endif
@@ -68,19 +71,22 @@ PlatformX11::~PlatformX11()
       XFreeCursor(m_display, m_blank_cursor);
 
     XCloseDisplay(m_display);
-  }
+  }*/
 }
 
 bool PlatformX11::Init()
 {
   XInitThreads();
+  m_window = gWindow;
+  
   m_display = XOpenDisplay(nullptr);
   if (!m_display)
   {
     PanicAlert("No X11 display found");
     return false;
   }
-
+  #warning "JC: modified"
+  /*
   m_window = XCreateSimpleWindow(m_display, DefaultRootWindow(m_display), m_window_x, m_window_y,
                                  m_window_width, m_window_height, 0, 0, BlackPixel(m_display, 0));
   XSelectInput(m_display, m_window, StructureNotifyMask | KeyPressMask | FocusChangeMask);
@@ -100,6 +106,7 @@ bool PlatformX11::Init()
   XMapRaised(m_display, m_window);
   XFlush(m_display);
   XSync(m_display, True);
+  
   ProcessEvents();
 
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
@@ -132,12 +139,13 @@ bool PlatformX11::Init()
   }
 
   UpdateWindowPosition();
+  */
   return true;
 }
 
 void PlatformX11::SetTitle(const std::string& string)
 {
-  XStoreName(m_display, m_window, string.c_str());
+  //XStoreName(m_display, m_window, string.c_str());
 }
 
 void PlatformX11::MainLoop()
@@ -166,6 +174,7 @@ WindowSystemInfo PlatformX11::GetWindowSystemInfo() const
 
 void PlatformX11::UpdateWindowPosition()
 {
+    /*
   if (m_window_fullscreen)
     return;
 
@@ -173,10 +182,40 @@ void PlatformX11::UpdateWindowPosition()
   unsigned int borderDummy, depthDummy;
   XGetGeometry(m_display, m_window, &winDummy, &m_window_x, &m_window_y, &m_window_width,
                &m_window_height, &borderDummy, &depthDummy);
+               */
 }
 
 void PlatformX11::ProcessEvents()
 {
+    #warning "JC: modified"
+    SDL_Event event;
+    
+    if(requestShutdownGUIDE)
+        RequestShutdown();
+    
+    while(SDL_PollEvent(&event))
+    {
+
+        if(event.type==SDL_QUIT)
+            RequestShutdown();
+
+        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_ESCAPE)
+            RequestShutdown();
+            
+        if(event.type==SDL_CONTROLLERBUTTONDOWN&&event.cbutton.button==SDL_CONTROLLER_BUTTON_GUIDE)
+            RequestShutdown();
+            
+        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F5)
+            State::Save(0);
+            
+        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F7)
+            State::Load(0);
+        
+        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F9)
+            Core::SaveScreenShot();
+
+    }
+    /*
   XEvent event;
   KeySym key;
   for (int num_events = XPending(m_display); num_events > 0; num_events--)
@@ -261,8 +300,10 @@ void PlatformX11::ProcessEvents()
         g_renderer->ResizeSurface();
     }
     break;
+    
     }
   }
+  */
 }
 }  // namespace
 

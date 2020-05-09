@@ -7,6 +7,7 @@
 
 #include "Common/GL/GLInterface/GLX.h"
 #include "Common/Logging/Log.h"
+#include "../../../../../../include/gui.h"
 
 #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
@@ -24,21 +25,25 @@ static PFNGLXCREATEGLXPBUFFERSGIXPROC glXCreateGLXPbufferSGIX = nullptr;
 static PFNGLXDESTROYGLXPBUFFERSGIXPROC glXDestroyGLXPbufferSGIX = nullptr;
 
 static bool s_glxError;
-static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
-{
-  s_glxError = true;
-  return 0;
-}
+//jc static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
+//jc {
+//jc   s_glxError = true;
+//jc   return 0;
+//jc }
 
 GLContextGLX::~GLContextGLX()
 {
+  #ifdef JC_DEBUGGING  
+  printf("jc GLContextGLX::~GLContextGLX() \n");
+  #endif
   DestroyWindowSurface();
   if (m_context)
   {
-    if (glXGetCurrentContext() == m_context)
-      glXMakeCurrent(m_display, None, nullptr);
-
-    glXDestroyContext(m_display, m_context);
+    SDL_GL_DeleteContext(m_context);
+//jc    if (glXGetCurrentContext() == m_context)
+//jc      glXMakeCurrent(m_display, None, nullptr);
+//jc
+//jc    glXDestroyContext(m_display, m_context);
   }
 }
 
@@ -49,6 +54,13 @@ bool GLContextGLX::IsHeadless() const
 
 void GLContextGLX::SwapInterval(int Interval)
 {
+    #ifdef JC_DEBUGGING
+    printf("jc GLContextGLX::SwapInterval() \n");
+    #endif
+    #define immediate_updates 0
+    #define updates_synchronized 1
+    SDL_GL_SetSwapInterval(updates_synchronized);
+    /*
   if (!m_drawable)
     return;
 
@@ -59,6 +71,7 @@ void GLContextGLX::SwapInterval(int Interval)
     glXSwapIntervalMESAPtr(static_cast<unsigned int>(Interval));
   else
     ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+    */
 }
 
 void* GLContextGLX::GetFuncAddress(const std::string& name)
@@ -68,15 +81,20 @@ void* GLContextGLX::GetFuncAddress(const std::string& name)
 
 void GLContextGLX::Swap()
 {
-  glXSwapBuffers(m_display, m_drawable);
+  //glXSwapBuffers(m_display, m_drawable);
+  SDL_GL_SwapWindow(gWindow);
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
+  #warning "JC: modified"
+  #ifdef JC_DEBUGGING  
+  printf("jc GLContextGLX::Initialize() stereo: %i, core %i\n",stereo,core);
+  #endif
   m_display = static_cast<Display*>(wsi.display_connection);
-  int screen = DefaultScreen(m_display);
+  int screen = SDL_GetWindowDisplayIndex(gWindow);
 
   // checking glx version
   int glxMajorVersion, glxMinorVersion;
@@ -95,9 +113,11 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   {
     ERROR_LOG(VIDEO,
               "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
+    printf("glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?\n");
     return false;
   }
-
+  
+  /*
   // choosing framebuffer
   int visual_attribs[] = {GLX_X_RENDERABLE,
                           True,
@@ -120,7 +140,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
                           GLX_STEREO,
                           stereo ? True : False,
                           None};
-  int fbcount = 0;
+  
+  //jc int fbcount = 0;
   GLXFBConfig* fbc = glXChooseFBConfig(m_display, screen, visual_attribs, &fbcount);
   if (!fbc || !fbcount)
   {
@@ -129,13 +150,16 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   }
   m_fbconfig = *fbc;
   XFree(fbc);
-
+  
   s_glxError = false;
   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
-
+  */
+  
   // Create a GLX context.
   if (core)
   {
+      m_context = SDL_GL_CreateContext(gWindow);
+      /*
     for (const auto& version : s_desktop_opengl_versions)
     {
       std::array<int, 9> context_attribs = {
@@ -153,9 +177,10 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
       INFO_LOG(VIDEO, "Created a GLX context with version %d.%d", version.first, version.second);
       m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
       break;
-    }
+    }*/
   }
-
+  
+  /*
   // Failed to create any core contexts, try for anything.
   if (!m_context || s_glxError)
   {
@@ -170,16 +195,17 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   if (!m_context || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
-    XSetErrorHandler(oldHandler);
+   //jc XSetErrorHandler(oldHandler);
     return false;
   }
+  */
 
   glXSwapIntervalEXTPtr = nullptr;
   glXSwapIntervalMESAPtr = nullptr;
   glXCreateGLXPbufferSGIX = nullptr;
   glXDestroyGLXPbufferSGIX = nullptr;
   m_supports_pbuffer = false;
-
+  
   std::string tmp;
   std::istringstream buffer(glXQueryExtensionsString(m_display, screen));
   while (buffer >> tmp)
@@ -199,6 +225,7 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     }
     else if (tmp == "GLX_MESA_swap_control")
     {
+        printf("jc found extension GLX_MESA_swap_control\n");
       glXSwapIntervalMESAPtr =
           reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(GetFuncAddress("glXSwapIntervalMESA"));
     }
@@ -207,33 +234,41 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   if (!CreateWindowSurface(reinterpret_cast<Window>(wsi.render_surface)))
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
-    XSetErrorHandler(oldHandler);
+    printf("Error: CreateWindowSurface failed\n");
+    //jcXSetErrorHandler(oldHandler);
     return false;
   }
 
-  XSetErrorHandler(oldHandler);
+  //jcXSetErrorHandler(oldHandler);
   m_opengl_mode = Mode::OpenGL;
+  #ifdef JC_DEBUGGING
+  printf("jc GLContextGLX::Initialize() end\n");
+  #endif
   return MakeCurrent();
 }
 
 std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
 {
+  #warning "JC: modified"
+  #ifdef JC_DEBUGGING
+  printf("jc GLContextGLX::CreateSharedContext()\n");
+  #endif
   s_glxError = false;
-  XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+  //jcXErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
-  GLXContext new_glx_context =
-      glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
-  XSync(m_display, False);
+  //jcGLXContext new_glx_context =
+  //jc    glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
+  //XSync(m_display, False);
 
-  if (!new_glx_context || s_glxError)
+  /*if (!new_glx_context || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
     XSetErrorHandler(oldHandler);
     return nullptr;
-  }
+  }*/
 
   std::unique_ptr<GLContextGLX> new_context = std::make_unique<GLContextGLX>();
-  new_context->m_context = new_glx_context;
+  new_context->m_context = m_context;
   new_context->m_opengl_mode = m_opengl_mode;
   new_context->m_supports_pbuffer = m_supports_pbuffer;
   new_context->m_display = m_display;
@@ -243,16 +278,19 @@ std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
   if (m_supports_pbuffer && !new_context->CreateWindowSurface(None))
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed");
-    XSetErrorHandler(oldHandler);
+    printf("Error: CreateWindowSurface failed\n");
+    //jcXSetErrorHandler(oldHandler);
     return nullptr;
   }
 
-  XSetErrorHandler(oldHandler);
+  //jcXSetErrorHandler(oldHandler);
   return new_context;
 }
 
 bool GLContextGLX::CreateWindowSurface(Window window_handle)
 {
+    #warning "JC: modified"
+    /*
   if (window_handle)
   {
     // Get an appropriate visual
@@ -273,34 +311,63 @@ bool GLContextGLX::CreateWindowSurface(Window window_handle)
       return false;
 
     m_drawable = static_cast<GLXDrawable>(m_pbuffer);
-  }
+  }*/
+  int w,h;
+  SDL_GetWindowSize(gWindow,&w,&h);
+  m_backbuffer_width = w;
+  m_backbuffer_height = h;
+  #ifdef JC_DEBUGGING
+  printf("jc GLContextGLX::CreateWindowSurface() width: %i, height: %i\n",m_backbuffer_width,m_backbuffer_height);
+  #endif
+  
+  XVisualInfo* vi = NULL;
+  m_render_window = GLX11Window::Create(m_display, window_handle, vi);
 
   return true;
 }
 
 void GLContextGLX::DestroyWindowSurface()
 {
-  m_render_window.reset();
+  //jc m_render_window.reset();
   if (m_supports_pbuffer && m_pbuffer)
   {
-    glXDestroyGLXPbufferSGIX(m_display, m_pbuffer);
+    //jc glXDestroyGLXPbufferSGIX(m_display, m_pbuffer);
     m_pbuffer = 0;
   }
 }
 
 bool GLContextGLX::MakeCurrent()
 {
-  return glXMakeCurrent(m_display, m_drawable, m_context);
+  bool ok = ((SDL_GL_MakeCurrent(gWindow, m_context) == 0));
+  #ifdef JC_DEBUGGING
+  if (ok) 
+  {
+      printf("jc GLContextGLX::MakeCurrent() ok\n");
+  }
+  else
+  {
+      printf("jc GLContextGLX::MakeCurrent() not ok %s\n", SDL_GetError());
+  }
+  #endif
+  //jcreturn glXMakeCurrent(m_display, m_drawable, m_context);
+  return true;
 }
 
 bool GLContextGLX::ClearCurrent()
 {
-  return glXMakeCurrent(m_display, None, nullptr);
+  #ifdef JC_DEBUGGING
+  printf("jc GLContextGLX::ClearCurrent()\n");
+  #endif
+  //jc return glXMakeCurrent(m_display, None, nullptr);
+  return true;
 }
 
 void GLContextGLX::Update()
 {
-  m_render_window->UpdateDimensions();
+    #ifdef JC_DEBUGGING
+    printf("jc GLContextGLX::Update()\n");
+    #endif
+  //jc m_render_window->UpdateDimensions();
   m_backbuffer_width = m_render_window->GetWidth();
   m_backbuffer_height = m_render_window->GetHeight();
 }

@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <SDL.h>
 
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLX11Window.h"
@@ -39,7 +40,7 @@ protected:
   std::unique_ptr<GLX11Window> m_render_window;
 
   GLXDrawable m_drawable = {};
-  GLXContext m_context = nullptr;
+  SDL_GLContext m_context = nullptr;
   GLXFBConfig m_fbconfig = {};
   bool m_supports_pbuffer = false;
   GLXPbufferSGIX m_pbuffer = 0;
