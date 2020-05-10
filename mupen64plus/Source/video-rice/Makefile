@@ -26,44 +26,44 @@ UNAME ?= $(shell uname -s)
 OS := NONE
 ifeq ("$(UNAME)","Linux")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","linux")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifneq ("$(filter GNU hurd,$(UNAME))","")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","Darwin")
   OS = OSX
-  SO_EXTENSION = dylib
+  LIB_EXTENSION = dylib
   SHARED = -bundle
   PIC = 1  # force PIC under OSX
 endif
 ifeq ("$(UNAME)","FreeBSD")
   OS = FREEBSD
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","OpenBSD")
   OS = FREEBSD
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifneq ("$(filter GNU/kFreeBSD kfreebsd,$(UNAME))","")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(patsubst MINGW%,MINGW,$(UNAME))","MINGW")
   OS = MINGW
-  SO_EXTENSION = dll
-  SHARED = -shared
+  LIB_EXTENSION = dll
+  STATICLIB = rvs
   PIC = 0
 endif
 ifeq ("$(OS)","NONE")
@@ -130,7 +130,7 @@ OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
 CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I.
 CXXFLAGS += -fvisibility-inlines-hidden
-LDFLAGS += $(SHARED)
+LDFLAGS += $(STATICLIB)
 
 ifeq ($(CPU), X86)
   CFLAGS += -msse
@@ -161,7 +161,7 @@ endif
 ifeq ($(OS), LINUX)
   LDLIBS += -ldl
   # only export api symbols
-  LDFLAGS += -Wl,-version-script,$(SRCDIR)/video_api_export.ver
+  #LDFLAGS += -Wl,-version-script,$(SRCDIR)/video_api_export.ver
 endif
 ifeq ($(OS), OSX)
   OSX_SDK_PATH = $(shell xcrun --sdk macosx --show-sdk-path)
@@ -263,13 +263,13 @@ else
 endif
 
 # reduced compile output when running make without V=1
-ifneq ($(findstring $(MAKEFLAGS),s),s)
-ifndef V
-	Q_CC  = @echo '    CC  '$@;
-	Q_CXX = @echo '    CXX '$@;
-	Q_LD  = @echo '    LD  '$@;
-endif
-endif
+#ifneq ($(findstring $(MAKEFLAGS),s),s)
+#ifndef V
+#	Q_CC  = @echo '    CC  '$@;
+#	Q_CXX = @echo '    CXX '$@;
+#	Q_LD  = @echo '    LD  '$@;
+#endif
+#endif
 
 # set base program pointers and flags
 CC        = $(CROSS_COMPILE)gcc
@@ -279,7 +279,7 @@ INSTALL  ?= install
 MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 COMPILE.cc = $(Q_CXX)$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-LINK.o = $(Q_LD)$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+LINK.o = ar $(LDFLAGS)
 
 # set special flags for given Makefile parameters
 ifeq ($(DEBUG),1)
@@ -364,7 +364,9 @@ OBJDIRS = $(dir $(OBJECTS))
 $(shell $(MKDIR) $(OBJDIRS))
 
 # build targets
-TARGET = mupen64plus-video-rice$(POSTFIX).$(SO_EXTENSION)
+TARGET = mupen64plus-video-rice$(POSTFIX).$(LIB_EXTENSION)
+
+all: $(TARGET)
 
 targets:
 	@echo "Mupen64plus-video-rice N64 Graphics plugin makefile. "
@@ -393,8 +395,6 @@ targets:
 	@echo "  Debugging Options:"
 	@echo "    DEBUG=1       == add debugging symbols"
 	@echo "    V=1           == show verbose compiler output"
-
-all: $(TARGET)
 
 install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(PLUGINDIR)"
@@ -425,6 +425,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(COMPILE.cc) -o $@ $<
 
 $(TARGET): $(OBJECTS)
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.o) $@  $^ $(LOADLIBES)
 
 .PHONY: all clean install uninstall targets

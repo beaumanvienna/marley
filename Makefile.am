@@ -1,5 +1,6 @@
 SUBDIRS = mednafen
 SUBDIRS += dolphin
+SUBDIRS += mupen64plus
 
 dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a: dolphin
 dolphin/build/Source/Core/Core/libcore.a: dolphin

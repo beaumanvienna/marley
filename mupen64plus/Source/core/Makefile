@@ -688,6 +688,8 @@ $(shell $(MKDIR) $(OBJDIRS))
 # we have a special object file for the new dynarec
 ASM_DEFINES_OBJ = $(OBJDIR)/asm_defines/asm_defines.o
 
+all: $(TARGET)
+
 # build targets
 targets:
 	@echo "Mupen64Plus-core makefile."
@@ -729,7 +731,6 @@ targets:
 	@echo "    DBG_PROFILE=1  == dump profiling data for r4300 dynarec to data file"
 	@echo "    V=1            == show verbose compiler output"
 
-all: $(TARGET)
 
 install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(LIBDIR)"

@@ -156,12 +156,12 @@ else
 endif
 
 # reduced compile output when running make without V=1
-ifneq ($(findstring $(MAKEFLAGS),s),s)
-ifndef V
-	Q_CC  = @echo '    CC  '$@;
-	Q_LD  = @echo '    LD  '$@;
-endif
-endif
+#ifneq ($(findstring $(MAKEFLAGS),s),s)
+#ifndef V
+#	Q_CC  = @echo '    CC  '$@;
+#	Q_LD  = @echo '    LD  '$@;
+#endif
+#endif
 
 # set base program pointers and flags
 CC        = $(CROSS_COMPILE)gcc
@@ -264,6 +264,10 @@ $(shell $(MKDIR) $(OBJDIRS))
 # build targets
 TARGET = mupen64plus$(POSTFIX)$(EXEEXT)
 
+
+all: $(TARGET)
+
+
 targets:
 	@echo "Mupen64Plus-ui-console makefile."
 	@echo "  Targets:"
@@ -291,8 +295,6 @@ targets:
 	@echo "  Debugging Options:"
 	@echo "    DEBUG=1        == add debugging symbols to application binary"
 	@echo "    V=1            == show verbose compiler output"
-
-all: $(TARGET)
 
 clean:
 	$(RM) -r $(OBJDIR) $(TARGET)

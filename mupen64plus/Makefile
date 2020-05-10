@@ -3,8 +3,8 @@ SUBDIRS = Source
 
 all: Source
 	$(info   *************** all ***************)
-build:
-	$(info   *************** build ***************)
+Source:
+	$(info   *************** Source ***************)
 	$(MAKE) -C $@
 
 check: Source

@@ -25,43 +25,43 @@ UNAME ?= $(shell uname -s)
 OS := NONE
 ifeq ("$(UNAME)","Linux")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","linux")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifneq ("$(filter GNU hurd,$(UNAME))","")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","Darwin")
   OS = OSX
-  SO_EXTENSION = dylib
-  SHARED = -bundle
+  LIB_EXTENSION = dylib
+  STATICLIB = -bundle
 endif
 ifeq ("$(UNAME)","FreeBSD")
   OS = FREEBSD
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(UNAME)","OpenBSD")
   OS = FREEBSD
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifneq ("$(filter GNU/kFreeBSD kfreebsd,$(UNAME))","")
   OS = LINUX
-  SO_EXTENSION = so
-  SHARED = -shared
+  LIB_EXTENSION = a
+  STATICLIB = rvs
 endif
 ifeq ("$(patsubst MINGW%,MINGW,$(UNAME))","MINGW")
   OS = MINGW
-  SO_EXTENSION = dll
-  SHARED = -shared
+  LIB_EXTENSION = dll
+  STATICLIB = rvs
   PIC = 0
 endif
 ifeq ("$(OS)","NONE")
@@ -94,7 +94,7 @@ endif
 OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
 CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
-LDFLAGS += $(SHARED)
+LDFLAGS += $(STATICLIB)
 LDLIBS += -lm
 
 # Since we are building a shared library, we must compile with -fPIC on some architectures
@@ -174,12 +174,12 @@ else
 endif
 
 # reduced compile output when running make without V=1
-ifneq ($(findstring $(MAKEFLAGS),s),s)
-ifndef V
-    Q_CC = @echo '    CC  '$@;
-    Q_LD = @echo '    LD  '$@;
-endif
-endif
+#ifneq ($(findstring $(MAKEFLAGS),s),s)
+#ifndef V
+#    Q_CC = @echo '    CC  '$@;
+#    Q_LD = @echo '    LD  '$@;
+#endif
+#endif
 
 # set base program pointers and flags
 CC        = $(CROSS_COMPILE)gcc
@@ -188,7 +188,8 @@ RM       ?= rm -f
 INSTALL  ?= install
 MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-LINK.o = $(Q_LD)$(CC) $(CFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+LINK.o = ar $(LDFLAGS)
+
 
 # set special flags for given Makefile parameters
 ifeq ($(DEBUG),1)
@@ -240,7 +241,11 @@ OBJDIRS = $(dir $(OBJECTS))
 $(shell $(MKDIR) $(OBJDIRS))
 
 # build targets
-TARGET = mupen64plus-input-sdl$(POSTFIX).$(SO_EXTENSION)
+TARGET = mupen64plus-input-sdl$(POSTFIX).$(LIB_EXTENSION)
+
+
+all: $(TARGET)
+
 
 targets:
 	@echo "Mupen64Plus-input-sdl makefile. "
@@ -268,8 +273,6 @@ targets:
 	@echo "    PLUGINDBG=1   == print extra debugging information while running"
 	@echo "    V=1           == show verbose compiler output"
 
-all: $(TARGET)
-
 install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(PLUGINDIR)"
 	$(INSTALL) -m 0644 $(INSTALL_STRIP_FLAG) $(TARGET) "$(DESTDIR)$(PLUGINDIR)"
@@ -294,6 +297,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(COMPILE.c) -o $@ $<
 
 $(TARGET): $(OBJECTS)
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.o) $@  $^ $(LOADLIBES)
 
 .PHONY: all clean install uninstall targets
