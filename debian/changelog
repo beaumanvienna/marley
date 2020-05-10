@@ -1,4 +1,4 @@
-marley (0.0.5) bionic; urgency=medium
+marley (0.0.5.2) bionic; urgency=medium
 
   * Dolphin added (Wii, Gamecube, Wiimote support)
   * this is an unstable version 
