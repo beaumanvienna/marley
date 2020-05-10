@@ -1,6 +1,46 @@
 SUBDIRS = mednafen
 SUBDIRS += dolphin
 
+dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a: dolphin
+dolphin/build/Source/Core/Core/libcore.a: dolphin
+dolphin/build/Source/Core/UICommon/libuicommon.a: dolphin
+dolphin/build/Source/Core/../../Externals/imgui/libimgui.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Null/libvideonull.a: dolphin
+dolphin/build/Source/Core/VideoBackends/OGL/libvideoogl.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Software/libvideosoftware.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Vulkan/libvideovulkan.a: dolphin
+dolphin/build/Source/Core/VideoCommon/libvideocommon.a: dolphin
+dolphin/build/Source/Core/Core/libcore.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Null/libvideonull.a: dolphin
+dolphin/build/Source/Core/VideoBackends/OGL/libvideoogl.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Software/libvideosoftware.a: dolphin
+dolphin/build/Source/Core/VideoBackends/Vulkan/libvideovulkan.a: dolphin
+dolphin/build/Source/Core/VideoCommon/libvideocommon.a: dolphin
+dolphin/build/Source/Core/AudioCommon/libaudiocommon.a: dolphin
+dolphin/build/Source/Core/../../Externals/soundtouch/libSoundTouch.a: dolphin
+dolphin/build/Source/Core/../../Externals/FreeSurround/libFreeSurround.a: dolphin
+dolphin/build/Source/Core/../../Externals/cubeb/libcubeb.a: dolphin
+dolphin/build/Source/Core/DiscIO/libdiscio.a: dolphin
+dolphin/build/Source/Core/InputCommon/libinputcommon.a: dolphin
+dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a: dolphin
+dolphin/build/Source/Core/../../Externals/glslang/libglslang.a: dolphin
+dolphin/build/Source/Core/../../Externals/imgui/libimgui.a: dolphin
+dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a: dolphin
+dolphin/build/Source/Core/Common/libcommon.a: dolphin
+dolphin/build/Source/Core/../../Externals/enet/libenet.a: dolphin
+dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
+dolphin/build/Source/Core/../../Externals/fmt/libfmt.a: dolphin
+dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
+dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
+dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
+dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolphin
+
+
+
+
+dolphin:
+	$(info   ++++++++++++++++ dolphin ++++++++++++++++)
+	$(MAKE) -C dolphin all
 
 
 AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
@@ -14,6 +54,8 @@ marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
 
 marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
+
+
 #marley_LDADD 	+= dolphin/build/Source/Core/DolphinQt/libdolphin-emu.a
 marley_LDADD 	+= dolphin/build/Source/Core/Core/libcore.a 
 marley_LDADD 	+= dolphin/build/Source/Core/UICommon/libuicommon.a 

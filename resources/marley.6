@@ -1,0 +1,50 @@
+.\" Manpage for marley.
+
+.TH man 6 "09 May 2020" "0.0.5" "marley man page"
+.SH NAME
+marley \- Many Awesome Retro Linux Emulators, Yay! 
+.SH SYNOPSIS [options]
+marley
+.SH DESCRIPTION
+Marley is a suite of console emulators plus a launcher app. 
+Currently, Mednafen and Dolphin are bundled in Marley.
+Marley's launcher interface is designed to be used with 
+a gamepad. Gamepads can be hotplugged and automatically detetcted
+in the launcher interface. Marley also allows to configure 
+the button assignment of a controller maunally. The controller settings 
+will be shared with all emulators. Marley allows you to browse 
+your ROM collection and launch games for the NES, SNES, PS1, 
+Sega Genesis, Gamecube and Wii. Please make sure that an
+OpenGl graphics card drivers is installed for your X-server.
+If you have a Bluethooth gamepad, you need to pair it with
+your computer first before it can be used in Marley. However, 
+there is one exception: The Wiimote is directly paired with Marley. On newer 
+Wiimotes, you need to press 1 and 2 together, while older models have 
+button in the battery compartment.
+
+Happy retro gaming!
+
+Use your controller or arrow keys/enter/escape on your keyboard to navigate.
+
+Use "l" to print a list of detected controllers to the command line.
+
+Use "f" to toggle fullscreen.
+
+Use "p" to print the current gamepad mapping(s).
+
+Use "F5" to save and "F7" to load game states while playing.
+
+Use the guide button to exit a game with no questions asked. The guide button is the big one in the middle.
+
+Use "ESC" to exit.
+
+Visit https://github.com/beaumanvienna/marley for more information.
+.SH OPTIONS
+  --version             : print version
+  --fullscreen, -f      : start in fullscreen mode
+.SH SEE ALSO
+
+.SH BUGS
+
+.SH AUTHOR
+Team Marley. To contact us, open an issues ticket on https://github.com/beaumanvienna/marley

@@ -5,7 +5,7 @@ Source: https://github.com/beaumanvienna/marley
 
 Files: include/* src/*
 Copyright: 2020 JC <jc.lache@web.de>
-License: LGPL-2.1+
+License: GPL-2+, see /usr/share/common-licenses 
 
 Files: resources/*.ttf
 Copyright: Stepan Roh <src@users.sourceforge.net> Ubuntu package fonts-dejavu-core
