@@ -2,9 +2,9 @@
 SUBDIRS = Source
 
 all: Source
-	$(info   *************** mupen top level all ***************)
+	$(info   *************** mupen top level all end ***************)
 Source:
-	$(info   *************** mupen top level Source ***************)
+	$(info   *************** mupen top level Source end ***************)
 	$(MAKE) -C $@
 
 clean:

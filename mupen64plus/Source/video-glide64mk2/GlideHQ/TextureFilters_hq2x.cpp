@@ -481,7 +481,7 @@ static void hq2xS_16_def(uint16* dst0, uint16* dst1, const uint16* src0, const u
 }
 #endif /* !_16BPP_HACK */
 
-static void hq2x_32_def(uint32* dst0, uint32* dst1, const uint32* src0, const uint32* src1, const uint32* src2, unsigned count)
+static void MU_hq2x_32_def(uint32* dst0, uint32* dst1, const uint32* src0, const uint32* src1, const uint32* src2, unsigned count)
 {
   unsigned i;
 
@@ -940,7 +940,7 @@ static void lq2xS_16_def(uint16* dst0, uint16* dst1, const uint16* src0, const u
 }
 #endif /* !_16BPP_HACK */
 
-static void lq2x_32_def(uint32* dst0, uint32* dst1, const uint32* src0, const uint32* src1, const uint32* src2, unsigned count)
+static void MU_lq2x_32_def(uint32* dst0, uint32* dst1, const uint32* src0, const uint32* src1, const uint32* src2, unsigned count)
 {
   unsigned i;
 
@@ -1214,7 +1214,7 @@ void hq2xS_16(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 }
 #endif /* !_16BPP_HACK */
 
-void hq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
+void MU_hq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
 {
   uint32 *dst0 = (uint32 *)dstPtr;
   uint32 *dst1 = dst0 + (dstPitch >> 2);
@@ -1225,7 +1225,7 @@ void hq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
 
   int count;
 
-  hq2x_32_def(dst0, dst1, src0, src0, src1, width);
+  MU_hq2x_32_def(dst0, dst1, src0, src0, src1, width);
   if( height == 1 ) return;
 
   count = height;
@@ -1234,7 +1234,7 @@ void hq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
   while(count>0) {
     dst0 += dstPitch >> 1;
     dst1 += dstPitch >> 1;
-    hq2x_32_def(dst0, dst1, src0, src1, src2, width);
+    MU_hq2x_32_def(dst0, dst1, src0, src1, src2, width);
     src0 = src1;
     src1 = src2;
     src2 += srcPitch >> 2;
@@ -1242,7 +1242,7 @@ void hq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
   }
   dst0 += dstPitch >> 1;
   dst1 += dstPitch >> 1;
-  hq2x_32_def(dst0, dst1, src0, src1, src1, width);
+  MU_hq2x_32_def(dst0, dst1, src0, src1, src1, width);
 }
 
 void hq2xS_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
@@ -1336,7 +1336,7 @@ void lq2xS_16(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, in
 }
 #endif /* !_16BPP_HACK */
 
-void lq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
+void MU_lq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
 {
   uint32 *dst0 = (uint32 *)dstPtr;
   uint32 *dst1 = dst0 + (dstPitch >> 2);
@@ -1347,7 +1347,7 @@ void lq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
 
   int count;
 
-  lq2x_32_def(dst0, dst1, src0, src0, src1, width);
+  MU_lq2x_32_def(dst0, dst1, src0, src0, src1, width);
   if( height == 1 ) return;
 
   count = height;
@@ -1356,7 +1356,7 @@ void lq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
   while(count>0) {
     dst0 += dstPitch >> 1;
     dst1 += dstPitch >> 1;
-    hq2x_32_def(dst0, dst1, src0, src1, src2, width);
+    MU_hq2x_32_def(dst0, dst1, src0, src1, src2, width);
     src0 = src1;
     src1 = src2;
     src2 += srcPitch >> 2;
@@ -1364,7 +1364,7 @@ void lq2x_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int
   }
   dst0 += dstPitch >> 1;
   dst1 += dstPitch >> 1;
-  lq2x_32_def(dst0, dst1, src0, src1, src1, width);
+  MU_lq2x_32_def(dst0, dst1, src0, src1, src1, width);
 }
 
 void lq2xS_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, int width, int height)
@@ -1387,7 +1387,7 @@ void lq2xS_32(uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch, in
   while(count>0) {
     dst0 += dstPitch >> 1;
     dst1 += dstPitch >> 1;
-    hq2x_32_def(dst0, dst1, src0, src1, src2, width);
+    MU_hq2x_32_def(dst0, dst1, src0, src1, src2, width);
     src0 = src1;
     src1 = src2;
     src2 += srcPitch >> 2;

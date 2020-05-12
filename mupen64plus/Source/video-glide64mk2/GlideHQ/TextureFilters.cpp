@@ -668,13 +668,13 @@ void filter_8888(uint32 *src, uint32 srcwidth, uint32 srcheight, uint32 *dest, u
     hq4x_8888((uint8*)src, (uint8*)dest, srcwidth, srcheight, srcwidth, (srcwidth << 4));
     return;
   case HQ2X_ENHANCEMENT:
-    hq2x_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);
+    MU_hq2x_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);
     return;
   case HQ2XS_ENHANCEMENT:
     hq2xS_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);
     return;
   case LQ2X_ENHANCEMENT:
-    lq2x_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);
+    MU_lq2x_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);
     return;
   case LQ2XS_ENHANCEMENT:
     lq2xS_32((uint8*)src, (srcwidth << 2), (uint8*)dest, (srcwidth << 3), srcwidth, srcheight);

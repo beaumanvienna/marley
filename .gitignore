@@ -39,5 +39,4 @@ mupen64plus/Source/ui-console/_obj/
 mupen64plus/Source/ui-console/mupen64plus
 mupen64plus/Source/video-glide64mk2/_obj/
 mupen64plus/Source/video-glide64mk2/mupen64plus-video-glide64mk2.a
-mupen64plus/Source/video-rice/_obj/
-mupen64plus/Source/video-rice/mupen64plus-video-rice.a
+mupen64plus/Source/mupen.a

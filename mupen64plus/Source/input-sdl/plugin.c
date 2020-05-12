@@ -273,8 +273,8 @@ m64p_error IPluginShutdown(void)
     l_DebugCallContext = NULL;
 
     /* quit the joystick subsystem if necessary */
-    if (!l_joyWasInit)
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+    /*if (!l_joyWasInit)
+        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);*/
 
     l_PluginInit = 0;
     return M64ERR_SUCCESS;
