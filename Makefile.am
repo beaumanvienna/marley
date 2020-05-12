@@ -44,7 +44,7 @@ mupen64plus/Source/audio-sdl/mupen64plus-audio-sdl.a: mupen64plus
 mupen64plus/Source/core/libmupen64plus.a: mupen64plus
 mupen64plus/Source/input-sdl/mupen64plus-input-sdl.a: mupen64plus
 mupen64plus/Source/rsp-hle/mupen64plus-rsp-hle.a: mupen64plus
-mupen64plus/Source/ui-console/mupen64plus: mupen64plus
+mupen64plus/Source/ui-console/mupen64plus.a: mupen64plus
 mupen64plus/Source/video-glide64mk2/mupen64plus-video-glide64mk2.a: mupen64plus
 mupen64plus/Source/video-rice/mupen64plus-video-rice.a: mupen64plus
 
@@ -62,16 +62,18 @@ marley_LDADD 	= mednafen/src/libmednafen_marley.a
 marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
 
+#mupen64plus
+
 marley_LDADD 	+= mupen64plus/Source/audio-sdl/mupen64plus-audio-sdl.a
 marley_LDADD 	+= mupen64plus/Source/core/libmupen64plus.a
 marley_LDADD 	+= mupen64plus/Source/input-sdl/mupen64plus-input-sdl.a
 marley_LDADD 	+= mupen64plus/Source/rsp-hle/mupen64plus-rsp-hle.a
-marley_LDADD 	+= mupen64plus/Source/ui-console/mupen64plus
+marley_LDADD 	+= mupen64plus/Source/ui-console/mupen64plus.a
 marley_LDADD 	+= mupen64plus/Source/video-glide64mk2/mupen64plus-video-glide64mk2.a
-marley_LDADD 	+= mupen64plus/Source/video-rice/mupen64plus-video-rice.a
+marley_LDADD 	+= -lGL -lstdc++ -lGLU -lfreetype -lboost_system -lboost_filesystem -lsamplerate
 
+#dolphin
 marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
-#marley_LDADD 	+= dolphin/build/Source/Core/DolphinQt/libdolphin-emu.a
 marley_LDADD 	+= dolphin/build/Source/Core/Core/libcore.a 
 marley_LDADD 	+= dolphin/build/Source/Core/UICommon/libuicommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/imgui/libimgui.a 
@@ -138,7 +140,7 @@ marley_LDADD 	+= -lsfml-system
 marley_LDADD 	+= -ludev 
 marley_LDADD 	+= -lc 
 marley_LDADD 	+= -lpng 
-marley_LDADD 	+= -ldl 
+marley_LDADD    += -ldl
 marley_LDADD 	+= -lrt 
 marley_LDADD 	+= -lXrandr 
 marley_LDADD 	+= -lpulse 

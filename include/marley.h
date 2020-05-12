@@ -32,8 +32,9 @@ using namespace std;
 #ifndef MARLEY_H
 #define MARLEY_H
 
-    #define MEDNAFEN 1
-    #define DOLPHIN 1
+    #define MEDNAFEN    1
+    #define DOLPHIN     1
+    #define MUPEN64PLUS 1
     
     #ifdef MEDNAFEN
         int mednafen_main(int argc, char* argv[]);
@@ -41,6 +42,10 @@ using namespace std;
     
     #ifdef DOLPHIN
         int dolphin_main(int argc, char* argv[]);
+    #endif
+    
+    #ifdef MUPEN64PLUS
+        extern "C" int mupen64plus_main(int argc, char* argv[]);
     #endif
     
     bool restoreSDL(void);

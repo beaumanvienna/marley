@@ -1618,7 +1618,7 @@ m64p_error GPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
         ERRLOG("Couldn't connect to Core video functions");
         return M64ERR_INCOMPATIBLE;
     }
-    warning "JC: debug code"
+    #warning "JC: debug code"
     const char s[]="/home/yo/temp/mupen64plus/source/mupen64plus-video-glide64mk2/data/Glide64mk2.ini";
     const char *configDir = s;
     if (configDir)

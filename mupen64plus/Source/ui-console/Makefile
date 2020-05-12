@@ -25,6 +25,8 @@ UNAME ?= $(shell uname -s)
 OS := NONE
 ifeq ("$(UNAME)","Linux")
   OS = LINUX
+  LIB_EXTENSION = a
+  STATICLIB = rs
 endif
 ifeq ("$(UNAME)","linux")
   OS = LINUX
@@ -85,6 +87,7 @@ endif
 # set special flags per-system
 ifeq ($(OS), LINUX)
   LDLIBS += -ldl -lm -lz -lpng -lGL -lstdc++ -lGLU -lfreetype -lboost_system -lboost_filesystem -lsamplerate
+  LDFLAGS = $(STATICLIB)
 endif
 ifeq ($(OS), OSX)
   OSX_SDK_PATH = $(shell xcrun --sdk macosx --show-sdk-path)
@@ -170,20 +173,13 @@ RM       ?= rm -f
 INSTALL  ?= install
 MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-LINK.o = $(Q_LD)$(CC) $(CFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+LINK.o = ar $(LDFLAGS)
 
 ifeq ($(PIE), 1)
   CFLAGS += -fPIE
   LDFLAGS += -pie
 else
   CFLAGS += -fno-PIE
-  ifeq ($(CC),$(CROSS_COMPILE)gcc)
-    # check if PIE is the default for the compiler
-    PIE_DEFAULT = $(shell $(CC) -v 2>&1 | grep enable-default-pie)
-    ifneq ($(PIE_DEFAULT),)
-      LDFLAGS += -no-pie
-    endif
-  endif
 endif
 
 # set installation options
@@ -262,8 +258,7 @@ OBJDIRS = $(dir $(OBJECTS))
 $(shell $(MKDIR) $(OBJDIRS))
 
 # build targets
-TARGET = mupen64plus$(POSTFIX)$(EXEEXT)
-
+TARGET = mupen64plus.$(LIB_EXTENSION)
 
 all: $(TARGET)
 
@@ -330,6 +325,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(COMPILE.c) -o $@ $<
 
 $(TARGET): $(OBJECTS)
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.o) $@  $^ $(LOADLIBES)
 
 .PHONY: all clean install uninstall targets

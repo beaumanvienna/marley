@@ -885,7 +885,7 @@ static m64p_media_loader l_media_loader =
  */
 __attribute__ ((visibility("default")))
 #endif
-int main(int argc, char *argv[])
+int mupen64plus_main(int argc, char *argv[])
 {
     int i;
 

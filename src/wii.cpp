@@ -34,7 +34,7 @@ bool down, down_prev;
 bool lft, lft_prev;
 bool rght, rght_prev;
 bool a,a_prev;
-bool b,b_prev;
+bool bbutton,b_prev;
 bool guide,guide_prev;
 bool wiimoteOnline, wiimoteOnline_prev;
 
@@ -55,7 +55,7 @@ bool initWii(void)
     
     up = up_prev = down, down_prev = false;
     lft = lft_prev = rght = rght_prev = false;
-    a = a_prev = b = b_prev = guide = guide_prev = false;
+    a = a_prev = bbutton = b_prev = guide = guide_prev = false;
     wiimoteOnline = wiimoteOnline_prev = false;
 
     return ok;
@@ -78,7 +78,7 @@ bool mainLoopWii(void)
         lft     = (buttons & 0x0001);
         rght    = (buttons & 0x0002);
         a       = (buttons & 0x0800);
-        b       = (buttons & 0x0400);
+        bbutton       = (buttons & 0x0400);
         guide   = (buttons & 0x8000);
         
         if ((up != up_prev) && (up))            statemachine(SDL_CONTROLLER_BUTTON_DPAD_UP);
@@ -86,7 +86,7 @@ bool mainLoopWii(void)
         if ((lft != lft_prev) && (lft))         statemachine(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
         if ((rght != rght_prev) && (rght))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
         if ((a != a_prev) && (a))               statemachine(SDL_CONTROLLER_BUTTON_A);
-        if ((b != b_prev) && (b))               statemachine(SDL_CONTROLLER_BUTTON_A);
+        if ((bbutton != b_prev) && (bbutton))               statemachine(SDL_CONTROLLER_BUTTON_A);
         if ((guide != guide_prev) && (guide))   statemachine(SDL_CONTROLLER_BUTTON_GUIDE);
         
         up_prev     = up;
@@ -94,14 +94,14 @@ bool mainLoopWii(void)
         lft_prev    = lft;
         rght_prev   = rght;
         a_prev      = a;
-        b_prev      = b;
+        b_prev      = bbutton;
         guide_prev  = guide;
     }
     else
     {
         up = up_prev = down, down_prev = false;
         lft = lft_prev = rght = rght_prev = false;
-        a = a_prev = b = b_prev = guide = guide_prev = false;
+        a = a_prev = bbutton = b_prev = guide = guide_prev = false;
         wiimoteOnline = false;
     }
     if (wiimoteOnline != wiimoteOnline_prev)

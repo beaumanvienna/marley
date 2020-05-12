@@ -409,6 +409,28 @@ bool statemachine(int cmd)
                             ext = str.substr(str.find_last_of(".") + 1);
                             std::transform(ext.begin(), ext.end(), ext.begin(),
                                 [](unsigned char c){ return std::tolower(c); });
+                                
+#ifdef MUPEN64PLUS
+                            
+                            if (ext == "z64")
+                            {
+                                
+                                
+                                str = "mupen64plus";
+                                n = str.length(); 
+                                strcpy(arg1, str.c_str()); 
+                                
+                                n = gGame[gCurrentGame].length(); 
+                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
+                                
+                                argv[0] = arg1;
+                                argv[1] = arg2;
+                                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                                mupen64plus_main(argc,argv);
+                                restoreSDL();
+                            }
+#endif
+
 #ifdef DOLPHIN
                             
                             if (ext == "iso")
