@@ -224,7 +224,7 @@ void osd_init(int width, int height)
         return;
     }
 
-    fontpath = ConfigGetSharedDataFilepath(FONT_FILENAME);
+    fontpath = EConfigGetSharedDataFilepath(FONT_FILENAME);
 
     l_font = OGLFT_Monochrome_create(fontpath, (float) height / 35.f);  // make font size proportional to screen height
 
@@ -236,7 +236,7 @@ void osd_init(int width, int height)
 
 #if SDL_VERSION_ATLEAST(2,0,0)
     int gl_context;
-    VidExt_GL_GetAttribute(M64P_GL_CONTEXT_PROFILE_MASK, &gl_context);
+    EVidExt_GL_GetAttribute(M64P_GL_CONTEXT_PROFILE_MASK, &gl_context);
     if (gl_context == M64P_GL_CONTEXT_PROFILE_CORE)
     {
         DebugMessage(M64MSG_WARNING, "OSD not compatible with OpenGL core context. OSD deactivated.");
@@ -253,7 +253,7 @@ void osd_init(int width, int height)
     glEnable(GL_RASTER_POSITION_UNCLIPPED_IBM);
 #endif
 
-    pglActiveTexture = (PTRGLACTIVETEXTURE) VidExt_GL_GetProcAddress("glActiveTexture");
+    pglActiveTexture = (PTRGLACTIVETEXTURE) EVidExt_GL_GetProcAddress("glActiveTexture");
     if (pglActiveTexture == NULL)
     {
         DebugMessage(M64MSG_WARNING, "OpenGL function glActiveTexture() not supported.  OSD deactivated.");

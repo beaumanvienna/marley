@@ -155,7 +155,7 @@ static int GamesharkActive = 0;
  */
 static int MatchJoyCommand(const SDL_Event *event, eJoyCommand cmd)
 {
-    const char *multi_event_str = ConfigGetParamString(l_CoreEventsConfig, JoyCmdName[cmd]);
+    const char *multi_event_str = EConfigGetParamString(l_CoreEventsConfig, JoyCmdName[cmd]);
     const int orig_cmd_value = (JoyCmdActive[cmd][1] << 1) | JoyCmdActive[cmd][0];
     int dev_number, input_number, input_value;
     char axis_direction;
@@ -333,12 +333,12 @@ static int SDLCALL event_sdl_filter(void *userdata, SDL_Event *event)
                 case SDL_WINDOWEVENT_RESIZED:
                     // call the video plugin.  if the video plugin supports resizing, it will resize its viewport and call
                     // VidExt_ResizeWindow to update the window manager handling our opengl output window
-                    gfx.resizeVideoOutput(event->window.data1, event->window.data2);
+                    Cgfx.resizeVideoOutput(event->window.data1, event->window.data2);
                     return 0;  // consumed the event
                     break;
 
                 case SDL_WINDOWEVENT_MOVED:
-                    gfx.moveScreen(event->window.data1, event->window.data2);
+                    Cgfx.moveScreen(event->window.data1, event->window.data2);
                     return 0;  // consumed the event
                     break;
             }
@@ -347,14 +347,14 @@ static int SDLCALL event_sdl_filter(void *userdata, SDL_Event *event)
         case SDL_VIDEORESIZE:
             // call the video plugin.  if the video plugin supports resizing, it will resize its viewport and call
             // VidExt_ResizeWindow to update the window manager handling our opengl output window
-            gfx.resizeVideoOutput(event->resize.w, event->resize.h);
+            Cgfx.resizeVideoOutput(event->resize.w, event->resize.h);
             return 0;  // consumed the event
             break;
 
 #ifdef WIN32
         case SDL_SYSWMEVENT:
             if(event->syswm.msg->msg == WM_MOVE)
-                gfx.moveScreen(0,0); // The video plugin is responsible for getting the new window position
+                Cgfx.moveScreen(0,0); // The video plugin is responsible for getting the new window position
             return 0;  // consumed the event
             break;
 #endif
@@ -371,7 +371,7 @@ static int SDLCALL event_sdl_filter(void *userdata, SDL_Event *event)
                 if (action == 1) /* command was just activated (button down, etc) */
                 {
                     if (cmd == joyFullscreen)
-                        gfx.changeWindow();
+                        Cgfx.changeWindow();
                     else if (cmd == joyStop)
                         main_stop();
                     else if (cmd == joyPause)
@@ -438,7 +438,7 @@ void event_initialize(void)
     {
         for (i = 0; i < NumJoyCommands; i++)
         {
-            const char *multi_event_str = ConfigGetParamString(l_CoreEventsConfig, JoyCmdName[i]);
+            const char *multi_event_str = EConfigGetParamString(l_CoreEventsConfig, JoyCmdName[i]);
             /* Empty string or invalid command */
             if (multi_event_str == NULL || strlen(multi_event_str) < 4 || multi_event_str[0] != 'J')
                 continue;
@@ -510,67 +510,67 @@ int event_set_core_defaults(void)
 {
     float fConfigParamsVersion;
 
-    if (ConfigOpenSection("CoreEvents", &l_CoreEventsConfig) != M64ERR_SUCCESS || l_CoreEventsConfig == NULL)
+    if (EConfigOpenSection("CoreEvents", &l_CoreEventsConfig) != M64ERR_SUCCESS || l_CoreEventsConfig == NULL)
     {
         DebugMessage(M64MSG_ERROR, "Failed to open CoreEvents config section.");
         return 0; /* fail */
     }
 
-    if (ConfigGetParameter(l_CoreEventsConfig, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
+    if (EConfigGetParameter(l_CoreEventsConfig, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_WARNING, "No version number in 'CoreEvents' config section. Setting defaults.");
-        ConfigDeleteSection("CoreEvents");
-        ConfigOpenSection("CoreEvents", &l_CoreEventsConfig);
+        EConfigDeleteSection("CoreEvents");
+        EConfigOpenSection("CoreEvents", &l_CoreEventsConfig);
     }
     else if (((int) fConfigParamsVersion) != ((int) CONFIG_PARAM_VERSION))
     {
         DebugMessage(M64MSG_WARNING, "Incompatible version %.2f in 'CoreEvents' config section: current is %.2f. Setting defaults.", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
-        ConfigDeleteSection("CoreEvents");
-        ConfigOpenSection("CoreEvents", &l_CoreEventsConfig);
+        EConfigDeleteSection("CoreEvents");
+        EConfigOpenSection("CoreEvents", &l_CoreEventsConfig);
     }
     else if ((CONFIG_PARAM_VERSION - fConfigParamsVersion) >= 0.0001f)
     {
         /* handle upgrades */
         float fVersion = CONFIG_PARAM_VERSION;
-        ConfigSetParameter(l_CoreEventsConfig, "Version", M64TYPE_FLOAT, &fVersion);
+        EConfigSetParameter(l_CoreEventsConfig, "Version", M64TYPE_FLOAT, &fVersion);
         DebugMessage(M64MSG_INFO, "Updating parameter set version in 'CoreEvents' config section to %.2f", fVersion);
     }
 
-    ConfigSetDefaultFloat(l_CoreEventsConfig, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus CoreEvents config parameter set version number.  Please don't change this version number.");
+    EConfigSetDefaultFloat(l_CoreEventsConfig, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus CoreEvents config parameter set version number.  Please don't change this version number.");
     /* Keyboard presses mapped to core functions */
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdStop, sdl_native2keysym(SDL_SCANCODE_ESCAPE),          "SDL keysym for stopping the emulator");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdFullscreen, sdl_native2keysym(SDL_NUM_SCANCODES),      "SDL keysym for switching between fullscreen/windowed modes");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdSave, sdl_native2keysym(SDL_SCANCODE_F5),              "SDL keysym for saving the emulator state");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdLoad, sdl_native2keysym(SDL_SCANCODE_F7),              "SDL keysym for loading the emulator state");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrement, sdl_native2keysym(SDL_SCANCODE_UNKNOWN),    "SDL keysym for advancing the save state slot");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdReset, sdl_native2keysym(SDL_SCANCODE_F9),             "SDL keysym for resetting the emulator");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdSpeeddown, sdl_native2keysym(SDL_SCANCODE_F10),        "SDL keysym for slowing down the emulator");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdSpeedup, sdl_native2keysym(SDL_SCANCODE_F11),          "SDL keysym for speeding up the emulator");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdScreenshot, sdl_native2keysym(SDL_SCANCODE_F12),       "SDL keysym for taking a screenshot");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdPause, sdl_native2keysym(SDL_SCANCODE_P),              "SDL keysym for pausing the emulator");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdMute, sdl_native2keysym(SDL_SCANCODE_M),               "SDL keysym for muting/unmuting the sound");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrease, sdl_native2keysym(SDL_SCANCODE_RIGHTBRACKET),"SDL keysym for increasing the volume");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdDecrease, sdl_native2keysym(SDL_SCANCODE_LEFTBRACKET), "SDL keysym for decreasing the volume");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdForward, sdl_native2keysym(SDL_SCANCODE_F),            "SDL keysym for temporarily going really fast");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdAdvance, sdl_native2keysym(SDL_SCANCODE_SLASH),        "SDL keysym for advancing by one frame when paused");
-    ConfigSetDefaultInt(l_CoreEventsConfig, kbdGameshark, sdl_native2keysym(SDL_SCANCODE_G),          "SDL keysym for pressing the game shark button");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdStop, sdl_native2keysym(SDL_SCANCODE_ESCAPE),          "SDL keysym for stopping the emulator");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdFullscreen, sdl_native2keysym(SDL_NUM_SCANCODES),      "SDL keysym for switching between fullscreen/windowed modes");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdSave, sdl_native2keysym(SDL_SCANCODE_F5),              "SDL keysym for saving the emulator state");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdLoad, sdl_native2keysym(SDL_SCANCODE_F7),              "SDL keysym for loading the emulator state");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrement, sdl_native2keysym(SDL_SCANCODE_UNKNOWN),    "SDL keysym for advancing the save state slot");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdReset, sdl_native2keysym(SDL_SCANCODE_F9),             "SDL keysym for resetting the emulator");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdSpeeddown, sdl_native2keysym(SDL_SCANCODE_F10),        "SDL keysym for slowing down the emulator");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdSpeedup, sdl_native2keysym(SDL_SCANCODE_F11),          "SDL keysym for speeding up the emulator");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdScreenshot, sdl_native2keysym(SDL_SCANCODE_F12),       "SDL keysym for taking a screenshot");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdPause, sdl_native2keysym(SDL_SCANCODE_P),              "SDL keysym for pausing the emulator");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdMute, sdl_native2keysym(SDL_SCANCODE_M),               "SDL keysym for muting/unmuting the sound");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrease, sdl_native2keysym(SDL_SCANCODE_RIGHTBRACKET),"SDL keysym for increasing the volume");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdDecrease, sdl_native2keysym(SDL_SCANCODE_LEFTBRACKET), "SDL keysym for decreasing the volume");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdForward, sdl_native2keysym(SDL_SCANCODE_F),            "SDL keysym for temporarily going really fast");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdAdvance, sdl_native2keysym(SDL_SCANCODE_SLASH),        "SDL keysym for advancing by one frame when paused");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdGameshark, sdl_native2keysym(SDL_SCANCODE_G),          "SDL keysym for pressing the game shark button");
     /* Joystick events mapped to core functions */
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyStop], "",       "Joystick event string for stopping the emulator");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyFullscreen], "", "Joystick event string for switching between fullscreen/windowed modes");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySave], "",       "Joystick event string for saving the emulator state");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyLoad], "",       "Joystick event string for loading the emulator state");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyIncrement], "",  "Joystick event string for advancing the save state slot");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyReset], "",      "Joystick event string for resetting the emulator");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySpeedDown], "",  "Joystick event string for slowing down the emulator");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySpeedUp], "",    "Joystick event string for speeding up the emulator");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyScreenshot], "", "Joystick event string for taking a screenshot");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyPause], "",      "Joystick event string for pausing the emulator");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyMute], "",       "Joystick event string for muting/unmuting the sound");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyIncrease], "",   "Joystick event string for increasing the volume");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyDecrease], "",   "Joystick event string for decreasing the volume");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyForward], "",    "Joystick event string for fast-forward");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyAdvance], "",    "Joystick event string for advancing by one frame when paused");
-    ConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyGameshark], "",  "Joystick event string for pressing the game shark button");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyStop], "",       "Joystick event string for stopping the emulator");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyFullscreen], "", "Joystick event string for switching between fullscreen/windowed modes");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySave], "",       "Joystick event string for saving the emulator state");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyLoad], "",       "Joystick event string for loading the emulator state");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyIncrement], "",  "Joystick event string for advancing the save state slot");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyReset], "",      "Joystick event string for resetting the emulator");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySpeedDown], "",  "Joystick event string for slowing down the emulator");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joySpeedUp], "",    "Joystick event string for speeding up the emulator");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyScreenshot], "", "Joystick event string for taking a screenshot");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyPause], "",      "Joystick event string for pausing the emulator");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyMute], "",       "Joystick event string for muting/unmuting the sound");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyIncrease], "",   "Joystick event string for increasing the volume");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyDecrease], "",   "Joystick event string for decreasing the volume");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyForward], "",    "Joystick event string for fast-forward");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyAdvance], "",    "Joystick event string for advancing by one frame when paused");
+    EConfigSetDefaultString(l_CoreEventsConfig, JoyCmdName[joyGameshark], "",  "Joystick event string for pressing the game shark button");
 
     return 1;
 }
@@ -613,41 +613,41 @@ void event_sdl_keydown(int keysym, int keymod)
 
     /* check for the only 2 hard-coded key commands: Alt-enter for fullscreen and 0-9 for save state slot */
     if (keysym == SDL_SCANCODE_RETURN && keymod & (KMOD_LALT | KMOD_RALT))
-        gfx.changeWindow();
+        Cgfx.changeWindow();
     else if ((slot = get_saveslot_from_keysym(keysym)) >= 0)
         main_state_set_slot(slot);
     /* check all of the configurable commands */
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdStop)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdStop)))
         main_stop();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdFullscreen)))
-        gfx.changeWindow();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdSave)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdFullscreen)))
+        Cgfx.changeWindow();
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdSave)))
         main_state_save(0, NULL); /* save in mupen64plus format using current slot */
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdLoad)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdLoad)))
         main_state_load(NULL); /* load using current slot */
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdIncrement)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdIncrement)))
         main_state_inc_slot();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdReset)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdReset)))
         main_reset(0);
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdSpeeddown)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdSpeeddown)))
         main_speeddown(5);
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdSpeedup)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdSpeedup)))
         main_speedup(5);
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdScreenshot)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdScreenshot)))
         main_take_next_screenshot();    /* screenshot will be taken at the end of frame rendering */
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdPause)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdPause)))
         main_toggle_pause();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdMute)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdMute)))
         main_volume_mute();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdIncrease)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdIncrease)))
         main_volume_up();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdDecrease)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdDecrease)))
         main_volume_down();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdForward)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdForward)))
         main_set_fastforward(1);
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdAdvance)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdAdvance)))
         main_advance_one();
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdGameshark))) {
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdGameshark))) {
         event_set_gameshark(1);
     }
     else
@@ -660,15 +660,15 @@ void event_sdl_keydown(int keysym, int keymod)
 
 void event_sdl_keyup(int keysym, int keymod)
 {
-    if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdStop)))
+    if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdStop)))
     {
         return;
     }
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdForward)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdForward)))
     {
         main_set_fastforward(0);
     }
-    else if (keysym == sdl_keysym2native(ConfigGetParamInt(l_CoreEventsConfig, kbdGameshark)))
+    else if (keysym == sdl_keysym2native(EConfigGetParamInt(l_CoreEventsConfig, kbdGameshark)))
     {
         event_set_gameshark(0);
     }

@@ -53,7 +53,7 @@ static int l_CoreInit = 0;
 static int l_ROMOpen = 0;
 
 /* functions exported outside of libmupen64plus to front-end application */
-EXPORT m64p_error CALL CoreStartup(int APIVersion, const char *ConfigPath, const char *DataPath, void *Context,
+m64p_error ECoreStartup(int APIVersion, const char *ConfigPath, const char *DataPath, void *Context,
                                    void (*DebugCallback)(void *, int, const char *), void *Context2,
                                    void (*StateCallback)(void *, m64p_core_param, int))
 {
@@ -85,7 +85,7 @@ EXPORT m64p_error CALL CoreStartup(int APIVersion, const char *ConfigPath, const
         return M64ERR_INTERNAL;
 
     /* set default configuration parameter values for Core */
-    if (ConfigOpenSection("Core", &g_CoreConfig) != M64ERR_SUCCESS || g_CoreConfig == NULL)
+    if (EConfigOpenSection("Core", &g_CoreConfig) != M64ERR_SUCCESS || g_CoreConfig == NULL)
         return M64ERR_INTERNAL;
 
     if (!main_set_core_defaults())
@@ -106,7 +106,7 @@ EXPORT m64p_error CALL CoreStartup(int APIVersion, const char *ConfigPath, const
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL CoreShutdown(void)
+m64p_error ECoreShutdown(void)
 {
     if (!l_CoreInit)
         return M64ERR_NOT_INIT;
@@ -128,7 +128,7 @@ EXPORT m64p_error CALL CoreShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL CoreAttachPlugin(m64p_plugin_type PluginType, m64p_dynlib_handle PluginLibHandle)
+m64p_error CALL ECoreAttachPlugin(m64p_plugin_type PluginType, m64p_dynlib_handle PluginLibHandle)
 {
     m64p_error rval;
 
@@ -148,7 +148,7 @@ EXPORT m64p_error CALL CoreAttachPlugin(m64p_plugin_type PluginType, m64p_dynlib
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL CoreDetachPlugin(m64p_plugin_type PluginType)
+m64p_error ECoreDetachPlugin(m64p_plugin_type PluginType)
 {
     if (!l_CoreInit)
         return M64ERR_NOT_INIT;
@@ -158,7 +158,7 @@ EXPORT m64p_error CALL CoreDetachPlugin(m64p_plugin_type PluginType)
     return plugin_connect(PluginType, NULL);
 }
 
-EXPORT m64p_error CALL CoreDoCommand(m64p_command Command, int ParamInt, void *ParamPtr)
+m64p_error ECoreDoCommand(m64p_command Command, int ParamInt, void *ParamPtr)
 {
     m64p_error rval;
     int keysym, keymod;
@@ -311,7 +311,7 @@ EXPORT m64p_error CALL CoreDoCommand(m64p_command Command, int ParamInt, void *P
     return M64ERR_INTERNAL;
 }
 
-EXPORT m64p_error CALL CoreOverrideVidExt(m64p_video_extension_functions *VideoFunctionStruct)
+m64p_error ECoreOverrideVidExt(m64p_video_extension_functions *VideoFunctionStruct)
 {
     if (!l_CoreInit)
         return M64ERR_NOT_INIT;
@@ -319,7 +319,7 @@ EXPORT m64p_error CALL CoreOverrideVidExt(m64p_video_extension_functions *VideoF
     return OverrideVideoFunctions(VideoFunctionStruct); /* in vidext.c */
 }
 
-EXPORT m64p_error CALL CoreAddCheat(const char *CheatName, m64p_cheat_code *CodeList, int NumCodes)
+m64p_error ECoreAddCheat(const char *CheatName, m64p_cheat_code *CodeList, int NumCodes)
 {
     if (!l_CoreInit)
         return M64ERR_NOT_INIT;
@@ -334,7 +334,7 @@ EXPORT m64p_error CALL CoreAddCheat(const char *CheatName, m64p_cheat_code *Code
     return M64ERR_INPUT_INVALID;
 }
 
-EXPORT m64p_error CALL CoreCheatEnabled(const char *CheatName, int Enabled)
+m64p_error ECoreCheatEnabled(const char *CheatName, int Enabled)
 {
     if (!l_CoreInit)
         return M64ERR_NOT_INIT;
@@ -347,7 +347,7 @@ EXPORT m64p_error CALL CoreCheatEnabled(const char *CheatName, int Enabled)
     return M64ERR_INPUT_INVALID;
 }
 
-EXPORT m64p_error CALL CoreGetRomSettings(m64p_rom_settings *RomSettings, int RomSettingsLength, int Crc1, int Crc2)
+m64p_error ECoreGetRomSettings(m64p_rom_settings *RomSettings, int RomSettingsLength, int Crc1, int Crc2)
 {
     romdatabase_entry* entry;
     int i;

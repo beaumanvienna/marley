@@ -37,8 +37,8 @@ extern "C" {
 typedef void (*ptr_DebugCallback)(void *Context, int level, const char *message);
 typedef void (*ptr_StateCallback)(void *Context, m64p_core_param param_type, int new_value);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void CALL DebugCallback(void *Context, int level, const char *message);
-EXPORT void CALL StateCallback(void *Context, m64p_core_param param_type, int new_value);
+void EDebugCallback(void *Context, int level, const char *message);
+void EStateCallback(void *Context, m64p_core_param param_type, int new_value);
 #endif
 
 /* CoreStartup()
@@ -48,7 +48,7 @@ EXPORT void CALL StateCallback(void *Context, m64p_core_param param_type, int ne
  */
 typedef m64p_error (*ptr_CoreStartup)(int, const char *, const char *, void *, ptr_DebugCallback, void *, ptr_StateCallback);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreStartup(int, const char *, const char *, void *, ptr_DebugCallback, void *, ptr_StateCallback);
+m64p_error ECoreStartup(int, const char *, const char *, void *, ptr_DebugCallback, void *, ptr_StateCallback);
 #endif
 
 /* CoreShutdown()
@@ -58,7 +58,7 @@ EXPORT m64p_error CALL CoreStartup(int, const char *, const char *, void *, ptr_
  */
 typedef m64p_error (*ptr_CoreShutdown)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreShutdown(void);
+m64p_error ECoreShutdown(void);
 #endif
 
 /* CoreAttachPlugin()
@@ -68,7 +68,7 @@ EXPORT m64p_error CALL CoreShutdown(void);
  */
 typedef m64p_error (*ptr_CoreAttachPlugin)(m64p_plugin_type, m64p_dynlib_handle);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreAttachPlugin(m64p_plugin_type, m64p_dynlib_handle);
+m64p_error ECoreAttachPlugin(m64p_plugin_type, m64p_dynlib_handle);
 #endif
 
 /* CoreDetachPlugin()
@@ -78,7 +78,7 @@ EXPORT m64p_error CALL CoreAttachPlugin(m64p_plugin_type, m64p_dynlib_handle);
  */
 typedef m64p_error (*ptr_CoreDetachPlugin)(m64p_plugin_type);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreDetachPlugin(m64p_plugin_type);
+m64p_error ECoreDetachPlugin(m64p_plugin_type);
 #endif
 
 /* CoreDoCommand()
@@ -87,7 +87,7 @@ EXPORT m64p_error CALL CoreDetachPlugin(m64p_plugin_type);
  */
 typedef m64p_error (*ptr_CoreDoCommand)(m64p_command, int, void *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreDoCommand(m64p_command, int, void *);
+m64p_error ECoreDoCommand(m64p_command, int, void *);
 #endif
 
 /* CoreOverrideVidExt()
@@ -100,7 +100,7 @@ EXPORT m64p_error CALL CoreDoCommand(m64p_command, int, void *);
  */
 typedef m64p_error (*ptr_CoreOverrideVidExt)(m64p_video_extension_functions *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreOverrideVidExt(m64p_video_extension_functions *);
+m64p_error ECoreOverrideVidExt(m64p_video_extension_functions *);
 #endif
 
 /* CoreAddCheat()
@@ -110,7 +110,7 @@ EXPORT m64p_error CALL CoreOverrideVidExt(m64p_video_extension_functions *);
  */
 typedef m64p_error (*ptr_CoreAddCheat)(const char *, m64p_cheat_code *, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreAddCheat(const char *, m64p_cheat_code *, int);
+m64p_error ECoreAddCheat(const char *, m64p_cheat_code *, int);
 #endif
 
 /* CoreCheatEnabled()
@@ -120,7 +120,7 @@ EXPORT m64p_error CALL CoreAddCheat(const char *, m64p_cheat_code *, int);
  */
 typedef m64p_error (*ptr_CoreCheatEnabled)(const char *, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreCheatEnabled(const char *, int);
+m64p_error ECoreCheatEnabled(const char *, int);
 #endif
 
 /* CoreGetRomSettings()
@@ -130,7 +130,7 @@ EXPORT m64p_error CALL CoreCheatEnabled(const char *, int);
  */
 typedef m64p_error (*ptr_CoreGetRomSettings)(m64p_rom_settings *, int, int, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreGetRomSettings(m64p_rom_settings *, int, int, int);
+m64p_error ECoreGetRomSettings(m64p_rom_settings *, int, int, int);
 #endif
 
 #ifdef __cplusplus

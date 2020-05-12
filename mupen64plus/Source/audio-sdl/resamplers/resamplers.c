@@ -59,7 +59,7 @@ const struct resampler_interface* get_iresampler(const char* resampler_id, void*
     /* search matching resampler */
     for(i = 0; i < ARRAY_SIZE(resamplers); ++i) {
         if (strncmp(resampler_id, resamplers[i].cmp_str, strlen(resamplers[i].cmp_str)) == 0) {
-            DebugMessage(M64MSG_INFO, "Using resampler %s", resamplers[i].iresampler->name);
+            ADebugMessage(M64MSG_INFO, "Using resampler %s", resamplers[i].iresampler->name);
             break;
         }
     }
@@ -68,7 +68,7 @@ const struct resampler_interface* get_iresampler(const char* resampler_id, void*
     if (i >= ARRAY_SIZE(resamplers)) {
         i = 0;
 
-        DebugMessage(M64MSG_WARNING, "Could not find RESAMPLE configuration %s; use %s resampler",
+        ADebugMessage(M64MSG_WARNING, "Could not find RESAMPLE configuration %s; use %s resampler",
             resampler_id, resamplers[i].iresampler->name);
     }
 

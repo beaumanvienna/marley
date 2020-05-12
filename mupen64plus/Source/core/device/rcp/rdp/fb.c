@@ -57,7 +57,7 @@ void pre_framebuffer_read(struct fb* fb, uint32_t address)
         uint32_t end   = fb->infos[i].addr + fb_buffer_size(&fb->infos[i]) - 1;
 
         if ((address >= begin) && (address <= end) && (fb->dirty_page[address >> 12])) {
-            gfx.fBRead(address);
+            Cgfx.fBRead(address);
             fb->dirty_page[address >> 12] = 0;
         }
     }
@@ -91,7 +91,7 @@ void post_framebuffer_write(struct fb* fb, uint32_t address, uint32_t length)
 
         for (j = 0; j < length; j += size) {
             if ((address + j >= begin) && (address + j <= end)) {
-                gfx.fBWrite(address + j, size);
+                Cgfx.fBWrite(address + j, size);
             }
         }
     }
@@ -195,13 +195,13 @@ void protect_framebuffers(struct fb* fb)
     struct mem_mapping fb_mapping = { 0, 0, M64P_MEM_RDRAM, { fb, RW(rdram_fb) } };
 
     /* check API support */
-    if (!(gfx.fBGetFrameBufferInfo && gfx.fBRead && gfx.fBWrite)
+    if (!(Cgfx.fBGetFrameBufferInfo && Cgfx.fBRead && Cgfx.fBWrite)
         || fb->r4300->emumode == EMUMODE_DYNAREC /* Dynarecs currently miss some of the read/writes needed for FBInfo */) {
         return;
     }
 
-    /* ask fb info to gfx plugin */
-    gfx.fBGetFrameBufferInfo(fb->infos);
+    /* ask fb info to Cgfx plugin */
+    Cgfx.fBGetFrameBufferInfo(fb->infos);
 
     /* return early if not FB info is present */
     if (fb->infos[0].addr == 0) {

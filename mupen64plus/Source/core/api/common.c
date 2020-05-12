@@ -31,7 +31,7 @@
 #include "m64p_common.h"
 #include "m64p_types.h"
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error EPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -63,7 +63,7 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL CoreGetAPIVersions(int *ConfigVersion, int *DebugVersion, int *VidextVersion, int *ExtraVersion)
+m64p_error ECoreGetAPIVersions(int *ConfigVersion, int *DebugVersion, int *VidextVersion, int *ExtraVersion)
 {
     /* set version info */
     if (ConfigVersion != NULL)
@@ -98,7 +98,7 @@ static const char *ErrorMessages[] = {
                    "UNSUPPORTED: Function call is not supported (ie, core not built with debugger)",
                    "WRONG_TYPE: A given input type parameter cannot be used for desired operation" };
 
-EXPORT const char * CALL CoreErrorMessage(m64p_error ReturnCode)
+const char * ECoreErrorMessage(m64p_error ReturnCode)
 {
     size_t i = (size_t) ReturnCode;
 

@@ -89,7 +89,7 @@ static void CheatActivate(sCheatInfo *pCheat)
     m64p_cheat_code * code = (m64p_cheat_code*) calloc(pCheat->Count, sizeof(m64p_cheat_code));
     if (code == NULL)
     {
-        DebugMessage(M64MSG_WARNING, "could not allocate memory for code '%s'", pCheat->Name);
+        UDebugMessage(M64MSG_WARNING, "could not allocate memory for code '%s'", pCheat->Name);
         return;
     }
     /* Fill in members */
@@ -101,13 +101,13 @@ static void CheatActivate(sCheatInfo *pCheat)
     /* Enable cheat */
     if (CoreAddCheat(pCheat->Name, code, pCheat->Count) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_WARNING, "CoreAddCheat() failed for cheat code %i (%s)", pCheat->Number, pCheat->Name);
+        UDebugMessage(M64MSG_WARNING, "CoreAddCheat() failed for cheat code %i (%s)", pCheat->Number, pCheat->Name);
         free(code);
         return;
     }
 
     free(code);
-    DebugMessage(M64MSG_STATUS, "activated cheat code %i: %s", pCheat->Number, pCheat->Name);
+    UDebugMessage(M64MSG_STATUS, "activated cheat code %i: %s", pCheat->Number, pCheat->Name);
 }
 
 static void CheatFreeAll(void)
@@ -205,7 +205,7 @@ static void ReadCheats(char *RomSection)
     const char *romdbpath = ConfigGetSharedDataFilepath(CHEAT_FILE);
     if (romdbpath == NULL)
     {
-        DebugMessage(M64MSG_WARNING, "cheat code database file '%s' not found.", CHEAT_FILE);
+        UDebugMessage(M64MSG_WARNING, "cheat code database file '%s' not found.", CHEAT_FILE);
         return;
     }
 
@@ -214,7 +214,7 @@ static void ReadCheats(char *RomSection)
     fPtr = fopen(romdbpath, "rb");
     if (fPtr == NULL)
     {   
-        DebugMessage(M64MSG_WARNING, "Couldn't open cheat code database file '%s'.", romdbpath);
+        UDebugMessage(M64MSG_WARNING, "Couldn't open cheat code database file '%s'.", romdbpath);
         return;
     }
     fseek(fPtr, 0L, SEEK_END);
@@ -223,13 +223,13 @@ static void ReadCheats(char *RomSection)
     l_IniText = (char *) malloc(IniLength + 1);
     if (l_IniText == NULL)
     {
-        DebugMessage(M64MSG_WARNING, "Couldn't allocate %li bytes of memory to read cheat file.", IniLength);
+        UDebugMessage(M64MSG_WARNING, "Couldn't allocate %li bytes of memory to read cheat file.", IniLength);
         fclose(fPtr);
         return;
     }
     if (fread(l_IniText, 1, IniLength, fPtr) != IniLength)
     {
-        DebugMessage(M64MSG_WARNING, "Couldn't read %li bytes from cheat file.", IniLength);
+        UDebugMessage(M64MSG_WARNING, "Couldn't read %li bytes from cheat file.", IniLength);
         free(l_IniText);
         l_IniText = NULL;
         fclose(fPtr);
@@ -290,7 +290,7 @@ static void ReadCheats(char *RomSection)
         {
             curr_code = NewCode(curline + 3, l_CheatCodesFound);
             if (curr_code == NULL)
-                DebugMessage(M64MSG_WARNING, "error getting new code (%s)", curline+3);
+                UDebugMessage(M64MSG_WARNING, "error getting new code (%s)", curline+3);
             continue;
         }
         
@@ -323,7 +323,7 @@ static void ReadCheats(char *RomSection)
                 curr_code->Codes[curr_code->Count].variables = (int*) malloc(sizeof(int));
                 if(curr_code->Codes[curr_code->Count].variables == NULL)
                 {
-                    DebugMessage(M64MSG_WARNING, "couldn't allocate memory; ignoring line: '%s'", curline);
+                    UDebugMessage(M64MSG_WARNING, "couldn't allocate memory; ignoring line: '%s'", curline);
                     continue;
                 }
                 if (sscanf(curline+9, "%04X", &var) != 1)
@@ -338,7 +338,7 @@ static void ReadCheats(char *RomSection)
         }
 
         /* otherwise we don't know what this line is */
-        DebugMessage(M64MSG_WARNING, "unrecognized line in cheat file: '%s'", curline);
+        UDebugMessage(M64MSG_WARNING, "unrecognized line in cheat file: '%s'", curline);
     }
 
 }
@@ -348,14 +348,14 @@ void CheatStart(eCheatMode CheatMode, char *CheatNumList)
     /* if cheat codes are disabled, then we don't have to do anything */
     if (CheatMode == CHEAT_DISABLE || (CheatMode == CHEAT_LIST && strlen(CheatNumList) == 0))
     {
-        DebugMessage(M64MSG_STATUS, "Cheat codes disabled.");
+        UDebugMessage(M64MSG_STATUS, "Cheat codes disabled.");
         return;
     }
 
     /* get the ROM header for the currently loaded ROM image from the core */
     if ((*CoreDoCommand)(M64CMD_ROM_GET_HEADER, sizeof(l_RomHeader), &l_RomHeader) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_WARNING, "couldn't get ROM header information from core library");
+        UDebugMessage(M64MSG_WARNING, "couldn't get ROM header information from core library");
         return;
     }
 
@@ -367,7 +367,7 @@ void CheatStart(eCheatMode CheatMode, char *CheatNumList)
     ReadCheats(RomSection);
     if (!l_RomFound || l_CheatCodesFound == 0)
     {
-        DebugMessage(M64MSG_WARNING, "no cheat codes found for ROM image '%.20s'", l_RomHeader.Name);
+        UDebugMessage(M64MSG_WARNING, "no cheat codes found for ROM image '%.20s'", l_RomHeader.Name);
         CheatFreeAll();
         return;
     }
@@ -375,19 +375,19 @@ void CheatStart(eCheatMode CheatMode, char *CheatNumList)
     /* handle the list command */
     if (CheatMode == CHEAT_SHOW_LIST)
     {
-        DebugMessage(M64MSG_INFO, "%i cheat code(s) found for ROM '%s'", l_CheatCodesFound, l_CheatGameName);
+        UDebugMessage(M64MSG_INFO, "%i cheat code(s) found for ROM '%s'", l_CheatCodesFound, l_CheatGameName);
         sCheatInfo *pCur = l_CheatList;
         while (pCur != NULL)
         {
             if (pCur->Description == NULL)
-                DebugMessage(M64MSG_INFO, "   %i: %s", pCur->Number, pCur->Name);
+                UDebugMessage(M64MSG_INFO, "   %i: %s", pCur->Number, pCur->Name);
             else
-                DebugMessage(M64MSG_INFO, "   %i: %s (%s)", pCur->Number, pCur->Name, pCur->Description);
+                UDebugMessage(M64MSG_INFO, "   %i: %s (%s)", pCur->Number, pCur->Name, pCur->Description);
             if(pCur->VariableLine != -1)
             {
                 int i;
                 for (i = 0; i < pCur->Codes[pCur->VariableLine].var_count; i++)
-                    DebugMessage(M64MSG_INFO, "      %i: %s", i, pCur->Codes[pCur->VariableLine].variable_names[i]);
+                    UDebugMessage(M64MSG_INFO, "      %i: %s", i, pCur->Codes[pCur->VariableLine].variable_names[i]);
             }
             pCur = pCur->Next;
         }
@@ -434,7 +434,7 @@ void CheatStart(eCheatMode CheatMode, char *CheatNumList)
 
             pCheat = CheatFindCode(number);
             if (pCheat == NULL)
-                DebugMessage(M64MSG_WARNING, "invalid cheat code number %i", number);
+                UDebugMessage(M64MSG_WARNING, "invalid cheat code number %i", number);
             else
             {
                 if (pCheat->VariableLine != -1 && pCheat->Count > pCheat->VariableLine && option < pCheat->Codes[pCheat->VariableLine].var_count)
@@ -450,7 +450,7 @@ void CheatStart(eCheatMode CheatMode, char *CheatNumList)
     }
 
     /* otherwise the mode is invalid */
-    DebugMessage(M64MSG_WARNING, "internal error; invalid CheatMode in CheatStart()");
+    UDebugMessage(M64MSG_WARNING, "internal error; invalid CheatMode in CheatStart()");
     
     return;
 }

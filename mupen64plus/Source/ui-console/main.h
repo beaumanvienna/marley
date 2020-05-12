@@ -28,7 +28,7 @@
 #define ATTR_FMT(fmtpos, attrpos)
 #endif
 
-extern void DebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
+extern void UDebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
 extern void DebugCallback(void *Context, int level, const char *message);
 
 extern int  g_Verbose;

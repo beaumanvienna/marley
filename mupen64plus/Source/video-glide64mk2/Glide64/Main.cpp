@@ -49,6 +49,48 @@
 #include "FBtoScreen.h"
 #include "DepthBufferRender.h"
 
+extern "C" m64p_error EVidExt_Init(void);
+extern "C" m64p_error EVidExt_Quit(void);
+extern "C" m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *, int *);
+extern "C" m64p_error EVidExt_SetVideoMode(int, int, int, m64p_video_mode, m64p_video_flags);
+extern "C" m64p_error EVidExt_ResizeWindow(int, int);
+extern "C" m64p_error EVidExt_SetCaption(const char *);
+extern "C" m64p_error EVidExt_ToggleFullScreen(void);
+extern "C" m64p_function EVidExt_GL_GetProcAddress(const char *);
+extern "C" m64p_error EVidExt_GL_SetAttribute(m64p_GLattr, int);
+extern "C" m64p_error EVidExt_GL_SwapBuffers(void);
+extern "C" m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
+extern "C" m64p_error EConfigListSections(void *, void (*)(void *, const char *));
+extern "C" m64p_error EConfigOpenSection(const char *, m64p_handle *);
+extern "C" m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+extern "C" m64p_error EConfigSaveFile(void);
+extern "C" m64p_error EConfigSaveSection(const char *);
+extern "C" int EConfigHasUnsavedChanges(const char *);
+extern "C" m64p_error EConfigDeleteSection(const char *SectionName);
+extern "C" m64p_error EConfigRevertChanges(const char *SectionName);
+extern "C" m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+extern "C" m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
+extern "C" m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+extern "C" m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+extern "C" const char * EConfigGetParameterHelp(m64p_handle, const char *);
+extern "C" m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+extern "C" m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+extern "C" m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+extern "C" m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+extern "C" int          EConfigGetParamInt(m64p_handle, const char *);
+extern "C" float        EConfigGetParamFloat(m64p_handle, const char *);
+extern "C" int          EConfigGetParamBool(m64p_handle, const char *);
+extern "C" const char * EConfigGetParamString(m64p_handle, const char *);
+extern "C" const char * EConfigGetSharedDataFilepath(const char *);
+extern "C" const char * EConfigGetUserConfigPath(void);
+extern "C" const char * EConfigGetUserDataPath(void);
+extern "C" const char * EConfigGetUserCachePath(void);
+extern "C" m64p_error EConfigExternalOpen(const char *, m64p_handle *);
+extern "C" m64p_error EConfigExternalClose(m64p_handle);
+extern "C" m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+
+
+
 #if defined(__GNUC__)
 #include <sys/time.h>
 #elif defined(__MSC__)
@@ -58,7 +100,7 @@
 #ifndef PATH_MAX
   #define PATH_MAX 4096
 #endif
-#include "osal_dynamiclib.h"
+
 #ifdef TEXTURE_FILTER // Hiroshi Morii <koolsmoky@users.sourceforge.net>
 #include <stdarg.h>
 int  ghq_dmptex_toggle_key = 0;
@@ -91,35 +133,35 @@ std::ofstream rdp_err;
 GFX_INFO gfx;
 
 /* definitions of pointers to Core config functions */
-ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-ptr_ConfigGetParameterHelp ConfigGetParameterHelp = NULL;
-ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-ptr_ConfigGetParamString   ConfigGetParamString = NULL;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigGetParameterHelp ConfigGetParameterHelp;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
 
-ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = NULL;
-ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = NULL;
-ptr_ConfigGetUserDataPath       ConfigGetUserDataPath = NULL;
-ptr_ConfigGetUserCachePath      ConfigGetUserCachePath = NULL;
+extern ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath;
+extern ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath;
+extern ptr_ConfigGetUserDataPath       ConfigGetUserDataPath;
+extern ptr_ConfigGetUserCachePath      ConfigGetUserCachePath;
 
 /* definitions of pointers to Core video extension functions */
-ptr_VidExt_Init                  CoreVideo_Init = NULL;
-ptr_VidExt_Quit                  CoreVideo_Quit = NULL;
-ptr_VidExt_ListFullscreenModes   CoreVideo_ListFullscreenModes = NULL;
-ptr_VidExt_SetVideoMode          CoreVideo_SetVideoMode = NULL;
-ptr_VidExt_SetCaption            CoreVideo_SetCaption = NULL;
-ptr_VidExt_ToggleFullScreen      CoreVideo_ToggleFullScreen = NULL;
-ptr_VidExt_ResizeWindow          CoreVideo_ResizeWindow = NULL;
-ptr_VidExt_GL_GetProcAddress     CoreVideo_GL_GetProcAddress = NULL;
-ptr_VidExt_GL_SetAttribute       CoreVideo_GL_SetAttribute = NULL;
-ptr_VidExt_GL_SwapBuffers        CoreVideo_GL_SwapBuffers = NULL;
+ptr_VidExt_Init                  CoreVideo_Init;
+ptr_VidExt_Quit                  CoreVideo_Quit;
+ptr_VidExt_ListFullscreenModes   CoreVideo_ListFullscreenModes;
+ptr_VidExt_SetVideoMode          CoreVideo_SetVideoMode;
+ptr_VidExt_SetCaption            CoreVideo_SetCaption;
+ptr_VidExt_ToggleFullScreen      CoreVideo_ToggleFullScreen;
+ptr_VidExt_ResizeWindow          CoreVideo_ResizeWindow;
+ptr_VidExt_GL_GetProcAddress     CoreVideo_GL_GetProcAddress;
+ptr_VidExt_GL_SetAttribute       CoreVideo_GL_SetAttribute;
+ptr_VidExt_GL_SwapBuffers        CoreVideo_GL_SwapBuffers;
 int to_fullscreen = FALSE;
 int fullscreen = FALSE;
 int romopen = FALSE;
@@ -1440,7 +1482,7 @@ void ReleaseGfx ()
 extern "C" {
 #endif
 
-EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int front)
+void GReadScreen2(void *dest, int *width, int *height, int front)
 {
   VLOG("CALL ReadScreen2 ()\n");
   *width = settings.res_x;
@@ -1503,7 +1545,7 @@ EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int front)
   }
 }
 
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+m64p_error GPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
   VLOG("CALL PluginStartup ()\n");
@@ -1512,7 +1554,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
 
     /* attach and call the CoreGetAPIVersions function, check Config and Video Extension API versions for compatibility */
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
-    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) ECoreGetAPIVersions;
     if (CoreAPIVersionFunc == NULL)
     {
         ERRLOG("Core emulator broken; no CoreAPIVersionFunc() function found.");
@@ -1531,22 +1573,22 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         return M64ERR_INCOMPATIBLE;
     }
 
-    ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
-    ConfigSetParameter = (ptr_ConfigSetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigSetParameter");
-    ConfigGetParameter = (ptr_ConfigGetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParameter");
-    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultInt");
-    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultFloat");
-    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultBool");
-    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultString");
-    ConfigGetParamInt = (ptr_ConfigGetParamInt) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamInt");
-    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamFloat");
-    ConfigGetParamBool = (ptr_ConfigGetParamBool) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamBool");
-    ConfigGetParamString = (ptr_ConfigGetParamString) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamString");
+    ConfigOpenSection = (ptr_ConfigOpenSection) EConfigOpenSection;
+    ConfigSetParameter = (ptr_ConfigSetParameter) EConfigSetParameter;
+    ConfigGetParameter = (ptr_ConfigGetParameter) EConfigGetParameter;
+    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) EConfigSetDefaultInt;
+    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) EConfigSetDefaultFloat;
+    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) EConfigSetDefaultBool;
+    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) EConfigSetDefaultString;
+    ConfigGetParamInt = (ptr_ConfigGetParamInt) EConfigGetParamInt;
+    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) EConfigGetParamFloat;
+    ConfigGetParamBool = (ptr_ConfigGetParamBool) EConfigGetParamBool;
+    ConfigGetParamString = (ptr_ConfigGetParamString) EConfigGetParamString;
 
-    ConfigGetSharedDataFilepath = (ptr_ConfigGetSharedDataFilepath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetSharedDataFilepath");
-    ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserConfigPath");
-    ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserDataPath");
-    ConfigGetUserCachePath = (ptr_ConfigGetUserCachePath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserCachePath");
+    ConfigGetSharedDataFilepath = (ptr_ConfigGetSharedDataFilepath) EConfigGetSharedDataFilepath;
+    ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) EConfigGetUserConfigPath;
+    ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) EConfigGetUserDataPath;
+    ConfigGetUserCachePath = (ptr_ConfigGetUserCachePath) EConfigGetUserCachePath;
 
     if (!ConfigOpenSection   || !ConfigSetParameter    || !ConfigGetParameter ||
         !ConfigSetDefaultInt || !ConfigSetDefaultFloat || !ConfigSetDefaultBool || !ConfigSetDefaultString ||
@@ -1558,16 +1600,16 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     }
 
     /* Get the core Video Extension function pointers from the library handle */
-    CoreVideo_Init = (ptr_VidExt_Init) osal_dynlib_getproc(CoreLibHandle, "VidExt_Init");
-    CoreVideo_Quit = (ptr_VidExt_Quit) osal_dynlib_getproc(CoreLibHandle, "VidExt_Quit");
-    CoreVideo_ListFullscreenModes = (ptr_VidExt_ListFullscreenModes) osal_dynlib_getproc(CoreLibHandle, "VidExt_ListFullscreenModes");
-    CoreVideo_SetVideoMode = (ptr_VidExt_SetVideoMode) osal_dynlib_getproc(CoreLibHandle, "VidExt_SetVideoMode");
-    CoreVideo_SetCaption = (ptr_VidExt_SetCaption) osal_dynlib_getproc(CoreLibHandle, "VidExt_SetCaption");
-    CoreVideo_ToggleFullScreen = (ptr_VidExt_ToggleFullScreen) osal_dynlib_getproc(CoreLibHandle, "VidExt_ToggleFullScreen");
-    CoreVideo_ResizeWindow = (ptr_VidExt_ResizeWindow) osal_dynlib_getproc(CoreLibHandle, "VidExt_ResizeWindow");
-    CoreVideo_GL_GetProcAddress = (ptr_VidExt_GL_GetProcAddress) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_GetProcAddress");
-    CoreVideo_GL_SetAttribute = (ptr_VidExt_GL_SetAttribute) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_SetAttribute");
-    CoreVideo_GL_SwapBuffers = (ptr_VidExt_GL_SwapBuffers) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_SwapBuffers");
+    CoreVideo_Init = (ptr_VidExt_Init)                                  EVidExt_Init;
+    CoreVideo_Quit = (ptr_VidExt_Quit)                                  EVidExt_Quit;
+    CoreVideo_ListFullscreenModes = (ptr_VidExt_ListFullscreenModes)    EVidExt_ListFullscreenModes;
+    CoreVideo_SetVideoMode = (ptr_VidExt_SetVideoMode)                  EVidExt_SetVideoMode;
+    CoreVideo_SetCaption = (ptr_VidExt_SetCaption)                      EVidExt_SetCaption;
+    CoreVideo_ToggleFullScreen = (ptr_VidExt_ToggleFullScreen)          EVidExt_ToggleFullScreen;
+    CoreVideo_ResizeWindow = (ptr_VidExt_ResizeWindow)                  EVidExt_ResizeWindow;
+    CoreVideo_GL_GetProcAddress = (ptr_VidExt_GL_GetProcAddress)        EVidExt_GL_GetProcAddress;
+    CoreVideo_GL_SetAttribute = (ptr_VidExt_GL_SetAttribute)            EVidExt_GL_SetAttribute;
+    CoreVideo_GL_SwapBuffers = (ptr_VidExt_GL_SwapBuffers)              EVidExt_GL_SwapBuffers;
 
     if (!CoreVideo_Init || !CoreVideo_Quit || !CoreVideo_ListFullscreenModes || !CoreVideo_SetVideoMode ||
         !CoreVideo_SetCaption || !CoreVideo_ToggleFullScreen || !CoreVideo_ResizeWindow || !CoreVideo_GL_GetProcAddress ||
@@ -1576,8 +1618,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         ERRLOG("Couldn't connect to Core video functions");
         return M64ERR_INCOMPATIBLE;
     }
-
-    const char *configDir = ConfigGetSharedDataFilepath("Glide64mk2.ini");
+    warning "JC: debug code"
+    const char s[]="/home/yo/temp/mupen64plus/source/mupen64plus-video-glide64mk2/data/Glide64mk2.ini";
+    const char *configDir = s;
     if (configDir)
     {
         SetConfigDir(configDir);
@@ -1591,13 +1634,13 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     }
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+m64p_error GPluginShutdown(void)
 {
   VLOG("CALL PluginShutdown ()\n");
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error GPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
   VLOG("CALL PluginGetVersion ()\n");
     /* set version info */
@@ -1627,7 +1670,7 @@ Purpose:  This function dumps the current frame to a file
 input:    pointer to the directory to save the file to
 output:   none
 *******************************************************************/
-EXPORT void CALL CaptureScreen ( char * Directory )
+void GCaptureScreen ( char * Directory )
 {
   capture_screen = 1;
   strcpy (capture_path, Directory);
@@ -1642,7 +1685,7 @@ input:    none
 output:   none
 *******************************************************************/
 //#warning ChangeWindow unimplemented
-EXPORT void CALL ChangeWindow (void)
+void GChangeWindow (void)
 {
   VLOG ("ChangeWindow()\n");
 }
@@ -1768,7 +1811,7 @@ and then call the function CheckInterrupts to tell the emulator
 that there is a waiting interrupt.
 *******************************************************************/
 
-EXPORT int CALL InitiateGFX (GFX_INFO Gfx_Info)
+int GInitiateGFX (GFX_INFO Gfx_Info)
 {
   VLOG ("InitiateGFX (*)\n");
   voodoo.num_tmu = 2;
@@ -1832,7 +1875,7 @@ ypos - y-coordinate of the upper-left corner of the
 client area of the window.
 output:   none
 *******************************************************************/
-EXPORT void CALL MoveScreen (int xpos, int ypos)
+void GMoveScreen (int xpos, int ypos)
 {
   rdp.window_changed = TRUE;
 }
@@ -1845,7 +1888,7 @@ Purpose:  This function is called to force us to resize our output OpenGL window
 input:    new width and height
 output:   none
 *******************************************************************/
-EXPORT void CALL ResizeVideoOutput(int Width, int Height)
+void GResizeVideoOutput(int Width, int Height)
 {
 }
 
@@ -1855,7 +1898,7 @@ Purpose:  This function is called when a rom is closed.
 input:    none
 output:   none
 *******************************************************************/
-EXPORT void CALL RomClosed (void)
+void GRomClosed (void)
 {
   VLOG ("RomClosed ()\n");
 
@@ -1895,7 +1938,7 @@ emulation thread)
 input:    none
 output:   none
 *******************************************************************/
-EXPORT int CALL RomOpen (void)
+int GRomOpen (void)
 {
   VLOG ("RomOpen ()\n");
   no_dlist = true;
@@ -2011,13 +2054,13 @@ input:    none
 output:   none
 *******************************************************************/
 bool no_dlist = true;
-EXPORT void CALL ShowCFB (void)
+void GShowCFB (void)
 {
   no_dlist = true;
   VLOG ("ShowCFB ()\n");
 }
 
-EXPORT void CALL SetRenderingCallback(void (*callback)(int))
+void GSetRenderingCallback(void (*callback)(int))
 {
   VLOG("CALL SetRenderingCallback (*)\n");
     renderCallback = callback;
@@ -2079,7 +2122,7 @@ void DrawFrameBuffer ()
 
 extern "C" {
 /******************************************************************
-Function: UpdateScreen
+Function: GUpdateScreen
 Purpose:  This function is called in response to a vsync of the
 screen were the VI bit in MI_INTR_REG has already been
 set
@@ -2087,7 +2130,7 @@ input:    none
 output:   none
 *******************************************************************/
 wxUint32 update_screen_count = 0;
-EXPORT void CALL UpdateScreen (void)
+void GUpdateScreen (void)
 {
 #ifdef USE_FRAMESKIPPER
   frameSkipper.update();
@@ -2099,7 +2142,7 @@ EXPORT void CALL UpdateScreen (void)
   }
 #endif
   char out_buf[128];
-  sprintf (out_buf, "UpdateScreen (). Origin: %08x, Old origin: %08x, width: %d\n", *gfx.VI_ORIGIN_REG, rdp.vi_org_reg, *gfx.VI_WIDTH_REG);
+  sprintf (out_buf, "GUpdateScreen (). Origin: %08x, Old origin: %08x, width: %d\n", *gfx.VI_ORIGIN_REG, rdp.vi_org_reg, *gfx.VI_WIDTH_REG);
   VLOG ("%s", out_buf);
   LRDP(out_buf);
 
@@ -2133,7 +2176,7 @@ EXPORT void CALL UpdateScreen (void)
     update_screen_count = 0;
     no_dlist = true;
     ClearCache ();
-    UpdateScreen();
+    GUpdateScreen();
     return;
   }
   //*/
@@ -2500,7 +2543,7 @@ ViStatus registers value has been changed.
 input:    none
 output:   none
 *******************************************************************/
-EXPORT void CALL ViStatusChanged (void)
+void GViStatusChanged (void)
 {
 }
 
@@ -2511,7 +2554,7 @@ ViWidth registers value has been changed.
 input:    none
 output:   none
 *******************************************************************/
-EXPORT void CALL ViWidthChanged (void)
+void GViWidthChanged (void)
 {
 }
 

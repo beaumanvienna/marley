@@ -75,7 +75,7 @@ static void CopyParamCallback(void * context, const char *ParamName, m64p_type P
             break;
         default:
             // this should never happen
-            DebugMessage(M64MSG_ERROR, "Unknown source parameter type %i in copy callback", (int) ParamType);
+            IDebugMessage(M64MSG_ERROR, "Unknown source parameter type %i in copy callback", (int) ParamType);
             return;
     }
 }
@@ -87,13 +87,13 @@ int auto_copy_inputconfig(const char *pccSourceSectionName, const char *pccDestS
 
     if (ConfigOpenSection(pccSourceSectionName, &cpyContext.pSrc) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't open source config section '%s' for copying", pccSourceSectionName);
+        IDebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't open source config section '%s' for copying", pccSourceSectionName);
         return 0;
     }
 
     if (ConfigOpenSection(pccDestSectionName, &cpyContext.pDst) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't open destination config section '%s' for copying", pccDestSectionName);
+        IDebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't open destination config section '%s' for copying", pccDestSectionName);
         return 0;
     }
 
@@ -102,7 +102,7 @@ int auto_copy_inputconfig(const char *pccSourceSectionName, const char *pccDestS
     {
         if (ConfigSetParameter(cpyContext.pDst, "name", M64TYPE_STRING, sdlJoyName) != M64ERR_SUCCESS)
         {
-            DebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't set 'name' parameter to '%s' in section '%s'", sdlJoyName, pccDestSectionName);
+            IDebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: Couldn't set 'name' parameter to '%s' in section '%s'", sdlJoyName, pccDestSectionName);
             return 0;
         }
     }
@@ -110,7 +110,7 @@ int auto_copy_inputconfig(const char *pccSourceSectionName, const char *pccDestS
     // the copy gets done by the callback function
     if (ConfigListParameters(cpyContext.pSrc, (void *) &cpyContext, CopyParamCallback) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: parameter list copy failed");
+        IDebugMessage(M64MSG_ERROR, "auto_copy_inputconfig: parameter list copy failed");
         return 0;
     }
 
@@ -211,7 +211,7 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
     /* if we couldn't find the shared data file, dump an error and return */
     if (CfgFilePath == NULL || strlen(CfgFilePath) < 1)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't find config file '%s'", INI_FILE_NAME);
+        IDebugMessage(M64MSG_ERROR, "Couldn't find config file '%s'", INI_FILE_NAME);
         return 0;
     }
 
@@ -219,14 +219,14 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
     pfIn = fopen(CfgFilePath, "rb");
     if (pfIn == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't open config file '%s'", CfgFilePath);
+        IDebugMessage(M64MSG_ERROR, "Couldn't open config file '%s'", CfgFilePath);
         return 0;
     }
     fseek(pfIn, 0L, SEEK_END);
     iniLength = ftell(pfIn);
     fseek(pfIn, 0L, SEEK_SET);
     if (iniLength < 0) {
-        DebugMessage(M64MSG_ERROR, "Couldn't get size of config file '%s'", CfgFilePath);
+        IDebugMessage(M64MSG_ERROR, "Couldn't get size of config file '%s'", CfgFilePath);
         fclose(pfIn);
         return 0;
     }
@@ -234,13 +234,13 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
     pchIni = (char *) malloc(iniLength + 1);
     if (pchIni == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't allocate %li bytes for config file '%s'", iniLength, CfgFilePath);
+        IDebugMessage(M64MSG_ERROR, "Couldn't allocate %li bytes for config file '%s'", iniLength, CfgFilePath);
         fclose(pfIn);
         return 0;
     }
     if (fread(pchIni, 1, iniLength, pfIn) != iniLength)
     {
-        DebugMessage(M64MSG_ERROR, "File read failed for %li bytes of config file '%s'", iniLength, CfgFilePath);
+        IDebugMessage(M64MSG_ERROR, "File read failed for %li bytes of config file '%s'", iniLength, CfgFilePath);
         free(pchIni);
         fclose(pfIn);
         return 0;
@@ -249,7 +249,7 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
     pchIni[iniLength] = 0;
 
     /* parse the INI file, line by line */
-    DebugMessage(M64MSG_INFO, "Using auto-config file at: '%s'", CfgFilePath);
+    IDebugMessage(M64MSG_INFO, "Using auto-config file at: '%s'", CfgFilePath);
     pchNextLine = pchIni;
     eParseState = E_NAME_SEARCH;
     while (pchNextLine != NULL && *pchNextLine != 0)
@@ -285,7 +285,7 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
                 sprintf(SectionName, "AutoConfig%i", ControllersFound);
                 if (ConfigOpenSection(SectionName, &pConfig) != M64ERR_SUCCESS)
                 {
-                    DebugMessage(M64MSG_ERROR, "auto_set_defaults(): Couldn't open config section '%s'", SectionName);
+                    IDebugMessage(M64MSG_ERROR, "auto_set_defaults(): Couldn't open config section '%s'", SectionName);
                     free(pchIni);
                     return 0;
                 }
@@ -347,7 +347,7 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
                 sprintf(SectionName, "AutoConfig%i", ControllersFound);
                 if (ConfigOpenSection(SectionName, &pConfig) != M64ERR_SUCCESS)
                 {
-                    DebugMessage(M64MSG_ERROR, "auto_set_defaults(): Couldn't open config section '%s'", SectionName);
+                    IDebugMessage(M64MSG_ERROR, "auto_set_defaults(): Couldn't open config section '%s'", SectionName);
                     free(pchIni);
                     return ControllersFound;
                 }
@@ -356,13 +356,13 @@ int auto_set_defaults(int iDeviceIdx, const char *joySDLName)
             }
             else
             {
-                DebugMessage(M64MSG_ERROR, "Unknown keyword '%s' in %s", pchCurLine, INI_FILE_NAME);
+                IDebugMessage(M64MSG_ERROR, "Unknown keyword '%s' in %s", pchCurLine, INI_FILE_NAME);
             }
             continue;
         }
 
         /* unhandled line in .ini file */
-        DebugMessage(M64MSG_ERROR, "Invalid line in %s: '%s'", INI_FILE_NAME, pchCurLine);
+        IDebugMessage(M64MSG_ERROR, "Invalid line in %s: '%s'", INI_FILE_NAME, pchCurLine);
     }
 
     if (joyFoundScore != -1)

@@ -119,7 +119,7 @@ void write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask
         if ((vi->regs[VI_STATUS_REG] & mask) != (value & mask))
         {
             masked_write(&vi->regs[VI_STATUS_REG], value, mask);
-            gfx.viStatusChanged();
+            Cgfx.viStatusChanged();
         }
         return;
 
@@ -127,7 +127,7 @@ void write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask
         if ((vi->regs[VI_WIDTH_REG] & mask) != (value & mask))
         {
             masked_write(&vi->regs[VI_WIDTH_REG], value, mask);
-            gfx.viWidthChanged();
+            Cgfx.viWidthChanged();
         }
         return;
 
@@ -160,7 +160,7 @@ void vi_vertical_interrupt_event(void* opaque)
     if (vi->dp->do_on_unfreeze & DELAY_DP_INT)
         vi->dp->do_on_unfreeze |= DELAY_UPDATESCREEN;
     else
-        gfx.updateScreen();
+        Cgfx.updateScreen();
 
     /* allow main module to do things on VI event */
     new_vi();

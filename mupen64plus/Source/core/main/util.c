@@ -303,7 +303,7 @@ static int is_path_separator(char c)
     return strchr(OSAL_DIR_SEPARATORS, c) != NULL;
 }
 
-char* combinepath(const char* first, const char *second)
+char* Ccombinepath(const char* first, const char *second)
 {
     size_t len_first, off_second = 0;
 

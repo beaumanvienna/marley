@@ -93,7 +93,7 @@ void lircCheckInput(void)
                 else if(strcmp(c, "QUIT") == 0)
                     main_stop();
                 else if(strcmp(c, "FULLSCREEN") == 0)
-                    gfx.changeWindow();
+                    Cgfx.changeWindow();
                 else if(strcmp(c, "MUTE") == 0)
                     main_volume_mute();
                 else if(strcmp(c, "VOL+") == 0)

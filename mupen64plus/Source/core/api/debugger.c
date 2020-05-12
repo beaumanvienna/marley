@@ -93,14 +93,14 @@ void CoreCompareDataSync(int length, void *ptr)
 
 /* exported functions for use by the front-end User Interface */
 
-EXPORT m64p_error CALL DebugSetCoreCompare(void (*dbg_core_compare)(unsigned int), void (*dbg_core_data_sync)(int, void *))
+m64p_error EDebugSetCoreCompare(void (*dbg_core_compare)(unsigned int), void (*dbg_core_data_sync)(int, void *))
 {
     callback_core_compare = dbg_core_compare;
     callback_core_data_sync = dbg_core_data_sync;
     return M64ERR_SUCCESS;
 }
  
-EXPORT m64p_error CALL DebugSetCallbacks(void (*dbg_frontend_init)(void), void (*dbg_frontend_update)(unsigned int pc), void (*dbg_frontend_vi)(void))
+m64p_error EDebugSetCallbacks(void (*dbg_frontend_init)(void), void (*dbg_frontend_update)(unsigned int pc), void (*dbg_frontend_vi)(void))
 {
 #ifdef DBG
     callback_ui_init = dbg_frontend_init;
@@ -112,7 +112,7 @@ EXPORT m64p_error CALL DebugSetCallbacks(void (*dbg_frontend_init)(void), void (
 #endif
 }
 
-EXPORT m64p_error CALL DebugSetRunState(m64p_dbg_runstate runstate)
+m64p_error EDebugSetRunState(m64p_dbg_runstate runstate)
 {
 #ifdef DBG
     g_dbg_runstate = runstate; /* in debugger/debugger.c */
@@ -128,7 +128,7 @@ EXPORT m64p_error CALL DebugSetRunState(m64p_dbg_runstate runstate)
 #endif
 }
 
-EXPORT int CALL DebugGetState(m64p_dbg_state statenum)
+int EDebugGetState(m64p_dbg_state statenum)
 {
 #ifdef DBG
     switch (statenum)
@@ -154,7 +154,7 @@ EXPORT int CALL DebugGetState(m64p_dbg_state statenum)
 #endif
 }
 
-EXPORT m64p_error CALL DebugStep(void)
+m64p_error EDebugStep(void)
 {
 #ifdef DBG
     if (!g_DebuggerActive)
@@ -166,7 +166,7 @@ EXPORT m64p_error CALL DebugStep(void)
 #endif
 }
 
-EXPORT void CALL DebugDecodeOp(unsigned int instruction, char *op, char *args, int pc)
+void EDebugDecodeOp(unsigned int instruction, char *op, char *args, int pc)
 {
 #ifdef DBG
     r4300_decode_op(instruction, op, args, pc);
@@ -175,7 +175,7 @@ EXPORT void CALL DebugDecodeOp(unsigned int instruction, char *op, char *args, i
 #endif
 }
 
-EXPORT void * CALL DebugMemGetRecompInfo(m64p_dbg_mem_info recomp_type, unsigned int address, int index)
+void * EDebugMemGetRecompInfo(m64p_dbg_mem_info recomp_type, unsigned int address, int index)
 {
 #ifdef DBG
     struct r4300_core* r4300 = &g_dev.r4300;
@@ -198,7 +198,7 @@ EXPORT void * CALL DebugMemGetRecompInfo(m64p_dbg_mem_info recomp_type, unsigned
 #endif
 }
 
-EXPORT int CALL DebugMemGetMemInfo(m64p_dbg_mem_info mem_info_type, unsigned int address)
+int EDebugMemGetMemInfo(m64p_dbg_mem_info mem_info_type, unsigned int address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -224,7 +224,7 @@ EXPORT int CALL DebugMemGetMemInfo(m64p_dbg_mem_info mem_info_type, unsigned int
 #endif
 }
 
-EXPORT void * CALL DebugMemGetPointer(m64p_dbg_memptr_type mem_ptr_type)
+void * EDebugMemGetPointer(m64p_dbg_memptr_type mem_ptr_type)
 {
     switch (mem_ptr_type)
     {
@@ -246,7 +246,7 @@ EXPORT void * CALL DebugMemGetPointer(m64p_dbg_memptr_type mem_ptr_type)
     }
 }
 
-EXPORT unsigned long long CALL DebugMemRead64(unsigned int address)
+unsigned long long EDebugMemRead64(unsigned int address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -261,7 +261,7 @@ EXPORT unsigned long long CALL DebugMemRead64(unsigned int address)
 #endif
 }
 
-EXPORT unsigned int CALL DebugMemRead32(unsigned int address)
+unsigned int EDebugMemRead32(unsigned int address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -276,7 +276,7 @@ EXPORT unsigned int CALL DebugMemRead32(unsigned int address)
 #endif
 }
 
-EXPORT unsigned short CALL DebugMemRead16(unsigned int address)
+unsigned short EDebugMemRead16(unsigned int address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -288,7 +288,7 @@ EXPORT unsigned short CALL DebugMemRead16(unsigned int address)
 #endif
 }
 
-EXPORT unsigned char CALL DebugMemRead8(unsigned int address)
+unsigned char EDebugMemRead8(unsigned int address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -300,7 +300,7 @@ EXPORT unsigned char CALL DebugMemRead8(unsigned int address)
 #endif
 }
 
-EXPORT void CALL DebugMemWrite64(unsigned int address, unsigned long long value)
+void EDebugMemWrite64(unsigned int address, unsigned long long value)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -314,7 +314,7 @@ EXPORT void CALL DebugMemWrite64(unsigned int address, unsigned long long value)
 #endif
 }
 
-EXPORT void CALL DebugMemWrite32(unsigned int address, unsigned int value)
+void EDebugMemWrite32(unsigned int address, unsigned int value)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -328,7 +328,7 @@ EXPORT void CALL DebugMemWrite32(unsigned int address, unsigned int value)
 #endif
 }
 
-EXPORT void CALL DebugMemWrite16(unsigned int address, unsigned short value)
+void EDebugMemWrite16(unsigned int address, unsigned short value)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -339,7 +339,7 @@ EXPORT void CALL DebugMemWrite16(unsigned int address, unsigned short value)
 #endif
 }
 
-EXPORT void CALL DebugMemWrite8(unsigned int address, unsigned char value)
+void EDebugMemWrite8(unsigned int address, unsigned char value)
 {
 #ifdef DBG
     struct device* dev = &g_dev;
@@ -350,7 +350,7 @@ EXPORT void CALL DebugMemWrite8(unsigned int address, unsigned char value)
 #endif
 }
 
-EXPORT void * CALL DebugGetCPUDataPtr(m64p_dbg_cpu_data cpu_data_type)
+void * EDebugGetCPUDataPtr(m64p_dbg_cpu_data cpu_data_type)
 {
     struct device* dev = &g_dev;
     struct r4300_core* r4300 = &dev->r4300;
@@ -382,7 +382,7 @@ EXPORT void * CALL DebugGetCPUDataPtr(m64p_dbg_cpu_data cpu_data_type)
     }
 }
 
-EXPORT int CALL DebugBreakpointLookup(unsigned int address, unsigned int size, unsigned int flags)
+int EDebugBreakpointLookup(unsigned int address, unsigned int size, unsigned int flags)
 {
 #ifdef DBG
     return lookup_breakpoint(address, size, flags);
@@ -392,7 +392,7 @@ EXPORT int CALL DebugBreakpointLookup(unsigned int address, unsigned int size, u
 #endif
 }
 
-EXPORT int CALL DebugBreakpointCommand(m64p_dbg_bkp_command command, unsigned int index, m64p_breakpoint *bkp)
+int EDebugBreakpointCommand(m64p_dbg_bkp_command command, unsigned int index, m64p_breakpoint *bkp)
 {
 #ifdef DBG
     struct memory* mem = &g_dev.mem;
@@ -430,7 +430,7 @@ EXPORT int CALL DebugBreakpointCommand(m64p_dbg_bkp_command command, unsigned in
 #endif
 }
 
-EXPORT void CALL DebugBreakpointTriggeredBy(uint32_t *flags, uint32_t *accessed)
+void EDebugBreakpointTriggeredBy(uint32_t *flags, uint32_t *accessed)
 {
 #ifdef DBG
     *flags = breakpointFlag;
@@ -440,7 +440,7 @@ EXPORT void CALL DebugBreakpointTriggeredBy(uint32_t *flags, uint32_t *accessed)
 #endif
 }
 
-EXPORT uint32_t CALL DebugVirtualToPhysical(uint32_t address)
+uint32_t EDebugVirtualToPhysical(uint32_t address)
 {
 #ifdef DBG
     struct device* dev = &g_dev;

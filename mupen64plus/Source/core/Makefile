@@ -188,12 +188,12 @@ ifeq ($(OS), FREEBSD)
   endif
 endif
 ifeq ($(OS), LINUX)
-  TARGET = libmupen64plus$(POSTFIX).so.2.0.0
+  TARGET = libmupen64plus$(POSTFIX).a
   SONAME = libmupen64plus$(POSTFIX).so.2
-  LDFLAGS += -Wl,-Bsymbolic -shared -Wl,-export-dynamic -Wl,-soname,$(SONAME)
+  #LDFLAGS += -Wl,-Bsymbolic -shared -Wl,-export-dynamic -Wl,-soname,$(SONAME)
   LDLIBS += -ldl
   # only export api symbols
-  LDFLAGS += -Wl,-version-script,api/api_export.ver
+  #LDFLAGS += -Wl,-version-script,api/api_export.ver
   ifeq ($(ARCH_DETECTED), 64BITS)
     ASFLAGS = -f elf64
   else
@@ -408,7 +408,7 @@ AWK      ?= awk
 COMPILE.c = $(Q_CC)$(CC) $(OPTFLAGS) $(WARNFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 COMPILE.as = $(Q_AS)$(AS) $(ASFLAGS)
-LINK.o = $(Q_LD)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+LINK.o = ar rs $(LDFLAGS)
 
 ifeq ($(OS),OSX)
   LDCONFIG ?= true  # no 'ldconfig' under OSX
@@ -740,7 +740,6 @@ install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(INCDIR)"
 	$(INSTALL) -m 0644 ../../src/api/m64p_*.h "$(DESTDIR)$(INCDIR)"
 	-$(LDCONFIG) "$(DESTDIR)$(LIBDIR)"
-	if [ ! -e "$(DESTDIR)$(LIBDIR)/$(SONAME)" ]; then ln -sf "$(TARGET)" "$(DESTDIR)$(LIBDIR)/$(SONAME)"; fi
 
 uninstall:
 	$(RM) "$(DESTDIR)$(LIBDIR)/$(TARGET)"
@@ -751,7 +750,7 @@ uninstall:
 	$(RM) "$(DESTDIR)$(SHAREDIR)/mupencheat.txt"
 
 clean:
-	$(RM) -r $(TARGET) $(SONAME) $(OBJDIR) $(SRCDIR)/asm_defines/asm_defines_nasm.h $(SRCDIR)/asm_defines/asm_defines_gas.h
+	$(RM) -r $(TARGET) $(OBJDIR) $(SRCDIR)/asm_defines/asm_defines_nasm.h $(SRCDIR)/asm_defines/asm_defines_gas.h
 
 # build dependency files
 CFLAGS += -MD -MP
@@ -787,7 +786,7 @@ $(OBJDIR)/%.o: $(SUBDIR)/%.cpp
 
 
 $(TARGET): $(OBJECTS)
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
-	if [ "$(SONAME)" != "" ]; then ln -sf $@ $(SONAME); fi
+	$(LINK.o) $@  $^ $(LOADLIBES)
+
 
 .PHONY: all clean install uninstall targets

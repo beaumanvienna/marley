@@ -177,8 +177,8 @@ typedef struct {
 typedef void (*ptr_RomClosed)(void);
 typedef int  (*ptr_RomOpen)(void);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT int  CALL RomOpen(void);
-EXPORT void CALL RomClosed(void);
+int  ERomOpen(void);
+void ERomClosed(void);
 #endif
 
 /* video plugin function pointer types */
@@ -195,18 +195,18 @@ typedef void (*ptr_ReadScreen2)(void *dest, int *width, int *height, int front);
 typedef void (*ptr_SetRenderingCallback)(void (*callback)(int));
 typedef void (*ptr_ResizeVideoOutput)(int width, int height);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT void CALL ChangeWindow(void);
-EXPORT int  CALL InitiateGFX(GFX_INFO Gfx_Info);
-EXPORT void CALL MoveScreen(int x, int y);
-EXPORT void CALL ProcessDList(void);
-EXPORT void CALL ProcessRDPList(void);
-EXPORT void CALL ShowCFB(void);
-EXPORT void CALL UpdateScreen(void);
-EXPORT void CALL ViStatusChanged(void);
-EXPORT void CALL ViWidthChanged(void);
-EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int front);
-EXPORT void CALL SetRenderingCallback(void (*callback)(int));
-EXPORT void CALL ResizeVideoOutput(int width, int height);
+void EChangeWindow(void);
+int  EInitiateGFX(GFX_INFO Gfx_Info);
+void EMoveScreen(int x, int y);
+void EProcessDList(void);
+void EProcessRDPList(void);
+void EShowCFB(void);
+void EUpdateScreen(void);
+void EViStatusChanged(void);
+void EViWidthChanged(void);
+void EReadScreen2(void *dest, int *width, int *height, int front);
+void ESetRenderingCallback(void (*callback)(int));
+void EResizeVideoOutput(int width, int height);
 #endif
 
 /* frame buffer plugin spec extension */
@@ -221,9 +221,9 @@ typedef void (*ptr_FBRead)(unsigned int addr);
 typedef void (*ptr_FBWrite)(unsigned int addr, unsigned int size);
 typedef void (*ptr_FBGetFrameBufferInfo)(void *p);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT void CALL FBRead(unsigned int addr);
-EXPORT void CALL FBWrite(unsigned int addr, unsigned int size);
-EXPORT void CALL FBGetFrameBufferInfo(void *p);
+void EFBRead(unsigned int addr);
+void EFBWrite(unsigned int addr, unsigned int size);
+void EFBGetFrameBufferInfo(void *p);
 #endif
 
 /* audio plugin function pointers */
@@ -239,17 +239,17 @@ typedef void (*ptr_VolumeSetLevel)(int level);
 typedef void (*ptr_VolumeMute)(void);
 typedef const char * (*ptr_VolumeGetString)(void);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT void CALL AiDacrateChanged(int SystemType);
-EXPORT void CALL AiLenChanged(void);
-EXPORT int  CALL InitiateAudio(AUDIO_INFO Audio_Info);
-EXPORT void CALL ProcessAList(void);
-EXPORT void CALL SetSpeedFactor(int percent);
-EXPORT void CALL VolumeUp(void);
-EXPORT void CALL VolumeDown(void);
-EXPORT int  CALL VolumeGetLevel(void);
-EXPORT void CALL VolumeSetLevel(int level);
-EXPORT void CALL VolumeMute(void);
-EXPORT const char * CALL VolumeGetString(void);
+void EAiDacrateChanged(int SystemType);
+void EAiLenChanged(void);
+int  EInitiateAudio(AUDIO_INFO Audio_Info);
+void EProcessAList(void);
+void ESetSpeedFactor(int percent);
+void EVolumeUp(void);
+void EVolumeDown(void);
+int  EVolumeGetLevel(void);
+void EVolumeSetLevel(int level);
+void EVolumeMute(void);
+const char * EVolumeGetString(void);
 #endif
 
 /* input plugin function pointers */
@@ -261,21 +261,21 @@ typedef void (*ptr_SDL_KeyDown)(int keymod, int keysym);
 typedef void (*ptr_SDL_KeyUp)(int keymod, int keysym);
 typedef void (*ptr_RenderCallback)(void);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT void CALL ControllerCommand(int Control, unsigned char *Command);
-EXPORT void CALL GetKeys(int Control, BUTTONS *Keys);
-EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo);
-EXPORT void CALL ReadController(int Control, unsigned char *Command);
-EXPORT void CALL SDL_KeyDown(int keymod, int keysym);
-EXPORT void CALL SDL_KeyUp(int keymod, int keysym);
-EXPORT void CALL RenderCallback(void);
+void EControllerCommand(int Control, unsigned char *Command);
+void EGetKeys(int Control, BUTTONS *Keys);
+void EInitiateControllers(CONTROL_INFO ControlInfo);
+void EReadController(int Control, unsigned char *Command);
+void ESDL_KeyDown(int keymod, int keysym);
+void ESDL_KeyUp(int keymod, int keysym);
+void ERenderCallback(void);
 #endif
 
 /* RSP plugin function pointers */
 typedef unsigned int (*ptr_DoRspCycles)(unsigned int Cycles);
 typedef void (*ptr_InitiateRSP)(RSP_INFO Rsp_Info, unsigned int *CycleCount);
 #if defined(M64P_PLUGIN_PROTOTYPES)
-EXPORT unsigned int CALL DoRspCycles(unsigned int Cycles);
-EXPORT void CALL InitiateRSP(RSP_INFO Rsp_Info, unsigned int *CycleCount);
+unsigned int EDoRspCycles(unsigned int Cycles);
+void EInitiateRSP(RSP_INFO Rsp_Info, unsigned int *CycleCount);
 #endif
 
 #ifdef __cplusplus

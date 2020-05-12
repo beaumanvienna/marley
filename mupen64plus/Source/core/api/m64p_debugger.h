@@ -41,7 +41,7 @@ extern "C" {
  */
 typedef m64p_error (*ptr_DebugSetCallbacks)(void (*)(void), void (*)(unsigned int), void (*)(void));
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL DebugSetCallbacks(void (*)(void), void (*)(unsigned int), void (*)(void));
+m64p_error EDebugSetCallbacks(void (*)(void), void (*)(unsigned int), void (*)(void));
 #endif
 
 /* DebugSetCoreCompare()
@@ -51,7 +51,7 @@ EXPORT m64p_error CALL DebugSetCallbacks(void (*)(void), void (*)(unsigned int),
  */
 typedef m64p_error (*ptr_DebugSetCoreCompare)(void (*)(unsigned int), void (*)(int, void *));
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL DebugSetCoreCompare(void (*)(unsigned int), void (*)(int, void *));
+m64p_error EDebugSetCoreCompare(void (*)(unsigned int), void (*)(int, void *));
 #endif
 
 /* DebugSetRunState()
@@ -60,7 +60,7 @@ EXPORT m64p_error CALL DebugSetCoreCompare(void (*)(unsigned int), void (*)(int,
  */
 typedef m64p_error (*ptr_DebugSetRunState)(m64p_dbg_runstate);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL DebugSetRunState(m64p_dbg_runstate);
+m64p_error EDebugSetRunState(m64p_dbg_runstate);
 #endif
 
 /* DebugGetState()
@@ -70,7 +70,7 @@ EXPORT m64p_error CALL DebugSetRunState(m64p_dbg_runstate);
  */
 typedef int (*ptr_DebugGetState)(m64p_dbg_state);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int CALL DebugGetState(m64p_dbg_state);
+int EDebugGetState(m64p_dbg_state);
 #endif
 
 /* DebugStep()
@@ -80,7 +80,7 @@ EXPORT int CALL DebugGetState(m64p_dbg_state);
  */
 typedef m64p_error (*ptr_DebugStep)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL DebugStep(void);
+m64p_error EDebugStep(void);
 #endif
 
 /* DebugDecodeOp()
@@ -92,7 +92,7 @@ EXPORT m64p_error CALL DebugStep(void);
  */
 typedef void (*ptr_DebugDecodeOp)(unsigned int, char *, char *, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void CALL DebugDecodeOp(unsigned int, char *, char *, int);
+void EDebugDecodeOp(unsigned int, char *, char *, int);
 #endif
 
 /* DebugMemGetRecompInfo()
@@ -104,7 +104,7 @@ EXPORT void CALL DebugDecodeOp(unsigned int, char *, char *, int);
  */
 typedef void * (*ptr_DebugMemGetRecompInfo)(m64p_dbg_mem_info, unsigned int, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void * CALL DebugMemGetRecompInfo(m64p_dbg_mem_info, unsigned int, int);
+void * EDebugMemGetRecompInfo(m64p_dbg_mem_info, unsigned int, int);
 #endif
 
 /* DebugMemGetMemInfo()
@@ -115,7 +115,7 @@ EXPORT void * CALL DebugMemGetRecompInfo(m64p_dbg_mem_info, unsigned int, int);
  */
 typedef int (*ptr_DebugMemGetMemInfo)(m64p_dbg_mem_info, unsigned int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int CALL DebugMemGetMemInfo(m64p_dbg_mem_info, unsigned int);
+int EDebugMemGetMemInfo(m64p_dbg_mem_info, unsigned int);
 #endif
 
 /* DebugMemGetPointer()
@@ -126,7 +126,7 @@ EXPORT int CALL DebugMemGetMemInfo(m64p_dbg_mem_info, unsigned int);
  */
 typedef void * (*ptr_DebugMemGetPointer)(m64p_dbg_memptr_type);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void * CALL DebugMemGetPointer(m64p_dbg_memptr_type);
+void * EDebugMemGetPointer(m64p_dbg_memptr_type);
 #endif
 
 /* DebugMemRead**()
@@ -139,10 +139,10 @@ typedef unsigned int 	   (*ptr_DebugMemRead32)(unsigned int);
 typedef unsigned short 	   (*ptr_DebugMemRead16)(unsigned int);
 typedef unsigned char 	   (*ptr_DebugMemRead8)(unsigned int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT unsigned long long  CALL DebugMemRead64(unsigned int);
-EXPORT unsigned int 	   CALL DebugMemRead32(unsigned int);
-EXPORT unsigned short 	   CALL DebugMemRead16(unsigned int);
-EXPORT unsigned char 	   CALL DebugMemRead8(unsigned int);
+unsigned long long  EDebugMemRead64(unsigned int);
+unsigned int 	    EDebugMemRead32(unsigned int);
+unsigned short 	    EDebugMemRead16(unsigned int);
+unsigned char 	    EDebugMemRead8(unsigned int);
 #endif
 
 /* DebugMemWrite**()
@@ -155,10 +155,10 @@ typedef void (*ptr_DebugMemWrite32)(unsigned int, unsigned int);
 typedef void (*ptr_DebugMemWrite16)(unsigned int, unsigned short);
 typedef void (*ptr_DebugMemWrite8)(unsigned int, unsigned char);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void CALL DebugMemWrite64(unsigned int, unsigned long long);
-EXPORT void CALL DebugMemWrite32(unsigned int, unsigned int);
-EXPORT void CALL DebugMemWrite16(unsigned int, unsigned short);
-EXPORT void CALL DebugMemWrite8(unsigned int, unsigned char);
+void EDebugMemWrite64(unsigned int, unsigned long long);
+void EDebugMemWrite32(unsigned int, unsigned int);
+void EDebugMemWrite16(unsigned int, unsigned short);
+void EDebugMemWrite8(unsigned int, unsigned char);
 #endif
 
 /* DebugGetCPUDataPtr()
@@ -168,7 +168,7 @@ EXPORT void CALL DebugMemWrite8(unsigned int, unsigned char);
  */
 typedef void * (*ptr_DebugGetCPUDataPtr)(m64p_dbg_cpu_data);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void * CALL DebugGetCPUDataPtr(m64p_dbg_cpu_data);
+void * EDebugGetCPUDataPtr(m64p_dbg_cpu_data);
 #endif
 
 /* DebugBreakpointLookup()
@@ -180,7 +180,7 @@ EXPORT void * CALL DebugGetCPUDataPtr(m64p_dbg_cpu_data);
  */
 typedef int (*ptr_DebugBreakpointLookup)(unsigned int, unsigned int, unsigned int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int CALL DebugBreakpointLookup(unsigned int, unsigned int, unsigned int);
+int EDebugBreakpointLookup(unsigned int, unsigned int, unsigned int);
 #endif
 
 /* DebugBreakpointCommand()
@@ -191,7 +191,7 @@ EXPORT int CALL DebugBreakpointLookup(unsigned int, unsigned int, unsigned int);
  */
 typedef int (*ptr_DebugBreakpointCommand)(m64p_dbg_bkp_command, unsigned int, m64p_breakpoint *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int CALL DebugBreakpointCommand(m64p_dbg_bkp_command, unsigned int, m64p_breakpoint *);
+int EDebugBreakpointCommand(m64p_dbg_bkp_command, unsigned int, m64p_breakpoint *);
 #endif
 
 /* DebugBreakpointTriggeredBy()
@@ -201,7 +201,7 @@ EXPORT int CALL DebugBreakpointCommand(m64p_dbg_bkp_command, unsigned int, m64p_
  */
 typedef void (*ptr_DebugBreakpointTriggeredBy)(uint32_t *, uint32_t *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT void CALL DebugBreakpointTriggeredBy(uint32_t *, uint32_t *);
+void EDebugBreakpointTriggeredBy(uint32_t *, uint32_t *);
 #endif
 
 /* DebugVirtualToPhysical()
@@ -211,7 +211,7 @@ EXPORT void CALL DebugBreakpointTriggeredBy(uint32_t *, uint32_t *);
  */
 typedef uint32_t (*ptr_DebugVirtualToPhysical)(uint32_t);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT uint32_t CALL DebugVirtualToPhysical(uint32_t);
+uint32_t EDebugVirtualToPhysical(uint32_t);
 #endif
 
 #ifdef __cplusplus

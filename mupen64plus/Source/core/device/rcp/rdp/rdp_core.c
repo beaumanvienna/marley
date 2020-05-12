@@ -42,7 +42,7 @@ static void update_dpc_status(struct rdp_core* dp, uint32_t w)
         if (dp->do_on_unfreeze & DELAY_DP_INT)
             signal_rcp_interrupt(dp->mi, MI_INTR_DP);
         if (dp->do_on_unfreeze & DELAY_UPDATESCREEN)
-            gfx.updateScreen();
+            Cgfx.updateScreen();
         dp->do_on_unfreeze = 0;
     }
     if (w & DPC_SET_FREEZE) dp->dpc_regs[DPC_STATUS_REG] |= DPC_STATUS_FREEZE;
@@ -115,7 +115,7 @@ void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mas
         break;
     case DPC_END_REG:
         unprotect_framebuffers(&dp->fb);
-        gfx.processRDPList();
+        Cgfx.processRDPList();
         protect_framebuffers(&dp->fb);
         signal_rcp_interrupt(dp->mi, MI_INTR_DP);
         break;

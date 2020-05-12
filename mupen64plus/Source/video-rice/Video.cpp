@@ -73,42 +73,42 @@ std::vector<uint32> frameWriteRecord;
 void (*renderCallback)(int) = NULL;
 
 /* definitions of pointers to Core config functions */
-ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-ptr_ConfigSetParameterHelp ConfigSetParameterHelp = NULL;
-ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-ptr_ConfigGetParameterHelp ConfigGetParameterHelp = NULL;
-ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-ptr_ConfigGetParamString   ConfigGetParamString = NULL;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigSetParameterHelp ConfigSetParameterHelp;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigGetParameterHelp ConfigGetParameterHelp;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
 
-ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = NULL;
-ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = NULL;
-ptr_ConfigGetUserDataPath       ConfigGetUserDataPath = NULL;
-ptr_ConfigGetUserCachePath      ConfigGetUserCachePath = NULL;
+extern ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath;
+extern ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath;
+extern ptr_ConfigGetUserDataPath       ConfigGetUserDataPath;
+extern ptr_ConfigGetUserCachePath      ConfigGetUserCachePath;
 
 /* definitions of pointers to Core video extension functions */
-ptr_VidExt_Init                  CoreVideo_Init = NULL;
-ptr_VidExt_Quit                  CoreVideo_Quit = NULL;
-ptr_VidExt_ListFullscreenModes   CoreVideo_ListFullscreenModes = NULL;
-ptr_VidExt_SetVideoMode          CoreVideo_SetVideoMode = NULL;
-ptr_VidExt_SetCaption            CoreVideo_SetCaption = NULL;
-ptr_VidExt_ToggleFullScreen      CoreVideo_ToggleFullScreen = NULL;
-ptr_VidExt_ResizeWindow          CoreVideo_ResizeWindow = NULL;
-ptr_VidExt_GL_GetProcAddress     CoreVideo_GL_GetProcAddress = NULL;
-ptr_VidExt_GL_SetAttribute       CoreVideo_GL_SetAttribute = NULL;
-ptr_VidExt_GL_GetAttribute       CoreVideo_GL_GetAttribute = NULL;
-ptr_VidExt_GL_SwapBuffers        CoreVideo_GL_SwapBuffers = NULL;
+extern ptr_VidExt_Init                  CoreVideo_Init;
+extern ptr_VidExt_Quit                  CoreVideo_Quit;
+extern ptr_VidExt_ListFullscreenModes   CoreVideo_ListFullscreenModes;
+extern ptr_VidExt_SetVideoMode          CoreVideo_SetVideoMode;
+extern ptr_VidExt_SetCaption            CoreVideo_SetCaption;
+extern ptr_VidExt_ToggleFullScreen      CoreVideo_ToggleFullScreen;
+extern ptr_VidExt_ResizeWindow          CoreVideo_ResizeWindow;
+extern ptr_VidExt_GL_GetProcAddress     CoreVideo_GL_GetProcAddress;
+extern ptr_VidExt_GL_SetAttribute       CoreVideo_GL_SetAttribute;
+extern ptr_VidExt_GL_GetAttribute       CoreVideo_GL_GetAttribute;
+extern ptr_VidExt_GL_SwapBuffers        CoreVideo_GL_SwapBuffers;
 
 //---------------------------------------------------------------------------------------
 // Forward function declarations
 
-extern "C" EXPORT void CALL RomClosed(void);
+extern "C" void RRomClosed(void);
 
 //---------------------------------------------------------------------------------------
 // Static (local) functions
@@ -388,7 +388,7 @@ static void StopVideo()
         }
     catch(...)
     {
-        TRACE0("Some exceptions during RomClosed");
+        TRACE0("Some exceptions during RRomClosed");
     }
 
     g_CritialSection.Unlock();
@@ -576,7 +576,7 @@ extern "C" {
 #endif
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+m64p_error RPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     if (l_PluginInit)
@@ -674,14 +674,14 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+m64p_error RPluginShutdown(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
 
     if( status.bGameIsRunning )
     {
-        RomClosed();
+        RRomClosed();
     }
     if (bIniIsChanged)
     {
@@ -697,7 +697,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error RPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -723,7 +723,7 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
 //-------------------------------------------------------------------------------------
 
 
-EXPORT void CALL ChangeWindow (void)
+void RChangeWindow (void)
 {
     if( status.ToToggleFullScreen )
         status.ToToggleFullScreen = FALSE;
@@ -733,12 +733,12 @@ EXPORT void CALL ChangeWindow (void)
 
 //---------------------------------------------------------------------------------------
 
-EXPORT void CALL MoveScreen (int xpos, int ypos)
+void RMoveScreen (int xpos, int ypos)
 { 
 }
 
 //---------------------------------------------------------------------------------------
-EXPORT void CALL RomClosed(void)
+void RRomClosed(void)
 {
     TRACE0("To stop video");
     Ini_StoreRomOptions(&g_curRomInfo);
@@ -746,7 +746,7 @@ EXPORT void CALL RomClosed(void)
     TRACE0("Video is stopped");
 }
 
-EXPORT int CALL RomOpen(void)
+int RRomOpen(void)
 {
     /* Read RiceVideoLinux.ini file, set up internal variables by reading values from core configuration API */
     LoadConfiguration();
@@ -776,7 +776,7 @@ EXPORT int CALL RomOpen(void)
 
 
 //---------------------------------------------------------------------------------------
-EXPORT void CALL UpdateScreen(void)
+void RUpdateScreen(void)
 {
     if(options.bShowFPS)
     {
@@ -798,7 +798,7 @@ EXPORT void CALL UpdateScreen(void)
 
 //---------------------------------------------------------------------------------------
 
-EXPORT void CALL ViStatusChanged(void)
+void RViStatusChanged(void)
 {
     g_CritialSection.Lock();
     SetVIScales();
@@ -807,7 +807,7 @@ EXPORT void CALL ViStatusChanged(void)
 }
 
 //---------------------------------------------------------------------------------------
-EXPORT void CALL ViWidthChanged(void)
+void RViWidthChanged(void)
 {
     g_CritialSection.Lock();
     SetVIScales();
@@ -815,7 +815,7 @@ EXPORT void CALL ViWidthChanged(void)
     g_CritialSection.Unlock();
 }
 
-EXPORT int CALL InitiateGFX(GFX_INFO Gfx_Info)
+int RInitiateGFX(GFX_INFO Gfx_Info)
 {
     memset(&status, 0, sizeof(status));
     memcpy(&g_GraphicsInfo, &Gfx_Info, sizeof(GFX_INFO));
@@ -839,7 +839,7 @@ EXPORT int CALL InitiateGFX(GFX_INFO Gfx_Info)
     return(TRUE);
 }
 
-EXPORT void CALL ResizeVideoOutput(int width, int height)
+void RResizeVideoOutput(int width, int height)
 {
     // save the new window resolution.  actual resizing operation is asynchronous (it happens later)
     status.gNewResizeWidth = width;
@@ -849,7 +849,7 @@ EXPORT void CALL ResizeVideoOutput(int width, int height)
 
 //---------------------------------------------------------------------------------------
 
-EXPORT void CALL ProcessRDPList(void)
+void RProcessRDPList(void)
 {
     try
     {
@@ -863,7 +863,7 @@ EXPORT void CALL ProcessRDPList(void)
     }
 }   
 
-EXPORT void CALL ProcessDList(void)
+void RProcessDList(void)
 {
     ProcessDListStep2();
 }   
@@ -889,7 +889,7 @@ EXPORT void CALL ProcessDList(void)
   output:   none
 *******************************************************************/ 
 
-EXPORT void CALL FBRead(uint32 addr)
+void RFBRead(uint32 addr)
 {
     g_pFrameBufferManager->FrameBufferReadByCPU(addr);
 }
@@ -909,7 +909,7 @@ EXPORT void CALL FBRead(uint32 addr)
   output:   none
 *******************************************************************/ 
 
-EXPORT void CALL FBWrite(uint32 addr, uint32 size)
+void RFBWrite(uint32 addr, uint32 size)
 {
     g_pFrameBufferManager->FrameBufferWriteByCPU(addr, size);
 }
@@ -936,7 +936,7 @@ output:   Values are return in the FrameBufferInfo structure
           Plugin can return up to 6 frame buffer info
  ************************************************************************/
 
-EXPORT void CALL FBGetFrameBufferInfo(void *p)
+void RFBGetFrameBufferInfo(void *p)
 {
     FrameBufferInfo * pinfo = (FrameBufferInfo *)p;
     memset(pinfo,0,sizeof(FrameBufferInfo)*6);
@@ -973,13 +973,13 @@ EXPORT void CALL FBGetFrameBufferInfo(void *p)
 }
 
 // Plugin spec 1.3 functions
-EXPORT void CALL ShowCFB(void)
+void RShowCFB(void)
 {
     status.toShowCFB = true;
 }
 
 //void ReadScreen2( void *dest, int *width, int *height, int bFront )
-EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int bFront)
+void RReadScreen2(void *dest, int *width, int *height, int bFront)
 {
     if (width == NULL || height == NULL)
         return;
@@ -1026,7 +1026,7 @@ EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int bFront)
 }
     
 
-EXPORT void CALL SetRenderingCallback(void (*callback)(int))
+void RSetRenderingCallback(void (*callback)(int))
 {
     renderCallback = callback;
 }

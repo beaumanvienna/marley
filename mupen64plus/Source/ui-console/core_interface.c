@@ -40,106 +40,169 @@
 #include "osal_preproc.h"
 #include "version.h"
 
+
 /* global data definitions */
 int g_CoreCapabilities;
 int g_CoreAPIVersion;
 
+const char * ECoreErrorMessage(m64p_error);
+m64p_error ECoreStartup(int, const char *, const char *, void *, ptr_DebugCallback, void *, ptr_StateCallback);
+m64p_error ECoreShutdown(void);
+void EDebugCallback(void *Context, int level, const char *message);
+void EStateCallback(void *Context, m64p_core_param param_type, int new_value);
+m64p_error ECoreAttachPlugin(m64p_plugin_type, m64p_dynlib_handle);
+m64p_error ECoreDetachPlugin(m64p_plugin_type);
+m64p_error ECoreDoCommand(m64p_command, int, void *);
+m64p_error ECoreOverrideVidExt(m64p_video_extension_functions *);
+m64p_error ECoreAddCheat(const char *, m64p_cheat_code *, int);
+m64p_error ECoreCheatEnabled(const char *, int);
+m64p_error ECoreGetRomSettings(m64p_rom_settings *, int, int, int);
+m64p_error EConfigListSections(void *, void (*)(void *, const char *));
+m64p_error EConfigOpenSection(const char *, m64p_handle *);
+m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+m64p_error EConfigSaveFile(void);
+m64p_error EConfigSaveSection(const char *);
+int EConfigHasUnsavedChanges(const char *);
+m64p_error EConfigDeleteSection(const char *SectionName);
+m64p_error EConfigRevertChanges(const char *SectionName);
+m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
+m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+const char * EConfigGetParameterHelp(m64p_handle, const char *);
+m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+int          EConfigGetParamInt(m64p_handle, const char *);
+float        EConfigGetParamFloat(m64p_handle, const char *);
+int          EConfigGetParamBool(m64p_handle, const char *);
+const char * EConfigGetParamString(m64p_handle, const char *);
+const char * EConfigGetSharedDataFilepath(const char *);
+const char * EConfigGetUserConfigPath(void);
+const char * EConfigGetUserDataPath(void);
+const char * EConfigGetUserCachePath(void);
+m64p_error EConfigExternalOpen(const char *, m64p_handle *);
+m64p_error EConfigExternalClose(m64p_handle);
+m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+m64p_error EDebugSetCallbacks(void (*)(void), void (*)(unsigned int), void (*)(void));
+m64p_error EDebugSetCoreCompare(void (*)(unsigned int), void (*)(int, void *));
+m64p_error EDebugSetRunState(m64p_dbg_runstate);
+int EDebugGetState(m64p_dbg_state);
+m64p_error EDebugStep(void);
+void EDebugDecodeOp(unsigned int, char *, char *, int);
+void * EDebugMemGetRecompInfo(m64p_dbg_mem_info, unsigned int, int);
+int EDebugMemGetMemInfo(m64p_dbg_mem_info, unsigned int);
+void * EDebugMemGetPointer(m64p_dbg_memptr_type);
+unsigned long long  EDebugMemRead64(unsigned int);
+unsigned int 	    EDebugMemRead32(unsigned int);
+unsigned short 	    EDebugMemRead16(unsigned int);
+unsigned char 	    EDebugMemRead8(unsigned int);
+void EDebugMemWrite64(unsigned int, unsigned long long);
+void EDebugMemWrite32(unsigned int, unsigned int);
+void EDebugMemWrite16(unsigned int, unsigned short);
+void EDebugMemWrite8(unsigned int, unsigned char);
+void * EDebugGetCPUDataPtr(m64p_dbg_cpu_data);
+int EDebugBreakpointLookup(unsigned int, unsigned int, unsigned int);
+int EDebugBreakpointCommand(m64p_dbg_bkp_command, unsigned int, m64p_breakpoint *);
+void EDebugBreakpointTriggeredBy(uint32_t *, uint32_t *);
+uint32_t EDebugVirtualToPhysical(uint32_t);
+
 /* definitions of pointers to Core common functions */
-ptr_CoreErrorMessage    CoreErrorMessage = NULL;
+ptr_CoreErrorMessage    CoreErrorMessage = ECoreErrorMessage;
 
 /* definitions of pointers to Core front-end functions */
-ptr_CoreStartup         CoreStartup = NULL;
-ptr_CoreShutdown        CoreShutdown = NULL;
-ptr_CoreAttachPlugin    CoreAttachPlugin = NULL;
-ptr_CoreDetachPlugin    CoreDetachPlugin = NULL;
-ptr_CoreDoCommand       CoreDoCommand = NULL;
-ptr_CoreOverrideVidExt  CoreOverrideVidExt = NULL;
-ptr_CoreAddCheat        CoreAddCheat = NULL;
-ptr_CoreCheatEnabled    CoreCheatEnabled = NULL;
+ptr_CoreStartup         CoreStartup = ECoreStartup;
+ptr_CoreShutdown        CoreShutdown = ECoreShutdown;
+ptr_CoreAttachPlugin    CoreAttachPlugin = ECoreAttachPlugin;
+ptr_CoreDetachPlugin    CoreDetachPlugin = ECoreDetachPlugin;
+ptr_CoreDoCommand       CoreDoCommand = ECoreDoCommand;
+ptr_CoreOverrideVidExt  CoreOverrideVidExt = ECoreOverrideVidExt;
+ptr_CoreAddCheat        CoreAddCheat = ECoreAddCheat;
+ptr_CoreCheatEnabled    CoreCheatEnabled = ECoreCheatEnabled;
 
 /* definitions of pointers to Core config functions */
-ptr_ConfigListSections     ConfigListSections = NULL;
-ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
-ptr_ConfigSaveSection      ConfigSaveSection = NULL;
-ptr_ConfigListParameters   ConfigListParameters = NULL;
-ptr_ConfigSaveFile         ConfigSaveFile = NULL;
-ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-ptr_ConfigGetParameterType ConfigGetParameterType = NULL;
-ptr_ConfigGetParameterHelp ConfigGetParameterHelp = NULL;
-ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-ptr_ConfigGetParamString   ConfigGetParamString = NULL;
+ptr_ConfigListSections     ConfigListSections = EConfigListSections;
+ptr_ConfigOpenSection      ConfigOpenSection = EConfigOpenSection;
+ptr_ConfigDeleteSection    ConfigDeleteSection = EConfigDeleteSection;
+ptr_ConfigSaveSection      ConfigSaveSection = EConfigSaveSection;
+ptr_ConfigListParameters   ConfigListParameters = EConfigListParameters;
+ptr_ConfigSaveFile         ConfigSaveFile = EConfigSaveFile;
+ptr_ConfigSetParameter     ConfigSetParameter = EConfigSetParameter;
+ptr_ConfigGetParameter     ConfigGetParameter = EConfigGetParameter;
+ptr_ConfigGetParameterType ConfigGetParameterType = EConfigGetParameterType;
+ptr_ConfigGetParameterHelp ConfigGetParameterHelp = EConfigGetParameterHelp;
+ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = EConfigSetDefaultInt;
+ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = EConfigSetDefaultFloat;
+ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = EConfigSetDefaultBool;
+ptr_ConfigSetDefaultString ConfigSetDefaultString = EConfigSetDefaultString;
+ptr_ConfigGetParamInt      ConfigGetParamInt = EConfigGetParamInt;
+ptr_ConfigGetParamFloat    ConfigGetParamFloat = EConfigGetParamFloat;
+ptr_ConfigGetParamBool     ConfigGetParamBool = EConfigGetParamBool;
+ptr_ConfigGetParamString   ConfigGetParamString = EConfigGetParamString;
 
-ptr_ConfigExternalOpen         ConfigExternalOpen = NULL;
-ptr_ConfigExternalClose        ConfigExternalClose = NULL;
-ptr_ConfigExternalGetParameter ConfigExternalGetParameter = NULL;
-ptr_ConfigHasUnsavedChanges    ConfigHasUnsavedChanges = NULL;
+ptr_ConfigExternalOpen         ConfigExternalOpen = EConfigExternalOpen;
+ptr_ConfigExternalClose        ConfigExternalClose = EConfigExternalClose;
+ptr_ConfigExternalGetParameter ConfigExternalGetParameter = EConfigExternalGetParameter;
+ptr_ConfigHasUnsavedChanges    ConfigHasUnsavedChanges = EConfigHasUnsavedChanges;
 
-ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = NULL;
-ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = NULL;
-ptr_ConfigGetUserDataPath       ConfigGetUserDataPath = NULL;
-ptr_ConfigGetUserCachePath      ConfigGetUserCachePath = NULL;
+ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = EConfigGetSharedDataFilepath;
+ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = EConfigGetUserConfigPath;
+ptr_ConfigGetUserDataPath       ConfigGetUserDataPath = EConfigGetUserDataPath;
+ptr_ConfigGetUserCachePath      ConfigGetUserCachePath = EConfigGetUserCachePath;
 
 /* definitions of pointers to Core debugger functions */
-ptr_DebugSetCallbacks      DebugSetCallbacks = NULL;
-ptr_DebugSetCoreCompare    DebugSetCoreCompare = NULL;
-ptr_DebugSetRunState       DebugSetRunState = NULL;
-ptr_DebugGetState          DebugGetState = NULL;
-ptr_DebugStep              DebugStep = NULL;
-ptr_DebugDecodeOp          DebugDecodeOp = NULL;
-ptr_DebugMemGetRecompInfo  DebugMemGetRecompInfo = NULL;
-ptr_DebugMemGetMemInfo     DebugMemGetMemInfo = NULL;
-ptr_DebugMemGetPointer     DebugMemGetPointer = NULL;
+ptr_DebugSetCallbacks      DebugSetCallbacks = EDebugSetCallbacks;
+ptr_DebugSetCoreCompare    DebugSetCoreCompare = EDebugSetCoreCompare;
+ptr_DebugSetRunState       DebugSetRunState = EDebugSetRunState;
+ptr_DebugGetState          DebugGetState = EDebugGetState;
+ptr_DebugStep              DebugStep = EDebugStep;
+ptr_DebugDecodeOp          DebugDecodeOp = EDebugDecodeOp;
+ptr_DebugMemGetRecompInfo  DebugMemGetRecompInfo = EDebugMemGetRecompInfo;
+ptr_DebugMemGetMemInfo     DebugMemGetMemInfo = EDebugMemGetMemInfo;
+ptr_DebugMemGetPointer     DebugMemGetPointer = EDebugMemGetPointer;
 
-ptr_DebugMemRead64         DebugMemRead64 = NULL;
-ptr_DebugMemRead32         DebugMemRead32 = NULL;
-ptr_DebugMemRead16         DebugMemRead16 = NULL;
-ptr_DebugMemRead8          DebugMemRead8 = NULL;
+ptr_DebugMemRead64         DebugMemRead64 = EDebugMemRead64;
+ptr_DebugMemRead32         DebugMemRead32 = EDebugMemRead32;
+ptr_DebugMemRead16         DebugMemRead16 = EDebugMemRead16;
+ptr_DebugMemRead8          DebugMemRead8 = EDebugMemRead8;
 
-ptr_DebugMemWrite64        DebugMemWrite64 = NULL;
-ptr_DebugMemWrite32        DebugMemWrite32 = NULL;
-ptr_DebugMemWrite16        DebugMemWrite16 = NULL;
-ptr_DebugMemWrite8         DebugMemWrite8 = NULL;
+ptr_DebugMemWrite64        DebugMemWrite64 = EDebugMemWrite64;
+ptr_DebugMemWrite32        DebugMemWrite32 = EDebugMemWrite32;
+ptr_DebugMemWrite16        DebugMemWrite16 = EDebugMemWrite16;
+ptr_DebugMemWrite8         DebugMemWrite8 = EDebugMemWrite8;
 
-ptr_DebugGetCPUDataPtr     DebugGetCPUDataPtr = NULL;
-ptr_DebugBreakpointLookup  DebugBreakpointLookup = NULL;
-ptr_DebugBreakpointCommand DebugBreakpointCommand = NULL;
+ptr_DebugGetCPUDataPtr     DebugGetCPUDataPtr = EDebugGetCPUDataPtr;
+ptr_DebugBreakpointLookup  DebugBreakpointLookup = EDebugBreakpointLookup;
+ptr_DebugBreakpointCommand DebugBreakpointCommand = EDebugBreakpointCommand;
 
-ptr_DebugBreakpointTriggeredBy DebugBreakpointTriggeredBy = NULL;
-ptr_DebugVirtualToPhysical     DebugVirtualToPhysical = NULL;
+ptr_DebugBreakpointTriggeredBy DebugBreakpointTriggeredBy = EDebugBreakpointTriggeredBy;
+ptr_DebugVirtualToPhysical     DebugVirtualToPhysical = EDebugVirtualToPhysical;
 
-/* global variables */
-m64p_dynlib_handle CoreHandle = NULL;
+// global variables
 
-/* functions */
 m64p_error AttachCoreLib(const char *CoreLibFilepath)
 {
-    /* check if Core DLL is already attached */
+    /*
+    // check if Core DLL is already attached 
     if (CoreHandle != NULL)
         return M64ERR_INVALID_STATE;
 
-    /* load the DLL */
+    // load the DLL
     m64p_error rval = M64ERR_INTERNAL;
-    /* first, try a library path+name that was given on the command-line */
+    / first, try a library path+name that was given on the command-line
     if (CoreLibFilepath != NULL)
     {
         rval = osal_dynlib_open(&CoreHandle, CoreLibFilepath);
     }
-    /* then try a library path that was given at compile time */
+    // then try a library path that was given at compile time
 #if defined(COREDIR)
     if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
         rval = osal_dynlib_open(&CoreHandle, COREDIR OSAL_DEFAULT_DYNLIB_FILENAME);
     }
 #endif
-    /* for MacOS, look for the library in the Frameworks folder of the app bundle */
+    // for MacOS, look for the library in the Frameworks folder of the app bundle
 #if defined(__APPLE__)
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     if (mainBundle != NULL)
@@ -157,30 +220,30 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
         }
     }
 #endif
-    /* then try just the filename of the shared library, to let dlopen() look through the system lib dirs */
+    // then try just the filename of the shared library, to let dlopen() look through the system lib dirs
     if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
         rval = osal_dynlib_open(&CoreHandle, OSAL_DEFAULT_DYNLIB_FILENAME);
     }
-    /* as a last-ditch effort, try loading library in current directory */
+    // as a last-ditch effort, try loading library in current directory
     if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
         rval = osal_dynlib_open(&CoreHandle, OSAL_CURRENT_DIR OSAL_DEFAULT_DYNLIB_FILENAME);
     }
-    /* if we haven't found a good core library by now, then we're screwed */
+    // if we haven't found a good core library by now, then we're screwed
     if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: failed to find Mupen64Plus Core library");
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: failed to find Mupen64Plus Core library");
         CoreHandle = NULL;
         return M64ERR_INPUT_NOT_FOUND;
     }
 
-    /* attach and call the PluginGetVersion function, check the Core and API versions for compatibility with this front-end */
+    // attach and call the PluginGetVersion function, check the Core and API versions for compatibility with this front-end
     ptr_PluginGetVersion CoreVersionFunc;
     CoreVersionFunc = (ptr_PluginGetVersion) osal_dynlib_getproc(CoreHandle, "PluginGetVersion");
     if (CoreVersionFunc == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; no PluginGetVersion() function found.", CoreLibFilepath);
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; no PluginGetVersion() function found.", CoreLibFilepath);
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
         return M64ERR_INPUT_INVALID;
@@ -191,16 +254,16 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     const char *CoreName = NULL;
     (*CoreVersionFunc)(&PluginType, &CoreVersion, &g_CoreAPIVersion, &CoreName, &g_CoreCapabilities);
     if (PluginType != M64PLUGIN_CORE)
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; this is not the emulator core.", CoreLibFilepath);
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; this is not the emulator core.", CoreLibFilepath);
     else if (CoreVersion < MINIMUM_CORE_VERSION)
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core version %i.%i.%i is below minimum supported %i.%i.%i",
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core version %i.%i.%i is below minimum supported %i.%i.%i",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(CoreVersion), VERSION_PRINTF_SPLIT(MINIMUM_CORE_VERSION));
     else if ((g_CoreAPIVersion & 0xffff0000) != (CORE_API_VERSION & 0xffff0000))
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core API major version %i.%i.%i doesn't match with this application (%i.%i.%i)",
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core API major version %i.%i.%i doesn't match with this application (%i.%i.%i)",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(g_CoreAPIVersion), VERSION_PRINTF_SPLIT(CORE_API_VERSION));
     else
         Compatible = 1;
-    /* exit if not compatible */
+    // exit if not compatible
     if (Compatible == 0)
     {
         osal_dynlib_close(CoreHandle);
@@ -208,12 +271,12 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
         return M64ERR_INCOMPATIBLE;
     }
 
-    /* attach and call the CoreGetAPIVersion function, check Config API version for compatibility */
+    // attach and call the CoreGetAPIVersion function, check Config API version for compatibility
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
     CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreHandle, "CoreGetAPIVersions");
     if (CoreAPIVersionFunc == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Library '%s' broken; no CoreAPIVersionFunc() function found.", CoreLibFilepath);
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Library '%s' broken; no CoreAPIVersionFunc() function found.", CoreLibFilepath);
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
         return M64ERR_INPUT_INVALID;
@@ -222,23 +285,23 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
     if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000) || ConfigAPIVersion < CONFIG_API_VERSION)
     {
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API version %i.%i.%i doesn't match application: %i.%i.%i",
+        UDebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API version %i.%i.%i doesn't match application: %i.%i.%i",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
         return M64ERR_INCOMPATIBLE;
     }
 
-    /* print some information about the core library */
-    DebugMessage(M64MSG_INFO, "attached to core library '%s' version %i.%i.%i", CoreName, VERSION_PRINTF_SPLIT(CoreVersion));
+    // print some information about the core library
+    UDebugMessage(M64MSG_INFO, "attached to core library '%s' version %i.%i.%i", CoreName, VERSION_PRINTF_SPLIT(CoreVersion));
     if (g_CoreCapabilities & M64CAPS_DYNAREC)
-        DebugMessage(M64MSG_INFO, "            Includes support for Dynamic Recompiler.");
+        UDebugMessage(M64MSG_INFO, "            Includes support for Dynamic Recompiler.");
     if (g_CoreCapabilities & M64CAPS_DEBUGGER)
-        DebugMessage(M64MSG_INFO, "            Includes support for MIPS r4300 Debugger.");
+        UDebugMessage(M64MSG_INFO, "            Includes support for MIPS r4300 Debugger.");
     if (g_CoreCapabilities & M64CAPS_CORE_COMPARE)
-        DebugMessage(M64MSG_INFO, "            Includes support for r4300 Core Comparison.");
-
-    /* get function pointers to the common and front-end functions */
+        UDebugMessage(M64MSG_INFO, "            Includes support for r4300 Core Comparison.");
+    
+    // get function pointers to the common and front-end functions
     CoreErrorMessage = (ptr_CoreErrorMessage) osal_dynlib_getproc(CoreHandle, "CoreErrorMessage");
     CoreStartup = (ptr_CoreStartup) osal_dynlib_getproc(CoreHandle, "CoreStartup");
     CoreShutdown = (ptr_CoreShutdown) osal_dynlib_getproc(CoreHandle, "CoreShutdown");
@@ -249,7 +312,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     CoreAddCheat = (ptr_CoreAddCheat) osal_dynlib_getproc(CoreHandle, "CoreAddCheat");
     CoreCheatEnabled = (ptr_CoreCheatEnabled) osal_dynlib_getproc(CoreHandle, "CoreCheatEnabled");
 
-    /* get function pointers to the configuration functions */
+    // get function pointers to the configuration functions
     ConfigListSections = (ptr_ConfigListSections) osal_dynlib_getproc(CoreHandle, "ConfigListSections");
     ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreHandle, "ConfigOpenSection");
     ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreHandle, "ConfigDeleteSection");
@@ -279,7 +342,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserDataPath");
     ConfigGetUserCachePath = (ptr_ConfigGetUserCachePath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserCachePath");
 
-    /* get function pointers to the debugger functions */
+    // get function pointers to the debugger functions
     DebugSetCallbacks = (ptr_DebugSetCallbacks) osal_dynlib_getproc(CoreHandle, "DebugSetCallbacks");
     DebugSetCoreCompare = (ptr_DebugSetCoreCompare) osal_dynlib_getproc(CoreHandle, "DebugSetCoreCompare");
     DebugSetRunState = (ptr_DebugSetRunState) osal_dynlib_getproc(CoreHandle, "DebugSetRunState");
@@ -306,16 +369,17 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
 
     DebugBreakpointTriggeredBy = (ptr_DebugBreakpointTriggeredBy) osal_dynlib_getproc(CoreHandle, "DebugBreakpointTriggeredBy");
     DebugVirtualToPhysical = (ptr_DebugVirtualToPhysical) osal_dynlib_getproc(CoreHandle, "DebugVirtualToPhysical");
-
+    */
     return M64ERR_SUCCESS;
 }
 
 m64p_error DetachCoreLib(void)
 {
+    /*
     if (CoreHandle == NULL)
         return M64ERR_INVALID_STATE;
 
-    /* set the core function pointers to NULL */
+    // set the core function pointers to NULL
     CoreErrorMessage = NULL;
     CoreStartup = NULL;
     CoreShutdown = NULL;
@@ -378,10 +442,10 @@ m64p_error DetachCoreLib(void)
     DebugBreakpointTriggeredBy = NULL;
     DebugVirtualToPhysical = NULL;
 
-    /* detach the shared library */
+    // detach the shared library
     osal_dynlib_close(CoreHandle);
     CoreHandle = NULL;
-
+    */
     return M64ERR_SUCCESS;
 }
 

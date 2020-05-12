@@ -600,7 +600,7 @@ extern "C" {
 #endif
 
 
-EXPORT void CALL ProcessDList(void)
+void GProcessDList(void)
 {
   SoftLocker lock(mutexProcessDList);
 #ifdef USE_FRAMESKIPPER
@@ -3194,7 +3194,7 @@ output:   none
 extern "C" {
 #endif
 
-EXPORT void CALL FBRead(wxUint32 addr)
+void GFBRead(wxUint32 addr)
 {
   LOG ("FBRead ()\n");
 
@@ -3253,7 +3253,7 @@ input:    FrameBufferModifyEntry *plist
 size = size of the plist, max = 1024
 output:   none
 *******************************************************************/
-EXPORT void CALL FBWList(FrameBufferModifyEntry *plist, wxUint32 size)
+void GFBWList(FrameBufferModifyEntry *plist, wxUint32 size)
 {
   LOG ("FBWList ()\n");
   FRDP("FBWList. size: %d\n", size);
@@ -3269,7 +3269,7 @@ val                     val
 size            1 = wxUint8, 2 = wxUint16, 4 = wxUint32
 output:   none
 *******************************************************************/
-EXPORT void CALL FBWrite(wxUint32 addr, wxUint32 size)
+void GFBWrite(wxUint32 addr, wxUint32 size)
 {
   LOG ("FBWrite ()\n");
   if (cpu_fb_ignore)
@@ -3327,7 +3327,7 @@ typedef struct
   wxUint32 height;
 } FrameBufferInfo;
 #endif
-EXPORT void CALL FBGetFrameBufferInfo(void *p)
+void GFBGetFrameBufferInfo(void *p)
 {
   VLOG ("FBGetFrameBufferInfo ()\n");
   FrameBufferInfo * pinfo = (FrameBufferInfo *)p;
@@ -4216,7 +4216,7 @@ output:   none
 #ifdef __cplusplus
 extern "C" {
 #endif
-EXPORT void CALL ProcessRDPList(void)
+void GProcessRDPList(void)
 {
   LOG ("ProcessRDPList ()\n");
   LRDP("ProcessRDPList ()\n");

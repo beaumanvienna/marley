@@ -118,7 +118,7 @@ void savestates_select_slot(unsigned int s)
     if(s>9||s==slot)
         return;
     slot = s;
-    ConfigSetParameter(g_CoreConfig, "CurrentStateSlot", M64TYPE_INT, &s);
+    EConfigSetParameter(g_CoreConfig, "CurrentStateSlot", M64TYPE_INT, &s);
     StateChanged(M64CORE_SAVESTATE_SLOT, slot);
 
     main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "Selected state slot: %d", slot);
@@ -371,8 +371,8 @@ static int savestates_load_m64p(struct device* dev, char *filepath)
     dev->vi.regs[VI_X_SCALE_REG] = GETDATA(curr, uint32_t);
     dev->vi.regs[VI_Y_SCALE_REG] = GETDATA(curr, uint32_t);
     dev->vi.delay = GETDATA(curr, uint32_t);
-    gfx.viStatusChanged();
-    gfx.viWidthChanged();
+    Cgfx.viStatusChanged();
+    Cgfx.viWidthChanged();
 
     dev->ri.regs[RI_MODE_REG]         = GETDATA(curr, uint32_t);
     dev->ri.regs[RI_CONFIG_REG]       = GETDATA(curr, uint32_t);
@@ -1080,8 +1080,8 @@ static int savestates_load_pj64(struct device* dev,
     dev->vi.regs[VI_X_SCALE_REG] = GETDATA(curr, uint32_t);
     dev->vi.regs[VI_Y_SCALE_REG] = GETDATA(curr, uint32_t);
     // TODO vi delay?
-    gfx.viStatusChanged();
-    gfx.viWidthChanged();
+    Cgfx.viStatusChanged();
+    Cgfx.viWidthChanged();
 
     dev->vi.count_per_scanline = (dev->vi.regs[VI_V_SYNC_REG] == 0)
         ? 1500

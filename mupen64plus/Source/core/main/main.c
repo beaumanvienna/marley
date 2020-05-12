@@ -140,7 +140,7 @@ static const char *get_savepathdefault(const char *configpath)
     static char path[1024];
 
     if (!configpath || (strlen(configpath) == 0)) {
-        snprintf(path, 1024, "%ssave%c", ConfigGetUserDataPath(), OSAL_DIR_SEPARATORS[0]);
+        snprintf(path, 1024, "%ssave%c", EConfigGetUserDataPath(), OSAL_DIR_SEPARATORS[0]);
         path[1023] = 0;
     } else {
         snprintf(path, 1024, "%s%c", configpath, OSAL_DIR_SEPARATORS[0]);
@@ -182,7 +182,7 @@ static m64p_error init_video_capture_backend(const struct video_capture_backend_
 {
     m64p_error err;
 
-    const char* name = ConfigGetParamString(config, key);
+    const char* name = EConfigGetParamString(config, key);
     if (name == NULL) {
         DebugMessage(M64MSG_WARNING, "Couldn't get %s value. Using NULL value instead.", key);
     }
@@ -209,7 +209,7 @@ static m64p_error init_video_capture_backend(const struct video_capture_backend_
         DebugMessage(M64MSG_INFO, "Using video capture backend: %s", (*ivcap)->name);
     }
     else {
-        DebugMessage(M64MSG_ERROR, "Failed to initialize video capture backend %s: %s", (*ivcap)->name, CoreErrorMessage(err));
+        DebugMessage(M64MSG_ERROR, "Failed to initialize video capture backend %s: %s", (*ivcap)->name, ECoreErrorMessage(err));
         *ivcap = NULL;
     }
 
@@ -226,13 +226,13 @@ static m64p_error init_video_capture_backend(const struct video_capture_backend_
 const char *get_savestatepath(void)
 {
     /* try to get the SaveStatePath string variable in the Core configuration section */
-    return get_savepathdefault(ConfigGetParamString(g_CoreConfig, "SaveStatePath"));
+    return get_savepathdefault(EConfigGetParamString(g_CoreConfig, "SaveStatePath"));
 }
 
 const char *get_savesrampath(void)
 {
     /* try to get the SaveSRAMPath string variable in the Core configuration section */
-    return get_savepathdefault(ConfigGetParamString(g_CoreConfig, "SaveSRAMPath"));
+    return get_savepathdefault(EConfigGetParamString(g_CoreConfig, "SaveSRAMPath"));
 }
 
 void main_message(m64p_msg_level level, unsigned int corner, const char *format, ...)
@@ -245,7 +245,7 @@ void main_message(m64p_msg_level level, unsigned int corner, const char *format,
     va_end(ap);
 
     /* send message to on-screen-display if enabled */
-    if (ConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
+    if (EConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
         osd_new_message((enum osd_corner) corner, "%s", buffer);
     /* send message to front-end */
     DebugMessage(level, "%s", buffer);
@@ -268,56 +268,56 @@ int main_set_core_defaults(void)
     float fConfigParamsVersion;
     int bUpgrade = 0;
 
-    if (ConfigGetParameter(g_CoreConfig, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
+    if (EConfigGetParameter(g_CoreConfig, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_WARNING, "No version number in 'Core' config section. Setting defaults.");
-        ConfigDeleteSection("Core");
-        ConfigOpenSection("Core", &g_CoreConfig);
+        EConfigDeleteSection("Core");
+        EConfigOpenSection("Core", &g_CoreConfig);
     }
     else if (((int) fConfigParamsVersion) != ((int) CONFIG_PARAM_VERSION))
     {
         DebugMessage(M64MSG_WARNING, "Incompatible version %.2f in 'Core' config section: current is %.2f. Setting defaults.", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
-        ConfigDeleteSection("Core");
-        ConfigOpenSection("Core", &g_CoreConfig);
+        EConfigDeleteSection("Core");
+        EConfigOpenSection("Core", &g_CoreConfig);
     }
     else if ((CONFIG_PARAM_VERSION - fConfigParamsVersion) >= 0.0001f)
     {
         float fVersion = (float) CONFIG_PARAM_VERSION;
-        ConfigSetParameter(g_CoreConfig, "Version", M64TYPE_FLOAT, &fVersion);
+        EConfigSetParameter(g_CoreConfig, "Version", M64TYPE_FLOAT, &fVersion);
         DebugMessage(M64MSG_INFO, "Updating parameter set version in 'Core' config section to %.2f", fVersion);
         bUpgrade = 1;
     }
 
     /* parameters controlling the operation of the core */
-    ConfigSetDefaultFloat(g_CoreConfig, "Version", (float) CONFIG_PARAM_VERSION,  "Mupen64Plus Core config parameter set version number.  Please don't change this version number.");
-    ConfigSetDefaultBool(g_CoreConfig, "OnScreenDisplay", 1, "Draw on-screen display if True, otherwise don't draw OSD");
+    EConfigSetDefaultFloat(g_CoreConfig, "Version", (float) CONFIG_PARAM_VERSION,  "Mupen64Plus Core config parameter set version number.  Please don't change this version number.");
+    EConfigSetDefaultBool(g_CoreConfig, "OnScreenDisplay", 1, "Draw on-screen display if True, otherwise don't draw OSD");
 #if defined(DYNAREC)
-    ConfigSetDefaultInt(g_CoreConfig, "R4300Emulator", 2, "Use Pure Interpreter if 0, Cached Interpreter if 1, or Dynamic Recompiler if 2 or more");
+    EConfigSetDefaultInt(g_CoreConfig, "R4300Emulator", 2, "Use Pure Interpreter if 0, Cached Interpreter if 1, or Dynamic Recompiler if 2 or more");
 #else
-    ConfigSetDefaultInt(g_CoreConfig, "R4300Emulator", 1, "Use Pure Interpreter if 0, Cached Interpreter if 1, or Dynamic Recompiler if 2 or more");
+    EConfigSetDefaultInt(g_CoreConfig, "R4300Emulator", 1, "Use Pure Interpreter if 0, Cached Interpreter if 1, or Dynamic Recompiler if 2 or more");
 #endif
-    ConfigSetDefaultBool(g_CoreConfig, "NoCompiledJump", 0, "Disable compiled jump commands in dynamic recompiler (should be set to False) ");
-    ConfigSetDefaultBool(g_CoreConfig, "DisableExtraMem", 0, "Disable 4MB expansion RAM pack. May be necessary for some games");
-    ConfigSetDefaultBool(g_CoreConfig, "AutoStateSlotIncrement", 0, "Increment the save state slot after each save operation");
-    ConfigSetDefaultBool(g_CoreConfig, "EnableDebugger", 0, "Activate the R4300 debugger when ROM execution begins, if core was built with Debugger support");
-    ConfigSetDefaultInt(g_CoreConfig, "CurrentStateSlot", 0, "Save state slot (0-9) to use when saving/loading the emulator state");
-    ConfigSetDefaultString(g_CoreConfig, "ScreenshotPath", "", "Path to directory where screenshots are saved. If this is blank, the default value of ${UserDataPath}/screenshot will be used");
-    ConfigSetDefaultString(g_CoreConfig, "SaveStatePath", "", "Path to directory where emulator save states (snapshots) are saved. If this is blank, the default value of ${UserDataPath}/save will be used");
-    ConfigSetDefaultString(g_CoreConfig, "SaveSRAMPath", "", "Path to directory where SRAM/EEPROM data (in-game saves) are stored. If this is blank, the default value of ${UserDataPath}/save will be used");
-    ConfigSetDefaultString(g_CoreConfig, "SharedDataPath", "", "Path to a directory to search when looking for shared data files");
-    ConfigSetDefaultInt(g_CoreConfig, "CountPerOp", 0, "Force number of cycles per emulated instruction");
-    ConfigSetDefaultBool(g_CoreConfig, "RandomizeInterrupt", 1, "Randomize PI/SI Interrupt Timing");
-    ConfigSetDefaultInt(g_CoreConfig, "SiDmaDuration", -1, "Duration of SI DMA (-1: use per game settings)");
-    ConfigSetDefaultString(g_CoreConfig, "GbCameraVideoCaptureBackend1", DEFAULT_VIDEO_CAPTURE_BACKEND, "Gameboy Camera Video Capture backend");
+    EConfigSetDefaultBool(g_CoreConfig, "NoCompiledJump", 0, "Disable compiled jump commands in dynamic recompiler (should be set to False) ");
+    EConfigSetDefaultBool(g_CoreConfig, "DisableExtraMem", 0, "Disable 4MB expansion RAM pack. May be necessary for some games");
+    EConfigSetDefaultBool(g_CoreConfig, "AutoStateSlotIncrement", 0, "Increment the save state slot after each save operation");
+    EConfigSetDefaultBool(g_CoreConfig, "EnableDebugger", 0, "Activate the R4300 debugger when ROM execution begins, if core was built with Debugger support");
+    EConfigSetDefaultInt(g_CoreConfig, "CurrentStateSlot", 0, "Save state slot (0-9) to use when saving/loading the emulator state");
+    EConfigSetDefaultString(g_CoreConfig, "ScreenshotPath", "", "Path to directory where screenshots are saved. If this is blank, the default value of ${UserDataPath}/screenshot will be used");
+    EConfigSetDefaultString(g_CoreConfig, "SaveStatePath", "", "Path to directory where emulator save states (snapshots) are saved. If this is blank, the default value of ${UserDataPath}/save will be used");
+    EConfigSetDefaultString(g_CoreConfig, "SaveSRAMPath", "", "Path to directory where SRAM/EEPROM data (in-game saves) are stored. If this is blank, the default value of ${UserDataPath}/save will be used");
+    EConfigSetDefaultString(g_CoreConfig, "SharedDataPath", "", "Path to a directory to search when looking for shared data files");
+    EConfigSetDefaultInt(g_CoreConfig, "CountPerOp", 0, "Force number of cycles per emulated instruction");
+    EConfigSetDefaultBool(g_CoreConfig, "RandomizeInterrupt", 1, "Randomize PI/SI Interrupt Timing");
+    EConfigSetDefaultInt(g_CoreConfig, "SiDmaDuration", -1, "Duration of SI DMA (-1: use per game settings)");
+    EConfigSetDefaultString(g_CoreConfig, "GbCameraVideoCaptureBackend1", DEFAULT_VIDEO_CAPTURE_BACKEND, "Gameboy Camera Video Capture backend");
 
     /* handle upgrades */
     if (bUpgrade)
     {
         if (fConfigParamsVersion < 1.01f)
         {  // added separate SaveSRAMPath parameter in v1.01
-            const char *pccSaveStatePath = ConfigGetParamString(g_CoreConfig, "SaveStatePath");
+            const char *pccSaveStatePath = EConfigGetParamString(g_CoreConfig, "SaveStatePath");
             if (pccSaveStatePath != NULL)
-                ConfigSetParameter(g_CoreConfig, "SaveSRAMPath", M64TYPE_STRING, pccSaveStatePath);
+                EConfigSetParameter(g_CoreConfig, "SaveSRAMPath", M64TYPE_STRING, pccSaveStatePath);
         }
     }
 
@@ -598,13 +598,13 @@ m64p_error main_core_state_set(m64p_core_param param, int val)
             if (val == M64VIDEO_WINDOWED)
             {
                 if (VidExt_InFullscreenMode())
-                    gfx.changeWindow();
+                    Cgfx.changeWindow();
                 return M64ERR_SUCCESS;
             }
             else if (val == M64VIDEO_FULLSCREEN)
             {
                 if (!VidExt_InFullscreenMode())
-                    gfx.changeWindow();
+                    Cgfx.changeWindow();
                 return M64ERR_SUCCESS;
             }
             return M64ERR_INPUT_INVALID;
@@ -632,7 +632,7 @@ m64p_error main_core_state_set(m64p_core_param param, int val)
             height = val & 0xffff;
             // then call the video plugin.  if the video plugin supports resizing, it will resize its viewport and call
             // VidExt_ResizeWindow to update the window manager handling our opengl output window
-            gfx.resizeVideoOutput(width, height);
+            Cgfx.resizeVideoOutput(width, height);
             return M64ERR_SUCCESS;
         }
         case M64CORE_AUDIO_VOLUME:
@@ -661,14 +661,14 @@ m64p_error main_core_state_set(m64p_core_param param, int val)
 
 m64p_error main_get_screen_size(int *width, int *height)
 {
-    gfx.readScreen(NULL, width, height, 0);
+    Cgfx.readScreen(NULL, width, height, 0);
     return M64ERR_SUCCESS;
 }
 
 m64p_error main_read_screen(void *pixels, int bFront)
 {
     int width_trash, height_trash;
-    gfx.readScreen(pixels, &width_trash, &height_trash, bFront);
+    Cgfx.readScreen(pixels, &width_trash, &height_trash, bFront);
     return M64ERR_SUCCESS;
 }
 
@@ -738,7 +738,7 @@ m64p_error main_reset(int do_hard_reset)
 
 static void video_plugin_render_callback(int bScreenRedrawn)
 {
-    int bOSD = ConfigGetParamBool(g_CoreConfig, "OnScreenDisplay");
+    int bOSD = EConfigGetParamBool(g_CoreConfig, "OnScreenDisplay");
 
     // if the flag is set to take a screenshot, then grab it now
     if (l_TakeScreenshot != 0)
@@ -882,8 +882,8 @@ static void pause_loop(void)
 {
     if(g_rom_pause)
     {
-        osd_render();  // draw Paused message in case gfx.updateScreen didn't do it
-        VidExt_GL_SwapBuffers();
+        osd_render();  // draw Paused message in case Cgfx.updateScreen didn't do it
+        EVidExt_GL_SwapBuffers();
         while(g_rom_pause)
         {
             SDL_Delay(10);
@@ -1298,19 +1298,19 @@ m64p_error main_run(void)
 
 
     /* take the r4300 emulator mode from the config file at this point and cache it in a global variable */
-    emumode = ConfigGetParamInt(g_CoreConfig, "R4300Emulator");
+    emumode = EConfigGetParamInt(g_CoreConfig, "R4300Emulator");
 
     /* set some other core parameters based on the config file values */
-    savestates_set_autoinc_slot(ConfigGetParamBool(g_CoreConfig, "AutoStateSlotIncrement"));
-    savestates_select_slot(ConfigGetParamInt(g_CoreConfig, "CurrentStateSlot"));
-    no_compiled_jump = ConfigGetParamBool(g_CoreConfig, "NoCompiledJump");
-    randomize_interrupt = ConfigGetParamBool(g_CoreConfig, "RandomizeInterrupt");
-    count_per_op = ConfigGetParamInt(g_CoreConfig, "CountPerOp");
+    savestates_set_autoinc_slot(EConfigGetParamBool(g_CoreConfig, "AutoStateSlotIncrement"));
+    savestates_select_slot(EConfigGetParamInt(g_CoreConfig, "CurrentStateSlot"));
+    no_compiled_jump = EConfigGetParamBool(g_CoreConfig, "NoCompiledJump");
+    randomize_interrupt = EConfigGetParamBool(g_CoreConfig, "RandomizeInterrupt");
+    count_per_op = EConfigGetParamInt(g_CoreConfig, "CountPerOp");
 
     if (ROM_PARAMS.disableextramem)
         disable_extra_mem = ROM_PARAMS.disableextramem;
     else
-        disable_extra_mem = ConfigGetParamInt(g_CoreConfig, "DisableExtraMem");
+        disable_extra_mem = EConfigGetParamInt(g_CoreConfig, "DisableExtraMem");
 
 
     rdram_size = (disable_extra_mem == 0) ? 0x800000 : 0x400000;
@@ -1318,7 +1318,7 @@ m64p_error main_run(void)
     if (count_per_op <= 0)
         count_per_op = ROM_PARAMS.countperop;
 
-    si_dma_duration = ConfigGetParamInt(g_CoreConfig, "SiDmaDuration");
+    si_dma_duration = EConfigGetParamInt(g_CoreConfig, "SiDmaDuration");
     if (si_dma_duration < 0)
         si_dma_duration = ROM_PARAMS.sidmaduration;
 
@@ -1550,7 +1550,7 @@ m64p_error main_run(void)
                 &dd_disk, dd_idisk);
 
     // Attach rom to plugins
-    if (!gfx.romOpen())
+    if (!Cgfx.romOpen())
     {
         goto on_gfx_open_failure;
     }
@@ -1567,23 +1567,23 @@ m64p_error main_run(void)
     event_initialize();
 
     /* initialize the on-screen display */
-    if (ConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
+    if (EConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
     {
         // init on-screen display
         int width = 640, height = 480;
-        gfx.readScreen(NULL, &width, &height, 0); // read screen to get width and height
+        Cgfx.readScreen(NULL, &width, &height, 0); // read screen to get width and height
         osd_init(width, height);
     }
 
     // setup rendering callback from video plugin to the core, for screenshots and On-Screen-Display
-    gfx.setRenderingCallback(video_plugin_render_callback);
+    Cgfx.setRenderingCallback(video_plugin_render_callback);
 
 #ifdef WITH_LIRC
     lircStart();
 #endif // WITH_LIRC
 
 #ifdef DBG
-    if (ConfigGetParamBool(g_CoreConfig, "EnableDebugger"))
+    if (EConfigGetParamBool(g_CoreConfig, "EnableDebugger"))
         init_debugger();
 #endif
 
@@ -1623,7 +1623,7 @@ m64p_error main_run(void)
     close_file_storage(&mpk);
     close_file_storage(&dd_disk);
 
-    if (ConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
+    if (EConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
     {
         osd_exit();
     }
@@ -1631,7 +1631,7 @@ m64p_error main_run(void)
     rsp.romClosed();
     input.romClosed();
     audio.romClosed();
-    gfx.romClosed();
+    Cgfx.romClosed();
 
     // clean up
     g_EmulatorRunning = 0;
@@ -1642,7 +1642,7 @@ m64p_error main_run(void)
 on_input_open_failure:
     audio.romClosed();
 on_audio_open_failure:
-    gfx.romClosed();
+    Cgfx.romClosed();
 on_gfx_open_failure:
     /* release gb_carts */
     for(i = 0; i < GAME_CONTROLLERS_COUNT; ++i) {

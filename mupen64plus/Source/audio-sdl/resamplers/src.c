@@ -92,7 +92,7 @@ static void* src_init_from_id(const char* resampler_id)
     if (i >= ARRAY_SIZE(types)) {
         i = 1;
 
-        DebugMessage(M64MSG_WARNING,
+        ADebugMessage(M64MSG_WARNING,
             "Unknown RESAMPLE configuration %s; use %s resampler",
             resampler_id, types[i].name);
     }
@@ -100,7 +100,7 @@ static void* src_init_from_id(const char* resampler_id)
     /* init src resampler */
     struct src_resampler* src_resampler = malloc(sizeof(*src_resampler));
     if (src_resampler == NULL) {
-        DebugMessage(M64MSG_ERROR, "Failed to allocate memory for SRC resampler");
+        ADebugMessage(M64MSG_ERROR, "Failed to allocate memory for SRC resampler");
         return NULL;
     }
 
@@ -109,7 +109,7 @@ static void* src_init_from_id(const char* resampler_id)
 
     src_resampler->state = src_new(types[i].converter_type, 2, &error);
     if (error != 0) {
-        DebugMessage(M64MSG_ERROR, "SRC error: %s", src_strerror(error));
+        ADebugMessage(M64MSG_ERROR, "SRC error: %s", src_strerror(error));
         free(src_resampler);
         return NULL;
     }
@@ -175,13 +175,13 @@ static size_t src_resample(void* resampler,
     /* in case of error, display error, zero output buffer and discard input buffer */
     if (error)
     {
-        DebugMessage(M64MSG_ERROR, "SRC error: %s", src_strerror(error));
+        ADebugMessage(M64MSG_ERROR, "SRC error: %s", src_strerror(error));
         memset(dst, 0, dst_size);
         return src_size;
     }
 
     if (dst_size != src_data.output_frames_gen*4) {
-        DebugMessage(M64MSG_WARNING, "dst_size = %u != output_frames_gen*4 = %u",
+        ADebugMessage(M64MSG_WARNING, "dst_size = %u != output_frames_gen*4 = %u",
                 (uint32_t) dst_size, (uint32_t) src_data.output_frames_gen*4);
     }
 

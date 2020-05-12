@@ -155,7 +155,7 @@ const char* namefrompath(const char* path);
 /* Creates a path string by joining two path strings.
  * The given path strings may or may not start or end with a path separator.
  * Returns a malloc'd string with the resulting path. */
-char* combinepath(const char* first, const char *second);
+char* Ccombinepath(const char* first, const char *second);
 
 /**********************
     String utilities

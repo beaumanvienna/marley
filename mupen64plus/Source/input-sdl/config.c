@@ -78,7 +78,7 @@ static int get_hat_pos_by_name( const char *name )
         return SDL_HAT_LEFT;
     if( !strcasecmp( name, "right" ) )
         return SDL_HAT_RIGHT;
-    DebugMessage(M64MSG_WARNING, "get_hat_pos_by_name(): direction '%s' unknown", name);
+    IDebugMessage(M64MSG_WARNING, "get_hat_pos_by_name(): direction '%s' unknown", name);
     return -1;
 }
 
@@ -154,7 +154,7 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
     /* Open the configuration section for this controller */
     if (ConfigOpenSection(SectionName, &pConfig) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'", SectionName);
+        IDebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'", SectionName);
         return 0;
     }
 
@@ -164,7 +164,7 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
     /* throw warnings if 'plugged' is missing */
     if (ConfigGetParameter(pConfig, "plugged", M64TYPE_BOOL, &controller[i].control->Present, sizeof(int)) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_WARNING, "missing 'plugged' parameter from config section %s. Setting to 1 (true).", SectionName);
+        IDebugMessage(M64MSG_WARNING, "missing 'plugged' parameter from config section %s. Setting to 1 (true).", SectionName);
         controller[i].control->Present = 1;
     }
     /* load optional parameters */
@@ -172,49 +172,49 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
     if (ConfigGetParameter(pConfig, "MouseSensitivity", M64TYPE_STRING, input_str, 256) == M64ERR_SUCCESS)
     {
         if (sscanf(input_str, "%f,%f", &controller[i].mouse_sens[0], &controller[i].mouse_sens[1]) != 2)
-            DebugMessage(M64MSG_WARNING, "parsing error in MouseSensitivity parameter for controller %i", i + 1);
+            IDebugMessage(M64MSG_WARNING, "parsing error in MouseSensitivity parameter for controller %i", i + 1);
     }
     if (ConfigGetParameter(pConfig, "AnalogDeadzone", M64TYPE_STRING, input_str, 256) == M64ERR_SUCCESS)
     {
         if (sscanf(input_str, "%i,%i", &controller[i].axis_deadzone[0], &controller[i].axis_deadzone[1]) != 2)
-            DebugMessage(M64MSG_WARNING, "parsing error in AnalogDeadzone parameter for controller %i", i + 1);
+            IDebugMessage(M64MSG_WARNING, "parsing error in AnalogDeadzone parameter for controller %i", i + 1);
     }
     if (ConfigGetParameter(pConfig, "AnalogPeak", M64TYPE_STRING, input_str, 256) == M64ERR_SUCCESS)
     {
         if (sscanf(input_str, "%i,%i", &controller[i].axis_peak[0], &controller[i].axis_peak[1]) != 2)
-            DebugMessage(M64MSG_WARNING, "parsing error in AnalogPeak parameter for controller %i", i + 1);
+            IDebugMessage(M64MSG_WARNING, "parsing error in AnalogPeak parameter for controller %i", i + 1);
     }
     /* load configuration for all the digital buttons */
     for (j = 0; j < X_AXIS; j++)
     {
         if (ConfigGetParameter(pConfig, button_names[j], M64TYPE_STRING, input_str, 256) != M64ERR_SUCCESS)
         {
-            DebugMessage(M64MSG_WARNING, "missing config key '%s' for controller %i button %i", button_names[j], i+1, j);
+            IDebugMessage(M64MSG_WARNING, "missing config key '%s' for controller %i button %i", button_names[j], i+1, j);
             continue;
         }
         if ((config_ptr = strstr(input_str, "key")) != NULL) {
             if (sscanf(config_ptr, "key(%i)", (int *) &controller[i].button[j].key) != 1) {
-                DebugMessage(M64MSG_WARNING, "parsing error in key() parameter of button '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in key() parameter of button '%s' for controller %i", button_names[j], i + 1);
             } else {
                 controller[i].button[j].key = sdl_keysym2native(controller[i].button[j].key);
             }
         }
         if ((config_ptr = strstr(input_str, "button")) != NULL)
             if (sscanf(config_ptr, "button(%i)", &controller[i].button[j].button) != 1)
-                DebugMessage(M64MSG_WARNING, "parsing error in button() parameter of button '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in button() parameter of button '%s' for controller %i", button_names[j], i + 1);
         if ((config_ptr = strstr(input_str, "axis")) != NULL)
         {
             char chAxisDir;
             if (sscanf(config_ptr, "axis(%d%c,%d", &controller[i].button[j].axis, &chAxisDir, &controller[i].button[j].axis_deadzone) != 3 &&
                 sscanf(config_ptr, "axis(%i%c", &controller[i].button[j].axis, &chAxisDir) != 2)
-                DebugMessage(M64MSG_WARNING, "parsing error in axis() parameter of button '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in axis() parameter of button '%s' for controller %i", button_names[j], i + 1);
             controller[i].button[j].axis_dir = (chAxisDir == '+' ? 1 : (chAxisDir == '-' ? -1 : 0));
         }
         if ((config_ptr = strstr(input_str, "hat")) != NULL)
         {
             char *lastchar = NULL;
             if (sscanf(config_ptr, "hat(%i %15s", &controller[i].button[j].hat, value1_str) != 2)
-                DebugMessage(M64MSG_WARNING, "parsing error in hat() parameter of button '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in hat() parameter of button '%s' for controller %i", button_names[j], i + 1);
             value1_str[15] = 0;
             /* chop off the last character of value1_str if it is the closing parenthesis */
             lastchar = &value1_str[strlen(value1_str) - 1];
@@ -223,7 +223,7 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
         }
         if ((config_ptr = strstr(input_str, "mouse")) != NULL)
             if (sscanf(config_ptr, "mouse(%i)", &controller[i].button[j].mouse) != 1)
-                DebugMessage(M64MSG_WARNING, "parsing error in mouse() parameter of button '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in mouse() parameter of button '%s' for controller %i", button_names[j], i + 1);
     }
     /* load configuration for the 2 analog joystick axes */
     for (j = X_AXIS; j <= Y_AXIS; j++)
@@ -231,12 +231,12 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
         int axis_idx = j - X_AXIS;
         if (ConfigGetParameter(pConfig, button_names[j], M64TYPE_STRING, input_str, 256) != M64ERR_SUCCESS)
         {
-            DebugMessage(M64MSG_WARNING, "missing config key '%s' for controller %i axis %i", button_names[j], i+1, axis_idx);
+            IDebugMessage(M64MSG_WARNING, "missing config key '%s' for controller %i axis %i", button_names[j], i+1, axis_idx);
             continue;
         }
         if ((config_ptr = strstr(input_str, "key")) != NULL) {
             if (sscanf(config_ptr, "key(%i,%i)", (int *) &controller[i].axis[axis_idx].key_a, (int *) &controller[i].axis[axis_idx].key_b) != 2) {
-                DebugMessage(M64MSG_WARNING, "parsing error in key() parameter of axis '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in key() parameter of axis '%s' for controller %i", button_names[j], i + 1);
             } else {
                 controller[i].axis[axis_idx].key_a = sdl_keysym2native(controller[i].axis[axis_idx].key_a);
                 controller[i].axis[axis_idx].key_b = sdl_keysym2native(controller[i].axis[axis_idx].key_b);
@@ -244,13 +244,13 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
         }
         if ((config_ptr = strstr(input_str, "button")) != NULL)
             if (sscanf(config_ptr, "button(%i,%i)", &controller[i].axis[axis_idx].button_a, &controller[i].axis[axis_idx].button_b) != 2)
-                DebugMessage(M64MSG_WARNING, "parsing error in button() parameter of axis '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in button() parameter of axis '%s' for controller %i", button_names[j], i + 1);
         if ((config_ptr = strstr(input_str, "axis")) != NULL)
         {
             char chAxisDir1, chAxisDir2;
             if (sscanf(config_ptr, "axis(%i%c,%i%c)", &controller[i].axis[axis_idx].axis_a, &chAxisDir1,
                                                       &controller[i].axis[axis_idx].axis_b, &chAxisDir2) != 4)
-                DebugMessage(M64MSG_WARNING, "parsing error in axis() parameter of axis '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in axis() parameter of axis '%s' for controller %i", button_names[j], i + 1);
             controller[i].axis[axis_idx].axis_dir_a = (chAxisDir1 == '+' ? 1 : (chAxisDir1 == '-' ? -1 : 0));
             controller[i].axis[axis_idx].axis_dir_b = (chAxisDir2 == '+' ? 1 : (chAxisDir2 == '-' ? -1 : 0));
         }
@@ -258,7 +258,7 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
         {
             char *lastchar = NULL;
             if (sscanf(config_ptr, "hat(%i %15s %15s", &controller[i].axis[axis_idx].hat, value1_str, value2_str) != 3)
-                DebugMessage(M64MSG_WARNING, "parsing error in hat() parameter of axis '%s' for controller %i", button_names[j], i + 1);
+                IDebugMessage(M64MSG_WARNING, "parsing error in hat() parameter of axis '%s' for controller %i", button_names[j], i + 1);
             value1_str[15] = value2_str[15] = 0;
             /* chop off the last character of value2_str if it is the closing parenthesis */
             lastchar = &value2_str[strlen(value2_str) - 1];
@@ -283,7 +283,7 @@ static void init_controller_config(int iCtrlIdx, const char *pccDeviceName, eMod
     /* Open the configuration section for this controller (create a new one) */
     if (ConfigOpenSection(SectionName, &pConfig) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'", SectionName);
+        IDebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'", SectionName);
         return;
     }
 
@@ -411,13 +411,13 @@ static int setup_auto_controllers(int bPreConfig, int n64CtrlStart, int sdlCtrlI
     if (load_controller_config("AutoConfig0", n64CtrlStart, sdlCtrlIdx) > 0)
     {
         if (!bPreConfig)
-            DebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config with SDL joystick %i ('%s')", n64CtrlStart+1, sdlCtrlIdx, sdlJoyName);
+            IDebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config with SDL joystick %i ('%s')", n64CtrlStart+1, sdlCtrlIdx, sdlJoyName);
         ActiveControllers++;
     }
     else
     {
         if (!bPreConfig)
-            DebugMessage(M64MSG_ERROR, "Autoconfig data invalid for SDL joystick '%s'", sdlJoyName);
+            IDebugMessage(M64MSG_ERROR, "Autoconfig data invalid for SDL joystick '%s'", sdlJoyName);
     }
     ConfigDeleteSection("AutoConfig0");
 
@@ -448,7 +448,7 @@ static int setup_auto_controllers(int bPreConfig, int n64CtrlStart, int sdlCtrlI
                     else
                         auto_copy_inputconfig(AutoSectionName, SectionName, NULL);  // don't overwrite 'name' parameter if original mode was "named auto"
                     if (!bPreConfig)
-                        DebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config with SDL joystick %i ('%s')", n64CtrlStart+j+1, sdlCtrlIdx, sdlJoyName);
+                        IDebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config with SDL joystick %i ('%s')", n64CtrlStart+j+1, sdlCtrlIdx, sdlJoyName);
                     ActiveControllers++;
                     /* set the local controller mode to Manual so that we won't re-configure this controller in the next loop */
                     ControlMode[n64CtrlStart+j] = E_MODE_MANUAL;
@@ -456,7 +456,7 @@ static int setup_auto_controllers(int bPreConfig, int n64CtrlStart, int sdlCtrlI
                 else
                 {
                     if (!bPreConfig)
-                        DebugMessage(M64MSG_ERROR, "Autoconfig data invalid for SDL device '%s'", sdlJoyName);
+                        IDebugMessage(M64MSG_ERROR, "Autoconfig data invalid for SDL device '%s'", sdlJoyName);
                 }
                 /* delete the autoconfig section */
                 ConfigDeleteSection(AutoSectionName);
@@ -511,7 +511,7 @@ void load_configuration(int bPreConfig)
 
     /* tell user how many SDL joysticks are available */
     if (!bPreConfig)
-        DebugMessage(M64MSG_INFO, "%i SDL joysticks were found.", sdlNumJoysticks);
+        IDebugMessage(M64MSG_INFO, "%i SDL joysticks were found.", sdlNumJoysticks);
 
     /* loop through 4 N64 controllers, initializing and validating special section parameters */
     for (n64CtrlIdx=0; n64CtrlIdx < 4; n64CtrlIdx++)
@@ -525,14 +525,14 @@ void load_configuration(int bPreConfig)
         if (ConfigOpenSection(SectionName, &pConfig) != M64ERR_SUCCESS)
         {
             // this should never happen
-            DebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'.  Aborting...", SectionName);
+            IDebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'.  Aborting...", SectionName);
             return;
         }
         /* Check version number, and if it doesn't match: delete the config section */
         fVersion = 0.0f;
         if (ConfigGetParameter(pConfig, "version", M64TYPE_FLOAT, &fVersion, sizeof(float)) != M64ERR_SUCCESS || ((int) fVersion) != ((int) CONFIG_VERSION))
         {
-            DebugMessage(M64MSG_WARNING, "Missing or incompatible config section '%s'. Clearing.", SectionName);
+            IDebugMessage(M64MSG_WARNING, "Missing or incompatible config section '%s'. Clearing.", SectionName);
             ConfigDeleteSection(SectionName);
             // set local controller default parameters
             OrigControlMode[n64CtrlIdx] = ControlMode[n64CtrlIdx] = E_MODE_FULL_AUTO;
@@ -547,14 +547,14 @@ void load_configuration(int bPreConfig)
                 (int) OrigControlMode[n64CtrlIdx] < 0 || (int) OrigControlMode[n64CtrlIdx] > 2)
             {
                 if (!bPreConfig)
-                    DebugMessage(M64MSG_WARNING, "Missing or invalid 'mode' parameter in config section '%s'.  Setting to 2 (Fully Auto)", SectionName);
+                    IDebugMessage(M64MSG_WARNING, "Missing or invalid 'mode' parameter in config section '%s'.  Setting to 2 (Fully Auto)", SectionName);
                 OrigControlMode[n64CtrlIdx] = E_MODE_FULL_AUTO;
             }
             ControlMode[n64CtrlIdx] = OrigControlMode[n64CtrlIdx];
             if (ConfigGetParameter(pConfig, "device", M64TYPE_INT, &ControlDevice[n64CtrlIdx], sizeof(int)) != M64ERR_SUCCESS)
             {
                 if (!bPreConfig)
-                    DebugMessage(M64MSG_WARNING, "Missing 'device' parameter in config section '%s'.  Setting to -1 (No joystick)", SectionName);
+                    IDebugMessage(M64MSG_WARNING, "Missing 'device' parameter in config section '%s'.  Setting to -1 (No joystick)", SectionName);
                 ControlDevice[n64CtrlIdx] = DEVICE_NO_JOYSTICK;
             }
             if (ConfigGetParameter(pConfig, "name", M64TYPE_STRING, DeviceName[n64CtrlIdx], 256) != M64ERR_SUCCESS)
@@ -563,7 +563,7 @@ void load_configuration(int bPreConfig)
             }
             if (ConfigGetParameter(pConfig, "plugin", M64TYPE_INT, &controller[n64CtrlIdx].control->Plugin, sizeof(int)) != M64ERR_SUCCESS)
             {
-                DebugMessage(M64MSG_WARNING, "missing 'plugin' parameter from config section %s. Setting to 2 (mempak).", SectionName);
+                IDebugMessage(M64MSG_WARNING, "missing 'plugin' parameter from config section %s. Setting to 2 (mempak).", SectionName);
                 controller[n64CtrlIdx].control->Plugin = PLUGIN_MEMPAK;
             }
         }
@@ -581,13 +581,13 @@ void load_configuration(int bPreConfig)
         if (ControlDevice[n64CtrlIdx] == DEVICE_NO_JOYSTICK)
         {
             if (!bPreConfig)
-                DebugMessage(M64MSG_INFO, "N64 Controller #%i: Using manual config with no SDL joystick (keyboard/mouse only)", n64CtrlIdx+1);
+                IDebugMessage(M64MSG_INFO, "N64 Controller #%i: Using manual config with no SDL joystick (keyboard/mouse only)", n64CtrlIdx+1);
         }
         else
         {
             sdlDevicesUsed[sdlNumDevUsed++] = ControlDevice[n64CtrlIdx];
             if (!bPreConfig)
-                DebugMessage(M64MSG_INFO, "N64 Controller #%i: Using manual config for SDL joystick %i", n64CtrlIdx+1, ControlDevice[n64CtrlIdx]);
+                IDebugMessage(M64MSG_INFO, "N64 Controller #%i: Using manual config for SDL joystick %i", n64CtrlIdx+1, ControlDevice[n64CtrlIdx]);
         }
         ActiveControllers++;
     }
@@ -611,14 +611,14 @@ void load_configuration(int bPreConfig)
             if (load_controller_config("AutoConfig0", n64CtrlIdx, DEVICE_NO_JOYSTICK) > 0)
             {
                 if (!bPreConfig)
-                    DebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config for keyboard", n64CtrlIdx+1);
+                    IDebugMessage(M64MSG_INFO, "N64 Controller #%i: Using auto-config for keyboard", n64CtrlIdx+1);
                 /* copy the auto-config settings to the controller config section */
                 auto_copy_inputconfig("AutoConfig0", SectionName, "Keyboard");
                 ActiveControllers++;
             }
             else
             {
-                DebugMessage(M64MSG_ERROR, "Autoconfig keyboard setup invalid");
+                IDebugMessage(M64MSG_ERROR, "Autoconfig keyboard setup invalid");
             }
             ConfigDeleteSection("AutoConfig0");
             continue;
@@ -644,7 +644,7 @@ void load_configuration(int bPreConfig)
                 if (ControllersFound == 0)
                 {
                     // error: no auto-config found for this SDL device
-                    DebugMessage(M64MSG_ERROR, "No auto-config found for joystick named '%s' in InputAutoConfig.ini", sdl_name);
+                    IDebugMessage(M64MSG_ERROR, "No auto-config found for joystick named '%s' in InputAutoConfig.ini", sdl_name);
                     // mark this device as being used just so we don't complain about it again
                     sdlDevicesUsed[sdlNumDevUsed++] = sdlCtrlIdx;
                     // quit looking for SDL joysticks which match the name, because there's no valid autoconfig for that name.
@@ -661,7 +661,7 @@ void load_configuration(int bPreConfig)
         if (sdlCtrlIdx == sdlNumJoysticks)
         {
             if (!bPreConfig)
-                DebugMessage(M64MSG_WARNING, "N64 Controller #%i: No SDL joystick found matching name '%s'.  Using full auto mode.", n64CtrlIdx+1, DeviceName[n64CtrlIdx]);
+                IDebugMessage(M64MSG_WARNING, "N64 Controller #%i: No SDL joystick found matching name '%s'.  Using full auto mode.", n64CtrlIdx+1, DeviceName[n64CtrlIdx]);
             ControlMode[n64CtrlIdx] = E_MODE_FULL_AUTO;
         }
     }
@@ -690,7 +690,7 @@ void load_configuration(int bPreConfig)
             if (!bPreConfig && ControllersFound == 0)
             {
                 // error: no auto-config found for this SDL device
-                DebugMessage(M64MSG_ERROR, "No auto-config found for joystick named '%s' in InputAutoConfig.ini", sdl_name);
+                IDebugMessage(M64MSG_ERROR, "No auto-config found for joystick named '%s' in InputAutoConfig.ini", sdl_name);
                 // mark this device as being used just so we don't complain about it again
                 sdlDevicesUsed[sdlNumDevUsed++] = sdlCtrlIdx;
                 // keep trying more SDL devices to see if we can auto-config one for this N64 controller
@@ -719,7 +719,7 @@ void load_configuration(int bPreConfig)
     if (ActiveControllers == 0)
     {
         if (!bPreConfig)
-            DebugMessage(M64MSG_INFO, "N64 Controller #1: Forcing default keyboard configuration");
+            IDebugMessage(M64MSG_INFO, "N64 Controller #1: Forcing default keyboard configuration");
         auto_set_defaults(DEVICE_NO_JOYSTICK, "Keyboard");
         if (load_controller_config("AutoConfig0", 0, DEVICE_NO_JOYSTICK) > 0)
         {
@@ -732,7 +732,7 @@ void load_configuration(int bPreConfig)
         }
         else
         {
-            DebugMessage(M64MSG_ERROR, "Autoconfig keyboard setup invalid");
+            IDebugMessage(M64MSG_ERROR, "Autoconfig keyboard setup invalid");
         }
         ConfigDeleteSection("AutoConfig0");
     }
@@ -750,14 +750,14 @@ void load_configuration(int bPreConfig)
     {
         if (joy_plugged > 0)
         {
-            DebugMessage(M64MSG_INFO, "%i controller(s) found, %i plugged in and usable in the emulator", ActiveControllers, joy_plugged);
+            IDebugMessage(M64MSG_INFO, "%i controller(s) found, %i plugged in and usable in the emulator", ActiveControllers, joy_plugged);
         }
         else
         {
             if (ActiveControllers == 0)
-                DebugMessage(M64MSG_WARNING, "No joysticks/controllers found");
+                IDebugMessage(M64MSG_WARNING, "No joysticks/controllers found");
             else
-                DebugMessage(M64MSG_WARNING, "%i controllers found, but none were 'plugged in'", ActiveControllers);
+                IDebugMessage(M64MSG_WARNING, "%i controllers found, but none were 'plugged in'", ActiveControllers);
         }
     }
 

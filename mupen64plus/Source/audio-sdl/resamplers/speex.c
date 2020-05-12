@@ -67,7 +67,7 @@ static void* speex_init_from_id(const char* resampler_id)
     if (i >= ARRAY_SIZE(types)) {
         i = 4;
 
-        DebugMessage(M64MSG_WARNING,
+        ADebugMessage(M64MSG_WARNING,
             "Unknown RESAMPLE configuration %s; use %s resampler",
             resampler_id, types[i]);
     }
@@ -76,7 +76,7 @@ static void* speex_init_from_id(const char* resampler_id)
     SpeexResamplerState* spx_state =  speex_resampler_init(2, 44100, 44100, (int)i,  &error);
 
     if (error != RESAMPLER_ERR_SUCCESS) {
-        DebugMessage(M64MSG_ERROR, "Speex error: %s", speex_resampler_strerror(error));
+        ADebugMessage(M64MSG_ERROR, "Speex error: %s", speex_resampler_strerror(error));
     }
 
     return spx_state;
@@ -110,13 +110,13 @@ static size_t speex_resample(void* resampler,
     /* in case of error, display error, zero output buffer and discard input buffer */
     if (error != RESAMPLER_ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "Speex error: %s", speex_resampler_strerror(error));
+        ADebugMessage(M64MSG_ERROR, "Speex error: %s", speex_resampler_strerror(error));
         memset(dst, 0, dst_size);
         return src_size;
     }
 
     if (dst_size != out_len * BYTES_PER_SAMPLE) {
-        DebugMessage(M64MSG_WARNING, "dst_size = %u != outlen*4 = %u",
+        ADebugMessage(M64MSG_WARNING, "dst_size = %u != outlen*4 = %u",
                 (uint32_t) dst_size, out_len * BYTES_PER_SAMPLE);
     }
     memset((char*)dst + out_len * BYTES_PER_SAMPLE, 0, dst_size - out_len * BYTES_PER_SAMPLE);

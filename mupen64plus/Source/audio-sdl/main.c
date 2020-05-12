@@ -28,7 +28,6 @@
 #include <stdarg.h>
 
 #include "main.h"
-#include "osal_dynamiclib.h"
 #include "sdl_backend.h"
 #include "volume.h"
 #include "resamplers/resamplers.h"
@@ -80,6 +79,46 @@
 #define SDL_MixAudio(A, B, C, D) SDL_MixAudioFormat(A, B, AUDIO_S16SYS, C, D)
 #endif
 
+m64p_error EVidExt_Init(void);
+m64p_error EVidExt_Quit(void);
+m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *, int *);
+m64p_error EVidExt_SetVideoMode(int, int, int, m64p_video_mode, m64p_video_flags);
+m64p_error EVidExt_ResizeWindow(int, int);
+m64p_error EVidExt_SetCaption(const char *);
+m64p_error EVidExt_ToggleFullScreen(void);
+m64p_function EVidExt_GL_GetProcAddress(const char *);
+m64p_error EVidExt_GL_SetAttribute(m64p_GLattr, int);
+m64p_error EVidExt_GL_SwapBuffers(void);
+m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
+m64p_error EConfigListSections(void *, void (*)(void *, const char *));
+m64p_error EConfigOpenSection(const char *, m64p_handle *);
+m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+m64p_error EConfigSaveFile(void);
+m64p_error EConfigSaveSection(const char *);
+int EConfigHasUnsavedChanges(const char *);
+m64p_error EConfigDeleteSection(const char *SectionName);
+m64p_error EConfigRevertChanges(const char *SectionName);
+m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
+m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+const char * EConfigGetParameterHelp(m64p_handle, const char *);
+m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+int          EConfigGetParamInt(m64p_handle, const char *);
+float        EConfigGetParamFloat(m64p_handle, const char *);
+int          EConfigGetParamBool(m64p_handle, const char *);
+const char * EConfigGetParamString(m64p_handle, const char *);
+const char * EConfigGetSharedDataFilepath(const char *);
+const char * EConfigGetUserConfigPath(void);
+const char * EConfigGetUserDataPath(void);
+const char * EConfigGetUserCachePath(void);
+m64p_error EConfigExternalOpen(const char *, m64p_handle *);
+m64p_error EConfigExternalClose(m64p_handle);
+m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+
 /* local variables */
 static void (*l_DebugCallback)(void *, int, const char *) = NULL;
 static void *l_DebugCallContext = NULL;
@@ -107,22 +146,22 @@ static int VolIsMuted = 0;
 static int VolumeControlType = VOLUME_TYPE_SDL;
 
 /* definitions of pointers to Core config functions */
-ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
-ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-ptr_ConfigGetParameterHelp ConfigGetParameterHelp = NULL;
-ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-ptr_ConfigGetParamString   ConfigGetParamString = NULL;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigDeleteSection    ConfigDeleteSection;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigGetParameterHelp ConfigGetParameterHelp;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
 
 /* Global functions */
-void DebugMessage(int level, const char *message, ...)
+void ADebugMessage(int level, const char *message, ...)
 {
   char msgbuf[1024];
   va_list args;
@@ -141,13 +180,13 @@ void DebugMessage(int level, const char *message, ...)
 #ifdef USE_AUDIORESOURCE
 void on_audioresource_acquired(audioresource_t *audioresource, bool acquired, void *user_data)
 {
-    DebugMessage(M64MSG_VERBOSE, "audioresource acquired: %d", acquired);
+    ADebugMessage(M64MSG_VERBOSE, "audioresource acquired: %d", acquired);
     l_audioresource_acquired = acquired;
 }
 #endif
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+m64p_error APluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -163,34 +202,34 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallContext = Context;
 
     /* attach and call the CoreGetAPIVersions function, check Config API version for compatibility */
-    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) ECoreGetAPIVersions;
     if (CoreAPIVersionFunc == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
+        ADebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
         return M64ERR_INCOMPATIBLE;
     }
 
     (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
     if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000))
     {
-        DebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
+        ADebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
                 VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
         return M64ERR_INCOMPATIBLE;
     }
 
     /* Get the core config function pointers from the library handle */
-    ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
-    ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreLibHandle, "ConfigDeleteSection");
-    ConfigSetParameter = (ptr_ConfigSetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigSetParameter");
-    ConfigGetParameter = (ptr_ConfigGetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParameter");
-    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultInt");
-    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultFloat");
-    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultBool");
-    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultString");
-    ConfigGetParamInt = (ptr_ConfigGetParamInt) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamInt");
-    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamFloat");
-    ConfigGetParamBool = (ptr_ConfigGetParamBool) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamBool");
-    ConfigGetParamString = (ptr_ConfigGetParamString) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamString");
+    ConfigOpenSection = (ptr_ConfigOpenSection) EConfigOpenSection;
+    ConfigDeleteSection = (ptr_ConfigDeleteSection) EConfigDeleteSection;
+    ConfigSetParameter = (ptr_ConfigSetParameter) EConfigSetParameter;
+    ConfigGetParameter = (ptr_ConfigGetParameter) EConfigGetParameter;
+    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) EConfigSetDefaultInt;
+    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) EConfigSetDefaultFloat;
+    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) EConfigSetDefaultBool;
+    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) EConfigSetDefaultString;
+    ConfigGetParamInt = (ptr_ConfigGetParamInt) EConfigGetParamInt;
+    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) EConfigGetParamFloat;
+    ConfigGetParamBool = (ptr_ConfigGetParamBool) EConfigGetParamBool;
+    ConfigGetParamString = (ptr_ConfigGetParamString) EConfigGetParamString;
 
     if (!ConfigOpenSection || !ConfigDeleteSection || !ConfigSetParameter || !ConfigGetParameter ||
         !ConfigSetDefaultInt || !ConfigSetDefaultFloat || !ConfigSetDefaultBool || !ConfigSetDefaultString ||
@@ -200,20 +239,20 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     /* get a configuration section handle */
     if (ConfigOpenSection("Audio-SDL", &l_ConfigAudio) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't open config section 'Audio-SDL'");
+        ADebugMessage(M64MSG_ERROR, "Couldn't open config section 'Audio-SDL'");
         return M64ERR_INPUT_NOT_FOUND;
     }
 
     /* check the section version number */
     if (ConfigGetParameter(l_ConfigAudio, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_WARNING, "No version number in 'Audio-SDL' config section. Setting defaults.");
+        ADebugMessage(M64MSG_WARNING, "No version number in 'Audio-SDL' config section. Setting defaults.");
         ConfigDeleteSection("Audio-SDL");
         ConfigOpenSection("Audio-SDL", &l_ConfigAudio);
     }
     else if (((int) fConfigParamsVersion) != ((int) CONFIG_PARAM_VERSION))
     {
-        DebugMessage(M64MSG_WARNING, "Incompatible version %.2f in 'Audio-SDL' config section: current is %.2f. Setting defaults.", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
+        ADebugMessage(M64MSG_WARNING, "Incompatible version %.2f in 'Audio-SDL' config section: current is %.2f. Setting defaults.", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
         ConfigDeleteSection("Audio-SDL");
         ConfigOpenSection("Audio-SDL", &l_ConfigAudio);
     }
@@ -222,7 +261,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         /* handle upgrades */
         float fVersion = CONFIG_PARAM_VERSION;
         ConfigSetParameter(l_ConfigAudio, "Version", M64TYPE_FLOAT, &fVersion);
-        DebugMessage(M64MSG_INFO, "Updating parameter set version in 'Audio-SDL' config section to %.2f", fVersion);
+        ADebugMessage(M64MSG_INFO, "Updating parameter set version in 'Audio-SDL' config section to %.2f", fVersion);
     }
 
     /* set the default values for this plugin */
@@ -247,7 +286,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
 
     while(!l_audioresource_acquired)
     {
-        DebugMessage(M64MSG_INFO, "Waiting for audioresource...");
+        ADebugMessage(M64MSG_INFO, "Waiting for audio resource...");
         g_main_context_iteration(NULL, false);
     }
 #endif
@@ -256,7 +295,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+m64p_error APluginShutdown(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
@@ -274,7 +313,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error APluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -303,7 +342,7 @@ static unsigned int vi_clock_from_system_type(int system_type)
     switch (system_type)
     {
     default:
-        DebugMessage(M64MSG_WARNING, "Invalid system_type %d. Assuming NTSC", system_type);
+        ADebugMessage(M64MSG_WARNING, "Invalid system_type %d. Assuming NTSC", system_type);
         /* fallback */
     case SYSTEM_NTSC: return 48681812;
     case SYSTEM_PAL:  return 49656530;
@@ -316,7 +355,7 @@ static unsigned int dacrate2freq(unsigned int vi_clock, uint32_t dacrate)
     return vi_clock / (dacrate + 1);
 }
 
-EXPORT void CALL AiDacrateChanged(int SystemType)
+void AAiDacrateChanged(int SystemType)
 {
     if (!l_PluginInit || l_sdl_backend == NULL)
         return;
@@ -327,7 +366,7 @@ EXPORT void CALL AiDacrateChanged(int SystemType)
     sdl_set_format(l_sdl_backend, frequency, bits);
 }
 
-EXPORT void CALL AiLenChanged(void)
+void AAiLenChanged(void)
 {
     if (!l_PluginInit || l_sdl_backend == NULL)
         return;
@@ -337,7 +376,7 @@ EXPORT void CALL AiLenChanged(void)
     sdl_synchronize_audio(l_sdl_backend);
 }
 
-EXPORT int CALL InitiateAudio(AUDIO_INFO Audio_Info)
+int AInitiateAudio(AUDIO_INFO Audio_Info)
 {
     if (!l_PluginInit)
         return 0;
@@ -347,7 +386,7 @@ EXPORT int CALL InitiateAudio(AUDIO_INFO Audio_Info)
     return 1;
 }
 
-EXPORT int CALL RomOpen(void)
+int ARomOpen(void)
 {
     if (!l_PluginInit || l_sdl_backend != NULL)
         return 0;
@@ -361,7 +400,7 @@ EXPORT int CALL RomOpen(void)
     return 1;
 }
 
-EXPORT void CALL RomClosed(void)
+void ARomClosed(void)
 {
     if (!l_PluginInit)
         return;
@@ -370,11 +409,11 @@ EXPORT void CALL RomClosed(void)
     l_sdl_backend = NULL;
 }
 
-EXPORT void CALL ProcessAList(void)
+void AProcessAList(void)
 {
 }
 
-EXPORT void CALL SetSpeedFactor(int percentage)
+void ASetSpeedFactor(int percentage)
 {
     if (!l_PluginInit || l_sdl_backend == NULL)
         return;
@@ -452,7 +491,7 @@ static void VolumeCommit(void)
     }
 }
 
-EXPORT void CALL VolumeMute(void)
+void AVolumeMute(void)
 {
     if (!l_PluginInit)
         return;
@@ -465,29 +504,29 @@ EXPORT void CALL VolumeMute(void)
     VolIsMuted = !VolIsMuted;
     VolumeCommit();
 }
-
-EXPORT void CALL VolumeUp(void)
+void AVolumeSetLevel(int level);
+void AVolumeUp(void)
 {
     if (!l_PluginInit)
         return;
 
-    VolumeSetLevel(VolumeGetUnmutedLevel() + VolDelta);
+    AVolumeSetLevel(VolumeGetUnmutedLevel() + VolDelta);
 }
 
-EXPORT void CALL VolumeDown(void)
+void AVolumeDown(void)
 {
     if (!l_PluginInit)
         return;
 
-    VolumeSetLevel(VolumeGetUnmutedLevel() - VolDelta);
+    AVolumeSetLevel(VolumeGetUnmutedLevel() - VolDelta);
 }
 
-EXPORT int CALL VolumeGetLevel(void)
+int AVolumeGetLevel(void)
 {
     return VolIsMuted ? 0 : VolumeGetUnmutedLevel();
 }
 
-EXPORT void CALL VolumeSetLevel(int level)
+void AVolumeSetLevel(int level)
 {
     if (!l_PluginInit)
         return;
@@ -505,7 +544,7 @@ EXPORT void CALL VolumeSetLevel(int level)
     VolumeCommit();
 }
 
-EXPORT const char * CALL VolumeGetString(void)
+const char * AVolumeGetString(void)
 {
     static char VolumeString[32];
 

@@ -157,7 +157,7 @@ typedef struct
 extern SController controller[4];   // 4 controllers
 
 /* global function definitions */
-extern void DebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
+extern void IDebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
 
 /* declarations of pointers to Core config functions */
 extern ptr_ConfigListSections     ConfigListSections;

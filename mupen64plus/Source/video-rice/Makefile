@@ -27,17 +27,17 @@ OS := NONE
 ifeq ("$(UNAME)","Linux")
   OS = LINUX
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifeq ("$(UNAME)","linux")
   OS = LINUX
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifneq ("$(filter GNU hurd,$(UNAME))","")
   OS = LINUX
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifeq ("$(UNAME)","Darwin")
   OS = OSX
@@ -48,22 +48,22 @@ endif
 ifeq ("$(UNAME)","FreeBSD")
   OS = FREEBSD
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifeq ("$(UNAME)","OpenBSD")
   OS = FREEBSD
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifneq ("$(filter GNU/kFreeBSD kfreebsd,$(UNAME))","")
   OS = LINUX
   LIB_EXTENSION = a
-  STATICLIB = rvs
+  STATICLIB = rs
 endif
 ifeq ("$(patsubst MINGW%,MINGW,$(UNAME))","MINGW")
   OS = MINGW
   LIB_EXTENSION = dll
-  STATICLIB = rvs
+  STATICLIB = rs
   PIC = 0
 endif
 ifeq ("$(OS)","NONE")

@@ -34,7 +34,6 @@
 #include "m64p_config.h"
 #include "m64p_plugin.h"
 #include "m64p_types.h"
-#include "osal_dynamiclib.h"
 #include "plugin.h"
 #include "version.h"
 
@@ -48,6 +47,46 @@
 
 #include <errno.h>
 
+m64p_error EVidExt_Init(void);
+m64p_error EVidExt_Quit(void);
+m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *, int *);
+m64p_error EVidExt_SetVideoMode(int, int, int, m64p_video_mode, m64p_video_flags);
+m64p_error EVidExt_ResizeWindow(int, int);
+m64p_error EVidExt_SetCaption(const char *);
+m64p_error EVidExt_ToggleFullScreen(void);
+m64p_function EVidExt_GL_GetProcAddress(const char *);
+m64p_error EVidExt_GL_SetAttribute(m64p_GLattr, int);
+m64p_error EVidExt_GL_SwapBuffers(void);
+m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
+m64p_error EConfigListSections(void *, void (*)(void *, const char *));
+m64p_error EConfigOpenSection(const char *, m64p_handle *);
+m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+m64p_error EConfigSaveFile(void);
+m64p_error EConfigSaveSection(const char *);
+int EConfigHasUnsavedChanges(const char *);
+m64p_error EConfigDeleteSection(const char *SectionName);
+m64p_error EConfigRevertChanges(const char *SectionName);
+m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
+m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+const char * EConfigGetParameterHelp(m64p_handle, const char *);
+m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+int          EConfigGetParamInt(m64p_handle, const char *);
+float        EConfigGetParamFloat(m64p_handle, const char *);
+int          EConfigGetParamBool(m64p_handle, const char *);
+const char * EConfigGetParamString(m64p_handle, const char *);
+const char * EConfigGetSharedDataFilepath(const char *);
+const char * EConfigGetUserConfigPath(void);
+const char * EConfigGetUserDataPath(void);
+const char * EConfigGetUserCachePath(void);
+m64p_error EConfigExternalOpen(const char *, m64p_handle *);
+m64p_error EConfigExternalClose(m64p_handle);
+m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+
 /* defines for the force feedback rumble support */
 #ifdef __linux__
 #define BITS_PER_LONG (sizeof(long) * 8)
@@ -58,25 +97,25 @@
 #endif //__linux__
 
 /* definitions of pointers to Core config functions */
-ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
-ptr_ConfigListParameters   ConfigListParameters = NULL;
-ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-ptr_ConfigGetParameterHelp ConfigGetParameterHelp = NULL;
-ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-ptr_ConfigGetParamString   ConfigGetParamString = NULL;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigDeleteSection    ConfigDeleteSection;
+extern ptr_ConfigListParameters   ConfigListParameters;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigGetParameterHelp ConfigGetParameterHelp;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
 
-ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = NULL;
-ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = NULL;
-ptr_ConfigGetUserDataPath       ConfigGetUserDataPath = NULL;
-ptr_ConfigGetUserCachePath      ConfigGetUserCachePath = NULL;
+extern ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath;
+extern ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath;
+extern ptr_ConfigGetUserDataPath       ConfigGetUserDataPath;
+extern ptr_ConfigGetUserCachePath      ConfigGetUserCachePath;
 
 /* global data definitions */
 SController controller[4];   // 4 controllers
@@ -118,7 +157,7 @@ static struct ff_effect ffweak[4];
 #endif //__linux__
 
 /* Global functions */
-void DebugMessage(int level, const char *message, ...)
+void IDebugMessage(int level, const char *message, ...)
 {
   char msgbuf[1024];
   va_list args;
@@ -137,7 +176,7 @@ void DebugMessage(int level, const char *message, ...)
 static CONTROL temp_core_controlinfo[4];
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+m64p_error IPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -152,47 +191,47 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallContext = Context;
 
     /* attach and call the CoreGetAPIVersions function, check Config API version for compatibility */
-    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) ECoreGetAPIVersions;
     if (CoreAPIVersionFunc == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
+        IDebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
         return M64ERR_INCOMPATIBLE;
     }
 
     (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
     if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000) || ConfigAPIVersion < CONFIG_API_VERSION)
     {
-        DebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
+        IDebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
                 VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
         return M64ERR_INCOMPATIBLE;
     }
 
     /* Get the core config function pointers from the library handle */
-    ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
-    ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreLibHandle, "ConfigDeleteSection");
-    ConfigListParameters = (ptr_ConfigListParameters) osal_dynlib_getproc(CoreLibHandle, "ConfigListParameters");
-    ConfigSetParameter = (ptr_ConfigSetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigSetParameter");
-    ConfigGetParameter = (ptr_ConfigGetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParameter");
-    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultInt");
-    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultFloat");
-    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultBool");
-    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultString");
-    ConfigGetParamInt = (ptr_ConfigGetParamInt) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamInt");
-    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamFloat");
-    ConfigGetParamBool = (ptr_ConfigGetParamBool) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamBool");
-    ConfigGetParamString = (ptr_ConfigGetParamString) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamString");
+    ConfigOpenSection = (ptr_ConfigOpenSection) EConfigOpenSection;
+    ConfigDeleteSection = (ptr_ConfigDeleteSection) EConfigDeleteSection;
+    ConfigListParameters = (ptr_ConfigListParameters) EConfigListParameters;
+    ConfigSetParameter = (ptr_ConfigSetParameter) EConfigSetParameter;
+    ConfigGetParameter = (ptr_ConfigGetParameter) EConfigGetParameter;
+    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) EConfigSetDefaultInt;
+    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) EConfigSetDefaultFloat;
+    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) EConfigSetDefaultBool;
+    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) EConfigSetDefaultString;
+    ConfigGetParamInt = (ptr_ConfigGetParamInt) EConfigGetParamInt;
+    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) ConfigGetParamFloat;
+    ConfigGetParamBool = (ptr_ConfigGetParamBool) EConfigGetParamBool;
+    ConfigGetParamString = (ptr_ConfigGetParamString) EConfigGetParamString;
 
-    ConfigGetSharedDataFilepath = (ptr_ConfigGetSharedDataFilepath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetSharedDataFilepath");
-    ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserConfigPath");
-    ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserDataPath");
-    ConfigGetUserCachePath = (ptr_ConfigGetUserCachePath) osal_dynlib_getproc(CoreLibHandle, "ConfigGetUserCachePath");
+    ConfigGetSharedDataFilepath = (ptr_ConfigGetSharedDataFilepath) EConfigGetSharedDataFilepath;
+    ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) EConfigGetUserConfigPath;
+    ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) EConfigGetUserDataPath;
+    ConfigGetUserCachePath = (ptr_ConfigGetUserCachePath) EConfigGetUserCachePath;
 
     if (!ConfigOpenSection || !ConfigDeleteSection || !ConfigSetParameter || !ConfigGetParameter ||
         !ConfigSetDefaultInt || !ConfigSetDefaultFloat || !ConfigSetDefaultBool || !ConfigSetDefaultString ||
         !ConfigGetParamInt   || !ConfigGetParamFloat   || !ConfigGetParamBool   || !ConfigGetParamString ||
         !ConfigGetSharedDataFilepath || !ConfigGetUserConfigPath || !ConfigGetUserDataPath || !ConfigGetUserCachePath)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't connect to Core configuration functions");
+        IDebugMessage(M64MSG_ERROR, "Couldn't connect to Core configuration functions");
         return M64ERR_INCOMPATIBLE;
     }
 
@@ -213,7 +252,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     if (!l_joyWasInit)
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
         {
-            DebugMessage(M64MSG_ERROR, "Couldn't init SDL joystick subsystem: %s", SDL_GetError() );
+            IDebugMessage(M64MSG_ERROR, "Couldn't init SDL joystick subsystem: %s", SDL_GetError() );
             return M64ERR_SYSTEM_FAIL;
         }
 
@@ -224,7 +263,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+m64p_error IPluginShutdown(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
@@ -241,7 +280,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error IPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -369,7 +408,7 @@ static unsigned char DataCRC( unsigned char *Data, int iLenght )
             initilize controller: 01 03 00 FF FF FF
             read controller:      01 04 01 FF FF FF FF
 *******************************************************************/
-EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
+void IControllerCommand(int Control, unsigned char *Command)
 {
     unsigned char *Data = &Command[5];
 
@@ -380,17 +419,17 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
     {
         case RD_GETSTATUS:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Get status");
+            IDebugMessage(M64MSG_INFO, "Get status");
 #endif
             break;
         case RD_READKEYS:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read keys");
+            IDebugMessage(M64MSG_INFO, "Read keys");
 #endif
             break;
         case RD_READPAK:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read pak");
+            IDebugMessage(M64MSG_INFO, "Read pak");
 #endif
             if (controller[Control].control->Plugin == PLUGIN_RAW)
             {
@@ -406,13 +445,13 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
             break;
         case RD_WRITEPAK:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Write pak");
+            IDebugMessage(M64MSG_INFO, "Write pak");
 #endif
             if (controller[Control].control->Plugin == PLUGIN_RAW)
             {
                 unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
               if (dwAddress == PAK_IO_RUMBLE && *Data)
-                    DebugMessage(M64MSG_VERBOSE, "Triggering rumble pack.");
+                    IDebugMessage(M64MSG_VERBOSE, "Triggering rumble pack.");
 #if SDL_VERSION_ATLEAST(2,0,0)
                 if(dwAddress == PAK_IO_RUMBLE && controller[Control].event_joystick) {
                     if (*Data) {
@@ -451,17 +490,17 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
             break;
         case RD_RESETCONTROLLER:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Reset controller");
+            IDebugMessage(M64MSG_INFO, "Reset controller");
 #endif
             break;
         case RD_READEEPROM:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read eeprom");
+            IDebugMessage(M64MSG_INFO, "Read eeprom");
 #endif
             break;
         case RD_WRITEEPROM:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Write eeprom");
+            IDebugMessage(M64MSG_INFO, "Write eeprom");
 #endif
             break;
         }
@@ -475,7 +514,7 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
             the controller state.
   output:   none
 *******************************************************************/
-EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
+void IGetKeys( int Control, BUTTONS *Keys )
 {
     static int mousex_residual = 0;
     static int mousey_residual = 0;
@@ -668,7 +707,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     }
 
 #ifdef _DEBUG
-    DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
+    IDebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
 #endif
     *Keys = controller[Control].buttons;
 
@@ -741,7 +780,7 @@ static void InitiateJoysticks(int cntrl)
     if (controller[cntrl].device >= 0) {
         controller[cntrl].joystick = SDL_JoystickOpen(controller[cntrl].device);
         if (!controller[cntrl].joystick)
-            DebugMessage(M64MSG_WARNING, "Couldn't open joystick for controller #%d: %s", cntrl + 1, SDL_GetError());
+            IDebugMessage(M64MSG_WARNING, "Couldn't open joystick for controller #%d: %s", cntrl + 1, SDL_GetError());
     } else {
         controller[cntrl].joystick = NULL;
     }
@@ -763,32 +802,32 @@ static void InitiateRumble(int cntrl)
     l_hapticWasInit = SDL_WasInit(SDL_INIT_HAPTIC);
     if (!l_hapticWasInit) {
         if (SDL_InitSubSystem(SDL_INIT_HAPTIC) == -1) {
-            DebugMessage(M64MSG_ERROR, "Couldn't init SDL haptic subsystem: %s", SDL_GetError() );
+            IDebugMessage(M64MSG_ERROR, "Couldn't init SDL haptic subsystem: %s", SDL_GetError() );
             return;
         }
     }
 
     controller[cntrl].event_joystick = SDL_HapticOpenFromJoystick(controller[cntrl].joystick);
     if (!controller[cntrl].event_joystick) {
-        DebugMessage(M64MSG_WARNING, "Couldn't open rumble support for joystick #%i", cntrl + 1);
+        IDebugMessage(M64MSG_WARNING, "Couldn't open rumble support for joystick #%i", cntrl + 1);
         return;
     }
 
     if (SDL_HapticRumbleSupported(controller[cntrl].event_joystick) == SDL_FALSE) {
         SDL_HapticClose(controller[cntrl].event_joystick);
         controller[cntrl].event_joystick = NULL;
-        DebugMessage(M64MSG_WARNING, "Joystick #%i doesn't support rumble effect", cntrl + 1);
+        IDebugMessage(M64MSG_WARNING, "Joystick #%i doesn't support rumble effect", cntrl + 1);
         return;
     }
 
     if (SDL_HapticRumbleInit(controller[cntrl].event_joystick) != 0) {
         SDL_HapticClose(controller[cntrl].event_joystick);
         controller[cntrl].event_joystick = NULL;
-        DebugMessage(M64MSG_WARNING, "Rumble initialization failed for Joystick #%i", cntrl + 1);
+        IDebugMessage(M64MSG_WARNING, "Rumble initialization failed for Joystick #%i", cntrl + 1);
         return;
     }
 
-    DebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
+    IDebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
 #elif __linux__
     DIR* dp;
     struct dirent* ep;
@@ -835,28 +874,28 @@ static void InitiateRumble(int cntrl)
 
     if (!iFound)
     {
-        DebugMessage(M64MSG_WARNING, "Couldn't find input event for rumble support.");
+        IDebugMessage(M64MSG_WARNING, "Couldn't find input event for rumble support.");
         return;
     }
 
     controller[cntrl].event_joystick = open(temp, O_RDWR);
     if(controller[cntrl].event_joystick==-1)
         {
-        DebugMessage(M64MSG_WARNING, "Couldn't open device file '%s' for rumble support.", temp);
+        IDebugMessage(M64MSG_WARNING, "Couldn't open device file '%s' for rumble support.", temp);
         controller[cntrl].event_joystick = 0;
         return;
         }
 
     if(ioctl(controller[cntrl].event_joystick, EVIOCGBIT(EV_FF, sizeof(unsigned long) * 4), features)==-1)
         {
-        DebugMessage(M64MSG_WARNING, "Linux kernel communication failed for force feedback (rumble).\n");
+        IDebugMessage(M64MSG_WARNING, "Linux kernel communication failed for force feedback (rumble).\n");
         controller[cntrl].event_joystick = 0;
         return;
         }
 
     if(!test_bit(FF_RUMBLE, features))
         {
-        DebugMessage(M64MSG_WARNING, "No rumble supported on N64 joystick #%i", cntrl + 1);
+        IDebugMessage(M64MSG_WARNING, "No rumble supported on N64 joystick #%i", cntrl + 1);
         controller[cntrl].event_joystick = 0;
         return;
         }
@@ -889,7 +928,7 @@ static void InitiateRumble(int cntrl)
 
     ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffweak[cntrl]);
 
-    DebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
+    IDebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
 #endif /* __linux__ */
 }
 
@@ -916,7 +955,7 @@ static void DeinitRumble(int cntrl)
               the emulator to know how to handle each controller.
   output:   none
 *******************************************************************/
-EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
+void IInitiateControllers(CONTROL_INFO ControlInfo)
 {
     int i;
 
@@ -946,7 +985,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         DeinitJoystick(i);
     }
 
-    DebugMessage(M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION));
+    IDebugMessage(M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION));
 }
 
 /******************************************************************
@@ -960,11 +999,11 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
   note:     This function is only needed if the DLL is allowing raw
             data.
 *******************************************************************/
-EXPORT void CALL ReadController(int Control, unsigned char *Command)
+void IReadController(int Control, unsigned char *Command)
 {
 #ifdef _DEBUG
     if (Command != NULL)
-        DebugMessage(M64MSG_INFO, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
+        IDebugMessage(M64MSG_INFO, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
                      Command[0], Command[1], Command[2], Command[3], Command[4], Command[5]);
 #endif
 }
@@ -975,7 +1014,7 @@ EXPORT void CALL ReadController(int Control, unsigned char *Command)
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL RomClosed(void)
+void IRomClosed(void)
 {
     int i;
 
@@ -1003,7 +1042,7 @@ EXPORT void CALL RomClosed(void)
   input:    none
   output:   none
 *******************************************************************/
-EXPORT int CALL RomOpen(void)
+int IRomOpen(void)
 {
     int i;
 
@@ -1019,12 +1058,12 @@ EXPORT int CALL RomOpen(void)
         SDL_ShowCursor( 0 );
 #if SDL_VERSION_ATLEAST(2,0,0)
         if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
-            DebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
+            IDebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
         }
 #else
         if (SDL_WM_GrabInput( SDL_GRAB_ON ) != SDL_GRAB_ON)
         {
-            DebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
+            IDebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
         }
 #endif
     }
@@ -1040,7 +1079,7 @@ EXPORT int CALL RomOpen(void)
   input:    keymod and keysym of the SDL_KEYDOWN message.
   output:   none
 *******************************************************************/
-EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
+void ISDL_KeyDown(int keymod, int keysym)
 {
     myKeyState[keysym] = 1;
 }
@@ -1052,7 +1091,7 @@ EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
   input:    keymod and keysym of the SDL_KEYUP message.
   output:   none
 *******************************************************************/
-EXPORT void CALL SDL_KeyUp(int keymod, int keysym)
+void ISDL_KeyUp(int keymod, int keysym)
 {
     myKeyState[keysym] = 0;
 }

@@ -46,7 +46,7 @@ osal_lib_search *osal_library_search(const char *searchpath)
     char *pchSearchPath = (char *) malloc(strlen(searchpath) + 16);
     if (pchSearchPath == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't allocate memory for file search path in osal_library_search()!");
+        UDebugMessage(M64MSG_ERROR, "Couldn't allocate memory for file search path in osal_library_search()!");
         return NULL;
     }
     sprintf(pchSearchPath, "%s\\*.dll", searchpath);
@@ -63,7 +63,7 @@ osal_lib_search *osal_library_search(const char *searchpath)
         newlib = (osal_lib_search *) malloc(sizeof(osal_lib_search));
         if (newlib == NULL)
         {
-            DebugMessage(M64MSG_ERROR, "Memory allocation error in osal_library_search()!");
+            UDebugMessage(M64MSG_ERROR, "Memory allocation error in osal_library_search()!");
             osal_free_lib_list(head);
             FindClose(hDir);
             return NULL;

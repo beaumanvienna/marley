@@ -371,11 +371,11 @@ static m64p_error write_configlist_file(void)
     FILE *fPtr;
 
     /* get the full pathname to the config file and try to open it */
-    configpath = ConfigGetUserConfigPath();
+    configpath = EConfigGetUserConfigPath();
     if (configpath == NULL)
         return M64ERR_FILES;
 
-    filepath = combinepath(configpath, MUPEN64PLUS_CFG_NAME);
+    filepath = Ccombinepath(configpath, MUPEN64PLUS_CFG_NAME);
     if (filepath == NULL)
         return M64ERR_NO_MEMORY;
 
@@ -460,11 +460,11 @@ m64p_error ConfigInit(const char *ConfigDirOverride, const char *DataDirOverride
     }
 
     /* get the full pathname to the config file and try to open it */
-    configpath = ConfigGetUserConfigPath();
+    configpath = EConfigGetUserConfigPath();
     if (configpath == NULL)
         return M64ERR_FILES;
 
-    filepath = combinepath(configpath, MUPEN64PLUS_CFG_NAME);
+    filepath = Ccombinepath(configpath, MUPEN64PLUS_CFG_NAME);
     if (filepath == NULL)
         return M64ERR_NO_MEMORY;
 
@@ -526,7 +526,7 @@ m64p_error ConfigInit(const char *ConfigDirOverride, const char *DataDirOverride
                 break;
 
             case INI_SECTION:
-                rval = ConfigOpenSection(l.name, (m64p_handle *) &current_section);
+                rval = EConfigOpenSection(l.name, (m64p_handle *) &current_section);
                 if (rval != M64ERR_SUCCESS)
                 {
                     free(configtext);
@@ -540,15 +540,15 @@ m64p_error ConfigInit(const char *ConfigDirOverride, const char *DataDirOverride
                 {
                     l.value++;
                     l.value[strlen(l.value)-1] = 0;
-                    ConfigSetDefaultString((m64p_handle) current_section, l.name, l.value, lastcomment);
+                    EConfigSetDefaultString((m64p_handle) current_section, l.name, l.value, lastcomment);
                 }
                 else if (osal_insensitive_strcmp(l.value, "false") == 0)
                 {
-                    ConfigSetDefaultBool((m64p_handle) current_section, l.name, 0, lastcomment);
+                    EConfigSetDefaultBool((m64p_handle) current_section, l.name, 0, lastcomment);
                 }
                 else if (osal_insensitive_strcmp(l.value, "true") == 0)
                 {
-                    ConfigSetDefaultBool((m64p_handle) current_section, l.name, 1, lastcomment);
+                    EConfigSetDefaultBool((m64p_handle) current_section, l.name, 1, lastcomment);
                 }
                 else if (is_numeric(l.value))
                 {
@@ -556,18 +556,18 @@ m64p_error ConfigInit(const char *ConfigDirOverride, const char *DataDirOverride
                     if (strchr(l.value, '.'))
                     {
                         float val_float = (float) strtod(l.value, NULL);
-                        ConfigSetDefaultFloat((m64p_handle) current_section, l.name, val_float, lastcomment);
+                        EConfigSetDefaultFloat((m64p_handle) current_section, l.name, val_float, lastcomment);
                     }
                     else
                     {
                         int val_int = (int) strtol(l.value, NULL, 10);
-                        ConfigSetDefaultInt((m64p_handle) current_section, l.name, val_int, lastcomment);
+                        EConfigSetDefaultInt((m64p_handle) current_section, l.name, val_int, lastcomment);
                     }
                 }
                 else
                 {
                     /* assume that it's a string */
-                    ConfigSetDefaultString((m64p_handle) current_section, l.name, l.value, lastcomment);
+                    EConfigSetDefaultString((m64p_handle) current_section, l.name, l.value, lastcomment);
                 }
                 lastcomment = NULL;
                 break;
@@ -616,7 +616,7 @@ m64p_error ConfigShutdown(void)
 /* Selector functions, exported outside of the Core */
 /* ------------------------------------------------ */
 
-EXPORT m64p_error CALL ConfigExternalOpen(const char *FileName, m64p_handle *Handle)
+m64p_error EConfigExternalOpen(const char *FileName, m64p_handle *Handle)
 {
     FILE *fPtr;
     struct external_config* ext_config;
@@ -671,7 +671,7 @@ EXPORT m64p_error CALL ConfigExternalOpen(const char *FileName, m64p_handle *Han
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigExternalClose(m64p_handle Handle)
+m64p_error EConfigExternalClose(m64p_handle Handle)
 {
     struct external_config* ext_config = Handle;
     if (ext_config != NULL) {
@@ -683,7 +683,7 @@ EXPORT m64p_error CALL ConfigExternalClose(m64p_handle Handle)
     return M64ERR_INPUT_INVALID;
 }
 
-EXPORT m64p_error CALL ConfigExternalGetParameter(m64p_handle Handle, const char *SectionName, const char *ParamName, char* ParamPtr, int ParamMaxLength)
+m64p_error EConfigExternalGetParameter(m64p_handle Handle, const char *SectionName, const char *ParamName, char* ParamPtr, int ParamMaxLength)
 {
     struct external_config* ext_config = Handle;
     int foundSection = 0;
@@ -724,7 +724,7 @@ EXPORT m64p_error CALL ConfigExternalGetParameter(m64p_handle Handle, const char
     return M64ERR_INPUT_NOT_FOUND;
 }
 
-EXPORT m64p_error CALL ConfigListSections(void *context, void (*SectionListCallback)(void * context, const char * SectionName))
+m64p_error EConfigListSections(void *context, void (*SectionListCallback)(void * context, const char * SectionName))
 {
     config_section *curr_section;
 
@@ -744,7 +744,7 @@ EXPORT m64p_error CALL ConfigListSections(void *context, void (*SectionListCallb
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigOpenSection(const char *SectionName, m64p_handle *ConfigSectionHandle)
+m64p_error EConfigOpenSection(const char *SectionName, m64p_handle *ConfigSectionHandle)
 {
     config_section **curr_section;
     config_section *new_section;
@@ -775,7 +775,7 @@ EXPORT m64p_error CALL ConfigOpenSection(const char *SectionName, m64p_handle *C
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigListParameters(m64p_handle ConfigSectionHandle, void *context, void (*ParameterListCallback)(void * context, const char *ParamName, m64p_type ParamType))
+m64p_error EConfigListParameters(m64p_handle ConfigSectionHandle, void *context, void (*ParameterListCallback)(void * context, const char *ParamName, m64p_type ParamType))
 {
     config_section *section;
     config_var *curr_var;
@@ -800,7 +800,7 @@ EXPORT m64p_error CALL ConfigListParameters(m64p_handle ConfigSectionHandle, voi
   return M64ERR_SUCCESS;
 }
 
-EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
+int EConfigHasUnsavedChanges(const char *SectionName)
 {
     config_section *input_section, *curr_section;
     config_var *active_var, *saved_var;
@@ -808,7 +808,7 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
     /* check input conditions */
     if (!l_ConfigInit)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigHasUnsavedChanges(): Core config not initialized!");
+        DebugMessage(M64MSG_ERROR, "EConfigHasUnsavedChanges(): Core config not initialized!");
         return 0;
     }
 
@@ -820,7 +820,7 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
         curr_section = l_ConfigListActive;
         while (curr_section != NULL)
         {
-            if (ConfigHasUnsavedChanges(curr_section->name))
+            if (EConfigHasUnsavedChanges(curr_section->name))
                 return 1;
             curr_section = curr_section->next;
             iNumActiveSections++;
@@ -842,7 +842,7 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
     input_section = find_section(l_ConfigListActive, SectionName);
     if (input_section == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigHasUnsavedChanges(): section name '%s' not found!", SectionName);
+        DebugMessage(M64MSG_ERROR, "EConfigHasUnsavedChanges(): section name '%s' not found!", SectionName);
         return 0;
     }
 
@@ -880,19 +880,19 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
             case M64TYPE_STRING:
                 if (active_var->val.string == NULL)
                 {
-                    DebugMessage(M64MSG_ERROR, "ConfigHasUnsavedChanges(): Variable '%s' NULL Active string pointer!", active_var->name);
+                    DebugMessage(M64MSG_ERROR, "EConfigHasUnsavedChanges(): Variable '%s' NULL Active string pointer!", active_var->name);
                     return 1;
                 }
                 if (saved_var->val.string == NULL)
                 {
-                    DebugMessage(M64MSG_ERROR, "ConfigHasUnsavedChanges(): Variable '%s' NULL Saved string pointer!", active_var->name);
+                    DebugMessage(M64MSG_ERROR, "EConfigHasUnsavedChanges(): Variable '%s' NULL Saved string pointer!", active_var->name);
                     return 1;
                 }
                 if (strcmp(active_var->val.string, saved_var->val.string) != 0)
                     return 1;
                 break;
             default:
-                DebugMessage(M64MSG_ERROR, "ConfigHasUnsavedChanges(): Invalid variable '%s' type %i!", active_var->name, active_var->type);
+                DebugMessage(M64MSG_ERROR, "EConfigHasUnsavedChanges(): Invalid variable '%s' type %i!", active_var->name, active_var->type);
                 return 1;
         }
         if (active_var->comment != NULL && saved_var->comment != NULL && strcmp(active_var->comment, saved_var->comment) != 0)
@@ -913,7 +913,7 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *SectionName)
 /* Modifier functions, exported outside of the Core        */
 /* ------------------------------------------------------- */
 
-EXPORT m64p_error CALL ConfigDeleteSection(const char *SectionName)
+m64p_error EConfigDeleteSection(const char *SectionName)
 {
     config_section **curr_section_link;
     config_section *next_section;
@@ -939,7 +939,7 @@ EXPORT m64p_error CALL ConfigDeleteSection(const char *SectionName)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigSaveFile(void)
+m64p_error EConfigSaveFile(void)
 {
     if (!l_ConfigInit)
         return M64ERR_NOT_INIT;
@@ -951,7 +951,7 @@ EXPORT m64p_error CALL ConfigSaveFile(void)
     return (write_configlist_file());
 }
 
-EXPORT m64p_error CALL ConfigSaveSection(const char *SectionName)
+m64p_error EConfigSaveSection(const char *SectionName)
 {
     config_section *curr_section, *new_section;
     config_section **insertion_point;
@@ -991,7 +991,7 @@ EXPORT m64p_error CALL ConfigSaveSection(const char *SectionName)
     return (write_configlist_file());
 }
 
-EXPORT m64p_error CALL ConfigRevertChanges(const char *SectionName)
+m64p_error EConfigRevertChanges(const char *SectionName)
 {
     config_section **active_section_link, *active_section, *saved_section, *new_section;
 
@@ -1035,7 +1035,7 @@ EXPORT m64p_error CALL ConfigRevertChanges(const char *SectionName)
 /* Generic Get/Set functions, exported outside of the Core */
 /* ------------------------------------------------------- */
 
-EXPORT m64p_error CALL ConfigSetParameter(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type ParamType, const void *ParamValue)
+m64p_error EConfigSetParameter(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type ParamType, const void *ParamValue)
 {
     config_section *section;
     config_var *var;
@@ -1096,7 +1096,7 @@ EXPORT m64p_error CALL ConfigSetParameter(m64p_handle ConfigSectionHandle, const
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigSetParameterHelp(m64p_handle ConfigSectionHandle, const char *ParamName, const char *ParamHelp)
+m64p_error EConfigSetParameterHelp(m64p_handle ConfigSectionHandle, const char *ParamName, const char *ParamHelp)
 {
     config_section *section;
     config_var *var;
@@ -1124,7 +1124,7 @@ EXPORT m64p_error CALL ConfigSetParameterHelp(m64p_handle ConfigSectionHandle, c
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigGetParameter(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type ParamType, void *ParamValue, int MaxSize)
+m64p_error EConfigGetParameter(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type ParamType, void *ParamValue, int MaxSize)
 {
     config_section *section;
     config_var *var;
@@ -1149,22 +1149,22 @@ EXPORT m64p_error CALL ConfigGetParameter(m64p_handle ConfigSectionHandle, const
     {
         case M64TYPE_INT:
             if (MaxSize < (int)sizeof(int)) return M64ERR_INPUT_INVALID;
-            *((int *) ParamValue) = ConfigGetParamInt(ConfigSectionHandle, ParamName);
+            *((int *) ParamValue) = EConfigGetParamInt(ConfigSectionHandle, ParamName);
             break;
         case M64TYPE_FLOAT:
             if (MaxSize < (int)sizeof(float)) return M64ERR_INPUT_INVALID;
-            *((float *) ParamValue) = ConfigGetParamFloat(ConfigSectionHandle, ParamName);
+            *((float *) ParamValue) = EConfigGetParamFloat(ConfigSectionHandle, ParamName);
             break;
         case M64TYPE_BOOL:
             if (MaxSize < (int)sizeof(int)) return M64ERR_INPUT_INVALID;
-            *((int *) ParamValue) = ConfigGetParamBool(ConfigSectionHandle, ParamName);
+            *((int *) ParamValue) = EConfigGetParamBool(ConfigSectionHandle, ParamName);
             break;
         case M64TYPE_STRING:
         {
             const char *string;
             if (MaxSize < 1) return M64ERR_INPUT_INVALID;
             if (var->type != M64TYPE_STRING && var->type != M64TYPE_BOOL) return M64ERR_WRONG_TYPE;
-            string = ConfigGetParamString(ConfigSectionHandle, ParamName);
+            string = EConfigGetParamString(ConfigSectionHandle, ParamName);
             strncpy((char *) ParamValue, string, MaxSize);
             *((char *) ParamValue + MaxSize - 1) = 0;
             break;
@@ -1177,7 +1177,7 @@ EXPORT m64p_error CALL ConfigGetParameter(m64p_handle ConfigSectionHandle, const
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigGetParameterType(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type *ParamType)
+m64p_error EConfigGetParameterType(m64p_handle ConfigSectionHandle, const char *ParamName, m64p_type *ParamType)
 {
     config_section *section;
     config_var *var;
@@ -1202,7 +1202,7 @@ EXPORT m64p_error CALL ConfigGetParameterType(m64p_handle ConfigSectionHandle, c
 }
 
 
-EXPORT const char * CALL ConfigGetParameterHelp(m64p_handle ConfigSectionHandle, const char *ParamName)
+const char * EConfigGetParameterHelp(m64p_handle ConfigSectionHandle, const char *ParamName)
 {
     config_section *section;
     config_var *var;
@@ -1227,7 +1227,7 @@ EXPORT const char * CALL ConfigGetParameterHelp(m64p_handle ConfigSectionHandle,
 /* Special Get/Set functions, exported outside of the Core */
 /* ------------------------------------------------------- */
 
-EXPORT m64p_error CALL ConfigSetDefaultInt(m64p_handle ConfigSectionHandle, const char *ParamName, int ParamValue, const char *ParamHelp)
+m64p_error EConfigSetDefaultInt(m64p_handle ConfigSectionHandle, const char *ParamName, int ParamValue, const char *ParamHelp)
 {
     config_section *section;
     config_var *var;
@@ -1262,7 +1262,7 @@ EXPORT m64p_error CALL ConfigSetDefaultInt(m64p_handle ConfigSectionHandle, cons
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigSetDefaultFloat(m64p_handle ConfigSectionHandle, const char *ParamName, float ParamValue, const char *ParamHelp)
+m64p_error EConfigSetDefaultFloat(m64p_handle ConfigSectionHandle, const char *ParamName, float ParamValue, const char *ParamHelp)
 {
     config_section *section;
     config_var *var;
@@ -1297,7 +1297,7 @@ EXPORT m64p_error CALL ConfigSetDefaultFloat(m64p_handle ConfigSectionHandle, co
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigSetDefaultBool(m64p_handle ConfigSectionHandle, const char *ParamName, int ParamValue, const char *ParamHelp)
+m64p_error EConfigSetDefaultBool(m64p_handle ConfigSectionHandle, const char *ParamName, int ParamValue, const char *ParamHelp)
 {
     config_section *section;
     config_var *var;
@@ -1332,7 +1332,7 @@ EXPORT m64p_error CALL ConfigSetDefaultBool(m64p_handle ConfigSectionHandle, con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL ConfigSetDefaultString(m64p_handle ConfigSectionHandle, const char *ParamName, const char * ParamValue, const char *ParamHelp)
+m64p_error EConfigSetDefaultString(m64p_handle ConfigSectionHandle, const char *ParamName, const char * ParamValue, const char *ParamHelp)
 {
     config_section *section;
     config_var *var;
@@ -1372,7 +1372,7 @@ EXPORT m64p_error CALL ConfigSetDefaultString(m64p_handle ConfigSectionHandle, c
     return M64ERR_SUCCESS;
 }
 
-EXPORT int CALL ConfigGetParamInt(m64p_handle ConfigSectionHandle, const char *ParamName)
+int EConfigGetParamInt(m64p_handle ConfigSectionHandle, const char *ParamName)
 {
     config_section *section;
     config_var *var;
@@ -1380,14 +1380,14 @@ EXPORT int CALL ConfigGetParamInt(m64p_handle ConfigSectionHandle, const char *P
     /* check input conditions */
     if (!l_ConfigInit || ConfigSectionHandle == NULL || ParamName == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamInt(): Input assertion!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamInt(): Input assertion!");
         return 0;
     }
 
     section = (config_section *) ConfigSectionHandle;
     if (section->magic != SECTION_MAGIC)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamInt(): ConfigSectionHandle invalid!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamInt(): ConfigSectionHandle invalid!");
         return 0;
     }
 
@@ -1395,7 +1395,7 @@ EXPORT int CALL ConfigGetParamInt(m64p_handle ConfigSectionHandle, const char *P
     var = find_section_var(section, ParamName);
     if (var == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamInt(): Parameter '%s' not found!", ParamName);
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamInt(): Parameter '%s' not found!", ParamName);
         return 0;
     }
 
@@ -1411,12 +1411,12 @@ EXPORT int CALL ConfigGetParamInt(m64p_handle ConfigSectionHandle, const char *P
         case M64TYPE_STRING:
             return atoi(var->val.string);
         default:
-            DebugMessage(M64MSG_ERROR, "ConfigGetParamInt(): invalid internal parameter type for '%s'", ParamName);
+            DebugMessage(M64MSG_ERROR, "EConfigGetParamInt(): invalid internal parameter type for '%s'", ParamName);
             return 0;
     }
 }
 
-EXPORT float CALL ConfigGetParamFloat(m64p_handle ConfigSectionHandle, const char *ParamName)
+float EConfigGetParamFloat(m64p_handle ConfigSectionHandle, const char *ParamName)
 {
     config_section *section;
     config_var *var;
@@ -1424,14 +1424,14 @@ EXPORT float CALL ConfigGetParamFloat(m64p_handle ConfigSectionHandle, const cha
     /* check input conditions */
     if (!l_ConfigInit || ConfigSectionHandle == NULL || ParamName == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamFloat(): Input assertion!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamFloat(): Input assertion!");
         return 0.0;
     }
 
     section = (config_section *) ConfigSectionHandle;
     if (section->magic != SECTION_MAGIC)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamFloat(): ConfigSectionHandle invalid!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamFloat(): ConfigSectionHandle invalid!");
         return 0.0;
     }
 
@@ -1439,7 +1439,7 @@ EXPORT float CALL ConfigGetParamFloat(m64p_handle ConfigSectionHandle, const cha
     var = find_section_var(section, ParamName);
     if (var == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamFloat(): Parameter '%s' not found!", ParamName);
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamFloat(): Parameter '%s' not found!", ParamName);
         return 0.0;
     }
 
@@ -1455,12 +1455,12 @@ EXPORT float CALL ConfigGetParamFloat(m64p_handle ConfigSectionHandle, const cha
         case M64TYPE_STRING:
             return (float) atof(var->val.string);
         default:
-            DebugMessage(M64MSG_ERROR, "ConfigGetParamFloat(): invalid internal parameter type for '%s'", ParamName);
+            DebugMessage(M64MSG_ERROR, "EConfigGetParamFloat(): invalid internal parameter type for '%s'", ParamName);
             return 0.0;
     }
 }
 
-EXPORT int CALL ConfigGetParamBool(m64p_handle ConfigSectionHandle, const char *ParamName)
+int EConfigGetParamBool(m64p_handle ConfigSectionHandle, const char *ParamName)
 {
     config_section *section;
     config_var *var;
@@ -1468,14 +1468,14 @@ EXPORT int CALL ConfigGetParamBool(m64p_handle ConfigSectionHandle, const char *
     /* check input conditions */
     if (!l_ConfigInit || ConfigSectionHandle == NULL || ParamName == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamBool(): Input assertion!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamBool(): Input assertion!");
         return 0;
     }
 
     section = (config_section *) ConfigSectionHandle;
     if (section->magic != SECTION_MAGIC)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamBool(): ConfigSectionHandle invalid!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamBool(): ConfigSectionHandle invalid!");
         return 0;
     }
 
@@ -1483,7 +1483,7 @@ EXPORT int CALL ConfigGetParamBool(m64p_handle ConfigSectionHandle, const char *
     var = find_section_var(section, ParamName);
     if (var == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamBool(): Parameter '%s' not found!", ParamName);
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamBool(): Parameter '%s' not found!", ParamName);
         return 0;
     }
 
@@ -1499,12 +1499,12 @@ EXPORT int CALL ConfigGetParamBool(m64p_handle ConfigSectionHandle, const char *
         case M64TYPE_STRING:
             return (osal_insensitive_strcmp(var->val.string, "true") == 0);
         default:
-            DebugMessage(M64MSG_ERROR, "ConfigGetParamBool(): invalid internal parameter type for '%s'", ParamName);
+            DebugMessage(M64MSG_ERROR, "EConfigGetParamBool(): invalid internal parameter type for '%s'", ParamName);
             return 0;
     }
 }
 
-EXPORT const char * CALL ConfigGetParamString(m64p_handle ConfigSectionHandle, const char *ParamName)
+const char * EConfigGetParamString(m64p_handle ConfigSectionHandle, const char *ParamName)
 {
     static char outstr[64];  /* warning: not thread safe */
     config_section *section;
@@ -1513,14 +1513,14 @@ EXPORT const char * CALL ConfigGetParamString(m64p_handle ConfigSectionHandle, c
     /* check input conditions */
     if (!l_ConfigInit || ConfigSectionHandle == NULL || ParamName == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamString(): Input assertion!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamString(): Input assertion!");
         return "";
     }
 
     section = (config_section *) ConfigSectionHandle;
     if (section->magic != SECTION_MAGIC)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamString(): ConfigSectionHandle invalid!");
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamString(): ConfigSectionHandle invalid!");
         return "";
     }
 
@@ -1528,7 +1528,7 @@ EXPORT const char * CALL ConfigGetParamString(m64p_handle ConfigSectionHandle, c
     var = find_section_var(section, ParamName);
     if (var == NULL)
     {
-        DebugMessage(M64MSG_ERROR, "ConfigGetParamString(): Parameter '%s' not found!", ParamName);
+        DebugMessage(M64MSG_ERROR, "EConfigGetParamString(): Parameter '%s' not found!", ParamName);
         return "";
     }
 
@@ -1548,7 +1548,7 @@ EXPORT const char * CALL ConfigGetParamString(m64p_handle ConfigSectionHandle, c
         case M64TYPE_STRING:
             return var->val.string;
         default:
-            DebugMessage(M64MSG_ERROR, "ConfigGetParamString(): invalid internal parameter type for '%s'", ParamName);
+            DebugMessage(M64MSG_ERROR, "EConfigGetParamString(): invalid internal parameter type for '%s'", ParamName);
             return "";
     }
 }
@@ -1557,7 +1557,7 @@ EXPORT const char * CALL ConfigGetParamString(m64p_handle ConfigSectionHandle, c
 /* OS Abstraction functions, exported outside of the Core */
 /* ------------------------------------------------------ */
 
-EXPORT const char * CALL ConfigGetSharedDataFilepath(const char *filename)
+const char * EConfigGetSharedDataFilepath(const char *filename)
 {
     const char *configsharepath = NULL;
     m64p_handle CoreHandle = NULL;
@@ -1566,15 +1566,15 @@ EXPORT const char * CALL ConfigGetSharedDataFilepath(const char *filename)
     if (filename == NULL) return NULL;
 
     /* try to get the SharedDataPath string variable in the Core configuration section */
-    if (ConfigOpenSection("Core", &CoreHandle) == M64ERR_SUCCESS)
+    if (EConfigOpenSection("Core", &CoreHandle) == M64ERR_SUCCESS)
     {
-        configsharepath = ConfigGetParamString(CoreHandle, "SharedDataPath");
+        configsharepath = EConfigGetParamString(CoreHandle, "SharedDataPath");
     }
 
     return osal_get_shared_filepath(filename, l_DataDirOverride, configsharepath);
 }
 
-EXPORT const char * CALL ConfigGetUserConfigPath(void)
+const char * EConfigGetUserConfigPath(void)
 {
     if (l_ConfigDirOverride != NULL)
     {
@@ -1585,12 +1585,12 @@ EXPORT const char * CALL ConfigGetUserConfigPath(void)
         return osal_get_user_configpath();
 }
 
-EXPORT const char * CALL ConfigGetUserDataPath(void)
+const char * EConfigGetUserDataPath(void)
 {
   return osal_get_user_datapath();
 }
 
-EXPORT const char * CALL ConfigGetUserCachePath(void)
+const char * EConfigGetUserCachePath(void)
 {
   return osal_get_user_cachepath();
 }

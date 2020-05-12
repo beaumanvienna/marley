@@ -70,7 +70,7 @@ osal_lib_search *osal_library_search(const char *searchpath)
         newlib = malloc(sizeof(osal_lib_search));
         if (newlib == NULL)
         {
-            DebugMessage(M64MSG_ERROR, "Memory allocation error in osal_library_search()!");
+            UDebugMessage(M64MSG_ERROR, "Memory allocation error in osal_library_search()!");
             osal_free_lib_list(head);
             closedir(dir);
             return NULL;

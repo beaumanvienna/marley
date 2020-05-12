@@ -38,6 +38,46 @@
 #include "m64p_types.h"
 
 #include "osal_dynamiclib.h"
+m64p_error EVidExt_Init(void);
+m64p_error EVidExt_Quit(void);
+m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *, int *);
+m64p_error EVidExt_SetVideoMode(int, int, int, m64p_video_mode, m64p_video_flags);
+m64p_error EVidExt_ResizeWindow(int, int);
+m64p_error EVidExt_SetCaption(const char *);
+m64p_error EVidExt_ToggleFullScreen(void);
+m64p_function EVidExt_GL_GetProcAddress(const char *);
+m64p_error EVidExt_GL_SetAttribute(m64p_GLattr, int);
+m64p_error EVidExt_GL_SwapBuffers(void);
+m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
+m64p_error EConfigListSections(void *, void (*)(void *, const char *));
+m64p_error EConfigOpenSection(const char *, m64p_handle *);
+m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+m64p_error EConfigSaveFile(void);
+m64p_error EConfigSaveSection(const char *);
+int EConfigHasUnsavedChanges(const char *);
+m64p_error EConfigDeleteSection(const char *SectionName);
+m64p_error EConfigRevertChanges(const char *SectionName);
+m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
+m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+const char * EConfigGetParameterHelp(m64p_handle, const char *);
+m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+int          EConfigGetParamInt(m64p_handle, const char *);
+float        EConfigGetParamFloat(m64p_handle, const char *);
+int          EConfigGetParamBool(m64p_handle, const char *);
+const char * EConfigGetParamString(m64p_handle, const char *);
+const char * EConfigGetSharedDataFilepath(const char *);
+const char * EConfigGetUserConfigPath(void);
+const char * EConfigGetUserDataPath(void);
+const char * EConfigGetUserCachePath(void);
+m64p_error EConfigExternalOpen(const char *, m64p_handle *);
+m64p_error EConfigExternalClose(m64p_handle);
+m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+m64p_error ECoreDoCommand(m64p_command, int, void *);
 
 #define CONFIG_API_VERSION       0x020100
 #define CONFIG_PARAM_VERSION     1.00
@@ -79,19 +119,19 @@ static ptr_RomClosed l_RomClosed = NULL;
 static ptr_PluginShutdown l_PluginShutdown = NULL;
 
 /* definitions of pointers to Core functions */
-static ptr_ConfigOpenSection      ConfigOpenSection = NULL;
-static ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
-static ptr_ConfigSetParameter     ConfigSetParameter = NULL;
-static ptr_ConfigGetParameter     ConfigGetParameter = NULL;
-static ptr_ConfigSetDefaultInt    ConfigSetDefaultInt = NULL;
-static ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat = NULL;
-static ptr_ConfigSetDefaultBool   ConfigSetDefaultBool = NULL;
-static ptr_ConfigSetDefaultString ConfigSetDefaultString = NULL;
-static ptr_ConfigGetParamInt      ConfigGetParamInt = NULL;
-static ptr_ConfigGetParamFloat    ConfigGetParamFloat = NULL;
-static ptr_ConfigGetParamBool     ConfigGetParamBool = NULL;
-static ptr_ConfigGetParamString   ConfigGetParamString = NULL;
-static ptr_CoreDoCommand          CoreDoCommand = NULL;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigDeleteSection    ConfigDeleteSection;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
+extern ptr_CoreDoCommand          CoreDoCommand;
 
 /* local function */
 static void teardown_rsp_fallback()
@@ -110,84 +150,10 @@ static void teardown_rsp_fallback()
 
 static void setup_rsp_fallback(const char* rsp_fallback_path)
 {
-    m64p_dynlib_handle handle = NULL;
-
-    /* reset rsp fallback */
-    teardown_rsp_fallback();
-
-    if (rsp_fallback_path == NULL || strlen(rsp_fallback_path) == 0) {
-        HleInfoMessage(NULL, "RSP Fallback disabled !");
-        return;
-    }
-
-    /* load plugin */
-    if (osal_dynlib_open(&handle, rsp_fallback_path) != M64ERR_SUCCESS) {
-        HleErrorMessage(NULL, "Can't load library: %s", rsp_fallback_path);
-        return;
-    }
-
-    /* call the GetVersion function for the plugin and check compatibility */
-    ptr_PluginGetVersion PluginGetVersion = (ptr_PluginGetVersion) osal_dynlib_getproc(handle, "PluginGetVersion");
-    if (PluginGetVersion == NULL)
-    {
-        HleErrorMessage(NULL, "library '%s' is not a Mupen64Plus library.", rsp_fallback_path);
-        goto close_handle;
-    }
-
-    m64p_plugin_type plugin_type = (m64p_plugin_type)0;
-    int plugin_version = 0;
-    const char *plugin_name = NULL;
-    int api_version = 0;
-
-    (*PluginGetVersion)(&plugin_type, &plugin_version, &api_version, &plugin_name, NULL);
-
-    if (plugin_type != M64PLUGIN_RSP) {
-        HleErrorMessage(NULL, "plugin %s is not an RSP plugin (%u)", plugin_name, plugin_type);
-        goto close_handle;
-    }
-
-    if ((api_version & 0xffff0000) != (RSP_API_VERSION & 0xffff0000)) {
-        HleErrorMessage(NULL, "plugin %s. Version mismatch: %u.%u. Expected >= %u.0",
-            plugin_name,
-            (uint16_t)(api_version >> 16),
-            (uint16_t)(api_version),
-            (uint16_t)(RSP_API_VERSION >> 16));
-        goto close_handle;
-    }
-
-    /* load functions */
-    ptr_PluginStartup PluginStartup;
-
-    if (!GET_FUNC(ptr_PluginStartup, PluginStartup, "PluginStartup") ||
-        !GET_FUNC(ptr_PluginShutdown, l_PluginShutdown, "PluginShutdown") ||
-        !GET_FUNC(ptr_DoRspCycles, l_DoRspCycles, "DoRspCycles") ||
-        !GET_FUNC(ptr_InitiateRSP, l_InitiateRSP, "InitiateRSP") ||
-        !GET_FUNC(ptr_RomClosed, l_RomClosed, "RomClosed"))
-    {
-        HleErrorMessage(NULL, "broken RSP plugin; function(s) not found.");
-        l_PluginShutdown = NULL;
-        l_DoRspCycles = NULL;
-        l_InitiateRSP = NULL;
-        l_RomClosed = NULL;
-        goto close_handle;
-    }
-
-    /* call the plugin's initialization function and make sure it starts okay */
-    if ((*PluginStartup)(l_CoreHandle, l_DebugCallContext, l_DebugCallback) != M64ERR_SUCCESS) {
-        HleErrorMessage(NULL, "Error: %s plugin library '%s' failed to start.", plugin_name, rsp_fallback_path);
-        goto close_handle;
-    }
-
-    /* OK we're done ! */
-    l_RspFallback = handle;
-    HleInfoMessage(NULL, "RSP Fallback '%s' loaded successfully !", rsp_fallback_path);
     return;
-
-close_handle:
-    osal_dynlib_close(handle);
 }
 
-static void DebugMessage(int level, const char *message, va_list args)
+static void SDebugMessage(int level, const char *message, va_list args)
 {
     char msgbuf[1024];
 
@@ -204,7 +170,7 @@ void HleVerboseMessage(void* UNUSED(user_defined), const char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    DebugMessage(M64MSG_VERBOSE, message, args);
+    SDebugMessage(M64MSG_VERBOSE, message, args);
     va_end(args);
 }
 
@@ -212,7 +178,7 @@ void HleInfoMessage(void* UNUSED(user_defined), const char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    DebugMessage(M64MSG_INFO, message, args);
+    SDebugMessage(M64MSG_INFO, message, args);
     va_end(args);
 }
 
@@ -220,7 +186,7 @@ void HleErrorMessage(void* UNUSED(user_defined), const char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    DebugMessage(M64MSG_ERROR, message, args);
+    SDebugMessage(M64MSG_ERROR, message, args);
     va_end(args);
 }
 
@@ -228,7 +194,7 @@ void HleWarnMessage(void* UNUSED(user_defined), const char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    DebugMessage(M64MSG_WARNING, message, args);
+    SDebugMessage(M64MSG_WARNING, message, args);
     va_end(args);
 }
 
@@ -284,7 +250,7 @@ int HleForwardTask(void* user_defined)
 
 
 /* DLL-exported functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+m64p_error SPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                      void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -299,7 +265,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallContext = Context;
 
     /* attach and call the CoreGetAPIVersions function, check Config API version for compatibility */
-    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) ECoreGetAPIVersions;
     if (CoreAPIVersionFunc == NULL)
     {
         HleErrorMessage(NULL, "Core emulator broken; no CoreAPIVersionFunc() function found.");
@@ -315,18 +281,18 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     }
 
     /* Get the core config function pointers from the library handle */
-    ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
-    ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreLibHandle, "ConfigDeleteSection");
-    ConfigSetParameter = (ptr_ConfigSetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigSetParameter");
-    ConfigGetParameter = (ptr_ConfigGetParameter) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParameter");
-    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultInt");
-    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultFloat");
-    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultBool");
-    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) osal_dynlib_getproc(CoreLibHandle, "ConfigSetDefaultString");
-    ConfigGetParamInt = (ptr_ConfigGetParamInt) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamInt");
-    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamFloat");
-    ConfigGetParamBool = (ptr_ConfigGetParamBool) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamBool");
-    ConfigGetParamString = (ptr_ConfigGetParamString) osal_dynlib_getproc(CoreLibHandle, "ConfigGetParamString");
+    ConfigOpenSection = (ptr_ConfigOpenSection) EConfigOpenSection;
+    ConfigDeleteSection = (ptr_ConfigDeleteSection) ConfigDeleteSection;
+    ConfigSetParameter = (ptr_ConfigSetParameter) EConfigSetParameter;
+    ConfigGetParameter = (ptr_ConfigGetParameter) EConfigGetParameter;
+    ConfigSetDefaultInt = (ptr_ConfigSetDefaultInt) EConfigSetDefaultInt;
+    ConfigSetDefaultFloat = (ptr_ConfigSetDefaultFloat) EConfigSetDefaultFloat;
+    ConfigSetDefaultBool = (ptr_ConfigSetDefaultBool) EConfigSetDefaultBool;
+    ConfigSetDefaultString = (ptr_ConfigSetDefaultString) EConfigSetDefaultString;
+    ConfigGetParamInt = (ptr_ConfigGetParamInt) EConfigGetParamInt;
+    ConfigGetParamFloat = (ptr_ConfigGetParamFloat) EConfigGetParamFloat;
+    ConfigGetParamBool = (ptr_ConfigGetParamBool) EConfigGetParamBool;
+    ConfigGetParamString = (ptr_ConfigGetParamString) EConfigGetParamString;
 
     if (!ConfigOpenSection || !ConfigDeleteSection || !ConfigSetParameter || !ConfigGetParameter ||
         !ConfigSetDefaultInt || !ConfigSetDefaultFloat || !ConfigSetDefaultBool || !ConfigSetDefaultString ||
@@ -334,7 +300,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
         return M64ERR_INCOMPATIBLE;
 
     /* Get core DoCommand function */
-    CoreDoCommand = (ptr_CoreDoCommand) osal_dynlib_getproc(CoreLibHandle, "CoreDoCommand");
+    CoreDoCommand = (ptr_CoreDoCommand) ECoreDoCommand;
     if (!CoreDoCommand) {
         return M64ERR_INCOMPATIBLE;
     }
@@ -384,7 +350,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+m64p_error SPluginShutdown(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
@@ -400,7 +366,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+m64p_error SPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -421,13 +387,13 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
-EXPORT unsigned int CALL DoRspCycles(unsigned int Cycles)
+unsigned int SDoRspCycles(unsigned int Cycles)
 {
     hle_execute(&g_hle);
     return Cycles;
 }
 
-EXPORT void CALL InitiateRSP(RSP_INFO Rsp_Info, unsigned int* CycleCount)
+void SInitiateRSP(RSP_INFO Rsp_Info, unsigned int* CycleCount)
 {
     hle_init(&g_hle,
              Rsp_Info.RDRAM,
@@ -470,7 +436,7 @@ EXPORT void CALL InitiateRSP(RSP_INFO Rsp_Info, unsigned int* CycleCount)
     }
 }
 
-EXPORT void CALL RomClosed(void)
+void SRomClosed(void)
 {
     g_hle.cached_ucodes.count = 0;
 

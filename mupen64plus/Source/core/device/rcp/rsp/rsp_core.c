@@ -270,7 +270,7 @@ void do_SP_Task(struct rsp_core* sp)
     {
         unprotect_framebuffers(&sp->dp->fb);
 
-        //gfx.processDList();
+        //Cgfx.processDList();
         sp->regs2[SP_PC_REG] &= 0xfff;
 #if defined(PROFILE)
         timed_section_start(TIMED_SECTION_GFX);

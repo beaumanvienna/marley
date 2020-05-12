@@ -41,7 +41,7 @@ extern "C" {
  */
 typedef m64p_error (*ptr_ConfigListSections)(void *, void (*)(void *, const char *));
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigListSections(void *, void (*)(void *, const char *));
+m64p_error EConfigListSections(void *, void (*)(void *, const char *));
 #endif
 
 /* ConfigOpenSection()
@@ -52,7 +52,7 @@ EXPORT m64p_error CALL ConfigListSections(void *, void (*)(void *, const char *)
  */
 typedef m64p_error (*ptr_ConfigOpenSection)(const char *, m64p_handle *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigOpenSection(const char *, m64p_handle *);
+m64p_error EConfigOpenSection(const char *, m64p_handle *);
 #endif
 
 /* ConfigListParameters()
@@ -62,7 +62,7 @@ EXPORT m64p_error CALL ConfigOpenSection(const char *, m64p_handle *);
  */
 typedef m64p_error (*ptr_ConfigListParameters)(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
 #endif
 
 /* ConfigSaveFile()
@@ -71,7 +71,7 @@ EXPORT m64p_error CALL ConfigListParameters(m64p_handle, void *, void (*)(void *
  */
 typedef m64p_error (*ptr_ConfigSaveFile)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigSaveFile(void);
+m64p_error EConfigSaveFile(void);
 #endif
 
 /* ConfigSaveSection()
@@ -80,7 +80,7 @@ EXPORT m64p_error CALL ConfigSaveFile(void);
  */
 typedef m64p_error (*ptr_ConfigSaveSection)(const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigSaveSection(const char *);
+m64p_error EConfigSaveSection(const char *);
 #endif
 
 /* ConfigHasUnsavedChanges()
@@ -89,7 +89,7 @@ EXPORT m64p_error CALL ConfigSaveSection(const char *);
  */
 typedef int (*ptr_ConfigHasUnsavedChanges)(const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int CALL ConfigHasUnsavedChanges(const char *);
+int EConfigHasUnsavedChanges(const char *);
 #endif
 
 /* ConfigDeleteSection()
@@ -98,7 +98,7 @@ EXPORT int CALL ConfigHasUnsavedChanges(const char *);
  */
 typedef m64p_error (*ptr_ConfigDeleteSection)(const char *SectionName);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigDeleteSection(const char *SectionName);
+m64p_error EConfigDeleteSection(const char *SectionName);
 #endif
 
 /* ConfigRevertChanges()
@@ -107,7 +107,7 @@ EXPORT m64p_error CALL ConfigDeleteSection(const char *SectionName);
  */
 typedef m64p_error (*ptr_ConfigRevertChanges)(const char *SectionName);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigRevertChanges(const char *SectionName);
+m64p_error EConfigRevertChanges(const char *SectionName);
 #endif
 
 /* ConfigSetParameter()
@@ -117,7 +117,7 @@ EXPORT m64p_error CALL ConfigRevertChanges(const char *SectionName);
  */
 typedef m64p_error (*ptr_ConfigSetParameter)(m64p_handle, const char *, m64p_type, const void *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
 #endif
 
 /* ConfigSetParameterHelp()
@@ -127,7 +127,7 @@ EXPORT m64p_error CALL ConfigSetParameter(m64p_handle, const char *, m64p_type, 
  */
 typedef m64p_error (*ptr_ConfigSetParameterHelp)(m64p_handle, const char *, const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigSetParameterHelp(m64p_handle, const char *, const char *);
+m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
 #endif
 
 /* ConfigGetParameter()
@@ -136,7 +136,7 @@ EXPORT m64p_error CALL ConfigSetParameterHelp(m64p_handle, const char *, const c
  */
 typedef m64p_error (*ptr_ConfigGetParameter)(m64p_handle, const char *, m64p_type, void *, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
 #endif
 
 /* ConfigGetParameterType()
@@ -145,7 +145,7 @@ EXPORT m64p_error CALL ConfigGetParameter(m64p_handle, const char *, m64p_type, 
  */
 typedef m64p_error (*ptr_ConfigGetParameterType)(m64p_handle, const char *, m64p_type *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigGetParameterType(m64p_handle, const char *, m64p_type *);
+m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
 #endif
 
 /* ConfigGetParameterHelp()
@@ -155,7 +155,7 @@ EXPORT m64p_error CALL ConfigGetParameterType(m64p_handle, const char *, m64p_ty
  */
 typedef const char * (*ptr_ConfigGetParameterHelp)(m64p_handle, const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL ConfigGetParameterHelp(m64p_handle, const char *);
+const char * EConfigGetParameterHelp(m64p_handle, const char *);
 #endif
 
 /* ConfigSetDefault***()
@@ -172,10 +172,10 @@ typedef m64p_error (*ptr_ConfigSetDefaultFloat)(m64p_handle, const char *, float
 typedef m64p_error (*ptr_ConfigSetDefaultBool)(m64p_handle, const char *, int, const char *);
 typedef m64p_error (*ptr_ConfigSetDefaultString)(m64p_handle, const char *, const char *, const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
-EXPORT m64p_error CALL ConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
-EXPORT m64p_error CALL ConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
-EXPORT m64p_error CALL ConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
 #endif
 
 /* ConfigGetParam***()
@@ -192,10 +192,10 @@ typedef float        (*ptr_ConfigGetParamFloat)(m64p_handle, const char *);
 typedef int          (*ptr_ConfigGetParamBool)(m64p_handle, const char *);
 typedef const char * (*ptr_ConfigGetParamString)(m64p_handle, const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT int          CALL ConfigGetParamInt(m64p_handle, const char *);
-EXPORT float        CALL ConfigGetParamFloat(m64p_handle, const char *);
-EXPORT int          CALL ConfigGetParamBool(m64p_handle, const char *);
-EXPORT const char * CALL ConfigGetParamString(m64p_handle, const char *);
+int          EConfigGetParamInt(m64p_handle, const char *);
+float        EConfigGetParamFloat(m64p_handle, const char *);
+int          EConfigGetParamBool(m64p_handle, const char *);
+const char * EConfigGetParamString(m64p_handle, const char *);
 #endif
 
 /* ConfigGetSharedDataFilepath()
@@ -206,7 +206,7 @@ EXPORT const char * CALL ConfigGetParamString(m64p_handle, const char *);
  */
 typedef const char * (*ptr_ConfigGetSharedDataFilepath)(const char *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL ConfigGetSharedDataFilepath(const char *);
+const char * EConfigGetSharedDataFilepath(const char *);
 #endif
 
 /* ConfigGetUserConfigPath()
@@ -217,7 +217,7 @@ EXPORT const char * CALL ConfigGetSharedDataFilepath(const char *);
  */
 typedef const char * (*ptr_ConfigGetUserConfigPath)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL ConfigGetUserConfigPath(void);
+const char * EConfigGetUserConfigPath(void);
 #endif
 
 /* ConfigGetUserDataPath()
@@ -228,7 +228,7 @@ EXPORT const char * CALL ConfigGetUserConfigPath(void);
  */
 typedef const char * (*ptr_ConfigGetUserDataPath)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL ConfigGetUserDataPath(void);
+const char * EConfigGetUserDataPath(void);
 #endif
 
 /* ConfigGetUserCachePath()
@@ -241,7 +241,7 @@ EXPORT const char * CALL ConfigGetUserDataPath(void);
  */
 typedef const char * (*ptr_ConfigGetUserCachePath)(void);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL ConfigGetUserCachePath(void);
+const char * EConfigGetUserCachePath(void);
 #endif
 
 /* ConfigExternalOpen()
@@ -251,7 +251,7 @@ EXPORT const char * CALL ConfigGetUserCachePath(void);
  */
 typedef m64p_error (*ptr_ConfigExternalOpen)(const char *, m64p_handle *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigExternalOpen(const char *, m64p_handle *);
+m64p_error EConfigExternalOpen(const char *, m64p_handle *);
 #endif
 
 /* ConfigExternalClose()
@@ -260,7 +260,7 @@ EXPORT m64p_error CALL ConfigExternalOpen(const char *, m64p_handle *);
  */
 typedef m64p_error (*ptr_ConfigExternalClose)(m64p_handle);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigExternalClose(m64p_handle);
+m64p_error EConfigExternalClose(m64p_handle);
 #endif
 
 /* ConfigExternalGetParameter()
@@ -270,7 +270,7 @@ EXPORT m64p_error CALL ConfigExternalClose(m64p_handle);
  */
 typedef m64p_error (*ptr_ConfigExternalGetParameter)(m64p_handle, const char *, const char *, char *, int);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL ConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
+m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
 #endif
 
 #ifdef __cplusplus

@@ -414,7 +414,7 @@ void WriteSettings (bool saveEmulationSettings = false);
   input:    pointer to the directory to save the file to
   output:   none
 *******************************************************************/
-EXPORT void CALL CaptureScreen ( char * Directory );
+void GCaptureScreen ( char * Directory );
 
 /******************************************************************
   Function: ChangeWindow
@@ -424,7 +424,7 @@ EXPORT void CALL CaptureScreen ( char * Directory );
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ChangeWindow (void);
+void GChangeWindow (void);
 
 /******************************************************************
   Function: CloseDLL
@@ -433,7 +433,7 @@ EXPORT void CALL ChangeWindow (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL CloseDLL (void);
+void GCloseDLL (void);
 
 /******************************************************************
   Function: DllAbout
@@ -442,7 +442,7 @@ EXPORT void CALL CloseDLL (void);
   input:    a handle to the window that calls this function
   output:   none
 *******************************************************************/
-EXPORT void CALL DllAbout ( HWND hParent );
+void GDllAbout ( HWND hParent );
 
 /******************************************************************
   Function: DllConfig
@@ -451,7 +451,7 @@ EXPORT void CALL DllAbout ( HWND hParent );
   input:    a handle to the window that calls this function
   output:   none
 *******************************************************************/
-EXPORT void CALL DllConfig ( HWND hParent );
+void GDllConfig ( HWND hParent );
 
 /******************************************************************
   Function: DllTest
@@ -460,10 +460,10 @@ EXPORT void CALL DllConfig ( HWND hParent );
   input:    a handle to the window that calls this function
   output:   none
 *******************************************************************/
-EXPORT void CALL DllTest ( HWND hParent );
+void GDllTest ( HWND hParent );
 
 
-EXPORT void CALL ReadScreen(void **dest, int *width, int *height);
+void GReadScreen(void **dest, int *width, int *height);
 
 /******************************************************************
   Function: DrawScreen
@@ -473,7 +473,7 @@ EXPORT void CALL ReadScreen(void **dest, int *width, int *height);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL DrawScreen (void);
+void CALL GDrawScreen (void);
 
 /******************************************************************
   Function: GetDllInfo
@@ -483,7 +483,7 @@ EXPORT void CALL DrawScreen (void);
             filled by the function. (see def above)
   output:   none
 *******************************************************************/
-EXPORT void CALL GetDllInfo ( PLUGIN_INFO * PluginInfo );
+void GGetDllInfo ( PLUGIN_INFO * PluginInfo );
 
 /******************************************************************
   Function: InitiateGFX
@@ -500,7 +500,7 @@ EXPORT void CALL GetDllInfo ( PLUGIN_INFO * PluginInfo );
   and then call the function CheckInterrupts to tell the emulator
   that there is a waiting interrupt.
 *******************************************************************/
-EXPORT int CALL InitiateGFX (GFX_INFO Gfx_Info);
+int GInitiateGFX (GFX_INFO Gfx_Info);
 
 /******************************************************************
   Function: MoveScreen
@@ -513,7 +513,7 @@ EXPORT int CALL InitiateGFX (GFX_INFO Gfx_Info);
 			client area of the window.
   output:   none
 *******************************************************************/
-EXPORT void CALL MoveScreen (int xpos, int ypos);
+void GMoveScreen (int xpos, int ypos);
 
 /******************************************************************
   Function: ProcessDList
@@ -522,7 +522,7 @@ EXPORT void CALL MoveScreen (int xpos, int ypos);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ProcessDList(void);
+void GProcessDList(void);
 
 /******************************************************************
   Function: ProcessRDPList
@@ -531,7 +531,7 @@ EXPORT void CALL ProcessDList(void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ProcessRDPList(void);
+void GProcessRDPList(void);
 
 /******************************************************************
   Function: RomClosed
@@ -539,7 +539,7 @@ EXPORT void CALL ProcessRDPList(void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL RomClosed (void);
+void GRomClosed (void);
 
 /******************************************************************
   Function: RomOpen
@@ -548,7 +548,7 @@ EXPORT void CALL RomClosed (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL RomOpen (void);
+void GRomOpen (void);
 
 /******************************************************************
   Function: ShowCFB
@@ -558,7 +558,7 @@ EXPORT void CALL RomOpen (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ShowCFB (void);
+void GShowCFB (void);
 
 /******************************************************************
   Function: UpdateScreen
@@ -568,7 +568,7 @@ EXPORT void CALL ShowCFB (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL UpdateScreen (void);
+void GUpdateScreen (void);
 
 /******************************************************************
   Function: ViStatusChanged
@@ -577,7 +577,7 @@ EXPORT void CALL UpdateScreen (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ViStatusChanged (void);
+void GViStatusChanged (void);
 
 /******************************************************************
   Function: ViWidthChanged
@@ -586,7 +586,7 @@ EXPORT void CALL ViStatusChanged (void);
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL ViWidthChanged (void);
+void GViWidthChanged (void);
 
 
 /******************************************************************
@@ -598,7 +598,7 @@ EXPORT void CALL ViWidthChanged (void);
 			size		1 = wxUint8, 2 = wxUint16, 4 = wxUint32
   output:   none
 *******************************************************************/
-EXPORT void CALL FBWrite(wxUint32, wxUint32);
+void GFBWrite(wxUint32, wxUint32);
 
 typedef struct
 {
@@ -615,7 +615,7 @@ typedef struct
 			size = size of the plist, max = 1024
   output:   none
 *******************************************************************/
-EXPORT void CALL FBWList(FrameBufferModifyEntry *plist, wxUint32 size);
+void GFBWList(FrameBufferModifyEntry *plist, wxUint32 size);
 
 /******************************************************************
   Function: FrameBufferRead
@@ -632,7 +632,7 @@ EXPORT void CALL FBWList(FrameBufferModifyEntry *plist, wxUint32 size);
 			size		1 = wxUint8, 2 = wxUint16, 4 = wxUint32
   output:   none
 *******************************************************************/
-EXPORT void CALL FBRead(wxUint32 addr);
+void GFBRead(wxUint32 addr);
 
 /************************************************************************
 Function: FBGetFrameBufferInfo
@@ -654,7 +654,7 @@ pinfo is pointed to a FrameBufferInfo structure which to be
 filled in by this function
 output:   Values are return in the FrameBufferInfo structure
 ************************************************************************/
-EXPORT void CALL FBGetFrameBufferInfo(void *pinfo);
+void GFBGetFrameBufferInfo(void *pinfo);
 
 /******************************************************************
    NOTE: THIS HAS BEEN ADDED FOR MUPEN64PLUS AND IS NOT PART OF THE
@@ -665,7 +665,7 @@ EXPORT void CALL FBGetFrameBufferInfo(void *pinfo);
   input:    path to config directory
   output:   none
 *******************************************************************/
-EXPORT void CALL SetConfigDir(char *configDir);
+void GSetConfigDir(char *configDir);
 #endif
 
 #if defined(__cplusplus)

@@ -149,7 +149,7 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
 
     if (SDL_WasInit(SDL_INIT_AUDIO|SDL_INIT_TIMER) == (SDL_INIT_AUDIO|SDL_INIT_TIMER) )
     {
-        DebugMessage(M64MSG_VERBOSE, "sdl_init_audio_device(): SDL Audio sub-system already initialized.");
+        ADebugMessage(M64MSG_VERBOSE, "sdl_init_audio_device(): SDL Audio sub-system already initialized.");
 
         SDL_PauseAudio(1);
         SDL_CloseAudio();
@@ -158,7 +158,7 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
     {
         if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0)
         {
-            DebugMessage(M64MSG_ERROR, "Failed to initialize SDL audio subsystem.");
+            ADebugMessage(M64MSG_ERROR, "Failed to initialize SDL audio subsystem.");
             sdl_backend->error = 1;
             return;
         }
@@ -171,10 +171,10 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
     sdl_backend->target = ConfigGetParamInt(sdl_backend->config, "PRIMARY_BUFFER_TARGET");
     sdl_backend->secondary_buffer_size = ConfigGetParamInt(sdl_backend->config, "SECONDARY_BUFFER_SIZE");
 
-    DebugMessage(M64MSG_INFO,    "Initializing SDL audio subsystem...");
-    DebugMessage(M64MSG_VERBOSE, "Primary buffer: %i output samples.", (uint32_t) sdl_backend->primary_buffer_size);
-    DebugMessage(M64MSG_VERBOSE, "Primary target fullness: %i output samples.", (uint32_t) sdl_backend->target);
-    DebugMessage(M64MSG_VERBOSE, "Secondary buffer: %i output samples.", (uint32_t) sdl_backend->secondary_buffer_size);
+    ADebugMessage(M64MSG_INFO,    "Initializing SDL audio subsystem...");
+    ADebugMessage(M64MSG_VERBOSE, "Primary buffer: %i output samples.", (uint32_t) sdl_backend->primary_buffer_size);
+    ADebugMessage(M64MSG_VERBOSE, "Primary target fullness: %i output samples.", (uint32_t) sdl_backend->target);
+    ADebugMessage(M64MSG_VERBOSE, "Secondary buffer: %i output samples.", (uint32_t) sdl_backend->secondary_buffer_size);
 
     memset(&desired, 0, sizeof(desired));
     desired.freq = select_output_frequency(sdl_backend->input_frequency);
@@ -184,23 +184,23 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
     desired.callback = my_audio_callback;
     desired.userdata = sdl_backend;
 
-    DebugMessage(M64MSG_VERBOSE, "Requesting frequency: %iHz.", desired.freq);
-    DebugMessage(M64MSG_VERBOSE, "Requesting format: %i.", desired.format);
+    ADebugMessage(M64MSG_VERBOSE, "Requesting frequency: %iHz.", desired.freq);
+    ADebugMessage(M64MSG_VERBOSE, "Requesting format: %i.", desired.format);
 
     /* Open the audio device */
     if (SDL_OpenAudio(&desired, &obtained) < 0)
     {
-        DebugMessage(M64MSG_ERROR, "Couldn't open audio: %s", SDL_GetError());
+        ADebugMessage(M64MSG_ERROR, "Couldn't open audio: %s", SDL_GetError());
         sdl_backend->error = 1;
         return;
     }
     if (desired.format != obtained.format)
     {
-        DebugMessage(M64MSG_WARNING, "Obtained audio format differs from requested.");
+        ADebugMessage(M64MSG_WARNING, "Obtained audio format differs from requested.");
     }
     if (desired.freq != obtained.freq)
     {
-        DebugMessage(M64MSG_WARNING, "Obtained frequency differs from requested.");
+        ADebugMessage(M64MSG_WARNING, "Obtained frequency differs from requested.");
     }
 
     /* adjust some variables given the obtained audio spec */
@@ -224,12 +224,12 @@ static void sdl_init_audio_device(struct sdl_backend* sdl_backend)
         sdl_backend->last_cb_time = SDL_GetTicks();
     }
 
-    DebugMessage(M64MSG_VERBOSE, "Frequency: %i", obtained.freq);
-    DebugMessage(M64MSG_VERBOSE, "Format: %i", obtained.format);
-    DebugMessage(M64MSG_VERBOSE, "Channels: %i", obtained.channels);
-    DebugMessage(M64MSG_VERBOSE, "Silence: %i", obtained.silence);
-    DebugMessage(M64MSG_VERBOSE, "Samples: %i", obtained.samples);
-    DebugMessage(M64MSG_VERBOSE, "Size: %i", obtained.size);
+    ADebugMessage(M64MSG_VERBOSE, "Frequency: %i", obtained.freq);
+    ADebugMessage(M64MSG_VERBOSE, "Format: %i", obtained.format);
+    ADebugMessage(M64MSG_VERBOSE, "Channels: %i", obtained.channels);
+    ADebugMessage(M64MSG_VERBOSE, "Silence: %i", obtained.silence);
+    ADebugMessage(M64MSG_VERBOSE, "Samples: %i", obtained.samples);
+    ADebugMessage(M64MSG_VERBOSE, "Size: %i", obtained.size);
 
     /* set playback volume */
     SetPlaybackVolume();
@@ -331,7 +331,7 @@ void sdl_set_format(struct sdl_backend* sdl_backend, unsigned int frequency, uns
 
     /* XXX: assume 16-bit samples */
     if (bits != 16) {
-        DebugMessage(M64MSG_ERROR, "Incoming samples are not 16 bits (%d)", bits);
+        ADebugMessage(M64MSG_ERROR, "Incoming samples are not 16 bits (%d)", bits);
     }
 
     sdl_backend->input_frequency = frequency;
@@ -374,7 +374,7 @@ void sdl_push_samples(struct sdl_backend* sdl_backend, const void* src, size_t s
     }
     else
     {
-        DebugMessage(M64MSG_WARNING, "sdl_push_samples: pushing %u samples, but only %u available !", (uint32_t) size, (uint32_t) available);
+        ADebugMessage(M64MSG_WARNING, "sdl_push_samples: pushing %u samples, but only %u available !", (uint32_t) size, (uint32_t) available);
     }
 }
 

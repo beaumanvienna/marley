@@ -26,17 +26,17 @@ UNAME ?= $(shell uname -s)
 OS := NONE
 ifeq ("$(UNAME)","Linux")
   OS = LINUX
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
 endif
 ifeq ("$(UNAME)","linux")
   OS = LINUX
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
 endif
 ifneq ("$(filter GNU hurd,$(UNAME))","")
   OS = LINUX
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
 endif
 ifeq ("$(UNAME)","Darwin")
@@ -46,23 +46,23 @@ ifeq ("$(UNAME)","Darwin")
 endif
 ifeq ("$(UNAME)","FreeBSD")
   OS = FREEBSD
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
 endif
 ifeq ("$(UNAME)","OpenBSD")
   OS = FREEBSD
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
   NO_OSS = 1
 endif
 ifneq ("$(filter GNU/kFreeBSD kfreebsd,$(UNAME))","")
   OS = LINUX
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = a
 endif
 ifeq ("$(patsubst MINGW%,MINGW,$(UNAME))","MINGW")
   OS = MINGW
-  STATICLIB = rvs
+  STATICLIB = rs
   LIB_EXTENSION = dll
   PIC = 0
   NO_OSS = 1

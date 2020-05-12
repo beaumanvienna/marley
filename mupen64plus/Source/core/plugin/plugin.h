@@ -65,7 +65,7 @@ typedef struct _gfx_plugin_functions
 	ptr_FBGetFrameBufferInfo fBGetFrameBufferInfo;
 } gfx_plugin_functions;
 
-extern gfx_plugin_functions gfx;
+extern gfx_plugin_functions Cgfx;
 
 /* audio plugin function pointers */
 typedef struct _audio_plugin_functions

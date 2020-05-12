@@ -84,7 +84,7 @@ endif
 
 # set special flags per-system
 ifeq ($(OS), LINUX)
-  LDLIBS += -ldl
+  LDLIBS += -ldl -lm -lz -lpng -lGL -lstdc++ -lGLU -lfreetype -lboost_system -lboost_filesystem -lsamplerate
 endif
 ifeq ($(OS), OSX)
   OSX_SDK_PATH = $(shell xcrun --sdk macosx --show-sdk-path)
@@ -114,7 +114,7 @@ ifeq ($(origin SDL_CFLAGS) $(origin SDL_LDLIBS), undefined undefined)
   SDL_LDLIBS += $(shell $(SDL_CONFIG) --libs)
 endif
 CFLAGS += $(SDL_CFLAGS)
-LDLIBS += $(SDL_LDLIBS)
+LDLIBS += $(SDL_LDLIBS) ../audio-sdl/mupen64plus-audio-sdl.a ../core/libmupen64plus.a ../input-sdl/mupen64plus-input-sdl.a ../rsp-hle/mupen64plus-rsp-hle.a ../video-glide64mk2/mupen64plus-video-glide64mk2.a
 
 ifeq ($(OS), MINGW)
   LDLIBS += -mconsole

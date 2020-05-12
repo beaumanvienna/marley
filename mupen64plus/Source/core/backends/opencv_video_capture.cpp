@@ -90,7 +90,7 @@ static m64p_error opencv_init(void** vcap, const char* section)
         if (section && strlen(section) > 0) {
             m64p_handle config = NULL;
 
-            ConfigOpenSection(section, &config);
+            EConfigOpenSection(section, &config);
 
             /* set default parameters */
             ConfigSetDefaultString(config, "device", device, "Device to use for capture or \"0\" for default.");

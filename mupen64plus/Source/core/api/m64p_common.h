@@ -40,7 +40,7 @@ extern "C" {
  */
 typedef m64p_error (*ptr_PluginGetVersion)(m64p_plugin_type *, int *, int *, const char **, int *);
 #if defined(M64P_PLUGIN_PROTOTYPES) || defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *, int *, int *, const char **, int *);
+m64p_error EPluginGetVersion(m64p_plugin_type *, int *, int *, const char **, int *);
 #endif
 
 /* CoreGetAPIVersions()
@@ -49,7 +49,7 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *, int *, int *, const 
  */
 typedef m64p_error (*ptr_CoreGetAPIVersions)(int *, int *, int *, int *);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL CoreGetAPIVersions(int *, int *, int *, int *);
+m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
 #endif
 
 /* CoreErrorMessage()
@@ -59,7 +59,7 @@ EXPORT m64p_error CALL CoreGetAPIVersions(int *, int *, int *, int *);
 */
 typedef const char * (*ptr_CoreErrorMessage)(m64p_error);
 #if defined(M64P_CORE_PROTOTYPES)
-EXPORT const char * CALL CoreErrorMessage(m64p_error);
+const char * ECoreErrorMessage(m64p_error);
 #endif
 
 /* PluginStartup()
@@ -69,7 +69,7 @@ EXPORT const char * CALL CoreErrorMessage(m64p_error);
 */
 typedef m64p_error (*ptr_PluginStartup)(m64p_dynlib_handle, void *, void (*)(void *, int, const char *));
 #if defined(M64P_PLUGIN_PROTOTYPES) || defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle, void *, void (*)(void *, int, const char *));
+m64p_error EPluginStartup(m64p_dynlib_handle, void *, void (*)(void *, int, const char *));
 #endif
 
 /* PluginShutdown()
@@ -79,7 +79,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle, void *, void (*)(void *
 */
 typedef m64p_error (*ptr_PluginShutdown)(void);
 #if defined(M64P_PLUGIN_PROTOTYPES) || defined(M64P_CORE_PROTOTYPES)
-EXPORT m64p_error CALL PluginShutdown(void);
+m64p_error EPluginShutdown(void);
 #endif
 
 #ifdef __cplusplus

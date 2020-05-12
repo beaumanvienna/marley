@@ -96,7 +96,7 @@ int VidExt_VideoRunning(void)
 }
 
 /* video extension functions to be called by the video plugin */
-EXPORT m64p_error CALL VidExt_Init(void)
+m64p_error EVidExt_Init(void)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -117,7 +117,7 @@ EXPORT m64p_error CALL VidExt_Init(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_Quit(void)
+m64p_error EVidExt_Quit(void)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -146,7 +146,7 @@ EXPORT m64p_error CALL VidExt_Quit(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_ListFullscreenModes(m64p_2d_size *SizeArray, int *NumSizes)
+m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *SizeArray, int *NumSizes)
 {
     const SDL_VideoInfo *videoInfo;
     unsigned int videoFlags;
@@ -196,7 +196,7 @@ EXPORT m64p_error CALL VidExt_ListFullscreenModes(m64p_2d_size *SizeArray, int *
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_SetVideoMode(int Width, int Height, int BitsPerPixel, m64p_video_mode ScreenMode, m64p_video_flags Flags)
+m64p_error EVidExt_SetVideoMode(int Width, int Height, int BitsPerPixel, m64p_video_mode ScreenMode, m64p_video_flags Flags)
 {
     const SDL_VideoInfo *videoInfo;
     int videoFlags = 0;
@@ -275,7 +275,7 @@ EXPORT m64p_error CALL VidExt_SetVideoMode(int Width, int Height, int BitsPerPix
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_ResizeWindow(int Width, int Height)
+m64p_error EVidExt_ResizeWindow(int Width, int Height)
 {
     const SDL_VideoInfo *videoInfo;
     int videoFlags = 0;
@@ -335,7 +335,7 @@ EXPORT m64p_error CALL VidExt_ResizeWindow(int Width, int Height)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_SetCaption(const char *Title)
+m64p_error EVidExt_SetCaption(const char *Title)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -349,7 +349,7 @@ EXPORT m64p_error CALL VidExt_SetCaption(const char *Title)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL VidExt_ToggleFullScreen(void)
+m64p_error EVidExt_ToggleFullScreen(void)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -384,7 +384,7 @@ EXPORT m64p_error CALL VidExt_ToggleFullScreen(void)
     return M64ERR_SYSTEM_FAIL;
 }
 
-EXPORT m64p_function CALL VidExt_GL_GetProcAddress(const char* Proc)
+m64p_function EVidExt_GL_GetProcAddress(const char* Proc)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -426,7 +426,7 @@ static const GLAttrMapNode GLAttrMap[] = {
 };
 static const int mapSize = sizeof(GLAttrMap) / sizeof(GLAttrMapNode);
 
-EXPORT m64p_error CALL VidExt_GL_SetAttribute(m64p_GLattr Attr, int Value)
+m64p_error EVidExt_GL_SetAttribute(m64p_GLattr Attr, int Value)
 {
     int i;
 
@@ -480,7 +480,7 @@ EXPORT m64p_error CALL VidExt_GL_SetAttribute(m64p_GLattr Attr, int Value)
     return M64ERR_INPUT_INVALID;
 }
 
-EXPORT m64p_error CALL VidExt_GL_GetAttribute(m64p_GLattr Attr, int *pValue)
+m64p_error EVidExt_GL_GetAttribute(m64p_GLattr Attr, int *pValue)
 {
     int i;
 
@@ -534,7 +534,7 @@ EXPORT m64p_error CALL VidExt_GL_GetAttribute(m64p_GLattr Attr, int *pValue)
     return M64ERR_INPUT_INVALID;
 }
 
-EXPORT m64p_error CALL VidExt_GL_SwapBuffers(void)
+m64p_error EVidExt_GL_SwapBuffers(void)
 {
     /* call video extension override if necessary */
     if (l_VideoExtensionActive)
@@ -547,7 +547,7 @@ EXPORT m64p_error CALL VidExt_GL_SwapBuffers(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT uint32_t CALL VidExt_GL_GetDefaultFramebuffer(void)
+uint32_t EVidExt_GL_GetDefaultFramebuffer(void)
 {
     if (l_VideoExtensionActive)
         return (*l_ExternalVideoFuncTable.VidExtFuncGLGetDefaultFramebuffer)();

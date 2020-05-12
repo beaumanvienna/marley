@@ -166,12 +166,12 @@ static char *GetNextScreenshotPath(void)
     strcat(ScreenshotFileName, "-###.png");
     
     // add the base path to the screenshot file name
-    const char *SshotDir = ConfigGetParamString(g_CoreConfig, "ScreenshotPath");
+    const char *SshotDir = EConfigGetParamString(g_CoreConfig, "ScreenshotPath");
     if (SshotDir == NULL || *SshotDir == '\0')
     {
         // note the trick to avoid an allocation. we add a NUL character
         // instead of the separator, call mkdir, then add the separator
-        ScreenshotPath = formatstr("%sscreenshot%c%s", ConfigGetUserDataPath(), '\0', ScreenshotFileName);
+        ScreenshotPath = formatstr("%sscreenshot%c%s", EConfigGetUserDataPath(), '\0', ScreenshotFileName);
         if (ScreenshotPath == NULL)
             return NULL;
         osal_mkdirp(ScreenshotPath, 0700);
@@ -179,7 +179,7 @@ static char *GetNextScreenshotPath(void)
     }
     else
     {
-        ScreenshotPath = combinepath(SshotDir, ScreenshotFileName);
+        ScreenshotPath = Ccombinepath(SshotDir, ScreenshotFileName);
         if (ScreenshotPath == NULL)
             return NULL;
     }
@@ -227,7 +227,7 @@ void TakeScreenshot(int iFrameNumber)
     // get the width and height
     int width = 640;
     int height = 480;
-    gfx.readScreen(NULL, &width, &height, 0);
+    Cgfx.readScreen(NULL, &width, &height, 0);
 
     // allocate memory for the image
     unsigned char *pucFrame = (unsigned char *) malloc(width * height * 3);
@@ -238,7 +238,7 @@ void TakeScreenshot(int iFrameNumber)
     }
 
     // grab the back image from OpenGL by calling the video plugin
-    gfx.readScreen(pucFrame, &width, &height, 0);
+    Cgfx.readScreen(pucFrame, &width, &height, 0);
 
     // write the image to a PNG
     SaveRGBBufferToFile(filename, pucFrame, width, height, width * 3);

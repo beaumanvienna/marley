@@ -62,5 +62,5 @@ extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
 extern ptr_ConfigGetParamBool     ConfigGetParamBool;
 extern ptr_ConfigGetParamString   ConfigGetParamString;
 
-void DebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
+void ADebugMessage(int level, const char *message, ...) ATTR_FMT(2,3);
 
