@@ -1627,7 +1627,6 @@ m64p_error main_run(void)
     {
         osd_exit();
     }
-
     rsp.romClosed();
     input.romClosed();
     audio.romClosed();
@@ -1636,7 +1635,6 @@ m64p_error main_run(void)
     // clean up
     g_EmulatorRunning = 0;
     StateChanged(M64CORE_EMU_STATE, M64EMU_STOPPED);
-
     return M64ERR_SUCCESS;
 
 on_input_open_failure:

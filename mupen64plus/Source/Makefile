@@ -18,27 +18,27 @@ mupen.a: $(OBJ)
 	$(info   *************** mupen.a ***************)
 	ar rs mupen.a $^
 	
-audio-sdl: audio-sdl/mupen64plus-audio-sdl.a
+audio-sdl: 
 	$(info   *************** mupen64plus audio-sdl ***************)
 	$(MAKE) -C $@
 	
-core: core/libmupen64plus.a
+core: 
 	$(info   *************** mupen64plus core ***************)
 	$(MAKE) -C $@
 
-input-sdl: input-sdl/mupen64plus-input-sdl.a
+input-sdl: 
 	$(info   *************** mupen64plus input-sdl ***************)
 	$(MAKE) -C $@
 	
-rsp-hle: rsp-hle/mupen64plus-rsp-hle.a
+rsp-hle: 
 	$(info   *************** mupen64plus rsp-hle ***************)
 	$(MAKE) -C $@
 	
-video-glide64mk2: video-glide64mk2/mupen64plus-video-glide64mk2.a
+video-glide64mk2: 
 	$(info   *************** mupen64plus video-glide64mk2 ***************)
 	$(MAKE) -C $@
 
-ui-console: ui-console/mupen64plus.a
+ui-console: 
 	$(info   *************** mupen64plus ui-console ***************)
 	$(MAKE) -C $@
 

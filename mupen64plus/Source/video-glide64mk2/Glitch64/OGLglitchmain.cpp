@@ -44,7 +44,7 @@
 #endif
 
 extern void (*renderCallback)(int);
-
+extern SDL_Window* gWindow;
 wrapper_config config = {0, 0, 0, 0};
 int screen_width, screen_height;
 
@@ -489,10 +489,18 @@ grSstWinOpen(
   m64p_handle video_glide64mk2_section;
   ConfigOpenSection("Video-Glide64mk2", &video_glide64mk2_section);
   int aalevel = ConfigGetParamInt(video_glide64mk2_section, "wrpAntiAliasing");
-
-  screen_width = width = ConfigGetParamInt(video_general_section, "ScreenWidth");
+  
+  #warning "JC: modified"
+  /*screen_width = width = ConfigGetParamInt(video_general_section, "ScreenWidth");
   screen_height = height = ConfigGetParamInt(video_general_section, "ScreenHeight");
-  fullscreen = ConfigGetParamBool(video_general_section, "Fullscreen");
+  fullscreen = ConfigGetParamBool(video_general_section, "Fullscreen");*/
+  
+  SDL_GetWindowSize(gWindow,&width,&height);
+  screen_width = width;
+  screen_height = height;
+  fullscreen = (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+  
   int vsync = ConfigGetParamBool(video_general_section, "VerticalSync");
 
   //viewport_offset = ((screen_resolution>>2) > 20) ? screen_resolution >> 2 : 20;

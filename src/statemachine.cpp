@@ -455,7 +455,7 @@ bool statemachine(int cmd)
                             
                             
 #ifdef MEDNAFEN
-                            if (ext != "iso")
+                            if ((ext != "iso") && (ext != "z64"))
                             {
                                 str = "mednafen";
                                 n = str.length(); 

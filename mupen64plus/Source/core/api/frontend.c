@@ -51,7 +51,7 @@
 /* some local state variables */
 static int l_CoreInit = 0;
 static int l_ROMOpen = 0;
-
+int mupen64plus_quit = 0;
 /* functions exported outside of libmupen64plus to front-end application */
 m64p_error ECoreStartup(int APIVersion, const char *ConfigPath, const char *DataPath, void *Context,
                                    void (*DebugCallback)(void *, int, const char *), void *Context2,
@@ -118,7 +118,8 @@ m64p_error ECoreShutdown(void)
     savestates_deinit();
 
     /* tell SDL to shut down */
-    SDL_Quit();
+    //SDL_Quit();
+    mupen64plus_quit = 1;
 
     /* deallocate base memory */
     release_mem_base(g_mem_base);

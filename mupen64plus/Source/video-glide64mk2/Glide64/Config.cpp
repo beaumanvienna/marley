@@ -22,7 +22,8 @@
 #include "Config.h"
 #include "m64p.h"
 #include "rdp.h"
-
+#include <SDL.h>
+extern SDL_Window* gWindow;
 static m64p_handle video_general_section;
 static m64p_handle video_glide64_section;
 
@@ -53,9 +54,17 @@ PackedScreenResolution Config_ReadScreenSettings()
 {
     PackedScreenResolution packedResolution;
 
-    packedResolution.width = ConfigGetParamInt(video_general_section, "ScreenWidth");
+    #warning "JC: modified"
+    /*packedResolution.width = ConfigGetParamInt(video_general_section, "ScreenWidth");
     packedResolution.height = ConfigGetParamInt(video_general_section, "ScreenHeight");
+    packedResolution.fullscreen = ConfigGetParamBool(video_general_section, "Fullscreen");*/
+    
+    int width, height;
     packedResolution.fullscreen = ConfigGetParamBool(video_general_section, "Fullscreen");
+    SDL_GetWindowSize(gWindow,&width,&height);
+    packedResolution.width = width;
+    packedResolution.height = height;
+    packedResolution.fullscreen = (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP);
 
     return packedResolution;
 }

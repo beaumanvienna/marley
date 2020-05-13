@@ -56,7 +56,7 @@
 
 /** global variables **/
 int    g_Verbose = 0;
-
+extern int mupen64plus_quit;
 /** static (local) variables **/
 static m64p_handle l_ConfigCore = NULL;
 static m64p_handle l_ConfigVideo = NULL;
@@ -888,6 +888,7 @@ __attribute__ ((visibility("default")))
 int mupen64plus_main(int argc, char *argv[])
 {
     int i;
+    mupen64plus_quit = 0;
 
     printf(" __  __                         __   _  _   ____  _             \n");  
     printf("|  \\/  |_   _ _ __   ___ _ __  / /_ | || | |  _ \\| |_   _ ___ \n");

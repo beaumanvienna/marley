@@ -35,7 +35,7 @@
 #endif
 
 #endif // !USE_GLES
-
+extern SDL_Window* gWindow;
 typedef struct SDL_VideoInfo
 {
     Uint32 hw_available:1;
@@ -440,9 +440,11 @@ SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags)
         window_flags |= SDL_WINDOW_BORDERLESS;
     }
     GetEnvironmentWindowPosition(width, height, &window_x, &window_y);
-    SDL_VideoWindow =
+    #warning "JC: modified"
+    /*SDL_VideoWindow =
         SDL_CreateWindow(wm_title, window_x, window_y, width, height,
-                         window_flags);
+                         window_flags);*/
+    SDL_VideoWindow = gWindow;                     
     if (!SDL_VideoWindow) {
         return NULL;
     }

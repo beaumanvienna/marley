@@ -77,7 +77,7 @@
 #define CONFIG_PARAM_VERSION 1.00
 
 static m64p_handle l_CoreEventsConfig = NULL;
-
+extern int mupen64plus_quit;
 /*********************************************************************************************************
 * static variables and definitions for eventloop.c
 */
@@ -301,7 +301,12 @@ static int MatchJoyCommand(const SDL_Event *event, eJoyCommand cmd)
 static int SDLCALL event_sdl_filter(void *userdata, SDL_Event *event)
 {
     int cmd, action;
-
+    #warning "JC: modified"
+    if (mupen64plus_quit) 
+    {
+        main_stop();
+        SDL_SetEventFilter(NULL, NULL);
+    }
     switch(event->type)
     {
         // user clicked on window close button
