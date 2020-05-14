@@ -46,6 +46,30 @@
 #endif /* __linux__ */
 
 #include <errno.h>
+#include <string>
+//supported number of controllers in GUI
+#define MAX_GAMEPADS 2
+#define MAX_DEVICES_PER_CONTROLLER 1 
+
+typedef SDL_Joystick* pSDL_Joystick;
+typedef SDL_GameController* pSDL_GameController;
+
+typedef struct DesignatedControllers { 
+    pSDL_Joystick joy[MAX_DEVICES_PER_CONTROLLER];
+    pSDL_GameController gameCtrl[MAX_DEVICES_PER_CONTROLLER];
+    int instance[MAX_DEVICES_PER_CONTROLLER];
+    int index[MAX_DEVICES_PER_CONTROLLER];
+    std::string name[MAX_DEVICES_PER_CONTROLLER];
+    std::string nameDB[MAX_DEVICES_PER_CONTROLLER];
+    bool mappingOKDevice[MAX_DEVICES_PER_CONTROLLER];
+    bool mappingOK;
+    int controllerType;
+    int numberOfDevices;
+} T_DesignatedControllers;
+
+//designated controllers
+extern T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
+
 
 m64p_error EVidExt_Init(void);
 m64p_error EVidExt_Quit(void);
@@ -57,44 +81,37 @@ m64p_error EVidExt_ToggleFullScreen(void);
 m64p_function EVidExt_GL_GetProcAddress(const char *);
 m64p_error EVidExt_GL_SetAttribute(m64p_GLattr, int);
 m64p_error EVidExt_GL_SwapBuffers(void);
-m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
+extern "C" m64p_error ECoreGetAPIVersions(int *, int *, int *, int *);
 m64p_error EConfigListSections(void *, void (*)(void *, const char *));
-m64p_error EConfigOpenSection(const char *, m64p_handle *);
-m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
+extern "C" m64p_error EConfigOpenSection(const char *, m64p_handle *);
+extern "C" m64p_error EConfigListParameters(m64p_handle, void *, void (*)(void *, const char *, m64p_type));
 m64p_error EConfigSaveFile(void);
 m64p_error EConfigSaveSection(const char *);
 int EConfigHasUnsavedChanges(const char *);
-m64p_error EConfigDeleteSection(const char *SectionName);
+extern "C" m64p_error EConfigDeleteSection(const char *SectionName);
 m64p_error EConfigRevertChanges(const char *SectionName);
-m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
+extern "C" m64p_error EConfigSetParameter(m64p_handle, const char *, m64p_type, const void *);
 m64p_error EConfigSetParameterHelp(m64p_handle, const char *, const char *);
-m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
+extern "C" m64p_error EConfigGetParameter(m64p_handle, const char *, m64p_type, void *, int);
 m64p_error EConfigGetParameterType(m64p_handle, const char *, m64p_type *);
 const char * EConfigGetParameterHelp(m64p_handle, const char *);
-m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
-m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
-m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
-m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
-int          EConfigGetParamInt(m64p_handle, const char *);
-float        EConfigGetParamFloat(m64p_handle, const char *);
-int          EConfigGetParamBool(m64p_handle, const char *);
-const char * EConfigGetParamString(m64p_handle, const char *);
-const char * EConfigGetSharedDataFilepath(const char *);
-const char * EConfigGetUserConfigPath(void);
-const char * EConfigGetUserDataPath(void);
-const char * EConfigGetUserCachePath(void);
+extern "C" m64p_error EConfigSetDefaultInt(m64p_handle, const char *, int, const char *);
+extern "C" m64p_error EConfigSetDefaultFloat(m64p_handle, const char *, float, const char *);
+extern "C" m64p_error EConfigSetDefaultBool(m64p_handle, const char *, int, const char *);
+extern "C" m64p_error EConfigSetDefaultString(m64p_handle, const char *, const char *, const char *);
+extern "C" int          EConfigGetParamInt(m64p_handle, const char *);
+extern "C" float        EConfigGetParamFloat(m64p_handle, const char *);
+extern "C" int          EConfigGetParamBool(m64p_handle, const char *);
+extern "C" const char * EConfigGetParamString(m64p_handle, const char *);
+extern "C" const char * EConfigGetSharedDataFilepath(const char *);
+extern "C" const char * EConfigGetUserConfigPath(void);
+extern "C" const char * EConfigGetUserDataPath(void);
+extern "C" const char * EConfigGetUserCachePath(void);
 m64p_error EConfigExternalOpen(const char *, m64p_handle *);
 m64p_error EConfigExternalClose(m64p_handle);
 m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
 
-/* defines for the force feedback rumble support */
-#ifdef __linux__
-#define BITS_PER_LONG (sizeof(long) * 8)
-#define OFF(x)  ((x)%BITS_PER_LONG)
-#define BIT(x)  (1UL<<OFF(x))
-#define LONG(x) ((x)/BITS_PER_LONG)
-#define test_bit(bit, array)    ((array[LONG(bit)] >> OFF(bit)) & 1)
-#endif //__linux__
+
 
 /* definitions of pointers to Core config functions */
 extern ptr_ConfigOpenSection      ConfigOpenSection;
@@ -150,11 +167,6 @@ static int romopen = 0;         // is a rom opened
 
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 
-#if __linux__ && !SDL_VERSION_ATLEAST(2,0,0)
-static struct ff_effect ffeffect[4];
-static struct ff_effect ffstrong[4];
-static struct ff_effect ffweak[4];
-#endif //__linux__
 
 /* Global functions */
 void IDebugMessage(int level, const char *message, ...)
@@ -176,7 +188,7 @@ void IDebugMessage(int level, const char *message, ...)
 static CONTROL temp_core_controlinfo[4];
 
 /* Mupen64Plus plugin functions */
-m64p_error IPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
+extern "C" m64p_error IPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
                                    void (*DebugCallback)(void *, int, const char *))
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
@@ -263,7 +275,7 @@ m64p_error IPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
     return M64ERR_SUCCESS;
 }
 
-m64p_error IPluginShutdown(void)
+extern "C" m64p_error IPluginShutdown(void)
 {
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
@@ -280,7 +292,7 @@ m64p_error IPluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-m64p_error IPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+extern "C" m64p_error IPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
 {
     /* set version info */
     if (PluginType != NULL)
@@ -304,8 +316,7 @@ m64p_error IPluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, i
 }
 
 /* Helper function to handle the SDL keys */
-static void
-doSdlKeys(const unsigned char* keystate)
+static void doSdlKeys(const unsigned char* keystate)
 {
     int c, b, axis_val, axis_max_val;
     static int grabmouse = 1, grabtoggled = 0;
@@ -355,11 +366,7 @@ doSdlKeys(const unsigned char* keystate)
                     grabtoggled = 1;
                     grabmouse = !grabmouse;
                     // grab/ungrab mouse
-#if SDL_VERSION_ATLEAST(2,0,0)
                     SDL_SetRelativeMouseMode(grabmouse ? SDL_TRUE : SDL_FALSE);
-#else
-                    SDL_WM_GrabInput( grabmouse ? SDL_GRAB_ON : SDL_GRAB_OFF );
-#endif
                     SDL_ShowCursor( grabmouse ? 0 : 1 );
                 }
             }
@@ -408,7 +415,7 @@ static unsigned char DataCRC( unsigned char *Data, int iLenght )
             initilize controller: 01 03 00 FF FF FF
             read controller:      01 04 01 FF FF FF FF
 *******************************************************************/
-void IControllerCommand(int Control, unsigned char *Command)
+extern "C" void IControllerCommand(int Control, unsigned char *Command)
 {
     unsigned char *Data = &Command[5];
 
@@ -418,19 +425,13 @@ void IControllerCommand(int Control, unsigned char *Command)
     switch (Command[2])
     {
         case RD_GETSTATUS:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Get status");
-#endif
+
             break;
         case RD_READKEYS:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Read keys");
-#endif
+
             break;
         case RD_READPAK:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Read pak");
-#endif
+
             if (controller[Control].control->Plugin == PLUGIN_RAW)
             {
                 unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
@@ -444,15 +445,13 @@ void IControllerCommand(int Control, unsigned char *Command)
             }
             break;
         case RD_WRITEPAK:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Write pak");
-#endif
+
             if (controller[Control].control->Plugin == PLUGIN_RAW)
             {
                 unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
               if (dwAddress == PAK_IO_RUMBLE && *Data)
                     IDebugMessage(M64MSG_VERBOSE, "Triggering rumble pack.");
-#if SDL_VERSION_ATLEAST(2,0,0)
+
                 if(dwAddress == PAK_IO_RUMBLE && controller[Control].event_joystick) {
                     if (*Data) {
                         SDL_HapticRumblePlay(controller[Control].event_joystick, 1, SDL_HAPTIC_INFINITY);
@@ -460,48 +459,18 @@ void IControllerCommand(int Control, unsigned char *Command)
                         SDL_HapticRumbleStop(controller[Control].event_joystick);
                     }
                 }
-#elif __linux__
-                struct input_event play;
-                if( dwAddress == PAK_IO_RUMBLE && controller[Control].event_joystick != 0)
-                {
-                    if( *Data )
-                    {
-                        play.type = EV_FF;
-                        play.code = ffeffect[Control].id;
-                        play.value = 1;
 
-                        if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                            perror("Error starting rumble effect");
-
-                    }
-                    else
-                    {
-                        play.type = EV_FF;
-                        play.code = ffeffect[Control].id;
-                        play.value = 0;
-
-                        if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                            perror("Error stopping rumble effect");
-                    }
-                }
-#endif //__linux__
                 Data[32] = DataCRC( Data, 32 );
             }
             break;
         case RD_RESETCONTROLLER:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Reset controller");
-#endif
+
             break;
         case RD_READEEPROM:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Read eeprom");
-#endif
+
             break;
         case RD_WRITEEPROM:
-#ifdef _DEBUG
-            IDebugMessage(M64MSG_INFO, "Write eeprom");
-#endif
+
             break;
         }
 }
@@ -514,7 +483,7 @@ void IControllerCommand(int Control, unsigned char *Command)
             the controller state.
   output:   none
 *******************************************************************/
-void IGetKeys( int Control, BUTTONS *Keys )
+extern "C" void IGetKeys( int Control, BUTTONS *Keys )
 {
     static int mousex_residual = 0;
     static int mousey_residual = 0;
@@ -528,18 +497,28 @@ void IGetKeys( int Control, BUTTONS *Keys )
     doSdlKeys(SDL_GetKeyboardState(NULL));
     doSdlKeys(myKeyState);
 
-    for ( b = 0; b < 4; ++b )
+
+    #warning "JC: modified"
+    printf("jc SDL_SDL_GameController\n");
+
+    int slot = 0;
+    for (int i = 0; i < MAX_GAMEPADS; i++)
+    {
+        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
+        {
+            controller[b].joystick = gDesignatedControllers[slot].gameCtrl[0];
+            slot++;
+        }
+    }
+    
+    /*for ( b = 0; b < 4; ++b )
     {
         if (controller[b].device >= 0)
         {
-#if SDL_VERSION_ATLEAST(2,0,0)
             if (!SDL_JoystickGetAttached(controller[b].joystick))
-#else
-            if (!SDL_JoystickOpened(controller[b].device))
-#endif
                 controller[b].joystick = SDL_JoystickOpen(controller[b].device);
         }
-    }
+    }*/
 
     // read joystick state
     SDL_JoystickUpdate();
@@ -549,26 +528,19 @@ void IGetKeys( int Control, BUTTONS *Keys )
         for( b = 0; b < 16; b++ )
         {
             if( controller[Control].button[b].button >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].button[b].button ) )
+                if( SDL_GameControllerGetButton( controller[Control].joystick, (SDL_GameControllerButton)(controller[Control].button[b].button )) )
                     controller[Control].buttons.Value |= button_bits[b];
 
             if( controller[Control].button[b].axis >= 0 )
             {
                 int deadzone = controller[Control].button[b].axis_deadzone;
-                axis_val = SDL_JoystickGetAxis( controller[Control].joystick, controller[Control].button[b].axis );
+                axis_val = SDL_GameControllerGetAxis( controller[Control].joystick, (SDL_GameControllerAxis)(controller[Control].button[b].axis));
                 if (deadzone < 0)
                     deadzone = 16384; /* default */
                 if( (controller[Control].button[b].axis_dir < 0) && (axis_val <= -deadzone) )
                     controller[Control].buttons.Value |= button_bits[b];
                 else if( (controller[Control].button[b].axis_dir > 0) && (axis_val >= deadzone) )
                     controller[Control].buttons.Value |= button_bits[b];
-            }
-
-            if( controller[Control].button[b].hat >= 0 )
-            {
-                if( controller[Control].button[b].hat_pos > 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].button[b].hat ) & controller[Control].button[b].hat_pos )
-                        controller[Control].buttons.Value |= button_bits[b];
             }
         }
         int iX = controller[Control].buttons.X_AXIS;
@@ -589,33 +561,25 @@ void IGetKeys( int Control, BUTTONS *Keys )
 
             if( controller[Control].axis[b].axis_a >= 0 )  /* up and left for N64 */
             {
-                int joy_val = SDL_JoystickGetAxis(controller[Control].joystick, controller[Control].axis[b].axis_a);
+                int joy_val = SDL_GameControllerGetAxis(controller[Control].joystick, (SDL_GameControllerAxis)(controller[Control].axis[b].axis_a));
                 int axis_dir = controller[Control].axis[b].axis_dir_a;
                 if (joy_val * axis_dir > deadzone)
                     axis_val = -((abs(joy_val) - deadzone) * 80 / range);
             }
             if( controller[Control].axis[b].axis_b >= 0 ) /* down and right for N64 */
             {
-                int joy_val = SDL_JoystickGetAxis(controller[Control].joystick, controller[Control].axis[b].axis_b);
+                int joy_val = SDL_GameControllerGetAxis(controller[Control].joystick, (SDL_GameControllerAxis)(controller[Control].axis[b].axis_b));
                 int axis_dir = controller[Control].axis[b].axis_dir_b;
                 if (joy_val * axis_dir > deadzone)
                     axis_val = ((abs(joy_val) - deadzone) * 80 / range);
             }
-            if( controller[Control].axis[b].hat >= 0 )
-            {
-                if( controller[Control].axis[b].hat_pos_a >= 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].axis[b].hat ) & controller[Control].axis[b].hat_pos_a )
-                        axis_val = -80;
-                if( controller[Control].axis[b].hat_pos_b >= 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].axis[b].hat ) & controller[Control].axis[b].hat_pos_b )
-                        axis_val = 80;
-            }
+            
 
             if( controller[Control].axis[b].button_a >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].axis[b].button_a ) )
+                if( SDL_GameControllerGetButton( controller[Control].joystick, (SDL_GameControllerButton)(controller[Control].axis[b].button_a )) )
                     axis_val = -80;
             if( controller[Control].axis[b].button_b >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].axis[b].button_b ) )
+                if( SDL_GameControllerGetButton( controller[Control].joystick, (SDL_GameControllerButton)(controller[Control].axis[b].button_b) ) )
                     axis_val = 80;
 
             if( b == 0 )
@@ -644,22 +608,15 @@ void IGetKeys( int Control, BUTTONS *Keys )
 
     if (controller[Control].mouse)
     {
-#if SDL_VERSION_ATLEAST(2,0,0)
         if (SDL_GetRelativeMouseMode())
-#else
-        if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-#endif
+
         {
-#if SDL_VERSION_ATLEAST(1,3,0)
+
             while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION) == 1)
-#else
-            while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENTMASK(SDL_MOUSEMOTION)) == 1)
-#endif
+
             {
-#if SDL_VERSION_ATLEAST(2,0,0)
                 int w, h;
                 SDL_Window *focus;
-#endif
 
                 if (event.motion.xrel)
                 {
@@ -670,7 +627,6 @@ void IGetKeys( int Control, BUTTONS *Keys )
                     mousey_residual += (int) (event.motion.yrel * controller[Control].mouse_sens[1]);
                 }
 
-#if SDL_VERSION_ATLEAST(2,0,0)
                 focus = SDL_GetKeyboardFocus();
                 if (focus) {
                     SDL_GetWindowSize(focus, &w, &h);
@@ -679,7 +635,6 @@ void IGetKeys( int Control, BUTTONS *Keys )
                     mousex_residual = 0;
                     mousey_residual = 0;
                 }
-#endif
             }
 
             /* store the result */
@@ -706,13 +661,10 @@ void IGetKeys( int Control, BUTTONS *Keys )
         }
     }
 
-#ifdef _DEBUG
-    IDebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
-#endif
     *Keys = controller[Control].buttons;
 
     /* handle mempack / rumblepak switching (only if rumble is active on joystick) */
-#if SDL_VERSION_ATLEAST(2,0,0)
+
     if (controller[Control].event_joystick) {
         static unsigned int SwitchPackTime[4] = {0, 0, 0, 0}, SwitchPackType[4] = {0, 0, 0, 0};
         if (controller[Control].buttons.Value & button_bits[14]) {
@@ -735,50 +687,15 @@ void IGetKeys( int Control, BUTTONS *Keys )
             SwitchPackTime[Control] = 0;
         }
     }
-#elif __linux__
-    if (controller[Control].event_joystick != 0)
-    {
-        struct input_event play;
-        static unsigned int SwitchPackTime[4] = {0, 0, 0, 0}, SwitchPackType[4] = {0, 0, 0, 0};
-        // when the user switches packs, we should mimick the act of removing 1 pack, and then inserting another 1 second later
-        if (controller[Control].buttons.Value & button_bits[14])
-        {
-            SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
-            SwitchPackType[Control] = PLUGIN_MEMPAK;          // type of new pack to insert
-            controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
-            play.type = EV_FF;
-            play.code = ffweak[Control].id;
-            play.value = 1;
-            if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                perror("Error starting rumble effect");
-        }
-        if (controller[Control].buttons.Value & button_bits[15])
-        {
-            SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
-            SwitchPackType[Control] = PLUGIN_RAW;             // type of new pack to insert
-            controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
-            play.type = EV_FF;
-            play.code = ffstrong[Control].id;
-            play.value = 1;
-            if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                perror("Error starting rumble effect");
-        }
-        // handle inserting new pack if the time has arrived
-        if (SwitchPackTime[Control] != 0 && (SDL_GetTicks() - SwitchPackTime[Control]) >= 1000)
-        {
-            controller[Control].control->Plugin = SwitchPackType[Control];
-            SwitchPackTime[Control] = 0;
-        }
-    }
-#endif /* __linux__ */
 
     controller[Control].buttons.Value = 0;
 }
 
 static void InitiateJoysticks(int cntrl)
 {
-    if (controller[cntrl].device >= 0) {
-        controller[cntrl].joystick = SDL_JoystickOpen(controller[cntrl].device);
+    if ((controller[cntrl].device >= 0) && (cntrl < MAX_GAMEPADS))
+    {
+        controller[cntrl].joystick = gDesignatedControllers[cntrl].gameCtrl[0];
         if (!controller[cntrl].joystick)
             IDebugMessage(M64MSG_WARNING, "Couldn't open joystick for controller #%d: %s", cntrl + 1, SDL_GetError());
     } else {
@@ -788,17 +705,16 @@ static void InitiateJoysticks(int cntrl)
 
 static void DeinitJoystick(int cntrl)
 {
-#if SDL_VERSION_ATLEAST(2,0,0)
-    if (controller[cntrl].joystick) {
-        SDL_JoystickClose(controller[cntrl].joystick);
+    if (controller[cntrl].joystick) 
+    {
+        //SDL_JoystickClose(controller[cntrl].joystick);
         controller[cntrl].joystick = NULL;
     }
-#endif
 }
 
 static void InitiateRumble(int cntrl)
 {
-#if SDL_VERSION_ATLEAST(2,0,0)
+/*
     l_hapticWasInit = SDL_WasInit(SDL_INIT_HAPTIC);
     if (!l_hapticWasInit) {
         if (SDL_InitSubSystem(SDL_INIT_HAPTIC) == -1) {
@@ -828,122 +744,20 @@ static void InitiateRumble(int cntrl)
     }
 
     IDebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
-#elif __linux__
-    DIR* dp;
-    struct dirent* ep;
-    unsigned long features[4];
-    char temp[128];
-    char temp2[128];
-    int iFound = 0;
-
-    controller[cntrl].event_joystick = 0;
-
-    sprintf(temp,"/sys/class/input/js%d/device", controller[cntrl].device);
-    dp = opendir(temp);
-
-    if(dp==NULL)
-        return;
-
-    while ((ep=readdir(dp)))
-        {
-        if (strncmp(ep->d_name, "event",5)==0)
-            {
-            sprintf(temp, "/dev/input/%s", ep->d_name);
-            iFound = 1;
-            break;
-            }
-        else if(strncmp(ep->d_name,"input:event", 11)==0)
-            {
-            sscanf(ep->d_name, "input:%s", temp2);
-            sprintf(temp, "/dev/input/%s", temp2);
-            iFound = 1;
-            break;
-            }
-        else if(strncmp(ep->d_name,"input:input", 11)==0)
-            {
-            strcat(temp, "/");
-            strcat(temp, ep->d_name);
-            closedir (dp);
-            dp = opendir(temp);
-            if(dp==NULL)
-                return;
-            }
-       }
-
-    closedir(dp);
-
-    if (!iFound)
-    {
-        IDebugMessage(M64MSG_WARNING, "Couldn't find input event for rumble support.");
-        return;
-    }
-
-    controller[cntrl].event_joystick = open(temp, O_RDWR);
-    if(controller[cntrl].event_joystick==-1)
-        {
-        IDebugMessage(M64MSG_WARNING, "Couldn't open device file '%s' for rumble support.", temp);
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    if(ioctl(controller[cntrl].event_joystick, EVIOCGBIT(EV_FF, sizeof(unsigned long) * 4), features)==-1)
-        {
-        IDebugMessage(M64MSG_WARNING, "Linux kernel communication failed for force feedback (rumble).\n");
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    if(!test_bit(FF_RUMBLE, features))
-        {
-        IDebugMessage(M64MSG_WARNING, "No rumble supported on N64 joystick #%i", cntrl + 1);
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    ffeffect[cntrl].type = FF_RUMBLE;
-    ffeffect[cntrl].id = -1;
-    ffeffect[cntrl].u.rumble.strong_magnitude = 0xFFFF;
-    ffeffect[cntrl].u.rumble.weak_magnitude = 0xFFFF;
-    ffeffect[cntrl].replay.length = 0x7fff;             // hack: xboxdrv is buggy and doesn't support infinite replay.
-                                                        // when xboxdrv is fixed (https://github.com/Grumbel/xboxdrv/issues/47),
-                                                        // please remove this
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffeffect[cntrl]);
-
-    ffstrong[cntrl].type = FF_RUMBLE;
-    ffstrong[cntrl].id = -1;
-    ffstrong[cntrl].u.rumble.strong_magnitude = 0xFFFF;
-    ffstrong[cntrl].u.rumble.weak_magnitude = 0x0000;
-    ffstrong[cntrl].replay.length = 500;
-    ffstrong[cntrl].replay.delay = 0;
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffstrong[cntrl]);
-
-    ffweak[cntrl].type = FF_RUMBLE;
-    ffweak[cntrl].id = -1;
-    ffweak[cntrl].u.rumble.strong_magnitude = 0x0000;
-    ffweak[cntrl].u.rumble.weak_magnitude = 0xFFFF;
-    ffweak[cntrl].replay.length = 500;
-    ffweak[cntrl].replay.delay = 0;
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffweak[cntrl]);
-
-    IDebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
-#endif /* __linux__ */
+    */
 }
 
 static void DeinitRumble(int cntrl)
 {
-#if SDL_VERSION_ATLEAST(2,0,0)
-	/* quit the haptic subsystem if necessary */
+    /*
+	// quit the haptic subsystem if necessary
     if (!l_hapticWasInit)
         SDL_QuitSubSystem(SDL_INIT_HAPTIC);
 
     if (controller[cntrl].event_joystick) {
         SDL_HapticClose(controller[cntrl].event_joystick);
         controller[cntrl].event_joystick = NULL;
-    }
-#endif
+    }*/
 }
 
 /******************************************************************
@@ -955,7 +769,7 @@ static void DeinitRumble(int cntrl)
               the emulator to know how to handle each controller.
   output:   none
 *******************************************************************/
-void IInitiateControllers(CONTROL_INFO ControlInfo)
+extern "C" void IInitiateControllers(CONTROL_INFO ControlInfo)
 {
     int i;
 
@@ -999,7 +813,7 @@ void IInitiateControllers(CONTROL_INFO ControlInfo)
   note:     This function is only needed if the DLL is allowing raw
             data.
 *******************************************************************/
-void IReadController(int Control, unsigned char *Command)
+extern "C" void IReadController(int Control, unsigned char *Command)
 {
 #ifdef _DEBUG
     if (Command != NULL)
@@ -1014,7 +828,7 @@ void IReadController(int Control, unsigned char *Command)
   input:    none
   output:   none
 *******************************************************************/
-void IRomClosed(void)
+extern "C" void IRomClosed(void)
 {
     int i;
 
@@ -1025,11 +839,8 @@ void IRomClosed(void)
     }
 
     // release/ungrab mouse
-#if SDL_VERSION_ATLEAST(2,0,0)
     SDL_SetRelativeMouseMode(SDL_FALSE);
-#else
-    SDL_WM_GrabInput( SDL_GRAB_OFF );
-#endif
+
     SDL_ShowCursor( 1 );
 
     romopen = 0;
@@ -1042,7 +853,7 @@ void IRomClosed(void)
   input:    none
   output:   none
 *******************************************************************/
-int IRomOpen(void)
+extern "C" int IRomOpen(void)
 {
     int i;
 
@@ -1056,16 +867,9 @@ int IRomOpen(void)
     if (controller[0].mouse || controller[1].mouse || controller[2].mouse || controller[3].mouse)
     {
         SDL_ShowCursor( 0 );
-#if SDL_VERSION_ATLEAST(2,0,0)
         if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
             IDebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
         }
-#else
-        if (SDL_WM_GrabInput( SDL_GRAB_ON ) != SDL_GRAB_ON)
-        {
-            IDebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
-        }
-#endif
     }
 
     romopen = 1;
@@ -1079,7 +883,7 @@ int IRomOpen(void)
   input:    keymod and keysym of the SDL_KEYDOWN message.
   output:   none
 *******************************************************************/
-void ISDL_KeyDown(int keymod, int keysym)
+extern "C" void ISDL_KeyDown(int keymod, int keysym)
 {
     myKeyState[keysym] = 1;
 }
@@ -1091,7 +895,7 @@ void ISDL_KeyDown(int keymod, int keysym)
   input:    keymod and keysym of the SDL_KEYUP message.
   output:   none
 *******************************************************************/
-void ISDL_KeyUp(int keymod, int keysym)
+extern "C" void ISDL_KeyUp(int keymod, int keysym)
 {
     myKeyState[keysym] = 0;
 }

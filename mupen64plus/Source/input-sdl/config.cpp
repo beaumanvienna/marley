@@ -196,7 +196,7 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
             if (sscanf(config_ptr, "key(%i)", (int *) &controller[i].button[j].key) != 1) {
                 IDebugMessage(M64MSG_WARNING, "parsing error in key() parameter of button '%s' for controller %i", button_names[j], i + 1);
             } else {
-                controller[i].button[j].key = sdl_keysym2native(controller[i].button[j].key);
+                controller[i].button[j].key = (SDL_Scancode) sdl_keysym2native(controller[i].button[j].key);
             }
         }
         if ((config_ptr = strstr(input_str, "button")) != NULL)
@@ -238,8 +238,8 @@ static int load_controller_config(const char *SectionName, int i, int sdlDeviceI
             if (sscanf(config_ptr, "key(%i,%i)", (int *) &controller[i].axis[axis_idx].key_a, (int *) &controller[i].axis[axis_idx].key_b) != 2) {
                 IDebugMessage(M64MSG_WARNING, "parsing error in key() parameter of axis '%s' for controller %i", button_names[j], i + 1);
             } else {
-                controller[i].axis[axis_idx].key_a = sdl_keysym2native(controller[i].axis[axis_idx].key_a);
-                controller[i].axis[axis_idx].key_b = sdl_keysym2native(controller[i].axis[axis_idx].key_b);
+                controller[i].axis[axis_idx].key_a = (SDL_Scancode) sdl_keysym2native(controller[i].axis[axis_idx].key_a);
+                controller[i].axis[axis_idx].key_b = (SDL_Scancode) sdl_keysym2native(controller[i].axis[axis_idx].key_b);
             }
         }
         if ((config_ptr = strstr(input_str, "button")) != NULL)

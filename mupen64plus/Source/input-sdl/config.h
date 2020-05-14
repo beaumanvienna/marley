@@ -24,7 +24,13 @@
 
 #define CONFIG_VERSION 2.00
 
+
+
+#ifdef __cplusplus
+extern "C" void load_configuration(int bPreConfig);
+#else
 extern void load_configuration(int bPreConfig);
+#endif
 
 #endif /* __CONFIG_H__ */
 

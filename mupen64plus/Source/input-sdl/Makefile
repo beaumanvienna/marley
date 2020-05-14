@@ -93,7 +93,8 @@ endif
 # base CFLAGS, LDLIBS, and LDFLAGS
 OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
-CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
+CFLAGS   += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
+CXXFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
 LDFLAGS += $(STATICLIB)
 LDLIBS += -lm
 
@@ -149,15 +150,18 @@ ifeq ($(origin SDL_CFLAGS) $(origin SDL_LDLIBS), undefined undefined)
   SDL_LDLIBS += $(shell $(SDL_CONFIG) --libs)
 endif
 CFLAGS += $(SDL_CFLAGS)
+CXXFLAGS += $(SDL_CFLAGS)
 LDLIBS += $(SDL_LDLIBS)
 
 # set mupen64plus core API header path
 ifneq ("$(APIDIR)","")
   CFLAGS += "-I$(APIDIR)"
+  CXXFLAGS += "-I$(APIDIR)"
 else
   TRYDIR = ../core/api
   ifneq ("$(wildcard $(TRYDIR)/m64p_types.h)","")
     CFLAGS += -I$(TRYDIR)
+    CXXFLAGS += -I$(TRYDIR)
   else
     TRYDIR = /usr/local/include/mupen64plus
     ifneq ("$(wildcard $(TRYDIR)/m64p_types.h)","")
@@ -188,6 +192,7 @@ RM       ?= rm -f
 INSTALL  ?= install
 MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.cc = $(Q_CXX)$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 LINK.o = ar $(LDFLAGS)
 
 
@@ -295,6 +300,9 @@ CFLAGS += -MD -MP
 # standard build rules
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(COMPILE.c) -o $@ $<
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(COMPILE.cc) -o $@ $<
 
 $(TARGET): $(OBJECTS)
 	$(LINK.o) $@  $^ $(LOADLIBES)
