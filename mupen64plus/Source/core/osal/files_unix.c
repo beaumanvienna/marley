@@ -174,17 +174,20 @@ const char * osal_get_user_configpath(void)
     static char retpath[PATH_MAX];
     int rval;
     
-    /* first, try the XDG_CONFIG_HOME environment variable */
+    #warning "JC: modified"
+    /*
+    // first, try the XDG_CONFIG_HOME environment variable
     rval = get_xdg_dir(retpath, "XDG_CONFIG_HOME", "mupen64plus/");
     if (rval == 0)
         return retpath;
+    */
 
-    /* then try the HOME environment variable */
-    rval = get_xdg_dir(retpath, "HOME", ".config/mupen64plus/");
+    // then try the HOME environment variable
+    rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
     if (rval == 0)
         return retpath;
 
-    /* otherwise we are in trouble */
+    // otherwise we are in trouble
     if (rval < 3)
         DebugMessage(M64MSG_ERROR, "Failed to get configuration directory; $HOME is undefined or invalid.");
     return NULL;
@@ -195,13 +198,14 @@ const char * osal_get_user_datapath(void)
     static char retpath[PATH_MAX];
     int rval;
     
-    /* first, try the XDG_DATA_HOME environment variable */
-    rval = get_xdg_dir(retpath, "XDG_DATA_HOME", "mupen64plus/");
+    #warning "JC: modified"
+    // first, try the XDG_DATA_HOME environment variable
+    /*rval = get_xdg_dir(retpath, "XDG_DATA_HOME", "mupen64plus/");
     if (rval == 0)
-        return retpath;
+        return retpath;*/
 
     /* then try the HOME environment variable */
-    rval = get_xdg_dir(retpath, "HOME", ".local/share/mupen64plus/");
+    rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
     if (rval == 0)
         return retpath;
 
@@ -216,13 +220,14 @@ const char * osal_get_user_cachepath(void)
     static char retpath[PATH_MAX];
     int rval;
     
-    /* first, try the XDG_CACHE_HOME environment variable */
+    /*
+    // first, try the XDG_CACHE_HOME environment variable 
     rval = get_xdg_dir(retpath, "XDG_CACHE_HOME", "mupen64plus/");
     if (rval == 0)
-        return retpath;
+        return retpath;*/
 
     /* then try the HOME environment variable */
-    rval = get_xdg_dir(retpath, "HOME", ".cache/mupen64plus/");
+    rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
     if (rval == 0)
         return retpath;
 

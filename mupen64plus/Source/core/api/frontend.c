@@ -57,8 +57,8 @@ m64p_error ECoreStartup(int APIVersion, const char *ConfigPath, const char *Data
                                    void (*DebugCallback)(void *, int, const char *), void *Context2,
                                    void (*StateCallback)(void *, m64p_core_param, int))
 {
-    if (l_CoreInit)
-        return M64ERR_ALREADY_INIT;
+    l_CoreInit = 0;
+    l_ROMOpen = 0;
 
     /* very first thing is to set the callback functions for debug info and state changing*/
     SetDebugCallback(DebugCallback, Context);

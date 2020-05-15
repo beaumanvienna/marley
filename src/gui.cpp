@@ -580,7 +580,7 @@ bool restoreGUI(void)
     freeTextures();
     SDL_DestroyRenderer( gRenderer );
     createRenderer();
-    
+    SDL_ShowCursor(SDL_DISABLE);
     return ok;
 }
     

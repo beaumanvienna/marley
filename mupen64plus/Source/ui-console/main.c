@@ -57,6 +57,7 @@
 /** global variables **/
 int    g_Verbose = 0;
 extern int mupen64plus_quit;
+
 /** static (local) variables **/
 static m64p_handle l_ConfigCore = NULL;
 static m64p_handle l_ConfigVideo = NULL;

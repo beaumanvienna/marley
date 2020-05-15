@@ -499,9 +499,7 @@ extern "C" void IGetKeys( int Control, BUTTONS *Keys )
 
 
     #warning "JC: modified"
-    printf("jc SDL_SDL_GameController\n");
-
-    int slot = 0;
+    /*int slot = 0;
     for (int i = 0; i < MAX_GAMEPADS; i++)
     {
         if (gDesignatedControllers[i].gameCtrl[0] != NULL)
@@ -509,7 +507,7 @@ extern "C" void IGetKeys( int Control, BUTTONS *Keys )
             controller[b].joystick = gDesignatedControllers[slot].gameCtrl[0];
             slot++;
         }
-    }
+    }*/
     
     /*for ( b = 0; b < 4; ++b )
     {

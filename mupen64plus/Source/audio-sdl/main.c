@@ -62,12 +62,12 @@
    Decreasing this value will reduce audio latency but requires a faster PC to avoid
    choppiness. Increasing this will increase audio latency but reduce the chance of
    drop-outs. The default value 2048 gives a 46ms maximum A/V delay at 44.1khz */
-#define PRIMARY_BUFFER_TARGET 2048
+#define PRIMARY_BUFFER_TARGET 10240
 
 /* Size of secondary buffer, in output samples. This is the requested size of SDL's
    hardware buffer, and the size of the mix buffer for doing SDL volume control. The
    SDL documentation states that this should be a power of two between 512 and 8192. */
-#define SECONDARY_BUFFER_SIZE 1024
+#define SECONDARY_BUFFER_SIZE 2048
 
 /* This sets default frequency what is used if rom doesn't want to change it.
    Probably only game that needs this is Zelda: Ocarina Of Time Master Quest

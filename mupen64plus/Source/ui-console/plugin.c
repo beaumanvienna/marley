@@ -136,6 +136,12 @@ static m64p_error PluginLoadTry(const char *filepath, int MapIndex)
 // global functions 
 m64p_error PluginSearchLoad(m64p_handle ConfigUI)
 {
+    for (int i = 0; i < 4; i++)
+    {
+        PluginLoadTry("built-in", i);
+    }
+    /*
+            
     osal_lib_search *lib_filelist = NULL;
     int i;
 
@@ -156,29 +162,6 @@ m64p_error PluginSearchLoad(m64p_handle ConfigUI)
         const char *plugindir = (*ConfigGetParamString)(ConfigUI, "PluginDir");
         lib_filelist = osal_library_search(plugindir);
     }
-
-    // for MacOS, look for plugins in the Frameworks folder of the app bundle 
-#if defined(__APPLE__)
-    if (lib_filelist == NULL)
-    {
-        CFBundleRef mainBundle = CFBundleGetMainBundle();
-        if (mainBundle != NULL)
-        {
-            CFURLRef frameworksURL = CFBundleCopyPrivateFrameworksURL(mainBundle);
-            if (frameworksURL != NULL)
-            {
-                char libPath[1024];
-                if (CFURLGetFileSystemRepresentation(frameworksURL, TRUE, (uint8_t *) libPath, 1024))
-                {
-                    strcat(libPath, "/");
-                    UDebugMessage(M64MSG_INFO, "Searching for plugins at: %s", libPath);
-                    lib_filelist = osal_library_search(libPath);
-                }
-                CFRelease(frameworksURL);
-            }
-        }
-    }
-#endif
 
     // if still no plugins found, search some common system folders 
     if (lib_filelist == NULL)
@@ -206,6 +189,7 @@ m64p_error PluginSearchLoad(m64p_handle ConfigUI)
             case M64PLUGIN_INPUT:  cmdline_path = g_InputPlugin;  config_var = "InputPlugin"; break;
             default:               cmdline_path = NULL;           config_var = "";
         }
+
         // first search for a plugin matching what was given on the command line 
         if (cmdline_path != NULL)
         {
@@ -290,7 +274,7 @@ m64p_error PluginSearchLoad(m64p_handle ConfigUI)
     }
 
     // free up the list of library files in the plugin search directory 
-    osal_free_lib_list(lib_filelist);
+    osal_free_lib_list(lib_filelist);*/
     return M64ERR_SUCCESS;
 }
 

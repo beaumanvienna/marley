@@ -45,6 +45,28 @@ typedef enum {
     E_MODE_NAMED_AUTO,
     E_MODE_FULL_AUTO
  } eModeType;
+ 
+static const char *button_assignments[] = {
+    "button(14)",
+    "button(13)",
+    "button(12)",
+    "button(11)",
+    "button(6)",
+    "button(10)",
+    "button(1)",
+    "button(0)",
+    "axis(3+)",
+    "axis(3-)",
+    "axis(4+)",
+    "axis(4-)",
+    "button(5)",
+    "button(4)",
+    "",
+    "",
+    "axis(0-,0+)",
+    "axis(1-,1+)"
+};
+
 
 static const char *button_names[] = {
     "DPad R",       // R_DPAD
@@ -286,109 +308,146 @@ static void init_controller_config(int iCtrlIdx, const char *pccDeviceName, eMod
         IDebugMessage(M64MSG_ERROR, "Couldn't open config section '%s'", SectionName);
         return;
     }
-
-    /* save the general controller parameters */
-    ConfigSetDefaultFloat(pConfig, "version", CONFIG_VERSION, "Mupen64Plus SDL Input Plugin config parameter version number.  Please don't change this version number.");
-    ConfigSetDefaultInt(pConfig, "mode", (int) mode, "Controller configuration mode: 0=Fully Manual, 1=Auto with named SDL Device, 2=Fully automatic");
-    ConfigSetDefaultInt(pConfig, "device", controller[iCtrlIdx].device, "Specifies which joystick is bound to this controller: -1=No joystick, 0 or more= SDL Joystick number");
-    ConfigSetDefaultString(pConfig, "name", pccDeviceName, "SDL joystick name (or Keyboard)");
-    ConfigSetDefaultBool(pConfig, "plugged", controller[iCtrlIdx].control->Present, "Specifies whether this controller is 'plugged in' to the simulated N64");
-    ConfigSetDefaultInt(pConfig, "plugin", controller[iCtrlIdx].control->Plugin, "Specifies which type of expansion pak is in the controller: 1=None, 2=Mem pak, 4=Transfer pak, 5=Rumble pak");
-    ConfigSetDefaultBool(pConfig, "mouse", controller[iCtrlIdx].mouse, "If True, then mouse buttons may be used with this controller");
-
-    sprintf(Param, "%.2f,%.2f", controller[iCtrlIdx].mouse_sens[0], controller[iCtrlIdx].mouse_sens[1]);
-    ConfigSetDefaultString(pConfig, "MouseSensitivity", Param, "Scaling factor for mouse movements.  For X, Y axes.");
-    sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_deadzone[0], controller[iCtrlIdx].axis_deadzone[1]);
-    ConfigSetDefaultString(pConfig, "AnalogDeadzone", Param, "The minimum absolute value of the SDL analog joystick axis to move the N64 controller axis value from 0.  For X, Y axes.");
-    sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_peak[0], controller[iCtrlIdx].axis_peak[1]);
-    ConfigSetDefaultString(pConfig, "AnalogPeak", Param, "An absolute value of the SDL joystick axis >= AnalogPeak will saturate the N64 controller axis value (at 80).  For X, Y axes. For each axis, this must be greater than the corresponding AnalogDeadzone value");
-
-    /* save configuration for all the digital buttons */
-    for (j = 0; j < X_AXIS; j++ )
+    // save the general controller parameters
+    #warning "JC: modified"
+    if(iCtrlIdx < 2)
     {
-        const char *Help;
-        int len = 0;
-        ParamString[0] = 0;
-        if (controller[iCtrlIdx].button[j].key > 0)
+        ConfigSetDefaultFloat(pConfig, "version", CONFIG_VERSION, "Mupen64Plus SDL Input Plugin config parameter version number.  Please don't change this version number.");
+        ConfigSetDefaultInt(pConfig, "mode", 0, "Controller configuration mode: 0=Fully Manual, 1=Auto with named SDL Device, 2=Fully automatic");
+        ConfigSetDefaultInt(pConfig, "device", 0, "Specifies which joystick is bound to this controller: -1=No joystick, 0 or more= SDL Joystick number");
+        ConfigSetDefaultString(pConfig, "name", "0xbaadf00dbeefbabe", "SDL joystick name (or Keyboard)");
+        ConfigSetDefaultBool(pConfig, "plugged", 1, "Specifies whether this controller is 'plugged in' to the simulated N64");
+        ConfigSetDefaultInt(pConfig, "plugin", 2, "Specifies which type of expansion pak is in the controller: 1=None, 2=Mem pak, 4=Transfer pak, 5=Rumble pak");
+        ConfigSetDefaultBool(pConfig, "mouse", 0, "If True, then mouse buttons may be used with this controller");
+        
+        sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_deadzone[0], controller[iCtrlIdx].axis_deadzone[1]);
+        ConfigSetDefaultString(pConfig, "AnalogDeadzone", Param, "The minimum absolute value of the SDL analog joystick axis to move the N64 controller axis value from 0.  For X, Y axes.");
+        
+        sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_peak[0], controller[iCtrlIdx].axis_peak[1]);
+        ConfigSetDefaultString(pConfig, "AnalogPeak", Param, "An absolute value of the SDL joystick axis >= AnalogPeak will saturate the N64 controller axis value (at 80).  For X, Y axes. For each axis, this must be greater than the corresponding AnalogDeadzone value");
+        
+        // save configuration for all digital buttons
+        for (j = 0; j < 18; j++ )
         {
-            sprintf(Param, "key(%i) ", sdl_native2keysym(controller[iCtrlIdx].button[j].key));
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].button[j].button >= 0)
-        {
-            sprintf(Param, "button(%i) ", controller[iCtrlIdx].button[j].button);
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].button[j].axis >= 0)
-        {
-            if (controller[iCtrlIdx].button[j].axis_deadzone >= 0)
-                sprintf(Param, "axis(%i%c,%i) ", controller[iCtrlIdx].button[j].axis, (controller[iCtrlIdx].button[j].axis_dir == -1) ? '-' : '+',
-                        controller[iCtrlIdx].button[j].axis_deadzone);
+            const char *Help;
+            int len = 0;
+            ParamString[0] = 0;
+
+            if (j == 0)
+                Help = "Digital button configuration mappings";
             else
-                sprintf(Param, "axis(%i%c) ", controller[iCtrlIdx].button[j].axis, (controller[iCtrlIdx].button[j].axis_dir == -1) ? '-' : '+');
-            strcat(ParamString, Param);
+                Help = NULL;
+            /* if last character is a space, chop it off */
+            len = strlen(ParamString);
+            if (len > 0 && ParamString[len-1] == ' ')
+                ParamString[len-1] = 0;
+            ConfigSetDefaultString(pConfig, button_names[j], button_assignments[j], Help);
         }
-        if (controller[iCtrlIdx].button[j].hat >= 0)
-        {
-            sprintf(Param, "hat(%i %s) ", controller[iCtrlIdx].button[j].hat, HAT_POS_NAME(controller[iCtrlIdx].button[j].hat_pos));
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].button[j].mouse >= 0)
-        {
-            sprintf(Param, "mouse(%i) ", controller[iCtrlIdx].button[j].mouse);
-            strcat(ParamString, Param);
-        }
-        if (j == 0)
-            Help = "Digital button configuration mappings";
-        else
-            Help = NULL;
-        /* if last character is a space, chop it off */
-        len = strlen(ParamString);
-        if (len > 0 && ParamString[len-1] == ' ')
-            ParamString[len-1] = 0;
-        ConfigSetDefaultString(pConfig, button_names[j], ParamString, Help);
     }
-
-    /* save configuration for the 2 analog axes */
-    for (j = 0; j < 2; j++ )
+    else
     {
-        const char *Help;
-        int len = 0;
-        ParamString[0] = 0;
-        if (controller[iCtrlIdx].axis[j].key_a > 0 && controller[iCtrlIdx].axis[j].key_b > 0)
-        {
-            sprintf(Param, "key(%i,%i) ", sdl_native2keysym(controller[iCtrlIdx].axis[j].key_a), sdl_native2keysym(controller[iCtrlIdx].axis[j].key_b));
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].axis[j].button_a >= 0 && controller[iCtrlIdx].axis[j].button_b >= 0)
-        {
-            sprintf(Param, "button(%i,%i) ", controller[iCtrlIdx].axis[j].button_a, controller[iCtrlIdx].axis[j].button_b);
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].axis[j].axis_a >= 0 && controller[iCtrlIdx].axis[j].axis_b >= 0)
-        {
-            sprintf(Param, "axis(%i%c,%i%c) ", controller[iCtrlIdx].axis[j].axis_a, (controller[iCtrlIdx].axis[j].axis_dir_a <= 0) ? '-' : '+',
-                                               controller[iCtrlIdx].axis[j].axis_b, (controller[iCtrlIdx].axis[j].axis_dir_b <= 0) ? '-' : '+' );
-            strcat(ParamString, Param);
-        }
-        if (controller[iCtrlIdx].axis[j].hat >= 0)
-        {
-            sprintf(Param, "hat(%i %s %s) ", controller[iCtrlIdx].axis[j].hat,
-                                             HAT_POS_NAME(controller[iCtrlIdx].axis[j].hat_pos_a),
-                                             HAT_POS_NAME(controller[iCtrlIdx].axis[j].hat_pos_b));
-            strcat(ParamString, Param);
-        }
-        if (j == 0)
-            Help = "Analog axis configuration mappings";
-        else
-            Help = NULL;
-        /* if last character is a space, chop it off */
-        len = strlen(ParamString);
-        if (len > 0 && ParamString[len-1] == ' ')
-            ParamString[len-1] = 0;
-        ConfigSetDefaultString(pConfig, button_names[X_AXIS + j], ParamString, Help);
-    }
+    
+        ConfigSetDefaultFloat(pConfig, "version", CONFIG_VERSION, "Mupen64Plus SDL Input Plugin config parameter version number.  Please don't change this version number.");
+        ConfigSetDefaultInt(pConfig, "mode", (int) mode, "Controller configuration mode: 0=Fully Manual, 1=Auto with named SDL Device, 2=Fully automatic");
+        ConfigSetDefaultInt(pConfig, "device", controller[iCtrlIdx].device, "Specifies which joystick is bound to this controller: -1=No joystick, 0 or more= SDL Joystick number");
+        ConfigSetDefaultString(pConfig, "name", pccDeviceName, "SDL joystick name (or Keyboard)");
+        ConfigSetDefaultBool(pConfig, "plugged", controller[iCtrlIdx].control->Present, "Specifies whether this controller is 'plugged in' to the simulated N64");
+        ConfigSetDefaultInt(pConfig, "plugin", controller[iCtrlIdx].control->Plugin, "Specifies which type of expansion pak is in the controller: 1=None, 2=Mem pak, 4=Transfer pak, 5=Rumble pak");
+        ConfigSetDefaultBool(pConfig, "mouse", controller[iCtrlIdx].mouse, "If True, then mouse buttons may be used with this controller");
 
+        sprintf(Param, "%.2f,%.2f", controller[iCtrlIdx].mouse_sens[0], controller[iCtrlIdx].mouse_sens[1]);
+        ConfigSetDefaultString(pConfig, "MouseSensitivity", Param, "Scaling factor for mouse movements.  For X, Y axes.");
+        sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_deadzone[0], controller[iCtrlIdx].axis_deadzone[1]);
+        ConfigSetDefaultString(pConfig, "AnalogDeadzone", Param, "The minimum absolute value of the SDL analog joystick axis to move the N64 controller axis value from 0.  For X, Y axes.");
+        sprintf(Param, "%i,%i", controller[iCtrlIdx].axis_peak[0], controller[iCtrlIdx].axis_peak[1]);
+        ConfigSetDefaultString(pConfig, "AnalogPeak", Param, "An absolute value of the SDL joystick axis >= AnalogPeak will saturate the N64 controller axis value (at 80).  For X, Y axes. For each axis, this must be greater than the corresponding AnalogDeadzone value");
+
+        /* save configuration for all the digital buttons */
+        for (j = 0; j < X_AXIS; j++ )
+        {
+            const char *Help;
+            int len = 0;
+            ParamString[0] = 0;
+            if (controller[iCtrlIdx].button[j].key > 0)
+            {
+                sprintf(Param, "key(%i) ", sdl_native2keysym(controller[iCtrlIdx].button[j].key));
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].button[j].button >= 0)
+            {
+                sprintf(Param, "button(%i) ", controller[iCtrlIdx].button[j].button);
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].button[j].axis >= 0)
+            {
+                if (controller[iCtrlIdx].button[j].axis_deadzone >= 0)
+                    sprintf(Param, "axis(%i%c,%i) ", controller[iCtrlIdx].button[j].axis, (controller[iCtrlIdx].button[j].axis_dir == -1) ? '-' : '+',
+                            controller[iCtrlIdx].button[j].axis_deadzone);
+                else
+                    sprintf(Param, "axis(%i%c) ", controller[iCtrlIdx].button[j].axis, (controller[iCtrlIdx].button[j].axis_dir == -1) ? '-' : '+');
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].button[j].hat >= 0)
+            {
+                sprintf(Param, "hat(%i %s) ", controller[iCtrlIdx].button[j].hat, HAT_POS_NAME(controller[iCtrlIdx].button[j].hat_pos));
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].button[j].mouse >= 0)
+            {
+                sprintf(Param, "mouse(%i) ", controller[iCtrlIdx].button[j].mouse);
+                strcat(ParamString, Param);
+            }
+            if (j == 0)
+                Help = "Digital button configuration mappings";
+            else
+                Help = NULL;
+            /* if last character is a space, chop it off */
+            len = strlen(ParamString);
+            if (len > 0 && ParamString[len-1] == ' ')
+                ParamString[len-1] = 0;
+            ConfigSetDefaultString(pConfig, button_names[j], ParamString, Help);
+        }
+
+        /* save configuration for the 2 analog axes */
+        for (j = 0; j < 2; j++ )
+        {
+            const char *Help;
+            int len = 0;
+            ParamString[0] = 0;
+            if (controller[iCtrlIdx].axis[j].key_a > 0 && controller[iCtrlIdx].axis[j].key_b > 0)
+            {
+                sprintf(Param, "key(%i,%i) ", sdl_native2keysym(controller[iCtrlIdx].axis[j].key_a), sdl_native2keysym(controller[iCtrlIdx].axis[j].key_b));
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].axis[j].button_a >= 0 && controller[iCtrlIdx].axis[j].button_b >= 0)
+            {
+                sprintf(Param, "button(%i,%i) ", controller[iCtrlIdx].axis[j].button_a, controller[iCtrlIdx].axis[j].button_b);
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].axis[j].axis_a >= 0 && controller[iCtrlIdx].axis[j].axis_b >= 0)
+            {
+                sprintf(Param, "axis(%i%c,%i%c) ", controller[iCtrlIdx].axis[j].axis_a, (controller[iCtrlIdx].axis[j].axis_dir_a <= 0) ? '-' : '+',
+                                                   controller[iCtrlIdx].axis[j].axis_b, (controller[iCtrlIdx].axis[j].axis_dir_b <= 0) ? '-' : '+' );
+                strcat(ParamString, Param);
+            }
+            if (controller[iCtrlIdx].axis[j].hat >= 0)
+            {
+                sprintf(Param, "hat(%i %s %s) ", controller[iCtrlIdx].axis[j].hat,
+                                                 HAT_POS_NAME(controller[iCtrlIdx].axis[j].hat_pos_a),
+                                                 HAT_POS_NAME(controller[iCtrlIdx].axis[j].hat_pos_b));
+                strcat(ParamString, Param);
+            }
+            if (j == 0)
+                Help = "Analog axis configuration mappings";
+            else
+                Help = NULL;
+            /* if last character is a space, chop it off */
+            len = strlen(ParamString);
+            if (len > 0 && ParamString[len-1] == ' ')
+                ParamString[len-1] = 0;
+            ConfigSetDefaultString(pConfig, button_names[X_AXIS + j], ParamString, Help);
+        }
+    }
 }
 
 static int setup_auto_controllers(int bPreConfig, int n64CtrlStart, int sdlCtrlIdx, const char *sdlJoyName, eModeType ControlMode[], eModeType OrigControlMode[], char DeviceName[][256])

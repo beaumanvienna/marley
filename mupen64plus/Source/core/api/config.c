@@ -435,6 +435,12 @@ m64p_error ConfigInit(const char *ConfigDirOverride, const char *DataDirOverride
     size_t filelen;
     FILE *fPtr;
     char *configtext;
+    
+    l_ConfigInit = 0;
+    l_DataDirOverride = NULL;
+    l_ConfigDirOverride = NULL;
+    l_ConfigListActive = NULL;
+    l_ConfigListSaved = NULL;
 
     config_section *current_section = NULL;
     char *line, *end, *lastcomment;
