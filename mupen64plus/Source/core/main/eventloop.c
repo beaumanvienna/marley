@@ -298,11 +298,12 @@ static int MatchJoyCommand(const SDL_Event *event, eJoyCommand cmd)
 /*********************************************************************************************************
 * sdl event filter
 */
+extern Uint8 quitGuideButton;
 static int SDLCALL event_sdl_filter(void *userdata, SDL_Event *event)
 {
     int cmd, action;
     #warning "JC: modified"
-    if (mupen64plus_quit) 
+    if ((mupen64plus_quit) || (quitGuideButton) )
     {
         main_stop();
         SDL_SetEventFilter(NULL, NULL);

@@ -50,7 +50,7 @@
 
 static inline const char* _SDL_JoystickName(int device_index)
 {
-    SDL_Joystick *joystick;
+    /*SDL_Joystick *joystick;
     const char *name;
     static char JoyName[256];
 
@@ -64,9 +64,9 @@ static inline const char* _SDL_JoystickName(int device_index)
         strncpy(JoyName, name, 255);
         JoyName[255] = 0;
     }
-    SDL_JoystickClose(joystick);
+    SDL_JoystickClose(joystick);*/
 
-    return JoyName;
+    return "0xbaadf00dbeefbabe";
 }
 
 #define SDL_JoystickName(device_index) _SDL_JoystickName(device_index)
@@ -110,6 +110,7 @@ enum EButton
     RUMBLEPAK,
     X_AXIS,
     Y_AXIS,
+    GUIDE,
     NUM_BUTTONS
 };
 

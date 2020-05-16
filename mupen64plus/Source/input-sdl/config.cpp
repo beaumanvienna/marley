@@ -55,16 +55,17 @@ static const char *button_assignments[] = {
     "button(10)",
     "button(1)",
     "button(0)",
+    "axis(2+)",
+    "axis(2-)",
     "axis(3+)",
     "axis(3-)",
     "axis(4+)",
-    "axis(4-)",
-    "button(5)",
-    "button(4)",
+    "axis(5+)",
     "",
     "",
     "axis(0-,0+)",
-    "axis(1-,1+)"
+    "axis(1-,1+)",
+    "button(5)",
 };
 
 
@@ -86,7 +87,8 @@ static const char *button_names[] = {
     "Mempak switch",
     "Rumblepak switch",
     "X Axis",       // X_AXIS
-    "Y Axis"        // Y_AXIS
+    "Y Axis",       // Y_AXIS
+    "Guide"         // GUIDE
 };
 
 /* static functions */
@@ -314,7 +316,7 @@ static void init_controller_config(int iCtrlIdx, const char *pccDeviceName, eMod
     {
         ConfigSetDefaultFloat(pConfig, "version", CONFIG_VERSION, "Mupen64Plus SDL Input Plugin config parameter version number.  Please don't change this version number.");
         ConfigSetDefaultInt(pConfig, "mode", 0, "Controller configuration mode: 0=Fully Manual, 1=Auto with named SDL Device, 2=Fully automatic");
-        ConfigSetDefaultInt(pConfig, "device", 0, "Specifies which joystick is bound to this controller: -1=No joystick, 0 or more= SDL Joystick number");
+        ConfigSetDefaultInt(pConfig, "device", iCtrlIdx, "Specifies which joystick is bound to this controller: -1=No joystick, 0 or more= SDL Joystick number");
         ConfigSetDefaultString(pConfig, "name", "0xbaadf00dbeefbabe", "SDL joystick name (or Keyboard)");
         ConfigSetDefaultBool(pConfig, "plugged", 1, "Specifies whether this controller is 'plugged in' to the simulated N64");
         ConfigSetDefaultInt(pConfig, "plugin", 2, "Specifies which type of expansion pak is in the controller: 1=None, 2=Mem pak, 4=Transfer pak, 5=Rumble pak");
@@ -327,7 +329,7 @@ static void init_controller_config(int iCtrlIdx, const char *pccDeviceName, eMod
         ConfigSetDefaultString(pConfig, "AnalogPeak", Param, "An absolute value of the SDL joystick axis >= AnalogPeak will saturate the N64 controller axis value (at 80).  For X, Y axes. For each axis, this must be greater than the corresponding AnalogDeadzone value");
         
         // save configuration for all digital buttons
-        for (j = 0; j < 18; j++ )
+        for (j = 0; j < NUM_BUTTONS; j++ )
         {
             const char *Help;
             int len = 0;
@@ -767,9 +769,9 @@ void load_configuration(int bPreConfig)
             if (ConfigOpenSection(SectionName, &section) == M64ERR_SUCCESS)
             {
                 const int iNoDevice = -1;
-                ConfigSetParameter(section, "device", M64TYPE_INT, &iNoDevice);
-                if (OrigControlMode[n64CtrlIdx] == E_MODE_FULL_AUTO)
-                    ConfigSetParameter(section, "name", M64TYPE_STRING, "");
+                //ConfigSetParameter(section, "device", M64TYPE_INT, &iNoDevice);
+                //if (OrigControlMode[n64CtrlIdx] == E_MODE_FULL_AUTO)
+                    //ConfigSetParameter(section, "name", M64TYPE_STRING, "");
             }
         }
     }
@@ -784,7 +786,7 @@ void load_configuration(int bPreConfig)
         {
             /* copy the auto-config settings to the controller config section */
             if (OrigControlMode[0] == E_MODE_FULL_AUTO)
-                auto_copy_inputconfig("AutoConfig0", "Input-SDL-Control1", "Keyboard");
+                auto_copy_inputconfig("AutoConfig0", "Input-SDL-Control1", NULL);
             else
                 auto_copy_inputconfig("AutoConfig0", "Input-SDL-Control1", NULL);  // don't overwrite 'name' parameter
             ActiveControllers++;

@@ -69,7 +69,7 @@ typedef struct DesignatedControllers {
 
 //designated controllers
 extern T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
-
+Uint8 quitGuideButton;
 
 m64p_error EVidExt_Init(void);
 m64p_error EVidExt_Quit(void);
@@ -194,6 +194,8 @@ extern "C" m64p_error IPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
 
     int i, ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
+    
+    quitGuideButton=0;
 
     if (l_PluginInit)
         return M64ERR_ALREADY_INIT;
@@ -490,6 +492,7 @@ extern "C" void IGetKeys( int Control, BUTTONS *Keys )
     int b, axis_val;
     SDL_Event event;
     unsigned char mstate;
+    
 
     SDL_PumpEvents();
 
@@ -520,6 +523,7 @@ extern "C" void IGetKeys( int Control, BUTTONS *Keys )
 
     // read joystick state
     SDL_JoystickUpdate();
+    if (SDL_GameControllerGetButton(controller[Control].joystick,SDL_CONTROLLER_BUTTON_GUIDE)) quitGuideButton=1;
 
     if( controller[Control].device >= 0 )
     {
