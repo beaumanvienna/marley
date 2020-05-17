@@ -89,7 +89,8 @@ extern "C" m64p_error EConfigExternalOpen(const char *, m64p_handle *);
 extern "C" m64p_error EConfigExternalClose(m64p_handle);
 extern "C" m64p_error EConfigExternalGetParameter(m64p_handle, const char *, const char *, char *, int);
 
-
+void resetVariables(void);
+extern std::string gBaseDir;
 
 #if defined(__GNUC__)
 #include <sys/time.h>
@@ -242,18 +243,28 @@ void (*renderCallback)(int) = NULL;
 static void (*l_DebugCallback)(void *, int, const char *) = NULL;
 static void *l_DebugCallContext = NULL;
 
+
+
 void _ChangeSize ()
 {
+    
   rdp.scale_1024 = settings.scr_res_x / 1024.0f;
   rdp.scale_768 = settings.scr_res_y / 768.0f;
+
 
 //  float res_scl_x = (float)settings.res_x / 320.0f;
   float res_scl_y = (float)settings.res_y / 240.0f;
 
   wxUint32 scale_x = *gfx.VI_X_SCALE_REG & 0xFFF;
-  if (!scale_x) return;
+  if (!scale_x) 
+  {
+    return;
+  }
   wxUint32 scale_y = *gfx.VI_Y_SCALE_REG & 0xFFF;
-  if (!scale_y) return;
+  if (!scale_y)
+  { 
+    return;
+  }
 
   float fscale_x = (float)scale_x / 1024.0f;
   float fscale_y = (float)scale_y / 2048.0f;
@@ -1236,6 +1247,7 @@ int InitGfx ()
       1);   // 1 auxillary buffer
   }
   if (!gfx_context)
+  {
     gfx_context = grSstWinOpen ((uintptr_t)NULL,
     res_data,
     GR_REFRESH_60Hz,
@@ -1243,6 +1255,7 @@ int InitGfx ()
     GR_ORIGIN_UPPER_LEFT,
     2,    // Double-buffering
     1);   // 1 auxillary buffer
+  }
 
   if (!gfx_context)
   {
@@ -1474,6 +1487,8 @@ void ReleaseGfx ()
 
   fullscreen = FALSE;
   rdp.window_changed = TRUE;
+  Ini::ResetIni();
+  resetVariables();
 }
 
 // new API code begins here!
@@ -1618,9 +1633,11 @@ m64p_error GPluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
         ERRLOG("Couldn't connect to Core video functions");
         return M64ERR_INCOMPATIBLE;
     }
-    #warning "JC: debug code"
-    const char s[]="/home/yo/temp/mupen64plus/source/mupen64plus-video-glide64mk2/data/Glide64mk2.ini";
-    const char *configDir = s;
+    #warning "JC: modified"
+    std::string glideIni = gBaseDir;
+    
+    glideIni += "mupen64plus/Glide64mk2.ini";
+    const char *configDir = glideIni.c_str();
     if (configDir)
     {
         SetConfigDir(configDir);
@@ -1908,6 +1925,7 @@ void GRomClosed (void)
   romopen = FALSE;
   if (fullscreen && evoodoo)
     ReleaseGfx ();
+    
 }
 
 static void CheckDRAMSize()
@@ -1940,6 +1958,7 @@ output:   none
 *******************************************************************/
 int GRomOpen (void)
 {
+
   VLOG ("RomOpen ()\n");
   no_dlist = true;
   romopen = TRUE;
@@ -2347,25 +2366,27 @@ void newSwapBuffers()
       char buf[256];
       buf[0] = 0;
       char * message = 0;
+      message = strcat(buf, "THIS IS MUPEN64PLUS (MARLEY): N64 is online ");
+      
       if (hotkey_info.hk_ref)
       {
-        if (settings.frame_buffer & fb_ref)
+        /*if (settings.frame_buffer & fb_ref)
           message = strcat(buf, "FB READ ALWAYS: ON");
         else
-          message = strcat(buf, "FB READ ALWAYS: OFF");
+          message = strcat(buf, "FB READ ALWAYS: OFF");*/
         hotkey_info.hk_ref--;
       }
       if (hotkey_info.hk_motionblur)
       {
-        if (settings.frame_buffer & fb_motionblur)
+        /*if (settings.frame_buffer & fb_motionblur)
           message = strcat(buf, "  MOTION BLUR: ON");
         else
-          message = strcat(buf, "  MOTION BLUR: OFF");
+          message = strcat(buf, "  MOTION BLUR: OFF");*/
         hotkey_info.hk_motionblur--;
       }
       if (hotkey_info.hk_filtering)
       {
-        switch (settings.filtering)
+        /*switch (settings.filtering)
         {
         case 0:
           message = strcat(buf, "  FILTERING MODE: AUTOMATIC");
@@ -2376,7 +2397,7 @@ void newSwapBuffers()
         case 2:
           message = strcat(buf, "  FILTERING MODE: FORCE POINT-SAMPLED");
           break;
-        }
+        }*/
         hotkey_info.hk_filtering--;
       }
       output (120.0f, (float)settings.res_y, 0, "%s", message);
@@ -2623,3 +2644,82 @@ do_it:
 }
 #endif
 
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+extern wxUint8 tex1[1024*1024*4];		// temporary texture
+extern wxUint8 *texture_buffer;
+extern wxUint16 * zLUT;
+
+extern int TMU_SIZE;
+extern unsigned char* texture;
+
+extern int packed_pixels_support;
+extern int ati_sucks;
+extern float largest_supported_anisotropy;
+
+
+void resetVariablesRDP();
+void resetVariablesOGLCombiner();
+void resetVariablesOGLglitchmain();
+void resetVariablesOGLtextures(void);
+
+void resetVariables(void)
+{
+    curframe = 0;
+    texture_buffer = tex1;
+    resetVariablesRDP();
+    zLUT = 0;
+    
+    TMU_SIZE = 8*2048*2048;
+    texture = NULL;
+    packed_pixels_support = -1;
+    ati_sucks = -1;
+    largest_supported_anisotropy = 1.0f;
+    
+    renderCallback = NULL;
+    l_DebugCallback = NULL;
+    l_DebugCallContext = NULL;
+    
+    resetVariablesOGLCombiner();
+    resetVariablesOGLglitchmain();
+    resetVariablesOGLtextures();
+    
+    gfx.HEADER = NULL;
+    
+    gfx.RDRAM = NULL;
+    gfx.DMEM = NULL;
+    gfx.IMEM = NULL;
+
+    gfx.MI_INTR_REG = NULL;
+
+    gfx.DPC_START_REG = NULL;
+    gfx.DPC_END_REG = NULL;
+    gfx.DPC_CURRENT_REG = NULL;
+    gfx.DPC_STATUS_REG = NULL;
+    gfx.DPC_CLOCK_REG = NULL;
+    gfx.DPC_BUFBUSY_REG = NULL;
+    gfx.DPC_PIPEBUSY_REG = NULL;
+    gfx.DPC_TMEM_REG = NULL;
+
+    gfx.VI_STATUS_REG = NULL;
+    gfx.VI_ORIGIN_REG = NULL;
+    gfx.VI_WIDTH_REG = NULL;
+    gfx.VI_INTR_REG = NULL;
+    gfx.VI_V_CURRENT_LINE_REG = NULL;
+    gfx.VI_TIMING_REG = NULL;
+    gfx.VI_V_SYNC_REG = NULL;
+    gfx.VI_H_SYNC_REG = NULL;
+    gfx.VI_LEAP_REG = NULL;
+    gfx.VI_H_START_REG = NULL;
+    gfx.VI_V_START_REG = NULL;
+    gfx.VI_V_BURST_REG = NULL;
+    gfx.VI_X_SCALE_REG = NULL;
+    gfx.VI_Y_SCALE_REG = NULL;
+
+    gfx.CheckInterrupts = NULL;
+    gfx.version = 0;
+    gfx.SP_STATUS_REG = NULL;
+    gfx.RDRAM_SIZE  = NULL;
+    
+}

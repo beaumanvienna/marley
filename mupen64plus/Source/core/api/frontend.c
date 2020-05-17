@@ -52,6 +52,8 @@
 static int l_CoreInit = 0;
 static int l_ROMOpen = 0;
 int mupen64plus_quit = 0;
+void resetVariablesOSD(void);
+void resetVariablesCoreMain(void);
 /* functions exported outside of libmupen64plus to front-end application */
 m64p_error ECoreStartup(int APIVersion, const char *ConfigPath, const char *DataPath, void *Context,
                                    void (*DebugCallback)(void *, int, const char *), void *Context2,
@@ -59,6 +61,7 @@ m64p_error ECoreStartup(int APIVersion, const char *ConfigPath, const char *Data
 {
     l_CoreInit = 0;
     l_ROMOpen = 0;
+    SDL_GL_ResetAttributes();
 
     /* very first thing is to set the callback functions for debug info and state changing*/
     SetDebugCallback(DebugCallback, Context);
@@ -126,6 +129,8 @@ m64p_error ECoreShutdown(void)
     g_mem_base = NULL;
 
     l_CoreInit = 0;
+    resetVariablesOSD();
+    resetVariablesCoreMain();
     return M64ERR_SUCCESS;
 }
 

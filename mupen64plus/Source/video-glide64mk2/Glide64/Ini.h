@@ -56,6 +56,7 @@ private:
 	static Ini *singleton;
 public:
 	static Ini *OpenIni();
+    static void ResetIni();
 	void SetPath(const char *path);
 	bool Read(const char *key, int *l);
 	bool Read(const char *key, int *l, int defaultVal);

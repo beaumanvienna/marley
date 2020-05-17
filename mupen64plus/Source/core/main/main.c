@@ -130,6 +130,31 @@ static size_t l_paks_idx[GAME_CONTROLLERS_COUNT];
 static void* l_paks[GAME_CONTROLLERS_COUNT][PAK_MAX_SIZE];
 static const struct pak_interface* l_ipaks[PAK_MAX_SIZE];
 static size_t l_pak_type_idx[6];
+void resetVariablesPlugin(void);
+void resetVariablesCoreMain(void)
+{
+    Uint8 *c;
+    l_msgVol = NULL;
+    l_msgFF = NULL;
+    l_msgPause = NULL;
+    l_CurrentFrame = 0;         
+    l_TakeScreenshot = 0;       
+    l_SpeedFactor = 100;        
+    l_FrameAdvance = 0;         
+    l_MainSpeedLimit = 1;       
+    g_gs_vi_counter = 0;
+    g_mem_base = NULL;
+    g_CoreConfig = NULL;
+    g_FrameCallback = NULL;
+    g_RomWordsLittleEndian = 0;
+    g_EmulatorRunning = 0;
+    
+    resetVariablesPlugin();
+
+    c = &g_dev;
+    for (int i = 0;i<sizeof(struct device);i++) c[i]=0;
+
+}
 
 /*********************************************************************************************************
 * static functions
@@ -246,7 +271,9 @@ void main_message(m64p_msg_level level, unsigned int corner, const char *format,
 
     /* send message to on-screen-display if enabled */
     if (EConfigGetParamBool(g_CoreConfig, "OnScreenDisplay"))
+    {
         osd_new_message((enum osd_corner) corner, "%s", buffer);
+    }
     /* send message to front-end */
     DebugMessage(level, "%s", buffer);
 }

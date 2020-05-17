@@ -64,6 +64,13 @@ static void (*l_animations[OSD_NUM_ANIM_TYPES])(osd_message_t *) = {
     animation_fade  // animation handler for OSD_FADE
 };
 
+void resetVariablesOSD(void)
+{
+    l_OsdInitialized = 0;
+    l_fLineHeight = -1.0;
+    pglActiveTexture = NULL;
+}
+
 // private functions
 // draw message on screen
 static void draw_message(osd_message_t *msg, int width, int height)

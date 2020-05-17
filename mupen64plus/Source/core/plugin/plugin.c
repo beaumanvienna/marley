@@ -19,7 +19,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -177,6 +177,45 @@ static void EmptyFunc(void)
 {
 }
 
+void resetVariablesPlugin(void)
+{
+    gfx_info.HEADER = NULL;
+    
+    gfx_info.RDRAM = NULL;
+    gfx_info.DMEM = NULL;
+    gfx_info.IMEM = NULL;
+
+    gfx_info.MI_INTR_REG = NULL;
+
+    gfx_info.DPC_START_REG = NULL;
+    gfx_info.DPC_END_REG = NULL;
+    gfx_info.DPC_CURRENT_REG = NULL;
+    gfx_info.DPC_STATUS_REG = NULL;
+    gfx_info.DPC_CLOCK_REG = NULL;
+    gfx_info.DPC_BUFBUSY_REG = NULL;
+    gfx_info.DPC_PIPEBUSY_REG = NULL;
+    gfx_info.DPC_TMEM_REG = NULL;
+
+    gfx_info.VI_STATUS_REG = NULL;
+    gfx_info.VI_ORIGIN_REG = NULL;
+    gfx_info.VI_WIDTH_REG = NULL;
+    gfx_info.VI_INTR_REG = NULL;
+    gfx_info.VI_V_CURRENT_LINE_REG = NULL;
+    gfx_info.VI_TIMING_REG = NULL;
+    gfx_info.VI_V_SYNC_REG = NULL;
+    gfx_info.VI_H_SYNC_REG = NULL;
+    gfx_info.VI_LEAP_REG = NULL;
+    gfx_info.VI_H_START_REG = NULL;
+    gfx_info.VI_V_START_REG = NULL;
+    gfx_info.VI_V_BURST_REG = NULL;
+    gfx_info.VI_X_SCALE_REG = NULL;
+    gfx_info.VI_Y_SCALE_REG = NULL;
+
+    gfx_info.CheckInterrupts = NULL;
+    gfx_info.version = 0;
+    gfx_info.SP_STATUS_REG = NULL;
+    gfx_info.RDRAM_SIZE  = NULL;
+}
 
 // code to handle backwards-compatibility to video plugins with API_VERSION < 02.1.0.  This API version introduced a boolean
 // flag in the rendering callback, which told the core whether or not the current screen has been freshly redrawn since the

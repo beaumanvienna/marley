@@ -226,6 +226,7 @@ void microcheck ();
 static int reset = 0;
 static int old_ucode = -1;
 
+
 void RDP::Reset()
 {
   memset(this, 0, sizeof(RDP_Base));
@@ -298,6 +299,12 @@ void rdp_reset ()
 {
   reset = 1;
   rdp.Reset();
+}
+
+void resetVariablesRDP(void)
+{
+    reset = 0;
+    old_ucode = -1;
 }
 
 void microcheck ()
@@ -4284,7 +4291,11 @@ void GProcessRDPList(void)
   //}
 }
 
+
 #ifdef __cplusplus
 }
 #endif
+
+
+
 

@@ -164,6 +164,18 @@ static char fragment_shader_texture0[1024];
 static char fragment_shader_chroma[1024];
 static char shader_log[2048];
 
+void resetVariablesOGLCombiner()
+{
+    first_color = 1;
+    first_alpha = 1;
+    first_texture0 = 1;
+    first_texture1 = 1;
+    tex0_combiner_ext = 0;
+    tex1_combiner_ext = 0;
+    c_combiner_ext = 0;
+    a_combiner_ext = 0;
+}
+
 void updateCombiner(int i)
 {
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);

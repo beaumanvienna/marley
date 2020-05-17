@@ -205,6 +205,29 @@ unsigned short depthBuffer[2048*2048];   // Support 2048x2048 screen resolution 
 
 //#define VOODOO1
 
+void resetVariablesOGLglitchmain()
+{
+    config.res = 0;
+    config.fbo = 0;
+    config.anisofilter = 0;
+    config.vram_size = 0;
+    
+    nb_fb = 0;
+    curBufferAddr = 0;
+    
+    tmu_usage[0].max = 0xfffffff;
+    tmu_usage[0].min = 0;
+    tmu_usage[1].max = 0xfffffff;
+    tmu_usage[1].min = 0;
+    
+    glsl_support = 1;
+    viewport_offset = 0;
+    nvidia_viewport_hack = 0;
+    
+    UMAmode = 0; 
+    render_to_texture = 0;
+}
+
 void display_warning(const char *text, ...)
 {
   static int first_message = 100;
@@ -498,7 +521,7 @@ grSstWinOpen(
   SDL_GetWindowSize(gWindow,&width,&height);
   screen_width = width;
   screen_height = height;
-  fullscreen = (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP);
+  fullscreen = 0;//(SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP);
 
   
   int vsync = ConfigGetParamBool(video_general_section, "VerticalSync");
@@ -534,10 +557,9 @@ grSstWinOpen(
 # ifdef _DEBUG
   sprintf(caption, "Glide64mk2 debug");
 # else // _DEBUG
-  sprintf(caption, "Glide64mk2");
+  sprintf(caption, "Mupen64plus/Marley");
 # endif // _DEBUG
   CoreVideo_SetCaption(caption);
-
   glViewport(0, viewport_offset, width, height);
   lfb_color_fmt = color_format;
   if (origin_location != GR_ORIGIN_UPPER_LEFT) display_warning("origin must be in upper left corner");
@@ -953,10 +975,13 @@ FX_ENTRY void FX_CALL grTextureBufferExt( GrChipID_t  		tmu,
     add_tex(pBufferAddress);
 
     //printf("viewport %dx%d\n", width, height);
-    if (height > screen_height) {
+    if (height > screen_height) 
+    {
       glViewport( 0, viewport_offset + screen_height - height, width, height);
     } else
+    {
       glViewport( 0, viewport_offset, width, height);
+    }
 
     glScissor(0, viewport_offset, width, height);
 
@@ -1408,7 +1433,6 @@ void reloadTexture()
     return;
 
   LOG("reload texture %dx%d\n", width, height);
-  //printf("reload texture %dx%d\n", width, height);
 
   buffer_cleared = 1;
 
@@ -1518,7 +1542,6 @@ grRenderBuffer( GrBuffer_t buffer )
   int realWidth = pBufferWidth, realHeight = pBufferHeight;
 #endif // _WIN32
   LOG("grRenderBuffer(%d)\r\n", buffer);
-  //printf("grRenderBuffer(%d)\n", buffer);
 
   switch(buffer)
   {
@@ -1544,7 +1567,6 @@ grRenderBuffer( GrBuffer_t buffer )
         glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, 0 );
       }
       curBufferAddr = 0;
-
       glViewport(0, viewport_offset, width, viewport_height);
       glScissor(0, viewport_offset, width, height);
 
@@ -1683,25 +1705,28 @@ grBufferClear( GrColor_t color, GrAlpha_t alpha, FxU32 depth )
 
 }
 
-// #include <unistd.h>
-FX_ENTRY void FX_CALL
-grBufferSwap( FxU32 swap_interval )
+
+FX_ENTRY void FX_CALL grBufferSwap( FxU32 swap_interval )
 {
-   GLhandleARB program;
+    GLhandleARB program;
 
 	glFinish();
-//  printf("rendercallback is %p\n", renderCallback);
-  if(renderCallback) {
+
+  if(renderCallback) 
+  {
       program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
       glUseProgramObjectARB(0);
       (*renderCallback)(1);
       if (program)
+      {
          glUseProgramObjectARB(program);
+     }
   }
   int i;
   LOG("grBufferSwap(%d)\r\n", swap_interval);
-  //printf("swap\n");
-  if (render_to_texture) {
+  
+  if (render_to_texture) 
+  {
     display_warning("swap while render_to_texture\n");
     return;
   }

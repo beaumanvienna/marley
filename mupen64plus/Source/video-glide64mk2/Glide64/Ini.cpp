@@ -93,6 +93,13 @@ Ini *Ini::OpenIni()
 	return singleton;
 }
 
+void Ini::ResetIni()
+{
+	if (singleton) delete singleton;
+    singleton=NULL;
+    cr = 0x0A0D;
+}
+
 void Ini::SetPath(const char *path)
 {
 	if (!INI_FindSection(path, false))

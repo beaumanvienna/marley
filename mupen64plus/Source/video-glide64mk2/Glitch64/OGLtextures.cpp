@@ -73,6 +73,13 @@ extern PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT;
 extern PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT;
 extern PFNGLCOMPRESSEDTEXIMAGE2DARBPROC glCompressedTexImage2DARB;
 #endif
+
+void resetVariablesOGLtextures(void)
+{
+    nbTex = 0;
+    list = NULL;
+}
+
 void remove_tex(unsigned int idmin, unsigned int idmax)
 {
   unsigned int *t;
