@@ -171,7 +171,6 @@ ifeq ($(ARCH_DETECTED), 64BITS_32)
   endif
   ifneq ($(OS),OSX)
     CFLAGS += -m32
-    LDFLAGS += -Wl,-m,elf_i386
   endif
 endif
 
@@ -179,7 +178,6 @@ endif
 ifeq ($(OS), FREEBSD)
   TARGET = libmupen64plus$(POSTFIX).so.2.0.0
   SONAME = libmupen64plus$(POSTFIX).so.2
-  LDFLAGS += -Wl,-Bsymbolic -shared -Wl,-export-dynamic -Wl,-soname,$(SONAME)
   LDLIBS += -L${LOCALBASE}/lib -lc
   ifeq ($(ARCH_DETECTED), 64BITS)
     ASFLAGS = -f elf64
@@ -190,10 +188,8 @@ endif
 ifeq ($(OS), LINUX)
   TARGET = libmupen64plus$(POSTFIX).a
   SONAME = libmupen64plus$(POSTFIX).so.2
-  #LDFLAGS += -Wl,-Bsymbolic -shared -Wl,-export-dynamic -Wl,-soname,$(SONAME)
   LDLIBS += -ldl
   # only export api symbols
-  #LDFLAGS += -Wl,-version-script,api/api_export.ver
   ifeq ($(ARCH_DETECTED), 64BITS)
     ASFLAGS = -f elf64
   else
@@ -408,7 +404,7 @@ AWK      ?= awk
 COMPILE.c = $(Q_CC)$(CC) $(OPTFLAGS) $(WARNFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 COMPILE.as = $(Q_AS)$(AS) $(ASFLAGS)
-LINK.o = ar rs $(LDFLAGS)
+LINK.o = ar rs
 
 ifeq ($(OS),OSX)
   LDCONFIG ?= true  # no 'ldconfig' under OSX

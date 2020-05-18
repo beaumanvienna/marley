@@ -145,7 +145,7 @@ OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall -Wno-unused-function
 CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -IGlitch64/inc -DGCC
 CXXFLAGS += -fvisibility-inlines-hidden -std=gnu++0x
-LDFLAGS += $(STATICLIB)
+LDFLAGS = $(STATICLIB)
 BOOST_SUFFIX ?=
 
 ifeq ($(CPU), X86)
@@ -170,7 +170,6 @@ ifeq ($(ARCH_DETECTED), 64BITS_32)
     $(error Do not use the BITS=32 option with FreeBSD, use -m32 and -m elf_i386)
   endif
   CFLAGS += -m32
-  LDFLAGS += -Wl,-m,elf_i386
 endif
 
 ifeq ($(origin PKG_CONFIG), undefined)

@@ -95,7 +95,7 @@ OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
 CFLAGS   += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
 CXXFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -D_GNU_SOURCE=1
-LDFLAGS += $(STATICLIB)
+LDFLAGS = $(STATICLIB)
 LDLIBS += -lm
 
 # Since we are building a shared library, we must compile with -fPIC on some architectures
@@ -109,7 +109,6 @@ endif
 # tweak flags for 32-bit build on 64-bit system
 ifeq ($(ARCH_DETECTED), 64BITS_32)
   CFLAGS += -m32
-  LDFLAGS += -Wl,-m,elf_i386
 endif
 
 # set special flags per-system

@@ -1,6 +1,13 @@
-SUBDIRS = mednafen
+SUBDIRS = mupen64plus
+SUBDIRS += mednafen
 SUBDIRS += dolphin
-SUBDIRS += mupen64plus
+
+mupen64plus/Source/mupen.a: mupen64plus
+
+mupen64plus:
+	$(info   ++++++++++++++++ mupen64plus ++++++++++++++++)
+	$(MAKE) -C mupen64plus all
+
 
 dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a: dolphin
 dolphin/build/Source/Core/Core/libcore.a: dolphin
@@ -39,17 +46,6 @@ dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolp
 dolphin:
 	$(info   ++++++++++++++++ dolphin ++++++++++++++++)
 	$(MAKE) -C dolphin all
-
-mupen64plus/Source/audio-sdl/mupen64plus-audio-sdl.a: mupen64plus
-mupen64plus/Source/core/libmupen64plus.a: mupen64plus
-mupen64plus/Source/input-sdl/mupen64plus-input-sdl.a: mupen64plus
-mupen64plus/Source/rsp-hle/mupen64plus-rsp-hle.a: mupen64plus
-mupen64plus/Source/ui-console/mupen64plus.a: mupen64plus
-mupen64plus/Source/video-glide64mk2/mupen64plus-video-glide64mk2.a: mupen64plus
-
-mupen64plus:
-	$(info   ++++++++++++++++ mupen64plus ++++++++++++++++)
-	$(MAKE) -C mupen64plus all
 
 AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
 AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s
