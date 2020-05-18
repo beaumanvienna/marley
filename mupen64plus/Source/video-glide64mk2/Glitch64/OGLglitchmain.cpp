@@ -502,7 +502,7 @@ grSstWinOpen(
   width = height = 0;
 
   m64p_handle video_general_section;
-  printf("&ConfigOpenSection is %p\n", &ConfigOpenSection);
+  //printf("&ConfigOpenSection is %p\n", &ConfigOpenSection);
   if (ConfigOpenSection("Video-General", &video_general_section) != M64ERR_SUCCESS)
   {
     printf("Could not open video settings");

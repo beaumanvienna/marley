@@ -49,7 +49,10 @@ Build-Depends: debhelper,
         libxext-dev,
         libxrandr-dev,
         portaudio19-dev,
-        qtbase5-private-dev
+        qtbase5-private-dev,
+        libsamplerate0-dev,
+        libfreetype6-dev,
+        libglu1-mesa-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
@@ -108,7 +111,12 @@ Depends: ${shlibs:Depends},
         libwxgtk3.0-0v5,
         libx11-6 (>= 2:1.2.99.901),
         libxi6 (>= 2:1.2.99.4),
-        libxrandr2 (>= 2:1.2.99.2)
+        libxrandr2 (>= 2:1.2.99.2),
+        libsamplerate0,
+        libboost-filesystem1.65.1,
+        libboost-system1.65.1,
+        libfreetype6,
+        libglu1-mesa
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
- This is a bundle emulators and a launcher app.
+ This package is a bundle of console emulators plus a launcher front-end.
