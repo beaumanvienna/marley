@@ -1,9 +1,9 @@
-marley (0.0.6) bionic; urgency=medium
+marley (0.0.6.1) bionic; urgency=medium
 
   * Mupen64plus added (N64 support)
   * this is an unstable version 
    
- -- JC Lache <jc.lache@web.de>  Sun, 17 MAY 2020 18:00:00 -0800
+ -- JC Lache <jc.lache@web.de>  Sun, 17 MAY 2020 21:00:00 -0800
 
 marley (0.0.5.2) bionic; urgency=medium
 

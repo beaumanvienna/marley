@@ -52,7 +52,8 @@ Build-Depends: debhelper,
         qtbase5-private-dev,
         libsamplerate0-dev,
         libfreetype6-dev,
-        libglu1-mesa-dev
+        libglu1-mesa-dev,
+        nasm
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
