@@ -53,7 +53,9 @@ Build-Depends: debhelper,
         libsamplerate0-dev,
         libfreetype6-dev,
         libglu1-mesa-dev,
-        nasm
+        nasm,
+        libboost-filesystem-dev,
+        libboost-system-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
