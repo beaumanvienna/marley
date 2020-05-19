@@ -1965,53 +1965,14 @@ if(UNITTEST)
 	setup_target_project(unitTest unittest)
 endif()
 
-if(LIBRETRO)
-	add_subdirectory(libretro)
-endif()
 
 if(TargetBin)
-	if(IOS OR APPLE)
-		if(APPLE AND NOT IOS)
-			set(ICON_PATH_ABS ${CMAKE_CURRENT_SOURCE_DIR}/icons/ppsspp.icns)
-			set(MACOSX_BUNDLE_ICON_FILE ppsspp.icns)
-			set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-		endif()
-
-		# TODO: there must a native way to copy these.
-		# Now this is very prone to errors when changes occur.
-		# Also better to have assets under Resources dir for OS X.
-		file(GLOB_RECURSE FLASH0_FILES assets/flash0/*)
-		file(GLOB_RECURSE LANG_FILES assets/lang/*)
-		file(GLOB_RECURSE SHADER_FILES assets/shaders/*)
-
-		if(APPLE AND NOT IOS)
-			set_source_files_properties(${NativeAssets} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets")
-			set_source_files_properties(${FLASH0_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/flash0/font")
-			set_source_files_properties(${LANG_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/lang")
-			set_source_files_properties(${SHADER_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/shaders")
-		endif()
-
-		if(IOS)
-			list(APPEND NativeAssets ios/Settings.bundle)
-			add_executable(${TargetBin} MACOSX_BUNDLE ${ICON_PATH_ABS} ${NativeAssets} ${SHADER_FILES} ${FLASH0_FILES} ${LANG_FILES} ${NativeAppSource} "ios/Launch Screen.storyboard")
-		else()
-			add_executable(${TargetBin} MACOSX_BUNDLE ${ICON_PATH_ABS} ${NativeAssets} ${SHADER_FILES} ${FLASH0_FILES} ${LANG_FILES} ${NativeAppSource})
-			if(TARGET SDL2::SDL2)
-				add_custom_command(TARGET ${TargetBin} POST_BUILD COMMAND /bin/bash "${CMAKE_SOURCE_DIR}/SDL/macbundle.sh" "${CMAKE_BINARY_DIR}/PPSSPPSDL.app")
-			endif()
-		endif()
-	elseif(WIN32)
-		add_executable(${TargetBin} WIN32 ${NativeAppSource})
-		if(MSVC)
-			set_target_properties(${TargetBin} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-		else()
-			set_target_properties(${TargetBin} PROPERTIES LINK_FLAGS "-Wl,-subsystem,windows")
-		endif()
-		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TargetBin})
-	else()
-		add_executable(${TargetBin} ${NativeAppSource})
-	endif()
+	
+    add_executable(${TargetBin} ${NativeAppSource})
 	target_link_libraries(${TargetBin} ${LinkCommon} Common)
+    
+	#add_library(${TargetBin} ${NativeAppSource})
+	#target_link_libraries(${TargetBin} ${LinkCommon} Common)
 endif()
 
 # installs
@@ -2019,41 +1980,5 @@ if(NOT ANDROID)
 	file(INSTALL ${NativeAssets} DESTINATION assets)
 	file(INSTALL assets/flash0 DESTINATION assets)
 endif()
-# packaging and code signing
-if(IOS)
-	set(DEPLOYMENT_TARGET 8.0)
-	file(GLOB IOSAssets ios/assets/*.png)
-	list(REMOVE_ITEM IOSAssets ${CMAKE_CURRENT_SOURCE_DIR}/ios/assets/Default-568h@2x.png)
-	list(REMOVE_ITEM IOSAssets ${CMAKE_CURRENT_SOURCE_DIR}/ios/assets/Default-568h@3x.png)
-	file(INSTALL ${IOSAssets} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets)
-	file(GLOB IOSAssets ios/assets/Default-568h@*.png)
-	file(INSTALL ${IOSAssets} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-	if(IOS_DEBUG)
-		file(INSTALL pspautotests DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets)
-	endif()
-	set(RSRC_XIB_FILES assets/Icon@2x.png)
-	set(RSRC_XIB_FILES "Launch Screen.storyboard")
-	set_source_files_properties(${RSRC_XIB_FILES}
-		PROPERTIES MACOSX_PACKAGE_LOCATION Resources
-	)
-	if(CMAKE_GENERATOR STREQUAL "Xcode")
-		set(APP_DIR_NAME "$(TARGET_BUILD_DIR)/$(FULL_PRODUCT_NAME)")
-	else()
-		set(APP_DIR_NAME "$<TARGET_FILE_DIR:PPSSPP>")
-	endif()
-	add_custom_command(TARGET PPSSPP POST_BUILD
-		COMMAND mkdir -p \"${APP_DIR_NAME}\"
-		COMMAND tar -c -C ${CMAKE_CURRENT_BINARY_DIR} --exclude .DS_Store --exclude .git assets *.png | tar -x -C \"${APP_DIR_NAME}\"
-	)
-	set(MACOSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET})
-	set_target_properties(${TargetBin} PROPERTIES
-		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/ios/PPSSPP-Info.plist"
-		RESOURCE "ios/Launch Screen.storyboard"
-		RESOURCE "ios/Settings.bundle"
-		XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET}
-		XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "iPhone/iPad"
-		XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
-		XCODE_ATTRIBUTE_ENABLE_BITCODE NO
-		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-"
-	)
-endif()
+
+

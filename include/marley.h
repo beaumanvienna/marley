@@ -35,6 +35,7 @@ using namespace std;
     #define MEDNAFEN    1
     #define DOLPHIN     1
     #define MUPEN64PLUS 1
+    //#define PPSSPP      1
     
     #ifdef MEDNAFEN
         int mednafen_main(int argc, char* argv[]);
@@ -46,6 +47,10 @@ using namespace std;
     
     #ifdef MUPEN64PLUS
         extern "C" int mupen64plus_main(int argc, char* argv[]);
+    #endif
+    
+    #ifdef PPSSPP
+        int ppsspp_main(int argc, char* argv[]);
     #endif
     
     bool restoreSDL(void);

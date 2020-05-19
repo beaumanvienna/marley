@@ -1,6 +1,7 @@
 SUBDIRS = mupen64plus
 SUBDIRS += mednafen
 SUBDIRS += dolphin
+SUBDIRS += ppsspp
 
 mupen64plus/Source/mupen.a: mupen64plus
 
@@ -56,6 +57,37 @@ marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine
 marley_LDADD 	= mednafen/src/libmednafen_marley.a
 marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
+
+#ppsspp
+#marley_LDADD 	+= ppsspp/build/lib/libglslang.a
+#marley_LDADD 	+= ppsspp/build/lib/libxxhash.a
+#marley_LDADD 	+= ppsspp/build/lib/liblibzip.a
+#marley_LDADD 	+= ppsspp/build/lib/libspirv-cross-cpp.a
+#marley_LDADD 	+= ppsspp/build/lib/libspirv-cross-glsl.a
+#marley_LDADD 	+= ppsspp/build/lib/libdiscord-rpc.a
+#marley_LDADD 	+= ppsspp/build/lib/libudis86.a
+#marley_LDADD 	+= ppsspp/build/lib/libOSDependent.a
+#marley_LDADD 	+= ppsspp/build/lib/libspirv-cross-core.a
+#marley_LDADD 	+= ppsspp/build/lib/libspirv-cross-msl.a
+#marley_LDADD 	+= ppsspp/build/lib/libsfmt19937.a
+#marley_LDADD 	+= ppsspp/build/lib/libPPSSPPSDL.a
+#marley_LDADD 	+= ppsspp/build/lib/libspirv-cross-hlsl.a
+#marley_LDADD 	+= ppsspp/build/lib/libcityhash.a
+#marley_LDADD 	+= ppsspp/build/lib/libkirk.a
+#marley_LDADD 	+= ppsspp/build/lib/libpng17.a
+#marley_LDADD 	+= ppsspp/build/lib/libarmips.a
+#marley_LDADD 	+= ppsspp/build/lib/libnative.a
+#marley_LDADD 	+= ppsspp/build/lib/libOGLCompiler.a
+#marley_LDADD 	+= ppsspp/build/lib/libgason.a
+#marley_LDADD 	+= ppsspp/build/lib/libxbrz.a
+#marley_LDADD 	+= ppsspp/build/lib/libSPVRemapper.a
+#marley_LDADD 	+= ppsspp/build/lib/librg_etc1.a
+#marley_LDADD 	+= ppsspp/build/lib/libCore.a
+#marley_LDADD 	+= ppsspp/build/lib/libHLSL.a
+#marley_LDADD 	+= ppsspp/build/lib/libCommon.a
+#marley_LDADD 	+= ppsspp/build/lib/libSPIRV.a
+#marley_LDADD 	+= ppsspp/build/lib/libsnappy.a
+
 
 #mupen64plus
 marley_LDADD 	+= mupen64plus/Source/mupen.a
