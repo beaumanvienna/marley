@@ -42,7 +42,7 @@ int PSPNetconfDialog::Init(u32 paramAddr) {
 	if (status != SCE_UTILITY_STATUS_NONE && status != SCE_UTILITY_STATUS_SHUTDOWN)
 		return SCE_ERROR_UTILITY_INVALID_STATUS;
 
-	int size = Memory::Read_U32(paramAddr);
+	int size = Memory::PRead_U32(paramAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different request format
 	Memory::Memcpy(&request, paramAddr, size);

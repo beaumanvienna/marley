@@ -226,7 +226,7 @@ u32 sceKernelCreateVTimer(const char *name, u32 optParamAddr) {
 	vtimer->nvt.name[KERNELOBJECT_MAX_NAME_LENGTH] = '\0';
 
 	if (optParamAddr != 0) {
-		u32 size = Memory::Read_U32(optParamAddr);
+		u32 size = Memory::PRead_U32(optParamAddr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateVTimer(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -340,7 +340,7 @@ u32 sceKernelSetVTimerTime(SceUID uid, u32 timeClockAddr) {
 		return error;
 	}
 
-	u64 time = Memory::Read_U64(timeClockAddr);
+	u64 time = Memory::PRead_U64(timeClockAddr);
 	if (Memory::IsValidAddress(timeClockAddr))
 		Memory::Write_U64(__KernelSetVTimer(vt, time), timeClockAddr);
 
@@ -443,7 +443,7 @@ u32 sceKernelSetVTimerHandler(SceUID uid, u32 scheduleAddr, u32 handlerFuncAddr,
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetVTimerHandler(%08x, %08x, %08x, %08x)", uid, scheduleAddr, handlerFuncAddr, commonAddr);
 	hleEatCycles(2000);
 
-	u64 schedule = Memory::Read_U64(scheduleAddr);
+	u64 schedule = Memory::PRead_U64(scheduleAddr);
 	vt->nvt.handlerAddr = handlerFuncAddr;
 	if (handlerFuncAddr) {
 		vt->nvt.commonAddr = commonAddr;
@@ -508,7 +508,7 @@ u32 sceKernelReferVTimerStatus(SceUID uid, u32 statusAddr) {
 
 	if (Memory::IsValidAddress(statusAddr)) {
 		NativeVTimer status = vt->nvt;
-		u32 size = Memory::Read_U32(statusAddr);
+		u32 size = Memory::PRead_U32(statusAddr);
 		status.current = __getVTimerCurrentTime(vt);
 		Memory::Memcpy(statusAddr, &status, std::min(size, (u32)sizeof(status)));
 	}

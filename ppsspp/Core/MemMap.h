@@ -152,10 +152,10 @@ void Write_Opcode_JIT(const u32 _Address, const Opcode& _Value);
 Opcode Read_Instruction(const u32 _Address, bool resolveReplacements = false);
 Opcode ReadUnchecked_Instruction(const u32 _Address, bool resolveReplacements = false);
 
-u8  Read_U8(const u32 _Address);
-u16 Read_U16(const u32 _Address);
-u32 Read_U32(const u32 _Address);
-u64 Read_U64(const u32 _Address);
+u8  PRead_U8(const u32 _Address);
+u16 PRead_U16(const u32 _Address);
+u32 PRead_U32(const u32 _Address);
+u64 PRead_U64(const u32 _Address);
 
 inline u8* GetPointerUnchecked(const u32 address) {
 #ifdef MASKED_PSP_MEMORY
@@ -243,26 +243,26 @@ inline void WriteUnchecked_U8(u8 data, u32 address) {
 
 inline float Read_Float(u32 address) 
 {
-	u32 ifloat = Read_U32(address);
+	u32 ifloat = PRead_U32(address);
 	float f;
 	memcpy(&f, &ifloat, sizeof(float));
 	return f;
 }
 
 // used by JIT. Return zero-extended 32bit values
-u32 Read_U8_ZX(const u32 address);
-u32 Read_U16_ZX(const u32 address);
+u32 PRead_U8_ZX(const u32 address);
+u32 PRead_U16_ZX(const u32 address);
 
-void Write_U8(const u8 data, const u32 address);
-void Write_U16(const u16 data, const u32 address);
-void Write_U32(const u32 data, const u32 address);
+void PWrite_U8(const u8 data, const u32 address);
+void PWrite_U16(const u16 data, const u32 address);
+void PWrite_U32(const u32 data, const u32 address);
 void Write_U64(const u64 data, const u32 address);
 
 inline void Write_Float(float f, u32 address)
 {
 	u32 u;
 	memcpy(&u, &f, sizeof(float));
-	Write_U32(u, address);
+	PWrite_U32(u, address);
 }
 
 u8* GetPointer(const u32 address);

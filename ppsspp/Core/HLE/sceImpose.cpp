@@ -60,9 +60,9 @@ static u32 sceImposeGetBatteryIconStatus(u32 chargingPtr, u32 iconStatusPtr)
 {
 	DEBUG_LOG(SCEUTILITY, "sceImposeGetBatteryIconStatus(%08x, %08x)", chargingPtr, iconStatusPtr);
 	if (Memory::IsValidAddress(chargingPtr))
-		Memory::Write_U32(PSP_IMPOSE_BATTICON_NONE, chargingPtr);
+		Memory::PWrite_U32(PSP_IMPOSE_BATTICON_NONE, chargingPtr);
 	if (Memory::IsValidAddress(iconStatusPtr))
-		Memory::Write_U32(3, iconStatusPtr);
+		Memory::PWrite_U32(3, iconStatusPtr);
 	return 0;
 }
 
@@ -78,9 +78,9 @@ static u32 sceImposeGetLanguageMode(u32 languagePtr, u32 btnPtr)
 {
 	DEBUG_LOG(SCEUTILITY, "sceImposeGetLanguageMode(%08x, %08x)", languagePtr, btnPtr);
 	if (Memory::IsValidAddress(languagePtr))
-		Memory::Write_U32(language, languagePtr);
+		Memory::PWrite_U32(language, languagePtr);
 	if (Memory::IsValidAddress(btnPtr))
-		Memory::Write_U32(buttonValue, btnPtr);
+		Memory::PWrite_U32(buttonValue, btnPtr);
 	return 0;
 }
 

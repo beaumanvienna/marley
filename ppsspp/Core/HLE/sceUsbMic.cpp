@@ -28,7 +28,7 @@ static int sceUsbMicInputBlocking(u32 size, u32 samplerate, u32 bufAddr) {
 	INFO_LOG(HLE, "UNIMPL sceUsbMicInputBlocking: size: %d, samplerate: %d", size, samplerate);
 	for (unsigned int i = 0; i < size; i++) {
 		if (Memory::IsValidAddress(bufAddr + i)) {
-			Memory::Write_U8(i & 0xFF, bufAddr + i);
+			Memory::PWrite_U8(i & 0xFF, bufAddr + i);
 		}
 	}
 	hleEatMicro(1000000 / samplerate * (size / 2));

@@ -45,7 +45,7 @@ void __UsbGpsDoState(PointerWrap &p) {
 
 static int sceUsbGpsGetState(u32 stateAddr) {
 	if (Memory::IsValidAddress(stateAddr)) {
-		Memory::Write_U32(gpsStatus, stateAddr);
+		Memory::PWrite_U32(gpsStatus, stateAddr);
 	}
 	return 0;
 }

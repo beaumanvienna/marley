@@ -175,13 +175,13 @@ public:
 		switch (size)
 		{
 		case 1:
-			dest = Memory::Read_U8(address);
+			dest = Memory::PRead_U8(address);
 			break;
 		case 2:
-			dest = Memory::Read_U16(address);
+			dest = Memory::PRead_U16(address);
 			break;
 		case 4:
-			dest = Memory::Read_U32(address);
+			dest = Memory::PRead_U32(address);
 			break;
 		}
 

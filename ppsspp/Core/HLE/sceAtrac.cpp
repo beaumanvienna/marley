@@ -747,22 +747,22 @@ int Atrac::Analyze(u32 addr, u32 size) {
 
 	// TODO: Validate stuff.
 
-	if (Memory::Read_U32(first_.addr) != RIFF_CHUNK_MAGIC) {
+	if (Memory::PRead_U32(first_.addr) != RIFF_CHUNK_MAGIC) {
 		return hleReportError(ME, ATRAC_ERROR_UNKNOWN_FORMAT, "invalid RIFF header");
 	}
 
 	u32 offset = 8;
 	firstSampleOffset_ = 0;
 
-	while (Memory::Read_U32(first_.addr + offset) != RIFF_WAVE_MAGIC) {
+	while (Memory::PRead_U32(first_.addr + offset) != RIFF_WAVE_MAGIC) {
 		// Get the size preceding the magic.
-		int chunk = Memory::Read_U32(first_.addr + offset - 4);
+		int chunk = Memory::PRead_U32(first_.addr + offset - 4);
 		// Round the chunk size up to the nearest 2.
 		offset += chunk + (chunk & 1);
 		if (offset + 12 > first_.size) {
 			return hleReportError(ME, ATRAC_ERROR_SIZE_TOO_SMALL, "too small for WAVE chunk at %d", offset);
 		}
-		if (Memory::Read_U32(first_.addr + offset) != RIFF_CHUNK_MAGIC) {
+		if (Memory::PRead_U32(first_.addr + offset) != RIFF_CHUNK_MAGIC) {
 			return hleReportError(ME, ATRAC_ERROR_UNKNOWN_FORMAT, "RIFF chunk did not contain WAVE");
 		}
 		offset += 8;
@@ -774,7 +774,7 @@ int Atrac::Analyze(u32 addr, u32 size) {
 	}
 
 	// RIFF size excluding chunk header.
-	first_.filesize = Memory::Read_U32(first_.addr + offset - 8) + 8;
+	first_.filesize = Memory::PRead_U32(first_.addr + offset - 8) + 8;
 	// Even if the RIFF size is too low, it may simply be incorrect.  This works on real firmware.
 	u32 maxSize = std::max(first_.filesize, first_.size);
 
@@ -782,8 +782,8 @@ int Atrac::Analyze(u32 addr, u32 size) {
 	u32 dataChunkSize = 0;
 	int sampleOffsetAdjust = 0;
 	while (maxSize >= offset + 8 && !bfoundData) {
-		int chunkMagic = Memory::Read_U32(first_.addr + offset);
-		u32 chunkSize = Memory::Read_U32(first_.addr + offset + 4);
+		int chunkMagic = Memory::PRead_U32(first_.addr + offset);
+		u32 chunkSize = Memory::PRead_U32(first_.addr + offset + 4);
 		// Account for odd sized chunks.
 		if (chunkSize & 1) {
 			WARN_LOG_REPORT_ONCE(oddchunk, ME, "RIFF chunk had uneven size");
@@ -829,18 +829,18 @@ int Atrac::Analyze(u32 addr, u32 size) {
 
 				if (at3fmt->fmtTag == AT3_MAGIC) {
 					// This is the offset to the jointStereo_ field.
-					jointStereo_ = Memory::Read_U32(first_.addr + offset + 24);
+					jointStereo_ = Memory::PRead_U32(first_.addr + offset + 24);
 				}
 			}
 			break;
 		case FACT_CHUNK_MAGIC:
 			{
-				endSample_ = Memory::Read_U32(first_.addr + offset);
+				endSample_ = Memory::PRead_U32(first_.addr + offset);
 				if (chunkSize >= 8) {
-					firstSampleOffset_ = Memory::Read_U32(first_.addr + offset + 4);
+					firstSampleOffset_ = Memory::PRead_U32(first_.addr + offset + 4);
 				}
 				if (chunkSize >= 12) {
-					u32 largerOffset = Memory::Read_U32(first_.addr + offset + 8);
+					u32 largerOffset = Memory::PRead_U32(first_.addr + offset + 8);
 					sampleOffsetAdjust = firstSampleOffset_ - largerOffset;
 				}
 			}
@@ -850,7 +850,7 @@ int Atrac::Analyze(u32 addr, u32 size) {
 				if (chunkSize < 32) {
 					return hleReportError(ME, ATRAC_ERROR_UNKNOWN_FORMAT, "smpl chunk too small (%d)", chunkSize);
 				}
-				int checkNumLoops = Memory::Read_U32(first_.addr + offset + 28);
+				int checkNumLoops = Memory::PRead_U32(first_.addr + offset + 28);
 				if (checkNumLoops != 0 && chunkSize < 36 + 20) {
 					return hleReportError(ME, ATRAC_ERROR_UNKNOWN_FORMAT, "smpl chunk too small for loop (%d)", chunkSize);
 				}
@@ -860,12 +860,12 @@ int Atrac::Analyze(u32 addr, u32 size) {
 				// The PSP only cares about the first loop start and end, it seems.
 				// Most likely can skip the rest of this data, but it's not hurting anyone.
 				for (int i = 0; i < checkNumLoops && 36 + (u32)i < chunkSize; i++, loopinfoAddr += 24) {
-					loopinfo_[i].cuePointID = Memory::Read_U32(loopinfoAddr);
-					loopinfo_[i].type = Memory::Read_U32(loopinfoAddr + 4);
-					loopinfo_[i].startSample = Memory::Read_U32(loopinfoAddr + 8);
-					loopinfo_[i].endSample = Memory::Read_U32(loopinfoAddr + 12);
-					loopinfo_[i].fraction = Memory::Read_U32(loopinfoAddr + 16);
-					loopinfo_[i].playCount = Memory::Read_U32(loopinfoAddr + 20);
+					loopinfo_[i].cuePointID = Memory::PRead_U32(loopinfoAddr);
+					loopinfo_[i].type = Memory::PRead_U32(loopinfoAddr + 4);
+					loopinfo_[i].startSample = Memory::PRead_U32(loopinfoAddr + 8);
+					loopinfo_[i].endSample = Memory::PRead_U32(loopinfoAddr + 12);
+					loopinfo_[i].fraction = Memory::PRead_U32(loopinfoAddr + 16);
+					loopinfo_[i].playCount = Memory::PRead_U32(loopinfoAddr + 20);
 
 					if (loopinfo_[i].startSample >= loopinfo_[i].endSample) {
 						return hleReportError(ME, ATRAC_ERROR_BAD_CODEC_PARAMS, "loop starts after it ends");
@@ -1304,12 +1304,12 @@ static u32 sceAtracDecodeData(int atracID, u32 outAddr, u32 numSamplesAddr, u32 
 	int ret = _AtracDecodeData(atracID, Memory::GetPointer(outAddr), outAddr, &numSamples, &finish, &remains);
 	if (ret != (int)ATRAC_ERROR_BAD_ATRACID && ret != (int)ATRAC_ERROR_NO_DATA) {
 		if (Memory::IsValidAddress(numSamplesAddr))
-			Memory::Write_U32(numSamples, numSamplesAddr);
+			Memory::PWrite_U32(numSamples, numSamplesAddr);
 		if (Memory::IsValidAddress(finishFlagAddr))
-			Memory::Write_U32(finish, finishFlagAddr);
+			Memory::PWrite_U32(finish, finishFlagAddr);
 		// On error, no remaining frame value is written.
 		if (ret == 0 && Memory::IsValidAddress(remainAddr))
-			Memory::Write_U32(remains, remainAddr);
+			Memory::PWrite_U32(remains, remainAddr);
 	}
 	DEBUG_LOG(ME, "%08x=sceAtracDecodeData(%i, %08x, %08x[%08x], %08x[%08x], %08x[%d])", ret, atracID, outAddr, 
 			  numSamplesAddr, numSamples,
@@ -1422,7 +1422,7 @@ static u32 sceAtracGetBitrate(int atracID, u32 outBitrateAddr) {
 		else
 			atrac->bitrate_ = (atrac->bitrate_ + 511) >> 10;
 		if (Memory::IsValidAddress(outBitrateAddr)) {
-			Memory::Write_U32(atrac->bitrate_, outBitrateAddr);
+			Memory::PWrite_U32(atrac->bitrate_, outBitrateAddr);
 			DEBUG_LOG(ME, "sceAtracGetBitrate(%i, %08x[%d])", atracID, outBitrateAddr, atrac->bitrate_);
 		}
 		else
@@ -1441,7 +1441,7 @@ static u32 sceAtracGetChannel(int atracID, u32 channelAddr) {
 		return ATRAC_ERROR_NO_DATA;
 	} else {
 		if (Memory::IsValidAddress(channelAddr)){
-			Memory::Write_U32(atrac->channels_, channelAddr);
+			Memory::PWrite_U32(atrac->channels_, channelAddr);
 			DEBUG_LOG(ME, "sceAtracGetChannel(%i, %08x[%d])", atracID, channelAddr, atrac->channels_);
 		}
 		else
@@ -1461,13 +1461,13 @@ static u32 sceAtracGetLoopStatus(int atracID, u32 loopNumAddr, u32 statusAddr) {
 	} else {
 		DEBUG_LOG(ME, "sceAtracGetLoopStatus(%i, %08x, %08x)", atracID, loopNumAddr, statusAddr);
 		if (Memory::IsValidAddress(loopNumAddr))
-			Memory::Write_U32(atrac->loopNum_, loopNumAddr);
+			Memory::PWrite_U32(atrac->loopNum_, loopNumAddr);
 		// return audio's loopinfo in at3 file
 		if (Memory::IsValidAddress(statusAddr)) {
 			if (atrac->loopinfo_.size() > 0)
-				Memory::Write_U32(1, statusAddr);
+				Memory::PWrite_U32(1, statusAddr);
 			else
-				Memory::Write_U32(0, statusAddr);
+				Memory::PWrite_U32(0, statusAddr);
 		}
 	}
 	return 0;
@@ -1484,7 +1484,7 @@ static u32 sceAtracGetInternalErrorInfo(int atracID, u32 errorAddr) {
 	} else {
 		ERROR_LOG(ME, "UNIMPL sceAtracGetInternalErrorInfo(%i, %08x)", atracID, errorAddr);
 		if (Memory::IsValidAddress(errorAddr))
-			Memory::Write_U32(0, errorAddr);
+			Memory::PWrite_U32(0, errorAddr);
 	}
 	return 0;
 }
@@ -1500,7 +1500,7 @@ static u32 sceAtracGetMaxSample(int atracID, u32 maxSamplesAddr) {
 	} else {
 		DEBUG_LOG(ME, "sceAtracGetMaxSample(%i, %08x)", atracID, maxSamplesAddr);
 		if (Memory::IsValidAddress(maxSamplesAddr)) {
-			Memory::Write_U32(atrac->SamplesPerFrame(), maxSamplesAddr);
+			Memory::PWrite_U32(atrac->SamplesPerFrame(), maxSamplesAddr);
 		}
 	}
 	return 0;
@@ -1518,11 +1518,11 @@ static u32 sceAtracGetNextDecodePosition(int atracID, u32 outposAddr) {
 		DEBUG_LOG(ME, "sceAtracGetNextDecodePosition(%i, %08x)", atracID, outposAddr);
 		if (atrac->currentSample_ >= atrac->endSample_) {
 			if (Memory::IsValidAddress(outposAddr))
-				Memory::Write_U32(0, outposAddr);
+				Memory::PWrite_U32(0, outposAddr);
 			return ATRAC_ERROR_ALL_DATA_DECODED;
 		} else {
 			if (Memory::IsValidAddress(outposAddr))
-			Memory::Write_U32(atrac->currentSample_, outposAddr);
+			Memory::PWrite_U32(atrac->currentSample_, outposAddr);
 		}
 	}
 	return 0;
@@ -1539,7 +1539,7 @@ static u32 sceAtracGetNextSample(int atracID, u32 outNAddr) {
 	} else {
 		if (atrac->currentSample_ >= atrac->endSample_) {
 			if (Memory::IsValidAddress(outNAddr))
-				Memory::Write_U32(0, outNAddr);
+				Memory::PWrite_U32(0, outNAddr);
 			DEBUG_LOG(ME, "sceAtracGetNextSample(%i, %08x): 0 samples left", atracID, outNAddr);
 			return 0;
 		} else {
@@ -1558,7 +1558,7 @@ static u32 sceAtracGetNextSample(int atracID, u32 outNAddr) {
 			if (numSamples > atrac->SamplesPerFrame())
 				numSamples = atrac->SamplesPerFrame();
 			if (Memory::IsValidAddress(outNAddr))
-				Memory::Write_U32(numSamples, outNAddr);
+				Memory::PWrite_U32(numSamples, outNAddr);
 			DEBUG_LOG(ME, "sceAtracGetNextSample(%i, %08x): %d samples left", atracID, outNAddr, numSamples);
 		}
 	}
@@ -1654,11 +1654,11 @@ static u32 sceAtracGetStreamDataInfo(int atracID, u32 writePtrAddr, u32 writable
 	atrac->CalculateStreamInfo(&readOffset);
 
 	if (Memory::IsValidAddress(writePtrAddr))
-		Memory::Write_U32(atrac->first_.addr + atrac->first_.offset, writePtrAddr);
+		Memory::PWrite_U32(atrac->first_.addr + atrac->first_.offset, writePtrAddr);
 	if (Memory::IsValidAddress(writableBytesAddr))
-		Memory::Write_U32(atrac->first_.writableBytes, writableBytesAddr);
+		Memory::PWrite_U32(atrac->first_.writableBytes, writableBytesAddr);
 	if (Memory::IsValidAddress(readOffsetAddr))
-		Memory::Write_U32(readOffset, readOffsetAddr);
+		Memory::PWrite_U32(readOffset, readOffsetAddr);
 
 	return hleLogSuccessI(ME, 0);
 }
@@ -2122,7 +2122,7 @@ static int sceAtracGetOutputChannel(int atracID, u32 outputChanPtr) {
 	} else {
 		DEBUG_LOG(ME, "sceAtracGetOutputChannel(%i, %08x)", atracID, outputChanPtr);
 		if (Memory::IsValidAddress(outputChanPtr))
-			Memory::Write_U32(atrac->outputChannels_, outputChanPtr);
+			Memory::PWrite_U32(atrac->outputChannels_, outputChanPtr);
 	}
 	return 0;
 }
@@ -2257,7 +2257,7 @@ static int sceAtracSetAA3DataAndGetID(u32 buffer, u32 bufferSize, u32 fileSize, 
 }
 
 int _AtracGetIDByContext(u32 contextAddr) {
-	int atracID = (int)Memory::Read_U32(contextAddr + 0xfc);
+	int atracID = (int)Memory::PRead_U32(contextAddr + 0xfc);
 #ifdef USE_FFMPEG
 	Atrac *atrac = getAtrac(atracID);
 	if (atrac)
@@ -2377,9 +2377,9 @@ static int sceAtracLowLevelInitDecoder(int atracID, u32 paramsAddr) {
 		return hleReportError(ME, 0, "invalid pointers");
 	}
 
-	atrac->channels_ = Memory::Read_U32(paramsAddr);
-	atrac->outputChannels_ = Memory::Read_U32(paramsAddr + 4);
-	atrac->bufferMaxSize_ = Memory::Read_U32(paramsAddr + 8);
+	atrac->channels_ = Memory::PRead_U32(paramsAddr);
+	atrac->outputChannels_ = Memory::PRead_U32(paramsAddr + 4);
+	atrac->bufferMaxSize_ = Memory::PRead_U32(paramsAddr + 8);
 	atrac->bytesPerFrame_ = atrac->bufferMaxSize_;
 	atrac->first_.writableBytes = atrac->bytesPerFrame_;
 	atrac->ResetData();

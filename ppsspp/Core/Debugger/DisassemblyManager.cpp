@@ -944,7 +944,7 @@ void DisassemblyData::createLines()
 		bool inString = false;
 		while (pos < end)
 		{
-			u8 b = Memory::Read_U8(pos++);
+			u8 b = Memory::PRead_U8(pos++);
 			if (b >= 0x20 && b <= 0x7F)
 			{
 				if (currentLine.size()+1 >= maxChars)
@@ -1021,18 +1021,18 @@ void DisassemblyData::createLines()
 			switch (type)
 			{
 			case DATATYPE_BYTE:
-				value = Memory::Read_U8(pos);
+				value = Memory::PRead_U8(pos);
 				snprintf(buffer, sizeof(buffer), "0x%02X", value);
 				pos++;
 				break;
 			case DATATYPE_HALFWORD:
-				value = Memory::Read_U16(pos);
+				value = Memory::PRead_U16(pos);
 				snprintf(buffer, sizeof(buffer), "0x%04X", value);
 				pos += 2;
 				break;
 			case DATATYPE_WORD:
 				{
-					value = Memory::Read_U32(pos);
+					value = Memory::PRead_U32(pos);
 					const std::string label = g_symbolMap->GetLabelString(value);
 					if (!label.empty())
 						snprintf(buffer, sizeof(buffer), "%s", label.c_str());

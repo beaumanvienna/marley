@@ -73,7 +73,7 @@ int PSPSaveDialog::Init(int paramAddr)
 	ioThreadStatus = SAVEIO_NONE;
 
 	requestAddr = paramAddr;
-	int size = Memory::Read_U32(requestAddr);
+	int size = Memory::PRead_U32(requestAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different save request format
 	if (size != SAVEDATA_DIALOG_SIZE_V1 && size != SAVEDATA_DIALOG_SIZE_V2 && size != SAVEDATA_DIALOG_SIZE_V3) {
@@ -598,7 +598,7 @@ int PSPSaveDialog::Update(int animSpeed)
 	// The struct may have been updated by the game.  This happens in "Where Is My Heart?"
 	// Check if it has changed, reload it.
 	// TODO: Cut down on preloading?  This rebuilds the list from scratch.
-	int size = Memory::Read_U32(requestAddr);
+	int size = Memory::PRead_U32(requestAddr);
 	if (memcmp(Memory::GetPointer(requestAddr), &originalRequest, size) != 0) {
 		memset(&request, 0, sizeof(request));
 		Memory::Memcpy(&request, requestAddr, size);

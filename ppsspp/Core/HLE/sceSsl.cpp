@@ -88,7 +88,7 @@ static int sceSslGetUsedMemoryMax(u32 maxMemPtr)
 
 	if (Memory::IsValidAddress(maxMemPtr))
 	{
-		Memory::Write_U32(maxMemSize, maxMemPtr);
+		Memory::PWrite_U32(maxMemSize, maxMemPtr);
 	}
 	return 0;
 }
@@ -103,7 +103,7 @@ static int sceSslGetUsedMemoryCurrent(u32 currentMemPtr)
 
 	if (Memory::IsValidAddress(currentMemPtr))
 	{
-		Memory::Write_U32(currentMemSize, currentMemPtr);
+		Memory::PWrite_U32(currentMemSize, currentMemPtr);
 	}
 	return 0;
 }

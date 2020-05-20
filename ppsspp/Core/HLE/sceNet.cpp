@@ -130,7 +130,7 @@ static u32 sceWlanGetEtherAddr(u32 addrAddr) {
 	}
 	DEBUG_LOG(SCENET, "sceWlanGetEtherAddr(%08x)", addrAddr);
 	for (int i = 0; i < 6; i++)
-		Memory::Write_U8(mac[i], addrAddr + i);
+		Memory::PWrite_U8(mac[i], addrAddr + i);
 	return 0;
 }
 
@@ -455,8 +455,8 @@ static int sceNetUpnpGetNatInfo()
 
 static int sceNetGetDropRate(u32 dropRateAddr, u32 dropDurationAddr)
 {
-	Memory::Write_U32(netDropRate, dropRateAddr);
-	Memory::Write_U32(netDropDuration, dropDurationAddr);
+	Memory::PWrite_U32(netDropRate, dropRateAddr);
+	Memory::PWrite_U32(netDropDuration, dropDurationAddr);
 	return hleLogSuccessInfoI(SCENET, 0);
 }
 

@@ -248,7 +248,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 	MIPSGPReg rs = _RS;
 
 	switch (op >> 26) {
-	case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
+	case 50: //lv.s  // VI(vt) = Memory::PRead_U32(addr);
 		{
 			gpr.Lock(rs);
 			fpr.MapRegV(vt, MAP_DIRTY | MAP_NOINIT);
@@ -268,7 +268,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 		}
 		break;
 
-	case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
+	case 58: //sv.s   // Memory::PWrite_U32(VI(vt), addr);
 		{
 			gpr.Lock(rs);
 

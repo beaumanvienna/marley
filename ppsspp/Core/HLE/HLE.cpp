@@ -208,17 +208,17 @@ bool FuncImportIsSyscall(const char *module, u32 nib)
 void WriteFuncStub(u32 stubAddr, u32 symAddr)
 {
 	// Note that this should be J not JAL, as otherwise control will return to the stub..
-	Memory::Write_U32(MIPS_MAKE_J(symAddr), stubAddr);
+	Memory::PWrite_U32(MIPS_MAKE_J(symAddr), stubAddr);
 	// Note: doing that, we can't trace external module calls, so maybe something else should be done to debug more efficiently
 	// Perhaps a syscall here (and verify support in jit), marking the module by uid (debugIdentifier)?
-	Memory::Write_U32(MIPS_MAKE_NOP(), stubAddr + 4);
+	Memory::PWrite_U32(MIPS_MAKE_NOP(), stubAddr + 4);
 }
 
 void WriteFuncMissingStub(u32 stubAddr, u32 nid)
 {
 	// Write a trap so we notice this func if it's called before resolving.
-	Memory::Write_U32(MIPS_MAKE_JR_RA(), stubAddr); // jr ra
-	Memory::Write_U32(GetSyscallOp(NULL, nid), stubAddr + 4);
+	Memory::PWrite_U32(MIPS_MAKE_JR_RA(), stubAddr); // jr ra
+	Memory::PWrite_U32(GetSyscallOp(NULL, nid), stubAddr + 4);
 }
 
 bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
@@ -226,15 +226,15 @@ bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
 	if (nib == 0)
 	{
 		WARN_LOG_REPORT(HLE, "Wrote patched out nid=0 syscall (%s)", moduleName);
-		Memory::Write_U32(MIPS_MAKE_JR_RA(), address); //patched out?
-		Memory::Write_U32(MIPS_MAKE_NOP(), address+4); //patched out?
+		Memory::PWrite_U32(MIPS_MAKE_JR_RA(), address); //patched out?
+		Memory::PWrite_U32(MIPS_MAKE_NOP(), address+4); //patched out?
 		return true;
 	}
 	int modindex = GetModuleIndex(moduleName);
 	if (modindex != -1)
 	{
-		Memory::Write_U32(MIPS_MAKE_JR_RA(), address); // jr ra
-		Memory::Write_U32(GetSyscallOp(moduleName, nib), address + 4);
+		Memory::PWrite_U32(MIPS_MAKE_JR_RA(), address); // jr ra
+		Memory::PWrite_U32(GetSyscallOp(moduleName, nib), address + 4);
 		return true;
 	}
 	else
@@ -578,13 +578,13 @@ size_t hleFormatLogArgs(char *message, size_t sz, const char *argmask) {
 			u32 sp = currentMIPS->r[MIPS_REG_SP];
 			// Goes upward on stack.
 			// NOTE: Currently we only support > 8 for 32-bit integer args.
-			regval = Memory::Read_U32(sp + (reg - 8) * 4);
+			regval = Memory::PRead_U32(sp + (reg - 8) * 4);
 		}
 
 		switch (argmask[i]) {
 		case 'p':
 			if (Memory::IsValidAddress(regval)) {
-				APPEND_FMT("%08x[%08x]", regval, Memory::Read_U32(regval));
+				APPEND_FMT("%08x[%08x]", regval, Memory::PRead_U32(regval));
 			} else {
 				APPEND_FMT("%08x[invalid]", regval);
 			}
@@ -592,7 +592,7 @@ size_t hleFormatLogArgs(char *message, size_t sz, const char *argmask) {
 
 		case 'P':
 			if (Memory::IsValidAddress(regval)) {
-				APPEND_FMT("%08x[%016llx]", regval, Memory::Read_U64(regval));
+				APPEND_FMT("%08x[%016llx]", regval, Memory::PRead_U64(regval));
 			} else {
 				APPEND_FMT("%08x[invalid]", regval);
 			}

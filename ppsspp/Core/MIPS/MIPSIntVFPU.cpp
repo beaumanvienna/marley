@@ -1718,10 +1718,10 @@ namespace MIPSInt
 		switch (op >> 26)
 		{
 		case 50: //lv.s
-			VI(vt) = Memory::Read_U32(addr);
+			VI(vt) = Memory::PRead_U32(addr);
 			break;
 		case 58: //sv.s
-			Memory::Write_U32(VI(vt), addr);
+			Memory::PWrite_U32(VI(vt), addr);
 			break;
 		default:
 			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");

@@ -189,7 +189,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 			}
 			break;
 		}
-		Memory::Write_U32(op, addr);
+		Memory::PWrite_U32(op, addr);
 	}
 	if (numErrors) {
 		WARN_LOG(LOADER, "%i bad relocations found!!!", numErrors);
@@ -347,7 +347,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 				break;
 			}
 
-			Memory::Write_U32(op, rel_offset);
+			Memory::PWrite_U32(op, rel_offset);
 			rcount += 1;
 		}
 	}

@@ -82,7 +82,7 @@ struct MsgPipeWaitingThread
 			{
 				// Remove any event for this thread.
 				s64 cyclesLeft = CoreTiming::UnscheduleEvent(waitTimer, threadID);
-				Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+				Memory::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 			}
 		}
 	}
@@ -313,7 +313,7 @@ static bool __KernelSetMsgPipeTimeout(u32 timeoutPtr)
 	if (timeoutPtr == 0 || waitTimer == -1)
 		return true;
 
-	int micro = (int) Memory::Read_U32(timeoutPtr);
+	int micro = (int) Memory::PRead_U32(timeoutPtr);
 	if (micro <= 2)
 	{
 		// Don't wait or reschedule, just timeout immediately.
@@ -364,7 +364,7 @@ static int __KernelSendMsgPipe(MsgPipe *m, u32 sendBufAddr, u32 sendSize, int wa
 			{
 				// Generally, result is not updated in this case.  But for a 0 size buffer in ASAP mode, it is.
 				if (Memory::IsValidAddress(resultAddr) && waitMode == SCE_KERNEL_MPW_ASAP)
-					Memory::Write_U32(curSendAddr - sendBufAddr, resultAddr);
+					Memory::PWrite_U32(curSendAddr - sendBufAddr, resultAddr);
 				return SCE_KERNEL_ERROR_MPP_FULL;
 			}
 			else
@@ -419,7 +419,7 @@ static int __KernelSendMsgPipe(MsgPipe *m, u32 sendBufAddr, u32 sendSize, int wa
 
 	// We didn't wait, so update the number of bytes transferred now.
 	if (Memory::IsValidAddress(resultAddr))
-		Memory::Write_U32(curSendAddr - sendBufAddr, resultAddr);
+		Memory::PWrite_U32(curSendAddr - sendBufAddr, resultAddr);
 
 	return 0;
 }
@@ -464,7 +464,7 @@ static int __KernelReceiveMsgPipe(MsgPipe *m, u32 receiveBufAddr, u32 receiveSiz
 			{
 				// Generally, result is not updated in this case.  But for a 0 size buffer in ASAP mode, it is.
 				if (Memory::IsValidAddress(resultAddr) && waitMode == SCE_KERNEL_MPW_ASAP)
-					Memory::Write_U32(curReceiveAddr - receiveBufAddr, resultAddr);
+					Memory::PWrite_U32(curReceiveAddr - receiveBufAddr, resultAddr);
 				return SCE_KERNEL_ERROR_MPP_EMPTY;
 			}
 			else
@@ -515,7 +515,7 @@ static int __KernelReceiveMsgPipe(MsgPipe *m, u32 receiveBufAddr, u32 receiveSiz
 	}
 
 	if (Memory::IsValidAddress(resultAddr))
-		Memory::Write_U32(curReceiveAddr - receiveBufAddr, resultAddr);
+		Memory::PWrite_U32(curReceiveAddr - receiveBufAddr, resultAddr);
 
 	return 0;
 }
@@ -720,7 +720,7 @@ int sceKernelCreateMsgPipe(const char *name, int partition, u32 attr, u32 size, 
 
 	if (optionsPtr != 0)
 	{
-		u32 optionsSize = Memory::Read_U32(optionsPtr);
+		u32 optionsSize = Memory::PRead_U32(optionsPtr);
 		if (optionsSize > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMsgPipe(%s) unsupported options parameter, size = %d", name, optionsSize);
 	}
@@ -986,9 +986,9 @@ int sceKernelCancelMsgPipe(SceUID uid, u32 numSendThreadsAddr, u32 numReceiveThr
 		hleEatCycles(4000);
 
 	if (Memory::IsValidAddress(numSendThreadsAddr))
-		Memory::Write_U32((u32) m->sendWaitingThreads.size(), numSendThreadsAddr);
+		Memory::PWrite_U32((u32) m->sendWaitingThreads.size(), numSendThreadsAddr);
 	if (Memory::IsValidAddress(numReceiveThreadsAddr))
-		Memory::Write_U32((u32) m->receiveWaitingThreads.size(), numReceiveThreadsAddr);
+		Memory::PWrite_U32((u32) m->receiveWaitingThreads.size(), numReceiveThreadsAddr);
 
 	for (size_t i = 0; i < m->sendWaitingThreads.size(); i++)
 		m->sendWaitingThreads[i].Cancel(uid, SCE_KERNEL_ERROR_WAIT_CANCEL);
@@ -1024,7 +1024,7 @@ int sceKernelReferMsgPipeStatus(SceUID uid, u32 statusPtr)
 
 		m->nmp.numSendWaitThreads = (int) m->sendWaitingThreads.size();
 		m->nmp.numReceiveWaitThreads = (int) m->receiveWaitingThreads.size();
-		if (Memory::Read_U32(statusPtr) != 0)
+		if (Memory::PRead_U32(statusPtr) != 0)
 			Memory::WriteStruct(statusPtr, &m->nmp);
 		return 0;
 	}

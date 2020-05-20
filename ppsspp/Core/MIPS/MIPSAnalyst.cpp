@@ -659,19 +659,19 @@ namespace MIPSAnalyst {
 		{
 			MIPSGPReg rt = MIPS_GET_RT(op);
 			writeVal = currentMIPS->r[rt] & gprMask;
-			prevVal = Memory::Read_U32(addr) & gprMask;
+			prevVal = Memory::PRead_U32(addr) & gprMask;
 		}
 
 		if (IsSWC1Instr(op)) {
 			int ft = MIPS_GET_FT(op);
 			writeVal = currentMIPS->fi[ft];
-			prevVal = Memory::Read_U32(addr);
+			prevVal = Memory::PRead_U32(addr);
 		}
 
 		if (IsSVSInstr(op)) {
 			int vt = ((op >> 16) & 0x1f) | ((op & 3) << 5);
 			writeVal = currentMIPS->vi[voffset[vt]];
-			prevVal = Memory::Read_U32(addr);
+			prevVal = Memory::PRead_U32(addr);
 		}
 
 		if (IsSVQInstr(op)) {

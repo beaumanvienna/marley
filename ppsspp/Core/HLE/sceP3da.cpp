@@ -51,7 +51,7 @@ static u32 sceP3daBridgeCore(u32 p3daCoreAddr, u32 channelsNum, u32 samplesNum, 
 		s16* outbuf = (s16*)Memory::GetPointer(outputAddr);
 		memset(outbuf, 0, samplesNum * sizeof(s16) * 2);
 		for (u32 k = 0; k < channelsNum; k++) {
-			u32 inaddr = Memory::Read_U32(inputAddr + k * 4);
+			u32 inaddr = Memory::PRead_U32(inputAddr + k * 4);
 			s16 *inbuf = (s16*)Memory::GetPointer(inaddr);
 			if (!inbuf)
 				continue;

@@ -334,7 +334,7 @@ int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr, bool realBlocksOnly)
 	if (!blocks_ || !Memory::IsValidAddress(addr))
 		return -1;
 
-	MIPSOpcode inst = MIPSOpcode(Memory::Read_U32(addr));
+	MIPSOpcode inst = MIPSOpcode(Memory::PRead_U32(addr));
 	int bl = GetBlockNumberFromEmuHackOp(inst);
 	if (bl < 0) {
 		if (!realBlocksOnly) {

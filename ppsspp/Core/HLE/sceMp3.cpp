@@ -211,12 +211,12 @@ static u32 sceMp3ReserveMp3Handle(u32 mp3Addr) {
 
 	AuCtx *Au = new AuCtx;
 	if (mp3Addr) {
-		Au->startPos = Memory::Read_U64(mp3Addr); // Audio stream start position.
-		Au->endPos = Memory::Read_U64(mp3Addr + 8); // Audio stream end position.
-		Au->AuBuf = Memory::Read_U32(mp3Addr + 16); // Input Au data buffer.
-		Au->AuBufSize = Memory::Read_U32(mp3Addr + 20); // Input Au data buffer size.
-		Au->PCMBuf = Memory::Read_U32(mp3Addr + 24); // Output PCM data buffer.
-		Au->PCMBufSize = Memory::Read_U32(mp3Addr + 28); // Output PCM data buffer size.
+		Au->startPos = Memory::PRead_U64(mp3Addr); // Audio stream start position.
+		Au->endPos = Memory::PRead_U64(mp3Addr + 8); // Audio stream end position.
+		Au->AuBuf = Memory::PRead_U32(mp3Addr + 16); // Input Au data buffer.
+		Au->AuBufSize = Memory::PRead_U32(mp3Addr + 20); // Input Au data buffer size.
+		Au->PCMBuf = Memory::PRead_U32(mp3Addr + 24); // Output PCM data buffer.
+		Au->PCMBufSize = Memory::PRead_U32(mp3Addr + 28); // Output PCM data buffer size.
 
 		if (Au->startPos >= Au->endPos) {
 			delete Au;
@@ -365,7 +365,7 @@ static int FindMp3Header(AuCtx *ctx, int &header, int end) {
 		for (int offset = 0; offset < end; ++offset) {
 			// If we hit valid sync bits, then we've found a header.
 			if (ptr[offset] == 0xFF && (ptr[offset + 1] & 0xC0) == 0xC0) {
-				header = bswap32(Memory::Read_U32(addr + offset));
+				header = bswap32(Memory::PRead_U32(addr + offset));
 				return offset;
 			}
 		}
@@ -684,8 +684,8 @@ static u32 sceMp3LowLevelDecode(u32 mp3, u32 sourceAddr, u32 sourceBytesConsumed
 	int outpcmbytes = 0;
 	ctx->decoder->Decode((void*)inbuff, 4096, outbuff, &outpcmbytes);
 	
-	Memory::Write_U32(ctx->decoder->GetSourcePos(), sourceBytesConsumedAddr);
-	Memory::Write_U32(outpcmbytes, sampleBytesAddr);
+	Memory::PWrite_U32(ctx->decoder->GetSourcePos(), sourceBytesConsumedAddr);
+	Memory::PWrite_U32(outpcmbytes, sampleBytesAddr);
 	return 0;
 }
 

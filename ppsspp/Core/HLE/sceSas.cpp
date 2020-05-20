@@ -726,7 +726,7 @@ static u32 sceSasGetAllEnvelopeHeights(u32 core, u32 heightsAddr) {
 	__SasDrain();
 	for (int i = 0; i < PSP_SAS_VOICES_MAX; i++) {
 		int voiceHeight = sas->voices[i].envelope.GetHeight();
-		Memory::Write_U32(voiceHeight, heightsAddr + i * 4);
+		Memory::PWrite_U32(voiceHeight, heightsAddr + i * 4);
 	}
 
 	return 0;
@@ -756,7 +756,7 @@ static u32 __sceSasSetVoiceATRAC3(u32 core, int voiceNum, u32 atrac3Context) {
 	v.loop = false;
 	v.playing = true;
 	v.atrac3.setContext(atrac3Context);
-	Memory::Write_U32(atrac3Context, core + 56 * voiceNum + 20);
+	Memory::PWrite_U32(atrac3Context, core + 56 * voiceNum + 20);
 
 	return hleLogSuccessI(SCESAS, 0);
 }
@@ -789,7 +789,7 @@ static u32 __sceSasUnsetATRAC3(u32 core, int voiceNum) {
 	v.on = false;
 	// This unpauses.  Some games, like Sol Trigger, depend on this.
 	v.paused = false;
-	Memory::Write_U32(0, core + 56 * voiceNum + 20);
+	Memory::PWrite_U32(0, core + 56 * voiceNum + 20);
 
 	return hleLogSuccessI(SCESAS, 0);
 }

@@ -53,7 +53,7 @@ int PSPMsgDialog::Init(unsigned int paramAddr) {
 	{
 		return 0;
 	}
-	int size = Memory::Read_U32(paramAddr);
+	int size = Memory::PRead_U32(paramAddr);
 	memset(&messageDialog,0,sizeof(messageDialog));
 	// Only copy the right size to support different request format
 	Memory::Memcpy(&messageDialog,paramAddr,size);

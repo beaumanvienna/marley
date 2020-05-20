@@ -997,11 +997,11 @@ static u32 sceDisplayGetFramebuf(u32 topaddrPtr, u32 linesizePtr, u32 pixelForma
 	const FrameBufferState &fbState = (latchedMode == PSP_DISPLAY_SETBUF_NEXTFRAME && framebufIsLatched) ? latchedFramebuf : framebuf;
 
 	if (Memory::IsValidAddress(topaddrPtr))
-		Memory::Write_U32(fbState.topaddr, topaddrPtr);
+		Memory::PWrite_U32(fbState.topaddr, topaddrPtr);
 	if (Memory::IsValidAddress(linesizePtr))
-		Memory::Write_U32(fbState.stride, linesizePtr);
+		Memory::PWrite_U32(fbState.stride, linesizePtr);
 	if (Memory::IsValidAddress(pixelFormatPtr))
-		Memory::Write_U32(fbState.fmt, pixelFormatPtr);
+		Memory::PWrite_U32(fbState.fmt, pixelFormatPtr);
 
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
@@ -1118,11 +1118,11 @@ static u32 sceDisplayIsForeground() {
 
 static u32 sceDisplayGetMode(u32 modeAddr, u32 widthAddr, u32 heightAddr) {
 	if (Memory::IsValidAddress(modeAddr))
-		Memory::Write_U32(mode, modeAddr);
+		Memory::PWrite_U32(mode, modeAddr);
 	if (Memory::IsValidAddress(widthAddr))
-		Memory::Write_U32(width, widthAddr);
+		Memory::PWrite_U32(width, widthAddr);
 	if (Memory::IsValidAddress(heightAddr))
-		Memory::Write_U32(height, heightAddr);
+		Memory::PWrite_U32(height, heightAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
@@ -1136,7 +1136,7 @@ static u32 sceDisplayIsVsync() {
 
 static u32 sceDisplayGetResumeMode(u32 resumeModeAddr) {
 	if (Memory::IsValidAddress(resumeModeAddr))
-		Memory::Write_U32(resumeMode, resumeModeAddr);
+		Memory::PWrite_U32(resumeMode, resumeModeAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
@@ -1150,11 +1150,11 @@ static u32 sceDisplayGetBrightness(u32 levelAddr, u32 otherAddr) {
 	// Standard levels on a PSP: 44, 60, 72, 84 (AC only)
 
 	if (Memory::IsValidAddress(levelAddr)) {
-		Memory::Write_U32(brightnessLevel, levelAddr);
+		Memory::PWrite_U32(brightnessLevel, levelAddr);
 	}
 	// Always seems to write zero?
 	if (Memory::IsValidAddress(otherAddr)) {
-		Memory::Write_U32(0, otherAddr);
+		Memory::PWrite_U32(0, otherAddr);
 	}
 	return hleLogWarning(SCEDISPLAY, 0);
 }

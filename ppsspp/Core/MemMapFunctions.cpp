@@ -161,55 +161,55 @@ bool IsScratchpadAddress(const u32 address) {
 	return (address & 0xBFFF0000) == 0x00010000 && (address & 0x0000FFFF) < SCRATCHPAD_SIZE;
 }
 
-u8 Read_U8(const u32 _Address)
+u8 PRead_U8(const u32 _Address)
 {		
 	u8 _var = 0;
 	ReadFromHardware<u8>(_var, _Address);
 	return (u8)_var;
 }
 
-u16 Read_U16(const u32 _Address)
+u16 PRead_U16(const u32 _Address)
 {
 	u16_le _var = 0;
 	ReadFromHardware<u16_le>(_var, _Address);
 	return (u16)_var;
 }
 
-u32 Read_U32(const u32 _Address)
+u32 PRead_U32(const u32 _Address)
 {
 	u32_le _var = 0;
 	ReadFromHardware<u32_le>(_var, _Address);
 	return _var;
 }
 
-u64 Read_U64(const u32 _Address)
+u64 PRead_U64(const u32 _Address)
 {
 	u64_le _var = 0;
 	ReadFromHardware<u64_le>(_var, _Address);
 	return _var;
 }
 
-u32 Read_U8_ZX(const u32 _Address)
+u32 PRead_U8_ZX(const u32 _Address)
 {
-	return (u32)Read_U8(_Address);
+	return (u32)PRead_U8(_Address);
 }
 
-u32 Read_U16_ZX(const u32 _Address)
+u32 PRead_U16_ZX(const u32 _Address)
 {
-	return (u32)Read_U16(_Address);
+	return (u32)PRead_U16(_Address);
 }
 
-void Write_U8(const u8 _Data, const u32 _Address)	
+void PWrite_U8(const u8 _Data, const u32 _Address)	
 {
 	WriteToHardware<u8>(_Address, _Data);
 }
 
-void Write_U16(const u16 _Data, const u32 _Address)
+void PWrite_U16(const u16 _Data, const u32 _Address)
 {
 	WriteToHardware<u16_le>(_Address, _Data);
 }
 
-void Write_U32(const u32 _Data, const u32 _Address)
+void PWrite_U32(const u32 _Data, const u32 _Address)
 {	
 	WriteToHardware<u32_le>(_Address, _Data);
 }

@@ -2520,7 +2520,7 @@ void GPUCommon::ResetListState(int listID, DisplayListState state) {
 
 GPUDebugOp GPUCommon::DissassembleOp(u32 pc, u32 op) {
 	char buffer[1024];
-	GeDisassembleOp(pc, op, Memory::Read_U32(pc - 4), buffer, sizeof(buffer));
+	GeDisassembleOp(pc, op, Memory::PRead_U32(pc - 4), buffer, sizeof(buffer));
 
 	GPUDebugOp info;
 	info.pc = pc;
@@ -2536,9 +2536,9 @@ std::vector<GPUDebugOp> GPUCommon::DissassembleOpRange(u32 startpc, u32 endpc) {
 	GPUDebugOp info;
 
 	// Don't trigger a pause.
-	u32 prev = Memory::IsValidAddress(startpc - 4) ? Memory::Read_U32(startpc - 4) : 0;
+	u32 prev = Memory::IsValidAddress(startpc - 4) ? Memory::PRead_U32(startpc - 4) : 0;
 	for (u32 pc = startpc; pc < endpc; pc += 4) {
-		u32 op = Memory::IsValidAddress(pc) ? Memory::Read_U32(pc) : 0;
+		u32 op = Memory::IsValidAddress(pc) ? Memory::PRead_U32(pc) : 0;
 		GeDisassembleOp(pc, op, prev, buffer, sizeof(buffer));
 		prev = op;
 

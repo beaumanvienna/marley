@@ -294,8 +294,8 @@ void TIntermediate::mergeTrees(TInfoSink& infoSink, TIntermediate& unit)
     TIntermSequence& unitGlobals = unit.treeRoot->getAsAggregate()->getSequence();
 
     // Get the linker-object lists
-    TIntermSequence& linkerObjects = findLinkerObjects()->getSequence();
-    const TIntermSequence& unitLinkerObjects = unit.findLinkerObjects()->getSequence();
+    TIntermSequence& linkerObjects = PfindLinkerObjects()->getSequence();
+    const TIntermSequence& unitLinkerObjects = unit.PfindLinkerObjects()->getSequence();
 
     // Map by global name to unique ID to rationalize the same object having
     // differing IDs in different trees.
@@ -365,7 +365,7 @@ void TIntermediate::seedIdMap(TMap<TString, int>& idMap, int& maxId)
 
     // user variables in the linker object list need to align on ids
     TUserIdTraverser userIdTraverser(idMap);
-    findLinkerObjects()->traverse(&userIdTraverser);
+    PfindLinkerObjects()->traverse(&userIdTraverser);
 }
 
 // Traverser to map an AST ID to what was known from the seeding AST.
@@ -457,7 +457,7 @@ void TIntermediate::mergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& lin
                     symbol->getQualifier().layoutBinding = unitSymbol->getQualifier().layoutBinding;
 
                 // Update implicit array sizes
-                mergeImplicitArraySizes(symbol->getWritableType(), unitSymbol->getType());
+                PmergeImplicitArraySizes(symbol->getWritableType(), unitSymbol->getType());
 
                 // Check for consistent types/qualification/initializers etc.
                 mergeErrorCheck(infoSink, *symbol, *unitSymbol, false);
@@ -471,7 +471,7 @@ void TIntermediate::mergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& lin
 // TODO 4.5 link functionality: cull distance array size checking
 
 // Recursively merge the implicit array sizes through the objects' respective type trees.
-void TIntermediate::mergeImplicitArraySizes(TType& type, const TType& unitType)
+void TIntermediate::PmergeImplicitArraySizes(TType& type, const TType& unitType)
 {
     if (type.isUnsizedArray()) {
         if (unitType.isUnsizedArray()) {
@@ -487,7 +487,7 @@ void TIntermediate::mergeImplicitArraySizes(TType& type, const TType& unitType)
         return;
 
     for (int i = 0; i < (int)type.getStruct()->size(); ++i)
-        mergeImplicitArraySizes(*(*type.getStruct())[i].type, *(*unitType.getStruct())[i].type);
+        PmergeImplicitArraySizes(*(*type.getStruct())[i].type, *(*unitType.getStruct())[i].type);
 }
 
 //
@@ -618,7 +618,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
     checkCallGraphBodies(infoSink, keepUncalled);
 
     // overlap/alias/missing I/O, etc.
-    inOutLocationCheck(infoSink);
+    PinOutLocationCheck(infoSink);
 
 #ifndef GLSLANG_WEB
     if (getNumPushConstants() > 1)
@@ -940,7 +940,7 @@ void TIntermediate::checkCallGraphBodies(TInfoSink& infoSink, bool keepUncalled)
 //
 // Satisfy rules for location qualifiers on inputs and outputs
 //
-void TIntermediate::inOutLocationCheck(TInfoSink& infoSink)
+void TIntermediate::PinOutLocationCheck(TInfoSink& infoSink)
 {
     // ES 3.0 requires all outputs to have location qualifiers if there is more than one output
     bool fragOutWithNoLocation = false;
@@ -948,7 +948,7 @@ void TIntermediate::inOutLocationCheck(TInfoSink& infoSink)
 
     // TODO: linker functionality: location collision checking
 
-    TIntermSequence& linkObjects = findLinkerObjects()->getSequence();
+    TIntermSequence& linkObjects = PfindLinkerObjects()->getSequence();
     for (size_t i = 0; i < linkObjects.size(); ++i) {
         const TType& type = linkObjects[i]->getAsTyped()->getType();
         const TQualifier& qualifier = type.getQualifier();
@@ -967,7 +967,7 @@ void TIntermediate::inOutLocationCheck(TInfoSink& infoSink)
     }
 }
 
-TIntermAggregate* TIntermediate::findLinkerObjects() const
+TIntermAggregate* TIntermediate::PfindLinkerObjects() const
 {
     // Get the top-level globals
     TIntermSequence& globals = treeRoot->getAsAggregate()->getSequence();
@@ -983,7 +983,7 @@ TIntermAggregate* TIntermediate::findLinkerObjects() const
 // is more useful, and perhaps the spec should be changed to reflect that.
 bool TIntermediate::userOutputUsed() const
 {
-    const TIntermSequence& linkerObjects = findLinkerObjects()->getSequence();
+    const TIntermSequence& linkerObjects = PfindLinkerObjects()->getSequence();
 
     bool found = false;
     for (size_t i = 0; i < linkerObjects.size(); ++i) {
@@ -1067,7 +1067,7 @@ int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& typ
         TIoRange range(locationRange, componentRange, type.getBasicType(), 0);
 
         // check for collisions
-        collision = checkLocationRange(set, range, type, typeCollision);
+        collision = PcheckLocationRange(set, range, type, typeCollision);
         if (collision < 0) {
             usedIo[set].push_back(range);
 
@@ -1077,7 +1077,7 @@ int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& typ
             TIoRange range2(locationRange2, componentRange2, type.getBasicType(), 0);
 
             // check for collisions
-            collision = checkLocationRange(set, range2, type, typeCollision);
+            collision = PcheckLocationRange(set, range2, type, typeCollision);
             if (collision < 0)
                 usedIo[set].push_back(range2);
         }
@@ -1101,7 +1101,7 @@ int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& typ
 
         // check for collisions, except for vertex inputs on desktop targeting OpenGL
         if (! (!isEsProfile() && language == EShLangVertex && qualifier.isPipeInput()) || spvVersion.vulkan > 0)
-            collision = checkLocationRange(set, range, type, typeCollision);
+            collision = PcheckLocationRange(set, range, type, typeCollision);
 
         if (collision < 0)
             usedIo[set].push_back(range);
@@ -1115,7 +1115,7 @@ int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& typ
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::checkLocationRange(int set, const TIoRange& range, const TType& type, bool& typeCollision)
+int TIntermediate::PcheckLocationRange(int set, const TIoRange& range, const TType& type, bool& typeCollision)
 {
     for (size_t r = 0; r < usedIo[set].size(); ++r) {
         if (range.overlap(usedIo[set][r])) {
@@ -1386,7 +1386,7 @@ const int baseAlignmentVec4Std140 = 16;
 // Return the size and alignment of a component of the given type.
 // The size is returned in the 'size' parameter
 // Return value is the alignment..
-int TIntermediate::getBaseAlignmentScalar(const TType& type, int& size)
+int TIntermediate::PgetBaseAlignmentScalar(const TType& type, int& size)
 {
 #ifdef GLSLANG_WEB
     size = 4; return 4;
@@ -1525,11 +1525,11 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 
     // rule 1
     if (type.isScalar())
-        return getBaseAlignmentScalar(type, size);
+        return PgetBaseAlignmentScalar(type, size);
 
     // rules 2 and 3
     if (type.isVector()) {
-        int scalarAlign = getBaseAlignmentScalar(type, size);
+        int scalarAlign = PgetBaseAlignmentScalar(type, size);
         switch (type.getVectorSize()) {
         case 1: // HLSL has this, GLSL does not
             return scalarAlign;
@@ -1566,7 +1566,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 }
 
 // To aid the basic HLSL rule about crossing vec4 boundaries.
-bool TIntermediate::improperStraddle(const TType& type, int size, int offset)
+bool TIntermediate::PimproperStraddle(const TType& type, int size, int offset)
 {
     if (! type.isVector() || type.isArray())
         return false;
@@ -1613,10 +1613,10 @@ int TIntermediate::getScalarAlignment(const TType& type, int& size, int& stride,
     }
 
     if (type.isScalar())
-        return getBaseAlignmentScalar(type, size);
+        return PgetBaseAlignmentScalar(type, size);
 
     if (type.isVector()) {
-        int scalarAlign = getBaseAlignmentScalar(type, size);
+        int scalarAlign = PgetBaseAlignmentScalar(type, size);
         
         size *= type.getVectorSize();
         return scalarAlign;

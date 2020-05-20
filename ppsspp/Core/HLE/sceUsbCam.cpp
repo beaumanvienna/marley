@@ -71,7 +71,7 @@ static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamReadMicBlocking: size: %d", size);
 	for (unsigned int i = 0; i < size; i++) {
 		if (Memory::IsValidAddress(bufAddr + i)) {
-			Memory::Write_U8(i & 0xFF, bufAddr + i);
+			Memory::PWrite_U8(i & 0xFF, bufAddr + i);
 		}
 	}
 	hleEatMicro(1000000 / micParam.frequency * (size / 2));

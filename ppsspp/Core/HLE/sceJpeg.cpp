@@ -235,7 +235,7 @@ static int __JpegGetOutputInfo(u32 jpegAddr, int jpegSize, u32 colourInfoAddr) {
 	// - Bits 8 to 16 (Vertical chroma subsampling value): 0x00, 0x01 or 0x02
 	// - Bits 0 to 8 (Horizontal chroma subsampling value): 0x00, 0x01 or 0x02
 	if (Memory::IsValidAddress(colourInfoAddr)) {
-		Memory::Write_U32(0x00020202, colourInfoAddr);
+		Memory::PWrite_U32(0x00020202, colourInfoAddr);
 	}
 
 #ifdef JPEG_DEBUG

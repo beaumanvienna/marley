@@ -518,7 +518,7 @@ u32 sceGeRestoreContext(u32 ctxAddr) {
 
 static void __GeCopyMatrix(u32 matrixPtr, float *mtx, u32 size) {
 	for (u32 i = 0; i < size / sizeof(float); ++i) {
-		Memory::Write_U32(toFloat24(mtx[i]), matrixPtr + i * sizeof(float));
+		Memory::PWrite_U32(toFloat24(mtx[i]), matrixPtr + i * sizeof(float));
 	}
 }
 

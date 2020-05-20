@@ -403,7 +403,7 @@ void NotifyCommand(u32 pc) {
 		return;
 	}
 
-	const u32 op = Memory::Read_U32(pc);
+	const u32 op = Memory::PRead_U32(pc);
 	const GECommand cmd = GECommand(op >> 24);
 
 	switch (cmd) {

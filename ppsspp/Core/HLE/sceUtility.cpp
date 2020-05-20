@@ -752,7 +752,7 @@ static u32 sceUtilityGetSystemParamInt(u32 id, u32 destaddr)
 		return PSP_SYSTEMPARAM_RETVAL_FAIL;
 	}
 
-	Memory::Write_U32(param, destaddr);
+	Memory::PWrite_U32(param, destaddr);
 
 	return 0;
 }

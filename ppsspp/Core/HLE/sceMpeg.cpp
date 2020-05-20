@@ -254,7 +254,7 @@ static MpegContext *getMpegCtx(u32 mpegAddr) {
 	if (!Memory::IsValidAddress(mpegAddr))
 		return nullptr;
 		
-	u32 mpeg = Memory::Read_U32(mpegAddr);
+	u32 mpeg = Memory::PRead_U32(mpegAddr);
 	auto found = mpegMap.find(mpeg);
 	if (found == mpegMap.end())
 		return nullptr;
@@ -501,15 +501,15 @@ static u32 sceMpegCreate(u32 mpegAddr, u32 dataPtr, u32 size, u32 ringbufferAddr
 
 	// Generate, and write mpeg handle into mpeg data, for some reason
 	int mpegHandle = dataPtr + 0x30;
-	Memory::Write_U32(mpegHandle, mpegAddr);
+	Memory::PWrite_U32(mpegHandle, mpegAddr);
 
 	// Initialize fake mpeg struct.
 	Memory::Memcpy(mpegHandle, "LIBMPEG\0", 8);
 	Memory::Memcpy(mpegHandle + 8, "001\0", 4);
-	Memory::Write_U32(-1, mpegHandle + 12);
+	Memory::PWrite_U32(-1, mpegHandle + 12);
 	if (ringbuffer.IsValid()) {
-		Memory::Write_U32(ringbufferAddr, mpegHandle + 16);
-		Memory::Write_U32(ringbuffer->dataUpperBound, mpegHandle + 20);
+		Memory::PWrite_U32(ringbufferAddr, mpegHandle + 16);
+		Memory::PWrite_U32(ringbuffer->dataUpperBound, mpegHandle + 20);
 	}
 	MpegContext *ctx = new MpegContext();
 	if (mpegMap.find(mpegHandle) != mpegMap.end()) {
@@ -557,7 +557,7 @@ static int sceMpegDelete(u32 mpeg)
 	DEBUG_LOG(ME, "sceMpegDelete(%08x)", mpeg);
 
 	delete ctx;
-	mpegMap.erase(Memory::Read_U32(mpeg));
+	mpegMap.erase(Memory::PRead_U32(mpeg));
 
 	return hleDelayResult(0, "mpeg delete", 40000);
 }
@@ -578,8 +578,8 @@ static int sceMpegAvcDecodeMode(u32 mpeg, u32 modeAddr)
 
 	DEBUG_LOG(ME, "sceMpegAvcDecodeMode(%08x, %08x)", mpeg, modeAddr);
 
-	int mode = Memory::Read_U32(modeAddr);
-	int pixelMode = Memory::Read_U32(modeAddr + 4);
+	int mode = Memory::PRead_U32(modeAddr);
+	int pixelMode = Memory::PRead_U32(modeAddr + 4);
 	if (pixelMode >= GE_CMODE_16BIT_BGR5650 && pixelMode <= GE_CMODE_32BIT_ABGR8888) {
 		ctx->videoPixelMode = pixelMode;
 	} else {
@@ -608,19 +608,19 @@ static int sceMpegQueryStreamOffset(u32 mpeg, u32 bufferAddr, u32 offsetAddr)
 
 	if (ctx->mpegMagic != PSMF_MAGIC) {
 		ERROR_LOG(ME, "sceMpegQueryStreamOffset: Bad PSMF magic");
-		Memory::Write_U32(0, offsetAddr);
+		Memory::PWrite_U32(0, offsetAddr);
 		return ERROR_MPEG_INVALID_VALUE;
 	} else if (ctx->mpegVersion < 0) {
 		ERROR_LOG(ME, "sceMpegQueryStreamOffset: Bad version");
-		Memory::Write_U32(0, offsetAddr);
+		Memory::PWrite_U32(0, offsetAddr);
 		return ERROR_MPEG_BAD_VERSION;
 	} else if ((ctx->mpegOffset & 2047) != 0 || ctx->mpegOffset == 0) {
 		ERROR_LOG(ME, "sceMpegQueryStreamOffset: Bad offset");
-		Memory::Write_U32(0, offsetAddr);
+		Memory::PWrite_U32(0, offsetAddr);
 		return ERROR_MPEG_INVALID_VALUE;
 	}
 
-	Memory::Write_U32(ctx->mpegOffset, offsetAddr);
+	Memory::PWrite_U32(ctx->mpegOffset, offsetAddr);
 	return 0;
 }
 
@@ -640,15 +640,15 @@ static u32 sceMpegQueryStreamSize(u32 bufferAddr, u32 sizeAddr)
 
 	if (ctx.mpegMagic != PSMF_MAGIC) {
 		ERROR_LOG(ME, "sceMpegQueryStreamSize: Bad PSMF magic");
-		Memory::Write_U32(0, sizeAddr);
+		Memory::PWrite_U32(0, sizeAddr);
 		return ERROR_MPEG_INVALID_VALUE;
 	} else if ((ctx.mpegOffset & 2047) != 0 ) {
 		ERROR_LOG(ME, "sceMpegQueryStreamSize: Bad offset");
-		Memory::Write_U32(0, sizeAddr);
+		Memory::PWrite_U32(0, sizeAddr);
 		return ERROR_MPEG_INVALID_VALUE;
 	}
 
-	Memory::Write_U32(ctx.mpegStreamSize, sizeAddr);
+	Memory::PWrite_U32(ctx.mpegStreamSize, sizeAddr);
 	return 0;
 }
 
@@ -1087,8 +1087,8 @@ static u32 sceMpegAvcDecode(u32 mpeg, u32 auAddr, u32 frameWidth, u32 bufferAddr
 		return -1;
 	}
 	
-	u32 buffer = Memory::Read_U32(bufferAddr);
-	u32 init = Memory::Read_U32(initAddr);
+	u32 buffer = Memory::PRead_U32(bufferAddr);
+	u32 init = Memory::PRead_U32(initAddr);
 	DEBUG_LOG(ME, "video: bufferAddr = %08x, *buffer = %08x, *init = %08x", bufferAddr, buffer, init);
 
 	// check and decode pmp video
@@ -1147,7 +1147,7 @@ static u32 sceMpegAvcDecode(u32 mpeg, u32 auAddr, u32 frameWidth, u32 bufferAddr
 	avcAu.write(auAddr);
 
 	// Save the current frame's status to initAddr 
-	Memory::Write_U32(ctx->avc.avcFrameStatus, initAddr);
+	Memory::PWrite_U32(ctx->avc.avcFrameStatus, initAddr);
 	ctx->avc.avcDecodeResult = MPEG_AVC_DECODE_SUCCESS;
 
 	DEBUG_LOG(ME, "sceMpegAvcDecode(%08x, %08x, %i, %08x, %08x)", mpeg, auAddr, frameWidth, bufferAddr, initAddr);
@@ -1176,7 +1176,7 @@ static u32 sceMpegAvcDecodeStop(u32 mpeg, u32 frameWidth, u32 bufferAddr, u32 st
 	DEBUG_LOG(ME, "sceMpegAvcDecodeStop(%08x, %08x, %08x, %08x)", mpeg, frameWidth, bufferAddr, statusAddr);
 
 	// No last frame generated
-	Memory::Write_U32(0, statusAddr);
+	Memory::PWrite_U32(0, statusAddr);
 	return 0;
 }
 
@@ -1231,15 +1231,15 @@ static int sceMpegAvcDecodeDetail(u32 mpeg, u32 detailAddr)
 
 	DEBUG_LOG(ME, "sceMpegAvcDecodeDetail(%08x, %08x)", mpeg, detailAddr);
 
-	Memory::Write_U32(ctx->avc.avcDecodeResult, detailAddr + 0);
-	Memory::Write_U32(ctx->videoFrameCount, detailAddr + 4);
-	Memory::Write_U32(ctx->avc.avcDetailFrameWidth, detailAddr + 8);
-	Memory::Write_U32(ctx->avc.avcDetailFrameHeight, detailAddr + 12);
-	Memory::Write_U32(0, detailAddr + 16);
-	Memory::Write_U32(0, detailAddr + 20);
-	Memory::Write_U32(0, detailAddr + 24);
-	Memory::Write_U32(0, detailAddr + 28);
-	Memory::Write_U32(ctx->avc.avcFrameStatus, detailAddr + 32);
+	Memory::PWrite_U32(ctx->avc.avcDecodeResult, detailAddr + 0);
+	Memory::PWrite_U32(ctx->videoFrameCount, detailAddr + 4);
+	Memory::PWrite_U32(ctx->avc.avcDetailFrameWidth, detailAddr + 8);
+	Memory::PWrite_U32(ctx->avc.avcDetailFrameHeight, detailAddr + 12);
+	Memory::PWrite_U32(0, detailAddr + 16);
+	Memory::PWrite_U32(0, detailAddr + 20);
+	Memory::PWrite_U32(0, detailAddr + 24);
+	Memory::PWrite_U32(0, detailAddr + 28);
+	Memory::PWrite_U32(ctx->avc.avcFrameStatus, detailAddr + 32);
 	return 0;
 }
 
@@ -1257,7 +1257,7 @@ static u32 sceMpegAvcDecodeStopYCbCr(u32 mpeg, u32 bufferAddr, u32 statusAddr)
 	}
 
 	ERROR_LOG(ME, "UNIMPL sceMpegAvcDecodeStopYCbCr(%08x, %08x, %08x)", mpeg, bufferAddr, statusAddr);
-	Memory::Write_U32(0, statusAddr);
+	Memory::PWrite_U32(0, statusAddr);
 	return 0;
 }
 
@@ -1288,8 +1288,8 @@ static int sceMpegAvcDecodeYCbCr(u32 mpeg, u32 auAddr, u32 bufferAddr, u32 initA
 	// We stored the video stream id here in sceMpegGetAvcAu().
 	ctx->mediaengine->setVideoStream(avcAu.esBuffer);
 
-	u32 buffer = Memory::Read_U32(bufferAddr);
-	u32 init = Memory::Read_U32(initAddr);
+	u32 buffer = Memory::PRead_U32(bufferAddr);
+	u32 init = Memory::PRead_U32(initAddr);
 	DEBUG_LOG(ME, "*buffer = %08x, *init = %08x", buffer, init);
 
 	if (ctx->mediaengine->stepVideo(ctx->videoPixelMode)) {
@@ -1314,7 +1314,7 @@ static int sceMpegAvcDecodeYCbCr(u32 mpeg, u32 auAddr, u32 bufferAddr, u32 initA
 	avcAu.write(auAddr);
 
 	// Save the current frame's status to initAddr 
-	Memory::Write_U32(ctx->avc.avcFrameStatus, initAddr);
+	Memory::PWrite_U32(ctx->avc.avcFrameStatus, initAddr);
 	ctx->avc.avcDecodeResult = MPEG_AVC_DECODE_SUCCESS;
 
 	DEBUG_LOG(ME, "sceMpegAvcDecodeYCbCr(%08x, %08x, %08x, %08x)", mpeg, auAddr, bufferAddr, initAddr);
@@ -1394,8 +1394,8 @@ static int sceMpegQueryAtracEsSize(u32 mpeg, u32 esSizeAddr, u32 outSizeAddr)
 
 	DEBUG_LOG(ME, "sceMpegQueryAtracEsSize(%08x, %08x, %08x)", mpeg, esSizeAddr, outSizeAddr);
 
-	Memory::Write_U32(MPEG_ATRAC_ES_SIZE, esSizeAddr);
-	Memory::Write_U32(MPEG_ATRAC_ES_OUTPUT_SIZE, outSizeAddr);
+	Memory::PWrite_U32(MPEG_ATRAC_ES_SIZE, esSizeAddr);
+	Memory::PWrite_U32(MPEG_ATRAC_ES_OUTPUT_SIZE, outSizeAddr);
 	return 0;
 }
 
@@ -1598,7 +1598,7 @@ static int sceMpegGetAvcAu(u32 mpeg, u32 streamId, u32 auAddr, u32 attrAddr)
 
 	// Jeanne d'Arc return 00000000 as attrAddr here and cause WriteToHardware error 
 	if (Memory::IsValidAddress(attrAddr)) {
-		Memory::Write_U32(1, attrAddr);
+		Memory::PWrite_U32(1, attrAddr);
 	}
 
 	DEBUG_LOG(ME, "%x=sceMpegGetAvcAu(%08x, %08x, %08x, %08x)", result, mpeg, streamId, auAddr, attrAddr);
@@ -1693,7 +1693,7 @@ static int sceMpegGetAtracAu(u32 mpeg, u32 streamId, u32 auAddr, u32 attrAddr)
 
 	// 3rd birthday return 00000000 as attrAddr here and cause WriteToHardware error 
 	if (Memory::IsValidAddress(attrAddr)) {
-		Memory::Write_U32(0, attrAddr);
+		Memory::PWrite_U32(0, attrAddr);
 	}
 
 	DEBUG_LOG(ME, "%x=sceMpegGetAtracAu(%08x, %08x, %08x, %08x)", result, mpeg, streamId, auAddr, attrAddr);
@@ -1716,8 +1716,8 @@ static int sceMpegQueryPcmEsSize(u32 mpeg, u32 esSizeAddr, u32 outSizeAddr)
 
 	ERROR_LOG(ME, "sceMpegQueryPcmEsSize(%08x, %08x, %08x)", mpeg, esSizeAddr, outSizeAddr);
 
-	Memory::Write_U32(MPEG_PCM_ES_SIZE, esSizeAddr);
-	Memory::Write_U32(MPEG_PCM_ES_OUTPUT_SIZE, outSizeAddr);
+	Memory::PWrite_U32(MPEG_PCM_ES_SIZE, esSizeAddr);
+	Memory::PWrite_U32(MPEG_PCM_ES_OUTPUT_SIZE, outSizeAddr);
 	return 0;
 }
 
@@ -1818,7 +1818,7 @@ static u32 sceMpegGetPcmAu(u32 mpeg, int streamUid, u32 auAddr, u32 attrAddr)
 	u32 attr = 1 << 7; // Sampling rate (1 = 44.1kHz).
 	attr |= 2;         // Number of channels (1 - MONO / 2 - STEREO).
 	if (Memory::IsValidAddress(attrAddr))
-		Memory::Write_U32(attr, attrAddr);
+		Memory::PWrite_U32(attr, attrAddr);
 
 	ERROR_LOG_REPORT_ONCE(mpegPcmAu, ME, "UNIMPL sceMpegGetPcmAu(%08x, %i, %08x, %08x)", mpeg, streamUid, auAddr, attrAddr);
 	return 0;
@@ -1934,10 +1934,10 @@ static u32 sceMpegAvcCsc(u32 mpeg, u32 sourceAddr, u32 rangeAddr, int frameWidth
 
 	DEBUG_LOG(ME, "sceMpegAvcCsc(%08x, %08x, %08x, %i, %08x)", mpeg, sourceAddr, rangeAddr, frameWidth, destAddr);
 
-	int x = Memory::Read_U32(rangeAddr);
-	int y = Memory::Read_U32(rangeAddr + 4);
-	int width = Memory::Read_U32(rangeAddr + 8);
-	int height = Memory::Read_U32(rangeAddr + 12);
+	int x = Memory::PRead_U32(rangeAddr);
+	int y = Memory::PRead_U32(rangeAddr + 4);
+	int width = Memory::PRead_U32(rangeAddr + 8);
+	int height = Memory::PRead_U32(rangeAddr + 12);
 	int destSize = ctx->mediaengine->writeVideoImageWithRange(destAddr, frameWidth, ctx->videoPixelMode, x, y, width, height);
 
 	gpu->NotifyVideoUpload(destAddr, destSize, frameWidth, ctx->videoPixelMode);
@@ -1985,7 +1985,7 @@ static int sceMpegAvcQueryYCbCrSize(u32 mpeg, u32 mode, u32 width, u32 height, u
 	DEBUG_LOG(ME, "sceMpegAvcQueryYCbCrSize(%08x, %i, %i, %i, %08x)", mpeg, mode, width, height, resultAddr);
 
 	int size = (width / 2) * (height / 2) * 6 + 128;
-	Memory::Write_U32(size, resultAddr);
+	Memory::PWrite_U32(size, resultAddr);
 	return 0;
 }
 
@@ -2004,8 +2004,8 @@ static u32 sceMpegQueryUserdataEsSize(u32 mpeg, u32 esSizeAddr, u32 outSizeAddr)
 
 	DEBUG_LOG(ME, "sceMpegQueryUserdataEsSize(%08x, %08x, %08x)", mpeg, esSizeAddr, outSizeAddr);
 
-	Memory::Write_U32(MPEG_DATA_ES_SIZE, esSizeAddr);
-	Memory::Write_U32(MPEG_DATA_ES_OUTPUT_SIZE, outSizeAddr);
+	Memory::PWrite_U32(MPEG_DATA_ES_SIZE, esSizeAddr);
+	Memory::PWrite_U32(MPEG_DATA_ES_OUTPUT_SIZE, outSizeAddr);
 	return 0;
 }
 
@@ -2129,8 +2129,8 @@ static int sceMpegGetUserdataAu(u32 mpeg, u32 streamUid, u32 auAddr, u32 resultA
 	DEBUG_LOG(ME, "sceMpegGetUserdataAu(%08x, %08x, %08x, %08x)", mpeg, streamUid, auAddr, resultAddr);
 
 	// TODO: Are these at all right?  Seen in Phantasy Star Portable 2.
-	Memory::Write_U32(0, resultAddr);
-	Memory::Write_U32(0, resultAddr + 4);
+	Memory::PWrite_U32(0, resultAddr);
+	Memory::PWrite_U32(0, resultAddr + 4);
 
 	// We currently can't demux userdata so this seems like the best thing to return in the meantime..
 	// Then we probably shouldn't do the above writes? but it works...

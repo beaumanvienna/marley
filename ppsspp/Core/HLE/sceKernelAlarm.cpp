@@ -183,7 +183,7 @@ SceUID sceKernelSetSysClockAlarm(u32 microPtr, u32 handlerPtr, u32 commonPtr)
 	u64 micro;
 
 	if (Memory::IsValidAddress(microPtr))
-		micro = Memory::Read_U64(microPtr);
+		micro = Memory::PRead_U64(microPtr);
 	else
 		return -1;
 
@@ -215,17 +215,17 @@ int sceKernelReferAlarmStatus(SceUID uid, u32 infoPtr)
 	if (!Memory::IsValidAddress(infoPtr))
 		return -1;
 
-	u32 size = Memory::Read_U32(infoPtr);
+	u32 size = Memory::PRead_U32(infoPtr);
 
 	// Alarms actually respect size and write (kinda) what it can hold.
 	if (size > 0)
-		Memory::Write_U32(alarm->alm.size, infoPtr);
+		Memory::PWrite_U32(alarm->alm.size, infoPtr);
 	if (size > 4)
 		Memory::Write_U64(alarm->alm.schedule, infoPtr + 4);
 	if (size > 12)
-		Memory::Write_U32(alarm->alm.handlerPtr, infoPtr + 12);
+		Memory::PWrite_U32(alarm->alm.handlerPtr, infoPtr + 12);
 	if (size > 16)
-		Memory::Write_U32(alarm->alm.commonPtr, infoPtr + 16);
+		Memory::PWrite_U32(alarm->alm.commonPtr, infoPtr + 16);
 
 	return 0;
 }

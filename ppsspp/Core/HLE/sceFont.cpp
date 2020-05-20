@@ -584,7 +584,7 @@ void PostAllocCallback::run(MipsCall &call) {
 	u32 v0 = currentMIPS->r[MIPS_REG_V0];
 	if (v0 == 0) {
 		// TODO: Who deletes fontLib?
-		Memory::Write_U32(ERROR_FONT_OUT_OF_MEMORY, errorCodePtr_);
+		Memory::PWrite_U32(ERROR_FONT_OUT_OF_MEMORY, errorCodePtr_);
 		call.setReturnValue(0);
 	} else {
 		FontLib *fontLib = fontLibList[fontLibID_];

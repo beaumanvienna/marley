@@ -375,7 +375,7 @@ u32 AuCtx::AuDecode(u32 pcmAddr) {
 		memset(outbuf + outpcmbufsize, 0, PCMBufSize - outpcmbufsize);
 	}
 
-	Memory::Write_U32(PCMBuf, pcmAddr);
+	Memory::PWrite_U32(PCMBuf, pcmAddr);
 	return outpcmbufsize;
 }
 
@@ -455,18 +455,18 @@ u32 AuCtx::AuGetInfoToAddStreamData(u32 bufPtr, u32 sizePtr, u32 srcPosPtr) {
 	// we can recharge AuBuf from its beginning
 	if (readsize != 0) {
 		if (Memory::IsValidAddress(bufPtr))
-			Memory::Write_U32(AuBuf + offset, bufPtr);
+			Memory::PWrite_U32(AuBuf + offset, bufPtr);
 		if (Memory::IsValidAddress(sizePtr))
-			Memory::Write_U32(readsize, sizePtr);
+			Memory::PWrite_U32(readsize, sizePtr);
 		if (Memory::IsValidAddress(srcPosPtr))
-			Memory::Write_U32(readPos, srcPosPtr);
+			Memory::PWrite_U32(readPos, srcPosPtr);
 	} else {
 		if (Memory::IsValidAddress(bufPtr))
-			Memory::Write_U32(0, bufPtr);
+			Memory::PWrite_U32(0, bufPtr);
 		if (Memory::IsValidAddress(sizePtr))
-			Memory::Write_U32(0, sizePtr);
+			Memory::PWrite_U32(0, sizePtr);
 		if (Memory::IsValidAddress(srcPosPtr))
-			Memory::Write_U32(0, srcPosPtr);
+			Memory::PWrite_U32(0, srcPosPtr);
 	}
 
 	// Just for old save states.

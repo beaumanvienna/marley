@@ -52,7 +52,7 @@ static int scePauth_F7AA47F6(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 		fseek(fp, 0, SEEK_SET);
 		fread(src, 1, size, fp);
 		fclose(fp);
-		Memory::Write_U32(size, destLengthPtr);
+		Memory::PWrite_U32(size, destLengthPtr);
 		INFO_LOG(HLE, "Read from decrypted file %s", name);
 		return 0;
 	}
@@ -102,7 +102,7 @@ static int scePauth_98B83B5D(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 		fseek(fp, 0, SEEK_SET);
 		fread(src, 1, size, fp);
 		fclose(fp);
-		Memory::Write_U32(size, destLengthPtr);
+		Memory::PWrite_U32(size, destLengthPtr);
 		INFO_LOG(HLE, "Read from decrypted file %s", name);
 		return 0;
 	}

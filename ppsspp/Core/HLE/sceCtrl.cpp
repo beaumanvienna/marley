@@ -395,7 +395,7 @@ static int sceCtrlGetSamplingCycle(u32 cyclePtr)
 {
 	DEBUG_LOG(SCECTRL, "sceCtrlGetSamplingCycle(%08x)", cyclePtr);
 	if (Memory::IsValidAddress(cyclePtr))
-		Memory::Write_U32(ctrlCycle, cyclePtr);
+		Memory::PWrite_U32(ctrlCycle, cyclePtr);
 	return 0;
 }
 
@@ -418,7 +418,7 @@ static int sceCtrlGetSamplingMode(u32 modePtr)
 	DEBUG_LOG(SCECTRL, "%d=sceCtrlGetSamplingMode(%08x)", retVal, modePtr);
 
 	if (Memory::IsValidAddress(modePtr))
-		Memory::Write_U32(retVal, modePtr);
+		Memory::PWrite_U32(retVal, modePtr);
 
 	return 0;
 }
@@ -445,9 +445,9 @@ static int sceCtrlGetIdleCancelThreshold(u32 idleResetPtr, u32 idleBackPtr)
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 
 	if (idleResetPtr)
-		Memory::Write_U32(ctrlIdleReset, idleResetPtr);
+		Memory::PWrite_U32(ctrlIdleReset, idleResetPtr);
 	if (idleBackPtr)
-		Memory::Write_U32(ctrlIdleBack, idleBackPtr);
+		Memory::PWrite_U32(ctrlIdleBack, idleBackPtr);
 
 	return 0;
 }

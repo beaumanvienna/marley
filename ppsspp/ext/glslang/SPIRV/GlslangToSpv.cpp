@@ -1847,7 +1847,7 @@ bool TGlslangToSpvTraverser::visitBinary(glslang::TVisit /* visit */, glslang::T
                 int dummySize;
                 builder.accessChainPushSwizzle(swizzle, convertGlslangToSpvType(node->getLeft()->getType()),
                                                TranslateCoherent(node->getLeft()->getType()),
-                                               glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                               glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
             } else {
 
                 // Load through a block reference is performed with a dot operator that
@@ -1914,7 +1914,7 @@ bool TGlslangToSpvTraverser::visitBinary(glslang::TVisit /* visit */, glslang::T
                 int dummySize;
                 builder.accessChainPushComponent(index, convertGlslangToSpvType(node->getLeft()->getType()),
                                                 TranslateCoherent(node->getLeft()->getType()),
-                                                glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                                glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
             } else
                 builder.accessChainPush(index, TranslateCoherent(node->getLeft()->getType()), node->getLeft()->getType().getBufferReferenceAlignment());
         }
@@ -1927,7 +1927,7 @@ bool TGlslangToSpvTraverser::visitBinary(glslang::TVisit /* visit */, glslang::T
             int dummySize;
             builder.accessChainPushSwizzle(swizzle, convertGlslangToSpvType(node->getLeft()->getType()),
                                            TranslateCoherent(node->getLeft()->getType()),
-                                           glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                           glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
         }
         return false;
     case glslang::EOpMatrixSwizzle:
@@ -4107,7 +4107,7 @@ void TGlslangToSpvTraverser::updateMemberOffset(const glslang::TType& structType
     if (glslangIntermediate->usingHlslOffsets() &&
         ! memberType.isArray() && memberType.isVector() && structType.getTypeName().compare("$Global") != 0) {
         int dummySize;
-        int componentAlignment = glslangIntermediate->getBaseAlignmentScalar(memberType, dummySize);
+        int componentAlignment = glslangIntermediate->PgetBaseAlignmentScalar(memberType, dummySize);
         if (componentAlignment <= 4)
             memberAlignment = componentAlignment;
     }
@@ -4116,7 +4116,7 @@ void TGlslangToSpvTraverser::updateMemberOffset(const glslang::TType& structType
     glslang::RoundToPow2(currentOffset, memberAlignment);
 
     // Bump up to vec4 if there is a bad straddle
-    if (explicitLayout != glslang::ElpScalar && glslangIntermediate->improperStraddle(memberType, memberSize, currentOffset))
+    if (explicitLayout != glslang::ElpScalar && glslangIntermediate->PimproperStraddle(memberType, memberSize, currentOffset))
         glslang::RoundToPow2(currentOffset, 16);
 
     nextOffset = currentOffset + memberSize;

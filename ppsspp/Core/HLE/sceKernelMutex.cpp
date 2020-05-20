@@ -276,7 +276,7 @@ static bool __KernelUnlockMutexForThread(Mutex *mutex, SceUID threadID, u32 &err
 	{
 		// Remove any event for this thread.
 		s64 cyclesLeft = CoreTiming::UnscheduleEvent(mutexWaitTimer, threadID);
-		Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+		Memory::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 	}
 
 	__KernelResumeThreadFromWait(threadID, result);
@@ -344,7 +344,7 @@ int sceKernelCreateMutex(const char *name, u32 attr, int initialCount, u32 optio
 
 	if (optionsPtr != 0)
 	{
-		u32 size = Memory::Read_U32(optionsPtr);
+		u32 size = Memory::PRead_U32(optionsPtr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMutex(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -496,7 +496,7 @@ static void __KernelWaitMutex(Mutex *mutex, u32 timeoutPtr)
 	if (timeoutPtr == 0 || mutexWaitTimer == -1)
 		return;
 
-	int micro = (int) Memory::Read_U32(timeoutPtr);
+	int micro = (int) Memory::PRead_U32(timeoutPtr);
 
 	// This happens to be how the hardware seems to time things.
 	if (micro <= 3)
@@ -531,7 +531,7 @@ int sceKernelCancelMutex(SceUID uid, int count, u32 numWaitThreadsPtr)
 		HLEKernel::CleanupWaitingThreads(WAITTYPE_MUTEX, uid, mutex->waitingThreads);
 
 		if (Memory::IsValidAddress(numWaitThreadsPtr))
-			Memory::Write_U32((u32)mutex->waitingThreads.size(), numWaitThreadsPtr);
+			Memory::PWrite_U32((u32)mutex->waitingThreads.size(), numWaitThreadsPtr);
 
 		bool wokeThreads = false;
 		for (auto iter = mutex->waitingThreads.begin(), end = mutex->waitingThreads.end(); iter != end; ++iter)
@@ -686,7 +686,7 @@ int sceKernelReferMutexStatus(SceUID id, u32 infoAddr)
 		return -1;
 
 	// Don't write if the size is 0.  Anything else is A-OK, though, apparently.
-	if (Memory::Read_U32(infoAddr) != 0)
+	if (Memory::PRead_U32(infoAddr) != 0)
 	{
 		HLEKernel::CleanupWaitingThreads(WAITTYPE_MUTEX, id, m->waitingThreads);
 
@@ -737,7 +737,7 @@ int sceKernelCreateLwMutex(u32 workareaPtr, const char *name, u32 attr, int init
 
 	if (optionsPtr != 0)
 	{
-		u32 size = Memory::Read_U32(optionsPtr);
+		u32 size = Memory::PRead_U32(optionsPtr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateLwMutex(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -765,7 +765,7 @@ bool __KernelUnlockLwMutexForThread(LwMutex *mutex, T workarea, SceUID threadID,
 	{
 		// Remove any event for this thread.
 		s64 cyclesLeft = CoreTiming::UnscheduleEvent(lwMutexWaitTimer, threadID);
-		Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+		Memory::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 	}
 
 	__KernelResumeThreadFromWait(threadID, result);
@@ -893,7 +893,7 @@ static void __KernelWaitLwMutex(LwMutex *mutex, u32 timeoutPtr)
 	if (timeoutPtr == 0 || lwMutexWaitTimer == -1)
 		return;
 
-	int micro = (int) Memory::Read_U32(timeoutPtr);
+	int micro = (int) Memory::PRead_U32(timeoutPtr);
 
 	// This happens to be how the hardware seems to time things.
 	if (micro <= 3)
@@ -1086,7 +1086,7 @@ static int __KernelReferLwMutexStatus(SceUID uid, u32 infoPtr)
 	if (!Memory::IsValidAddress(infoPtr))
 		return -1;
 
-	if (Memory::Read_U32(infoPtr) != 0)
+	if (Memory::PRead_U32(infoPtr) != 0)
 	{
 		auto workarea = m->nm.workarea;
 

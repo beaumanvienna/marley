@@ -37,7 +37,7 @@ inline void WaitExecTimeout(SceUID threadID) {
 	if (ko)
 	{
 		if (timeoutPtr != 0)
-			Memory::Write_U32(0, timeoutPtr);
+			Memory::PWrite_U32(0, timeoutPtr);
 
 		// This thread isn't waiting anymore, but we'll remove it from waitingThreads later.
 		// The reason is, if it times out, but what it was waiting on is DELETED prior to it
@@ -194,7 +194,7 @@ WaitBeginEndCallbackResult WaitEndCallback(SceUID threadID, SceUID prevCallbackI
 		// TODO: Since it was deleted, we don't know how long was actually left.
 		// For now, we just say the full time was taken.
 		if (timeoutPtr != 0 && waitTimer != -1) {
-			Memory::Write_U32(0, timeoutPtr);
+			Memory::PWrite_U32(0, timeoutPtr);
 		}
 
 		__KernelResumeThreadFromWait(threadID, SCE_KERNEL_ERROR_WAIT_DELETE);
@@ -215,7 +215,7 @@ WaitBeginEndCallbackResult WaitEndCallback(SceUID threadID, SceUID prevCallbackI
 	s64 cyclesLeft = waitDeadline - CoreTiming::GetTicks();
 	if (cyclesLeft < 0 && waitDeadline != 0) {
 		if (timeoutPtr != 0 && waitTimer != -1) {
-			Memory::Write_U32(0, timeoutPtr);
+			Memory::PWrite_U32(0, timeoutPtr);
 		}
 
 		__KernelResumeThreadFromWait(threadID, SCE_KERNEL_ERROR_WAIT_TIMEOUT);
@@ -245,7 +245,7 @@ WaitBeginEndCallbackResult WaitEndCallback(SceUID threadID, SceUID prevCallbackI
 		// TODO: Since it was deleted, we don't know how long was actually left.
 		// For now, we just say the full time was taken.
 		if (timeoutPtr != 0 && waitTimer != -1) {
-			Memory::Write_U32(0, timeoutPtr);
+			Memory::PWrite_U32(0, timeoutPtr);
 		}
 
 		__KernelResumeThreadFromWait(threadID, SCE_KERNEL_ERROR_WAIT_DELETE);

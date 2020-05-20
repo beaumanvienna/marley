@@ -215,7 +215,7 @@ static int sceNetAdhocctlGetState(u32 ptrToStatus) {
 		// Valid Arguments
 		if (Memory::IsValidAddress(ptrToStatus)) {
 			// Return Thread Status
-			Memory::Write_U32(threadStatus, ptrToStatus);
+			Memory::PWrite_U32(threadStatus, ptrToStatus);
 			// Return Success
 			return 0;
 		}
@@ -3142,7 +3142,7 @@ int sceNetAdhocMatchingSetHelloOpt(int matchingId, int optLenAddr, u32 optDataAd
 }
 
 static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) {
-	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetMembers(%i, [%08x]=%i, %08x) at %08x", matchingId, sizeAddr, Memory::Read_U32(sizeAddr), buf, currentMIPS->pc);
+	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetMembers(%i, [%08x]=%i, %08x) at %08x", matchingId, sizeAddr, Memory::PRead_U32(sizeAddr), buf, currentMIPS->pc);
 	if (!g_PConfig.bEnableWlan)
 		return -1;
 

@@ -101,7 +101,7 @@ static AtlasTextMetrics char_lines_metrics;
 
 //only 0xFFFFFF of data is used
 static void WriteCmd(u8 cmd, u32 data) {
-	Memory::Write_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
+	Memory::PWrite_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
 	dlWritePtr += 4;
 }
 

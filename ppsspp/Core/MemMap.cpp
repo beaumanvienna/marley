@@ -418,7 +418,7 @@ __forceinline static Opcode Read_Instruction(u32 address, bool resolveReplacemen
 
 Opcode Read_Instruction(u32 address, bool resolveReplacements)
 {
-	Opcode inst = Opcode(Read_U32(address));
+	Opcode inst = Opcode(PRead_U32(address));
 	return Read_Instruction(address, resolveReplacements, inst);
 }
 
@@ -430,7 +430,7 @@ Opcode ReadUnchecked_Instruction(u32 address, bool resolveReplacements)
 
 Opcode Read_Opcode_JIT(u32 address)
 {
-	Opcode inst = Opcode(Read_U32(address));
+	Opcode inst = Opcode(PRead_U32(address));
 	if (MIPS_IS_RUNBLOCK(inst.encoding) && MIPSComp::jit) {
 		return MIPSComp::jit->GetOriginalOp(inst);
 	} else {
@@ -451,7 +451,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength) {
 		memset(ptr, _iValue, _iLength);
 	} else {
 		for (size_t i = 0; i < _iLength; i++)
-			Write_U8(_iValue, (u32)(_Address + i));
+			PWrite_U8(_iValue, (u32)(_Address + i));
 	}
 
 	CBreakPoints::ExecMemCheck(_Address, true, _iLength, currentMIPS->pc);

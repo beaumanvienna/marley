@@ -439,7 +439,7 @@ public:
 };
 
 void AfterModuleEntryCall::run(MipsCall &call) {
-	Memory::Write_U32(retValAddr, currentMIPS->r[MIPS_REG_V0]);
+	Memory::PWrite_U32(retValAddr, currentMIPS->r[MIPS_REG_V0]);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -617,7 +617,7 @@ static void WriteVarSymbol(u32 exportAddress, u32 relocAddress, u8 type, bool re
 					// The low instruction will be a signed add, which means (full & 0x8000) will subtract.
 					// We add 1 in that case so that it ends up the right value.
 					u16 high = (full >> 16) + ((full & 0x8000) ? 1 : 0);
-					Memory::Write_U32((it->data & ~0xFFFF) | high, it->addr);
+					Memory::PWrite_U32((it->data & ~0xFFFF) | high, it->addr);
 					currentMIPS->InvalidateICache(it->addr, 4);
 				}
 				lastHI16Processed = true;
@@ -632,7 +632,7 @@ static void WriteVarSymbol(u32 exportAddress, u32 relocAddress, u8 type, bool re
 		WARN_LOG_REPORT(LOADER, "Unsupported var relocation type %d - %08x => %08x", type, exportAddress, relocAddress);
 	}
 
-	Memory::Write_U32(relocData, relocAddress);
+	Memory::PWrite_U32(relocData, relocAddress);
 	currentMIPS->InvalidateICache(relocAddress, 4);
 }
 
@@ -816,7 +816,7 @@ void Module::Cleanup() {
 	if (memoryBlockAddr != 0 && nm.text_addr != 0 && memoryBlockSize >= nm.data_size + nm.bss_size + nm.text_size) {
 		DEBUG_LOG(LOADER, "Zeroing out module %s memory: %08x - %08x", nm.name, memoryBlockAddr, memoryBlockAddr + memoryBlockSize);
 		for (u32 i = 0; i < (u32)(nm.text_size + 3); i += 4) {
-			Memory::Write_U32(MIPS_MAKE_BREAK(1), nm.text_addr + i);
+			Memory::PWrite_U32(MIPS_MAKE_BREAK(1), nm.text_addr + i);
 		}
 		Memory::Memset(nm.text_addr + nm.text_size, -1, nm.data_size + nm.bss_size);
 
@@ -1011,8 +1011,8 @@ static bool KernelImportModuleFuncs(Module *module, u32 *firstImportStubAddr, bo
 			var.moduleName[KERNELOBJECT_MAX_NAME_LENGTH] = '\0';
 
 			for (int i = 0; i < entry->numVars; ++i) {
-				u32 varRefsPtr = Memory::Read_U32(entry->varData + i * 8);
-				u32 nid = Memory::Read_U32(entry->varData + i * 8 + 4);
+				u32 varRefsPtr = Memory::PRead_U32(entry->varData + i * 8);
+				u32 nid = Memory::PRead_U32(entry->varData + i * 8 + 4);
 				if (!Memory::IsValidAddress(varRefsPtr)) {
 					WARN_LOG_REPORT(LOADER, "Bad relocation list address for nid %08x in %s", nid, modulename);
 					continue;
@@ -1414,38 +1414,38 @@ static Module *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 loadAdd
 				// Points to a PspModuleInfo, often the exact one .rodata.sceModuleInfo points to.
 				break;
 			case NID_MODULE_START_THREAD_PARAMETER:
-				size = Memory::Read_U32(exportAddr);
+				size = Memory::PRead_U32(exportAddr);
 				if (size == 0)
 					break;
 				else if (size != 3)
-					WARN_LOG_REPORT(LOADER, "Strange value at module_start_thread_parameter export: %08x", Memory::Read_U32(exportAddr));
-				module->nm.module_start_thread_priority = Memory::Read_U32(exportAddr + 4);
-				module->nm.module_start_thread_stacksize = Memory::Read_U32(exportAddr + 8);
-				module->nm.module_start_thread_attr = Memory::Read_U32(exportAddr + 12);
+					WARN_LOG_REPORT(LOADER, "Strange value at module_start_thread_parameter export: %08x", Memory::PRead_U32(exportAddr));
+				module->nm.module_start_thread_priority = Memory::PRead_U32(exportAddr + 4);
+				module->nm.module_start_thread_stacksize = Memory::PRead_U32(exportAddr + 8);
+				module->nm.module_start_thread_attr = Memory::PRead_U32(exportAddr + 12);
 				break;
 			case NID_MODULE_STOP_THREAD_PARAMETER:
-				size = Memory::Read_U32(exportAddr);
+				size = Memory::PRead_U32(exportAddr);
 				if (size == 0)
 					break;
 				else if (size != 3)
-					WARN_LOG_REPORT(LOADER, "Strange value at module_stop_thread_parameter export: %08x", Memory::Read_U32(exportAddr));
-				module->nm.module_stop_thread_priority = Memory::Read_U32(exportAddr + 4);
-				module->nm.module_stop_thread_stacksize = Memory::Read_U32(exportAddr + 8);
-				module->nm.module_stop_thread_attr = Memory::Read_U32(exportAddr + 12);
+					WARN_LOG_REPORT(LOADER, "Strange value at module_stop_thread_parameter export: %08x", Memory::PRead_U32(exportAddr));
+				module->nm.module_stop_thread_priority = Memory::PRead_U32(exportAddr + 4);
+				module->nm.module_stop_thread_stacksize = Memory::PRead_U32(exportAddr + 8);
+				module->nm.module_stop_thread_attr = Memory::PRead_U32(exportAddr + 12);
 				break;
 			case NID_MODULE_REBOOT_BEFORE_THREAD_PARAMETER:
-				size = Memory::Read_U32(exportAddr);
+				size = Memory::PRead_U32(exportAddr);
 				if (size == 0)
 					break;
 				else if (size != 3)
-					WARN_LOG_REPORT(LOADER, "Strange value at module_reboot_before_thread_parameter export: %08x", Memory::Read_U32(exportAddr));
-				module->nm.module_reboot_before_thread_priority = Memory::Read_U32(exportAddr + 4);
-				module->nm.module_reboot_before_thread_stacksize = Memory::Read_U32(exportAddr + 8);
-				module->nm.module_reboot_before_thread_attr = Memory::Read_U32(exportAddr + 12);
+					WARN_LOG_REPORT(LOADER, "Strange value at module_reboot_before_thread_parameter export: %08x", Memory::PRead_U32(exportAddr));
+				module->nm.module_reboot_before_thread_priority = Memory::PRead_U32(exportAddr + 4);
+				module->nm.module_reboot_before_thread_stacksize = Memory::PRead_U32(exportAddr + 8);
+				module->nm.module_reboot_before_thread_attr = Memory::PRead_U32(exportAddr + 12);
 				break;
 			case NID_MODULE_SDK_VERSION:
-				DEBUG_LOG(LOADER, "Module SDK: %08x", Memory::Read_U32(exportAddr));
-				devkitVersion = Memory::Read_U32(exportAddr);
+				DEBUG_LOG(LOADER, "Module SDK: %08x", Memory::PRead_U32(exportAddr));
+				devkitVersion = Memory::PRead_U32(exportAddr);
 				break;
 			default:
 				var.nid = nid;
@@ -1920,7 +1920,7 @@ static void sceKernelStartModule(u32 moduleId, u32 argsize, u32 argAddr, u32 ret
 		INFO_LOG(SCEMODULE, "sceKernelStartModule(%d,asize=%08x,aptr=%08x,retptr=%08x,%08x): faked (undecryptable module)",
 		moduleId,argsize,argAddr,returnValueAddr,optionAddr);
 		if (returnValueAddr)
-			Memory::Write_U32(0, returnValueAddr);
+			Memory::PWrite_U32(0, returnValueAddr);
 		RETURN(moduleId);
 		return;
 	} else if (module->nm.status == MODULE_STATUS_STARTED) {
@@ -2021,7 +2021,7 @@ static u32 sceKernelStopModule(u32 moduleId, u32 argSize, u32 argAddr, u32 retur
 	{
 		INFO_LOG(SCEMODULE, "sceKernelStopModule(%08x, %08x, %08x, %08x, %08x) - faking", moduleId, argSize, argAddr, returnValueAddr, optionAddr);
 		if (returnValueAddr)
-			Memory::Write_U32(0, returnValueAddr);
+			Memory::PWrite_U32(0, returnValueAddr);
 		return 0;
 	}
 	if (module->nm.status != MODULE_STATUS_STARTED)
@@ -2218,7 +2218,7 @@ void __KernelReturnFromModuleFunc()
 				sceKernelDeleteThread(it->threadID);
 			} else {
 				if (it->statusPtr != 0)
-					Memory::Write_U32(exitStatus, it->statusPtr);
+					Memory::PWrite_U32(exitStatus, it->statusPtr);
 				__KernelResumeThreadFromWait(it->threadID, module->nm.status == MODULE_STATUS_STARTED ? leftModuleID : 0);
 			}
 		}
@@ -2445,14 +2445,14 @@ static u32 sceKernelGetModuleIdList(u32 resultBuffer, u32 resultBufferSize, u32 
 		Module *module = kernelObjects.Get<Module>(moduleId, error);
 		if (!module->isFake) {
 			if (resultBufferOffset < resultBufferSize) {
-				Memory::Write_U32(module->GetUID(), resultBuffer + resultBufferOffset);
+				Memory::PWrite_U32(module->GetUID(), resultBuffer + resultBufferOffset);
 				resultBufferOffset += 4;
 			}
 			idCount++;
 		}
 	}
 
-	Memory::Write_U32(idCount, idCountAddr);
+	Memory::PWrite_U32(idCount, idCountAddr);
 	
 	return 0;
 }

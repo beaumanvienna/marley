@@ -29,7 +29,7 @@ static int sceOpenPSIDGetOpenPSID(u32 OpenPSIDPtr)
 	{
 		for (int i = 0; i < 16; i++) 
 		{
-			Memory::Write_U8(dummyOpenPSID[i], OpenPSIDPtr+i);
+			Memory::PWrite_U8(dummyOpenPSID[i], OpenPSIDPtr+i);
 		}
 	}
 	return 0;

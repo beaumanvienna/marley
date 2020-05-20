@@ -86,7 +86,7 @@ int PSPGamedataInstallDialog::Init(u32 paramAddr) {
 		return -1;
 	}
 
-	int size = Memory::Read_U32(paramAddr);
+	int size = Memory::PRead_U32(paramAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different request format
 	Memory::Memcpy(&request, paramAddr, size);
