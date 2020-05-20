@@ -82,7 +82,7 @@ void CwCheatScreen::CreateViews() {
 	I18NCategory *cw = GetI18NCategory("CwCheats");
 	I18NCategory *di = GetI18NCategory("Dialog");
 	CreateCodeList();
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	root_ = new LinearLayout(ORIENT_HORIZONTAL);
 	Margins actionMenuMargins(50, -15, 15, 0);
 
@@ -95,7 +95,7 @@ void CwCheatScreen::CreateViews() {
 	leftColumn->Add(new Choice(cw->T("Edit Cheat File")))->OnClick.Handle(this, &CwCheatScreen::OnEditCheatFile);
 #endif
 	leftColumn->Add(new Choice(cw->T("Enable/Disable All")))->OnClick.Handle(this, &CwCheatScreen::OnEnableAll);
-	leftColumn->Add(new PopupSliderChoice(&g_Config.iCwCheatRefreshRate, 1, 1000, cw->T("Refresh Rate"), 1, screenManager()));
+	leftColumn->Add(new PopupSliderChoice(&g_PConfig.iCwCheatRefreshRate, 1, 1000, cw->T("Refresh Rate"), 1, screenManager()));
 
 	ScrollView *rightScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(0.5f));
 	rightScroll->SetTag("CwCheats");
@@ -125,7 +125,7 @@ void CwCheatScreen::onFinish(DialogResult result) {
 		}
 	}
 	fs.close();
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	if (MIPSComp::jit) {
 		MIPSComp::jit->ClearCache();
 	}
@@ -155,18 +155,18 @@ UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
 	}
 	fs.close();
 
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn CwCheatScreen::OnAddCheat(UI::EventParams &params) {
 	TriggerFinish(DR_OK);
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	if (MIPSComp::jit) {
 		MIPSComp::jit->ClearCache();
 	}
@@ -259,7 +259,7 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 		}
 	}
 	fs.close();
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	//Need a better way to refresh the screen, rather than exiting and having to re-enter.
 	TriggerFinish(DR_OK);
 	return UI::EVENT_DONE;

@@ -33,14 +33,14 @@ void TiltAnalogSettingsScreen::CreateViews() {
 
 	settings->SetSpacing(0);
 	settings->Add(new ItemHeader(co->T("Invert Axes")));
-	settings->Add(new CheckBox(&g_Config.bInvertTiltX, co->T("Invert Tilt along X axis")));
-	settings->Add(new CheckBox(&g_Config.bInvertTiltY, co->T("Invert Tilt along Y axis")));
+	settings->Add(new CheckBox(&g_PConfig.bInvertTiltX, co->T("Invert Tilt along X axis")));
+	settings->Add(new CheckBox(&g_PConfig.bInvertTiltY, co->T("Invert Tilt along Y axis")));
 
 	settings->Add(new ItemHeader(co->T("Sensitivity")));
 	//TODO: allow values greater than 100? I'm not sure if that's needed.
-	settings->Add(new PopupSliderChoice(&g_Config.iTiltSensitivityX, 0, 100, co->T("Tilt Sensitivity along X axis"), screenManager(),"%"));
-	settings->Add(new PopupSliderChoice(&g_Config.iTiltSensitivityY, 0, 100, co->T("Tilt Sensitivity along Y axis"), screenManager(),"%"));
-	settings->Add(new PopupSliderChoiceFloat(&g_Config.fDeadzoneRadius, 0.0, 1.0, co->T("Deadzone Radius"), 0.01f, screenManager(),"/ 1.0"));
+	settings->Add(new PopupSliderChoice(&g_PConfig.iTiltSensitivityX, 0, 100, co->T("Tilt Sensitivity along X axis"), screenManager(),"%"));
+	settings->Add(new PopupSliderChoice(&g_PConfig.iTiltSensitivityY, 0, 100, co->T("Tilt Sensitivity along Y axis"), screenManager(),"%"));
+	settings->Add(new PopupSliderChoiceFloat(&g_PConfig.fDeadzoneRadius, 0.0, 1.0, co->T("Deadzone Radius"), 0.01f, screenManager(),"/ 1.0"));
 
 	settings->Add(new ItemHeader(co->T("Calibration")));
 	InfoItem *calibrationInfo = new InfoItem(co->T("To Calibrate", "To calibrate, keep device on a flat surface and press calibrate."), "");
@@ -70,8 +70,8 @@ bool TiltAnalogSettingsScreen::axis(const AxisInput &axis) {
 }
 
 UI::EventReturn TiltAnalogSettingsScreen::OnCalibrate(UI::EventParams &e) {
-	g_Config.fTiltBaseX = currentTiltX_;
-	g_Config.fTiltBaseY = currentTiltY_;
+	g_PConfig.fTiltBaseX = currentTiltX_;
+	g_PConfig.fTiltBaseY = currentTiltY_;
 
 	return UI::EVENT_DONE;
 }

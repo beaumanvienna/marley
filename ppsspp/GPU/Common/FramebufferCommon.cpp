@@ -49,18 +49,18 @@ void CenterDisplayOutputRect(float *x, float *y, float *w, float *h, float origW
 
 	bool rotated = rotation == ROTATION_LOCKED_VERTICAL || rotation == ROTATION_LOCKED_VERTICAL180;
 
-	if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
+	if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
 		outW = frameW;
 		outH = frameH;
 	} else {
-		if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::MANUAL) {
-			float offsetX = (g_Config.fSmallDisplayOffsetX - 0.5f) * 2.0f * frameW;
-			float offsetY = (g_Config.fSmallDisplayOffsetY - 0.5f) * 2.0f * frameH;
+		if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::MANUAL) {
+			float offsetX = (g_PConfig.fSmallDisplayOffsetX - 0.5f) * 2.0f * frameW;
+			float offsetY = (g_PConfig.fSmallDisplayOffsetY - 0.5f) * 2.0f * frameH;
 			// Have to invert Y for GL
 			if (GetGPUBackend() == GPUBackend::OPENGL) {
 				offsetY = offsetY * -1.0f;
 			}
-			float customZoom = g_Config.fSmallDisplayZoomLevel;
+			float customZoom = g_PConfig.fSmallDisplayZoomLevel;
 			float smallDisplayW = origW * customZoom;
 			float smallDisplayH = origH * customZoom;
 			if (!rotated) {
@@ -76,7 +76,7 @@ void CenterDisplayOutputRect(float *x, float *y, float *w, float *h, float origW
 				*h = floorf(smallDisplayW);
 				return;
 			}
-		} else if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
+		} else if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
 			// Stretch to 1080 for 272*4.  But don't distort if not widescreen (i.e. ultrawide of halfwide.)
 			float pixelCrop = frameH / 270.0f;
 			float resCommonWidescreen = pixelCrop - floor(pixelCrop);
@@ -97,13 +97,13 @@ void CenterDisplayOutputRect(float *x, float *y, float *w, float *h, float origW
 			outW = frameW;
 			outH = frameW / origRatio;
 			// Stretch a little bit
-			if (!rotated && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
+			if (!rotated && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
 				outH = (frameH + outH) / 2.0f; // (408 + 720) / 2 = 564
 		} else {
 			// Image is taller than frame. Center horizontally.
 			outW = frameH * origRatio;
 			outH = frameH;
-			if (rotated && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
+			if (rotated && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
 				outW = (frameH + outH) / 2.0f; // (408 + 720) / 2 = 564
 		}
 	}
@@ -148,14 +148,14 @@ void FramebufferManagerCommon::Init() {
 
 bool FramebufferManagerCommon::UpdateSize() {
 	const bool newRender = renderWidth_ != (float)PSP_CoreParameter().renderWidth || renderHeight_ != (float)PSP_CoreParameter().renderHeight;
-	const bool newSettings = bloomHack_ != g_Config.iBloomHack || useBufferedRendering_ != (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE);
+	const bool newSettings = bloomHack_ != g_PConfig.iBloomHack || useBufferedRendering_ != (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE);
 
 	renderWidth_ = (float)PSP_CoreParameter().renderWidth;
 	renderHeight_ = (float)PSP_CoreParameter().renderHeight;
 	pixelWidth_ = PSP_CoreParameter().pixelWidth;
 	pixelHeight_ = PSP_CoreParameter().pixelHeight;
-	bloomHack_ = g_Config.iBloomHack;
-	useBufferedRendering_ = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bloomHack_ = g_PConfig.iBloomHack;
+	useBufferedRendering_ = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 
 	return newRender || newSettings;
 }
@@ -456,7 +456,7 @@ VirtualFramebuffer *FramebufferManagerCommon::DoSetRenderFrameBuffer(const Frame
 		vfbs_.push_back(vfb);
 		currentRenderVfb_ = vfb;
 
-		if (useBufferedRendering_ && !g_Config.bDisableSlowFramebufEffects) {
+		if (useBufferedRendering_ && !g_PConfig.bDisableSlowFramebufEffects) {
 			gpu->PerformMemoryUpload(params.fb_address, byteSize);
 			NotifyStencilUpload(params.fb_address, byteSize, true);
 			// TODO: Is it worth trying to upload the depth buffer?
@@ -725,7 +725,7 @@ void FramebufferManagerCommon::DrawPixels(VirtualFramebuffer *vfb, int dstX, int
 	float u0 = 0.0f, u1 = 1.0f;
 	float v0 = 0.0f, v1 = 1.0f;
 
-	DrawTextureFlags flags = (vfb || g_Config.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+	DrawTextureFlags flags = (vfb || g_PConfig.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 	if (useBufferedRendering_ && vfb && vfb->fbo) {
 		draw_->BindFramebufferAsRenderTarget(vfb->fbo, { Draw::RPAction::KEEP, Draw::RPAction::KEEP, Draw::RPAction::KEEP });
 		SetViewport2D(0, 0, vfb->renderWidth, vfb->renderHeight);
@@ -786,7 +786,7 @@ void FramebufferManagerCommon::DrawFramebufferToOutput(const u8 *srcPixels, GEBu
 	// Should try to unify this path with the regular path somehow, but this simple solution works for most of the post shaders 
 	// (it always runs at output resolution so FXAA may look odd).
 	float x, y, w, h;
-	int uvRotation = useBufferedRendering_ ? g_Config.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
+	int uvRotation = useBufferedRendering_ ? g_PConfig.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
 	CenterDisplayOutputRect(&x, &y, &w, &h, 480.0f, 272.0f, (float)pixelWidth_, (float)pixelHeight_, uvRotation);
 	if (applyPostShader && useBufferedRendering_) {
 		// Might've changed if the shader was just changed to Off.
@@ -805,7 +805,7 @@ void FramebufferManagerCommon::DrawFramebufferToOutput(const u8 *srcPixels, GEBu
 	if (needBackBufferYSwap_)
 		std::swap(v0, v1);
 
-	DrawTextureFlags flags = g_Config.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+	DrawTextureFlags flags = g_PConfig.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 	flags = flags | DRAWTEX_TO_BACKBUFFER;
 	// Fullscreen Image
 	SetViewport2D(0, 0, pixelWidth_, pixelHeight_);
@@ -819,7 +819,7 @@ void FramebufferManagerCommon::DownloadFramebufferOnSwitch(VirtualFramebuffer *v
 		// Some games will draw to some memory once, and use it as a render-to-texture later.
 		// To support this, we save the first frame to memory when we have a safe w/h.
 		// Saving each frame would be slow.
-		if (!g_Config.bDisableSlowFramebufEffects) {
+		if (!g_PConfig.bDisableSlowFramebufEffects) {
 			ReadFramebufferToMemory(vfb, true, 0, 0, vfb->safeWidth, vfb->safeHeight);
 			vfb->usageFlags = (vfb->usageFlags | FB_USAGE_DOWNLOAD) & ~FB_USAGE_DOWNLOAD_CLEAR;
 			vfb->firstFrameSaved = true;
@@ -944,7 +944,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 		else
 			DEBUG_LOG(FRAMEBUF, "Displaying FBO %08x", vfb->fb_address);
 
-		int uvRotation = useBufferedRendering_ ? g_Config.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
+		int uvRotation = useBufferedRendering_ ? g_PConfig.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
 
 		// Output coordinates
 		float x, y, w, h;
@@ -963,7 +963,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 			draw_->BindFramebufferAsTexture(vfb->fbo, 0, Draw::FB_COLOR_BIT, 0);
 			draw_->SetScissorRect(0, 0, pixelWidth_, pixelHeight_);
 			Bind2DShader();
-			DrawTextureFlags flags = g_Config.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+			DrawTextureFlags flags = g_PConfig.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 			flags = flags | DRAWTEX_TO_BACKBUFFER;
 			// We are doing the DrawActiveTexture call directly to the backbuffer here. Hence, we must
 			// flip V.
@@ -984,7 +984,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 			PostShaderUniforms uniforms{};
 			CalculatePostShaderUniforms(vfb->bufferWidth, vfb->bufferHeight, renderWidth_, renderHeight_, &uniforms);
 			BindPostShader(uniforms);
-			DrawTextureFlags flags = g_Config.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+			DrawTextureFlags flags = g_PConfig.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 			DrawActiveTexture(0, 0, fbo_w, fbo_h, fbo_w, fbo_h, 0.0f, 0.0f, 1.0f, 1.0f, ROTATION_LOCKED_HORIZONTAL, flags);
 
 			draw_->SetScissorRect(0, 0, pixelWidth_, pixelHeight_);
@@ -1003,7 +1003,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 			if (needBackBufferYSwap_)
 				std::swap(v0, v1);
 			Bind2DShader();
-			flags = (!postShaderIsUpscalingFilter_ && g_Config.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+			flags = (!postShaderIsUpscalingFilter_ && g_PConfig.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 			flags = flags | DRAWTEX_TO_BACKBUFFER;
 			// Fullscreen Image
 			SetViewport2D(0, 0, pixelWidth_, pixelHeight_);
@@ -1018,7 +1018,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 			// flip V.
 			if (needBackBufferYSwap_)
 				std::swap(v0, v1);
-			DrawTextureFlags flags = (!postShaderIsUpscalingFilter_ && g_Config.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+			DrawTextureFlags flags = (!postShaderIsUpscalingFilter_ && g_PConfig.iBufFilter == SCALE_LINEAR) ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 			flags = flags | DRAWTEX_TO_BACKBUFFER;
 
 			PostShaderUniforms uniforms{};
@@ -1265,7 +1265,7 @@ bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size,
 		FlushBeforeCopy();
 		if (srcH == 0 || srcY + srcH > srcBuffer->bufferHeight) {
 			WARN_LOG_REPORT_ONCE(btdcpyheight, G3D, "Memcpy fbo download %08x -> %08x skipped, %d+%d is taller than %d", src, dst, srcY, srcH, srcBuffer->bufferHeight);
-		} else if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated && !PSP_CoreParameter().compat.flags().DisableReadbacks) {
+		} else if (g_PConfig.bBlockTransferGPU && !srcBuffer->memoryUpdated && !PSP_CoreParameter().compat.flags().DisableReadbacks) {
 			ReadFramebufferToMemory(srcBuffer, true, 0, srcY, srcBuffer->width, srcH);
 			srcBuffer->usageFlags = (srcBuffer->usageFlags | FB_USAGE_DOWNLOAD) & ~FB_USAGE_DOWNLOAD_CLEAR;
 		}
@@ -1630,7 +1630,7 @@ bool FramebufferManagerCommon::NotifyBlockTransferBefore(u32 dstBasePtr, int dst
 	} else if (srcBuffer) {
 		WARN_LOG_ONCE(btd, G3D, "Block transfer download %08x -> %08x", srcBasePtr, dstBasePtr);
 		FlushBeforeCopy();
-		if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated) {
+		if (g_PConfig.bBlockTransferGPU && !srcBuffer->memoryUpdated) {
 			const int srcBpp = srcBuffer->format == GE_FORMAT_8888 ? 4 : 2;
 			const float srcXFactor = (float)bpp / srcBpp;
 			const bool tooTall = srcY + srcHeight > srcBuffer->bufferHeight;
@@ -1721,7 +1721,7 @@ void FramebufferManagerCommon::SetRenderSize(VirtualFramebuffer *vfb) {
 		force1x = true;
 	}
 
-	if (force1x && g_Config.iInternalResolution != 1) {
+	if (force1x && g_PConfig.iInternalResolution != 1) {
 		vfb->renderWidth = vfb->bufferWidth;
 		vfb->renderHeight = vfb->bufferHeight;
 	} else {
@@ -1741,8 +1741,8 @@ void FramebufferManagerCommon::SetSafeSize(u16 w, u16 h) {
 void FramebufferManagerCommon::Resized() {
 	// Check if postprocessing shader is doing upscaling as it requires native resolution
 	const ShaderInfo *shaderInfo = nullptr;
-	if (g_Config.sPostShaderName != "Off") {
-		shaderInfo = GetPostShaderInfo(g_Config.sPostShaderName);
+	if (g_PConfig.sPostShaderName != "Off") {
+		shaderInfo = GetPostShaderInfo(g_PConfig.sPostShaderName);
 	}
 
 	postShaderIsUpscalingFilter_ = shaderInfo ? shaderInfo->isUpscalingFilter : false;
@@ -1750,10 +1750,10 @@ void FramebufferManagerCommon::Resized() {
 
 	// Actually, auto mode should be more granular...
 	// Round up to a zoom factor for the render size.
-	int zoom = g_Config.iInternalResolution;
+	int zoom = g_PConfig.iInternalResolution;
 	if (zoom == 0 || postShaderSSAAFilterLevel_ >= 2) {
 		// auto mode, use the longest dimension
-		if (!g_Config.IsPortrait()) {
+		if (!g_PConfig.IsPortrait()) {
 			zoom = (PSP_CoreParameter().pixelWidth + 479) / 480;
 		} else {
 			zoom = (PSP_CoreParameter().pixelHeight + 479) / 480;
@@ -1764,7 +1764,7 @@ void FramebufferManagerCommon::Resized() {
 	if (zoom <= 1 || postShaderIsUpscalingFilter_)
 		zoom = 1;
 
-	if (g_Config.IsPortrait()) {
+	if (g_PConfig.IsPortrait()) {
 		PSP_CoreParameter().renderWidth = 272 * zoom;
 		PSP_CoreParameter().renderHeight = 480 * zoom;
 	} else {
@@ -1776,7 +1776,7 @@ void FramebufferManagerCommon::Resized() {
 
 #ifdef _WIN32
 	// Seems related - if you're ok with numbers all the time, show some more :)
-	if (g_Config.iShowFPSCounter != 0) {
+	if (g_PConfig.iShowFPSCounter != 0) {
 		ShowScreenResolution();
 	}
 #endif

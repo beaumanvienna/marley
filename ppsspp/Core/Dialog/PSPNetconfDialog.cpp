@@ -71,8 +71,8 @@ int PSPNetconfDialog::Update(int animSpeed) {
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *err = GetI18NCategory("Error");
 	const float WRAP_WIDTH = 254.0f;
-	const int confirmBtnImage = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? I_CROSS : I_CIRCLE;
-	const int confirmBtn = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
+	const int confirmBtnImage = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? I_CROSS : I_CIRCLE;
+	const int confirmBtn = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
 
 	if (status == SCE_UTILITY_STATUS_INITIALIZE) {
 		status = SCE_UTILITY_STATUS_RUNNING;

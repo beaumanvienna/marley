@@ -87,7 +87,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 	samp.mipmapMode = key.mipFilt ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
 	if (key.aniso) {
 		// Docs say the min of this value and the supported max are used.
-		samp.maxAnisotropy = 1 << g_Config.iAnisotropyLevel;
+		samp.maxAnisotropy = 1 << g_PConfig.iAnisotropyLevel;
 		samp.anisotropyEnable = true;
 	} else {
 		samp.maxAnisotropy = 1.0f;
@@ -264,9 +264,9 @@ void TextureCacheVulkan::StartFrame() {
 		clearCacheNextFrame_ = false;
 	} else {
 		int slabPressureLimit = TEXCACHE_SLAB_PRESSURE;
-		if (g_Config.iTexScalingLevel > 1) {
+		if (g_PConfig.iTexScalingLevel > 1) {
 			// Since textures are 2D maybe we should square this, but might get too non-aggressive.
-			slabPressureLimit *= g_Config.iTexScalingLevel;
+			slabPressureLimit *= g_PConfig.iTexScalingLevel;
 		}
 		Decimate(allocator_->GetSlabCount() > slabPressureLimit);
 	}
@@ -346,7 +346,7 @@ void TextureCacheVulkan::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFr
 
 	bool useShaderDepal = framebufferManager_->GetCurrentRenderVFB() != framebuffer;
 
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
 		if (useShaderDepal) {
 			depalShaderCache_->SetPushBuffer(drawEngine_->GetPushBufferForTextureData());
 			const GEPaletteFormat clutFormat = gstate.getClutPaletteFormat();
@@ -539,7 +539,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 		}
 	}
 
-	// In addition, simply don't load more than level 0 if g_Config.bMipMap is false.
+	// In addition, simply don't load more than level 0 if g_PConfig.bMipMap is false.
 	if (badMipSizes) {
 		maxLevel = 0;
 	}

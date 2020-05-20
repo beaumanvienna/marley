@@ -31,7 +31,7 @@
 #include "proAdhoc.h" 
 #include "i18n/i18n.h"
 
-uint16_t portOffset = g_Config.iPortOffset;
+uint16_t portOffset = g_PConfig.iPortOffset;
 uint32_t fakePoolSize                 = 0;
 SceNetAdhocMatchingContext * contexts = NULL;
 int one                               = 1;
@@ -1316,8 +1316,8 @@ uint32_t getLocalIp(int sock) {
 void getLocalMac(SceNetEtherAddr * addr){
 	// Read MAC Address from config
 	uint8_t mac[ETHER_ADDR_LEN] = {0};
-	if (!ParseMacAddress(g_Config.sMACAddress.c_str(), mac)) {
-		ERROR_LOG(SCENET, "Error parsing mac address %s", g_Config.sMACAddress.c_str());
+	if (!ParseMacAddress(g_PConfig.sMACAddress.c_str(), mac)) {
+		ERROR_LOG(SCENET, "Error parsing mac address %s", g_PConfig.sMACAddress.c_str());
 	}
 	memcpy(addr, mac, ETHER_ADDR_LEN);
 }
@@ -1414,10 +1414,10 @@ int initNetwork(SceNetAdhocctlAdhocId *adhoc_id){
 	in_addr serverIp;
 	serverIp.s_addr = INADDR_NONE;
 
-	iResult = getaddrinfo(g_Config.proAdhocServer.c_str(),0,NULL,&resultAddr);
+	iResult = getaddrinfo(g_PConfig.proAdhocServer.c_str(),0,NULL,&resultAddr);
 	if (iResult != 0) {
-		ERROR_LOG(SCENET, "DNS Error (%s)\n", g_Config.proAdhocServer.c_str());
-		host->NotifyUserMessage("DNS Error connecting to " + g_Config.proAdhocServer, 8.0f);
+		ERROR_LOG(SCENET, "DNS Error (%s)\n", g_PConfig.proAdhocServer.c_str());
+		host->NotifyUserMessage("DNS Error connecting to " + g_PConfig.proAdhocServer, 8.0f);
 		return iResult;
 	}
 	for (ptr = resultAddr; ptr != NULL; ptr = ptr->ai_next) {
@@ -1429,7 +1429,7 @@ int initNetwork(SceNetAdhocctlAdhocId *adhoc_id){
 	}
 	
 	memset(&parameter, 0, sizeof(parameter));
-	strcpy((char *)&parameter.nickname.data, g_Config.sNickName.c_str());
+	strcpy((char *)&parameter.nickname.data, g_PConfig.sNickName.c_str());
 	parameter.channel = 1; // Fake Channel 1
 	getLocalMac(&parameter.bssid.mac_addr);
 
@@ -1438,7 +1438,7 @@ int initNetwork(SceNetAdhocctlAdhocId *adhoc_id){
 	if (iResult == SOCKET_ERROR) {
 		uint8_t * sip = (uint8_t *)&server_addr.sin_addr.s_addr;
 		char buffer[512];
-		snprintf(buffer, sizeof(buffer), "Socket error (%i) when connecting to %s/%u.%u.%u.%u:%u", errno, g_Config.proAdhocServer.c_str(), sip[0], sip[1], sip[2], sip[3], ntohs(server_addr.sin_port));
+		snprintf(buffer, sizeof(buffer), "Socket error (%i) when connecting to %s/%u.%u.%u.%u:%u", errno, g_PConfig.proAdhocServer.c_str(), sip[0], sip[1], sip[2], sip[3], ntohs(server_addr.sin_port));
 		ERROR_LOG(SCENET, "%s", buffer);
 		host->NotifyUserMessage(buffer, 8.0f);
 		return iResult;
@@ -1452,7 +1452,7 @@ int initNetwork(SceNetAdhocctlAdhocId *adhoc_id){
 	SceNetEtherAddr addres;
 	getLocalMac(&addres);
 	packet.mac = addres;
-	strcpy((char *)packet.name.data, g_Config.sNickName.c_str());
+	strcpy((char *)packet.name.data, g_PConfig.sNickName.c_str());
 	memcpy(packet.game.data, adhoc_id->data, ADHOCCTL_ADHOCID_LEN);
 	int sent = send(metasocket, (char*)&packet, sizeof(packet), 0);
 	changeBlockingMode(metasocket, 1); // Change to non-blocking

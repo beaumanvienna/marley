@@ -59,7 +59,7 @@ u8 *GetPointer(const u32 address) {
 			Reporting::ReportMessage("Unknown GetPointer %08x PC %08x LR %08x", address, currentMIPS->pc, currentMIPS->r[MIPS_REG_RA]);
 			reported = true;
 		}
-		if (!g_Config.bIgnoreBadMemAccess) {
+		if (!g_PConfig.bIgnoreBadMemAccess) {
 			Core_EnableStepping(true);
 			host->SetDebugMode(true);
 		}
@@ -88,7 +88,7 @@ inline void ReadFromHardware(T &var, const u32 address) {
 		var = *((const T*)GetPointerUnchecked(address));
 	} else {
 		// In jit, we only flush PC when bIgnoreBadMemAccess is off.
-		if (g_Config.iCpuCore == (int)CPUCore::JIT && g_Config.bIgnoreBadMemAccess) {
+		if (g_PConfig.iCpuCore == (int)CPUCore::JIT && g_PConfig.bIgnoreBadMemAccess) {
 			WARN_LOG(MEMMAP, "ReadFromHardware: Invalid address %08x", address);
 		} else {
 			WARN_LOG(MEMMAP, "ReadFromHardware: Invalid address %08x PC %08x LR %08x", address, currentMIPS->pc, currentMIPS->r[MIPS_REG_RA]);
@@ -98,7 +98,7 @@ inline void ReadFromHardware(T &var, const u32 address) {
 			Reporting::ReportMessage("ReadFromHardware: Invalid address %08x near PC %08x LR %08x", address, currentMIPS->pc, currentMIPS->r[MIPS_REG_RA]);
 			reported = true;
 		}
-		if (!g_Config.bIgnoreBadMemAccess) {
+		if (!g_PConfig.bIgnoreBadMemAccess) {
 			Core_EnableStepping(true);
 			host->SetDebugMode(true);
 		}
@@ -124,7 +124,7 @@ inline void WriteToHardware(u32 address, const T data) {
 		*(T*)GetPointerUnchecked(address) = data;
 	} else {
 		// In jit, we only flush PC when bIgnoreBadMemAccess is off.
-		if (g_Config.iCpuCore == (int)CPUCore::JIT && g_Config.bIgnoreBadMemAccess) {
+		if (g_PConfig.iCpuCore == (int)CPUCore::JIT && g_PConfig.bIgnoreBadMemAccess) {
 			WARN_LOG(MEMMAP, "WriteToHardware: Invalid address %08x", address);
 		} else {
 			WARN_LOG(MEMMAP, "WriteToHardware: Invalid address %08x	PC %08x LR %08x", address, currentMIPS->pc, currentMIPS->r[MIPS_REG_RA]);
@@ -134,7 +134,7 @@ inline void WriteToHardware(u32 address, const T data) {
 			Reporting::ReportMessage("WriteToHardware: Invalid address %08x near PC %08x LR %08x", address, currentMIPS->pc, currentMIPS->r[MIPS_REG_RA]);
 			reported = true;
 		}
-		if (!g_Config.bIgnoreBadMemAccess) {
+		if (!g_PConfig.bIgnoreBadMemAccess) {
 			Core_EnableStepping(true);
 			host->SetDebugMode(true);
 		}

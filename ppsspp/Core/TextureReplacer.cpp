@@ -53,12 +53,12 @@ void TextureReplacer::Init() {
 void TextureReplacer::NotifyConfigChanged() {
 	gameID_ = g_paramSFO.GetDiscID();
 
-	enabled_ = g_Config.bReplaceTextures || g_Config.bSaveNewTextures;
+	enabled_ = g_PConfig.bReplaceTextures || g_PConfig.bSaveNewTextures;
 	if (enabled_) {
 		basePath_ = GetSysDirectory(DIRECTORY_TEXTURES) + gameID_ + "/";
 
 		// If we're saving, auto-create the directory.
-		if (g_Config.bSaveNewTextures && !File::Exists(basePath_ + NEW_TEXTURE_DIR)) {
+		if (g_PConfig.bSaveNewTextures && !File::Exists(basePath_ + NEW_TEXTURE_DIR)) {
 			File::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
 			File::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
 		}
@@ -147,7 +147,7 @@ bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
 	if (ini.HasSection("hashes")) {
 		auto hashes = ini.GetOrCreateSection("hashes")->ToMap();
 		// Format: hashname = filename.png
-		bool checkFilenames = g_Config.bSaveNewTextures && !g_Config.bIgnoreTextureFilenames;
+		bool checkFilenames = g_PConfig.bSaveNewTextures && !g_PConfig.bIgnoreTextureFilenames;
 		for (const auto &item : hashes) {
 			ReplacementAliasKey key(0, 0, 0);
 			if (sscanf(item.first.c_str(), "%16llx%8x_%d", &key.cachekey, &key.hash, &key.level) >= 1) {
@@ -288,7 +288,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 
 ReplacedTexture &TextureReplacer::FindReplacement(u64 cachekey, u32 hash, int w, int h) {
 	// Only actually replace if we're replacing.  We might just be saving.
-	if (!Enabled() || !g_Config.bReplaceTextures) {
+	if (!Enabled() || !g_PConfig.bReplaceTextures) {
 		return none_;
 	}
 
@@ -396,7 +396,7 @@ static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int
 
 void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &replacedInfo, const void *data, int pitch, int level, int w, int h) {
 	_assert_msg_(G3D, enabled_, "Replacement not enabled");
-	if (!g_Config.bSaveNewTextures) {
+	if (!g_PConfig.bSaveNewTextures) {
 		// Ignore.
 		return;
 	}

@@ -147,7 +147,7 @@ void BaseUpdateUniforms(UB_VS_FS_Base *ub, uint64_t dirtyUniforms, bool flipView
 			ConvertProjMatrixToVulkan(flippedMatrix);
 		}
 
-		if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE && g_display_rotation != DisplayRotation::ROTATE_0) {
+		if (g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE && g_display_rotation != DisplayRotation::ROTATE_0) {
 			flippedMatrix = flippedMatrix * g_display_rot_matrix;
 		}
 		CopyMatrix4x4(ub->proj, flippedMatrix.getReadPtr());
@@ -160,7 +160,7 @@ void BaseUpdateUniforms(UB_VS_FS_Base *ub, uint64_t dirtyUniforms, bool flipView
 		} else {
 			proj_through.setOrthoVulkan(0.0f, gstate_c.curRTWidth, 0, gstate_c.curRTHeight, 0, 1);
 		}
-		if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE && g_display_rotation != DisplayRotation::ROTATE_0) {
+		if (g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE && g_display_rotation != DisplayRotation::ROTATE_0) {
 			proj_through = proj_through * g_display_rot_matrix;
 		}
 		CopyMatrix4x4(ub->proj_through, proj_through.getReadPtr());

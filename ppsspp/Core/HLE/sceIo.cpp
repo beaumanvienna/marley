@@ -257,7 +257,7 @@ static int GetIOTimingMethod() {
 	if (PSP_CoreParameter().compat.flags().ForceUMDDelay) {
 		return IOTIMING_REALISTIC;
 	} else {
-		return g_Config.iIOTimingMethod;
+		return g_PConfig.iIOTimingMethod;
 	}
 }
 
@@ -519,8 +519,8 @@ static void __IoVblank() {
 	// We update memstick status here just to avoid possible thread safety issues.
 	// It doesn't actually need to be on a vblank.
 
-	// This will only change status if g_Config was changed.
-	MemoryStick_SetState(g_Config.bMemStickInserted ? PSP_MEMORYSTICK_STATE_INSERTED : PSP_MEMORYSTICK_STATE_NOT_INSERTED);
+	// This will only change status if g_PConfig was changed.
+	MemoryStick_SetState(g_PConfig.bMemStickInserted ? PSP_MEMORYSTICK_STATE_INSERTED : PSP_MEMORYSTICK_STATE_NOT_INSERTED);
 
 	MemStickState newState = MemoryStick_State();
 	MemStickFatState newFatState = MemoryStick_FatState();
@@ -568,9 +568,9 @@ void __IoInit() {
 	asyncNotifyEvent = CoreTiming::RegisterEvent("IoAsyncNotify", __IoAsyncNotify);
 	syncNotifyEvent = CoreTiming::RegisterEvent("IoSyncNotify", __IoSyncNotify);
 
-	memstickSystem = new DirectoryFileSystem(&pspFileSystem, g_Config.memStickDirectory, FILESYSTEM_SIMULATE_FAT32);
+	memstickSystem = new DirectoryFileSystem(&pspFileSystem, g_PConfig.memStickDirectory, FILESYSTEM_SIMULATE_FAT32);
 #if defined(USING_WIN_UI) || defined(APPLE)
-	flash0System = new DirectoryFileSystem(&pspFileSystem, g_Config.flash0Directory);
+	flash0System = new DirectoryFileSystem(&pspFileSystem, g_PConfig.flash0Directory);
 #else
 	flash0System = new VFSFileSystem(&pspFileSystem, "flash0");
 #endif
@@ -582,7 +582,7 @@ void __IoInit() {
 
 	if (g_RemasterMode) {
 		const std::string gameId = g_paramSFO.GetValueString("DISC_ID");
-		const std::string exdataPath = g_Config.memStickDirectory + "exdata/" + gameId + "/";
+		const std::string exdataPath = g_PConfig.memStickDirectory + "exdata/" + gameId + "/";
 		if (File::Exists(exdataPath)) {
 			exdataSystem = new DirectoryFileSystem(&pspFileSystem, exdataPath, FILESYSTEM_SIMULATE_FAT32);
 			pspFileSystem.Mount("exdata0:", exdataSystem);
@@ -596,7 +596,7 @@ void __IoInit() {
 
 	memset(fds, 0, sizeof(fds));
 
-	ioManagerThreadEnabled = g_Config.bSeparateIOThread;
+	ioManagerThreadEnabled = g_PConfig.bSeparateIOThread;
 	ioManager.SetThreadEnabled(ioManagerThreadEnabled);
 	if (ioManagerThreadEnabled) {
 		Core_ListenLifecycle(&__IoWakeManager);

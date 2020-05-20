@@ -448,7 +448,7 @@ retry:
 	// Now that we've loaded config, set javaGL.
 	javaGL = NativeQueryConfig("androidJavaGL") == "true";
 
-	switch (g_Config.iGPUBackend) {
+	switch (g_PConfig.iGPUBackend) {
 	case (int)GPUBackend::OPENGL:
 		useCPUThread = true;
 		if (javaGL) {
@@ -466,7 +466,7 @@ retry:
 		AndroidVulkanContext *ctx = new AndroidVulkanContext();
 		if (!ctx->InitAPI()) {
 			ILOG("Failed to initialize Vulkan, switching to OpenGL");
-			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 			SetGPUBackend(GPUBackend::OPENGL);
 			goto retry;
 		} else {
@@ -475,8 +475,8 @@ retry:
 		break;
 	}
 	default:
-		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_Config.iGPUBackend);
-		g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_PConfig.iGPUBackend);
+		g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 		goto retry;
 		// Crash();
 	}
@@ -776,7 +776,7 @@ extern "C" jboolean Java_org_ppsspp_ppsspp_NativeApp_joystickAxis(
 	axis.deviceId = deviceId;
 	axis.value = value;
 
-	float sensitivity = g_Config.fXInputAnalogSensitivity;
+	float sensitivity = g_PConfig.fXInputAnalogSensitivity;
 	axis.value *= sensitivity;
 
 	return NativeAxis(axis);
@@ -973,7 +973,7 @@ extern "C" bool JNICALL Java_org_ppsspp_ppsspp_NativeActivity_runEGLRenderLoop(J
 
 retry:
 
-	bool vulkan = g_Config.iGPUBackend == (int)GPUBackend::VULKAN;
+	bool vulkan = g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN;
 
 	int tries = 0;
 
@@ -982,8 +982,8 @@ retry:
 
 		if (!exitRenderLoop && (vulkan && tries < 2)) {
 			ILOG("Trying again, this time with OpenGL.");
-			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
-			SetGPUBackend((GPUBackend)g_Config.iGPUBackend);
+			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
+			SetGPUBackend((GPUBackend)g_PConfig.iGPUBackend);
 			// If we were still supporting EGL for GL:
 			// tries++;
 			// goto retry;

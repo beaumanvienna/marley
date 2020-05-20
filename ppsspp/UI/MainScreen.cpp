@@ -454,7 +454,7 @@ void GameBrowser::FocusGame(const std::string &gamePath) {
 
 void GameBrowser::SetPath(const std::string &path) {
 	path_.SetPath(path);
-	g_Config.currentDirectory = path_.GetPath();
+	g_PConfig.currentDirectory = path_.GetPath();
 	Refresh();
 }
 
@@ -471,14 +471,14 @@ UI::EventReturn GameBrowser::LastClick(UI::EventParams &e) {
 
 UI::EventReturn GameBrowser::HomeClick(UI::EventParams &e) {
 #ifdef __ANDROID__
-	SetPath(g_Config.memStickDirectory);
+	SetPath(g_PConfig.memStickDirectory);
 #elif defined(USING_QT_UI) || defined(USING_WIN_UI)
 	if (System_GetPropertyBool(SYSPROP_HAS_FILE_BROWSER)) {
 		System_SendMessage("browse_folder", "");
 	}
 #elif PPSSPP_PLATFORM(UWP)
 	// TODO UWP
-	SetPath(g_Config.memStickDirectory);
+	SetPath(g_PConfig.memStickDirectory);
 #else
 	SetPath(getenv("HOME"));
 #endif
@@ -487,7 +487,7 @@ UI::EventReturn GameBrowser::HomeClick(UI::EventParams &e) {
 }
 
 UI::EventReturn GameBrowser::PinToggleClick(UI::EventParams &e) {
-	auto &pinnedPaths = g_Config.vPinnedPaths;
+	auto &pinnedPaths = g_PConfig.vPinnedPaths;
 	const std::string path = File::ResolvePath(path_.GetPath());
 	if (IsCurrentPathPinned()) {
 		pinnedPaths.erase(std::remove(pinnedPaths.begin(), pinnedPaths.end(), path), pinnedPaths.end());
@@ -504,7 +504,7 @@ bool GameBrowser::DisplayTopBar() {
 
 bool GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
 	if (path_.GetPath() == "!RECENT") {
-		filenames = g_Config.recentIsos;
+		filenames = g_PConfig.recentIsos;
 		return true;
 	}
 	return false;
@@ -655,7 +655,7 @@ void GameBrowser::Refresh() {
 }
 
 bool GameBrowser::IsCurrentPathPinned() {
-	const auto paths = g_Config.vPinnedPaths;
+	const auto paths = g_PConfig.vPinnedPaths;
 	return std::find(paths.begin(), paths.end(), File::ResolvePath(path_.GetPath())) != paths.end();
 }
 
@@ -667,7 +667,7 @@ const std::vector<std::string> GameBrowser::GetPinnedPaths() {
 #endif
 
 	const std::string currentPath = File::ResolvePath(path_.GetPath());
-	const std::vector<std::string> paths = g_Config.vPinnedPaths;
+	const std::vector<std::string> paths = g_PConfig.vPinnedPaths;
 	std::vector<std::string> results;
 	for (size_t i = 0; i < paths.size(); ++i) {
 		// We want to exclude the current path, and its direct children.
@@ -742,7 +742,7 @@ UI::EventReturn GameBrowser::NavigateClick(UI::EventParams &e) {
 	} else {
 		path_.Navigate(text);
 	}
-	g_Config.currentDirectory = path_.GetPath();
+	g_PConfig.currentDirectory = path_.GetPath();
 	Refresh();
 	return UI::EVENT_DONE;
 }
@@ -777,18 +777,18 @@ void MainScreen::CreateViews() {
 
 	tabHolder_->SetClip(true);
 
-	bool showRecent = g_Config.iMaxRecent > 0;
+	bool showRecent = g_PConfig.iMaxRecent > 0;
 	bool hasStorageAccess = System_GetPermissionStatus(SYSTEM_PERMISSION_STORAGE) == PERMISSION_STATUS_GRANTED;
 	bool storageIsTemporary = IsTempPath(GetSysDirectory(DIRECTORY_SAVEDATA)) && !confirmedTemporary_;
 	if (showRecent && !hasStorageAccess) {
-		showRecent = !g_Config.recentIsos.empty();
+		showRecent = !g_PConfig.recentIsos.empty();
 	}
 
 	if (showRecent) {
 		ScrollView *scrollRecentGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 		scrollRecentGames->SetTag("MainScreenRecentGames");
 		GameBrowser *tabRecentGames = new GameBrowser(
-			"!RECENT", false, &g_Config.bGridView1, "", "", 0,
+			"!RECENT", false, &g_PConfig.bGridView1, "", "", 0,
 			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 		scrollRecentGames->Add(tabRecentGames);
 		gameBrowsers_.push_back(tabRecentGames);
@@ -806,10 +806,10 @@ void MainScreen::CreateViews() {
 		ScrollView *scrollHomebrew = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 		scrollHomebrew->SetTag("MainScreenHomebrew");
 
-		GameBrowser *tabAllGames = new GameBrowser(g_Config.currentDirectory, true, &g_Config.bGridView2,
+		GameBrowser *tabAllGames = new GameBrowser(g_PConfig.currentDirectory, true, &g_PConfig.bGridView2,
 			mm->T("How to get games"), "https://www.ppsspp.org/getgames.html", 0,
 			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-		GameBrowser *tabHomebrew = new GameBrowser(GetSysDirectory(DIRECTORY_GAME), false, &g_Config.bGridView3,
+		GameBrowser *tabHomebrew = new GameBrowser(GetSysDirectory(DIRECTORY_GAME), false, &g_PConfig.bGridView3,
 			mm->T("How to get homebrew & demos", "How to get homebrew && demos"), "https://www.ppsspp.org/gethomebrew.html",
 			FLAG_HOMEBREWSTOREBUTTON,
 			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -836,9 +836,9 @@ void MainScreen::CreateViews() {
 		tabAllGames->OnHighlight.Handle(this, &MainScreen::OnGameHighlight);
 		tabHomebrew->OnHighlight.Handle(this, &MainScreen::OnGameHighlight);
 
-		if (g_Config.recentIsos.size() > 0) {
+		if (g_PConfig.recentIsos.size() > 0) {
 			tabHolder_->SetCurrentTab(0, true);
-		} else if (g_Config.iMaxRecent > 0) {
+		} else if (g_PConfig.iMaxRecent > 0) {
 			tabHolder_->SetCurrentTab(1, true);
 		}
 
@@ -947,14 +947,14 @@ void MainScreen::CreateViews() {
 	I18NCategory *u = GetI18NCategory("Upgrade");
 
 	upgradeBar_ = 0;
-	if (!g_Config.upgradeMessage.empty()) {
+	if (!g_PConfig.upgradeMessage.empty()) {
 		upgradeBar_ = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 
 		UI::Margins textMargins(10, 5);
 		UI::Margins buttonMargins(0, 0);
 		UI::Drawable solid(0xFFbd9939);
 		upgradeBar_->SetBG(solid);
-		upgradeBar_->Add(new TextView(u->T("New version of PPSSPP available") + std::string(": ") + g_Config.upgradeVersion, new LinearLayoutParams(1.0f, textMargins)));
+		upgradeBar_->Add(new TextView(u->T("New version of PPSSPP available") + std::string(": ") + g_PConfig.upgradeVersion, new LinearLayoutParams(1.0f, textMargins)));
 		upgradeBar_->Add(new Button(u->T("Download"), new LinearLayoutParams(buttonMargins)))->OnClick.Handle(this, &MainScreen::OnDownloadUpgrade);
 		upgradeBar_->Add(new Button(u->T("Dismiss"), new LinearLayoutParams(buttonMargins)))->OnClick.Handle(this, &MainScreen::OnDismissUpgrade);
 
@@ -988,7 +988,7 @@ UI::EventReturn MainScreen::OnDownloadUpgrade(UI::EventParams &e) {
 }
 
 UI::EventReturn MainScreen::OnDismissUpgrade(UI::EventParams &e) {
-	g_Config.DismissUpgrade();
+	g_PConfig.DismissUpgrade();
 	upgradeBar_->SetVisibility(UI::V_GONE);
 	return UI::EVENT_DONE;
 }
@@ -1204,7 +1204,7 @@ UI::EventReturn MainScreen::OnExit(UI::EventParams &e) {
 	System_SendMessage("finish", "");
 
 	// However, let's make sure the config was saved, since it may not have been.
-	g_Config.Save("MainScreen::OnExit");
+	g_PConfig.Save("MainScreen::OnExit");
 
 #ifdef __ANDROID__
 #ifdef ANDROID_NDK_PROFILER
@@ -1257,11 +1257,11 @@ void UmdReplaceScreen::CreateViews() {
 	rightColumnItems->SetSpacing(0.0f);
 	rightColumn->Add(rightColumnItems);
 
-	if (g_Config.iMaxRecent > 0) {
+	if (g_PConfig.iMaxRecent > 0) {
 		ScrollView *scrollRecentGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 		scrollRecentGames->SetTag("UmdReplaceRecentGames");
 		GameBrowser *tabRecentGames = new GameBrowser(
-			"!RECENT", false, &g_Config.bGridView1, "", "", 0,
+			"!RECENT", false, &g_PConfig.bGridView1, "", "", 0,
 			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 		scrollRecentGames->Add(tabRecentGames);
 		leftColumn->AddTab(mm->T("Recent"), scrollRecentGames);
@@ -1271,7 +1271,7 @@ void UmdReplaceScreen::CreateViews() {
 	ScrollView *scrollAllGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	scrollAllGames->SetTag("UmdReplaceAllGames");
 
-	GameBrowser *tabAllGames = new GameBrowser(g_Config.currentDirectory, true, &g_Config.bGridView2,
+	GameBrowser *tabAllGames = new GameBrowser(g_PConfig.currentDirectory, true, &g_PConfig.bGridView2,
 		mm->T("How to get games"), "https://www.ppsspp.org/getgames.html", 0,
 		new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 
@@ -1286,9 +1286,9 @@ void UmdReplaceScreen::CreateViews() {
 	rightColumnItems->Add(new Choice(di->T("Cancel")))->OnClick.Handle(this, &UmdReplaceScreen::OnCancel);
 	rightColumnItems->Add(new Choice(mm->T("Game Settings")))->OnClick.Handle(this, &UmdReplaceScreen::OnGameSettings);
 
-	if (g_Config.recentIsos.size() > 0) {
+	if (g_PConfig.recentIsos.size() > 0) {
 		leftColumn->SetCurrentTab(0, true);
-	} else if (g_Config.iMaxRecent > 0) {
+	} else if (g_PConfig.iMaxRecent > 0) {
 		leftColumn->SetCurrentTab(1, true);
 	}
 

@@ -614,11 +614,11 @@ void DrawEngineVulkan::DoFlush() {
 		bool useElements = true;
 
 		// Cannot cache vertex data with morph enabled.
-		bool useCache = g_Config.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
+		bool useCache = g_PConfig.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
 		// Also avoid caching when software skinning.
 		VkBuffer vbuf = VK_NULL_HANDLE;
 		VkBuffer ibuf = VK_NULL_HANDLE;
-		if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
+		if (g_PConfig.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
 			useCache = false;
 		}
 
@@ -760,7 +760,7 @@ void DrawEngineVulkan::DoFlush() {
 				break;
 			}
 		} else {
-			if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
+			if (g_PConfig.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
 				// If software skinning, we've already predecoded into "decoded". So push that content.
 				VkDeviceSize size = decodedVerts_ * dec_->GetDecVtxFmt().stride;
 				u8 *dest = (u8 *)frame->pushVertex->Push(size, &vbOffset, &vbuf);
@@ -804,7 +804,7 @@ void DrawEngineVulkan::DoFlush() {
 			if (prim != lastPrim_ || gstate_c.IsDirty(DIRTY_BLEND_STATE | DIRTY_VIEWPORTSCISSOR_STATE | DIRTY_RASTER_STATE | DIRTY_DEPTHSTENCIL_STATE)) {
 				ConvertStateToVulkanKey(*framebufferManager_, shaderManager_, prim, pipelineKey_, dynState_);
 			}
-			Draw::NativeObject object = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE ? Draw::NativeObject::FRAMEBUFFER_RENDERPASS : Draw::NativeObject::BACKBUFFER_RENDERPASS;
+			Draw::NativeObject object = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE ? Draw::NativeObject::FRAMEBUFFER_RENDERPASS : Draw::NativeObject::BACKBUFFER_RENDERPASS;
 			VkRenderPass renderPass = (VkRenderPass)draw_->GetNativeObject(object);
 			VulkanPipeline *pipeline = pipelineManager_->GetOrCreatePipeline(pipelineLayout_, renderPass, pipelineKey_, &dec_->decFmt, vshader, fshader, true);
 			if (!pipeline || !pipeline->pipeline) {
@@ -879,9 +879,9 @@ void DrawEngineVulkan::DoFlush() {
 		params.transformedExpanded = transformedExpanded;
 		params.fbman = framebufferManager_;
 		params.texCache = textureCache_;
-		// We have to force drawing of primitives if g_Config.iRenderingMode == FB_NON_BUFFERED_MODE because Vulkan clears
+		// We have to force drawing of primitives if g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE because Vulkan clears
 		// do not respect scissor rects.
-		params.allowClear = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+		params.allowClear = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 		params.allowSeparateAlphaClear = false;
 		params.provokeFlatFirst = true;
 
@@ -908,7 +908,7 @@ void DrawEngineVulkan::DoFlush() {
 				if (prim != lastPrim_ || gstate_c.IsDirty(DIRTY_BLEND_STATE | DIRTY_VIEWPORTSCISSOR_STATE | DIRTY_RASTER_STATE | DIRTY_DEPTHSTENCIL_STATE)) {
 					ConvertStateToVulkanKey(*framebufferManager_, shaderManager_, prim, pipelineKey_, dynState_);
 				}
-				Draw::NativeObject object = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE ? Draw::NativeObject::FRAMEBUFFER_RENDERPASS : Draw::NativeObject::BACKBUFFER_RENDERPASS;
+				Draw::NativeObject object = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE ? Draw::NativeObject::FRAMEBUFFER_RENDERPASS : Draw::NativeObject::BACKBUFFER_RENDERPASS;
 				VkRenderPass renderPass = (VkRenderPass)draw_->GetNativeObject(object);
 				VulkanPipeline *pipeline = pipelineManager_->GetOrCreatePipeline(pipelineLayout_, renderPass, pipelineKey_, &dec_->decFmt, vshader, fshader, false);
 				if (!pipeline || !pipeline->pipeline) {

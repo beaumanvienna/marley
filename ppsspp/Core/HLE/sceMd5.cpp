@@ -87,7 +87,7 @@ static int sceMd5BlockResult(u32 ctxAddr, u32 digestAddr) {
 	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(digestAddr))
 		return -1;
 
-	md5_finish(&md5_ctx, Memory::GetPointer(digestAddr));
+	md5_Pfinish(&md5_ctx, Memory::GetPointer(digestAddr));
 	return 0;
 }
 
@@ -127,7 +127,7 @@ int sceKernelUtilsMd5BlockResult(u32 ctxAddr, u32 digestAddr) {
 	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(digestAddr))
 		return -1;
 
-	md5_finish(&md5_ctx, Memory::GetPointer(digestAddr));
+	md5_Pfinish(&md5_ctx, Memory::GetPointer(digestAddr));
 	return 0;
 }
 

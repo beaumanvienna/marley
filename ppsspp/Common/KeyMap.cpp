@@ -300,8 +300,8 @@ void UpdateNativeMenuKeys() {
 	std::vector<KeyDef> tabLeft, tabRight;
 	std::vector<KeyDef> upKeys, downKeys, leftKeys, rightKeys;
 
-	int confirmKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
-	int cancelKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
+	int confirmKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
+	int cancelKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
 
 	// Mouse mapping might be problematic in UI, so let's ignore mouse for UI
 	KeyFromPspButton(confirmKey, &confirmKeys, true);

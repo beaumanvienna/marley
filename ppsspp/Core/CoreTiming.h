@@ -87,7 +87,7 @@ namespace CoreTiming
 	int RegisterEvent(const char *name, TimedCallback callback);
 	// For save states.
 	void RestoreRegisterEvent(int event_type, const char *name, TimedCallback callback);
-	void UnregisterAllEvents();
+	void UnregisterAllPEvents();
 
 	// userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from disk,
 	// when we implement state saves.

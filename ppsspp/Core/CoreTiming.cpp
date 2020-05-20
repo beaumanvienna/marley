@@ -186,7 +186,7 @@ void RestoreRegisterEvent(int event_type, const char *name, TimedCallback callba
 	event_types[event_type] = EventType(callback, name);
 }
 
-void UnregisterAllEvents()
+void UnregisterAllPEvents()
 {
 	if (first)
 		PanicAlert("Cannot unregister events with events pending");
@@ -210,7 +210,7 @@ void Shutdown()
 {
 	MoveEvents();
 	ClearPendingEvents();
-	UnregisterAllEvents();
+	UnregisterAllPEvents();
 
 	while(eventPool)
 	{

@@ -520,7 +520,7 @@ void SoftwareTransform(
 		numTrans = vertexCount;
 		drawIndexed = true;
 	} else {
-		bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+		bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 		if (useBufferedRendering)
 			ySign = -ySign;
 

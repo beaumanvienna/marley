@@ -697,7 +697,7 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
 
-		if (!andLink && rs == MIPS_REG_RA && g_Config.bDiscardRegsOnJRRA) {
+		if (!andLink && rs == MIPS_REG_RA && g_PConfig.bDiscardRegsOnJRRA) {
 			// According to the MIPS ABI, there are some regs we don't need to preserve.
 			// Let's discard them so we don't need to write them back.
 			// NOTE: Not all games follow the MIPS ABI! Tekken 6, for example, will crash
@@ -757,7 +757,7 @@ void Jit::Comp_Syscall(MIPSOpcode op)
 		WARN_LOG(JIT, "Encountered bad syscall instruction at %08x (%08x)", js.compilerPC, op.encoding);
 	}
 
-	if (!g_Config.bSkipDeadbeefFilling)
+	if (!g_PConfig.bSkipDeadbeefFilling)
 	{
 		// All of these will be overwritten with DEADBEEF anyway.
 		gpr.DiscardR(MIPS_REG_COMPILER_SCRATCH);

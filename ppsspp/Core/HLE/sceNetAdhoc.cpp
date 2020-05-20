@@ -153,7 +153,7 @@ void __NetAdhocInit() {
 	Memory::Memcpy(dummyThreadHackAddr, dummyThreadCode, sizeof(dummyThreadCode)); // This area will be cleared again after loading an old savestate :(
 	actionAfterMatchingMipsCall = __KernelRegisterActionType(AfterMatchingMipsCall::Create);
 	// Create built-in AdhocServer Thread
-	if (g_Config.bEnableWlan && g_Config.bEnableAdhocServer) {
+	if (g_PConfig.bEnableWlan && g_PConfig.bEnableAdhocServer) {
 		adhocServerRunning = true;
 		adhocServerThread = std::thread(proAdhocServerThread, SERVER_PORT);
 	}
@@ -192,7 +192,7 @@ static u32 sceNetAdhocctlInit(int stackSize, int prio, u32 productAddr) {
 	if (netAdhocctlInited)
 		return ERROR_NET_ADHOCCTL_ALREADY_INITIALIZED;
 	
-	if(g_Config.bEnableWlan) {
+	if(g_PConfig.bEnableWlan) {
 		if (initNetwork((SceNetAdhocctlAdhocId *)Memory::GetPointer(productAddr)) == 0) {
 			if (!friendFinderRunning) {
 				friendFinderRunning = true;
@@ -239,7 +239,7 @@ static int sceNetAdhocctlGetState(u32 ptrToStatus) {
 // When choosing AdHoc menu in Wipeout Pulse sometimes it's saying that "WLAN is turned off" on game screen and getting "kUnityCommandCode_MediaDisconnected" error in the Log Console when calling sceNetAdhocPdpCreate, probably it needed to wait something from the thread before calling this (ie. need to receives 7 bytes from adhoc server 1st?)
 static int sceNetAdhocPdpCreate(const char *mac, u32 port, int bufferSize, u32 unknown) {
 	INFO_LOG(SCENET, "sceNetAdhocPdpCreate(%s, %u, %u, %u) at %08x", mac, port, bufferSize, unknown, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 
@@ -353,7 +353,7 @@ static int sceNetAdhocPdpCreate(const char *mac, u32 port, int bufferSize, u32 u
  */
 static int sceNetAdhocctlGetParameter(u32 paramAddr) {
 	DEBUG_LOG(SCENET, "sceNetAdhocctlGetParameter(%08x)",paramAddr);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return ERROR_NET_ADHOCCTL_DISCONNECTED;
 	}
 
@@ -388,7 +388,7 @@ static int sceNetAdhocctlGetParameter(u32 paramAddr) {
  */
 static int sceNetAdhocPdpSend(int id, const char *mac, u32 port, void *data, int len, int timeout, int flag) {
 	DEBUG_LOG(SCENET, "sceNetAdhocPdpSend(%i, %s, %i, %p, %i, %i, %i)", id, mac, port, data, len, timeout, flag);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 	SceNetEtherAddr * daddr = (SceNetEtherAddr *)mac;
@@ -559,7 +559,7 @@ static int sceNetAdhocPdpSend(int id, const char *mac, u32 port, void *data, int
  */
 static int sceNetAdhocPdpRecv(int id, void *addr, void * port, void *buf, void *dataLength, u32 timeout, int flag) {
 	DEBUG_LOG(SCENET, "sceNetAdhocPdpRecv(%i, %p, %p, %p, %p, %i, %i) at %08x", id, addr, port, buf, dataLength, timeout, flag, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 
@@ -797,7 +797,7 @@ static int sceNetAdhocPdpDelete(int id, int unknown) {
 	// WLAN might be disabled in the middle of successfull multiplayer, but we still need to cleanup right?
 	INFO_LOG(SCENET, "sceNetAdhocPdpDelete(%d, %d) at %08x", id, unknown, currentMIPS->pc);
 	/*
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	*/
@@ -915,7 +915,7 @@ static int sceNetAdhocctlGetScanInfo(u32 sizeAddr, u32 bufAddr) {
 	if (Memory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlScanInfoEmu *)Memory::GetPointer(bufAddr);
 
 	INFO_LOG(SCENET, "sceNetAdhocctlGetScanInfo([%08x]=%i, %08x)", sizeAddr, buflen ? *buflen : -1, bufAddr);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 
@@ -1043,7 +1043,7 @@ static u32 sceNetAdhocctlDisconnect() {
 	// WLAN might be disabled in the middle of successfull multiplayer, but we still need to cleanup right?
 	INFO_LOG(SCENET, "sceNetAdhocctlDisconnect() at %08x [group=%s]", currentMIPS->pc, parameter.group_name.data);
 	/*
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	*/
@@ -1209,7 +1209,7 @@ static int sceNetAdhocctlGetNameByAddr(const char *mac, u32 nameAddr) {
 
 static int sceNetAdhocctlJoin(u32 scanInfoAddr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocctlJoin(%08x) at %08x", scanInfoAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 	
@@ -1236,7 +1236,7 @@ static int sceNetAdhocctlJoin(u32 scanInfoAddr) {
 
 int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 	VERBOSE_LOG(SCENET, "sceNetAdhocctlGetPeerInfo(%s, %i, %08x) at %08x", mac, size, peerInfoAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 
@@ -1257,7 +1257,7 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 			SceNetAdhocctlNickname nickname;
 
 			getLocalIp(&addr);
-			strcpy((char*)nickname.data, g_Config.sNickName.c_str());
+			strcpy((char*)nickname.data, g_PConfig.sNickName.c_str());
 			//buf->next = 0;
 			buf->nickname = nickname;
 			buf->nickname.data[ADHOCCTL_NICKNAME_LEN - 1] = 0; // last char need to be null-terminated char
@@ -1309,7 +1309,7 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
  */
 int sceNetAdhocctlCreate(const char *groupName) {
 	INFO_LOG(SCENET, "sceNetAdhocctlCreate(%s) at %08x", groupName, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 
@@ -1619,7 +1619,7 @@ static int sceNetAdhocGetPtpStat(u32 structSize, u32 structAddr) {
  */
 static int sceNetAdhocPtpOpen(const char *srcmac, int sport, const char *dstmac, int dport, int bufsize, int rexmt_int, int rexmt_cnt, int unknown) {
 	INFO_LOG(SCENET, "sceNetAdhocPtpOpen(%s,%d,%s,%d,%d,%d,%d,%d)", srcmac, sport, dstmac,dport,bufsize, rexmt_int, rexmt_cnt, unknown);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	SceNetEtherAddr * saddr = (SceNetEtherAddr *)srcmac;
@@ -1752,7 +1752,7 @@ static int sceNetAdhocPtpAccept(int id, u32 peerMacAddrPtr, u32 peerPortPtr, int
 	}
 
 	DEBUG_LOG(SCENET, "sceNetAdhocPtpAccept(%d,%08x,[%08x]=%u,%d,%u) at %08x", id, peerMacAddrPtr, peerPortPtr, port ? *port : -1, timeout, flag, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 
@@ -1922,7 +1922,7 @@ static int sceNetAdhocPtpAccept(int id, u32 peerMacAddrPtr, u32 peerPortPtr, int
  */
 static int sceNetAdhocPtpConnect(int id, int timeout, int flag) {
 	INFO_LOG(SCENET, "sceNetAdhocPtpConnect(%i, %i, %08x) at %08x", id, timeout, flag, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 
@@ -2044,7 +2044,7 @@ static int sceNetAdhocPtpConnect(int id, int timeout, int flag) {
  */
 static int sceNetAdhocPtpClose(int id, int unknown) {
 	INFO_LOG(SCENET,"sceNetAdhocPtpClose(%d,%d) at %08x",id,unknown,currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	// Library is initialized
@@ -2092,7 +2092,7 @@ static int sceNetAdhocPtpClose(int id, int unknown) {
  */
 static int sceNetAdhocPtpListen(const char *srcmac, int sport, int bufsize, int rexmt_int, int rexmt_cnt, int backlog, int unk) {
 	INFO_LOG(SCENET, "sceNetAdhocPtpListen(%s,%d,%d,%d,%d,%d,%d)",srcmac,sport,bufsize,rexmt_int,rexmt_cnt,backlog,unk);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	// Library is initialized
@@ -2224,7 +2224,7 @@ static int sceNetAdhocPtpListen(const char *srcmac, int sport, int bufsize, int 
  */
 static int sceNetAdhocPtpSend(int id, u32 dataAddr, u32 dataSizeAddr, int timeout, int flag) {
 	DEBUG_LOG(SCENET, "sceNetAdhocPtpSend(%d,%08x,%08x,%d,%d) at %08x", id, dataAddr, dataSizeAddr, timeout, flag, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	int * len = (int *)Memory::GetPointer(dataSizeAddr);
@@ -2314,7 +2314,7 @@ static int sceNetAdhocPtpSend(int id, u32 dataAddr, u32 dataSizeAddr, int timeou
  */
 static int sceNetAdhocPtpRecv(int id, u32 dataAddr, u32 dataSizeAddr, int timeout, int flag) {
 	DEBUG_LOG(SCENET, "sceNetAdhocPtpRecv(%d,%08x,%08x,%d,%d)", id, dataAddr, dataSizeAddr, timeout, flag);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 	void * buf = (void *)Memory::GetPointer(dataAddr);
@@ -2395,7 +2395,7 @@ static int sceNetAdhocPtpRecv(int id, u32 dataAddr, u32 dataSizeAddr, int timeou
  */
 static int sceNetAdhocPtpFlush(int id, int timeout, int nonblock) {
 	DEBUG_LOG(SCENET,"sceNetAdhocPtpFlush(%d,%d,%d) at %08x", id, timeout, nonblock, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return 0;
 	}
 
@@ -2459,7 +2459,7 @@ int sceNetAdhocGetSocketAlert(int id, u32 flagPtr) {
 
 int sceNetAdhocMatchingStop(int matchingId) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingStop(%i) at %08x", matchingId, currentMIPS->pc);
-	//if (!g_Config.bEnableWlan)
+	//if (!g_PConfig.bEnableWlan)
 	//	return -1;
 
 	SceNetAdhocMatchingContext * item = findMatchingContext(matchingId);
@@ -2603,7 +2603,7 @@ int sceNetAdhocMatchingTerm() {
 // Presumably returns a "matchingId".
 static int sceNetAdhocMatchingCreate(int mode, int maxnum, int port, int rxbuflen, int hello_int, int keepalive_int, int init_count, int rexmt_int, u32 callbackAddr) {
 	WARN_LOG(SCENET, "sceNetAdhocMatchingCreate(mode=%i, maxnum=%i, port=%i, rxbuflen=%i, hello=%i, keepalive=%i, initcount=%i, rexmt=%i, callbackAddr=%08x) at %08x", mode, maxnum, port, rxbuflen, hello_int, keepalive_int, init_count, rexmt_int, callbackAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 	
@@ -2726,7 +2726,7 @@ static int sceNetAdhocMatchingCreate(int mode, int maxnum, int port, int rxbufle
 // TODO: Should we execute the callback used to create the Matching Id if it's a valid address?
 static int sceNetAdhocMatchingStart(int matchingId, int evthPri, int evthStack, int inthPri, int inthStack, int optLen, u32 optDataAddr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingStart(%i, %i, %i, %i, %i, %i, %08x) at %08x", matchingId, evthPri, evthStack, inthPri, inthStack, optLen, optDataAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 
 	// Multithreading Lock
@@ -2789,7 +2789,7 @@ static int sceNetAdhocMatchingStart(int matchingId, int evthPri, int evthStack, 
 
 static int sceNetAdhocMatchingSelectTarget(int matchingId, const char *macAddress, int optLen, u32 optDataPtr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingSelectTarget(%i, %s, %i, %08x) at %08x", matchingId, macAddress, optLen, optDataPtr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Initialized Library
@@ -2942,7 +2942,7 @@ static int sceNetAdhocMatchingSelectTarget(int matchingId, const char *macAddres
 
 int sceNetAdhocMatchingCancelTargetWithOpt(int matchingId, const char *macAddress, int optLen, u32 optDataPtr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingCancelTargetWithOpt(%i, %s, %i, %08x) at %08x", matchingId, macAddress, optLen, optDataPtr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Initialized Library
@@ -3021,14 +3021,14 @@ int sceNetAdhocMatchingCancelTargetWithOpt(int matchingId, const char *macAddres
 
 int sceNetAdhocMatchingCancelTarget(int matchingId, const char *macAddress) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingCancelTarget(%i, %s)", matchingId, macAddress);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	return sceNetAdhocMatchingCancelTargetWithOpt(matchingId, macAddress, 0, 0);
 }
 
 int sceNetAdhocMatchingGetHelloOpt(int matchingId, u32 optLenAddr, u32 optDataAddr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetHelloOpt(%i, %08x, %08x)", matchingId, optLenAddr, optDataAddr);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 
 	if (!Memory::IsValidAddress(optLenAddr)) return ERROR_NET_ADHOC_MATCHING_INVALID_ARG;
@@ -3059,7 +3059,7 @@ int sceNetAdhocMatchingGetHelloOpt(int matchingId, u32 optLenAddr, u32 optDataAd
 
 int sceNetAdhocMatchingSetHelloOpt(int matchingId, int optLenAddr, u32 optDataAddr) {
 	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingSetHelloOpt(%i, %i, %08x) at %08x", matchingId, optLenAddr, optDataAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 
 	if (!netAdhocMatchingInited) return ERROR_NET_ADHOC_MATCHING_NOT_INITIALIZED;
@@ -3143,7 +3143,7 @@ int sceNetAdhocMatchingSetHelloOpt(int matchingId, int optLenAddr, u32 optDataAd
 
 static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) {
 	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetMembers(%i, [%08x]=%i, %08x) at %08x", matchingId, sizeAddr, Memory::Read_U32(sizeAddr), buf, currentMIPS->pc);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 
 	if (!netAdhocMatchingInited) return ERROR_NET_ADHOC_MATCHING_NOT_INITIALIZED;
@@ -3293,7 +3293,7 @@ static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) 
 
 int sceNetAdhocMatchingSendData(int matchingId, const char *mac, int dataLen, u32 dataAddr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingSendData(%i, %s, %i, %08x)", matchingId, mac, dataLen, dataAddr);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Initialized Library
@@ -3369,7 +3369,7 @@ int sceNetAdhocMatchingSendData(int matchingId, const char *mac, int dataLen, u3
 
 int sceNetAdhocMatchingAbortSendData(int matchingId, const char *mac) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingAbortSendData(%i, %s)", matchingId, mac);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Initialized Library
@@ -3429,7 +3429,7 @@ int sceNetAdhocMatchingAbortSendData(int matchingId, const char *mac) {
 
 static int sceNetAdhocMatchingGetPoolMaxAlloc() {
 	ERROR_LOG(SCENET, "UNIMPL sceNetAdhocMatchingGetPoolMaxAlloc()");
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Lazy way out - hardcoded return value
@@ -3438,7 +3438,7 @@ static int sceNetAdhocMatchingGetPoolMaxAlloc() {
 
 int sceNetAdhocMatchingGetPoolStat(u32 poolstatPtr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetPoolStat(%08x)", poolstatPtr);
-	if (!g_Config.bEnableWlan)
+	if (!g_PConfig.bEnableWlan)
 		return -1;
 	
 	// Initialized Library
@@ -3567,7 +3567,7 @@ static int sceNetAdhocctlGetPeerList(u32 sizeAddr, u32 bufAddr) {
 	if (Memory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlPeerInfoEmu *)Memory::GetPointer(bufAddr);
 
 	DEBUG_LOG(SCENET, "sceNetAdhocctlGetPeerList([%08x]=%i, %08x) at %08x", sizeAddr, buflen ? *buflen : -1, bufAddr, currentMIPS->pc);
-	if (!g_Config.bEnableWlan) {
+	if (!g_PConfig.bEnableWlan) {
 		return -1;
 	}
 

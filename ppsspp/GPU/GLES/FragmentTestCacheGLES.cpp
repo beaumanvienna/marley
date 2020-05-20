@@ -40,7 +40,7 @@ void FragmentTestCacheGLES::DeviceRestore(Draw::DrawContext *draw) {
 }
 
 void FragmentTestCacheGLES::BindTestTexture(int slot) {
-	if (!g_Config.bFragmentTestCache) {
+	if (!g_PConfig.bFragmentTestCache) {
 		return;
 	}
 

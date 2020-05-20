@@ -36,9 +36,9 @@ public:
 		dst_ = new u8[BUFFER_SIZE];
 		cache_ = new VertexDecoderJitCache();
 
-		g_Config.bVertexDecoderJit = true;
+		g_PConfig.bVertexDecoderJit = true;
 		// Required for jit to be enabled.
-		g_Config.iCpuCore = (int)CPUCore::JIT;
+		g_PConfig.iCpuCore = (int)CPUCore::JIT;
 		gstate_c.uv.uScale = 1.0f;
 		gstate_c.uv.vScale = 1.0f;
 	}
@@ -544,7 +544,7 @@ static bool TestVertexColor565() {
 static bool TestVertex8Skin() {
 	VertexDecoderTestHarness dec;
 
-	g_Config.bSoftwareSkinning = true;
+	g_PConfig.bSoftwareSkinning = true;
 	for (int i = 0; i < 8 * 12; ++i) {
 		gstate.boneMatrix[i] = 0.0f;
 	}
@@ -574,7 +574,7 @@ static bool TestVertex8Skin() {
 static bool TestVertex16Skin() {
 	VertexDecoderTestHarness dec;
 
-	g_Config.bSoftwareSkinning = true;
+	g_PConfig.bSoftwareSkinning = true;
 	for (int i = 0; i < 8 * 12; ++i) {
 		gstate.boneMatrix[i] = 0.0f;
 	}
@@ -604,7 +604,7 @@ static bool TestVertex16Skin() {
 static bool TestVertexFloatSkin() {
 	VertexDecoderTestHarness dec;
 
-	g_Config.bSoftwareSkinning = true;
+	g_PConfig.bSoftwareSkinning = true;
 	for (int i = 0; i < 8 * 12; ++i) {
 		gstate.boneMatrix[i] = 0.0f;
 	}

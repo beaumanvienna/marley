@@ -865,7 +865,7 @@ protected:
     void mergeLinkerObjects(TInfoSink&, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects);
     void mergeImplicitArraySizes(TType&, const TType&);
     void mergeErrorCheck(TInfoSink&, const TIntermSymbol&, const TIntermSymbol&, bool crossStage);
-    void checkCallGraphCycles(TInfoSink&);
+    void PcheckCallGraphCycles(TInfoSink&);
     void checkCallGraphBodies(TInfoSink&, bool keepUncalled);
     void inOutLocationCheck(TInfoSink&);
     TIntermAggregate* findLinkerObjects() const;

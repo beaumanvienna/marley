@@ -56,7 +56,7 @@ std::string GameManager::GetTempFilename() const {
 	GetTempFileName(tempPath, L"PSP", 1, buffer);
 	return ConvertWStringToUTF8(buffer);
 #else
-	return g_Config.memStickDirectory + "/ppsspp.dl";
+	return g_PConfig.memStickDirectory + "/ppsspp.dl";
 #endif
 }
 
@@ -104,7 +104,7 @@ bool GameManager::Uninstall(std::string name) {
 	bool success = File::DeleteDirRecursively(gameDir);
 	if (success) {
 		INFO_LOG(HLE, "Successfully deleted game '%s'", name.c_str());
-		g_Config.CleanRecent();
+		g_PConfig.CleanRecent();
 		return true;
 	} else {
 		ERROR_LOG(HLE, "Failed to delete game '%s'", name.c_str());
@@ -335,7 +335,7 @@ bool GameManager::DetectTexturePackDest(struct zip *z, int iniIndex, std::string
 	std::string gameID = games.begin()->first;
 	if (games.size() > 1) {
 		// Check for any supported game on their recent list and use that instead.
-		for (const std::string &path : g_Config.recentIsos) {
+		for (const std::string &path : g_PConfig.recentIsos) {
 			std::string recentID = GetGameID(path);
 			if (games.find(recentID) != games.end()) {
 				gameID = recentID;
@@ -585,7 +585,7 @@ bool GameManager::InstallZippedISO(struct zip *z, int isoFileIndex, std::string 
 		allBytes += zstat.size;
 	}
 
-	std::string outputISOFilename = g_Config.currentDirectory + "/" + fn.substr(nameOffset);
+	std::string outputISOFilename = g_PConfig.currentDirectory + "/" + fn.substr(nameOffset);
 	size_t bytesCopied = 0;
 	if (ExtractFile(z, isoFileIndex, outputISOFilename, &bytesCopied, allBytes)) {
 		ILOG("Successfully extracted ISO file to '%s'", outputISOFilename.c_str());
@@ -613,7 +613,7 @@ bool GameManager::InstallGameOnThread(std::string url, std::string fileName, boo
 }
 
 bool GameManager::InstallRawISO(const std::string &file, const std::string &originalName, bool deleteAfter) {
-	std::string destPath = g_Config.currentDirectory + "/" + originalName;
+	std::string destPath = g_PConfig.currentDirectory + "/" + originalName;
 	// TODO: To save disk space, we should probably attempt a move first.
 	if (File::Copy(file, destPath)) {
 		if (deleteAfter) {

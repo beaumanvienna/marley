@@ -572,7 +572,7 @@ int main(int argc, const char *argv[]) {
 	cpu_info.bVFP = true;
 	cpu_info.bVFPv3 = true;
 	cpu_info.bVFPv4 = true;
-	g_Config.bEnableLogging = true;
+	g_PConfig.bEnableLogging = true;
 
 	bool allTests = false;
 	TestFunc testFunc = nullptr;

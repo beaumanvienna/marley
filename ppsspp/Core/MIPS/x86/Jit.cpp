@@ -726,7 +726,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 	WriteDowncount();
 
 	// Validate the jump to avoid a crash?
-	if (!g_Config.bFastMemory) {
+	if (!g_PConfig.bFastMemory) {
 		CMP(32, R(reg), Imm32(PSP_GetKernelMemoryBase()));
 		FixupBranch tooLow = J_CC(CC_B);
 		CMP(32, R(reg), Imm32(PSP_GetUserMemoryEnd()));
@@ -744,7 +744,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		ABI_CallFunctionA((const void *)&Memory::GetPointer, R(reg));
 
 		// If we're ignoring, coreState didn't trip - so trip it now.
-		if (g_Config.bIgnoreBadMemAccess) {
+		if (g_PConfig.bIgnoreBadMemAccess) {
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch skip = J_CC(CC_NE);
 			ABI_CallFunctionA((const void *)&Core_UpdateState, Imm32(CORE_ERROR));

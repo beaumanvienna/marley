@@ -198,7 +198,7 @@ void __KernelShutdown()
 	__KernelModuleShutdown();
 
 	CoreTiming::ClearPendingEvents();
-	CoreTiming::UnregisterAllEvents();
+	CoreTiming::UnregisterAllPEvents();
 	Reporting::Shutdown();
 	SaveState::Shutdown();
 
@@ -311,7 +311,7 @@ void sceKernelExitGameWithStatus()
 
 u32 sceKernelDevkitVersion()
 {
-	int firmwareVersion = g_Config.iFirmwareVersion;
+	int firmwareVersion = g_PConfig.iFirmwareVersion;
 	int major = firmwareVersion / 100;
 	int minor = (firmwareVersion / 10) % 10;
 	int revision = firmwareVersion % 10;

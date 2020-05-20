@@ -29,7 +29,7 @@
 #include "GPU/GPUState.h"  // only needed for UVScale stuff
 
 bool CanUseHardwareTessellation(GEPatchPrimType prim) {
-	if (g_Config.bHardwareTessellation && !g_Config.bSoftwareRendering) {
+	if (g_PConfig.bHardwareTessellation && !g_PConfig.bSoftwareRendering) {
 		return CanUseHardwareTransform(PatchPrimToPrim(prim));
 	}
 	return false;

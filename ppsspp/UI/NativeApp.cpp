@@ -221,20 +221,20 @@ void QtHost::ShutdownSound() { }
 std::string NativeQueryConfig(std::string query) {
 	char temp[128];
 	if (query == "screenRotation") {
-		ILOG("g_Config.screenRotation = %d", g_Config.iScreenRotation);
-		snprintf(temp, sizeof(temp), "%d", g_Config.iScreenRotation);
+		ILOG("g_PConfig.screenRotation = %d", g_PConfig.iScreenRotation);
+		snprintf(temp, sizeof(temp), "%d", g_PConfig.iScreenRotation);
 		return std::string(temp);
 	} else if (query == "immersiveMode") {
-		return std::string(g_Config.bImmersiveMode ? "1" : "0");
+		return std::string(g_PConfig.bImmersiveMode ? "1" : "0");
 	} else if (query == "hwScale") {
-		int scale = g_Config.iAndroidHwScale;
+		int scale = g_PConfig.iAndroidHwScale;
 		// Override hw scale for TV type devices.
 		if (System_GetPropertyInt(SYSPROP_DEVICE_TYPE) == DEVICE_TYPE_TV)
 			scale = 0;
 
 		if (scale == 1) {
-			// If g_Config.iInternalResolution is also set to Auto (1), we fall back to "Device resolution" (0). It works out.
-			scale = g_Config.iInternalResolution;
+			// If g_PConfig.iInternalResolution is also set to Auto (1), we fall back to "Device resolution" (0). It works out.
+			scale = g_PConfig.iInternalResolution;
 		} else if (scale >= 2) {
 			scale -= 1;
 		}
@@ -252,7 +252,7 @@ std::string NativeQueryConfig(std::string query) {
 		// Otherwise, some devices prefer the Java init so play it safe.
 		return "true";
 	} else if (query == "sustainedPerformanceMode") {
-		return std::string(g_Config.bSustainedPerformanceMode ? "1" : "0");
+		return std::string(g_PConfig.bSustainedPerformanceMode ? "1" : "0");
 	} else {
 		return "";
 	}
@@ -313,16 +313,16 @@ static bool CheckFontIsUsable(const wchar_t *fontFace) {
 static void PostLoadConfig() {
 	// On Windows, we deal with currentDirectory in InitSysDirectories().
 #ifndef _WIN32
-	if (g_Config.currentDirectory.empty()) {
+	if (g_PConfig.currentDirectory.empty()) {
 #if defined(__ANDROID__)
-		g_Config.currentDirectory = g_Config.externalDirectory;
+		g_PConfig.currentDirectory = g_PConfig.externalDirectory;
 #elif defined(IOS)
-		g_Config.currentDirectory = g_Config.internalDataDirectory;
+		g_PConfig.currentDirectory = g_PConfig.internalDataDirectory;
 #else
 		if (getenv("HOME") != nullptr)
-			g_Config.currentDirectory = getenv("HOME");
+			g_PConfig.currentDirectory = getenv("HOME");
 		else
-			g_Config.currentDirectory = "./";
+			g_PConfig.currentDirectory = "./";
 #endif
 	}
 #endif
@@ -333,16 +333,16 @@ static void PostLoadConfig() {
 
 	// If we run into the unlikely case that "lang" is actually a file, just use the built-in translations.
 	if (!File::Exists(langOverridePath) || !File::IsDirectory(langOverridePath))
-		i18nrepo.LoadIni(g_Config.sLanguageIni);
+		i18nrepo.LoadIni(g_PConfig.sLanguageIni);
 	else
-		i18nrepo.LoadIni(g_Config.sLanguageIni, langOverridePath);
+		i18nrepo.LoadIni(g_PConfig.sLanguageIni, langOverridePath);
 }
 
 void CreateDirectoriesAndroid() {
 	// On Android, create a PSP directory tree in the external_dir,
 	// to hopefully reduce confusion a bit.
-	ILOG("Creating %s", (g_Config.memStickDirectory + "PSP").c_str());
-	File::CreateFullPath(g_Config.memStickDirectory + "PSP");
+	ILOG("Creating %s", (g_PConfig.memStickDirectory + "PSP").c_str());
+	File::CreateFullPath(g_PConfig.memStickDirectory + "PSP");
 	File::CreateFullPath(GetSysDirectory(DIRECTORY_SAVEDATA));
 	File::CreateFullPath(GetSysDirectory(DIRECTORY_SAVESTATE));
 	File::CreateFullPath(GetSysDirectory(DIRECTORY_GAME));
@@ -367,58 +367,58 @@ static void CheckFailedGPUBackends() {
 	// We only want to do this once per process run and backend, to detect process crashes.
 	// If NativeShutdown is called before we finish, we might call this multiple times.
 	static int lastBackend = -1;
-	if (lastBackend == g_Config.iGPUBackend) {
+	if (lastBackend == g_PConfig.iGPUBackend) {
 		return;
 	}
-	lastBackend = g_Config.iGPUBackend;
+	lastBackend = g_PConfig.iGPUBackend;
 
 	std::string cache = GetSysDirectory(DIRECTORY_APP_CACHE) + "/FailedGraphicsBackends.txt";
 
 	if (System_GetPropertyBool(SYSPROP_SUPPORTS_PERMISSIONS)) {
 		std::string data;
 		if (readFileToString(true, cache.c_str(), data))
-			g_Config.sFailedGPUBackends = data;
+			g_PConfig.sFailedGPUBackends = data;
 	}
 
 	// Use this if you want to debug a graphics crash...
-	if (g_Config.sFailedGPUBackends == "IGNORE")
+	if (g_PConfig.sFailedGPUBackends == "IGNORE")
 		return;
-	else if (!g_Config.sFailedGPUBackends.empty())
-		ERROR_LOG(LOADER, "Failed graphics backends: %s", g_Config.sFailedGPUBackends.c_str());
+	else if (!g_PConfig.sFailedGPUBackends.empty())
+		ERROR_LOG(LOADER, "Failed graphics backends: %s", g_PConfig.sFailedGPUBackends.c_str());
 
 	// Okay, let's not try a backend in the failed list.
-	g_Config.iGPUBackend = g_Config.NextValidBackend();
-	if (lastBackend != g_Config.iGPUBackend)
-		WARN_LOG(LOADER, "Failed graphics backend switched from %d to %d", lastBackend, g_Config.iGPUBackend);
+	g_PConfig.iGPUBackend = g_PConfig.NextValidBackend();
+	if (lastBackend != g_PConfig.iGPUBackend)
+		WARN_LOG(LOADER, "Failed graphics backend switched from %d to %d", lastBackend, g_PConfig.iGPUBackend);
 	// And then let's - for now - add the current to the failed list.
-	if (g_Config.sFailedGPUBackends.empty()) {
-		g_Config.sFailedGPUBackends = GPUBackendToString((GPUBackend)g_Config.iGPUBackend);
-	} else if (g_Config.sFailedGPUBackends.find("ALL") == std::string::npos) {
-		g_Config.sFailedGPUBackends += "," + GPUBackendToString((GPUBackend)g_Config.iGPUBackend);
+	if (g_PConfig.sFailedGPUBackends.empty()) {
+		g_PConfig.sFailedGPUBackends = GPUBackendToString((GPUBackend)g_PConfig.iGPUBackend);
+	} else if (g_PConfig.sFailedGPUBackends.find("ALL") == std::string::npos) {
+		g_PConfig.sFailedGPUBackends += "," + GPUBackendToString((GPUBackend)g_PConfig.iGPUBackend);
 	}
 
 	if (System_GetPropertyBool(SYSPROP_SUPPORTS_PERMISSIONS)) {
 		// Let's try to create, in case it doesn't exist.
 		if (!File::Exists(GetSysDirectory(DIRECTORY_APP_CACHE)))
 			File::CreateDir(GetSysDirectory(DIRECTORY_APP_CACHE));
-		writeStringToFile(true, g_Config.sFailedGPUBackends, cache.c_str());
+		writeStringToFile(true, g_PConfig.sFailedGPUBackends, cache.c_str());
 	} else {
 		// Just save immediately, since we have storage.
-		g_Config.Save("got storage permission");
+		g_PConfig.Save("got storage permission");
 	}
 }
 
 static void ClearFailedGPUBackends() {
-	if (g_Config.sFailedGPUBackends == "IGNORE")
+	if (g_PConfig.sFailedGPUBackends == "IGNORE")
 		return;
 
 	// We've successfully started graphics without crashing, hurray.
 	// In case they update drivers and have totally different problems much later, clear the failed list.
-	g_Config.sFailedGPUBackends.clear();
+	g_PConfig.sFailedGPUBackends.clear();
 	if (System_GetPropertyBool(SYSPROP_SUPPORTS_PERMISSIONS)) {
 		File::Delete(GetSysDirectory(DIRECTORY_APP_CACHE) + "/FailedGraphicsBackends.txt");
 	} else {
-		g_Config.Save("clearFailedGPUBackends");
+		g_PConfig.Save("clearFailedGPUBackends");
 	}
 }
 
@@ -460,27 +460,27 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	}
 #endif
 
-	g_Config.internalDataDirectory = savegame_dir;
-	g_Config.externalDirectory = external_dir;
+	g_PConfig.internalDataDirectory = savegame_dir;
+	g_PConfig.externalDirectory = external_dir;
 
 #if defined(__ANDROID__)
 	// Maybe there should be an option to use internal memory instead, but I think
 	// that for most people, using external memory (SDCard/USB Storage) makes the
 	// most sense.
-	g_Config.memStickDirectory = std::string(external_dir) + "/";
-	g_Config.flash0Directory = std::string(external_dir) + "/flash0/";
+	g_PConfig.memStickDirectory = std::string(external_dir) + "/";
+	g_PConfig.flash0Directory = std::string(external_dir) + "/flash0/";
 
-	std::string memstickDirFile = g_Config.internalDataDirectory + "/memstick_dir.txt";
+	std::string memstickDirFile = g_PConfig.internalDataDirectory + "/memstick_dir.txt";
 	if (File::Exists(memstickDirFile)) {
 		std::string memstickDir;
 		readFileToString(true, memstickDirFile.c_str(), memstickDir);
 		if (!memstickDir.empty() && File::Exists(memstickDir)) {
-			g_Config.memStickDirectory = memstickDir + "/";
+			g_PConfig.memStickDirectory = memstickDir + "/";
 		}
 	}
 #elif defined(IOS)
-	g_Config.memStickDirectory = user_data_path;
-	g_Config.flash0Directory = std::string(external_dir) + "/flash0/";
+	g_PConfig.memStickDirectory = user_data_path;
+	g_PConfig.flash0Directory = std::string(external_dir) + "/flash0/";
 #elif !defined(_WIN32)
 	std::string config;
 	if (getenv("XDG_CONFIG_HOME") != NULL)
@@ -490,26 +490,26 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	else // Just in case
 		config = "./config";
 
-	g_Config.memStickDirectory = config + "/ppsspp/";
-	g_Config.flash0Directory = File::GetExeDirectory() + "/assets/flash0/";
+	g_PConfig.memStickDirectory = config + "/ppsspp/";
+	g_PConfig.flash0Directory = File::GetExeDirectory() + "/assets/flash0/";
 #endif
 
 	if (cache_dir && strlen(cache_dir)) {
 		DiskCachingFileLoaderCache::SetCacheDir(cache_dir);
-		g_Config.appCacheDirectory = cache_dir;
+		g_PConfig.appCacheDirectory = cache_dir;
 	}
 
 	if (!LogManager::GetInstance())
 		LogManager::Init();
 
 #ifndef _WIN32
-	g_Config.AddSearchPath(user_data_path);
-	g_Config.AddSearchPath(GetSysDirectory(DIRECTORY_SYSTEM));
-	g_Config.SetDefaultPath(GetSysDirectory(DIRECTORY_SYSTEM));
+	g_PConfig.AddSearchPath(user_data_path);
+	g_PConfig.AddSearchPath(GetSysDirectory(DIRECTORY_SYSTEM));
+	g_PConfig.SetDefaultPath(GetSysDirectory(DIRECTORY_SYSTEM));
 
 	// Note that if we don't have storage permission here, loading the config will
 	// fail and it will be set to the default. Later, we load again when we get permission.
-	g_Config.Load();
+	g_PConfig.Load();
 #endif
 	LogManager *logman = LogManager::GetInstance();
 
@@ -539,16 +539,16 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 				logLevel = LogTypes::LVERBOSE;
 				break;
 			case 'j':
-				g_Config.iCpuCore = (int)CPUCore::JIT;
-				g_Config.bSaveSettings = false;
+				g_PConfig.iCpuCore = (int)CPUCore::JIT;
+				g_PConfig.bSaveSettings = false;
 				break;
 			case 'i':
-				g_Config.iCpuCore = (int)CPUCore::INTERPRETER;
-				g_Config.bSaveSettings = false;
+				g_PConfig.iCpuCore = (int)CPUCore::INTERPRETER;
+				g_PConfig.bSaveSettings = false;
 				break;
 			case 'r':
-				g_Config.iCpuCore = (int)CPUCore::IR_JIT;
-				g_Config.bSaveSettings = false;
+				g_PConfig.iCpuCore = (int)CPUCore::IR_JIT;
+				g_PConfig.bSaveSettings = false;
 				break;
 			case '-':
 				if (!strncmp(argv[i], "--log=", strlen("--log=")) && strlen(argv[i]) > strlen("--log="))
@@ -557,12 +557,12 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 					stateToLoad = argv[i] + strlen("--state=");
 #if !defined(MOBILE_DEVICE)
 				if (!strncmp(argv[i], "--escape-exit", strlen("--escape-exit")))
-					g_Config.bPauseExitsEmulator = true;
+					g_PConfig.bPauseExitsEmulator = true;
 #endif
 				if (!strncmp(argv[i], "--pause-menu-exit", strlen("--pause-menu-exit")))
-					g_Config.bPauseMenuExitsEmulator = true;
+					g_PConfig.bPauseMenuExitsEmulator = true;
 				if (!strcmp(argv[i], "--fullscreen"))
-					g_Config.bFullScreen = true;
+					g_PConfig.bFullScreen = true;
 				break;
 			}
 		} else {
@@ -652,16 +652,16 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	// Only add it to your own personal copies of PPSSPP.
 #if PPSSPP_PLATFORM(UWP)
 	// Roboto font is loaded in TextDrawerUWP.
-	g_Config.sFont = des->T("Font", "Roboto");
+	g_PConfig.sFont = des->T("Font", "Roboto");
 #elif defined(USING_WIN_UI) && !PPSSPP_PLATFORM(UWP)
 	// TODO: Could allow a setting to specify a font file to load?
 	// TODO: Make this a constant if we can sanely load the font on other systems?
 	AddFontResourceEx(L"assets/Roboto-Condensed.ttf", FR_PRIVATE, NULL);
 	// The font goes by two names, let's allow either one.
 	if (CheckFontIsUsable(L"Roboto Condensed")) {
-		g_Config.sFont = des->T("Font", "Roboto Condensed");
+		g_PConfig.sFont = des->T("Font", "Roboto Condensed");
 	} else {
-		g_Config.sFont = des->T("Font", "Roboto");
+		g_PConfig.sFont = des->T("Font", "Roboto");
 	}
 #elif defined(USING_QT_UI)
 	size_t fontSize = 0;
@@ -673,17 +673,17 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 		QStringList fontsFound = QFontDatabase::applicationFontFamilies(fontID);
 		if (fontsFound.size() >= 1) {
 			// Might be "Roboto" or "Roboto Condensed".
-			g_Config.sFont = des->T("Font", fontsFound.at(0).toUtf8().constData());
+			g_PConfig.sFont = des->T("Font", fontsFound.at(0).toUtf8().constData());
 		}
 	} else {
 		// Let's try for it being a system font.
-		g_Config.sFont = des->T("Font", "Roboto Condensed");
+		g_PConfig.sFont = des->T("Font", "Roboto Condensed");
 	}
 #endif
 
 	if (!boot_filename.empty() && stateToLoad != NULL) {
 		SaveState::Load(stateToLoad, [](SaveState::Status status, const std::string &message, void *) {
-			if (!message.empty() && (!g_Config.bDumpFrames || !g_Config.bDumpVideoOutput)) {
+			if (!message.empty() && (!g_PConfig.bDumpFrames || !g_PConfig.bDumpVideoOutput)) {
 				osm.Show(message, status == SaveState::Status::SUCCESS ? 2.0 : 5.0);
 			}
 		});
@@ -699,18 +699,18 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	// Easy testing
 	// screenManager->push(new GPUDriverTestScreen());
 
-	if (g_Config.bRemoteShareOnStartup && g_Config.bRemoteDebuggerOnStartup)
+	if (g_PConfig.bRemoteShareOnStartup && g_PConfig.bRemoteDebuggerOnStartup)
 		StartWebServer(WebServerFlags::ALL);
-	else if (g_Config.bRemoteShareOnStartup)
+	else if (g_PConfig.bRemoteShareOnStartup)
 		StartWebServer(WebServerFlags::DISCS);
-	else if (g_Config.bRemoteDebuggerOnStartup)
+	else if (g_PConfig.bRemoteDebuggerOnStartup)
 		StartWebServer(WebServerFlags::DEBUGGER);
 
 	std::string sysName = System_GetProperty(SYSPROP_NAME);
 	isOuya = KeyMap::IsOuya(sysName);
 
 #if !defined(MOBILE_DEVICE) && defined(USING_QT_UI)
-	MainWindow *mainWindow = new MainWindow(nullptr, g_Config.bFullScreen);
+	MainWindow *mainWindow = new MainWindow(nullptr, g_PConfig.bFullScreen);
 	mainWindow->show();
 	if (host == nullptr) {
 		host = new QtHost(mainWindow);
@@ -720,7 +720,7 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	// We do this here, instead of in NativeInitGraphics, because the display may be reset.
 	// When it's reset we don't want to forget all our managed things.
 	CheckFailedGPUBackends();
-	SetGPUBackend((GPUBackend) g_Config.iGPUBackend);
+	SetGPUBackend((GPUBackend) g_PConfig.iGPUBackend);
 	renderCounter = 0;
 
 	// Must be done restarting by now.
@@ -737,9 +737,9 @@ static UI::Style MakeStyle(uint32_t fg, uint32_t bg) {
 
 static void UIThemeInit() {
 #if defined(USING_WIN_UI) || PPSSPP_PLATFORM(UWP) || defined(USING_QT_UI)
-	ui_theme.uiFont = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 22);
-	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 15);
-	ui_theme.uiFontSmaller = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 12);
+	ui_theme.uiFont = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 22);
+	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 15);
+	ui_theme.uiFontSmaller = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 12);
 #else
 	ui_theme.uiFont = UI::FontStyle(UBUNTU24, "", 20);
 	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, "", 14);
@@ -752,23 +752,23 @@ static void UIThemeInit() {
 	ui_theme.sliderKnob = I_CIRCLE;
 	ui_theme.dropShadow4Grid = I_DROP_SHADOW;
 
-	ui_theme.itemStyle = MakeStyle(g_Config.uItemStyleFg, g_Config.uItemStyleBg);
-	ui_theme.itemFocusedStyle = MakeStyle(g_Config.uItemFocusedStyleFg, g_Config.uItemFocusedStyleBg);
-	ui_theme.itemDownStyle = MakeStyle(g_Config.uItemDownStyleFg, g_Config.uItemDownStyleBg);
-	ui_theme.itemDisabledStyle = MakeStyle(g_Config.uItemDisabledStyleFg, g_Config.uItemDisabledStyleBg);
-	ui_theme.itemHighlightedStyle = MakeStyle(g_Config.uItemHighlightedStyleFg, g_Config.uItemHighlightedStyleBg);
+	ui_theme.itemStyle = MakeStyle(g_PConfig.uItemStyleFg, g_PConfig.uItemStyleBg);
+	ui_theme.itemFocusedStyle = MakeStyle(g_PConfig.uItemFocusedStyleFg, g_PConfig.uItemFocusedStyleBg);
+	ui_theme.itemDownStyle = MakeStyle(g_PConfig.uItemDownStyleFg, g_PConfig.uItemDownStyleBg);
+	ui_theme.itemDisabledStyle = MakeStyle(g_PConfig.uItemDisabledStyleFg, g_PConfig.uItemDisabledStyleBg);
+	ui_theme.itemHighlightedStyle = MakeStyle(g_PConfig.uItemHighlightedStyleFg, g_PConfig.uItemHighlightedStyleBg);
 
-	ui_theme.buttonStyle = MakeStyle(g_Config.uButtonStyleFg, g_Config.uButtonStyleBg);
-	ui_theme.buttonFocusedStyle = MakeStyle(g_Config.uButtonFocusedStyleFg, g_Config.uButtonFocusedStyleBg);
-	ui_theme.buttonDownStyle = MakeStyle(g_Config.uButtonDownStyleFg, g_Config.uButtonDownStyleBg);
-	ui_theme.buttonDisabledStyle = MakeStyle(g_Config.uButtonDisabledStyleFg, g_Config.uButtonDisabledStyleBg);
-	ui_theme.buttonHighlightedStyle = MakeStyle(g_Config.uButtonHighlightedStyleFg, g_Config.uButtonHighlightedStyleBg);
+	ui_theme.buttonStyle = MakeStyle(g_PConfig.uButtonStyleFg, g_PConfig.uButtonStyleBg);
+	ui_theme.buttonFocusedStyle = MakeStyle(g_PConfig.uButtonFocusedStyleFg, g_PConfig.uButtonFocusedStyleBg);
+	ui_theme.buttonDownStyle = MakeStyle(g_PConfig.uButtonDownStyleFg, g_PConfig.uButtonDownStyleBg);
+	ui_theme.buttonDisabledStyle = MakeStyle(g_PConfig.uButtonDisabledStyleFg, g_PConfig.uButtonDisabledStyleBg);
+	ui_theme.buttonHighlightedStyle = MakeStyle(g_PConfig.uButtonHighlightedStyleFg, g_PConfig.uButtonHighlightedStyleBg);
 
-	ui_theme.headerStyle.fgColor = g_Config.uHeaderStyleFg;
-	ui_theme.infoStyle = MakeStyle(g_Config.uInfoStyleFg, g_Config.uInfoStyleBg);
+	ui_theme.headerStyle.fgColor = g_PConfig.uHeaderStyleFg;
+	ui_theme.infoStyle = MakeStyle(g_PConfig.uInfoStyleFg, g_PConfig.uInfoStyleBg);
 
-	ui_theme.popupTitle.fgColor = g_Config.uPopupTitleStyleFg;
-	ui_theme.popupStyle = MakeStyle(g_Config.uPopupStyleFg, g_Config.uPopupStyleBg);
+	ui_theme.popupTitle.fgColor = g_PConfig.uPopupTitleStyleFg;
+	ui_theme.popupStyle = MakeStyle(g_PConfig.uPopupStyleFg, g_PConfig.uPopupStyleBg);
 }
 
 void RenderOverlays(UIContext *dc, void *userdata);
@@ -837,7 +837,7 @@ bool NativeInitGraphics(GraphicsContext *graphicsContext) {
 	screenManager->deviceRestored();
 
 #ifdef _WIN32
-	winAudioBackend = CreateAudioBackend((AudioBackendType)g_Config.iAudioBackend);
+	winAudioBackend = CreateAudioBackend((AudioBackendType)g_PConfig.iAudioBackend);
 #if PPSSPP_PLATFORM(UWP)
 	winAudioBackend->Init(0, &Win32Mix, 44100);
 #else
@@ -910,7 +910,7 @@ void TakeScreenshot() {
 
 	char filename[2048];
 	while (i < 10000){
-		if (g_Config.bScreenshotsAsPNG)
+		if (g_PConfig.bScreenshotsAsPNG)
 			snprintf(filename, sizeof(filename), "%s/%s_%05d.png", path.c_str(), gameId.c_str(), i);
 		else
 			snprintf(filename, sizeof(filename), "%s/%s_%05d.jpg", path.c_str(), gameId.c_str(), i);
@@ -920,7 +920,7 @@ void TakeScreenshot() {
 		i++;
 	}
 
-	bool success = TakeGameScreenshot(filename, g_Config.bScreenshotsAsPNG ? ScreenshotFormat::PNG : ScreenshotFormat::JPG, SCREENSHOT_OUTPUT);
+	bool success = TakeGameScreenshot(filename, g_PConfig.bScreenshotsAsPNG ? ScreenshotFormat::PNG : ScreenshotFormat::JPG, SCREENSHOT_OUTPUT);
 	if (success) {
 		osm.Show(filename);
 	} else {
@@ -1055,13 +1055,13 @@ void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 		SplitString(value, ':', inputboxValue);
 		std::string setString = inputboxValue.size() > 1 ? inputboxValue[1] : "";
 		if (inputboxValue[0] == "IP")
-			g_Config.proAdhocServer = setString;
+			g_PConfig.proAdhocServer = setString;
 		else if (inputboxValue[0] == "nickname")
-			g_Config.sNickName = setString;
+			g_PConfig.sNickName = setString;
 		else if (inputboxValue[0] == "remoteiso_subdir")
-			g_Config.sRemoteISOSubdir = setString;
+			g_PConfig.sRemoteISOSubdir = setString;
 		else if (inputboxValue[0] == "remoteiso_server")
-			g_Config.sLastRemoteISOServer = setString;
+			g_PConfig.sLastRemoteISOServer = setString;
 		inputboxValue.clear();
 	}
 	if (msg == "bgImage_updated") {
@@ -1103,14 +1103,14 @@ void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 		// We must have failed to load the config before, so load it now to avoid overwriting the old config
 		// with a freshly generated one.
 		// NOTE: If graphics backend isn't what's in the config (due to error fallback, or not matching the default
-		// and then getting permission), it will get out of sync. So we save and restore g_Config.iGPUBackend.
+		// and then getting permission), it will get out of sync. So we save and restore g_PConfig.iGPUBackend.
 		// Ideally we should simply reinitialize graphics to the mode from the config, but there are potential issues
 		// and I can't risk it before 1.9.0.
-		int gpuBackend = g_Config.iGPUBackend;
+		int gpuBackend = g_PConfig.iGPUBackend;
 		ILOG("Reloading config after storage permission grant.");
-		g_Config.Load();
+		g_PConfig.Load();
 		PostLoadConfig();
-		g_Config.iGPUBackend = gpuBackend;
+		g_PConfig.iGPUBackend = gpuBackend;
 	}
 }
 
@@ -1168,7 +1168,7 @@ bool NativeTouch(const TouchInput &touch) {
 bool NativeKey(const KeyInput &key) {
 	// ILOG("Key code: %i flags: %i", key.keyCode, key.flags);
 #if !defined(MOBILE_DEVICE)
-	if (g_Config.bPauseExitsEmulator) {
+	if (g_PConfig.bPauseExitsEmulator) {
 		static std::vector<int> pspKeys;
 		pspKeys.clear();
 		if (KeyMap::KeyToPspButton(key.deviceId, key.keyCode, &pspKeys)) {
@@ -1189,7 +1189,7 @@ bool NativeAxis(const AxisInput &axis) {
 	using namespace TiltEventProcessor;
 
 	// only handle tilt events if tilt is enabled.
-	if (g_Config.iTiltInputType == TILT_NULL) {
+	if (g_PConfig.iTiltInputType == TILT_NULL) {
 		// if tilt events are disabled, then run it through the usual way. 
 		if (screenManager) {
 			return screenManager->axis(axis);
@@ -1201,8 +1201,8 @@ bool NativeAxis(const AxisInput &axis) {
 	// create the base coordinate tilt system from the calibration data.
 	// This is static for no particular reason, can be un-static'ed
 	static Tilt baseTilt;
-	baseTilt.x_ = g_Config.fTiltBaseX;
-	baseTilt.y_ = g_Config.fTiltBaseY;
+	baseTilt.x_ = g_PConfig.fTiltBaseX;
+	baseTilt.y_ = g_PConfig.fTiltBaseY;
 
 	// figure out what the current tilt orientation is by checking the axis event
 	// This is static, since we need to remember where we last were (in terms of orientation)
@@ -1254,11 +1254,11 @@ bool NativeAxis(const AxisInput &axis) {
 	//target. If you want control, you'd keep the sensitivity ~50.
 	//For games that don't need much control but need fast reactions,
 	//then a value of 70-80 is the way to go.
-	float xSensitivity = g_Config.iTiltSensitivityX / 50.0;
-	float ySensitivity = g_Config.iTiltSensitivityY / 50.0;
+	float xSensitivity = g_PConfig.iTiltSensitivityX / 50.0;
+	float ySensitivity = g_PConfig.iTiltSensitivityY / 50.0;
 	
 	//now transform out current tilt to the calibrated coordinate system
-	Tilt trueTilt = GenTilt(baseTilt, currentTilt, g_Config.bInvertTiltX, g_Config.bInvertTiltY, g_Config.fDeadzoneRadius, xSensitivity, ySensitivity);
+	Tilt trueTilt = GenTilt(baseTilt, currentTilt, g_PConfig.bInvertTiltX, g_PConfig.bInvertTiltY, g_PConfig.fDeadzoneRadius, xSensitivity, ySensitivity);
 
 	TranslateTiltToInput(trueTilt);
 	return true;
@@ -1303,7 +1303,7 @@ void NativeShutdown() {
 	delete host;
 	host = nullptr;
 #endif
-	g_Config.Save("NativeShutdown");
+	g_PConfig.Save("NativeShutdown");
 
 	// Avoid shutting this down when restarting core.
 	if (!restarting)

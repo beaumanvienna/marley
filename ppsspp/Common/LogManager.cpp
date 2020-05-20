@@ -40,7 +40,7 @@ static const char level_to_char[8] = "-NEWIDV";
 #endif
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char *file, int line, const char* fmt, ...) {
-	if (!g_Config.bEnableLogging)
+	if (!g_PConfig.bEnableLogging)
 		return;
 	va_list args;
 	va_start(args, fmt);
@@ -53,7 +53,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char 
 
 bool GenericLogEnabled(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type) {
 	if (LogManager::GetInstance())
-		return g_Config.bEnableLogging && LogManager::GetInstance()->IsEnabled(level, type);
+		return g_PConfig.bEnableLogging && LogManager::GetInstance()->IsEnabled(level, type);
 	return false;
 }
 

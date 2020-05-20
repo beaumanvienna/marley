@@ -106,9 +106,9 @@ void FramebufferManagerGLES::CompileDraw2DProgram() {
 void FramebufferManagerGLES::CompilePostShader() {
 	SetNumExtraFBOs(0);
 	const ShaderInfo *shaderInfo = 0;
-	if (g_Config.sPostShaderName != "Off") {
+	if (g_PConfig.sPostShaderName != "Off") {
 		ReloadAllPostShaderInfo();
-		shaderInfo = GetPostShaderInfo(g_Config.sPostShaderName);
+		shaderInfo = GetPostShaderInfo(g_PConfig.sPostShaderName);
 	}
 
 	if (shaderInfo) {

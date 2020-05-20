@@ -61,9 +61,9 @@ static std::string TrimNewlines(const std::string &s) {
 
 bool TestsAvailable() {
 #ifdef IOS
-	std::string testDirectory = g_Config.flash0Directory + "../";
+	std::string testDirectory = g_PConfig.flash0Directory + "../";
 #else
-	std::string testDirectory = g_Config.memStickDirectory;
+	std::string testDirectory = g_PConfig.memStickDirectory;
 #endif
 	// Hack to easily run the tests on Windows from the submodule
 	if (File::IsDirectory("../pspautotests")) {
@@ -76,9 +76,9 @@ bool RunTests() {
 	std::string output;
 
 #ifdef IOS
-	std::string baseDirectory = g_Config.flash0Directory + "../";
+	std::string baseDirectory = g_PConfig.flash0Directory + "../";
 #else
-	std::string baseDirectory = g_Config.memStickDirectory;
+	std::string baseDirectory = g_PConfig.memStickDirectory;
 	// Hack to easily run the tests on Windows from the submodule
 	if (File::IsDirectory("../pspautotests")) {
 		baseDirectory = "../";
@@ -86,9 +86,9 @@ bool RunTests() {
 #endif
 
 	CoreParameter coreParam;
-	coreParam.cpuCore = (CPUCore)g_Config.iCpuCore;
+	coreParam.cpuCore = (CPUCore)g_PConfig.iCpuCore;
 	coreParam.gpuCore = GPUCORE_NULL;
-	coreParam.enableSound = g_Config.bEnableSound;
+	coreParam.enableSound = g_PConfig.bEnableSound;
 	coreParam.graphicsContext = nullptr;
 	coreParam.mountIso = "";
 	coreParam.mountRoot = baseDirectory + "pspautotests/";
@@ -104,8 +104,8 @@ bool RunTests() {
 	coreParam.updateRecent = false;
 
 	// Never report from tests.
-	std::string savedReportHost = g_Config.sReportHost;
-	g_Config.sReportHost = "";
+	std::string savedReportHost = g_PConfig.sReportHost;
+	g_PConfig.sReportHost = "";
 
 	for (size_t i = 0; i < ARRAY_SIZE(testsToRun); i++) {
 		const char *testName = testsToRun[i];
@@ -176,6 +176,6 @@ bool RunTests() {
 	PSP_CoreParameter().pixelWidth = pixel_xres;
 	PSP_CoreParameter().pixelHeight = pixel_yres;
 	PSP_CoreParameter().headLess = false;
-	g_Config.sReportHost = savedReportHost;
+	g_PConfig.sReportHost = savedReportHost;
 	return true;  // Managed to execute the tests. Says nothing about the result.
 }

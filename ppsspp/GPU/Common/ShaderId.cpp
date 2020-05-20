@@ -131,7 +131,7 @@ void ComputeVertexShaderID(VShaderID *id_out, u32 vertType, bool useHWTransform)
 		id.SetBit(VS_BIT_NORM_REVERSE, gstate.areNormalsReversed());
 		id.SetBit(VS_BIT_HAS_TEXCOORD, hasTexcoord);
 
-		if (g_Config.bHardwareTessellation) {
+		if (g_PConfig.bHardwareTessellation) {
 			id.SetBit(VS_BIT_BEZIER, doBezier);
 			id.SetBit(VS_BIT_SPLINE, doSpline);
 			if (doBezier || doSpline) {
@@ -310,7 +310,7 @@ void ComputeFragmentShaderID(FShaderID *id_out, const Draw::Bugs &bugs) {
 
 		id.SetBit(FS_BIT_SHADER_DEPAL, useShaderDepal);
 
-		if (g_Config.bVendorBugChecksEnabled) {
+		if (g_PConfig.bVendorBugChecksEnabled) {
 			if (bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL)) {
 				id.SetBit(FS_BIT_NO_DEPTH_CANNOT_DISCARD_STENCIL, !IsStencilTestOutputDisabled() && !gstate.isDepthWriteEnabled());
 			}

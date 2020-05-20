@@ -191,7 +191,7 @@ namespace MIPSComp
 			gpr.MapInIn(rt, rs);
 		}
 
-		if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
+		if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
 			SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2, true);
 			doCheck = true;
 		} else {
@@ -297,7 +297,7 @@ namespace MIPSComp
 		case 43: //sw
 			// Map base register as pointer and go from there - if the displacement isn't too big.
 			// This is faster if there are multiple loads from the same pointer. Need to hook up the MIPS analyzer..
-			if (jo.cachePointers && g_Config.bFastMemory) {
+			if (jo.cachePointers && g_PConfig.bFastMemory) {
 				// ARM has smaller load/store immediate displacements than MIPS, 12 bits - and some memory ops only have 8 bits.
 				int offsetRange = 0x3ff;
 				if (o == 41 || o == 33 || o == 37 || o == 32)
@@ -342,7 +342,7 @@ namespace MIPSComp
 				_dbg_assert_msg_(JIT, !gpr.IsImm(rs), "Invalid immediate address?  CPU bug?");
 				load ? gpr.MapDirtyIn(rt, rs) : gpr.MapInIn(rt, rs);
 
-				if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
+				if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
 					SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
 					doCheck = true;
 				} else {

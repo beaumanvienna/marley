@@ -511,7 +511,7 @@ void __KernelModuleDoState(PointerWrap &p)
 		}
 	}
 
-	if (g_Config.bFuncReplacements) {
+	if (g_PConfig.bFuncReplacements) {
 		MIPSAnalyst::ReplaceFunctions();
 	}
 }
@@ -1151,7 +1151,7 @@ static Module *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 loadAdd
 			module->nm.bss_size = head->bss_size;
 
 			// If we've made it this far, it should be safe to dump.
-			if (g_Config.bDumpDecryptedEboot) {
+			if (g_PConfig.bDumpDecryptedEboot) {
 				INFO_LOG(SCEMODULE, "Dumping decrypted EBOOT.BIN to file.");
 				const u32 dumpLength = ret;
 				__SaveDecryptedEbootToStorageMedia(ptr, dumpLength);
@@ -1266,7 +1266,7 @@ static Module *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 loadAdd
 	if (!module->isFake) {
 		bool scan = true;
 #if defined(MOBILE_DEVICE)
-		scan = g_Config.bFuncReplacements;
+		scan = g_PConfig.bFuncReplacements;
 #endif
 
 		// If the ELF has debug symbols, don't add entries to the symbol table.

@@ -44,7 +44,7 @@ IRJit::IRJit(MIPSState *mips) : frontend_(mips->HasDefaultPrefix()), mips_(mips)
 	InitIR();
 
 	IROptions opts{};
-	opts.disableFlags = g_Config.uJitDisableFlags;
+	opts.disableFlags = g_PConfig.uJitDisableFlags;
 	opts.unalignedLoadStore = opts.disableFlags & (uint32_t)JitDisable::LSU_UNALIGNED;
 	frontend_.SetOptions(opts);
 }
@@ -71,7 +71,7 @@ void IRJit::InvalidateCacheAt(u32 em_address, int length) {
 void IRJit::Compile(u32 em_address) {
 	PROFILE_THIS_SCOPE("jitc");
 
-	if (g_Config.bPreloadFunctions) {
+	if (g_PConfig.bPreloadFunctions) {
 		// Look to see if we've preloaded this block.
 		int block_num = blocks_.FindPreloadBlock(em_address);
 		if (block_num != -1) {

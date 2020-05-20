@@ -239,7 +239,7 @@ namespace MIPSComp
 		{
 		case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
 			{
-				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+				if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
 					fpr.MapRegV(vt, MAP_NOINIT | MAP_DIRTY);
 					VLDR(fpr.V(vt), gpr.RPtr(rs), offset);
@@ -253,7 +253,7 @@ namespace MIPSComp
 					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, offset);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
@@ -284,7 +284,7 @@ namespace MIPSComp
 
 		case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
 			{
-				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+				if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
 					fpr.MapRegV(vt, 0);
 					VSTR(fpr.V(vt), gpr.RPtr(rs), offset);
@@ -298,7 +298,7 @@ namespace MIPSComp
 					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, offset);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
@@ -356,7 +356,7 @@ namespace MIPSComp
 					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, imm);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, imm, SCRATCHREG2);
@@ -421,7 +421,7 @@ namespace MIPSComp
 					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, imm);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, imm, SCRATCHREG2);

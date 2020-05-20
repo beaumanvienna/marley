@@ -79,15 +79,15 @@ void DevMenu::CreatePopupContents(UI::ViewGroup *parent) {
 	items->Add(new Choice(sy->T("Developer Tools")))->OnClick.Handle(this, &DevMenu::OnDeveloperTools);
 	items->Add(new Choice(dev->T("Jit Compare")))->OnClick.Handle(this, &DevMenu::OnJitCompare);
 	items->Add(new Choice(dev->T("Shader Viewer")))->OnClick.Handle(this, &DevMenu::OnShaderView);
-	if (g_Config.iGPUBackend == (int)GPUBackend::VULKAN) {
-		items->Add(new CheckBox(&g_Config.bShowAllocatorDebug, dev->T("Allocator Viewer")));
-		items->Add(new CheckBox(&g_Config.bShowGpuProfile, dev->T("GPU Profile")));
+	if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) {
+		items->Add(new CheckBox(&g_PConfig.bShowAllocatorDebug, dev->T("Allocator Viewer")));
+		items->Add(new CheckBox(&g_PConfig.bShowGpuProfile, dev->T("GPU Profile")));
 	}
 	items->Add(new Choice(dev->T("Toggle Freeze")))->OnClick.Handle(this, &DevMenu::OnFreezeFrame);
 	items->Add(new Choice(dev->T("Dump Frame GPU Commands")))->OnClick.Handle(this, &DevMenu::OnDumpFrame);
 	items->Add(new Choice(dev->T("Toggle Audio Debug")))->OnClick.Handle(this, &DevMenu::OnToggleAudioDebug);
 #ifdef USE_PROFILER
-	items->Add(new CheckBox(&g_Config.bShowFrameProfiler, dev->T("Frame Profiler"), ""));
+	items->Add(new CheckBox(&g_PConfig.bShowFrameProfiler, dev->T("Frame Profiler"), ""));
 #endif
 
 	scroll->Add(items);
@@ -100,7 +100,7 @@ void DevMenu::CreatePopupContents(UI::ViewGroup *parent) {
 }
 
 UI::EventReturn DevMenu::OnToggleAudioDebug(UI::EventParams &e) {
-	g_Config.bShowAudioDebug = !g_Config.bShowAudioDebug;
+	g_PConfig.bShowAudioDebug = !g_PConfig.bShowAudioDebug;
 	return UI::EVENT_DONE;
 }
 
@@ -382,17 +382,17 @@ void JitDebugScreen::CreateViews() {
 
 	for (auto flag : jitDisableFlags) {
 		// Do not add translation of these.
-		vert->Add(new BitCheckBox(&g_Config.uJitDisableFlags, (uint32_t)flag.flag, flag.name));
+		vert->Add(new BitCheckBox(&g_PConfig.uJitDisableFlags, (uint32_t)flag.flag, flag.name));
 	}
 }
 
 UI::EventReturn JitDebugScreen::OnEnableAll(UI::EventParams &e) {
-	g_Config.uJitDisableFlags &= ~(uint32_t)MIPSComp::JitDisable::ALL_FLAGS;
+	g_PConfig.uJitDisableFlags &= ~(uint32_t)MIPSComp::JitDisable::ALL_FLAGS;
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn JitDebugScreen::OnDisableAll(UI::EventParams &e) {
-	g_Config.uJitDisableFlags |= (uint32_t)MIPSComp::JitDisable::ALL_FLAGS;
+	g_PConfig.uJitDisableFlags |= (uint32_t)MIPSComp::JitDisable::ALL_FLAGS;
 	return UI::EVENT_DONE;
 }
 

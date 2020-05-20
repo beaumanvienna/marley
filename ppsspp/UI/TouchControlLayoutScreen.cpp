@@ -37,7 +37,7 @@ static float local_dp_xres;
 static float local_dp_yres;
 
 static u32 GetButtonColor() {
-	return g_Config.iTouchButtonStyle != 0 ? 0xFFFFFF : 0xc0b080;
+	return g_PConfig.iTouchButtonStyle != 0 ? 0xFFFFFF : 0xc0b080;
 }
 
 class DragDropButton : public MultiTouchButton {
@@ -68,7 +68,7 @@ public:
 
 protected:
 	float GetButtonOpacity() override {
-		float opacity = g_Config.iTouchButtonOpacity / 100.0f;
+		float opacity = g_PConfig.iTouchButtonOpacity / 100.0f;
 		return std::max(0.5f, opacity);
 	}
 
@@ -92,7 +92,7 @@ public:
 	PSPActionButtons(ConfigTouchPos &pos, float &spacing)
 	: DragDropButton(pos, -1, -1), spacing_(spacing) {
 		using namespace UI;
-		roundId_ = g_Config.iTouchButtonStyle ? I_ROUND_LINE : I_ROUND;
+		roundId_ = g_PConfig.iTouchButtonStyle ? I_ROUND_LINE : I_ROUND;
 
 		circleId_ = I_CIRCLE;
 		crossId_ = I_CROSS;
@@ -119,7 +119,7 @@ public:
 	}
 
 	void Draw(UIContext &dc) override {
-		float opacity = g_Config.iTouchButtonOpacity / 100.0f;
+		float opacity = g_PConfig.iTouchButtonOpacity / 100.0f;
 
 		uint32_t colorBg = colorAlpha(GetButtonColor(), opacity);
 		uint32_t color = colorAlpha(0xFFFFFF, opacity);
@@ -177,7 +177,7 @@ public:
 	}
 
 	void Draw(UIContext &dc) override {
-		float opacity = g_Config.iTouchButtonOpacity / 100.0f;
+		float opacity = g_PConfig.iTouchButtonOpacity / 100.0f;
 
 		uint32_t colorBg = colorAlpha(GetButtonColor(), opacity);
 		uint32_t color = colorAlpha(0xFFFFFF, opacity);
@@ -185,7 +185,7 @@ public:
 		static const float xoff[4] = {1, 0, -1, 0};
 		static const float yoff[4] = {0, 1, 0, -1};
 
-		int dirImage = g_Config.iTouchButtonStyle ? I_DIR_LINE : I_DIR;
+		int dirImage = g_PConfig.iTouchButtonStyle ? I_DIR_LINE : I_DIR;
 
 		for (int i = 0; i < 4; i++) {
 			float r = D_pad_Radius * spacing_;
@@ -286,7 +286,7 @@ void TouchControlLayoutScreen::resized() {
 }
 
 void TouchControlLayoutScreen::onFinish(DialogResult reason) {
-	g_Config.Save("TouchControlLayoutScreen::onFinish");
+	g_PConfig.Save("TouchControlLayoutScreen::onFinish");
 }
 
 UI::EventReturn TouchControlLayoutScreen::OnVisibility(UI::EventParams &e) {
@@ -296,7 +296,7 @@ UI::EventReturn TouchControlLayoutScreen::OnVisibility(UI::EventParams &e) {
 
 UI::EventReturn TouchControlLayoutScreen::OnReset(UI::EventParams &e) {
 	ILOG("Resetting touch control layout");
-	g_Config.ResetControlLayout();
+	g_PConfig.ResetControlLayout();
 	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 	InitPadLayout(bounds.w, bounds.h);
 	RecreateViews();
@@ -308,7 +308,7 @@ void TouchControlLayoutScreen::dialogFinished(const Screen *dialog, DialogResult
 }
 
 void TouchControlLayoutScreen::CreateViews() {
-	// setup g_Config for button layout
+	// setup g_PConfig for button layout
 	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 	InitPadLayout(bounds.w, bounds.h);
 
@@ -325,7 +325,7 @@ void TouchControlLayoutScreen::CreateViews() {
 	Choice *reset = new Choice(di->T("Reset"), "", false, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10, NONE, NONE, 84));
 	Choice *back = new Choice(di->T("Back"), "", false, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10, NONE, NONE, 10));
 	Choice *visibility = new Choice(co->T("Visibility"), "", false, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10, NONE, NONE, 158));
-	// controlsSettings->Add(new PopupSliderChoiceFloat(&g_Config.fButtonScale, 0.80, 2.0, co->T("Button Scaling"), screenManager()))
+	// controlsSettings->Add(new PopupSliderChoiceFloat(&g_PConfig.fButtonScale, 0.80, 2.0, co->T("Button Scaling"), screenManager()))
 	// 	->OnChange.Handle(this, &GameSettingsScreen::OnChangeControlScaling);
 
 	mode_ = new ChoiceStrip(ORIENT_VERTICAL, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10, NONE, NONE, 158 + 64 + 10));
@@ -354,90 +354,90 @@ void TouchControlLayoutScreen::CreateViews() {
 
 	tabHolder->AddTab(ms->T("Controls"), controlsHolder);
 
-	if (!g_Config.bShowTouchControls) {
+	if (!g_PConfig.bShowTouchControls) {
 		// Shouldn't even be able to get here as the way into this dialog should be closed.
 		return;
 	}
 
 	controls_.clear();
 
-	PSPActionButtons *actionButtons = new PSPActionButtons(g_Config.touchActionButtonCenter, g_Config.fActionButtonSpacing);
-	actionButtons->setCircleVisibility(g_Config.bShowTouchCircle);
-	actionButtons->setCrossVisibility(g_Config.bShowTouchCross);
-	actionButtons->setTriangleVisibility(g_Config.bShowTouchTriangle);
-	actionButtons->setSquareVisibility(g_Config.bShowTouchSquare);
+	PSPActionButtons *actionButtons = new PSPActionButtons(g_PConfig.touchActionButtonCenter, g_PConfig.fActionButtonSpacing);
+	actionButtons->setCircleVisibility(g_PConfig.bShowTouchCircle);
+	actionButtons->setCrossVisibility(g_PConfig.bShowTouchCross);
+	actionButtons->setTriangleVisibility(g_PConfig.bShowTouchTriangle);
+	actionButtons->setSquareVisibility(g_PConfig.bShowTouchSquare);
 
 	controls_.push_back(actionButtons);
 
-	int rectImage = g_Config.iTouchButtonStyle ? I_RECT_LINE : I_RECT;
-	int shoulderImage = g_Config.iTouchButtonStyle ? I_SHOULDER_LINE : I_SHOULDER;
-	int dirImage = g_Config.iTouchButtonStyle ? I_DIR_LINE : I_DIR;
-	int stickImage = g_Config.iTouchButtonStyle ? I_STICK_LINE : I_STICK;
-	int stickBg = g_Config.iTouchButtonStyle ? I_STICK_BG_LINE : I_STICK_BG;
-	int roundImage = g_Config.iTouchButtonStyle ? I_ROUND_LINE : I_ROUND;
+	int rectImage = g_PConfig.iTouchButtonStyle ? I_RECT_LINE : I_RECT;
+	int shoulderImage = g_PConfig.iTouchButtonStyle ? I_SHOULDER_LINE : I_SHOULDER;
+	int dirImage = g_PConfig.iTouchButtonStyle ? I_DIR_LINE : I_DIR;
+	int stickImage = g_PConfig.iTouchButtonStyle ? I_STICK_LINE : I_STICK;
+	int stickBg = g_PConfig.iTouchButtonStyle ? I_STICK_BG_LINE : I_STICK_BG;
+	int roundImage = g_PConfig.iTouchButtonStyle ? I_ROUND_LINE : I_ROUND;
 
 	const int comboKeyImages[5] = { I_1, I_2, I_3, I_4, I_5 };
 
-	if (g_Config.touchDpad.show) {
-		controls_.push_back(new PSPDPadButtons(g_Config.touchDpad, g_Config.fDpadSpacing));
+	if (g_PConfig.touchDpad.show) {
+		controls_.push_back(new PSPDPadButtons(g_PConfig.touchDpad, g_PConfig.fDpadSpacing));
 	}
 
-	if (g_Config.touchSelectKey.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchSelectKey, rectImage, I_SELECT));
+	if (g_PConfig.touchSelectKey.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchSelectKey, rectImage, I_SELECT));
 	}
 
-	if (g_Config.touchStartKey.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchStartKey, rectImage, I_START));
+	if (g_PConfig.touchStartKey.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchStartKey, rectImage, I_START));
 	}
 
-	if (g_Config.touchUnthrottleKey.show) {
-		DragDropButton *unthrottle = new DragDropButton(g_Config.touchUnthrottleKey, rectImage, I_ARROW);
+	if (g_PConfig.touchUnthrottleKey.show) {
+		DragDropButton *unthrottle = new DragDropButton(g_PConfig.touchUnthrottleKey, rectImage, I_ARROW);
 		unthrottle->SetAngle(180.0f);
 		controls_.push_back(unthrottle);
 	}
 
-	if (g_Config.touchSpeed1Key.show) {
-		DragDropButton *speed1 = new DragDropButton(g_Config.touchSpeed1Key, rectImage, I_ARROW);
+	if (g_PConfig.touchSpeed1Key.show) {
+		DragDropButton *speed1 = new DragDropButton(g_PConfig.touchSpeed1Key, rectImage, I_ARROW);
 		speed1->SetAngle(170.0f, 180.0f);
 		controls_.push_back(speed1);
 	}
 
-	if (g_Config.touchSpeed2Key.show) {
-		DragDropButton *speed2 = new DragDropButton(g_Config.touchSpeed2Key, rectImage, I_ARROW);
+	if (g_PConfig.touchSpeed2Key.show) {
+		DragDropButton *speed2 = new DragDropButton(g_PConfig.touchSpeed2Key, rectImage, I_ARROW);
 		speed2->SetAngle(190.0f, 180.0f);
 		controls_.push_back(speed2);
 	}
 
-	if (g_Config.touchLKey.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchLKey, shoulderImage, I_L));
+	if (g_PConfig.touchLKey.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchLKey, shoulderImage, I_L));
 	}
 
-	if (g_Config.touchRKey.show) {
-		DragDropButton *rbutton = new DragDropButton(g_Config.touchRKey, shoulderImage, I_R);
+	if (g_PConfig.touchRKey.show) {
+		DragDropButton *rbutton = new DragDropButton(g_PConfig.touchRKey, shoulderImage, I_R);
 		rbutton->FlipImageH(true);
 		controls_.push_back(rbutton);
 	}
 
-	if (g_Config.touchAnalogStick.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchAnalogStick, stickBg, stickImage));
+	if (g_PConfig.touchAnalogStick.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchAnalogStick, stickBg, stickImage));
 	}
-	if (g_Config.touchRightAnalogStick.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchRightAnalogStick, stickBg, stickImage));
+	if (g_PConfig.touchRightAnalogStick.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchRightAnalogStick, stickBg, stickImage));
 	}
-	if (g_Config.touchCombo0.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchCombo0, roundImage, comboKeyImages[0]));
+	if (g_PConfig.touchCombo0.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchCombo0, roundImage, comboKeyImages[0]));
 	}
-	if (g_Config.touchCombo1.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchCombo1, roundImage, comboKeyImages[1]));
+	if (g_PConfig.touchCombo1.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchCombo1, roundImage, comboKeyImages[1]));
 	}
-	if (g_Config.touchCombo2.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchCombo2, roundImage, comboKeyImages[2]));
+	if (g_PConfig.touchCombo2.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchCombo2, roundImage, comboKeyImages[2]));
 	}
-	if (g_Config.touchCombo3.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchCombo3, roundImage, comboKeyImages[3]));
+	if (g_PConfig.touchCombo3.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchCombo3, roundImage, comboKeyImages[3]));
 	}
-	if (g_Config.touchCombo4.show) {
-		controls_.push_back(new DragDropButton(g_Config.touchCombo4, roundImage, comboKeyImages[4]));
+	if (g_PConfig.touchCombo4.show) {
+		controls_.push_back(new DragDropButton(g_PConfig.touchCombo4, roundImage, comboKeyImages[4]));
 	};
 
 	for (size_t i = 0; i < controls_.size(); i++) {

@@ -186,7 +186,7 @@ void __SasInit() {
 
 	sasMixEvent = CoreTiming::RegisterEvent("SasMix", sasMixFinish);
 
-	if (g_Config.bSeparateSASThread) {
+	if (g_PConfig.bSeparateSASThread) {
 		sasThreadState = SasThreadState::READY;
 		sasThread = new std::thread(__SasThread);
 	} else {

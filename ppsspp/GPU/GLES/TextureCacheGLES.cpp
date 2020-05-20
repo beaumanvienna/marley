@@ -447,7 +447,7 @@ void TextureCacheGLES::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFram
 	if (!gstate_c.Supports(GPU_SUPPORTS_32BIT_INT_FSHADER)) {
 		useShaderDepal = false;
 	}
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
 		if (useShaderDepal) {
 			const GEPaletteFormat clutFormat = gstate.getClutPaletteFormat();
 			GLRTexture *clutTexture = depalShaderCache_->GetClutTexture(clutFormat, clutHash_, clutBuf_);

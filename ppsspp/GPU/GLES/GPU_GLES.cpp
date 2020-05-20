@@ -106,11 +106,11 @@ GPU_GLES::GPU_GLES(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 		shaderManagerGL_->Load(shaderCachePath_);
 	}
 
-	if (g_Config.bHardwareTessellation) {
+	if (g_PConfig.bHardwareTessellation) {
 		// Disable hardware tessellation if device is unsupported.
 		bool hasTexelFetch = gl_extensions.GLES3 || (!gl_extensions.IsGLES && gl_extensions.VersionGEThan(3, 3, 0)) || gl_extensions.EXT_gpu_shader4;
 		if (!gstate_c.SupportsAll(GPU_SUPPORTS_VERTEX_TEXTURE_FETCH | GPU_SUPPORTS_TEXTURE_FLOAT) || !hasTexelFetch) {
-			g_Config.bHardwareTessellation = false;
+			g_PConfig.bHardwareTessellation = false;
 			ERROR_LOG(G3D, "Hardware Tessellation is unsupported, falling back to software tessellation");
 			I18NCategory *gr = GetI18NCategory("Graphics");
 			host->NotifyUserMessage(gr->T("Turn off Hardware Tessellation - unsupported"), 2.5f, 0xFF3030FF);
@@ -155,7 +155,7 @@ void GPU_GLES::CheckGPUFeatures() {
 	}
 
 	if (gl_extensions.ARB_blend_func_extended || gl_extensions.EXT_blend_func_extended) {
-		if (!g_Config.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
+		if (!g_PConfig.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
 			features |= GPU_SUPPORTS_DUALSOURCE_BLEND;
 		}
 	}
@@ -247,7 +247,7 @@ void GPU_GLES::CheckGPUFeatures() {
 	// If we already have a 16-bit depth buffer, we don't need to round.
 	bool prefer24 = draw_->GetDeviceCaps().preferredDepthBufferFormat == Draw::DataFormat::D24_S8;
 	if (prefer24) {
-		if (!g_Config.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
+		if (!g_PConfig.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
 			features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 		} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 			if (!gl_extensions.IsGLES || gl_extensions.GLES3) {
@@ -371,12 +371,12 @@ void GPU_GLES::EndHostFrame() {
 
 inline void GPU_GLES::UpdateVsyncInterval(bool force) {
 #ifdef _WIN32
-	int desiredVSyncInterval = g_Config.bVSync ? 1 : 0;
+	int desiredVSyncInterval = g_PConfig.bVSync ? 1 : 0;
 	if (PSP_CoreParameter().unthrottle) {
 		desiredVSyncInterval = 0;
 	}
 	if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL) {
-		int limit = PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 ? g_Config.iFpsLimit1 : g_Config.iFpsLimit2;
+		int limit = PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 ? g_PConfig.iFpsLimit1 : g_PConfig.iFpsLimit2;
 		// For an alternative speed that is a clean factor of 60, the user probably still wants vsync.
 		if (limit == 0 || (limit >= 0 && limit != 15 && limit != 30 && limit != 60)) {
 			desiredVSyncInterval = 0;
@@ -443,7 +443,7 @@ void GPU_GLES::CopyDisplayToOutput() {
 	// If buffered, discard the depth buffer of the backbuffer. Don't even know if we need one.
 #if 0
 #ifdef USING_GLES2
-	if (gl_extensions.EXT_discard_framebuffer && g_Config.iRenderingMode != FB_NON_BUFFERED_MODE) {
+	if (gl_extensions.EXT_discard_framebuffer && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE) {
 		GLenum attachments[] = {GL_DEPTH_EXT, GL_STENCIL_EXT};
 		glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
 	}

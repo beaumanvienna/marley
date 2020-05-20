@@ -22,7 +22,7 @@
 
 namespace MIPSComp {
 	JitOptions::JitOptions() {
-		disableFlags = g_Config.uJitDisableFlags;
+		disableFlags = g_PConfig.uJitDisableFlags;
 
 		// x86
 		enableVFPUSIMD = !Disabled(JitDisable::SIMD);

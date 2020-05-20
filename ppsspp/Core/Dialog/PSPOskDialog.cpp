@@ -887,7 +887,7 @@ int PSPOskDialog::Update(int animSpeed) {
 		return SCE_ERROR_UTILITY_INVALID_STATUS;
 	}
 
-	int cancelButton = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
+	int cancelButton = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
 	int confirmButton = cancelButton == CTRL_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
 	static int cancelBtnFramesHeld = 0;
 	static int confirmBtnFramesHeld = 0;
@@ -907,7 +907,7 @@ int PSPOskDialog::Update(int animSpeed) {
 #if defined(USING_WIN_UI)
 	// Windows: Fall back to the OSK/continue normally if we're in fullscreen.
 	// The dialog box doesn't work right if in fullscreen.
-	if(g_Config.bBypassOSKWithKeyboard && !g_Config.bFullScreen)
+	if(g_PConfig.bBypassOSKWithKeyboard && !g_PConfig.bFullScreen)
 		return NativeKeyboard();
 #endif
 
@@ -922,7 +922,7 @@ int PSPOskDialog::Update(int animSpeed) {
 	PPGeDrawImage(I_SQUARE, 365, 222, 16, 16, 0, CalcFadedColor(0xFFFFFFFF));
 	PPGeDrawText(di->T("Space"), 390, 222, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0xFFFFFFFF));
 
-	if (g_Config.iButtonPreference != PSP_SYSTEMPARAM_BUTTON_CIRCLE) {
+	if (g_PConfig.iButtonPreference != PSP_SYSTEMPARAM_BUTTON_CIRCLE) {
 		PPGeDrawImage(I_CROSS, 45, 222, 16, 16, 0, CalcFadedColor(0xFFFFFFFF));
 		PPGeDrawImage(I_CIRCLE, 45, 247, 16, 16, 0, CalcFadedColor(0xFFFFFFFF));
 	} else {

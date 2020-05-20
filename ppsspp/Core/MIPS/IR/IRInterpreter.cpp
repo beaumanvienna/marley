@@ -943,7 +943,7 @@ u32 IRInterpret(MIPSState *mips, const IRInst *inst, int count) {
 		}
 
 		case IROp::Break:
-			if (!g_Config.bIgnoreBadMemAccess) {
+			if (!g_PConfig.bIgnoreBadMemAccess) {
 				Core_EnableStepping(true);
 				host->SetDebugMode(true);
 			}

@@ -70,25 +70,25 @@ void TouchControlVisibilityScreen::CreateViews() {
 	GridLayout *grid = vert->Add(new GridLayout(gridsettings, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 
 	toggles_.clear();
-	toggles_.push_back({ "Circle", &g_Config.bShowTouchCircle, I_CIRCLE });
-	toggles_.push_back({ "Cross", &g_Config.bShowTouchCross, I_CROSS });
-	toggles_.push_back({ "Square", &g_Config.bShowTouchSquare, I_SQUARE });
-	toggles_.push_back({ "Triangle", &g_Config.bShowTouchTriangle, I_TRIANGLE });
-	toggles_.push_back({ "L", &g_Config.touchLKey.show, I_L });
-	toggles_.push_back({ "R", &g_Config.touchRKey.show, I_R });
-	toggles_.push_back({ "Start", &g_Config.touchStartKey.show, I_START });
-	toggles_.push_back({ "Select", &g_Config.touchSelectKey.show, I_SELECT });
-	toggles_.push_back({ "Dpad", &g_Config.touchDpad.show, -1 });
-	toggles_.push_back({ "Analog Stick", &g_Config.touchAnalogStick.show, -1 });
-	toggles_.push_back({ "Right Analog Stick\n(not used by most games)", &g_Config.touchRightAnalogStick.show, -1 });
-	toggles_.push_back({ "Unthrottle", &g_Config.touchUnthrottleKey.show, -1 });
-	toggles_.push_back({ "Combo0", &g_Config.touchCombo0.show, I_1 });
-	toggles_.push_back({ "Combo1", &g_Config.touchCombo1.show, I_2 });
-	toggles_.push_back({ "Combo2", &g_Config.touchCombo2.show, I_3 });
-	toggles_.push_back({ "Combo3", &g_Config.touchCombo3.show, I_4 });
-	toggles_.push_back({ "Combo4", &g_Config.touchCombo4.show, I_5 });
-	toggles_.push_back({ "Alt speed 1", &g_Config.touchSpeed1Key.show, -1 });
-	toggles_.push_back({ "Alt speed 2", &g_Config.touchSpeed2Key.show, -1 });
+	toggles_.push_back({ "Circle", &g_PConfig.bShowTouchCircle, I_CIRCLE });
+	toggles_.push_back({ "Cross", &g_PConfig.bShowTouchCross, I_CROSS });
+	toggles_.push_back({ "Square", &g_PConfig.bShowTouchSquare, I_SQUARE });
+	toggles_.push_back({ "Triangle", &g_PConfig.bShowTouchTriangle, I_TRIANGLE });
+	toggles_.push_back({ "L", &g_PConfig.touchLKey.show, I_L });
+	toggles_.push_back({ "R", &g_PConfig.touchRKey.show, I_R });
+	toggles_.push_back({ "Start", &g_PConfig.touchStartKey.show, I_START });
+	toggles_.push_back({ "Select", &g_PConfig.touchSelectKey.show, I_SELECT });
+	toggles_.push_back({ "Dpad", &g_PConfig.touchDpad.show, -1 });
+	toggles_.push_back({ "Analog Stick", &g_PConfig.touchAnalogStick.show, -1 });
+	toggles_.push_back({ "Right Analog Stick\n(not used by most games)", &g_PConfig.touchRightAnalogStick.show, -1 });
+	toggles_.push_back({ "Unthrottle", &g_PConfig.touchUnthrottleKey.show, -1 });
+	toggles_.push_back({ "Combo0", &g_PConfig.touchCombo0.show, I_1 });
+	toggles_.push_back({ "Combo1", &g_PConfig.touchCombo1.show, I_2 });
+	toggles_.push_back({ "Combo2", &g_PConfig.touchCombo2.show, I_3 });
+	toggles_.push_back({ "Combo3", &g_PConfig.touchCombo3.show, I_4 });
+	toggles_.push_back({ "Combo4", &g_PConfig.touchCombo4.show, I_5 });
+	toggles_.push_back({ "Alt speed 1", &g_PConfig.touchSpeed1Key.show, -1 });
+	toggles_.push_back({ "Alt speed 2", &g_PConfig.touchSpeed2Key.show, -1 });
 
 	I18NCategory *mc = GetI18NCategory("MappableControls");
 
@@ -114,7 +114,7 @@ void TouchControlVisibilityScreen::CreateViews() {
 }
 
 void TouchControlVisibilityScreen::onFinish(DialogResult result) {
-	g_Config.Save("TouchControlVisibilityScreen::onFinish");
+	g_PConfig.Save("TouchControlVisibilityScreen::onFinish");
 }
 
 UI::EventReturn TouchControlVisibilityScreen::OnToggleAll(UI::EventParams &e) {

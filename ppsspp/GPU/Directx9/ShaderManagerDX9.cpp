@@ -584,7 +584,7 @@ VSShader *ShaderManagerDX9::ApplyShader(int prim, u32 vertType) {
 		if (vs->Failed()) {
 			I18NCategory *gr = GetI18NCategory("Graphics");
 			ERROR_LOG(G3D, "Shader compilation failed, falling back to software transform");
-			if (!g_Config.bHideSlowWarnings) {
+			if (!g_PConfig.bHideSlowWarnings) {
 				host->NotifyUserMessage(gr->T("hardware transform error - falling back to software"), 2.5f, 0xFF3030FF);
 			}
 			delete vs;

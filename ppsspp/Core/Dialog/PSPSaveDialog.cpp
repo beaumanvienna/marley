@@ -406,7 +406,7 @@ void PSPSaveDialog::DisplaySaveDataInfo1()
 		char hour_time[32];
 		int hour = param.GetFileInfo(currentSelectedSave).modif_time.tm_hour;
 		int min  = param.GetFileInfo(currentSelectedSave).modif_time.tm_min;
-		switch (g_Config.iTimeFormat) {
+		switch (g_PConfig.iTimeFormat) {
 		case 1:
 			if (hour > 12) {
 				strcpy(am_pm, "PM");
@@ -430,7 +430,7 @@ void PSPSaveDialog::DisplaySaveDataInfo1()
 		int month = param.GetFileInfo(currentSelectedSave).modif_time.tm_mon + 1;
 		int year  = param.GetFileInfo(currentSelectedSave).modif_time.tm_year + 1900;
 		s64 sizeK = param.GetFileInfo(currentSelectedSave).size / 1024;
-		switch (g_Config.iDateFormat) {
+		switch (g_PConfig.iDateFormat) {
 		case 1:
 			snprintf(time, sizeof(time), "%d/%02d/%02d   %s  %lld KB", year, month, day, hour_time, sizeK);
 			break;
@@ -488,7 +488,7 @@ void PSPSaveDialog::DisplaySaveDataInfo2(bool showNewData) {
 	char hour_time[32];
 	int hour = modif_time.tm_hour;
 	int min  = modif_time.tm_min;
-	switch (g_Config.iTimeFormat) {
+	switch (g_PConfig.iTimeFormat) {
 	case 1:
 		if (hour > 12) {
 			strcpy(am_pm, "PM");
@@ -511,7 +511,7 @@ void PSPSaveDialog::DisplaySaveDataInfo2(bool showNewData) {
 	int month = modif_time.tm_mon + 1;
 	int year  = modif_time.tm_year + 1900;
 	s64 sizeK = data_size / 1024;
-	switch (g_Config.iDateFormat) {
+	switch (g_PConfig.iDateFormat) {
 	case 1:
 		snprintf(date, 256, "%d/%02d/%02d", year, month, day);
 		break;

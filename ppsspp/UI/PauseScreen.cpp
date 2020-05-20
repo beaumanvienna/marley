@@ -263,7 +263,7 @@ SaveSlotView::SaveSlotView(const std::string &gameFilename, int slot, UI::Layout
 }
 
 void SaveSlotView::Draw(UIContext &dc) {
-	if (g_Config.iCurrentStateSlot == slot_) {
+	if (g_PConfig.iCurrentStateSlot == slot_) {
 		dc.FillRect(UI::Drawable(0x70000000), GetBounds().Expand(3));
 		dc.FillRect(UI::Drawable(0x70FFFFFF), GetBounds().Expand(3));
 	}
@@ -271,13 +271,13 @@ void SaveSlotView::Draw(UIContext &dc) {
 }
 
 static void AfterSaveStateAction(SaveState::Status status, const std::string &message, void *) {
-	if (!message.empty() && (!g_Config.bDumpFrames || !g_Config.bDumpVideoOutput)) {
+	if (!message.empty() && (!g_PConfig.bDumpFrames || !g_PConfig.bDumpVideoOutput)) {
 		osm.Show(message, status == SaveState::Status::SUCCESS ? 2.0 : 5.0);
 	}
 }
 
 UI::EventReturn SaveSlotView::OnLoadState(UI::EventParams &e) {
-	g_Config.iCurrentStateSlot = slot_;
+	g_PConfig.iCurrentStateSlot = slot_;
 	SaveState::LoadSlot(gamePath_, slot_, &AfterSaveStateAction);
 	UI::EventParams e2{};
 	e2.v = this;
@@ -286,7 +286,7 @@ UI::EventReturn SaveSlotView::OnLoadState(UI::EventParams &e) {
 }
 
 UI::EventReturn SaveSlotView::OnSaveState(UI::EventParams &e) {
-	g_Config.iCurrentStateSlot = slot_;
+	g_PConfig.iCurrentStateSlot = slot_;
 	SaveState::SaveSlot(gamePath_, slot_, &AfterSaveStateAction);
 	UI::EventParams e2{};
 	e2.v = this;
@@ -342,7 +342,7 @@ void GamePauseScreen::CreateViews() {
 	}
 	leftColumnItems->Add(new Spacer(0.0));
 
-	if (g_Config.iRewindFlipFrequency > 0) {
+	if (g_PConfig.iRewindFlipFrequency > 0) {
 		UI::Choice *rewindButton = leftColumnItems->Add(new Choice(pa->T("Rewind")));
 		rewindButton->SetEnabled(SaveState::CanRewind());
 		rewindButton->OnClick.Handle(this, &GamePauseScreen::OnRewind);
@@ -363,14 +363,14 @@ void GamePauseScreen::CreateViews() {
 	continueChoice->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 
 	std::string gameId = g_paramSFO.GetDiscID();
-	if (g_Config.hasGameConfig(gameId)) {
+	if (g_PConfig.hasGameConfig(gameId)) {
 		rightColumnItems->Add(new Choice(pa->T("Game Settings")))->OnClick.Handle(this, &GamePauseScreen::OnGameSettings);
 		rightColumnItems->Add(new Choice(pa->T("Delete Game Config")))->OnClick.Handle(this, &GamePauseScreen::OnDeleteConfig);
 	} else {
 		rightColumnItems->Add(new Choice(pa->T("Settings")))->OnClick.Handle(this, &GamePauseScreen::OnGameSettings);
 		rightColumnItems->Add(new Choice(pa->T("Create Game Config")))->OnClick.Handle(this, &GamePauseScreen::OnCreateConfig);
 	}
-	if (g_Config.bEnableCheats) {
+	if (g_PConfig.bEnableCheats) {
 		rightColumnItems->Add(new Choice(pa->T("Cheats")))->OnClick.Handle(this, &GamePauseScreen::OnCwCheat);
 	}
 
@@ -381,7 +381,7 @@ void GamePauseScreen::CreateViews() {
 		rightColumnItems->Add(new Choice(rp->T("ReportButton", "Report Feedback")))->OnClick.Handle(this, &GamePauseScreen::OnReportFeedback);
 	}
 	rightColumnItems->Add(new Spacer(25.0));
-	if (g_Config.bPauseMenuExitsEmulator) {
+	if (g_PConfig.bPauseMenuExitsEmulator) {
 		I18NCategory *mm = GetI18NCategory("MainMenu");
 		rightColumnItems->Add(new Choice(mm->T("Exit")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMenu);
 	} else {
@@ -404,7 +404,7 @@ void GamePauseScreen::dialogFinished(const Screen *dialog, DialogResult dr) {
 	if (tag == "screenshot" && dr == DR_OK) {
 		ScreenshotViewScreen *s = (ScreenshotViewScreen *)dialog;
 		int slot = s->GetSlot();
-		g_Config.iCurrentStateSlot = slot;
+		g_PConfig.iCurrentStateSlot = slot;
 		SaveState::LoadSlot(gamePath_, slot, &AfterSaveStateAction);
 
 		finishNextFrame_ = true;
@@ -417,7 +417,7 @@ void GamePauseScreen::dialogFinished(const Screen *dialog, DialogResult dr) {
 UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
 	SaveSlotView *v = static_cast<SaveSlotView *>(e.v);
 	int slot = v->GetSlot();
-	g_Config.iCurrentStateSlot = v->GetSlot();
+	g_PConfig.iCurrentStateSlot = v->GetSlot();
 	if (SaveState::HasSaveInSlot(gamePath_, slot)) {
 		std::string fn = v->GetScreenshotFilename();
 		std::string title = v->GetScreenshotTitle();
@@ -429,7 +429,7 @@ UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
 }
 
 UI::EventReturn GamePauseScreen::OnExitToMenu(UI::EventParams &e) {
-	if (g_Config.bPauseMenuExitsEmulator) {
+	if (g_PConfig.bPauseMenuExitsEmulator) {
 		System_SendMessage("finish", "");
 	} else {
 		TriggerFinish(DR_OK);
@@ -463,8 +463,8 @@ void GamePauseScreen::CallbackDeleteConfig(bool yes)
 {
 	if (yes) {
 		std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, 0);
-		g_Config.unloadGameConfig();
-		g_Config.deleteGameConfig(info->id);
+		g_PConfig.unloadGameConfig();
+		g_PConfig.deleteGameConfig(info->id);
 		info->hasConfig = false;
 		screenManager()->RecreateAllViews();
 	}
@@ -474,9 +474,9 @@ UI::EventReturn GamePauseScreen::OnCreateConfig(UI::EventParams &e)
 {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, 0);
 	std::string gameId = g_paramSFO.GetDiscID();
-	g_Config.createGameConfig(gameId);
-	g_Config.changeGameSpecific(gameId, info->GetTitle());
-	g_Config.saveGameConfig(gameId, info->GetTitle());
+	g_PConfig.createGameConfig(gameId);
+	g_PConfig.changeGameSpecific(gameId, info->GetTitle());
+	g_PConfig.saveGameConfig(gameId, info->GetTitle());
 	if (info) {
 		info->hasConfig = true;
 	}

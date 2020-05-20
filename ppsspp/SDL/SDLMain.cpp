@@ -462,7 +462,7 @@ int main(int argc, char *argv[]) {
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
 		pixel_xres = g_DesktopWidth;
 		pixel_yres = g_DesktopHeight;
-		g_Config.bFullScreen = true;
+		g_PConfig.bFullScreen = true;
 	} else {
 		// set a sensible default resolution (2x)
 		pixel_xres = 480 * 2 * set_scale;
@@ -470,7 +470,7 @@ int main(int argc, char *argv[]) {
 		if (portrait) {
 			std::swap(pixel_xres, pixel_yres);
 		}
-		g_Config.bFullScreen = false;
+		g_PConfig.bFullScreen = false;
 	}
 
 	set_dpi = 1.0f / set_dpi;
@@ -512,7 +512,7 @@ int main(int argc, char *argv[]) {
 	NativeInit(remain_argc, (const char **)remain_argv, path, "/tmp", nullptr);
 
 	// Use the setting from the config when initing the window.
-	if (g_Config.bFullScreen)
+	if (g_PConfig.bFullScreen)
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	int x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(getDisplayNumber());
@@ -532,18 +532,18 @@ int main(int argc, char *argv[]) {
 	SDL_Window *window = nullptr;
 
 	std::string error_message;
-	if (g_Config.iGPUBackend == (int)GPUBackend::OPENGL) {
+	if (g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL) {
 		SDLGLGraphicsContext *ctx = new SDLGLGraphicsContext();
 		if (ctx->Init(window, x, y, mode, &error_message) != 0) {
 			printf("GL init error '%s'\n", error_message.c_str());
 		}
 		graphicsContext = ctx;
-	} else if (g_Config.iGPUBackend == (int)GPUBackend::VULKAN) {
+	} else if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) {
 		SDLVulkanGraphicsContext *ctx = new SDLVulkanGraphicsContext();
 		if (!ctx->Init(window, x, y, mode, &error_message)) {
 			printf("Vulkan init error '%s' - falling back to GL\n", error_message.c_str());
-			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
-			SetGPUBackend((GPUBackend)g_Config.iGPUBackend);
+			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
+			SetGPUBackend((GPUBackend)g_PConfig.iGPUBackend);
 			delete ctx;
 			SDLGLGraphicsContext *glctx = new SDLGLGraphicsContext();
 			glctx->Init(window, x, y, mode, &error_message);
@@ -553,7 +553,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	bool useEmuThread = g_Config.iGPUBackend == (int)GPUBackend::OPENGL;
+	bool useEmuThread = g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL;
 
 	SDL_SetWindowTitle(window, (app_name_nice + " " + PPSSPP_GIT_VERSION).c_str());
 
@@ -647,10 +647,10 @@ int main(int argc, char *argv[]) {
 					NativeMessageReceived("gpu_resized", "");
 
 					// Set variable here in case fullscreen was toggled by hotkey
-					g_Config.bFullScreen = fullscreen;
+					g_PConfig.bFullScreen = fullscreen;
 
 					// Hide/Show cursor correctly toggling fullscreen
-					if (lastUIState == UISTATE_INGAME && fullscreen && !g_Config.bShowTouchControls) {
+					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) {
 						SDL_ShowCursor(SDL_DISABLE);
 					} else if (lastUIState != UISTATE_INGAME || !fullscreen) {
 						SDL_ShowCursor(SDL_ENABLE);
@@ -871,9 +871,9 @@ int main(int argc, char *argv[]) {
 #if !defined(MOBILE_DEVICE)
 		if (lastUIState != GetUIState()) {
 			lastUIState = GetUIState();
-			if (lastUIState == UISTATE_INGAME && g_Config.bFullScreen && !g_Config.bShowTouchControls)
+			if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !g_PConfig.bShowTouchControls)
 				SDL_ShowCursor(SDL_DISABLE);
-			if (lastUIState != UISTATE_INGAME || !g_Config.bFullScreen)
+			if (lastUIState != UISTATE_INGAME || !g_PConfig.bFullScreen)
 				SDL_ShowCursor(SDL_ENABLE);
 		}
 #endif
@@ -882,7 +882,7 @@ int main(int argc, char *argv[]) {
 			// glsl_refresh(); // auto-reloads modified GLSL shaders once per second.
 		}
 
-		bool renderThreadPaused = windowHidden && g_Config.bPauseWhenMinimized && emuThreadState != (int)EmuThreadState::DISABLED;
+		bool renderThreadPaused = windowHidden && g_PConfig.bPauseWhenMinimized && emuThreadState != (int)EmuThreadState::DISABLED;
 		if (emuThreadState != (int)EmuThreadState::DISABLED && !renderThreadPaused) {
 			if (!graphicsContext->ThreadFrame())
 				break;

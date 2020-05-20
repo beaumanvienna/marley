@@ -257,7 +257,7 @@ void SoftGPU::CopyToCurrentFboFromDisplayRam(int srcwidth, int srcheight) {
 	draw_->SetScissorRect(0, 0, dstwidth, dstheight);
 
 	Draw::SamplerState *sampler;
-	if (g_Config.iBufFilter == SCALE_NEAREST) {
+	if (g_PConfig.iBufFilter == SCALE_NEAREST) {
 		sampler = samplerNearest;
 	} else {
 		sampler = samplerLinear;
@@ -300,7 +300,7 @@ void SoftGPU::CopyDisplayToOutput() {
 	framebufferDirty_ = false;
 
 	// Force the render params to 480x272 so other things work.
-	if (g_Config.IsPortrait()) {
+	if (g_PConfig.IsPortrait()) {
 		PSP_CoreParameter().renderWidth = 272;
 		PSP_CoreParameter().renderHeight = 480;
 	} else {
@@ -933,7 +933,7 @@ bool SoftGPU::PerformStencilUpload(u32 dest, int size)
 }
 
 bool SoftGPU::FramebufferDirty() {
-	if (g_Config.iFrameSkip != 0) {
+	if (g_PConfig.iFrameSkip != 0) {
 		bool dirty = framebufferDirty_;
 		framebufferDirty_ = false;
 		return dirty;

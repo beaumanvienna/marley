@@ -614,7 +614,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
     }
 
     // recursion and missing body checking
-    checkCallGraphCycles(infoSink);
+    PcheckCallGraphCycles(infoSink);
     checkCallGraphBodies(infoSink, keepUncalled);
 
     // overlap/alias/missing I/O, etc.
@@ -781,7 +781,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
 // See if the call graph contains any static recursion, which is disallowed
 // by the specification.
 //
-void TIntermediate::checkCallGraphCycles(TInfoSink& infoSink)
+void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
 {
     // Clear fields we'll use for this.
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {

@@ -54,7 +54,7 @@ static void __ResetInitNetLib() {
 }
 
 void __NetInit() {
-	portOffset = g_Config.iPortOffset;
+	portOffset = g_PConfig.iPortOffset;
 	__ResetInitNetLib();
 }
 
@@ -125,8 +125,8 @@ static u32 sceNetInit(u32 poolSize, u32 calloutPri, u32 calloutStack, u32 netini
 static u32 sceWlanGetEtherAddr(u32 addrAddr) {
 	// Read MAC Address from config
 	uint8_t mac[6] = {0};
-	if (!ParseMacAddress(g_Config.sMACAddress.c_str(), mac)) {
-		ERROR_LOG(SCENET, "Error parsing mac address %s", g_Config.sMACAddress.c_str());
+	if (!ParseMacAddress(g_PConfig.sMACAddress.c_str(), mac)) {
+		ERROR_LOG(SCENET, "Error parsing mac address %s", g_PConfig.sMACAddress.c_str());
 	}
 	DEBUG_LOG(SCENET, "sceWlanGetEtherAddr(%08x)", addrAddr);
 	for (int i = 0; i < 6; i++)
@@ -140,12 +140,12 @@ static u32 sceNetGetLocalEtherAddr(u32 addrAddr) {
 
 static u32 sceWlanDevIsPowerOn() {
 	DEBUG_LOG(SCENET, "UNTESTED sceWlanDevIsPowerOn()");
-	return g_Config.bEnableWlan ? 1 : 0;
+	return g_PConfig.bEnableWlan ? 1 : 0;
 }
 
 static u32 sceWlanGetSwitchState() {
 	VERBOSE_LOG(SCENET, "sceWlanGetSwitchState()");
-	return g_Config.bEnableWlan ? 1 : 0;
+	return g_PConfig.bEnableWlan ? 1 : 0;
 }
 
 // Probably a void function, but often returns a useful value.

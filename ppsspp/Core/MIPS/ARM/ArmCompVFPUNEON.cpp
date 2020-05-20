@@ -182,7 +182,7 @@ void ArmJit::CompNEON_SV(MIPSOpcode op) {
 	{
 	case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
 		{
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 				INFO_LOG(HLE, "LV.S fastmode!");
 				// TODO: Also look forward and combine multiple loads.
 				gpr.MapRegAsPointer(rs);
@@ -204,7 +204,7 @@ void ArmJit::CompNEON_SV(MIPSOpcode op) {
 				gpr.SetRegImm(R0, addr + (u32)Memory::base);
 			} else {
 				gpr.MapReg(rs);
-				if (g_Config.bFastMemory) {
+				if (g_PConfig.bFastMemory) {
 					SetR0ToEffectiveAddress(rs, offset);
 				} else {
 					SetCCAndR0ForSafeAddress(rs, offset, R1);
@@ -226,7 +226,7 @@ void ArmJit::CompNEON_SV(MIPSOpcode op) {
 
 	case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
 		{
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 				INFO_LOG(HLE, "SV.S fastmode!");
 				// TODO: Also look forward and combine multiple stores.
 				gpr.MapRegAsPointer(rs);
@@ -248,7 +248,7 @@ void ArmJit::CompNEON_SV(MIPSOpcode op) {
 				gpr.SetRegImm(R0, addr + (u32)Memory::base);
 			} else {
 				gpr.MapReg(rs);
-				if (g_Config.bFastMemory) {
+				if (g_PConfig.bFastMemory) {
 					SetR0ToEffectiveAddress(rs, offset);
 				} else {
 					SetCCAndR0ForSafeAddress(rs, offset, R1);
@@ -294,7 +294,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				GetOffsetInstruction(2).encoding,
 				GetOffsetInstruction(3).encoding,
 			};
-			if (g_Config.bFastMemory && (ops[1] >> 26) == 54 && (ops[2] >> 26) == 54 && (ops[3] >> 26) == 54) {
+			if (g_PConfig.bFastMemory && (ops[1] >> 26) == 54 && (ops[2] >> 26) == 54 && (ops[3] >> 26) == 54) {
 				int offsets[4] = {offset, (s16)(ops[1] & 0xFFFC), (s16)(ops[2] & 0xFFFC), (s16)(ops[3] & 0xFFFC)};
 				int rss[4] = {MIPS_GET_RS(op), MIPS_GET_RS(ops[1]), MIPS_GET_RS(ops[2]), MIPS_GET_RS(ops[3])};
 				if (offsets[1] == offset + 16 && offsets[2] == offsets[1] + 16 && offsets[3] == offsets[2] + 16 &&
@@ -309,7 +309,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				}
 			}
 
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && offset < 0x400-16 && offset > -0x400-16) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && offset < 0x400-16 && offset > -0x400-16) {
 				gpr.MapRegAsPointer(rs);
 				ARMReg ar = fpr.QMapReg(vt, V_Quad, MAP_DIRTY | MAP_NOINIT);
 				if (offset) {
@@ -328,7 +328,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				gpr.SetRegImm(R0, addr + (u32)Memory::base);
 			} else {
 				gpr.MapReg(rs);
-				if (g_Config.bFastMemory) {
+				if (g_PConfig.bFastMemory) {
 					SetR0ToEffectiveAddress(rs, offset);
 				} else {
 					SetCCAndR0ForSafeAddress(rs, offset, R1);
@@ -359,7 +359,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				GetOffsetInstruction(2).encoding,
 				GetOffsetInstruction(3).encoding,
 			};
-			if (g_Config.bFastMemory && (ops[1] >> 26) == 54 && (ops[2] >> 26) == 54 && (ops[3] >> 26) == 54) {
+			if (g_PConfig.bFastMemory && (ops[1] >> 26) == 54 && (ops[2] >> 26) == 54 && (ops[3] >> 26) == 54) {
 				int offsets[4] = { offset, (s16)(ops[1] & 0xFFFC), (s16)(ops[2] & 0xFFFC), (s16)(ops[3] & 0xFFFC) };
 				int rss[4] = { MIPS_GET_RS(op), MIPS_GET_RS(ops[1]), MIPS_GET_RS(ops[2]), MIPS_GET_RS(ops[3]) };
 				if (offsets[1] == offset + 16 && offsets[2] == offsets[1] + 16 && offsets[3] == offsets[2] + 16 &&
@@ -374,7 +374,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				}
 			}
 						 
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && offset < 0x400-16 && offset > -0x400-16) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && offset < 0x400-16 && offset > -0x400-16) {
 				gpr.MapRegAsPointer(rs);
 				ARMReg ar = fpr.QMapReg(vt, V_Quad, 0);
 				if (offset) {
@@ -394,7 +394,7 @@ void ArmJit::CompNEON_SVQ(MIPSOpcode op) {
 				gpr.SetRegImm(R0, addr + (u32)Memory::base);
 			} else {
 				gpr.MapReg(rs);
-				if (g_Config.bFastMemory) {
+				if (g_PConfig.bFastMemory) {
 					SetR0ToEffectiveAddress(rs, offset);
 				} else {
 					SetCCAndR0ForSafeAddress(rs, offset, R1);

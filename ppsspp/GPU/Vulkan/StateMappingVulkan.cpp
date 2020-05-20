@@ -131,10 +131,10 @@ void DrawEngineVulkan::ResetShaderBlending() {
 void DrawEngineVulkan::ConvertStateToVulkanKey(FramebufferManagerVulkan &fbManager, ShaderManagerVulkan *shaderManager, int prim, VulkanPipelineRasterStateKey &key, VulkanDynamicState &dynState) {
 	key.topology = primToVulkan[prim];
 
-	bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 
 	if (gstate_c.IsDirty(DIRTY_BLEND_STATE)) {
-		gstate_c.SetAllowShaderBlend(!g_Config.bDisableSlowFramebufEffects);
+		gstate_c.SetAllowShaderBlend(!g_PConfig.bDisableSlowFramebufEffects);
 		if (gstate.isModeClear()) {
 			key.logicOpEnable = false;
 			key.logicOp = VK_LOGIC_OP_CLEAR;

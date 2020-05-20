@@ -87,7 +87,7 @@ StereoResampler::~StereoResampler() {
 }
 
 void StereoResampler::UpdateBufferSize() {
-	if (g_Config.bExtraAudioBuffering) {
+	if (g_PConfig.bExtraAudioBuffering) {
 		m_bufsize = MAX_SAMPLES_EXTRA;
 		m_lowwatermark = LOW_WATERMARK_EXTRA;
 	} else {
@@ -137,10 +137,10 @@ inline void ClampBufferToS16(s16 *out, const s32 *in, size_t size, s8 volShift) 
 }
 
 inline void ClampBufferToS16WithVolume(s16 *out, const s32 *in, size_t size) {
-	int volume = g_Config.iGlobalVolume;
+	int volume = g_PConfig.iGlobalVolume;
 	if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL || PSP_CoreParameter().unthrottle) {
-		if (g_Config.iAltSpeedVolume != -1) {
-			volume = g_Config.iAltSpeedVolume;
+		if (g_PConfig.iAltSpeedVolume != -1) {
+			volume = g_PConfig.iAltSpeedVolume;
 		}
 	}
 
@@ -177,7 +177,7 @@ unsigned int StereoResampler::Mix(short* samples, unsigned int numSamples, bool 
 	const int INDEX_MASK = (m_bufsize * 2 - 1);
 
 	// We force on the audio resampler if the output sample rate doesn't match the input.
-	if (!g_Config.bAudioResampler && sample_rate == (int)m_input_sample_rate) {
+	if (!g_PConfig.bAudioResampler && sample_rate == (int)m_input_sample_rate) {
 		for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2) {
 			s16 l1 = m_buffer[indexR & INDEX_MASK]; //current
 			s16 r1 = m_buffer[(indexR + 1) & INDEX_MASK]; //current

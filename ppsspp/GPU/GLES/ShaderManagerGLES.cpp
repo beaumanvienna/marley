@@ -268,7 +268,7 @@ static void SetMatrix4x3(GLRenderManager *render, GLint *uniform, const float *m
 
 static inline void ScaleProjMatrix(Matrix4x4 &in) {
 	float yOffset = gstate_c.vpYOffset;
-	if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
+	if (g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE) {
 		// GL upside down is a pain as usual.
 		yOffset = -yOffset;
 	}
@@ -304,7 +304,7 @@ void LinkedShader::UpdateUniforms(u32 vertType, const ShaderID &vsid) {
 		Matrix4x4 flippedMatrix;
 		memcpy(&flippedMatrix, gstate.projMatrix, 16 * sizeof(float));
 
-		bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+		bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 
 		const bool invertedY = useBufferedRendering ? (gstate_c.vpHeight < 0) : (gstate_c.vpHeight > 0);
 		if (invertedY) {
@@ -360,7 +360,7 @@ void LinkedShader::UpdateUniforms(u32 vertType, const ShaderID &vsid) {
 	if (dirty & DIRTY_PROJTHROUGHMATRIX)
 	{
 		Matrix4x4 proj_through;
-		bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+		bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 		if (useBufferedRendering) {
 			proj_through.setOrtho(0.0f, gstate_c.curRTWidth, 0.0f, gstate_c.curRTHeight, 0.0f, 1.0f);
 		} else {
@@ -484,7 +484,7 @@ void LinkedShader::UpdateUniforms(u32 vertType, const ShaderID &vsid) {
 	}
 	if (dirty & DIRTY_CULLRANGE) {
 		float minValues[4], maxValues[4];
-		CalcCullRange(minValues, maxValues, g_Config.iRenderingMode == FB_NON_BUFFERED_MODE, true);
+		CalcCullRange(minValues, maxValues, g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE, true);
 		SetFloatUniform4(render_, &u_cullRangeMin, minValues);
 		SetFloatUniform4(render_, &u_cullRangeMax, maxValues);
 	}
@@ -678,7 +678,7 @@ Shader *ShaderManagerGLES::ApplyVertexShader(int prim, u32 vertType, VShaderID *
 		if (vs->Failed()) {
 			I18NCategory *gr = GetI18NCategory("Graphics");
 			ERROR_LOG(G3D, "Shader compilation failed, falling back to software transform");
-			if (!g_Config.bHideSlowWarnings) {
+			if (!g_PConfig.bHideSlowWarnings) {
 				host->NotifyUserMessage(gr->T("hardware transform error - falling back to software"), 2.5f, 0xFF3030FF);
 			}
 			delete vs;

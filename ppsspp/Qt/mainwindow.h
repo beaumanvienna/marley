@@ -92,40 +92,40 @@ private slots:
 
 	// Options
 	// Core
-	void vertexDynarecAct() { g_Config.bVertexDecoderJit = !g_Config.bVertexDecoderJit; }
-	void fastmemAct() { g_Config.bFastMemory = !g_Config.bFastMemory; }
-	void ignoreIllegalAct() { g_Config.bIgnoreBadMemAccess = !g_Config.bIgnoreBadMemAccess; }
+	void vertexDynarecAct() { g_PConfig.bVertexDecoderJit = !g_PConfig.bVertexDecoderJit; }
+	void fastmemAct() { g_PConfig.bFastMemory = !g_PConfig.bFastMemory; }
+	void ignoreIllegalAct() { g_PConfig.bIgnoreBadMemAccess = !g_PConfig.bIgnoreBadMemAccess; }
 
 	// Video
-	void anisotropicGroup_triggered(QAction *action) { g_Config.iAnisotropyLevel = action->data().toInt(); }
+	void anisotropicGroup_triggered(QAction *action) { g_PConfig.iAnisotropyLevel = action->data().toInt(); }
 
 	void bufferRenderAct() {
-		g_Config.iRenderingMode = !g_Config.iRenderingMode;
+		g_PConfig.iRenderingMode = !g_PConfig.iRenderingMode;
 		NativeMessageReceived("gpu_resized", "");
 	}
-	void linearAct() { g_Config.iTexFiltering = (g_Config.iTexFiltering != 0) ? 0 : 3; }
+	void linearAct() { g_PConfig.iTexFiltering = (g_PConfig.iTexFiltering != 0) ? 0 : 3; }
 
 	void screenGroup_triggered(QAction *action) { SetWindowScale(action->data().toInt()); }
 
 	void displayLayoutGroup_triggered(QAction *action) {
-		g_Config.iSmallDisplayZoomType = action->data().toInt();
+		g_PConfig.iSmallDisplayZoomType = action->data().toInt();
 		NativeMessageReceived("gpu_resized", "");
 	}
-	void transformAct() { g_Config.bHardwareTransform = !g_Config.bHardwareTransform; }
-	void vertexCacheAct() { g_Config.bVertexCache = !g_Config.bVertexCache; }
-	void frameskipAct() { g_Config.iFrameSkip = !g_Config.iFrameSkip; }
-	void frameskipTypeAct() { g_Config.iFrameSkipType = !g_Config.iFrameSkipType; }
+	void transformAct() { g_PConfig.bHardwareTransform = !g_PConfig.bHardwareTransform; }
+	void vertexCacheAct() { g_PConfig.bVertexCache = !g_PConfig.bVertexCache; }
+	void frameskipAct() { g_PConfig.iFrameSkip = !g_PConfig.iFrameSkip; }
+	void frameskipTypeAct() { g_PConfig.iFrameSkipType = !g_PConfig.iFrameSkipType; }
 
 	// Sound
-	void audioAct() { g_Config.bEnableSound = !g_Config.bEnableSound; }
+	void audioAct() { g_PConfig.bEnableSound = !g_PConfig.bEnableSound; }
 
 	void fullscrAct();
 	void raiseTopMost();
 	void statsAct() {
-		g_Config.bShowDebugStats = !g_Config.bShowDebugStats;
+		g_PConfig.bShowDebugStats = !g_PConfig.bShowDebugStats;
 		NativeMessageReceived("clear jit", "");
 	}
-	void showFPSAct() { g_Config.iShowFPSCounter = !g_Config.iShowFPSCounter; }
+	void showFPSAct() { g_PConfig.iShowFPSCounter = !g_PConfig.iShowFPSCounter; }
 
 	// Logs
 	void defaultLogGroup_triggered(QAction * action) {

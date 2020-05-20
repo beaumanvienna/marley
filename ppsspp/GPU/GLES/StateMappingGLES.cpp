@@ -152,11 +152,11 @@ void DrawEngineGLES::ApplyDrawState(int prim) {
 		}
 	}
 
-	bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 
 	if (gstate_c.IsDirty(DIRTY_BLEND_STATE)) {
 		gstate_c.Clean(DIRTY_BLEND_STATE);
-		gstate_c.SetAllowShaderBlend(!g_Config.bDisableSlowFramebufEffects);
+		gstate_c.SetAllowShaderBlend(!g_PConfig.bDisableSlowFramebufEffects);
 
 		if (gstate.isModeClear()) {
 			// Color Test

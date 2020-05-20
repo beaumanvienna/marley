@@ -305,7 +305,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 	switch (op >> 26) {
 	case 53: //lvl.q/lvr.q
 		{
-			if (!g_Config.bFastMemory) {
+			if (!g_PConfig.bFastMemory) {
 				DISABLE;
 			}
 			DISABLE;
@@ -394,7 +394,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 				OpArg src;
 				if (safe.PrepareRead(src, 16)) {
 					// Should be safe, since lv.q must be aligned, but let's try to avoid crashing in safe mode.
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						MOVAPS(fpr.VSX(vregs), safe.NextFastAddress(0));
 					} else {
 						MOVUPS(fpr.VSX(vregs), safe.NextFastAddress(0));
@@ -455,7 +455,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 				OpArg dest;
 				if (safe.PrepareWrite(dest, 16)) {
 					// Should be safe, since sv.q must be aligned, but let's try to avoid crashing in safe mode.
-					if (g_Config.bFastMemory) {
+					if (g_PConfig.bFastMemory) {
 						MOVAPS(safe.NextFastAddress(0), fpr.VSX(vregs));
 					} else {
 						MOVUPS(safe.NextFastAddress(0), fpr.VSX(vregs));

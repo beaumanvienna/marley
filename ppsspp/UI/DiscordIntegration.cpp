@@ -46,7 +46,7 @@ Discord::~Discord() {
 }
 
 bool Discord::IsEnabled() const {
-	return g_Config.bDiscordPresence;
+	return g_PConfig.bDiscordPresence;
 }
 
 void Discord::Init() {

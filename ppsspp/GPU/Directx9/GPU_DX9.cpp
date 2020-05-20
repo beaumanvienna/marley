@@ -58,8 +58,8 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 		drawEngine_(draw) {
 	device_ = (LPDIRECT3DDEVICE9)draw->GetNativeObject(Draw::NativeObject::DEVICE);
 	deviceEx_ = (LPDIRECT3DDEVICE9EX)draw->GetNativeObject(Draw::NativeObject::DEVICE_EX);
-	lastVsync_ = g_Config.bVSync ? 1 : 0;
-	dxstate.SetVSyncInterval(g_Config.bVSync);
+	lastVsync_ = g_PConfig.bVSync ? 1 : 0;
+	dxstate.SetVSyncInterval(g_PConfig.bVSync);
 
 	shaderManagerDX9_ = new ShaderManagerDX9(draw, device_);
 	framebufferManagerDX9_ = new FramebufferManagerDX9(draw);
@@ -97,9 +97,9 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	dxstate.Restore();
 	textureCache_->NotifyConfigChanged();
 
-	if (g_Config.bHardwareTessellation) {
+	if (g_PConfig.bHardwareTessellation) {
 		// Disable hardware tessellation bacause DX9 is still unsupported.
-		g_Config.bHardwareTessellation = false;
+		g_PConfig.bHardwareTessellation = false;
 		ERROR_LOG(G3D, "Hardware Tessellation is unsupported, falling back to software tessellation");
 		I18NCategory *gr = GetI18NCategory("Graphics");
 		host->NotifyUserMessage(gr->T("Turn off Hardware Tessellation - unsupported"), 2.5f, 0xFF3030FF);
@@ -212,7 +212,7 @@ void GPU_DX9::CheckGPUFeatures() {
 			features |= GPU_SUPPORTS_OES_TEXTURE_NPOT;
 	}
 
-	if (!g_Config.bHighQualityDepth) {
+	if (!g_PConfig.bHighQualityDepth) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 		// Assume we always have a 24-bit depth buffer.
@@ -258,7 +258,7 @@ void GPU_DX9::DeviceRestore() {
 }
 
 void GPU_DX9::InitClear() {
-	bool useNonBufferedRendering = g_Config.iRenderingMode == FB_NON_BUFFERED_MODE;
+	bool useNonBufferedRendering = g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE;
 	if (useNonBufferedRendering) {
 		dxstate.depthWrite.set(true);
 		dxstate.colorMask.set(true, true, true, true);
@@ -286,7 +286,7 @@ void GPU_DX9::ReapplyGfxState() {
 
 void GPU_DX9::BeginFrame() {
 	// Turn off vsync when unthrottled
-	int desiredVSyncInterval = g_Config.bVSync ? 1 : 0;
+	int desiredVSyncInterval = g_PConfig.bVSync ? 1 : 0;
 	if (PSP_CoreParameter().unthrottle || PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL)
 		desiredVSyncInterval = 0;
 	if (desiredVSyncInterval != lastVsync_) {

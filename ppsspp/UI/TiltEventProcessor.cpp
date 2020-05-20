@@ -74,7 +74,7 @@ Tilt TiltEventProcessor::GenTilt(const Tilt &baseTilt, const Tilt &currentTilt, 
 }
 
 void TiltEventProcessor::TranslateTiltToInput(const Tilt &tilt) {
-	switch (g_Config.iTiltInputType) {
+	switch (g_PConfig.iTiltInputType) {
 	case TILT_NULL:
 		break;
 

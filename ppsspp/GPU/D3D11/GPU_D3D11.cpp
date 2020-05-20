@@ -73,7 +73,7 @@ GPU_D3D11::GPU_D3D11(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	device_ = (ID3D11Device *)draw->GetNativeObject(Draw::NativeObject::DEVICE);
 	context_ = (ID3D11DeviceContext *)draw->GetNativeObject(Draw::NativeObject::CONTEXT);
 	D3D_FEATURE_LEVEL featureLevel = (D3D_FEATURE_LEVEL)draw->GetNativeObject(Draw::NativeObject::FEATURE_LEVEL);
-	lastVsync_ = g_Config.bVSync ? 1 : 0;
+	lastVsync_ = g_PConfig.bVSync ? 1 : 0;
 
 	stockD3D11.Create(device_);
 
@@ -168,7 +168,7 @@ void GPU_D3D11::CheckGPUFeatures() {
 		features |= GPU_SUPPORTS_LOGIC_OP;
 	}
 
-	if (!g_Config.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
+	if (!g_PConfig.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 		// Use fragment rounding on desktop and GLES3, most accurate.
@@ -212,7 +212,7 @@ void GPU_D3D11::DeviceRestore() {
 }
 
 void GPU_D3D11::InitClear() {
-	bool useNonBufferedRendering = g_Config.iRenderingMode == FB_NON_BUFFERED_MODE;
+	bool useNonBufferedRendering = g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE;
 	if (useNonBufferedRendering) {
 		// device_->Clear(0, NULL, D3DCLEAR_STENCIL | D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.f, 0);
 	}

@@ -357,7 +357,7 @@ bool hleIsKernelMode() {
 const static u32 deadbeefRegs[12] = {0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
 inline static void SetDeadbeefRegs()
 {
-	if (g_Config.bSkipDeadbeefFilling)
+	if (g_PConfig.bSkipDeadbeefFilling)
 		return;
 
 	currentMIPS->r[MIPS_REG_COMPILER_SCRATCH] = 0xDEADBEEF;

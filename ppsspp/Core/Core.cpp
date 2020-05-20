@@ -144,7 +144,7 @@ static bool IsWindowSmall(int pixelWidth, int pixelHeight) {
 	// Can't take this from config as it will not be set if windows is maximized.
 	int w = (int)(pixelWidth * g_dpi_scale_x);
 	int h = (int)(pixelHeight * g_dpi_scale_y);
-	return g_Config.IsPortrait() ? (h < 480 + 80) : (w < 480 + 80);
+	return g_PConfig.IsPortrait() ? (h < 480 + 80) : (w < 480 + 80);
 }
 
 // TODO: Feels like this belongs elsewhere.
@@ -191,7 +191,7 @@ bool UpdateScreenScale(int width, int height) {
 
 // Note: not used on Android.
 void UpdateRunLoop() {
-	if (windowHidden && g_Config.bPauseWhenMinimized) {
+	if (windowHidden && g_PConfig.bPauseWhenMinimized) {
 		sleep_ms(16);
 		return;
 	}

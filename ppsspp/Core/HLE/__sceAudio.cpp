@@ -110,7 +110,7 @@ void __AudioInit() {
 	mixFrequency = 44100;
 	srcFrequency = 0;
 
-	switch (g_Config.iAudioLatency) {
+	switch (g_PConfig.iAudioLatency) {
 	case LOW_LATENCY:
 		chanQueueMaxSizeFactor = 1;
 		chanQueueMinSizeFactor = 1;
@@ -203,7 +203,7 @@ void __AudioShutdown() {
 		chans[i].clear();
 
 #ifndef MOBILE_DEVICE
-	if (g_Config.bDumpAudio) {
+	if (g_PConfig.bDumpAudio) {
 		__StopLogAudio();
 	}
 #endif
@@ -437,10 +437,10 @@ void __AudioUpdate(bool resetRecording) {
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 	}
 
-	if (g_Config.bEnableSound) {
+	if (g_PConfig.bEnableSound) {
 		resampler.PushSamples(mixBuffer, hwBlockSize);
 #ifndef MOBILE_DEVICE
-		if (g_Config.bSaveLoadResetsAVdumping && resetRecording) {
+		if (g_PConfig.bSaveLoadResetsAVdumping && resetRecording) {
 			__StopLogAudio();
 			std::string discID = g_paramSFO.GetDiscID();
 			std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
@@ -451,7 +451,7 @@ void __AudioUpdate(bool resetRecording) {
 			__StartLogAudio(audio_file_name);
 		}
 		if (!m_logAudio) {
-			if (g_Config.bDumpAudio) {
+			if (g_PConfig.bDumpAudio) {
 				// Use gameID_EmulatedTimestamp for filename
 				std::string discID = g_paramSFO.GetDiscID();
 				std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
@@ -463,7 +463,7 @@ void __AudioUpdate(bool resetRecording) {
 				__StartLogAudio(audio_file_name);
 			}
 		} else {
-			if (g_Config.bDumpAudio) {
+			if (g_PConfig.bDumpAudio) {
 				for (int i = 0; i < hwBlockSize * 2; i++) {
 					clampedMixBuffer[i] = clamp_s16(mixBuffer[i]);
 				}

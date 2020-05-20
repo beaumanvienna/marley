@@ -370,10 +370,10 @@ void FramebufferManagerVulkan::BindPostShader(const PostShaderUniforms &uniforms
 }
 
 int FramebufferManagerVulkan::GetLineWidth() {
-	if (g_Config.iInternalResolution == 0) {
+	if (g_PConfig.iInternalResolution == 0) {
 		return std::max(1, (int)(renderWidth_ / 480));
 	} else {
-		return g_Config.iInternalResolution;
+		return g_PConfig.iInternalResolution;
 	}
 }
 
@@ -607,7 +607,7 @@ void FramebufferManagerVulkan::CompilePostShader() {
 	}
 
 	const ShaderInfo *shaderInfo = nullptr;
-	if (g_Config.sPostShaderName == "Off") {
+	if (g_PConfig.sPostShaderName == "Off") {
 		usePostShader_ = false;
 		return;
 	}
@@ -615,7 +615,7 @@ void FramebufferManagerVulkan::CompilePostShader() {
 	usePostShader_ = false;
 
 	ReloadAllPostShaderInfo();
-	shaderInfo = GetPostShaderInfo(g_Config.sPostShaderName);
+	shaderInfo = GetPostShaderInfo(g_PConfig.sPostShaderName);
 	std::string errorVSX, errorFSX;
 	std::string vsSource;
 	std::string fsSource;

@@ -160,7 +160,7 @@ bool RunAutoTest(HeadlessHost *headlessHost, CoreParameter &coreParameter, bool 
 	static double deadline;
 	deadline = time_now() + timeout;
 
-	Core_UpdateDebugStats(g_Config.bShowDebugStats || g_Config.bLogFrameDrops);
+	Core_UpdateDebugStats(g_PConfig.bShowDebugStats || g_PConfig.bLogFrameDrops);
 
 	PSP_BeginHostFrame();
 	if (coreParameter.graphicsContext && coreParameter.graphicsContext->GetDrawContext())
@@ -347,54 +347,54 @@ int main(int argc, const char* argv[])
 	coreParameter.pixelHeight = 272;
 	coreParameter.unthrottle = true;
 
-	g_Config.bEnableSound = false;
-	g_Config.bFirstRun = false;
-	g_Config.bIgnoreBadMemAccess = true;
+	g_PConfig.bEnableSound = false;
+	g_PConfig.bFirstRun = false;
+	g_PConfig.bIgnoreBadMemAccess = true;
 	// Never report from tests.
-	g_Config.sReportHost = "";
-	g_Config.bAutoSaveSymbolMap = false;
-	g_Config.iRenderingMode = FB_BUFFERED_MODE;
-	g_Config.bHardwareTransform = true;
-	g_Config.iAnisotropyLevel = 0;  // When testing mipmapping we really don't want this.
-	g_Config.bVertexCache = true;
-	g_Config.iLanguage = PSP_SYSTEMPARAM_LANGUAGE_ENGLISH;
-	g_Config.iTimeFormat = PSP_SYSTEMPARAM_TIME_FORMAT_24HR;
-	g_Config.bEncryptSave = true;
-	g_Config.sNickName = "shadow";
-	g_Config.iTimeZone = 60;
-	g_Config.iDateFormat = PSP_SYSTEMPARAM_DATE_FORMAT_DDMMYYYY;
-	g_Config.iButtonPreference = PSP_SYSTEMPARAM_BUTTON_CROSS;
-	g_Config.iLockParentalLevel = 9;
-	g_Config.iInternalResolution = 1;
-	g_Config.bFrameSkipUnthrottle = false;
-	g_Config.bEnableLogging = fullLog;
-	g_Config.iNumWorkerThreads = 1;
-	g_Config.bSoftwareSkinning = true;
-	g_Config.bVertexDecoderJit = true;
-	g_Config.bBlockTransferGPU = true;
-	g_Config.iSplineBezierQuality = 2;
-	g_Config.bHighQualityDepth = true;
-	g_Config.bMemStickInserted = true;
-	g_Config.bFragmentTestCache = true;
-	g_Config.iAudioLatency = 1;
+	g_PConfig.sReportHost = "";
+	g_PConfig.bAutoSaveSymbolMap = false;
+	g_PConfig.iRenderingMode = FB_BUFFERED_MODE;
+	g_PConfig.bHardwareTransform = true;
+	g_PConfig.iAnisotropyLevel = 0;  // When testing mipmapping we really don't want this.
+	g_PConfig.bVertexCache = true;
+	g_PConfig.iLanguage = PSP_SYSTEMPARAM_LANGUAGE_ENGLISH;
+	g_PConfig.iTimeFormat = PSP_SYSTEMPARAM_TIME_FORMAT_24HR;
+	g_PConfig.bEncryptSave = true;
+	g_PConfig.sNickName = "shadow";
+	g_PConfig.iTimeZone = 60;
+	g_PConfig.iDateFormat = PSP_SYSTEMPARAM_DATE_FORMAT_DDMMYYYY;
+	g_PConfig.iButtonPreference = PSP_SYSTEMPARAM_BUTTON_CROSS;
+	g_PConfig.iLockParentalLevel = 9;
+	g_PConfig.iInternalResolution = 1;
+	g_PConfig.bFrameSkipUnthrottle = false;
+	g_PConfig.bEnableLogging = fullLog;
+	g_PConfig.iNumWorkerThreads = 1;
+	g_PConfig.bSoftwareSkinning = true;
+	g_PConfig.bVertexDecoderJit = true;
+	g_PConfig.bBlockTransferGPU = true;
+	g_PConfig.iSplineBezierQuality = 2;
+	g_PConfig.bHighQualityDepth = true;
+	g_PConfig.bMemStickInserted = true;
+	g_PConfig.bFragmentTestCache = true;
+	g_PConfig.iAudioLatency = 1;
 
 #ifdef _WIN32
 	InitSysDirectories();
 #endif
 
 #if !defined(__ANDROID__) && !defined(_WIN32)
-	g_Config.memStickDirectory = std::string(getenv("HOME")) + "/.ppsspp/";
+	g_PConfig.memStickDirectory = std::string(getenv("HOME")) + "/.ppsspp/";
 #endif
 
 	// Try to find the flash0 directory.  Often this is from a subdirectory.
 	for (int i = 0; i < 3; ++i)
 	{
-		if (!File::Exists(g_Config.flash0Directory))
-			g_Config.flash0Directory += "../../flash0/";
+		if (!File::Exists(g_PConfig.flash0Directory))
+			g_PConfig.flash0Directory += "../../flash0/";
 	}
 	// Or else, maybe in the executable's dir.
-	if (!File::Exists(g_Config.flash0Directory))
-		g_Config.flash0Directory = File::GetExeDirectory() + "assets/flash0/";
+	if (!File::Exists(g_PConfig.flash0Directory))
+		g_PConfig.flash0Directory = File::GetExeDirectory() + "assets/flash0/";
 
 	if (screenshotFilename != 0)
 		headlessHost->SetComparisonScreenshot(screenshotFilename);

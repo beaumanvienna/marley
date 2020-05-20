@@ -275,7 +275,7 @@ int PlayBackgroundAudio() {
 	std::lock_guard<std::mutex> lock(g_bgMutex);
 
 	// Immediately stop the sound if it is turned off while playing.
-	if (!g_Config.bEnableSound) {
+	if (!g_PConfig.bEnableSound) {
 		ClearBackgroundAudio(true);
 		__PushExternalAudio(0, 0);
 		return 0;

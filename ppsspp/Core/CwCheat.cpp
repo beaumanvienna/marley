@@ -233,12 +233,12 @@ static void __CheatStart() {
 
 	cheatEngine = new CWCheatEngine();
 	cheatEngine->ParseCheats();
-	g_Config.bReloadCheats = false;
+	g_PConfig.bReloadCheats = false;
 	cheatsEnabled = true;
 }
 
 static int GetRefreshMs() {
-	int refresh = g_Config.iCwCheatRefreshRate;
+	int refresh = g_PConfig.iCwCheatRefreshRate;
 
 	if (!cheatsEnabled)
 		refresh = 1000;
@@ -256,7 +256,7 @@ void __CheatInit() {
 	// Always register the event, want savestates to be compatible whether cheats on or off.
 	CheatEvent = CoreTiming::RegisterEvent("CheatEvent", &hleCheat);
 
-	if (g_Config.bEnableCheats) {
+	if (g_PConfig.bEnableCheats) {
 		__CheatStart();
 	}
 
@@ -286,9 +286,9 @@ void __CheatDoState(PointerWrap &p) {
 }
 
 void hleCheat(u64 userdata, int cyclesLate) {
-	if (cheatsEnabled != g_Config.bEnableCheats) {
+	if (cheatsEnabled != g_PConfig.bEnableCheats) {
 		// Okay, let's move to the desired state, then.
-		if (g_Config.bEnableCheats) {
+		if (g_PConfig.bEnableCheats) {
 			__CheatStart();
 		} else {
 			__CheatStop();
@@ -319,9 +319,9 @@ void hleCheat(u64 userdata, int cyclesLate) {
 	if (!cheatEngine || !cheatsEnabled)
 		return;
 
-	if (g_Config.bReloadCheats) { //Checks if the "reload cheats" button has been pressed.
+	if (g_PConfig.bReloadCheats) { //Checks if the "reload cheats" button has been pressed.
 		cheatEngine->ParseCheats();
-		g_Config.bReloadCheats = false;
+		g_PConfig.bReloadCheats = false;
 	}
 	cheatEngine->Run();
 }

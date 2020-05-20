@@ -192,7 +192,7 @@ namespace MIPSComp {
 		ARM64Reg LR_SCRATCH3 = gpr.GetAndLockTempR();
 		ARM64Reg LR_SCRATCH4 = o == 42 || o == 46 ? gpr.GetAndLockTempR() : INVALID_REG;
 
-		if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
+		if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
 			skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
 		} else {
 			SetScratch1ToEffectiveAddress(rs, offset);
@@ -311,7 +311,7 @@ namespace MIPSComp {
 		case 40: //sb
 		case 41: //sh
 		case 43: //sw
-			if (jo.cachePointers && g_Config.bFastMemory) {
+			if (jo.cachePointers && g_PConfig.bFastMemory) {
 				// ARM has smaller load/store immediate displacements than MIPS, 12 bits - and some memory ops only have 8 bits.
 				int offsetRange = 0x3ff;
 				if (o == 41 || o == 33 || o == 37 || o == 32)
@@ -393,7 +393,7 @@ namespace MIPSComp {
 					targetReg = gpr.R(rt);
 				}
 
-				if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
+				if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
 					skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
 				} else {
 					SetScratch1ToEffectiveAddress(rs, offset);
