@@ -121,7 +121,7 @@ void Jit::BranchLogExit(MIPSOpcode op, u32 dest, bool useEAX)
 	OpArg destArg = useEAX ? R(EAX) : Imm32(dest);
 
 	CMP(32, MIPSSTATE_VAR(intBranchExit), destArg);
-	FixupBranch skip = J_CC(CC_E);
+	FixupBranch skip = PJ_CC(CC_E);
 
 	MOV(32, MIPSSTATE_VAR(jitBranchExit), destArg);
 	ABI_CallFunctionCC(thunks.ProtectFunction(&JitBranchLogMismatch), op.encoding, GetCompilerPC());
@@ -211,12 +211,12 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 		{
 			if (!delaySlotIsNice)
 				CompileDelaySlot(DELAYSLOT_SAFE);
-			ptr = J_CC(cc, true);
+			ptr = PJ_CC(cc, true);
 			GetStateAndFlushAll(state);
 		}
 		else
 		{
-			ptr = J_CC(cc, true);
+			ptr = PJ_CC(cc, true);
 			if (predictTakeBranch)
 				GetStateAndFlushAll(state);
 			else
@@ -275,12 +275,12 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 				CompileDelaySlot(DELAYSLOT_SAFE_FLUSH);
 			else
 				FlushAll();
-			ptr = J_CC(cc, true);
+			ptr = PJ_CC(cc, true);
 		}
 		else
 		{
 			FlushAll();
-			ptr = J_CC(cc, true);
+			ptr = PJ_CC(cc, true);
 			CompileDelaySlot(DELAYSLOT_FLUSH);
 		}
 

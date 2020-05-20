@@ -337,7 +337,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 	// We add a check before the block, used when entering from a linked block.
 	b->checkedEntry = (u8 *)GetCodePtr();
 	// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
-	FixupBranch skip = J_CC(CC_NS);
+	FixupBranch skip = PJ_CC(CC_NS);
 	MOV(32, MIPSSTATE_VAR(pc), Imm32(js.blockStart));
 	JMP(outerLoop, true);  // downcount hit zero - go advance.
 	PSetJumpTarget(skip);
@@ -372,7 +372,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 				MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
 				CMP(32, MatR(RAX), Imm32(CORE_NEXTFRAME));
 			}
-			FixupBranch skipCheck = J_CC(CC_LE);
+			FixupBranch skipCheck = PJ_CC(CC_LE);
 			if (js.afterOp & JitState::AFTER_REWIND_PC_BAD_STATE)
 				MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 			else
@@ -671,7 +671,7 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
 			CMP(32, MatR(RAX), Imm32(CORE_NEXTFRAME));
 		}
-		FixupBranch skipCheck = J_CC(CC_LE);
+		FixupBranch skipCheck = PJ_CC(CC_LE);
 		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
 		PSetJumpTarget(skipCheck);
@@ -716,7 +716,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 			MOV(PTRBITS, R(temp), ImmPtr((const void *)&coreState));
 			CMP(32, MatR(temp), Imm32(CORE_NEXTFRAME));
 		}
-		FixupBranch skipCheck = J_CC(CC_LE);
+		FixupBranch skipCheck = PJ_CC(CC_LE);
 		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
 		PSetJumpTarget(skipCheck);
@@ -728,14 +728,14 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 	// Validate the jump to avoid a crash?
 	if (!g_PConfig.bFastMemory) {
 		CMP(32, R(reg), Imm32(PSP_GetKernelMemoryBase()));
-		FixupBranch tooLow = J_CC(CC_B);
+		FixupBranch tooLow = PJ_CC(CC_B);
 		CMP(32, R(reg), Imm32(PSP_GetUserMemoryEnd()));
-		FixupBranch tooHigh = J_CC(CC_AE);
+		FixupBranch tooHigh = PJ_CC(CC_AE);
 
 		// Need to set neg flag again.
 		SUB(32, MIPSSTATE_VAR(downcount), Imm8(0));
 		if (reg == EAX)
-			J_CC(CC_NS, dispatcherInEAXNoCheck, true);
+			PJ_CC(CC_NS, dispatcherInEAXNoCheck, true);
 		JMP(dispatcher, true);
 
 		PSetJumpTarget(tooLow);
@@ -746,7 +746,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		// If we're ignoring, coreState didn't trip - so trip it now.
 		if (g_PConfig.bIgnoreBadMemAccess) {
 			CMP(32, R(EAX), Imm32(0));
-			FixupBranch skip = J_CC(CC_NE);
+			FixupBranch skip = PJ_CC(CC_NE);
 			ABI_CallFunctionA((const void *)&Core_UpdateState, Imm32(CORE_ERROR));
 			PSetJumpTarget(skip);
 		}
@@ -754,7 +754,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		SUB(32, MIPSSTATE_VAR(downcount), Imm8(0));
 		JMP(dispatcherCheckCoreState, true);
 	} else if (reg == EAX) {
-		J_CC(CC_NS, dispatcherInEAXNoCheck, true);
+		PJ_CC(CC_NS, dispatcherInEAXNoCheck, true);
 		JMP(dispatcher, true);
 	} else {
 		JMP(dispatcher, true);
@@ -781,7 +781,7 @@ bool Jit::CheckJitBreakpoint(u32 addr, int downcountOffset) {
 
 		// If 0, the conditional breakpoint wasn't taken.
 		CMP(32, R(EAX), Imm32(0));
-		FixupBranch skip = J_CC(CC_Z);
+		FixupBranch skip = PJ_CC(CC_Z);
 		WriteDowncount(downcountOffset);
 		ApplyRoundingMode();
 		// Just to fix the stack.

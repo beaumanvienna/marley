@@ -363,7 +363,7 @@ void OpArg::PWriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 // R = register# upper bit
 // X = scale amnt upper bit
 // B = base register# upper bit
-void XEmitter::Rex(int w, int r, int x, int b)
+void XEmitter::PRex(int w, int r, int x, int b)
 {
 	w = w ? 1 : 0;
 	r = r ? 1 : 0;
@@ -398,10 +398,10 @@ void XEmitter::JMP(const u8 *addr, bool force5Bytes)
 	}
 }
 
-void XEmitter::JMPptr(const OpArg &arg2)
+void XEmitter::PJMPptr(const OpArg &arg2)
 {
 	OpArg arg = arg2;
-	if (arg.IsImm()) _assert_msg_(DYNA_REC, 0, "JMPptr - Imm argument");
+	if (arg.IsImm()) _assert_msg_(DYNA_REC, 0, "PJMPptr - Imm argument");
 	arg.operandReg = 4;
 	arg.WriteRex(this, 0, 0);
 	Write8(0xFF);
@@ -410,15 +410,15 @@ void XEmitter::JMPptr(const OpArg &arg2)
 
 //Can be used to trap other processors, before overwriting their code
 // not used in dolphin
-void XEmitter::JMPself()
+void XEmitter::PJMPself()
 {
 	Write8(0xEB);
 	Write8(0xFE);
 }
 
-void XEmitter::CALLptr(OpArg arg)
+void XEmitter::PCALLptr(OpArg arg)
 {
-	if (arg.IsImm()) _assert_msg_(DYNA_REC, 0, "CALLptr - Imm argument");
+	if (arg.IsImm()) _assert_msg_(DYNA_REC, 0, "PCALLptr - Imm argument");
 	arg.operandReg = 2;
 	arg.WriteRex(this, 0, 0);
 	Write8(0xFF);
@@ -455,7 +455,7 @@ FixupBranch XEmitter::J(bool force5bytes)
 	return branch;
 }
 
-FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
+FixupBranch XEmitter::PJ_CC(CCFlags conditionCode, bool force5bytes)
 {
 	FixupBranch branch;
 	branch.type = force5bytes ? 1 : 0;
@@ -475,7 +475,7 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
 	return branch;
 }
 
-void XEmitter::J_CC(CCFlags conditionCode, const u8* addr, bool force5bytes)
+void XEmitter::PJ_CC(CCFlags conditionCode, const u8* addr, bool force5bytes)
 {
 	u64 fn = (u64)addr;
 	s64 distance = (s64)(fn - ((u64)code + 2));
@@ -609,7 +609,7 @@ void XEmitter::CMC()  {PCheckFlags(); Write8(0xF5);} //flip carry
 void XEmitter::STC()  {PCheckFlags(); Write8(0xF9);} //set carry
 
 //TODO: xchg ah, al ???
-void XEmitter::XCHG_AHAL()
+void XEmitter::PXCHG_AHAL()
 {
 	Write8(0x86);
 	Write8(0xe0);
@@ -631,7 +631,7 @@ void XEmitter::PWriteSimple1Byte(int bits, u8 byte, X64Reg reg)
 {
 	if (bits == 16)
 		Write8(0x66);
-	Rex(bits == 64, 0, 0, (int)reg >> 3);
+	PRex(bits == 64, 0, 0, (int)reg >> 3);
 	Write8(byte + ((int)reg & 7));
 }
 
@@ -639,7 +639,7 @@ void XEmitter::PWriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
 {
 	if (bits == 16)
 		Write8(0x66);
-	Rex(bits==64, 0, 0, (int)reg >> 3);
+	PRex(bits==64, 0, 0, (int)reg >> 3);
 	Write8(byte1);
 	Write8(byte2 + ((int)reg & 7));
 }
@@ -648,7 +648,7 @@ void XEmitter::CWD(int bits)
 {
 	if (bits == 16)
 		Write8(0x66);
-	Rex(bits == 64, 0, 0, 0);
+	PRex(bits == 64, 0, 0, 0);
 	Write8(0x99);
 }
 
@@ -656,7 +656,7 @@ void XEmitter::CBW(int bits)
 {
 	if (bits == 8)
 		Write8(0x66);
-	Rex(bits == 32, 0, 0, 0);
+	PRex(bits == 32, 0, 0, 0);
 	Write8(0x98);
 }
 
@@ -749,9 +749,9 @@ void XEmitter::PPREFETCH(PPREFETCHLevel level, OpArg arg)
 	arg.PWriteRest(this);
 }
 
-void XEmitter::SETcc(CCFlags flag, OpArg dest)
+void XEmitter::PSETcc(CCFlags flag, OpArg dest)
 {
-	_assert_msg_(DYNA_REC, !dest.IsImm(), "SETcc - Imm argument");
+	_assert_msg_(DYNA_REC, !dest.IsImm(), "PSETcc - Imm argument");
 	dest.operandReg = 0;
 	dest.WriteRex(this, 0, 8);
 	Write8(0x0F);
@@ -759,10 +759,10 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
 	dest.PWriteRest(this);
 }
 
-void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
+void XEmitter::PCMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
 {
-	_assert_msg_(DYNA_REC, !src.IsImm(), "CMOVcc - Imm argument");
-	_assert_msg_(DYNA_REC, bits != 8, "CMOVcc - 8 bits unsupported");
+	_assert_msg_(DYNA_REC, !src.IsImm(), "PCMOVcc - Imm argument");
+	_assert_msg_(DYNA_REC, bits != 8, "PCMOVcc - 8 bits unsupported");
 	if (bits == 16)
 		Write8(0x66);
 	src.operandReg = dest;
@@ -1458,10 +1458,10 @@ void XEmitter::WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg 
 	WriteVEXOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
-void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {PWriteSSEOp(0x66, 0x6E, dest, arg, 0);}
-void XEmitter::MOVD_xmm(const OpArg &arg, X64Reg src) {PWriteSSEOp(0x66, 0x7E, src, arg, 0);}
+void XEmitter::PMOVD_xmm(X64Reg dest, const OpArg &arg) {PWriteSSEOp(0x66, 0x6E, dest, arg, 0);}
+void XEmitter::PMOVD_xmm(const OpArg &arg, X64Reg src) {PWriteSSEOp(0x66, 0x7E, src, arg, 0);}
 
-void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg)
+void XEmitter::PMOVQ_xmm(X64Reg dest, OpArg arg)
 {
 #ifdef _M_X64
 		// Alternate encoding
@@ -1481,7 +1481,7 @@ void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg)
 #endif
 }
 
-void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src)
+void XEmitter::PMOVQ_xmm(OpArg arg, X64Reg src)
 {
 	if (src > 7 || arg.IsSimpleReg())
 	{
@@ -1505,7 +1505,7 @@ void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src)
 	}
 }
 
-void XEmitter::WriteMXCSR(OpArg arg, int ext)
+void XEmitter::PWriteMXCSR(OpArg arg, int ext)
 {
 	if (arg.IsImm() || arg.IsSimpleReg())
 		_assert_msg_(DYNA_REC, 0, "MXCSR - invalid operand");
@@ -1517,8 +1517,8 @@ void XEmitter::WriteMXCSR(OpArg arg, int ext)
 	arg.PWriteRest(this);
 }
 
-void XEmitter::STMXCSR(OpArg memloc) {WriteMXCSR(memloc, 3);}
-void XEmitter::LDMXCSR(OpArg memloc) {WriteMXCSR(memloc, 2);}
+void XEmitter::STMXCSR(OpArg memloc) {PWriteMXCSR(memloc, 3);}
+void XEmitter::LDMXCSR(OpArg memloc) {PWriteMXCSR(memloc, 2);}
 
 void XEmitter::MOVNTDQ(OpArg arg, X64Reg regOp) {PWriteSSEOp(0x66, sseMOVNTDQ, regOp, arg);}
 void XEmitter::MOVNTPS(OpArg arg, X64Reg regOp) {PWriteSSEOp(0x00, sseMOVNTP, regOp, arg);}

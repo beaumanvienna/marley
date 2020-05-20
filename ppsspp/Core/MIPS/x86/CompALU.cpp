@@ -129,12 +129,12 @@ namespace MIPSComp
 				bool needsTemp = !HasLowSubregister(gpr.R(rt)) || rt == rs;
 				if (needsTemp) {
 					CMP(32, gpr.R(rs), Imm32(suimm));
-					SETcc(CC_L, R(TEMPREG));
+					PSETcc(CC_L, R(TEMPREG));
 					MOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rt), gpr.R(rt));
 					CMP(32, gpr.R(rs), Imm32(suimm));
-					SETcc(CC_L, gpr.R(rt));
+					PSETcc(CC_L, gpr.R(rt));
 				}
 				gpr.UnlockAll();
 			}
@@ -151,12 +151,12 @@ namespace MIPSComp
 				bool needsTemp = !HasLowSubregister(gpr.R(rt)) || rt == rs;
 				if (needsTemp) {
 					CMP(32, gpr.R(rs), Imm32(suimm));
-					SETcc(CC_B, R(TEMPREG));
+					PSETcc(CC_B, R(TEMPREG));
 					MOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rt), gpr.R(rt));
 					CMP(32, gpr.R(rs), Imm32(suimm));
-					SETcc(CC_B, gpr.R(rt));
+					PSETcc(CC_B, gpr.R(rt));
 				}
 				gpr.UnlockAll();
 			}
@@ -225,7 +225,7 @@ namespace MIPSComp
 				gpr.Lock(rd, rs);
 				gpr.MapReg(rd, rd == rs, true);
 				BSR(32, TEMPREG, gpr.R(rs));
-				FixupBranch notFound = J_CC(CC_Z);
+				FixupBranch notFound = PJ_CC(CC_Z);
 
 				MOV(32, gpr.R(rd), Imm32(31));
 				SUB(32, gpr.R(rd), R(TEMPREG));
@@ -258,7 +258,7 @@ namespace MIPSComp
 				MOV(32, R(TEMPREG), gpr.R(rs));
 				NOT(32, R(TEMPREG));
 				BSR(32, TEMPREG, R(TEMPREG));
-				FixupBranch notFound = J_CC(CC_Z);
+				FixupBranch notFound = PJ_CC(CC_Z);
 
 				MOV(32, gpr.R(rd), Imm32(31));
 				SUB(32, gpr.R(rd), R(TEMPREG));
@@ -400,7 +400,7 @@ namespace MIPSComp
 				// Need to load rd in case the condition fails.
 				gpr.MapReg(rd, true, true);
 				CMP(32, gpr.R(rt), Imm32(0));
-				CMOVcc(32, gpr.RX(rd), gpr.R(rs), CC_E);
+				PCMOVcc(32, gpr.RX(rd), gpr.R(rs), CC_E);
 			}
 			else if (gpr.GetImm(rt) == 0)
 			{
@@ -425,7 +425,7 @@ namespace MIPSComp
 				// Need to load rd in case the condition fails.
 				gpr.MapReg(rd, true, true);
 				CMP(32, gpr.R(rt), Imm32(0));
-				CMOVcc(32, gpr.RX(rd), gpr.R(rs), CC_NE);
+				PCMOVcc(32, gpr.RX(rd), gpr.R(rs), CC_NE);
 			}
 			else if (gpr.GetImm(rt) != 0)
 			{
@@ -498,12 +498,12 @@ namespace MIPSComp
 				bool needsTemp = !HasLowSubregister(gpr.R(rd)) || rd == rt || rd == rs;
 				if (needsTemp) {
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
-					SETcc(cc, R(TEMPREG));
+					PSETcc(cc, R(TEMPREG));
 					MOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rd), gpr.R(rd));
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
-					SETcc(cc, gpr.R(rd));
+					PSETcc(cc, gpr.R(rd));
 				}
 				gpr.UnlockAll();
 			}
@@ -538,12 +538,12 @@ namespace MIPSComp
 				bool needsTemp = !HasLowSubregister(gpr.R(rd)) || rd == rt || rd == rs;
 				if (needsTemp) {
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
-					SETcc(cc, R(TEMPREG));
+					PSETcc(cc, R(TEMPREG));
 					MOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rd), gpr.R(rd));
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
-					SETcc(cc, gpr.R(rd));
+					PSETcc(cc, gpr.R(rd));
 				}
 				gpr.UnlockAll();
 			}
@@ -561,7 +561,7 @@ namespace MIPSComp
 				if (rd != rt && rd != rs)
 					MOV(32, gpr.R(rd), gpr.R(rs));
 				CMP(32, gpr.R(rd), gpr.R(rsrc));
-				CMOVcc(32, gpr.RX(rd), gpr.R(rsrc), CC_L);
+				PCMOVcc(32, gpr.RX(rd), gpr.R(rsrc), CC_L);
 				gpr.UnlockAll();
 			}
 			break;
@@ -578,7 +578,7 @@ namespace MIPSComp
 				if (rd != rt && rd != rs)
 					MOV(32, gpr.R(rd), gpr.R(rs));
 				CMP(32, gpr.R(rd), gpr.R(rsrc));
-				CMOVcc(32, gpr.RX(rd), gpr.R(rsrc), CC_G);
+				PCMOVcc(32, gpr.RX(rd), gpr.R(rsrc), CC_G);
 				gpr.UnlockAll();
 			}
 			break;
@@ -1009,13 +1009,13 @@ namespace MIPSComp
 				MOV(32, R(EAX), gpr.R(rs));
 
 				CMP(32, gpr.R(rt), Imm32(0));
-				FixupBranch divZero = J_CC(CC_E);
+				FixupBranch divZero = PJ_CC(CC_E);
 
 				// INT_MAX / -1 would overflow.
 				CMP(32, gpr.R(rs), Imm32(0x80000000));
-				FixupBranch notOverflow = J_CC(CC_NE);
+				FixupBranch notOverflow = PJ_CC(CC_NE);
 				CMP(32, gpr.R(rt), Imm32((u32) -1));
-				FixupBranch notOverflow2 = J_CC(CC_NE);
+				FixupBranch notOverflow2 = PJ_CC(CC_NE);
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(0x80000000));
 				MOV(32, gpr.R(MIPS_REG_HI), Imm32(-1));
 				FixupBranch skip2 = J();
@@ -1033,7 +1033,7 @@ namespace MIPSComp
 				MOV(32, gpr.R(MIPS_REG_HI), R(EAX));
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(-1));
 				CMP(32, R(EAX), Imm32(0));
-				FixupBranch positiveDivZero = J_CC(CC_GE);
+				FixupBranch positiveDivZero = PJ_CC(CC_GE);
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(1));
 
 				PSetJumpTarget(positiveDivZero);
@@ -1054,7 +1054,7 @@ namespace MIPSComp
 				MOV(32, R(EDX), Imm32(0));
 
 				CMP(32, gpr.R(rt), Imm32(0));
-				FixupBranch divZero = J_CC(CC_E);
+				FixupBranch divZero = PJ_CC(CC_E);
 
 				DIV(32, gpr.R(rt));
 				MOV(32, gpr.R(MIPS_REG_HI), R(EDX));
@@ -1065,7 +1065,7 @@ namespace MIPSComp
 				MOV(32, gpr.R(MIPS_REG_HI), R(EAX));
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(-1));
 				CMP(32, R(EAX), Imm32(0xFFFF));
-				FixupBranch moreThan16Bit = J_CC(CC_A);
+				FixupBranch moreThan16Bit = PJ_CC(CC_A);
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(0xFFFF));
 
 				PSetJumpTarget(moreThan16Bit);

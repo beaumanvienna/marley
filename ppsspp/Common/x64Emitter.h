@@ -339,14 +339,14 @@ private:
 
 	void PCheckFlags();
 
-	void Rex(int w, int r, int x, int b);
+	void PRex(int w, int r, int x, int b);
 	void PWriteSimple1Byte(int bits, u8 byte, X64Reg reg);
 	void PWriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
 	void PWriteMulDivType(int bits, OpArg src, int ext);
 	void PWriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
-	void WriteMXCSR(OpArg arg, int ext);
+	void PWriteMXCSR(OpArg arg, int ext);
 	void PWriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
@@ -425,23 +425,23 @@ public:
 
 	void JMP(const u8 * addr, bool force5Bytes = false);
 	void JMP(OpArg arg);
-	void JMPptr(const OpArg &arg);
-	void JMPself(); //infinite loop!
+	void PJMPptr(const OpArg &arg);
+	void PJMPself(); //infinite loop!
 #ifdef CALL
 #undef CALL
 #endif
 	void CALL(const void *fnptr);
-	void CALLptr(OpArg arg);
+	void PCALLptr(OpArg arg);
 
-	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
-	//void J_CC(CCFlags conditionCode, JumpTarget target);
-	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
+	FixupBranch PJ_CC(CCFlags conditionCode, bool force5bytes = false);
+	//void PJ_CC(CCFlags conditionCode, JumpTarget target);
+	void PJ_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
 
 	void PSetJumpTarget(const FixupBranch &branch);
 
-	void SETcc(CCFlags flag, OpArg dest);
+	void PSETcc(CCFlags flag, OpArg dest);
 	// Note: CMOV brings small if any benefit on current cpus.
-	void CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
+	void PCMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
 
 	// Fences
 	void LFENCE();
@@ -522,7 +522,7 @@ public:
 
 	// Are these useful at all? Consider removing.
 	void XCHG(int bits, const OpArg &a1, const OpArg &a2);
-	void XCHG_AHAL();
+	void PXCHG_AHAL();
 
 	// Byte swapping (32 and 64-bit only).
 	void BSWAP(int bits, X64Reg reg);
@@ -709,10 +709,10 @@ public:
 	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
 	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
 
-	void MOVD_xmm(X64Reg dest, const OpArg &arg);
-	void MOVQ_xmm(X64Reg dest, OpArg arg);
-	void MOVD_xmm(const OpArg &arg, X64Reg src);
-	void MOVQ_xmm(OpArg arg, X64Reg src);
+	void PMOVD_xmm(X64Reg dest, const OpArg &arg);
+	void PMOVQ_xmm(X64Reg dest, OpArg arg);
+	void PMOVD_xmm(const OpArg &arg, X64Reg src);
+	void PMOVQ_xmm(OpArg arg, X64Reg src);
 
 	// SSE/SSE2: Generates a mask from the high bits of the components of the packed register in question.
 	void MOVMSKPS(X64Reg dest, OpArg arg);

@@ -259,7 +259,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 				MOVSS(fpr.VX(vt), safe.NextFastAddress(0));
 			}
 			if (safe.PrepareSlowRead(safeMemFuncs.readU32)) {
-				MOVD_xmm(fpr.VX(vt), R(EAX));
+				PMOVD_xmm(fpr.VX(vt), R(EAX));
 			}
 			safe.Finish();
 
@@ -323,7 +323,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			SHR(32, R(EAX), Imm8(2));
 			AND(32, R(EAX), Imm32(0x3));
 			CMP(32, R(EAX), Imm32(0));
-			FixupBranch next = J_CC(CC_NE);
+			FixupBranch next = PJ_CC(CC_NE);
 
 			auto PSPMemAddr = [](X64Reg scaled, int offset) {
 #ifdef _M_IX86
@@ -341,7 +341,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			FixupBranch skip0 = J();
 			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(1));
-			next = J_CC(CC_NE);
+			next = PJ_CC(CC_NE);
 
 			// Offset = 1
 			MOVSS(fpr.RX(vregs[3]), PSPMemAddr(EAX, 4));
@@ -350,7 +350,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			FixupBranch skip1 = J();
 			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(2));
-			next = J_CC(CC_NE);
+			next = PJ_CC(CC_NE);
 
 			// Offset = 2
 			MOVSS(fpr.RX(vregs[3]), PSPMemAddr(EAX, 8));
@@ -360,7 +360,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			FixupBranch skip2 = J();
 			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(3));
-			next = J_CC(CC_NE);
+			next = PJ_CC(CC_NE);
 
 			// Offset = 3
 			MOVSS(fpr.RX(vregs[3]), PSPMemAddr(EAX, 12));
@@ -404,7 +404,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 					for (int i = 0; i < 4; i++) {
 						safe.NextSlowRead(safeMemFuncs.readU32, i * 4);
 						// We use XMM0 as a temporary since MOVSS and MOVD would clear the higher bits.
-						MOVD_xmm(XMM0, R(EAX));
+						PMOVD_xmm(XMM0, R(EAX));
 						MOVSS(fpr.VSX(vregs), R(XMM0));
 						// Rotate things so we can read in the next higher float.
 						// By the end (4 rotates), they'll all be back into place.
@@ -429,7 +429,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			if (safe.PrepareSlowRead(safeMemFuncs.readU32)) {
 				for (int i = 0; i < 4; i++) {
 					safe.NextSlowRead(safeMemFuncs.readU32, i * 4);
-					MOVD_xmm(fpr.VX(vregs[i]), R(EAX));
+					PMOVD_xmm(fpr.VX(vregs[i]), R(EAX));
 				}
 			}
 			safe.Finish();
@@ -952,7 +952,7 @@ void Jit::Comp_Vcmov(MIPSOpcode op) {
 		fpr.MapRegsV(dregs, sz, MAP_DIRTY);
 		// Test one bit of CC. This bit decides whether none or all subregisters are copied.
 		TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << imm3));
-		FixupBranch skip = J_CC(tf ? CC_NZ : CC_Z, true);
+		FixupBranch skip = PJ_CC(tf ? CC_NZ : CC_Z, true);
 		for (int i = 0; i < n; i++) {
 			MOVSS(fpr.VX(dregs[i]), fpr.V(sregs[i]));
 		}
@@ -963,7 +963,7 @@ void Jit::Comp_Vcmov(MIPSOpcode op) {
 		// Look at the bottom four bits of CC to individually decide if the subregisters should be copied.
 		for (int i = 0; i < n; i++) {
 			TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << i));
-			FixupBranch skip = J_CC(tf ? CC_NZ : CC_Z, true);
+			FixupBranch skip = PJ_CC(tf ? CC_NZ : CC_Z, true);
 			MOVSS(fpr.VX(dregs[i]), fpr.V(sregs[i]));
 			PSetJumpTarget(skip);
 		}
@@ -1202,12 +1202,12 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 				{
 					MOVSS(XMM0, fpr.V(tregs[i]));
 					UCOMISS(tempxregs[i], R(XMM0));
-					FixupBranch skip = J_CC(CC_NP, true);
+					FixupBranch skip = PJ_CC(CC_NP, true);
 
 					MOVSS(MIPSSTATE_VAR(temp), tempxregs[i]);
-					MOVD_xmm(R(EAX), XMM0);
+					PMOVD_xmm(R(EAX), XMM0);
 					CallProtectedFunction(&DoVminSS, R(EAX));
-					MOVD_xmm(tempxregs[i], R(EAX));
+					PMOVD_xmm(tempxregs[i], R(EAX));
 					FixupBranch finish = J();
 
 					PSetJumpTarget(skip);
@@ -1219,12 +1219,12 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 				{
 					MOVSS(XMM0, fpr.V(tregs[i]));
 					UCOMISS(tempxregs[i], R(XMM0));
-					FixupBranch skip = J_CC(CC_NP, true);
+					FixupBranch skip = PJ_CC(CC_NP, true);
 
 					MOVSS(MIPSSTATE_VAR(temp), tempxregs[i]);
-					MOVD_xmm(R(EAX), XMM0);
+					PMOVD_xmm(R(EAX), XMM0);
 					CallProtectedFunction(&DoVmaxSS, R(EAX));
-					MOVD_xmm(tempxregs[i], R(EAX));
+					PMOVD_xmm(tempxregs[i], R(EAX));
 					FixupBranch finish = J();
 
 					PSetJumpTarget(skip);
@@ -1473,7 +1473,7 @@ void Jit::Comp_Vcmp(MIPSOpcode op) {
 		// Aggregate the bits. Urgh, expensive. Can optimize for the case of one comparison,
 		// which is the most common after all.
 		CMP(32, R(TEMPREG), Imm8(affected_bits & 0x1F));
-		SETcc(CC_E, R(ECX));
+		PSETcc(CC_E, R(ECX));
 		SHL(32, R(ECX), Imm8(5));
 		OR(32, R(TEMPREG), R(ECX));
 	} else {
@@ -1485,7 +1485,7 @@ void Jit::Comp_Vcmp(MIPSOpcode op) {
 			// It's inversed below for NS.
 		}
 
-		MOVD_xmm(R(TEMPREG), XMM0);
+		PMOVD_xmm(R(TEMPREG), XMM0);
 		if (inverse) {
 			XOR(32, R(TEMPREG), Imm32(0xFFFFFFFF));
 		}
@@ -1902,7 +1902,7 @@ void Jit::Comp_Vf2i(MIPSOpcode op) {
 		case 18: CVTSD2SI(TEMPREG, R(XMM0)); break; //u
 		case 19: CVTSD2SI(TEMPREG, R(XMM0)); break; //d
 		}
-		MOVD_xmm(fpr.VX(tempregs[i]), R(TEMPREG));
+		PMOVD_xmm(fpr.VX(tempregs[i]), R(TEMPREG));
 	}
 
 	for (int i = 0; i < n; ++i) {
@@ -2219,7 +2219,7 @@ void Jit::Comp_VV2Op(MIPSOpcode op) {
 #else
 		// Sigh, passing floats with cdecl isn't pretty, ends up on the stack.
 		if (fpr.V(sreg).IsSimpleReg()) {
-			MOVD_xmm(R(EAX), fpr.VX(sreg));
+			PMOVD_xmm(R(EAX), fpr.VX(sreg));
 		} else {
 			MOV(32, R(EAX), fpr.V(sreg));
 		}
@@ -2453,7 +2453,7 @@ void Jit::Comp_Mftv(MIPSOpcode op) {
 				if (fpr.V(imm).IsSimpleReg()) {
 					fpr.MapRegV(imm, 0);
 					gpr.MapReg(rt, false, true);
-					MOVD_xmm(gpr.R(rt), fpr.VX(imm));
+					PMOVD_xmm(gpr.R(rt), fpr.VX(imm));
 				} else {
 					// Let's not bother mapping the vreg.
 					gpr.MapReg(rt, false, true);
@@ -2491,7 +2491,7 @@ void Jit::Comp_Mftv(MIPSOpcode op) {
 				XORPS(fpr.VX(imm), fpr.V(imm));
 			} else {
 				gpr.KillImmediate(rt, true, false);
-				MOVD_xmm(fpr.VX(imm), gpr.R(rt));
+				PMOVD_xmm(fpr.VX(imm), gpr.R(rt));
 			}
 		} else if (imm < 128 + VFPU_CTRL_MAX) { //mtvc //currentMIPS->vfpuCtrl[imm - 128] = R(rt);
 			if (imm - 128 == VFPU_CTRL_CC) {
@@ -2536,7 +2536,7 @@ void Jit::Comp_Vmfvc(MIPSOpcode op) {
 		fpr.MapRegV(vd, MAP_DIRTY | MAP_NOINIT);
 		if (imm == VFPU_CTRL_CC) {
 			gpr.MapReg(MIPS_REG_VFPUCC, true, false);
-			MOVD_xmm(fpr.VX(vd), gpr.R(MIPS_REG_VFPUCC));
+			PMOVD_xmm(fpr.VX(vd), gpr.R(MIPS_REG_VFPUCC));
 		} else {
 			MOVSS(fpr.VX(vd), MIPSSTATE_VAR_ELEM32(vfpuCtrl[0], imm));
 		}
@@ -2556,7 +2556,7 @@ void Jit::Comp_Vmtvc(MIPSOpcode op) {
 		fpr.MapRegV(vs, 0);
 		if (imm == VFPU_CTRL_CC) {
 			gpr.MapReg(MIPS_REG_VFPUCC, false, true);
-			MOVD_xmm(gpr.R(MIPS_REG_VFPUCC), fpr.VX(vs));
+			PMOVD_xmm(gpr.R(MIPS_REG_VFPUCC), fpr.VX(vs));
 		} else {
 			MOVSS(MIPSSTATE_VAR_ELEM32(vfpuCtrl[0], imm), fpr.VX(vs));
 		}
@@ -3457,7 +3457,7 @@ void Jit::Comp_Viim(MIPSOpcode op) {
 	fp.f = (float)imm;
 	MOV(32, R(TEMPREG), Imm32(fp.u));
 	fpr.MapRegV(dreg, MAP_DIRTY | MAP_NOINIT);
-	MOVD_xmm(fpr.VX(dreg), R(TEMPREG));
+	PMOVD_xmm(fpr.VX(dreg), R(TEMPREG));
 
 	ApplyPrefixD(&dreg, V_Single);
 	fpr.ReleaseSpillLocks();
@@ -3480,7 +3480,7 @@ void Jit::Comp_Vfim(MIPSOpcode op) {
 	FP32 fval = half_to_float_fast5(half);
 	MOV(32, R(TEMPREG), Imm32(fval.u));
 	fpr.MapRegV(dreg, MAP_DIRTY | MAP_NOINIT);
-	MOVD_xmm(fpr.VX(dreg), R(TEMPREG));
+	PMOVD_xmm(fpr.VX(dreg), R(TEMPREG));
 
 	ApplyPrefixD(&dreg, V_Single);
 	fpr.ReleaseSpillLocks();

@@ -179,9 +179,9 @@ OpArg JitSafeMem::PrepareMemoryOpArg(MemoryOpType type)
 	{
 		// Is it in physical ram?
 		jit_->CMP(32, R(xaddr_), Imm32(PSP_GetKernelMemoryBase() - offset_));
-		tooLow_ = jit_->J_CC(CC_B);
+		tooLow_ = jit_->PJ_CC(CC_B);
 		jit_->CMP(32, R(xaddr_), Imm32(PSP_GetUserMemoryEnd() - offset_ - (size_ - 1)));
-		tooHigh_ = jit_->J_CC(CC_AE);
+		tooHigh_ = jit_->PJ_CC(CC_AE);
 
 		// We may need to jump back up here.
 		safe_ = jit_->GetCodePtr();
@@ -221,9 +221,9 @@ void JitSafeMem::PrepareSlowAccess()
 
 	// Might also be the scratchpad.
 	jit_->CMP(32, R(xaddr_), Imm32(PSP_GetScratchpadMemoryBase() - offset_));
-	FixupBranch tooLow = jit_->J_CC(CC_B);
+	FixupBranch tooLow = jit_->PJ_CC(CC_B);
 	jit_->CMP(32, R(xaddr_), Imm32(PSP_GetScratchpadMemoryEnd() - offset_ - (size_ - 1)));
-	jit_->J_CC(CC_B, safe_);
+	jit_->PJ_CC(CC_B, safe_);
 	jit_->PSetJumpTarget(tooLow);
 }
 
@@ -367,7 +367,7 @@ void JitSafeMem::MemCheckImm(MemoryOpType type) {
 			jit_->CMP(32, MatR(RAX), Imm32(CORE_NEXTFRAME));
 			jit_->POP(RAX);
 		}
-		skipChecks_.push_back(jit_->J_CC(CC_G, true));
+		skipChecks_.push_back(jit_->PJ_CC(CC_G, true));
 		jit_->js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
 	}
 }
@@ -382,14 +382,14 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 		if (it->end != 0)
 		{
 			jit_->CMP(32, R(xaddr_), Imm32(it->start - offset_ - size_));
-			skipNext = jit_->J_CC(CC_BE);
+			skipNext = jit_->PJ_CC(CC_BE);
 			jit_->CMP(32, R(xaddr_), Imm32(it->end - offset_));
-			skipNextRange = jit_->J_CC(CC_AE);
+			skipNextRange = jit_->PJ_CC(CC_AE);
 		}
 		else
 		{
 			jit_->CMP(32, R(xaddr_), Imm32(it->start - offset_));
-			skipNext = jit_->J_CC(CC_NE);
+			skipNext = jit_->PJ_CC(CC_NE);
 		}
 
 		// Keep the stack 16-byte aligned, just PUSH/POP 4 times.
@@ -418,7 +418,7 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 			jit_->CMP(32, MatR(RAX), Imm32(CORE_NEXTFRAME));
 			jit_->POP(RAX);
 		}
-		skipChecks_.push_back(jit_->J_CC(CC_G, true));
+		skipChecks_.push_back(jit_->PJ_CC(CC_G, true));
 		jit_->js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
 	}
 }
@@ -518,19 +518,19 @@ void JitSafeMemFuncs::CheckDirectEAX() {
 	AND(32, R(EAX), Imm32(0x3FFFFFFF));
 	
 	CMP(32, R(EAX), Imm32(PSP_GetUserMemoryEnd()));
-	FixupBranch tooHighRAM = J_CC(CC_AE);
+	FixupBranch tooHighRAM = PJ_CC(CC_AE);
 	CMP(32, R(EAX), Imm32(PSP_GetKernelMemoryBase()));
-	skips_.push_back(J_CC(CC_AE));
+	skips_.push_back(PJ_CC(CC_AE));
 	
 	CMP(32, R(EAX), Imm32(PSP_GetVidMemEnd()));
-	FixupBranch tooHighVid = J_CC(CC_AE);
+	FixupBranch tooHighVid = PJ_CC(CC_AE);
 	CMP(32, R(EAX), Imm32(PSP_GetVidMemBase()));
-	skips_.push_back(J_CC(CC_AE));
+	skips_.push_back(PJ_CC(CC_AE));
 	
 	CMP(32, R(EAX), Imm32(PSP_GetScratchpadMemoryEnd()));
-	FixupBranch tooHighScratch = J_CC(CC_AE);
+	FixupBranch tooHighScratch = PJ_CC(CC_AE);
 	CMP(32, R(EAX), Imm32(PSP_GetScratchpadMemoryBase()));
-	skips_.push_back(J_CC(CC_AE));
+	skips_.push_back(PJ_CC(CC_AE));
 
 	PSetJumpTarget(tooHighRAM);
 	PSetJumpTarget(tooHighVid);

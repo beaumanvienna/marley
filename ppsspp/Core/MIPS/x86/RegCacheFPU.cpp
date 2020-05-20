@@ -416,7 +416,7 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 		}
 		const float *f = v[0] < 128 ? &mips->v[voffset[v[0]]] : &mips->tempValues[v[0] - 128];
 		if (((intptr_t)f & 0x7) == 0 && n == 2) {
-			emit->MOVQ_xmm(res, vregs[v[0]].location);
+			emit->PMOVQ_xmm(res, vregs[v[0]].location);
 		} else if (((intptr_t)f & 0xf) == 0) {
 			// On modern processors, MOVUPS on aligned is fast, but maybe not on older ones.
 			emit->MOVAPS(res, vregs[v[0]].location);
@@ -682,7 +682,7 @@ void FPURegCache::StoreFromRegister(int i) {
 					else if (seq == 4)
 						emit->MOVUPS(newLoc, xr);
 					else
-						emit->MOVQ_xmm(newLoc, xr);
+						emit->PMOVQ_xmm(newLoc, xr);
 				}
 				for (int j = 0; j < seq; ++j) {
 					int mr = xregs[xr].mipsRegs[j];

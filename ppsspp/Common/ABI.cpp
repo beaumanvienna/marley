@@ -272,7 +272,7 @@ void XEmitter::ABI_CallFunction(const void *func) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -285,7 +285,7 @@ void XEmitter::ABI_CallFunctionC16(const void *func, u16 param1) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -299,7 +299,7 @@ void XEmitter::ABI_CallFunctionCC16(const void *func, u32 param1, u16 param2) {
 		&& distance <  0xFFFFFFFF80000000ULL) {
 			// Far call
 			MOV(64, R(RAX), ImmPtr(func));
-			CALLptr(R(RAX));
+			PCALLptr(R(RAX));
 	} else {
 		CALL(func);
 	}
@@ -312,7 +312,7 @@ void XEmitter::ABI_CallFunctionC(const void *func, u32 param1) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -326,7 +326,7 @@ void XEmitter::ABI_CallFunctionCC(const void *func, u32 param1, u32 param2) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -341,7 +341,7 @@ void XEmitter::ABI_CallFunctionCCC(const void *func, u32 param1, u32 param2, u32
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -356,7 +356,7 @@ void XEmitter::ABI_CallFunctionCCP(const void *func, u32 param1, u32 param2, voi
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -372,7 +372,7 @@ void XEmitter::ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2, u3
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -385,7 +385,7 @@ void XEmitter::ABI_CallFunctionP(const void *func, void *param1) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -400,7 +400,7 @@ void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpA
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -417,7 +417,7 @@ void XEmitter::ABI_CallFunctionPAA(const void *func, void *param1, const Gen::Op
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -432,7 +432,7 @@ void XEmitter::ABI_CallFunctionPPC(const void *func, void *param1, void *param2,
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -447,7 +447,7 @@ void XEmitter::ABI_CallFunctionR(const void *func, X64Reg reg1) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -471,7 +471,7 @@ void XEmitter::ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2) {
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -487,7 +487,7 @@ void XEmitter::ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -504,7 +504,7 @@ void XEmitter::ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -519,7 +519,7 @@ void XEmitter::ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1)
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}
@@ -536,7 +536,7 @@ void XEmitter::ABI_CallFunctionAA(const void *func, const Gen::OpArg &arg1, cons
 	 && distance <  0xFFFFFFFF80000000ULL) {
 	    // Far call
 	    MOV(64, R(RAX), ImmPtr(func));
-	    CALLptr(R(RAX));
+	    PCALLptr(R(RAX));
 	} else {
 	    CALL(func);
 	}

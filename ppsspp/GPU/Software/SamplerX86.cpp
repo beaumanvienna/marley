@@ -71,7 +71,7 @@ NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 	FixupBranch zeroSrc;
 	if (id.hasInvalidPtr) {
 		CMP(PTRBITS, R(srcReg), Imm8(0));
-		FixupBranch nonZeroSrc = J_CC(CC_NZ);
+		FixupBranch nonZeroSrc = PJ_CC(CC_NZ);
 		XOR(32, R(RAX), R(RAX));
 		zeroSrc = J(true);
 		PSetJumpTarget(nonZeroSrc);
@@ -151,7 +151,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	FixupBranch zeroSrc;
 	if (id.hasInvalidPtr) {
 		CMP(PTRBITS, R(R14), Imm8(0));
-		FixupBranch nonZeroSrc = J_CC(CC_NZ);
+		FixupBranch nonZeroSrc = PJ_CC(CC_NZ);
 		XOR(32, R(RAX), R(RAX));
 		zeroSrc = J(true);
 		PSetJumpTarget(nonZeroSrc);
@@ -181,10 +181,10 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 		PXOR(XMM0, R(XMM0));
 	}
 
-	MOVD_xmm(fpScratchReg1, MDisp(RSP, 0));
-	MOVD_xmm(fpScratchReg2, MDisp(RSP, 4));
-	MOVD_xmm(fpScratchReg3, MDisp(RSP, 8));
-	MOVD_xmm(fpScratchReg4, MDisp(RSP, 12));
+	PMOVD_xmm(fpScratchReg1, MDisp(RSP, 0));
+	PMOVD_xmm(fpScratchReg2, MDisp(RSP, 4));
+	PMOVD_xmm(fpScratchReg3, MDisp(RSP, 8));
+	PMOVD_xmm(fpScratchReg4, MDisp(RSP, 12));
 
 	if (cpu_info.bSSE4_1) {
 		PMOVZXBD(fpScratchReg1, R(fpScratchReg1));
@@ -207,7 +207,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	CVTDQ2PS(fpScratchReg4, R(fpScratchReg4));
 
 	// Okay, now multiply the R sides by frac_u, and L by (256 - frac_u)...
-	MOVD_xmm(fpScratchReg5, MDisp(RSP, 24));
+	PMOVD_xmm(fpScratchReg5, MDisp(RSP, 24));
 	CVTDQ2PS(fpScratchReg5, R(fpScratchReg5));
 	SHUFPS(fpScratchReg5, R(fpScratchReg5), _MM_SHUFFLE(0, 0, 0, 0));
 	if (RipAccessible(by256)) {
@@ -235,7 +235,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	ADDPS(fpScratchReg3, R(fpScratchReg4));
 
 	// Next, time for frac_v.
-	MOVD_xmm(fpScratchReg5, MDisp(RSP, 32));
+	PMOVD_xmm(fpScratchReg5, MDisp(RSP, 32));
 	CVTDQ2PS(fpScratchReg5, R(fpScratchReg5));
 	SHUFPS(fpScratchReg5, R(fpScratchReg5), _MM_SHUFFLE(0, 0, 0, 0));
 	if (RipAccessible(ones)) {
@@ -262,7 +262,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	CVTPS2DQ(fpScratchReg1, R(fpScratchReg1));
 	PACKSSDW(fpScratchReg1, R(fpScratchReg1));
 	PACKUSWB(fpScratchReg1, R(fpScratchReg1));
-	MOVD_xmm(R(resultReg), fpScratchReg1);
+	PMOVD_xmm(R(resultReg), fpScratchReg1);
 
 	if (id.hasInvalidPtr) {
 		PSetJumpTarget(zeroSrc);
@@ -364,7 +364,7 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 	case 4: {
 		XOR(32, R(tempReg2), R(tempReg2));
 		SHR(32, R(uReg), Imm8(1));
-		FixupBranch skip = J_CC(CC_NC);
+		FixupBranch skip = PJ_CC(CC_NC);
 		// Track whether we shifted a 1 off or not.
 		MOV(32, R(tempReg2), Imm32(4));
 		PSetJumpTarget(skip);
@@ -427,7 +427,7 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled4() {
 	AND(32, R(uReg), Imm8(31));
 	SHR(32, R(uReg), Imm8(1));
 	MOV(8, R(resultReg), MRegSum(tempReg1, uReg));
-	FixupBranch skipNonZero = J_CC(CC_NC);
+	FixupBranch skipNonZero = PJ_CC(CC_NC);
 	// If the horizontal offset was odd, take the upper 4.
 	SHR(8, R(resultReg), Imm8(4));
 	PSetJumpTarget(skipNonZero);
@@ -570,7 +570,7 @@ bool SamplerJitCache::Jit_Decode5551() {
 alignas(16) static const u32 color4444mask[4] = { 0xf00ff00f, 0xf00ff00f, 0xf00ff00f, 0xf00ff00f, };
 
 bool SamplerJitCache::Jit_Decode4444() {
-	MOVD_xmm(fpScratchReg1, R(resultReg));
+	PMOVD_xmm(fpScratchReg1, R(resultReg));
 	PPUNPCKLBW(fpScratchReg1, R(fpScratchReg1));
 	if (RipAccessible(color4444mask)) {
 		PAND(fpScratchReg1, M(color4444mask));
@@ -584,7 +584,7 @@ bool SamplerJitCache::Jit_Decode4444() {
 	PSLLW(fpScratchReg3, 4);
 	POR(fpScratchReg1, R(fpScratchReg2));
 	POR(fpScratchReg1, R(fpScratchReg3));
-	MOVD_xmm(R(resultReg), fpScratchReg1);
+	PMOVD_xmm(R(resultReg), fpScratchReg1);
 	return true;
 }
 

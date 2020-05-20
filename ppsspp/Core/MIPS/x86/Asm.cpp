@@ -83,13 +83,13 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 		// If it's 0 (nearest + no flush0), we don't actually bother setting - we cleared the rounding
 		// mode out in restoreRoundingMode anyway. This is the most common.
-		FixupBranch skip = J_CC(CC_Z);
+		FixupBranch skip = PJ_CC(CC_Z);
 		STMXCSR(MIPSSTATE_VAR(temp));
 
 		// The MIPS bits don't correspond exactly, so we have to adjust.
 		// 0 -> 0 (skip2), 1 -> 3, 2 -> 2 (skip2), 3 -> 1
 		TEST(8, R(AL), Imm8(1));
-		FixupBranch skip2 = J_CC(CC_Z);
+		FixupBranch skip2 = PJ_CC(CC_Z);
 		XOR(32, R(EAX), Imm8(2));
 		PSetJumpTarget(skip2);
 
@@ -100,7 +100,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		OR(32, MIPSSTATE_VAR(temp), R(EAX));
 
 		TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
-		FixupBranch skip3 = J_CC(CC_Z);
+		FixupBranch skip3 = PJ_CC(CC_Z);
 		OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
 		PSetJumpTarget(skip3);
 
@@ -133,7 +133,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 		// The result of slice decrementation should be in flags if somebody jumped here
 		// IMPORTANT - We jump on negative, not carry!!!
-		FixupBranch bailCoreState = J_CC(CC_S, true);
+		FixupBranch bailCoreState = PJ_CC(CC_S, true);
 
 		PSetJumpTarget(skipToCoreStateCheck);
 		if (RipAccessible((const void *)&coreState)) {
@@ -142,14 +142,14 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
 			CMP(32, MatR(RAX), Imm32(0));
 		}
-		FixupBranch badCoreState = J_CC(CC_NZ, true);
+		FixupBranch badCoreState = PJ_CC(CC_NZ, true);
 		FixupBranch skipToRealDispatch2 = J(); //skip the sync and compare first time
 
 		dispatcher = GetCodePtr();
 
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
-			FixupBranch bail = J_CC(CC_S, true);
+			FixupBranch bail = PJ_CC(CC_S, true);
 
 			PSetJumpTarget(skipToRealDispatch2);
 
@@ -172,7 +172,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			_assert_msg_(JIT, MIPS_JITBLOCK_MASK == 0xFF000000, "Hardcoded assumption of emuhack mask");
 			SHR(32, R(EDX), Imm8(24));
 			CMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
-			FixupBranch notfound = J_CC(CC_NE);
+			FixupBranch notfound = PJ_CC(CC_NE);
 				if (enableDebug) {
 					ADD(32, MIPSSTATE_VAR(debugCount), Imm8(1));
 				}
@@ -186,7 +186,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 				else
 					ADD(64, R(EAX), Imm32(jitbase));
 #endif
-				JMPptr(R(EAX));
+				PJMPptr(R(EAX));
 			PSetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
@@ -204,7 +204,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
 			CMP(32, MatR(RAX), Imm32(0));
 		}
-		J_CC(CC_Z, outerLoop, true);
+		PJ_CC(CC_Z, outerLoop, true);
 
 	PSetJumpTarget(badCoreState);
 	RestoreRoundingMode(true);

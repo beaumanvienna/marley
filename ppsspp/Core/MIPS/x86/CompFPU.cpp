@@ -116,7 +116,7 @@ void Jit::Comp_FPULS(MIPSOpcode op) {
 			if (safe.PrepareRead(src, 4))
 				MOVSS(fpr.RX(ft), src);
 			if (safe.PrepareSlowRead(safeMemFuncs.readU32))
-				MOVD_xmm(fpr.RX(ft), R(EAX));
+				PMOVD_xmm(fpr.RX(ft), R(EAX));
 			safe.Finish();
 
 			gpr.UnlockAll();
@@ -170,7 +170,7 @@ void Jit::CompFPComp(int lhs, int rhs, u8 compare, bool allowNaN) {
 		CMPSS(XMM0, fpr.R(rhs), compare);
 	}
 
-	MOVD_xmm(gpr.R(MIPS_REG_FPCOND), XMM0);
+	PMOVD_xmm(gpr.R(MIPS_REG_FPCOND), XMM0);
 }
 
 void Jit::Comp_FPUComp(MIPSOpcode op) {
@@ -252,7 +252,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 
 		// Did we get an indefinite integer value?
 		CMP(32, R(TEMPREG), Imm32(0x80000000));
-		FixupBranch skip = J_CC(CC_NE);
+		FixupBranch skip = PJ_CC(CC_NE);
 		if (fd != fs) {
 			CopyFPReg(fpr.RX(fd), fpr.R(fs));
 		}
@@ -261,11 +261,11 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 
 		// At this point, -inf = 0xffffffff, inf/nan = 0x00000000.
 		// We want -inf to be 0x80000000 inf/nan to be 0x7fffffff, so we flip those bits.
-		MOVD_xmm(R(TEMPREG), fpr.RX(fd));
+		PMOVD_xmm(R(TEMPREG), fpr.RX(fd));
 		XOR(32, R(TEMPREG), Imm32(0x7fffffff));
 
 		PSetJumpTarget(skip);
-		MOVD_xmm(fpr.RX(fd), R(TEMPREG));
+		PMOVD_xmm(fpr.RX(fd), R(TEMPREG));
 
 		if (setMXCSR != -1) {
 			LDMXCSR(MIPSSTATE_VAR(mxcsrTemp));
@@ -368,7 +368,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 		// If fs is not mapped, most likely it's being abandoned.
 		// Just load from memory in that case.
 		if (fpr.R(fs).IsSimpleReg()) {
-			MOVD_xmm(gpr.R(rt), fpr.RX(fs));
+			PMOVD_xmm(gpr.R(rt), fpr.RX(fs));
 		} else {
 			MOV(32, gpr.R(rt), fpr.R(fs));
 		}
@@ -412,7 +412,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 			XORPS(fpr.RX(fs), fpr.R(fs));
 		} else {
 			gpr.KillImmediate(rt, true, false);
-			MOVD_xmm(fpr.RX(fs), gpr.R(rt));
+			PMOVD_xmm(fpr.RX(fs), gpr.R(rt));
 		}
 		return;
 
