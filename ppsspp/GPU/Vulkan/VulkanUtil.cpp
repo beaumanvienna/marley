@@ -67,7 +67,7 @@ void Vulkan2D::DestroyDeviceObjects() {
 
 void Vulkan2D::InitDeviceObjects() {
 	VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-	VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+	VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 	assert(VK_SUCCESS == res);
 
 	VkDescriptorSetLayoutBinding bindings[2] = {};
@@ -87,7 +87,7 @@ void Vulkan2D::InitDeviceObjects() {
 	VkDescriptorSetLayoutCreateInfo dsl = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 	dsl.bindingCount = 2;
 	dsl.pBindings = bindings;
-	res = vkCreateDescriptorSetLayout(device, &dsl, nullptr, &descriptorSetLayout_);
+	res = PvkCreateDescriptorSetLayout(device, &dsl, nullptr, &descriptorSetLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkDescriptorPoolSize dpTypes[1];
@@ -100,7 +100,7 @@ void Vulkan2D::InitDeviceObjects() {
 	dp.pPoolSizes = dpTypes;
 	dp.poolSizeCount = ARRAY_SIZE(dpTypes);
 	for (int i = 0; i < ARRAY_SIZE(frameData_); i++) {
-		VkResult res = vkCreateDescriptorPool(vulkan_->GetDevice(), &dp, nullptr, &frameData_[i].descPool);
+		VkResult res = PvkCreateDescriptorPool(vulkan_->GetDevice(), &dp, nullptr, &frameData_[i].descPool);
 		assert(VK_SUCCESS == res);
 	}
 
@@ -115,7 +115,7 @@ void Vulkan2D::InitDeviceObjects() {
 	pl.setLayoutCount = 1;
 	pl.pSetLayouts = &descriptorSetLayout_;
 	pl.flags = 0;
-	res = vkCreatePipelineLayout(device, &pl, nullptr, &pipelineLayout_);
+	res = PvkCreatePipelineLayout(device, &pl, nullptr, &pipelineLayout_);
 	assert(VK_SUCCESS == res);
 }
 
@@ -132,7 +132,7 @@ void Vulkan2D::BeginFrame() {
 	int curFrame = vulkan_->GetCurFrame();
 	FrameData &frame = frameData_[curFrame];
 	frame.descSets.clear();
-	vkResetDescriptorPool(vulkan_->GetDevice(), frame.descPool, 0);
+	PvkResetDescriptorPool(vulkan_->GetDevice(), frame.descPool, 0);
 }
 
 void Vulkan2D::EndFrame() {
@@ -190,7 +190,7 @@ VkDescriptorSet Vulkan2D::GetDescriptorSet(VkImageView tex1, VkSampler sampler1,
 	descAlloc.pSetLayouts = &descriptorSetLayout_;
 	descAlloc.descriptorPool = frame->descPool;
 	descAlloc.descriptorSetCount = 1;
-	VkResult result = vkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
+	VkResult result = PvkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
 	assert(result == VK_SUCCESS);
 
 	// We just don't write to the slots we don't care about.
@@ -233,7 +233,7 @@ VkDescriptorSet Vulkan2D::GetDescriptorSet(VkImageView tex1, VkSampler sampler1,
 		n++;
 	}
 
-	vkUpdateDescriptorSets(vulkan_->GetDevice(), n, writes, 0, nullptr);
+	PvkUpdateDescriptorSets(vulkan_->GetDevice(), n, writes, 0, nullptr);
 
 	frame->descSets[key] = desc;
 	return desc;
@@ -369,7 +369,7 @@ VkPipeline Vulkan2D::GetPipeline(VkRenderPass rp, VkShaderModule vs, VkShaderMod
 	pipe.subpass = 0;
 
 	VkPipeline pipeline;
-	VkResult result = vkCreateGraphicsPipelines(vulkan_->GetDevice(), pipelineCache_, 1, &pipe, nullptr, &pipeline);
+	VkResult result = PvkCreateGraphicsPipelines(vulkan_->GetDevice(), pipelineCache_, 1, &pipe, nullptr, &pipeline);
 	if (result == VK_SUCCESS) {
 		pipelines_[key] = pipeline;
 		return pipeline;

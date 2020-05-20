@@ -295,7 +295,7 @@ void MipsJit::WriteExit(u32 destination, int exit_num)
 	//WriteDownCount();
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	b->exitPtrs[exit_num] = PGetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);

@@ -141,7 +141,7 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	VkDescriptorSetLayoutCreateInfo dsl{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 	dsl.bindingCount = ARRAY_SIZE(bindings);
 	dsl.pBindings = bindings;
-	VkResult res = vkCreateDescriptorSetLayout(device, &dsl, nullptr, &descriptorSetLayout_);
+	VkResult res = PvkCreateDescriptorSetLayout(device, &dsl, nullptr, &descriptorSetLayout_);
 	assert(VK_SUCCESS == res);
 
 	// We are going to use one-shot descriptors in the initial implementation. Might look into caching them
@@ -161,7 +161,7 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	pl.setLayoutCount = 1;
 	pl.pSetLayouts = &descriptorSetLayout_;
 	pl.flags = 0;
-	res = vkCreatePipelineLayout(device, &pl, nullptr, &pipelineLayout_);
+	res = PvkCreatePipelineLayout(device, &pl, nullptr, &pipelineLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkSamplerCreateInfo samp{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
@@ -172,8 +172,8 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	samp.flags = 0;
 	samp.magFilter = VK_FILTER_NEAREST;
 	samp.minFilter = VK_FILTER_NEAREST;
-	res = vkCreateSampler(device, &samp, nullptr, &samplerSecondary_);
-	res = vkCreateSampler(device, &samp, nullptr, &nullSampler_);
+	res = PvkCreateSampler(device, &samp, nullptr, &samplerSecondary_);
+	res = PvkCreateSampler(device, &samp, nullptr, &nullSampler_);
 	assert(VK_SUCCESS == res);
 
 	vertexCache_ = new VulkanPushBuffer(vulkan_, VERTEX_CACHE_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
@@ -286,7 +286,7 @@ void DrawEngineVulkan::BeginFrame() {
 
 	if (--descDecimationCounter_ <= 0) {
 		if (frame->descPool != VK_NULL_HANDLE)
-			vkResetDescriptorPool(vulkan_->GetDevice(), frame->descPool, 0);
+			PvkResetDescriptorPool(vulkan_->GetDevice(), frame->descPool, 0);
 		frame->descSets.Clear();
 		frame->descCount = 0;
 		descDecimationCounter_ = DESCRIPTORSET_DECIMATION_INTERVAL;
@@ -368,7 +368,7 @@ VkResult DrawEngineVulkan::RecreateDescriptorPool(FrameData &frame, int newSize)
 	dp.pPoolSizes = dpTypes;
 	dp.poolSizeCount = ARRAY_SIZE(dpTypes);
 
-	VkResult res = vkCreateDescriptorPool(vulkan_->GetDevice(), &dp, nullptr, &frame.descPool);
+	VkResult res = PvkCreateDescriptorPool(vulkan_->GetDevice(), &dp, nullptr, &frame.descPool);
 	return res;
 }
 
@@ -406,16 +406,16 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 	descAlloc.pSetLayouts = &descriptorSetLayout_;
 	descAlloc.descriptorPool = frame.descPool;
 	descAlloc.descriptorSetCount = 1;
-	VkResult result = vkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
+	VkResult result = PvkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
 
 	if (result == VK_ERROR_FRAGMENTED_POOL || result < 0) {
 		// There seems to have been a spec revision. Here we should apparently recreate the descriptor pool,
-		// so let's do that. See https://www.khronos.org/registry/vulkan/specs/1.0/man/html/vkAllocateDescriptorSets.html
+		// so let's do that. See https://www.khronos.org/registry/vulkan/specs/1.0/man/html/PvkAllocateDescriptorSets.html
 		// Fragmentation shouldn't really happen though since we wipe the pool every frame..
 		VkResult res = RecreateDescriptorPool(frame, frame.descPoolSize);
 		_assert_msg_(G3D, res == VK_SUCCESS, "Ran out of descriptor space (frag?) and failed to recreate a descriptor pool. sz=%d res=%d", (int)frame.descSets.size(), (int)res);
 		descAlloc.descriptorPool = frame.descPool;  // Need to update this pointer since we have allocated a new one.
-		result = vkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
+		result = PvkAllocateDescriptorSets(vulkan_->GetDevice(), &descAlloc, &desc);
 		_assert_msg_(G3D, result == VK_SUCCESS, "Ran out of descriptor space (frag?) and failed to allocate after recreating a descriptor pool. res=%d", (int)result);
 	}
 
@@ -540,7 +540,7 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 		n++;
 	}
 
-	vkUpdateDescriptorSets(vulkan_->GetDevice(), n, writes, 0, nullptr);
+	PvkUpdateDescriptorSets(vulkan_->GetDevice(), n, writes, 0, nullptr);
 
 	if (!tess) // Again, avoid caching when HW tessellation.
 		frame.descSets.Insert(key, desc);

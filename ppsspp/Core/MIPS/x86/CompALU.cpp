@@ -231,10 +231,10 @@ namespace MIPSComp
 				SUB(32, gpr.R(rd), R(TEMPREG));
 				FixupBranch skip = J();
 
-				SetJumpTarget(notFound);
+				PSetJumpTarget(notFound);
 				MOV(32, gpr.R(rd), Imm32(32));
 
-				SetJumpTarget(skip);
+				PSetJumpTarget(skip);
 				gpr.UnlockAll();
 			}
 			break;
@@ -264,10 +264,10 @@ namespace MIPSComp
 				SUB(32, gpr.R(rd), R(TEMPREG));
 				FixupBranch skip = J();
 
-				SetJumpTarget(notFound);
+				PSetJumpTarget(notFound);
 				MOV(32, gpr.R(rd), Imm32(32));
 
-				SetJumpTarget(skip);
+				PSetJumpTarget(skip);
 				gpr.UnlockAll();
 			}
 			break;
@@ -1020,8 +1020,8 @@ namespace MIPSComp
 				MOV(32, gpr.R(MIPS_REG_HI), Imm32(-1));
 				FixupBranch skip2 = J();
 
-				SetJumpTarget(notOverflow);
-				SetJumpTarget(notOverflow2);
+				PSetJumpTarget(notOverflow);
+				PSetJumpTarget(notOverflow2);
 
 				CDQ();
 				IDIV(32, gpr.R(rt));
@@ -1029,16 +1029,16 @@ namespace MIPSComp
 				MOV(32, gpr.R(MIPS_REG_LO), R(EAX));
 				FixupBranch skip = J();
 
-				SetJumpTarget(divZero);
+				PSetJumpTarget(divZero);
 				MOV(32, gpr.R(MIPS_REG_HI), R(EAX));
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(-1));
 				CMP(32, R(EAX), Imm32(0));
 				FixupBranch positiveDivZero = J_CC(CC_GE);
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(1));
 
-				SetJumpTarget(positiveDivZero);
-				SetJumpTarget(skip);
-				SetJumpTarget(skip2);
+				PSetJumpTarget(positiveDivZero);
+				PSetJumpTarget(skip);
+				PSetJumpTarget(skip2);
 				gpr.UnlockAllX();
 			}
 			break;
@@ -1061,15 +1061,15 @@ namespace MIPSComp
 				MOV(32, gpr.R(MIPS_REG_LO), R(EAX));
 				FixupBranch skip = J();
 
-				SetJumpTarget(divZero);
+				PSetJumpTarget(divZero);
 				MOV(32, gpr.R(MIPS_REG_HI), R(EAX));
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(-1));
 				CMP(32, R(EAX), Imm32(0xFFFF));
 				FixupBranch moreThan16Bit = J_CC(CC_A);
 				MOV(32, gpr.R(MIPS_REG_LO), Imm32(0xFFFF));
 
-				SetJumpTarget(moreThan16Bit);
-				SetJumpTarget(skip);
+				PSetJumpTarget(moreThan16Bit);
+				PSetJumpTarget(skip);
 				gpr.UnlockAllX();
 			}
 			break;

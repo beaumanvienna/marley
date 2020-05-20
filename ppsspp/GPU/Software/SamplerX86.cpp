@@ -65,7 +65,7 @@ static const X64Reg fpScratchReg5 = XMM5;
 
 NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 	BeginWrite();
-	const u8 *start = AlignCode16();
+	const u8 *start = PAlignCode16();
 
 	// Early exit on !srcPtr.
 	FixupBranch zeroSrc;
@@ -74,7 +74,7 @@ NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 		FixupBranch nonZeroSrc = J_CC(CC_NZ);
 		XOR(32, R(RAX), R(RAX));
 		zeroSrc = J(true);
-		SetJumpTarget(nonZeroSrc);
+		PSetJumpTarget(nonZeroSrc);
 	}
 
 	if (!Jit_ReadTextureFormat(id)) {
@@ -84,7 +84,7 @@ NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 	}
 
 	if (id.hasInvalidPtr) {
-		SetJumpTarget(zeroSrc);
+		PSetJumpTarget(zeroSrc);
 	}
 
 	RET();
@@ -102,7 +102,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 
 	// We'll first write the nearest sampler, which we will CALL.
 	// This may differ slightly based on the "linear" flag.
-	const u8 *nearest = AlignCode16();
+	const u8 *nearest = PAlignCode16();
 
 	if (!Jit_ReadTextureFormat(id)) {
 		EndWrite();
@@ -113,7 +113,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	RET();
 
 	// Now the actual linear func, which is exposed externally.
-	const u8 *start = AlignCode16();
+	const u8 *start = PAlignCode16();
 
 	// NOTE: This doesn't use the general register mapping.
 	// POSIX: arg1=uptr, arg2=vptr, arg3=frac_u, arg4=frac_v, arg5=src, arg6=bufw, stack+8=level
@@ -154,7 +154,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 		FixupBranch nonZeroSrc = J_CC(CC_NZ);
 		XOR(32, R(RAX), R(RAX));
 		zeroSrc = J(true);
-		SetJumpTarget(nonZeroSrc);
+		PSetJumpTarget(nonZeroSrc);
 	}
 
 	// At this point:
@@ -192,14 +192,14 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 		PMOVZXBD(fpScratchReg3, R(fpScratchReg3));
 		PMOVZXBD(fpScratchReg4, R(fpScratchReg4));
 	} else {
-		PUNPCKLBW(fpScratchReg1, R(XMM0));
-		PUNPCKLBW(fpScratchReg2, R(XMM0));
-		PUNPCKLBW(fpScratchReg3, R(XMM0));
-		PUNPCKLBW(fpScratchReg4, R(XMM0));
-		PUNPCKLWD(fpScratchReg1, R(XMM0));
-		PUNPCKLWD(fpScratchReg2, R(XMM0));
-		PUNPCKLWD(fpScratchReg3, R(XMM0));
-		PUNPCKLWD(fpScratchReg4, R(XMM0));
+		PPUNPCKLBW(fpScratchReg1, R(XMM0));
+		PPUNPCKLBW(fpScratchReg2, R(XMM0));
+		PPUNPCKLBW(fpScratchReg3, R(XMM0));
+		PPUNPCKLBW(fpScratchReg4, R(XMM0));
+		PPUNPCKLWD(fpScratchReg1, R(XMM0));
+		PPUNPCKLWD(fpScratchReg2, R(XMM0));
+		PPUNPCKLWD(fpScratchReg3, R(XMM0));
+		PPUNPCKLWD(fpScratchReg4, R(XMM0));
 	}
 	CVTDQ2PS(fpScratchReg1, R(fpScratchReg1));
 	CVTDQ2PS(fpScratchReg2, R(fpScratchReg2));
@@ -265,7 +265,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	MOVD_xmm(R(resultReg), fpScratchReg1);
 
 	if (id.hasInvalidPtr) {
-		SetJumpTarget(zeroSrc);
+		PSetJumpTarget(zeroSrc);
 	}
 
 	ADD(64, R(RSP), Imm8(24));
@@ -367,7 +367,7 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 		FixupBranch skip = J_CC(CC_NC);
 		// Track whether we shifted a 1 off or not.
 		MOV(32, R(tempReg2), Imm32(4));
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 		LEA(64, tempReg1, MRegSum(srcReg, uReg));
 		break;
 	}
@@ -430,7 +430,7 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled4() {
 	FixupBranch skipNonZero = J_CC(CC_NC);
 	// If the horizontal offset was odd, take the upper 4.
 	SHR(8, R(resultReg), Imm8(4));
-	SetJumpTarget(skipNonZero);
+	PSetJumpTarget(skipNonZero);
 	// Zero out the rest of the bits.
 	AND(32, R(resultReg), Imm8(0x0F));
 
@@ -571,7 +571,7 @@ alignas(16) static const u32 color4444mask[4] = { 0xf00ff00f, 0xf00ff00f, 0xf00f
 
 bool SamplerJitCache::Jit_Decode4444() {
 	MOVD_xmm(fpScratchReg1, R(resultReg));
-	PUNPCKLBW(fpScratchReg1, R(fpScratchReg1));
+	PPUNPCKLBW(fpScratchReg1, R(fpScratchReg1));
 	if (RipAccessible(color4444mask)) {
 		PAND(fpScratchReg1, M(color4444mask));
 	} else {

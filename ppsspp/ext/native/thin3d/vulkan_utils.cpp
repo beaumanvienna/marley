@@ -94,7 +94,7 @@ void VulkanImage::SetImageData2D(VkDevice device, const uint8_t *data, int width
 	void *destData;
 	vkGetImageSubresourceLayout(device, image_, &subres, &layout);
 
-	VkResult err = vkMapMemory(device, memory_, 0, mem_alloc_.allocationSize, 0, &destData);
+	VkResult err = PvkMapMemory(device, memory_, 0, mem_alloc_.allocationSize, 0, &destData);
 	assert(!err);
 	
 	uint8_t *writePtr = (uint8_t *)destData + layout.offset;
@@ -103,7 +103,7 @@ void VulkanImage::SetImageData2D(VkDevice device, const uint8_t *data, int width
 		memcpy(writePtr + y * layout.rowPitch, data + y * pitch, bpp * width);
 	}
 
-	vkUnmapMemory(device, memory_);
+	PvkUnmapMemory(device, memory_);
 }
 
 

@@ -45,32 +45,32 @@ bool VulkanPushBuffer::AddBuffer() {
 	b.queueFamilyIndexCount = 0;
 	b.pQueueFamilyIndices = nullptr;
 
-	VkResult res = vkCreateBuffer(device, &b, nullptr, &info.buffer);
+	VkResult res = PvkCreateBuffer(device, &b, nullptr, &info.buffer);
 	if (VK_SUCCESS != res) {
-		_assert_msg_(G3D, false, "vkCreateBuffer failed! result=%d", (int)res);
+		_assert_msg_(G3D, false, "PvkCreateBuffer failed! result=%d", (int)res);
 		return false;
 	}
 
 	// Get the buffer memory requirements. None of this can be cached!
 	VkMemoryRequirements reqs;
-	vkGetBufferMemoryRequirements(device, info.buffer, &reqs);
+	PvkGetBufferMemoryRequirements(device, info.buffer, &reqs);
 
 	// Okay, that's the buffer. Now let's allocate some memory for it.
 	VkMemoryAllocateInfo alloc{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	alloc.allocationSize = reqs.size;
 	vulkan_->MemoryTypeFromProperties(reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &alloc.memoryTypeIndex);
 
-	res = vkAllocateMemory(device, &alloc, nullptr, &info.deviceMemory);
+	res = PvkAllocateMemory(device, &alloc, nullptr, &info.deviceMemory);
 	if (VK_SUCCESS != res) {
-		_assert_msg_(G3D, false, "vkAllocateMemory failed! size=%d result=%d", (int)reqs.size, (int)res);
-		vkDestroyBuffer(device, info.buffer, nullptr);
+		_assert_msg_(G3D, false, "PvkAllocateMemory failed! size=%d result=%d", (int)reqs.size, (int)res);
+		PvkDestroyBuffer(device, info.buffer, nullptr);
 		return false;
 	}
-	res = vkBindBufferMemory(device, info.buffer, info.deviceMemory, 0);
+	res = PvkBindBufferMemory(device, info.buffer, info.deviceMemory, 0);
 	if (VK_SUCCESS != res) {
-		ELOG("vkBindBufferMemory failed! result=%d", (int)res);
-		vkFreeMemory(device, info.deviceMemory, nullptr);
-		vkDestroyBuffer(device, info.buffer, nullptr);
+		ELOG("PvkBindBufferMemory failed! result=%d", (int)res);
+		PvkFreeMemory(device, info.deviceMemory, nullptr);
+		PvkDestroyBuffer(device, info.buffer, nullptr);
 		return false;
 	}
 
@@ -135,7 +135,7 @@ size_t VulkanPushBuffer::GetTotalSize() const {
 
 void VulkanPushBuffer::Map() {
 	_dbg_assert_(G3D, !writePtr_);
-	VkResult res = vkMapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory, 0, size_, 0, (void **)(&writePtr_));
+	VkResult res = PvkMapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory, 0, size_, 0, (void **)(&writePtr_));
 	_dbg_assert_(G3D, writePtr_);
 	assert(VK_SUCCESS == res);
 }
@@ -148,9 +148,9 @@ void VulkanPushBuffer::Unmap() {
 	range.offset = 0;
 	range.size = offset_;
 	range.memory = buffers_[buf_].deviceMemory;
-	vkFlushMappedMemoryRanges(device_, 1, &range);
+	PvkFlushMappedMemoryRanges(device_, 1, &range);
 	*/
-	vkUnmapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory);
+	PvkUnmapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory);
 	writePtr_ = nullptr;
 }
 
@@ -412,7 +412,7 @@ bool VulkanDeviceAllocator::AllocateSlab(VkDeviceSize minBytes, int memoryTypeIn
 	}
 
 	VkDeviceMemory deviceMemory;
-	VkResult res = vkAllocateMemory(vulkan_->GetDevice(), &alloc, NULL, &deviceMemory);
+	VkResult res = PvkAllocateMemory(vulkan_->GetDevice(), &alloc, NULL, &deviceMemory);
 	if (res != VK_SUCCESS) {
 		// If it's something else, we used it wrong?
 		assert(res == VK_ERROR_OUT_OF_HOST_MEMORY || res == VK_ERROR_OUT_OF_DEVICE_MEMORY || res == VK_ERROR_TOO_MANY_OBJECTS);

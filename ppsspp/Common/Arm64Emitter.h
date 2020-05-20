@@ -68,7 +68,7 @@ enum ARM64Reg
 	Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23,
 	Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31,
 
-	// For PRFM(prefetch memory) encoding
+	// For PRFM(PPREFETCH memory) encoding
 	// This is encoded in the Rt register
 	// Data preload
 	PLDL1KEEP = 0, PLDL1STRM,
@@ -399,15 +399,15 @@ public:
 	void SetCodePointer(u8* ptr);
 	const u8* GetCodePointer() const;
 
-	void ReserveCodeSpace(u32 bytes);
-	const u8* AlignCode16();
-	const u8* AlignCodePage();
+	void PReserveCodeSpace(u32 bytes);
+	const u8* PAlignCode16();
+	const u8* PAlignCodePage();
 	void FlushIcache();
 	void FlushIcacheSection(u8* start, u8* end);
-	u8* GetWritableCodePtr();
+	u8* PGetWritableCodePtr();
 
 	// FixupBranch branching
-	void SetJumpTarget(FixupBranch const& branch);
+	void PSetJumpTarget(FixupBranch const& branch);
 	FixupBranch CBZ(ARM64Reg Rt);
 	FixupBranch CBNZ(ARM64Reg Rt);
 	FixupBranch B(CCFlags cond);

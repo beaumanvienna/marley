@@ -129,7 +129,7 @@ void Jit::BranchLogExit(MIPSOpcode op, u32 dest, bool useEAX)
 	if (useEAX)
 		MOV(32, R(EAX), MIPSSTATE_VAR(jitBranchExit));
 
-	SetJumpTarget(skip);
+	PSetJumpTarget(skip);
 }
 
 CCFlags Jit::FlipCCFlag(CCFlags flag)
@@ -235,7 +235,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 			WriteExit(notTakenAddr, js.nextExit++);
 
 			// Now our taken path.  Bring the regs back, we didn't flush 'em after all.
-			SetJumpTarget(ptr);
+			PSetJumpTarget(ptr);
 			RestoreState(state);
 			CONDITIONAL_LOG_EXIT(targetAddr);
 
@@ -256,7 +256,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 			WriteExit(targetAddr, js.nextExit++);
 
 			// Not taken
-			SetJumpTarget(ptr);
+			PSetJumpTarget(ptr);
 			RestoreState(state);
 			CONDITIONAL_LOG_EXIT(notTakenAddr);
 
@@ -289,7 +289,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 		WriteExit(targetAddr, js.nextExit++);
 
 		// Not taken
-		SetJumpTarget(ptr);
+		PSetJumpTarget(ptr);
 		CONDITIONAL_LOG_EXIT(notTakenAddr);
 		WriteExit(notTakenAddr, js.nextExit++);
 		js.compiling = false;

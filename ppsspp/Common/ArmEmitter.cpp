@@ -598,26 +598,26 @@ const u8 *ARMXEmitter::GetCodePointer() const
 	return code;
 }
 
-u8 *ARMXEmitter::GetWritableCodePtr()
+u8 *ARMXEmitter::PGetWritableCodePtr()
 {
 	return code;
 }
 
-void ARMXEmitter::ReserveCodeSpace(u32 bytes)
+void ARMXEmitter::PReserveCodeSpace(u32 bytes)
 {
 	for (u32 i = 0; i < bytes/4; i++)
 		Write32(0xE1200070); //bkpt 0
 }
 
-const u8 *ARMXEmitter::AlignCode16()
+const u8 *ARMXEmitter::PAlignCode16()
 {
-	ReserveCodeSpace((-(intptr_t)code) & 15);
+	PReserveCodeSpace((-(intptr_t)code) & 15);
 	return code;
 }
 
-const u8 *ARMXEmitter::AlignCodePage()
+const u8 *ARMXEmitter::PAlignCodePage()
 {
-	ReserveCodeSpace((-(intptr_t)code) & 4095);
+	PReserveCodeSpace((-(intptr_t)code) & 4095);
 	return code;
 }
 
@@ -720,11 +720,11 @@ FixupBranch ARMXEmitter::BL_CC(CCFlags Cond)
 	Write32(condition | 0x01A00000);
 	return branch;
 }
-void ARMXEmitter::SetJumpTarget(FixupBranch const &branch)
+void ARMXEmitter::PSetJumpTarget(FixupBranch const &branch)
 {
 	ptrdiff_t distance =  ((intptr_t)(code) - 8)  - (intptr_t)branch.ptr;
 	_assert_msg_(JIT, distance > -0x2000000 && distance < 0x2000000,
-	             "SetJumpTarget out of range (%p calls %p)", code, branch.ptr);
+	             "PSetJumpTarget out of range (%p calls %p)", code, branch.ptr);
 	u32 instr = (u32)(branch.condition | ((distance >> 2) & 0x00FFFFFF));
 	instr |= branch.type == 0 ? /* B */ 0x0A000000 : /* BL */ 0x0B000000;
 	*(u32*)branch.ptr = instr;

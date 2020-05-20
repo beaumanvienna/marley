@@ -37,7 +37,7 @@
 //               vk_icdGetPhysicalDeviceProcAddr.
 //   Version 5 - Tells ICDs that the loader is now paying attention to the
 //               application version of Vulkan passed into the ApplicationInfo
-//               structure during vkCreateInstance.  This will tell the ICD
+//               structure during PvkCreateInstance.  This will tell the ICD
 //               that if the loader is older, it should automatically fail a
 //               call for any API version > 1.0.  Otherwise, the loader will
 //               manually determine if it can support the expected version.

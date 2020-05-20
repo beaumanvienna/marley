@@ -79,11 +79,11 @@ public:
 	}
 
 	void SetCodePtr(u8 *ptr);
-	void ReserveCodeSpace(u32 bytes);
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
+	void PReserveCodeSpace(u32 bytes);
+	const u8 *PAlignCode16();
+	const u8 *PAlignCodePage();
 	const u8 *GetCodePtr() const;
-	u8 *GetWritableCodePtr();
+	u8 *PGetWritableCodePtr();
 	void FlushIcache();
 	void FlushIcacheSection(u8 *start, u8 *end);
 
@@ -151,7 +151,7 @@ public:
 	FixupBranch BGTZ(MIPSReg rs, std::function<void ()> delaySlot = nullptr);
 	void BGTZ(MIPSReg rs, const void *func, std::function<void ()> delaySlot = nullptr);
 
-	void SetJumpTarget(const FixupBranch &branch);
+	void PSetJumpTarget(const FixupBranch &branch);
 	bool BInRange(const void *func);
 	bool JInRange(const void *func);
 
@@ -254,7 +254,7 @@ protected:
 		*code32_++ = (v1 << pos1) | (v2 << pos2) | (v3 << pos3) | (v4 << pos5) | (v5 << pos5) | (v6 << pos6);
 	}
 
-	static void SetJumpTarget(const FixupBranch &branch, const void *dst);
+	static void PSetJumpTarget(const FixupBranch &branch, const void *dst);
 	static bool BInRange(const void *src, const void *dst);
 	static bool JInRange(const void *src, const void *dst);
 	FixupBranch MakeFixupBranch(FixupBranchType type);

@@ -264,7 +264,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 		MOVD_xmm(R(TEMPREG), fpr.RX(fd));
 		XOR(32, R(TEMPREG), Imm32(0x7fffffff));
 
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 		MOVD_xmm(fpr.RX(fd), R(TEMPREG));
 
 		if (setMXCSR != -1) {

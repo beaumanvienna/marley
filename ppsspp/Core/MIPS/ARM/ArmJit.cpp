@@ -366,7 +366,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	}
 
 	if (jo.useForwardJump) {
-		SetJumpTarget(bail);
+		PSetJumpTarget(bail);
 		gpr.SetRegImm(R0, js.blockStart);
 		B((const void *)outerLoopPCInR0);
 	}
@@ -707,7 +707,7 @@ void ArmJit::WriteExit(u32 destination, int exit_num)
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	b->exitPtrs[exit_num] = PGetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
@@ -750,7 +750,7 @@ bool ArmJit::CheckJitBreakpoint(u32 addr, int downcountOffset) {
 		WriteDownCount(downcountOffset);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(true, false, R8);
@@ -779,7 +779,7 @@ bool ArmJit::CheckMemoryBreakpoint(int instructionOffset) {
 		WriteDownCount(-1 - off);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(true, false, R8);

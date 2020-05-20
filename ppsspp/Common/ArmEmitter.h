@@ -446,12 +446,12 @@ public:
 	void SetCodePointer(u8 *ptr);
 	const u8 *GetCodePointer() const;
 
-	void ReserveCodeSpace(u32 bytes);
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
+	void PReserveCodeSpace(u32 bytes);
+	const u8 *PAlignCode16();
+	const u8 *PAlignCodePage();
 	void FlushIcache();
 	void FlushIcacheSection(u8 *start, u8 *end);
-	u8 *GetWritableCodePtr();
+	u8 *PGetWritableCodePtr();
 
 	void FlushLitPool();
 	void AddNewLit(u32 val);
@@ -483,7 +483,7 @@ public:
 	void B_CC(CCFlags Cond, const void *fnptr);
 	FixupBranch BL();
 	FixupBranch BL_CC(CCFlags Cond);
-	void SetJumpTarget(FixupBranch const &branch);
+	void PSetJumpTarget(FixupBranch const &branch);
 
 	void B (const void *fnptr);
 	void B (ARMReg src);

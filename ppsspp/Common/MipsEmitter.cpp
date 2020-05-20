@@ -34,20 +34,20 @@ void MIPSEmitter::SetCodePtr(u8 *ptr) {
 	lastCacheFlushEnd_ = ptr;
 }
 
-void MIPSEmitter::ReserveCodeSpace(u32 bytes) {
+void MIPSEmitter::PReserveCodeSpace(u32 bytes) {
 	for (u32 i = 0; i < bytes / 4; ++i) {
 		BREAK(0);
 	}
 }
 
-const u8 *MIPSEmitter::AlignCode16() {
-	ReserveCodeSpace((-(intptr_t)code_) & 15);
+const u8 *MIPSEmitter::PAlignCode16() {
+	PReserveCodeSpace((-(intptr_t)code_) & 15);
 	return code_;
 }
 
-const u8 *MIPSEmitter::AlignCodePage() {
+const u8 *MIPSEmitter::PAlignCodePage() {
 	// TODO: Assuming code pages ought to be 4K?
-	ReserveCodeSpace((-(intptr_t)code_) & 4095);
+	PReserveCodeSpace((-(intptr_t)code_) & 4095);
 	return code_;
 }
 
@@ -55,7 +55,7 @@ const u8 *MIPSEmitter::GetCodePtr() const {
 	return code_;
 }
 
-u8 *MIPSEmitter::GetWritableCodePtr() {
+u8 *MIPSEmitter::PGetWritableCodePtr() {
 	return code_;
 }
 
@@ -89,7 +89,7 @@ FixupBranch MIPSEmitter::J(std::function<void ()> delaySlot) {
 }
 
 void MIPSEmitter::J(const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(J(delaySlot), func);
+	PSetJumpTarget(J(delaySlot), func);
 }
 
 FixupBranch MIPSEmitter::JAL(std::function<void ()> delaySlot) {
@@ -101,7 +101,7 @@ FixupBranch MIPSEmitter::JAL(std::function<void ()> delaySlot) {
 }
 
 void MIPSEmitter::JAL(const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(JAL(delaySlot), func);
+	PSetJumpTarget(JAL(delaySlot), func);
 }
 
 void MIPSEmitter::JR(MIPSReg rs, std::function<void ()> delaySlot) {
@@ -128,7 +128,7 @@ FixupBranch MIPSEmitter::BLTZ(MIPSReg rs, std::function<void ()> delaySlot) {
 }
 
 void MIPSEmitter::BLTZ(MIPSReg rs, const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(BLTZ(rs, delaySlot), func);
+	PSetJumpTarget(BLTZ(rs, delaySlot), func);
 }
 
 FixupBranch MIPSEmitter::BEQ(MIPSReg rs, MIPSReg rt, std::function<void ()> delaySlot) {
@@ -141,7 +141,7 @@ FixupBranch MIPSEmitter::BEQ(MIPSReg rs, MIPSReg rt, std::function<void ()> dela
 }
 
 void MIPSEmitter::BEQ(MIPSReg rs, MIPSReg rt, const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(BEQ(rs, rt, delaySlot), func);
+	PSetJumpTarget(BEQ(rs, rt, delaySlot), func);
 }
 
 FixupBranch MIPSEmitter::BNE(MIPSReg rs, MIPSReg rt, std::function<void ()> delaySlot) {
@@ -154,7 +154,7 @@ FixupBranch MIPSEmitter::BNE(MIPSReg rs, MIPSReg rt, std::function<void ()> dela
 }
 
 void MIPSEmitter::BNE(MIPSReg rs, MIPSReg rt, const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(BNE(rs, rt, delaySlot), func);
+	PSetJumpTarget(BNE(rs, rt, delaySlot), func);
 }
 
 FixupBranch MIPSEmitter::BLEZ(MIPSReg rs, std::function<void ()> delaySlot) {
@@ -167,7 +167,7 @@ FixupBranch MIPSEmitter::BLEZ(MIPSReg rs, std::function<void ()> delaySlot) {
 }
 
 void MIPSEmitter::BLEZ(MIPSReg rs, const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(BLEZ(rs, delaySlot), func);
+	PSetJumpTarget(BLEZ(rs, delaySlot), func);
 }
 
 FixupBranch MIPSEmitter::BGTZ(MIPSReg rs, std::function<void ()> delaySlot) {
@@ -180,11 +180,11 @@ FixupBranch MIPSEmitter::BGTZ(MIPSReg rs, std::function<void ()> delaySlot) {
 }
 
 void MIPSEmitter::BGTZ(MIPSReg rs, const void *func, std::function<void ()> delaySlot) {
-	SetJumpTarget(BGTZ(rs, delaySlot), func);
+	PSetJumpTarget(BGTZ(rs, delaySlot), func);
 }
 
-void MIPSEmitter::SetJumpTarget(const FixupBranch &branch) {
-	SetJumpTarget(branch, code_);
+void MIPSEmitter::PSetJumpTarget(const FixupBranch &branch) {
+	PSetJumpTarget(branch, code_);
 }
 
 bool MIPSEmitter::BInRange(const void *func) {
@@ -195,7 +195,7 @@ bool MIPSEmitter::JInRange(const void *func) {
 	return JInRange(code_, func);
 }
 
-void MIPSEmitter::SetJumpTarget(const FixupBranch &branch, const void *dst) {
+void MIPSEmitter::PSetJumpTarget(const FixupBranch &branch, const void *dst) {
 	const intptr_t srcp = (intptr_t)branch.ptr;
 	const intptr_t dstp = (intptr_t)dst;
 	u32 *fixup = (u32 *)branch.ptr;

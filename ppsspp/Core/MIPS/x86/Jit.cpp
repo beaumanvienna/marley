@@ -340,7 +340,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 	FixupBranch skip = J_CC(CC_NS);
 	MOV(32, MIPSSTATE_VAR(pc), Imm32(js.blockStart));
 	JMP(outerLoop, true);  // downcount hit zero - go advance.
-	SetJumpTarget(skip);
+	PSetJumpTarget(skip);
 
 	b->normalEntry = GetCodePtr();
 
@@ -378,7 +378,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 			else
 				MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 4));
 			WriteSyscallExit();
-			SetJumpTarget(skipCheck);
+			PSetJumpTarget(skipCheck);
 
 			js.afterOp = JitState::AFTER_NONE;
 		}
@@ -407,7 +407,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 
 	b->codeSize = (u32)(GetCodePtr() - b->normalEntry);
 	NOP();
-	AlignCode4();
+	PAlignCode4();
 	if (js.lastContinuedPC == 0) {
 		b->originalSize = js.numInstructions;
 	} else {
@@ -490,7 +490,7 @@ void Jit::LinkBlock(u8 *exitPoint, const u8 *checkedEntry) {
 	bool prelinked = *emit.GetCodePointer() == 0xE9;
 	emit.JMP(checkedEntry, true);
 	if (!prelinked) {
-		ptrdiff_t actualSize = emit.GetWritableCodePtr() - exitPoint;
+		ptrdiff_t actualSize = emit.PGetWritableCodePtr() - exitPoint;
 		int pad = JitBlockCache::GetBlockExitSize() - (int)actualSize;
 		for (int i = 0; i < pad; ++i) {
 			emit.INT3();
@@ -674,7 +674,7 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 		FixupBranch skipCheck = J_CC(CC_LE);
 		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
-		SetJumpTarget(skipCheck);
+		PSetJumpTarget(skipCheck);
 	}
 
 	WriteDowncount();
@@ -682,7 +682,7 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	b->exitPtrs[exit_num] = PGetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
@@ -697,7 +697,7 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 
 		// Normally, exits are 15 bytes (MOV + &pc + dest + JMP + dest) on 64 or 32 bit.
 		// But just in case we somehow optimized, pad.
-		ptrdiff_t actualSize = GetWritableCodePtr() - b->exitPtrs[exit_num];
+		ptrdiff_t actualSize = PGetWritableCodePtr() - b->exitPtrs[exit_num];
 		int pad = JitBlockCache::GetBlockExitSize() - (int)actualSize;
 		for (int i = 0; i < pad; ++i) {
 			INT3();
@@ -719,7 +719,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		FixupBranch skipCheck = J_CC(CC_LE);
 		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
-		SetJumpTarget(skipCheck);
+		PSetJumpTarget(skipCheck);
 	}
 
 	MOV(32, MIPSSTATE_VAR(pc), R(reg));
@@ -738,8 +738,8 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 			J_CC(CC_NS, dispatcherInEAXNoCheck, true);
 		JMP(dispatcher, true);
 
-		SetJumpTarget(tooLow);
-		SetJumpTarget(tooHigh);
+		PSetJumpTarget(tooLow);
+		PSetJumpTarget(tooHigh);
 
 		ABI_CallFunctionA((const void *)&Memory::GetPointer, R(reg));
 
@@ -748,7 +748,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch skip = J_CC(CC_NE);
 			ABI_CallFunctionA((const void *)&Core_UpdateState, Imm32(CORE_ERROR));
-			SetJumpTarget(skip);
+			PSetJumpTarget(skip);
 		}
 
 		SUB(32, MIPSSTATE_VAR(downcount), Imm8(0));
@@ -787,7 +787,7 @@ bool Jit::CheckJitBreakpoint(u32 addr, int downcountOffset) {
 		// Just to fix the stack.
 		LoadFlags();
 		JMP(dispatcherCheckCoreState, true);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		LoadFlags();

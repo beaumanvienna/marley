@@ -310,7 +310,7 @@ const u8 *Arm64Jit::DoJit(u32 em_address, JitBlock *b) {
 		MOVI2R(SCRATCH1, js.blockStart);
 		FixupBranch skip = B(CC_GE);
 		B((const void *)outerLoopPCInSCRATCH1);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 	} else {
 		// No block linking, no need to add headers to blocks.
 	}
@@ -353,7 +353,7 @@ const u8 *Arm64Jit::DoJit(u32 em_address, JitBlock *b) {
 	}
 
 	if (jo.useForwardJump) {
-		SetJumpTarget(bail);
+		PSetJumpTarget(bail);
 		gpr.SetRegImm(SCRATCH1, js.blockStart);
 		B((const void *)outerLoopPCInSCRATCH1);
 	}
@@ -681,7 +681,7 @@ void Arm64Jit::WriteExit(u32 destination, int exit_num) {
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	b->exitPtrs[exit_num] = PGetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
@@ -722,7 +722,7 @@ bool Arm64Jit::CheckJitBreakpoint(u32 addr, int downcountOffset) {
 		WriteDownCount(downcountOffset);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(FIELD_NZCV, FLAGTEMPREG);
@@ -751,7 +751,7 @@ bool Arm64Jit::CheckMemoryBreakpoint(int instructionOffset) {
 		WriteDownCount(-1 - off);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(FIELD_NZCV, FLAGTEMPREG);

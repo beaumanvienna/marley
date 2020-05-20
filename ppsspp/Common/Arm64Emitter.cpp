@@ -287,31 +287,31 @@ const u8* ARM64XEmitter::GetCodePointer() const
 	return m_code;
 }
 
-u8* ARM64XEmitter::GetWritableCodePtr()
+u8* ARM64XEmitter::PGetWritableCodePtr()
 {
 	return m_code;
 }
 
-void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
+void ARM64XEmitter::PReserveCodeSpace(u32 bytes)
 {
 	for (u32 i = 0; i < bytes/4; i++)
 		BRK(0);
 }
 
-const u8* ARM64XEmitter::AlignCode16()
+const u8* ARM64XEmitter::PAlignCode16()
 {
 	int c = int((u64)m_code & 15);
 	if (c)
-		ReserveCodeSpace(16 - c);
+		PReserveCodeSpace(16 - c);
 	return m_code;
 }
 
-const u8* ARM64XEmitter::AlignCodePage()
+const u8* ARM64XEmitter::PAlignCodePage()
 {
 	int page_size = GetMemoryProtectPageSize();
 	int c = int((u64)m_code & (page_size - 1));
 	if (c)
-		ReserveCodeSpace(page_size - c);
+		PReserveCodeSpace(page_size - c);
 	return m_code;
 }
 
@@ -879,7 +879,7 @@ static inline u32 MaskImm26(s64 distance) {
 }
 
 // FixupBranch branching
-void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
+void ARM64XEmitter::PSetJumpTarget(FixupBranch const& branch)
 {
 	bool Not = false;
 	u32 inst = 0;

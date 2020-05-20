@@ -97,7 +97,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 	samp.minLod = (float)(int32_t)key.minLevel * (1.0f / 256.0f);
 	samp.mipLodBias = (float)(int32_t)key.lodBias * (1.0f / 256.0f);
 
-	VkResult res = vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &sampler);
+	VkResult res = PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &sampler);
 	assert(res == VK_SUCCESS);
 	cache_.Insert(key, sampler);
 	return sampler;
@@ -199,7 +199,7 @@ void TextureCacheVulkan::DeviceRestore(VulkanContext *vulkan, Draw::DrawContext 
 	samp.magFilter = VK_FILTER_NEAREST;
 	samp.minFilter = VK_FILTER_NEAREST;
 	samp.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-	vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &samplerNearest_);
+	PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &samplerNearest_);
 }
 
 void TextureCacheVulkan::ReleaseTexture(TexCacheEntry *entry, bool delete_them) {

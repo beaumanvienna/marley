@@ -293,7 +293,7 @@ static VulkanPipeline *CreateVulkanPipeline(VkDevice device, VkPipelineCache pip
 	pipe.subpass = 0;
 
 	VkPipeline pipeline;
-	VkResult result = vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipe, nullptr, &pipeline);
+	VkResult result = PvkCreateGraphicsPipelines(device, pipelineCache, 1, &pipe, nullptr, &pipeline);
 	if (result != VK_SUCCESS) {
 		if (result == VK_INCOMPLETE) {
 			// Bad return value seen on Adreno in Burnout :(  Try to ignore?
@@ -322,7 +322,7 @@ static VulkanPipeline *CreateVulkanPipeline(VkDevice device, VkPipelineCache pip
 VulkanPipeline *PipelineManagerVulkan::GetOrCreatePipeline(VkPipelineLayout layout, VkRenderPass renderPass, const VulkanPipelineRasterStateKey &rasterKey, const DecVtxFormat *decFmt, VulkanVertexShader *vs, VulkanFragmentShader *fs, bool useHwTransform) {
 	if (!pipelineCache_) {
 		VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-		VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+		VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 		assert(VK_SUCCESS == res);
 	}
 
@@ -583,7 +583,7 @@ void PipelineManagerVulkan::SaveCache(FILE *file, bool saveRawPipelineCache, Sha
 
 	if (saveRawPipelineCache) {
 		// WARNING: See comment in LoadCache before using this path.
-		VkResult result = vkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, nullptr);
+		VkResult result = PvkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, nullptr);
 		uint32_t size = (uint32_t)dataSize;
 		if (result != VK_SUCCESS) {
 			size = 0;
@@ -591,7 +591,7 @@ void PipelineManagerVulkan::SaveCache(FILE *file, bool saveRawPipelineCache, Sha
 			return;
 		}
 		std::unique_ptr<uint8_t[]> buffer(new uint8_t[dataSize]);
-		vkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, buffer.get());
+		PvkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, buffer.get());
 		size = (uint32_t)dataSize;
 		fwrite(&size, sizeof(size), 1, file);
 		fwrite(buffer.get(), 1, size, file);
@@ -697,20 +697,20 @@ bool PipelineManagerVulkan::LoadCache(FILE *file, bool loadRawPipelineCache, Sha
 		pc.initialDataSize = size;
 		pc.flags = 0;
 		VkPipelineCache cache;
-		VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &cache);
+		VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &cache);
 		if (res != VK_SUCCESS) {
 			return false;
 		}
 		if (!pipelineCache_) {
 			pipelineCache_ = cache;
 		} else {
-			vkMergePipelineCaches(vulkan_->GetDevice(), pipelineCache_, 1, &cache);
+			PvkMergePipelineCaches(vulkan_->GetDevice(), pipelineCache_, 1, &cache);
 		}
 		NOTICE_LOG(G3D, "Loaded Vulkan pipeline cache (%d bytes).", (int)size);
 	} else {
 		if (!pipelineCache_) {
 			VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-			VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+			VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 		}
 	}
 

@@ -49,7 +49,7 @@ public:
 		fbci.height = height;
 		fbci.layers = 1;
 
-		vkCreateFramebuffer(vulkan_->GetDevice(), &fbci, nullptr, &framebuf);
+		PvkCreateFramebuffer(vulkan_->GetDevice(), &fbci, nullptr, &framebuf);
 	}
 
 	~VKRFramebuffer() {

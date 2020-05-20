@@ -66,10 +66,10 @@ void ImHere() {
 }
 
 void Jit::GenerateFixedCode(JitOptions &jo) {
-	const u8 *start = AlignCodePage();
+	const u8 *start = PAlignCodePage();
 	BeginWrite();
 
-	restoreRoundingMode = AlignCode16(); {
+	restoreRoundingMode = PAlignCode16(); {
 		STMXCSR(MIPSSTATE_VAR(temp));
 		// Clear the rounding mode and flush-to-zero bits back to 0.
 		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
@@ -77,7 +77,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		RET();
 	}
 
-	applyRoundingMode = AlignCode16(); {
+	applyRoundingMode = PAlignCode16(); {
 		MOV(32, R(EAX), MIPSSTATE_VAR(fcr31));
 		AND(32, R(EAX), Imm32(0x01000003));
 
@@ -91,7 +91,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		TEST(8, R(AL), Imm8(1));
 		FixupBranch skip2 = J_CC(CC_Z);
 		XOR(32, R(EAX), Imm8(2));
-		SetJumpTarget(skip2);
+		PSetJumpTarget(skip2);
 
 		// Adjustment complete, now reconstruct MXCSR
 		SHL(32, R(EAX), Imm8(13));
@@ -102,14 +102,14 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
 		FixupBranch skip3 = J_CC(CC_Z);
 		OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
-		SetJumpTarget(skip3);
+		PSetJumpTarget(skip3);
 
 		LDMXCSR(MIPSSTATE_VAR(temp));
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 		RET();
 	}
 
-	enterDispatcher = AlignCode16();
+	enterDispatcher = PAlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 #ifdef _M_X64
 	// Two statically allocated registers.
@@ -135,7 +135,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		// IMPORTANT - We jump on negative, not carry!!!
 		FixupBranch bailCoreState = J_CC(CC_S, true);
 
-		SetJumpTarget(skipToCoreStateCheck);
+		PSetJumpTarget(skipToCoreStateCheck);
 		if (RipAccessible((const void *)&coreState)) {
 			CMP(32, M(&coreState), Imm32(0));  // rip accessible
 		} else {
@@ -151,7 +151,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_S, true);
 
-			SetJumpTarget(skipToRealDispatch2);
+			PSetJumpTarget(skipToRealDispatch2);
 
 			dispatcherNoCheck = GetCodePtr();
 
@@ -187,7 +187,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 					ADD(64, R(EAX), Imm32(jitbase));
 #endif
 				JMPptr(R(EAX));
-			SetJumpTarget(notfound);
+			PSetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
 			RestoreRoundingMode(true);
@@ -195,8 +195,8 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			ApplyRoundingMode(true);
 			JMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
 
-		SetJumpTarget(bail);
-		SetJumpTarget(bailCoreState);
+		PSetJumpTarget(bail);
+		PSetJumpTarget(bailCoreState);
 
 		if (RipAccessible((const void *)&coreState)) {
 			CMP(32, M(&coreState), Imm32(0));  // rip accessible
@@ -206,13 +206,13 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		}
 		J_CC(CC_Z, outerLoop, true);
 
-	SetJumpTarget(badCoreState);
+	PSetJumpTarget(badCoreState);
 	RestoreRoundingMode(true);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 
 	// Let's spare the pre-generated code from unprotect-reprotect.
-	endOfPregeneratedCode = AlignCodePage();
+	endOfPregeneratedCode = PAlignCodePage();
 	EndWrite();
 }
 

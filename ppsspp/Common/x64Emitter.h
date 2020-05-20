@@ -172,13 +172,13 @@ struct OpArg
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
-	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
-	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
+	void PWriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
+	void PWriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
 	u16 operandReg;
 
-	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
+	void PWriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
 	bool IsSimpleReg(X64Reg reg) const
@@ -337,17 +337,17 @@ private:
 	u8 *code;
 	bool flags_locked;
 
-	void CheckFlags();
+	void PCheckFlags();
 
 	void Rex(int w, int r, int x, int b);
-	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
-	void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
-	void WriteMulDivType(int bits, OpArg src, int ext);
-	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
+	void PWriteSimple1Byte(int bits, u8 byte, X64Reg reg);
+	void PWriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
+	void PWriteMulDivType(int bits, OpArg src, int ext);
+	void PWriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
-	void WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void PWriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
@@ -356,7 +356,7 @@ private:
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
-	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
+	void PWriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
 	inline void Write8(u8 value)   {*code++ = value;}
@@ -369,17 +369,17 @@ public:
 	XEmitter(u8 *code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
-	void WriteModRM(int mod, int rm, int reg);
-	void WriteSIB(int scale, int index, int base);
+	void PWriteModRM(int mod, int rm, int reg);
+	void PWriteSIB(int scale, int index, int base);
 
 	void SetCodePointer(u8 *ptr);
 	const u8 *GetCodePointer() const;
 
-	void ReserveCodeSpace(int bytes);
-	const u8 *AlignCode4();
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
-	u8 *GetWritableCodePtr();
+	void PReserveCodeSpace(int bytes);
+	const u8 *PAlignCode4();
+	const u8 *PAlignCode16();
+	const u8 *PAlignCodePage();
+	u8 *PGetWritableCodePtr();
 
 	void LockFlags() { flags_locked = true; }
 	void UnlockFlags() { flags_locked = false; }
@@ -437,7 +437,7 @@ public:
 	//void J_CC(CCFlags conditionCode, JumpTarget target);
 	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
 
-	void SetJumpTarget(const FixupBranch &branch);
+	void PSetJumpTarget(const FixupBranch &branch);
 
 	void SETcc(CCFlags flag, OpArg dest);
 	// Note: CMOV brings small if any benefit on current cpus.
@@ -453,14 +453,14 @@ public:
 	void BSR(int bits, X64Reg dest, OpArg src); //top bit to bottom bit
 
 	// Cache control
-	enum PrefetchLevel
+	enum PPREFETCHLevel
 	{
 		PF_NTA, //Non-temporal (data used once and only once)
 		PF_T0,  //All cache levels
 		PF_T1,  //Levels 2+ (aliased to T0 on AMD)
 		PF_T2,  //Levels 3+ (aliased to T0 on AMD)
 	};
-	void PREFETCH(PrefetchLevel level, OpArg arg);
+	void PPREFETCH(PPREFETCHLevel level, OpArg arg);
 	void MOVNTI(int bits, OpArg dest, X64Reg src);
 	void MOVNTDQ(OpArg arg, X64Reg regOp);
 	void MOVNTPS(OpArg arg, X64Reg regOp);
@@ -547,8 +547,8 @@ public:
 	void LOCK();
 	void REP();
 	void REPNE();
-	void FSOverride();
-	void GSOverride();
+	void PFSOverride();
+	void PGSOverride();
 
 	// x87
 	enum x87StatusWordBits {
@@ -571,7 +571,7 @@ public:
 	void FLD(int bits, OpArg src);
 	void FST(int bits, OpArg dest);
 	void FSTP(int bits, OpArg dest);
-	void FNSTSW_AX();
+	void PFNSTSW_AX();
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
@@ -719,7 +719,7 @@ public:
 	void MOVMSKPD(X64Reg dest, OpArg arg);
 
 	// SSE2: Selective byte store, mask in src register. EDI/RDI specifies store address. This is a weird one.
-	void MASKMOVDQU(X64Reg dest, X64Reg src);
+	void PMASKMOVDQU(X64Reg dest, X64Reg src);
 	void LDDQU(X64Reg dest, OpArg src);
 
 	// SSE/SSE2: Data type conversions.
@@ -749,10 +749,10 @@ public:
 	void PACKUSDW(X64Reg dest, OpArg arg);
 	void PACKUSWB(X64Reg dest, OpArg arg);
 
-	void PUNPCKLBW(X64Reg dest, const OpArg &arg);
-	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
-	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
-	void PUNPCKLQDQ(X64Reg dest, const OpArg &arg);
+	void PPUNPCKLBW(X64Reg dest, const OpArg &arg);
+	void PPUNPCKLWD(X64Reg dest, const OpArg &arg);
+	void PPUNPCKLDQ(X64Reg dest, const OpArg &arg);
+	void PPUNPCKLQDQ(X64Reg dest, const OpArg &arg);
 
 	void PUNPCKHBW(X64Reg dest, const OpArg &arg);
 	void PUNPCKHWD(X64Reg dest, const OpArg &arg);

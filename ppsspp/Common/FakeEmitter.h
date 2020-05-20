@@ -382,13 +382,13 @@ public:
 	virtual ~FakeXEmitter() {}
 
 	void SetCodePtr(u8 *ptr) {}
-	void ReserveCodeSpace(u32 bytes) {}
-	const u8 *AlignCode16() { return nullptr; }
-	const u8 *AlignCodePage() { return nullptr; }
+	void PReserveCodeSpace(u32 bytes) {}
+	const u8 *PAlignCode16() { return nullptr; }
+	const u8 *PAlignCodePage() { return nullptr; }
 	const u8 *GetCodePtr() const { return nullptr; }
 	void FlushIcache() {}
 	void FlushIcacheSection(u8 *start, u8 *end) {}
-	u8 *GetWritableCodePtr() { return nullptr; }
+	u8 *PGetWritableCodePtr() { return nullptr; }
 
 	CCFlags GetCC() { return CCFlags(condition >> 28); }
 	void SetCC(CCFlags cond = CC_AL) {}

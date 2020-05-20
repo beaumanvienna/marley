@@ -216,15 +216,15 @@ void JitSafeMem::PrepareSlowAccess()
 	// Skip the fast path (which the caller wrote just now.)
 	skip_ = jit_->J(true);
 	needsSkip_ = true;
-	jit_->SetJumpTarget(tooLow_);
-	jit_->SetJumpTarget(tooHigh_);
+	jit_->PSetJumpTarget(tooLow_);
+	jit_->PSetJumpTarget(tooHigh_);
 
 	// Might also be the scratchpad.
 	jit_->CMP(32, R(xaddr_), Imm32(PSP_GetScratchpadMemoryBase() - offset_));
 	FixupBranch tooLow = jit_->J_CC(CC_B);
 	jit_->CMP(32, R(xaddr_), Imm32(PSP_GetScratchpadMemoryEnd() - offset_ - (size_ - 1)));
 	jit_->J_CC(CC_B, safe_);
-	jit_->SetJumpTarget(tooLow);
+	jit_->PSetJumpTarget(tooLow);
 }
 
 bool JitSafeMem::PrepareSlowWrite()
@@ -341,9 +341,9 @@ void JitSafeMem::Finish()
 	if (needsCheck_ && !g_Config.bIgnoreBadMemAccess)
 		jit_->js.afterOp |= JitState::AFTER_CORE_STATE;
 	if (needsSkip_)
-		jit_->SetJumpTarget(skip_);
+		jit_->PSetJumpTarget(skip_);
 	for (auto it = skipChecks_.begin(), end = skipChecks_.end(); it != end; ++it)
-		jit_->SetJumpTarget(*it);
+		jit_->PSetJumpTarget(*it);
 }
 
 void JitSafeMem::MemCheckImm(MemoryOpType type) {
@@ -401,9 +401,9 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 		for (int i = 0; i < 4; ++i)
 			jit_->POP(xaddr_);
 
-		jit_->SetJumpTarget(skipNext);
+		jit_->PSetJumpTarget(skipNext);
 		if (it->end != 0)
-			jit_->SetJumpTarget(skipNextRange);
+			jit_->PSetJumpTarget(skipNextRange);
 	}
 
 	if (possible)
@@ -532,14 +532,14 @@ void JitSafeMemFuncs::CheckDirectEAX() {
 	CMP(32, R(EAX), Imm32(PSP_GetScratchpadMemoryBase()));
 	skips_.push_back(J_CC(CC_AE));
 
-	SetJumpTarget(tooHighRAM);
-	SetJumpTarget(tooHighVid);
-	SetJumpTarget(tooHighScratch);
+	PSetJumpTarget(tooHighRAM);
+	PSetJumpTarget(tooHighVid);
+	PSetJumpTarget(tooHighScratch);
 }
 
 void JitSafeMemFuncs::StartDirectAccess() {
 	for (auto it = skips_.begin(), end = skips_.end(); it != end; ++it) {
-		SetJumpTarget(*it);
+		PSetJumpTarget(*it);
 	}
 	skips_.clear();
 }

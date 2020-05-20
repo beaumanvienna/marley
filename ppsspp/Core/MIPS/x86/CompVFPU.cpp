@@ -339,7 +339,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			MOVSS(fpr.RX(vregs[3]), PSPMemAddr(EAX, 0));
 
 			FixupBranch skip0 = J();
-			SetJumpTarget(next);
+			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(1));
 			next = J_CC(CC_NE);
 
@@ -348,7 +348,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			MOVSS(fpr.RX(vregs[2]), PSPMemAddr(EAX, 0));
 
 			FixupBranch skip1 = J();
-			SetJumpTarget(next);
+			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(2));
 			next = J_CC(CC_NE);
 
@@ -358,7 +358,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			MOVSS(fpr.RX(vregs[1]), PSPMemAddr(EAX, 0));
 
 			FixupBranch skip2 = J();
-			SetJumpTarget(next);
+			PSetJumpTarget(next);
 			CMP(32, R(EAX), Imm32(3));
 			next = J_CC(CC_NE);
 
@@ -368,10 +368,10 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			MOVSS(fpr.RX(vregs[1]), PSPMemAddr(EAX, 4));
 			MOVSS(fpr.RX(vregs[0]), PSPMemAddr(EAX, 0));
 
-			SetJumpTarget(next);
-			SetJumpTarget(skip0);
-			SetJumpTarget(skip1);
-			SetJumpTarget(skip2);
+			PSetJumpTarget(next);
+			PSetJumpTarget(skip0);
+			PSetJumpTarget(skip1);
+			PSetJumpTarget(skip2);
 
 			gpr.UnlockAll();
 			fpr.ReleaseSpillLocks();
@@ -956,7 +956,7 @@ void Jit::Comp_Vcmov(MIPSOpcode op) {
 		for (int i = 0; i < n; i++) {
 			MOVSS(fpr.VX(dregs[i]), fpr.V(sregs[i]));
 		}
-		SetJumpTarget(skip);
+		PSetJumpTarget(skip);
 	} else {
 		gpr.MapReg(MIPS_REG_VFPUCC, true, false);
 		fpr.MapRegsV(dregs, sz, MAP_DIRTY);
@@ -965,7 +965,7 @@ void Jit::Comp_Vcmov(MIPSOpcode op) {
 			TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << i));
 			FixupBranch skip = J_CC(tf ? CC_NZ : CC_Z, true);
 			MOVSS(fpr.VX(dregs[i]), fpr.V(sregs[i]));
-			SetJumpTarget(skip);
+			PSetJumpTarget(skip);
 		}
 	}
 
@@ -1210,9 +1210,9 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 					MOVD_xmm(tempxregs[i], R(EAX));
 					FixupBranch finish = J();
 
-					SetJumpTarget(skip);
+					PSetJumpTarget(skip);
 					MINSS(tempxregs[i], R(XMM0));
-					SetJumpTarget(finish);
+					PSetJumpTarget(finish);
 				}
 				break;
 			case 3:  // vmax
@@ -1227,9 +1227,9 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 					MOVD_xmm(tempxregs[i], R(EAX));
 					FixupBranch finish = J();
 
-					SetJumpTarget(skip);
+					PSetJumpTarget(skip);
 					MAXSS(tempxregs[i], R(XMM0));
-					SetJumpTarget(finish);
+					PSetJumpTarget(finish);
 				}
 				break;
 			case 6:  // vsge
@@ -1644,10 +1644,10 @@ void Jit::Comp_Vh2f(MIPSOpcode op) {
 	MOVSS(XMM0, fpr.V(sregs[0]));
  	if (sz != V_Single) {
 		MOVSS(XMM1, fpr.V(sregs[1]));
-		PUNPCKLDQ(XMM0, R(XMM1));
+		PPUNPCKLDQ(XMM0, R(XMM1));
 	}
 	XORPS(XMM1, R(XMM1));
-	PUNPCKLWD(XMM0, R(XMM1));
+	PPUNPCKLWD(XMM0, R(XMM1));
 
 	// OK, 16 bits in each word.
 	// Let's go. Deep magic here.
@@ -1732,12 +1732,12 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 		MOVSS(XMM1, fpr.V(sregs[0]));
 		if (sz != V_Single) {
 			MOVSS(XMM0, fpr.V(sregs[1]));
-			PUNPCKLDQ(XMM1, R(XMM0));
+			PPUNPCKLDQ(XMM1, R(XMM0));
 		}
 
 		// Unpack 16-bit words into 32-bit words, upper position, and we're done!
 		PXOR(XMM0, R(XMM0));
-		PUNPCKLWD(XMM0, R(XMM1));
+		PPUNPCKLWD(XMM0, R(XMM1));
 	} else if (bits == 8) {
 		if (unsignedOp) {
 			// vuc2i is a bit special.  It spreads out the bits like this:
@@ -1748,9 +1748,9 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 				PSHUFB(XMM0, M(&vuc2i_shuffle[0]));  // rip accessible
 			} else {
 				// First, we change 0xDDCCBBAA to 0xDDDDCCCCBBBBAAAA.
-				PUNPCKLBW(XMM0, R(XMM0));
+				PPUNPCKLBW(XMM0, R(XMM0));
 				// Now, interleave each 16 bits so they're all 32 bits wide.
-				PUNPCKLWD(XMM0, R(XMM0));
+				PPUNPCKLWD(XMM0, R(XMM0));
 			}
 		} else {
 			if (cpu_info.bSSSE3 && RipAccessible(vc2i_shuffle)) {
@@ -1759,9 +1759,9 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 			} else {
 				PXOR(XMM1, R(XMM1));
 				MOVSS(XMM0, fpr.V(sregs[0]));
-				PUNPCKLBW(XMM1, R(XMM0));
+				PPUNPCKLBW(XMM1, R(XMM0));
 				PXOR(XMM0, R(XMM0));
-				PUNPCKLWD(XMM0, R(XMM1));
+				PPUNPCKLWD(XMM0, R(XMM1));
 			}
 		}
 	}
@@ -3257,18 +3257,18 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 	}
 	MOVSS(XMM1, fpr.V(sregs[1]));
 	// With this, we have the lower half in dst0.
-	PUNPCKLDQ(dst0, R(XMM1));
+	PPUNPCKLDQ(dst0, R(XMM1));
 	if (sz == V_Quad) {
 		MOVSS(XMM0, fpr.V(sregs[2]));
 		MOVSS(XMM1, fpr.V(sregs[3]));
-		PUNPCKLDQ(XMM0, R(XMM1));
+		PPUNPCKLDQ(XMM0, R(XMM1));
 		// Now we need to combine XMM0 into dst0.
-		PUNPCKLQDQ(dst0, R(XMM0));
+		PPUNPCKLQDQ(dst0, R(XMM0));
 	} else {
 		// Otherwise, we need to zero out the top 2.
 		// We expect XMM1 to be zero below.
 		PXOR(XMM1, R(XMM1));
-		PUNPCKLQDQ(dst0, R(XMM1));
+		PPUNPCKLQDQ(dst0, R(XMM1));
 	}
 
 	// For "u" type ops, we clamp to zero and shift off the sign bit first.
