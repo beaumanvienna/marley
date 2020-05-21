@@ -840,7 +840,7 @@ struct CacheHeader {
 };
 
 void ShaderManagerGLES::Load(const std::string &filename) {
-	File::IOFile f(filename, "rb");
+	PFile::IOFile f(filename, "rb");
 	u64 sz = f.GetSize();
 	if (!f.IsOpen()) {
 		return;
@@ -997,7 +997,7 @@ void ShaderManagerGLES::Save(const std::string &filename) {
 		return;
 	}
 	INFO_LOG(G3D, "Saving the shader cache to '%s'", filename.c_str());
-	FILE *f = File::OpenCFile(filename, "wb");
+	FILE *f = PFile::OpenCFile(filename, "wb");
 	if (!f) {
 		// Can't save, give up for now.
 		diskCacheDirty_ = false;

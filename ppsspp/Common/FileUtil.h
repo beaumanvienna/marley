@@ -33,7 +33,7 @@ inline struct tm* localtime_r(const time_t *clock, struct tm *result) {
 }
 #endif
 
-namespace File {
+namespace PFile {
 
 // FileSystem tree node/ 
 struct FSTEntry

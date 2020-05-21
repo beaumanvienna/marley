@@ -45,7 +45,7 @@ static int scePauth_F7AA47F6(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 	crc = crc32(0, src, srcLength);
 
 	sprintf(name, "%s/pauth_%08x.bin.decrypt", hostPath.c_str(), crc);
-	fp = File::OpenCFile(name, "rb");
+	fp = PFile::OpenCFile(name, "rb");
 	if (fp){
 		fseek(fp, 0, SEEK_END);
 		size = ftell(fp);
@@ -62,12 +62,12 @@ static int scePauth_F7AA47F6(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 	sprintf(name, "%s/pauth_%08x.bin", hostPath.c_str(), crc);
 	ERROR_LOG(HLE, "No decrypted file found! save as %s", name);
 
-	fp = File::OpenCFile(name, "wb");
+	fp = PFile::OpenCFile(name, "wb");
 	fwrite(src, 1, srcLength, fp);
 	fclose(fp);
 
 	sprintf(name, "%s/pauth_%08x.key", hostPath.c_str(), crc);
-	fp = File::OpenCFile(name, "wb");
+	fp = PFile::OpenCFile(name, "wb");
 	fwrite(key, 1, 16, fp);
 	fclose(fp);
 
@@ -95,7 +95,7 @@ static int scePauth_98B83B5D(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 	crc = crc32(0, src, srcLength);
 
 	sprintf(name, "%s/pauth_%08x.bin.decrypt", hostPath.c_str(), crc);
-	fp = File::OpenCFile(name, "rb");
+	fp = PFile::OpenCFile(name, "rb");
 	if (fp){
 		fseek(fp, 0, SEEK_END);
 		size = ftell(fp);
@@ -112,12 +112,12 @@ static int scePauth_98B83B5D(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 	sprintf(name, "%s/pauth_%08x.bin", hostPath.c_str(), crc);
 	ERROR_LOG(HLE, "No decrypted file found! save as %s", name);
 
-	fp = File::OpenCFile(name, "wb");
+	fp = PFile::OpenCFile(name, "wb");
 	fwrite(src, 1, srcLength, fp);
 	fclose(fp);
 
 	sprintf(name, "%s/pauth_%08x.key", hostPath.c_str(), crc);
-	fp = File::OpenCFile(name, "wb");
+	fp = PFile::OpenCFile(name, "wb");
 	fwrite(key, 1, 16, fp);
 	fclose(fp);
 

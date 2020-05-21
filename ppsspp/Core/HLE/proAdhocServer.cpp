@@ -1411,7 +1411,7 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 void update_status(void)
 {
 	// Open Logfile
-	FILE * log = File::OpenCFile(SERVER_STATUS_XMLOUT, "w");
+	FILE * log = PFile::OpenCFile(SERVER_STATUS_XMLOUT, "w");
 
 	// Opened Logfile
 	if(log != NULL)

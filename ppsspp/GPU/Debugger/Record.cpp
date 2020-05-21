@@ -68,11 +68,11 @@ static std::string GenRecordingFilename() {
 	const std::string dumpDir = GetSysDirectory(DIRECTORY_DUMP);
 	const std::string prefix = dumpDir + g_paramSFO.GetDiscID();
 
-	File::CreateFullPath(dumpDir);
+	PFile::CreateFullPath(dumpDir);
 
 	for (int n = 1; n < 10000; ++n) {
 		std::string filename = StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
-		if (!File::Exists(filename)) {
+		if (!PFile::Exists(filename)) {
 			return filename;
 		}
 	}
@@ -114,7 +114,7 @@ static std::string WriteRecording() {
 
 	NOTICE_LOG(G3D, "Recording filename: %s", filename.c_str());
 
-	FILE *fp = File::OpenCFile(filename, "wb");
+	FILE *fp = PFile::OpenCFile(filename, "wb");
 	fwrite(HEADER, 8, 1, fp);
 	fwrite(&VERSION, sizeof(VERSION), 1, fp);
 

@@ -68,7 +68,7 @@ VirtualDiscFileSystem::~VirtualDiscFileSystem() {
 
 void VirtualDiscFileSystem::LoadFileListIndex() {
 	const std::string filename = basePath + INDEX_FILENAME;
-	if (!File::Exists(filename)) {
+	if (!PFile::Exists(filename)) {
 		return;
 	}
 
@@ -141,7 +141,7 @@ void VirtualDiscFileSystem::LoadFileListIndex() {
 				ERROR_LOG(FILESYS, "Unable to open virtual file: %s", entry.fileName.c_str());
 			}
 		} else {
-			entry.totalSize = File::GetFileSize(GetLocalPath(entry.fileName));
+			entry.totalSize = PFile::GetFileSize(GetLocalPath(entry.fileName));
 		}
 
 		// Try to keep currentBlockIndex sane, in case there are other files.
@@ -271,26 +271,26 @@ int VirtualDiscFileSystem::getFileListIndex(std::string &fileName)
 
 	// unknown file - add it
 	std::string fullName = GetLocalPath(fileName);
-	if (! File::Exists(fullName)) {
+	if (! PFile::Exists(fullName)) {
 #if HOST_IS_CASE_SENSITIVE
 		if (! FixPathCase(basePath,fileName, FPC_FILE_MUST_EXIST))
 			return -1;
 		fullName = GetLocalPath(fileName);
 
-		if (! File::Exists(fullName))
+		if (! PFile::Exists(fullName))
 			return -1;
 #else
 		return -1;
 #endif
 	}
 
-	FileType type = File::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
+	FileType type = PFile::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
 	if (type == FILETYPE_DIRECTORY)
 		return -1;
 
 	FileListEntry entry = {""};
 	entry.fileName = normalized;
-	entry.totalSize = File::GetFileSize(fullName);
+	entry.totalSize = PFile::GetFileSize(fullName);
 	entry.firstBlock = currentBlockIndex;
 	currentBlockIndex += (entry.totalSize+2047)/2048;
 
@@ -592,20 +592,20 @@ PSPFileInfo VirtualDiscFileSystem::GetFileInfo(std::string filename) {
 	}
 
 	std::string fullName = GetLocalPath(filename);
-	if (! File::Exists(fullName)) {
+	if (! PFile::Exists(fullName)) {
 #if HOST_IS_CASE_SENSITIVE
 		if (! FixPathCase(basePath,filename, FPC_FILE_MUST_EXIST))
 			return x;
 		fullName = GetLocalPath(filename);
 
-		if (! File::Exists(fullName))
+		if (! PFile::Exists(fullName))
 			return x;
 #else
 		return x;
 #endif
 	}
 
-	x.type = File::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
+	x.type = PFile::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
 	x.exists = true;
 	if (fileIndex != -1) {
 		x.isOnSectorSystem = true;
@@ -613,8 +613,8 @@ PSPFileInfo VirtualDiscFileSystem::GetFileInfo(std::string filename) {
 	}
 
 	if (x.type != FILETYPE_DIRECTORY) {
-		File::FileDetails details;
-		if (!File::GetFileDetails(fullName, &details)) {
+		PFile::FileDetails details;
+		if (!PFile::GetFileDetails(fullName, &details)) {
 			ERROR_LOG(FILESYS, "DirectoryFileSystem::GetFileInfo: GetFileDetails failed: %s", fullName.c_str());
 			x.size = 0;
 			x.access = 0;

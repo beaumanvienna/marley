@@ -331,15 +331,15 @@ CWCheatEngine::CWCheatEngine() {
 
 void CWCheatEngine::CreateCheatFile() {
 	activeCheatFile = GetSysDirectory(DIRECTORY_CHEATS) + gameTitle + ".ini";
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_CHEATS));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_CHEATS));
 
-	if (!File::Exists(activeCheatFile)) {
-		FILE *f = File::OpenCFile(activeCheatFile, "wb");
+	if (!PFile::Exists(activeCheatFile)) {
+		FILE *f = PFile::OpenCFile(activeCheatFile, "wb");
 		if (f) {
 			fwrite("\xEF\xBB\xBF\n", 1, 4, f);
 			fclose(f);
 		}
-		if (!File::Exists(activeCheatFile)) {
+		if (!PFile::Exists(activeCheatFile)) {
 			I18NCategory *err = GetI18NCategory("Error");
 			host->NotifyUserMessage(err->T("Unable to create cheat file, disk may be full"));
 		}

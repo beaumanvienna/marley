@@ -76,8 +76,8 @@ static bool backgroundInited;
 void UIBackgroundInit(UIContext &dc) {
 	const std::string bgPng = GetSysDirectory(DIRECTORY_SYSTEM) + "background.png";
 	const std::string bgJpg = GetSysDirectory(DIRECTORY_SYSTEM) + "background.jpg";
-	if (File::Exists(bgPng) || File::Exists(bgJpg)) {
-		const std::string &bgFile = File::Exists(bgPng) ? bgPng : bgJpg;
+	if (PFile::Exists(bgPng) || PFile::Exists(bgJpg)) {
+		const std::string &bgFile = PFile::Exists(bgPng) ? bgPng : bgJpg;
 		bgTexture = CreateTextureFromFile(dc.GetDrawContext(), bgFile.c_str(), DETECT, true);
 	}
 }
@@ -401,7 +401,7 @@ void NewLanguageScreen::OnCompleted(DialogResult result) {
 	const std::string langOverridePath = GetSysDirectory(DIRECTORY_SYSTEM) + "lang/";
 
 	// If we run into the unlikely case that "lang" is actually a file, just use the built-in translations.
-	if (!File::Exists(langOverridePath) || !File::IsDirectory(langOverridePath))
+	if (!PFile::Exists(langOverridePath) || !PFile::IsDirectory(langOverridePath))
 		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni);
 	else
 		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni, langOverridePath);

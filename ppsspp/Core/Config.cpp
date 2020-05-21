@@ -1105,7 +1105,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	});
 
 	iRunCount++;
-	if (!File::Exists(currentDirectory))
+	if (!PFile::Exists(currentDirectory))
 		currentDirectory = "";
 
 	IniFile::Section *log = iniFile.GetOrCreateSection(logSectionName);
@@ -1141,8 +1141,8 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	vPinnedPaths.clear();
 	for (auto it = pinnedPaths.begin(), end = pinnedPaths.end(); it != end; ++it) {
 		// Unpin paths that are deleted automatically.
-		if (File::Exists(it->second)) {
-			vPinnedPaths.push_back(File::ResolvePath(it->second));
+		if (PFile::Exists(it->second)) {
+			vPinnedPaths.push_back(PFile::ResolvePath(it->second));
 		}
 	}
 
@@ -1360,7 +1360,7 @@ void Config::AddRecent(const std::string &file) {
 	// We'll add it back below.  This makes sure it's at the front, and only once.
 	RemoveRecent(file);
 
-	const std::string filename = File::ResolvePath(file);
+	const std::string filename = PFile::ResolvePath(file);
 	recentIsos.insert(recentIsos.begin(), filename);
 	if ((int)recentIsos.size() > iMaxRecent)
 		recentIsos.resize(iMaxRecent);
@@ -1371,9 +1371,9 @@ void Config::RemoveRecent(const std::string &file) {
 	if (iMaxRecent <= 0)
 		return;
 
-	const std::string filename = File::ResolvePath(file);
+	const std::string filename = PFile::ResolvePath(file);
 	for (auto iter = recentIsos.begin(); iter != recentIsos.end();) {
-		const std::string recent = File::ResolvePath(*iter);
+		const std::string recent = PFile::ResolvePath(*iter);
 		if (filename == recent) {
 			// Note that the increment-erase idiom doesn't work with vectors.
 			iter = recentIsos.erase(iter);
@@ -1420,17 +1420,17 @@ const std::string Config::FindConfigFile(const std::string &baseFilename) {
 
 	for (size_t i = 0; i < searchPath_.size(); ++i) {
 		std::string filename = searchPath_[i] + baseFilename;
-		if (File::Exists(filename)) {
+		if (PFile::Exists(filename)) {
 			return filename;
 		}
 	}
 
 	const std::string filename = defaultPath_.empty() ? baseFilename : defaultPath_ + baseFilename;
-	if (!File::Exists(filename)) {
+	if (!PFile::Exists(filename)) {
 		std::string path;
 		SplitPath(filename, &path, NULL, NULL);
 		if (createdPath_ != path) {
-			File::CreateFullPath(path);
+			PFile::CreateFullPath(path);
 			createdPath_ = path;
 		}
 	}
@@ -1442,8 +1442,8 @@ void Config::RestoreDefaults() {
 		deleteGameConfig(gameId_);
 		createGameConfig(gameId_);
 	} else {
-		if (File::Exists(iniFilename_))
-			File::Delete(iniFilename_);
+		if (PFile::Exists(iniFilename_))
+			PFile::Delete(iniFilename_);
 		recentIsos.clear();
 		currentDirectory = "";
 	}
@@ -1452,7 +1452,7 @@ void Config::RestoreDefaults() {
 
 bool Config::hasGameConfig(const std::string &pGameId) {
 	std::string fullIniFilePath = getGameConfigFile(pGameId);
-	return File::Exists(fullIniFilePath);
+	return PFile::Exists(fullIniFilePath);
 }
 
 void Config::changeGameSpecific(const std::string &pGameId, const std::string &title) {
@@ -1469,7 +1469,7 @@ bool Config::createGameConfig(const std::string &pGameId) {
 		return false;
 	}
 
-	File::CreateEmptyFile(fullIniFilePath);
+	PFile::CreateEmptyFile(fullIniFilePath);
 
 	return true;
 }
@@ -1477,7 +1477,7 @@ bool Config::createGameConfig(const std::string &pGameId) {
 bool Config::deleteGameConfig(const std::string& pGameId) {
 	std::string fullIniFilePath = getGameConfigFile(pGameId);
 
-	File::Delete(fullIniFilePath);
+	PFile::Delete(fullIniFilePath);
 	return true;
 }
 

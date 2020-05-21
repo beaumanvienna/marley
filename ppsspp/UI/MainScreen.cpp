@@ -488,7 +488,7 @@ UI::EventReturn GameBrowser::HomeClick(UI::EventParams &e) {
 
 UI::EventReturn GameBrowser::PinToggleClick(UI::EventParams &e) {
 	auto &pinnedPaths = g_PConfig.vPinnedPaths;
-	const std::string path = File::ResolvePath(path_.GetPath());
+	const std::string path = PFile::ResolvePath(path_.GetPath());
 	if (IsCurrentPathPinned()) {
 		pinnedPaths.erase(std::remove(pinnedPaths.begin(), pinnedPaths.end(), path), pinnedPaths.end());
 	} else {
@@ -568,11 +568,11 @@ void GameBrowser::Refresh() {
 			bool isGame = !fileInfo[i].isDirectory;
 			bool isSaveData = false;
 			// Check if eboot directory
-			if (!isGame && path_.GetPath().size() >= 4 && File::Exists(path_.GetPath() + fileInfo[i].name + "/EBOOT.PBP"))
+			if (!isGame && path_.GetPath().size() >= 4 && PFile::Exists(path_.GetPath() + fileInfo[i].name + "/EBOOT.PBP"))
 				isGame = true;
-			else if (!isGame && File::Exists(path_.GetPath() + fileInfo[i].name + "/PSP_GAME/SYSDIR"))
+			else if (!isGame && PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PSP_GAME/SYSDIR"))
 				isGame = true;
-			else if (!isGame && File::Exists(path_.GetPath() + fileInfo[i].name + "/PARAM.SFO"))
+			else if (!isGame && PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PARAM.SFO"))
 				isSaveData = true;
 
 			if (!isGame && !isSaveData) {
@@ -656,7 +656,7 @@ void GameBrowser::Refresh() {
 
 bool GameBrowser::IsCurrentPathPinned() {
 	const auto paths = g_PConfig.vPinnedPaths;
-	return std::find(paths.begin(), paths.end(), File::ResolvePath(path_.GetPath())) != paths.end();
+	return std::find(paths.begin(), paths.end(), PFile::ResolvePath(path_.GetPath())) != paths.end();
 }
 
 const std::vector<std::string> GameBrowser::GetPinnedPaths() {
@@ -666,7 +666,7 @@ const std::vector<std::string> GameBrowser::GetPinnedPaths() {
 	static const std::string sepChars = "/\\";
 #endif
 
-	const std::string currentPath = File::ResolvePath(path_.GetPath());
+	const std::string currentPath = PFile::ResolvePath(path_.GetPath());
 	const std::vector<std::string> paths = g_PConfig.vPinnedPaths;
 	std::vector<std::string> results;
 	for (size_t i = 0; i < paths.size(); ++i) {

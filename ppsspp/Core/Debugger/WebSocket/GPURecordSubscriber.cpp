@@ -75,7 +75,7 @@ void WebSocketGPURecordState::Dump(DebuggerRequest &req) {
 // This handles the asynchronous gpu.record.dump response.
 void WebSocketGPURecordState::Broadcast(net::WebSocketServer *ws) {
 	if (!lastFilename_.empty()) {
-		FILE *fp = File::OpenCFile(lastFilename_, "rb");
+		FILE *fp = PFile::OpenCFile(lastFilename_, "rb");
 		if (!fp) {
 			lastFilename_.clear();
 			return;

@@ -68,7 +68,7 @@ void HeadlessHost::SendDebugScreenshot(const u8 *pixbuf, u32 w, u32 h)
 	{
 		// Lazy, just read in the original header to output the failed screenshot.
 		u8 header[14 + 40] = {0};
-		FILE *bmp = File::OpenCFile(comparisonScreenshot_, "rb");
+		FILE *bmp = PFile::OpenCFile(comparisonScreenshot_, "rb");
 		if (bmp)
 		{
 			if (fread(&header, sizeof(header), 1, bmp) != 1) {
@@ -77,7 +77,7 @@ void HeadlessHost::SendDebugScreenshot(const u8 *pixbuf, u32 w, u32 h)
 			fclose(bmp);
 		}
 
-		FILE *saved = File::OpenCFile("__testfailure.bmp", "wb");
+		FILE *saved = PFile::OpenCFile("__testfailure.bmp", "wb");
 		if (saved)
 		{
 			fwrite(&header, sizeof(header), 1, saved);

@@ -336,9 +336,9 @@ bool GameScreen::isRecentGame(const std::string &gamePath) {
 	if (g_PConfig.iMaxRecent <= 0)
 		return false;
 
-	const std::string resolved = File::ResolvePath(gamePath);
+	const std::string resolved = PFile::ResolvePath(gamePath);
 	for (auto it = g_PConfig.recentIsos.begin(); it != g_PConfig.recentIsos.end(); ++it) {
-		const std::string recent = File::ResolvePath(*it);
+		const std::string recent = PFile::ResolvePath(*it);
 		if (resolved == recent)
 			return true;
 	}

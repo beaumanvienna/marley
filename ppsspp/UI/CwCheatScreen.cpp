@@ -117,7 +117,7 @@ void CwCheatScreen::onFinish(DialogResult result) {
 	std::fstream fs;
 	if (result != DR_BACK) // This only works for BACK here.
 		return;
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::out);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out);
 	for (int j = 0; j < (int)cheatList.size(); j++) {
 		fs << cheatList[j];
 		if (j < (int)cheatList.size() - 1) {
@@ -134,7 +134,7 @@ void CwCheatScreen::onFinish(DialogResult result) {
 UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
 	std::fstream fs;
 	enableAll = !enableAll;
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::out);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out);
 	for (int j = 0; j < (int)cheatList.size(); j++) {
 		if (cheatList[j][0] == '_' && cheatList[j][1] == 'C') {
 			if (cheatList[j][2] == '0' && enableAll) {
@@ -174,7 +174,7 @@ UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
 #if PPSSPP_PLATFORM(UWP)
 	LaunchBrowser(activeCheatFile.c_str());
 #else
-	File::openIniFile(activeCheatFile);
+	PFile::openIniFile(activeCheatFile);
 #endif
 	return UI::EVENT_DONE;
 }
@@ -193,7 +193,7 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	std::string gameID = StringFromFormat("_S %s-%s", gameTitle.substr(0, 4).c_str(), gameTitle.substr(4).c_str());
 
 	std::fstream fs;
-	File::OpenCPPFile(fs, cheatFile, std::ios::in);
+	PFile::OpenCPPFile(fs, cheatFile, std::ios::in);
 
 	if (!fs.is_open()) {
 		WARN_LOG(COMMON, "Unable to open %s\n", cheatFile.c_str());
@@ -237,10 +237,10 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	}
 	fs.close();
 	std::string title2;
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::in);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::in);
 	getline(fs, title2);
 	fs.close();
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::out | std::ios::app);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out | std::ios::app);
 
 	auto it = title.begin();
 	if (((title2[0] == '_' && title2[1] != 'S') || title2[0] == '/' || title2[0] == '#') && it != title.end() && (++it) != title.end()) {
@@ -279,7 +279,7 @@ void CwCheatScreen::processFileOn(std::string activatedCheat) {
 		}
 	}
 
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::out);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out);
 
 	for (size_t j = 0; j < cheatList.size(); j++) {
 		fs << cheatList[j];
@@ -300,7 +300,7 @@ void CwCheatScreen::processFileOff(std::string deactivatedCheat) {
 		}
 	}
 
-	File::OpenCPPFile(fs, activeCheatFile, std::ios::out);
+	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out);
 
 	for (size_t j = 0; j < cheatList.size(); j++) {
 		fs << cheatList[j];

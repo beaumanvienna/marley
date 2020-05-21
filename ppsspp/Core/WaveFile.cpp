@@ -9,18 +9,18 @@
 #include "Common/MsgHandler.h"
 #include "Core/Config.h"
 
-constexpr size_t WaveFileWriter::BUFFER_SIZE;
+constexpr size_t PWaveFileWriter::BUFFER_SIZE;
 
-WaveFileWriter::WaveFileWriter()
+PWaveFileWriter::PWaveFileWriter()
 {
 }
 
-WaveFileWriter::~WaveFileWriter()
+PWaveFileWriter::~PWaveFileWriter()
 {
 	Stop();
 }
 
-bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
+bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
 {
 	// Check if the file is already open
 	if (file)
@@ -67,7 +67,7 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
 	return true;
 }
 
-void WaveFileWriter::Stop()
+void PWaveFileWriter::Stop()
 {
 	// u32 file_size = (u32)ftello(file);
 	file.Seek(4, SEEK_SET);
@@ -79,23 +79,23 @@ void WaveFileWriter::Stop()
 	file.Close();
 }
 
-void WaveFileWriter::Write(u32 value)
+void PWaveFileWriter::Write(u32 value)
 {
 	file.WriteArray(&value, 1);
 }
 
-void WaveFileWriter::Write4(const char* ptr)
+void PWaveFileWriter::Write4(const char* ptr)
 {
 	file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
+void PWaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
 {
 	if (!file)
-		PanicAlert("WaveFileWriter - file not open.");
+		PanicAlert("PWaveFileWriter - file not open.");
 
 	if (count > BUFFER_SIZE * 2)
-		PanicAlert("WaveFileWriter - buffer too small (count = %u).", count);
+		PanicAlert("PWaveFileWriter - buffer too small (count = %u).", count);
 
 	if (skip_silence)
 	{

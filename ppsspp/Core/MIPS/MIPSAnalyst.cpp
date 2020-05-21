@@ -1313,7 +1313,7 @@ skip:
 			return;
 		}
 
-		FILE *file = File::OpenCFile(filename, "wt");
+		FILE *file = PFile::OpenCFile(filename, "wt");
 		if (!file) {
 			WARN_LOG(LOADER, "Could not store hash map: %s", filename.c_str());
 			return;
@@ -1370,7 +1370,7 @@ skip:
 	}
 
 	void LoadHashMap(const std::string& filename) {
-		FILE *file = File::OpenCFile(filename, "rt");
+		FILE *file = PFile::OpenCFile(filename, "rt");
 		if (!file) {
 			WARN_LOG(LOADER, "Could not load hash map: %s", filename.c_str());
 			return;

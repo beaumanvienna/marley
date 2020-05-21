@@ -166,7 +166,7 @@ PointerWrapSection::~PointerWrapSection() {
 	}
 }
 
-CChunkFileReader::Error CChunkFileReader::LoadFileHeader(File::IOFile &pFile, SChunkHeader &header, std::string *title) {
+CChunkFileReader::Error CChunkFileReader::LoadFileHeader(PFile::IOFile &pFile, SChunkHeader &header, std::string *title) {
 	if (!pFile) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: Can't open file for reading");
 		return ERROR_BAD_FILE;
@@ -215,24 +215,24 @@ CChunkFileReader::Error CChunkFileReader::LoadFileHeader(File::IOFile &pFile, SC
 }
 
 CChunkFileReader::Error CChunkFileReader::GetFileTitle(const std::string &filename, std::string *title) {
-	if (!File::Exists(filename)) {
+	if (!PFile::Exists(filename)) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: File doesn't exist");
 		return ERROR_BAD_FILE;
 	}
 
-	File::IOFile pFile(filename, "rb");
+	PFile::IOFile pFile(filename, "rb");
 	SChunkHeader header;
 	return LoadFileHeader(pFile, header, title);
 }
 
 CChunkFileReader::Error CChunkFileReader::LoadFile(const std::string &filename, std::string *gitVersion, u8 *&_buffer, size_t &sz, std::string *failureReason) {
-	if (!File::Exists(filename)) {
+	if (!PFile::Exists(filename)) {
 		*failureReason = "LoadStateDoesntExist";
 		ERROR_LOG(SAVESTATE, "ChunkReader: File doesn't exist");
 		return ERROR_BAD_FILE;
 	}
 
-	File::IOFile pFile(filename, "rb");
+	PFile::IOFile pFile(filename, "rb");
 	SChunkHeader header;
 	Error err = LoadFileHeader(pFile, header, nullptr);
 	if (err != ERROR_NONE) {
@@ -285,7 +285,7 @@ CChunkFileReader::Error CChunkFileReader::LoadFile(const std::string &filename, 
 CChunkFileReader::Error CChunkFileReader::SaveFile(const std::string &filename, const std::string &title, const char *gitVersion, u8 *buffer, size_t sz) {
 	INFO_LOG(SAVESTATE, "ChunkReader: Writing %s", filename.c_str());
 
-	File::IOFile pFile(filename, "wb");
+	PFile::IOFile pFile(filename, "wb");
 	if (!pFile) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: Error opening file for write");
 		free(buffer);

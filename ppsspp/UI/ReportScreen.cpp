@@ -253,8 +253,8 @@ void ReportScreen::CreateViews() {
 #endif
 
 	std::string path = GetSysDirectory(DIRECTORY_SCREENSHOT);
-	if (!File::Exists(path)) {
-		File::CreateDir(path);
+	if (!PFile::Exists(path)) {
+		PFile::CreateDir(path);
 	}
 	screenshotFilename_ = path + ".reporting.jpg";
 	int shotWidth = 0, shotHeight = 0;

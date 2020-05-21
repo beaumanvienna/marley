@@ -100,17 +100,17 @@ IdentifiedFileType Identify_File(FileLoader *fileLoader) {
 		std::string filename = fileLoader->Path();
 		if (filename.size() > 4) {
 			// Check for existence of EBOOT.PBP, as required for "Directory games".
-			if (File::Exists((filename + "/EBOOT.PBP").c_str())) {
+			if (PFile::Exists((filename + "/EBOOT.PBP").c_str())) {
 				return IdentifiedFileType::PSP_PBP_DIRECTORY;
 			}
 
 			// check if it's a disc directory
-			if (File::Exists((filename + "/PSP_GAME").c_str())) {
+			if (PFile::Exists((filename + "/PSP_GAME").c_str())) {
 				return IdentifiedFileType::PSP_DISC_DIRECTORY;
 			}
 
 			// Not that, okay, let's guess it's a savedata directory if it has a param.sfo...
-			if (File::Exists((filename + "/PARAM.SFO").c_str())) {
+			if (PFile::Exists((filename + "/PARAM.SFO").c_str())) {
 				return IdentifiedFileType::PSP_SAVEDATA_DIRECTORY;
 			}
 		}
@@ -176,7 +176,7 @@ IdentifiedFileType Identify_File(FileLoader *fileLoader) {
 
 		// Let's check if we got pointed to a PBP within such a directory.
 		// If so we just move up and return the directory itself as the game.
-		std::string path = File::GetDir(fileLoader->Path());
+		std::string path = PFile::GetDir(fileLoader->Path());
 		// If loading from memstick...
 		size_t pos = path.find("/PSP/GAME/");
 		if (pos != std::string::npos) {

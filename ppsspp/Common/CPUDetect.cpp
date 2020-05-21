@@ -361,7 +361,7 @@ void CPUInfo::Detect() {
 	// This seems to be the count per core.  Hopefully all cores are the same, but we counted each above.
 	logical_cpu_count /= num_cores;
 #elif PPSSPP_PLATFORM(LINUX)
-	if (File::Exists("/sys/devices/system/cpu/present")) {
+	if (PFile::Exists("/sys/devices/system/cpu/present")) {
 		// This may not count unplugged cores, but at least it's a best guess.
 		// Also, this assumes the CPU cores are heterogeneous (e.g. all cores could be active simultaneously.)
 		num_cores = 0;

@@ -24,7 +24,7 @@
 #include "Core/HLE/sceKernelMemory.h"
 #include "Core/HLE/sceKernelModule.h"
 
-const char *ElfReader::GetSectionName(int section) const {
+const char *PElfReader::GetSectionName(int section) const {
 	if (sections[section].sh_type == SHT_NULL)
 		return nullptr;
 
@@ -53,7 +53,7 @@ void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
 	}
 }
 
-bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
+bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 {
 	int numErrors = 0;
 	DEBUG_LOG(LOADER, "Loading %i relocations...", numRelocs);
@@ -198,7 +198,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 }
 
 
-void ElfReader::LoadRelocations2(int rel_seg)
+void PElfReader::LoadRelocations2(int rel_seg)
 {
 	u8 *buf, *end, *flag_table, *type_table;
 	int flag_table_size, type_table_size;
@@ -355,7 +355,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 }
 
 
-int ElfReader::LoadInto(u32 loadAddress, bool fromTop)
+int PElfReader::LoadInto(u32 loadAddress, bool fromTop)
 {
 	DEBUG_LOG(LOADER,"String section: %i", header->e_shstrndx);
 
@@ -589,7 +589,7 @@ int ElfReader::LoadInto(u32 loadAddress, bool fromTop)
 }
 
 
-SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
+SectionID PElfReader::GetSectionByName(const char *name, int firstSection) const
 {
 	if (!name)
 		return -1;
@@ -602,7 +602,7 @@ SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
 	return -1;
 }
 
-u32 ElfReader::GetTotalTextSize() const {
+u32 PElfReader::GetTotalTextSize() const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		if (!(sections[i].sh_flags & SHF_WRITE) && (sections[i].sh_flags & SHF_ALLOC) && !(sections[i].sh_flags & SHF_STRINGS)) {
@@ -612,7 +612,7 @@ u32 ElfReader::GetTotalTextSize() const {
 	return total;
 }
 
-u32 ElfReader::GetTotalDataSize() const {
+u32 PElfReader::GetTotalDataSize() const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		if ((sections[i].sh_flags & SHF_WRITE) && (sections[i].sh_flags & SHF_ALLOC) && !(sections[i].sh_flags & SHF_MASKPROC)) {
@@ -622,7 +622,7 @@ u32 ElfReader::GetTotalDataSize() const {
 	return total;
 }
 
-u32 ElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
+u32 PElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		const char *secname = GetSectionName(i);
@@ -633,7 +633,7 @@ u32 ElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
 	return total;
 }
 
-std::vector<SectionID> ElfReader::GetCodeSections() const {
+std::vector<SectionID> PElfReader::GetCodeSections() const {
 	std::vector<SectionID> ids;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		u32 flags = sections[i].sh_flags;
@@ -644,7 +644,7 @@ std::vector<SectionID> ElfReader::GetCodeSections() const {
 	return ids;
 }
 
-bool ElfReader::LoadSymbols()
+bool PElfReader::LoadSymbols()
 {
 	bool hasSymbols = false;
 	SectionID sec = GetSectionByName(".symtab");

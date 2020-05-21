@@ -58,12 +58,12 @@ void TextureReplacer::NotifyConfigChanged() {
 		basePath_ = GetSysDirectory(DIRECTORY_TEXTURES) + gameID_ + "/";
 
 		// If we're saving, auto-create the directory.
-		if (g_PConfig.bSaveNewTextures && !File::Exists(basePath_ + NEW_TEXTURE_DIR)) {
-			File::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
-			File::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
+		if (g_PConfig.bSaveNewTextures && !PFile::Exists(basePath_ + NEW_TEXTURE_DIR)) {
+			PFile::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
+			PFile::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
 		}
 
-		enabled_ = File::Exists(basePath_) && File::IsDirectory(basePath_);
+		enabled_ = PFile::Exists(basePath_) && PFile::IsDirectory(basePath_);
 	}
 
 	if (enabled_) {
@@ -81,7 +81,7 @@ bool TextureReplacer::LoadIni() {
 	ignoreAddress_ = false;
 	reduceHash_ = false;
 
-	if (File::Exists(basePath_ + INI_FILENAME)) {
+	if (PFile::Exists(basePath_ + INI_FILENAME)) {
 		IniFile ini;
 		ini.LoadFromVFS(basePath_ + INI_FILENAME);
 
@@ -317,7 +317,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 	for (int i = 0; i < MAX_MIP_LEVELS; ++i) {
 		const std::string hashfile = LookupHashFile(cachekey, hash, i);
 		const std::string filename = basePath_ + hashfile;
-		if (hashfile.empty() || !File::Exists(filename)) {
+		if (hashfile.empty() || !PFile::Exists(filename)) {
 			// Out of valid mip levels.  Bail out.
 			break;
 		}
@@ -339,7 +339,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 #else
 		png_image png = {};
 		png.version = PNG_IMAGE_VERSION;
-		FILE *fp = File::OpenCFile(filename, "rb");
+		FILE *fp = PFile::OpenCFile(filename, "rb");
 		if (png_image_begin_read_from_stdio(&png, fp)) {
 			// We pad files that have been hashrange'd so they are the same texture size.
 			level.w = (png.width * w) / newW;
@@ -373,7 +373,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 
 #ifndef USING_QT_UI
 static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int convert_to_8bit, const void *buffer, png_int_32 row_stride, const void *colormap) {
-	FILE *fp = File::OpenCFile(filename, "wb");
+	FILE *fp = PFile::OpenCFile(filename, "wb");
 	if (!fp) {
 		ERROR_LOG(SYSTEM, "Unable to open texture file for writing.");
 		return false;
@@ -417,14 +417,14 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	const std::string saveFilename = basePath_ + NEW_TEXTURE_DIR + hashfile;
 
 	// If it's empty, it's an ignored hash, we intentionally don't save.
-	if (hashfile.empty() || File::Exists(filename)) {
+	if (hashfile.empty() || PFile::Exists(filename)) {
 		// If it exists, must've been decoded and saved as a new texture already.
 		return;
 	}
 
 	ReplacementCacheKey replacementKey(cachekey, replacedInfo.hash);
 	auto it = savedCache_.find(replacementKey);
-	if (it != savedCache_.end() && File::Exists(saveFilename)) {
+	if (it != savedCache_.end() && PFile::Exists(saveFilename)) {
 		// We've already saved this texture.  Let's only save if it's bigger (e.g. scaled now.)
 		if (it->second.w >= w && it->second.h >= h) {
 			return;
@@ -439,9 +439,9 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	if (slash != hashfile.npos) {
 		// Create any directory structure as needed.
 		const std::string saveDirectory = basePath_ + NEW_TEXTURE_DIR + hashfile.substr(0, slash);
-		if (!File::Exists(saveDirectory)) {
-			File::CreateFullPath(saveDirectory);
-			File::CreateEmptyFile(saveDirectory + "/.nomedia");
+		if (!PFile::Exists(saveDirectory)) {
+			PFile::CreateFullPath(saveDirectory);
+			PFile::CreateEmptyFile(saveDirectory + "/.nomedia");
 		}
 	}
 
@@ -625,7 +625,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	png_image png = {};
 	png.version = PNG_IMAGE_VERSION;
 
-	FILE *fp = File::OpenCFile(info.file, "rb");
+	FILE *fp = PFile::OpenCFile(info.file, "rb");
 	if (!png_image_begin_read_from_stdio(&png, fp)) {
 		ERROR_LOG(G3D, "Could not load texture replacement info: %s - %s", info.file.c_str(), png.message);
 		return;
@@ -664,23 +664,23 @@ bool TextureReplacer::GenerateIni(const std::string &gameID, std::string *genera
 		return false;
 
 	std::string texturesDirectory = GetSysDirectory(DIRECTORY_TEXTURES) + gameID + "/";
-	if (!File::Exists(texturesDirectory)) {
-		File::CreateFullPath(texturesDirectory);
+	if (!PFile::Exists(texturesDirectory)) {
+		PFile::CreateFullPath(texturesDirectory);
 	}
 
 	if (generatedFilename)
 		*generatedFilename = texturesDirectory + INI_FILENAME;
-	if (File::Exists(texturesDirectory + INI_FILENAME))
+	if (PFile::Exists(texturesDirectory + INI_FILENAME))
 		return true;
 
-	FILE *f = File::OpenCFile(texturesDirectory + INI_FILENAME, "wb");
+	FILE *f = PFile::OpenCFile(texturesDirectory + INI_FILENAME, "wb");
 	if (f) {
 		fwrite("\xEF\xBB\xBF", 0, 3, f);
 		fclose(f);
 
 		// Let's also write some defaults.
 		std::fstream fs;
-		File::OpenCPPFile(fs, texturesDirectory + INI_FILENAME, std::ios::out | std::ios::ate);
+		PFile::OpenCPPFile(fs, texturesDirectory + INI_FILENAME, std::ios::out | std::ios::ate);
 		fs << "# This file is optional and describes your textures.\n";
 		fs << "# Some information on syntax available here:\n";
 		fs << "# https://github.com/hrydgard/ppsspp/wiki/Texture-replacement-ini-syntax\n";
@@ -699,5 +699,5 @@ bool TextureReplacer::GenerateIni(const std::string &gameID, std::string *genera
 		fs << "[hashranges]\n";
 		fs.close();
 	}
-	return File::Exists(texturesDirectory + INI_FILENAME);
+	return PFile::Exists(texturesDirectory + INI_FILENAME);
 }

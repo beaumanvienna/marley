@@ -841,20 +841,20 @@ static void __SaveDecryptedEbootToStorageMedia(const u8 *decryptedEbootDataPtr, 
 	const std::string fullPath = dumpDirectory + filenameToDumpTo;
 
 	// If the file already exists, don't dump it again.
-	if (File::Exists(fullPath)) {
+	if (PFile::Exists(fullPath)) {
 		INFO_LOG(SCEMODULE, "Decrypted EBOOT.BIN already exists for this game, skipping dump.");
 		return;
 	}
 
 	// Make sure the dump directory exists before continuing.
-	if (!File::Exists(dumpDirectory)) {
-		if (!File::CreateDir(dumpDirectory)) {
+	if (!PFile::Exists(dumpDirectory)) {
+		if (!PFile::CreateDir(dumpDirectory)) {
 			ERROR_LOG(SCEMODULE, "Unable to create directory for EBOOT dumping, aborting.");
 			return;
 		}
 	}
 
-	FILE *decryptedEbootFile = File::OpenCFile(fullPath, "wb");
+	FILE *decryptedEbootFile = PFile::OpenCFile(fullPath, "wb");
 	if (!decryptedEbootFile) {
 		ERROR_LOG(SCEMODULE, "Unable to write decrypted EBOOT.");
 		return;
@@ -1172,7 +1172,7 @@ static Module *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 loadAdd
 	}
 
 	// Open ELF reader
-	ElfReader reader((void*)ptr, elfSize);
+	PElfReader reader((void*)ptr, elfSize);
 
 	int result = reader.LoadInto(loadAddress, fromTop);
 	if (result != SCE_KERNEL_ERROR_OK) 	{
