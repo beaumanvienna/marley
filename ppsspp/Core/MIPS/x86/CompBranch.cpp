@@ -120,14 +120,14 @@ void Jit::BranchLogExit(MIPSOpcode op, u32 dest, bool useEAX)
 {
 	OpArg destArg = useEAX ? R(EAX) : Imm32(dest);
 
-	CMP(32, MIPSSTATE_VAR(intBranchExit), destArg);
+	PCMP(32, MIPSSTATE_VAR(intBranchExit), destArg);
 	FixupBranch skip = PJ_CC(CC_E);
 
-	MOV(32, MIPSSTATE_VAR(jitBranchExit), destArg);
+	PMOV(32, MIPSSTATE_VAR(jitBranchExit), destArg);
 	ABI_CallFunctionCC(thunks.ProtectFunction(&JitBranchLogMismatch), op.encoding, GetCompilerPC());
 	// Restore EAX, we probably ruined it.
 	if (useEAX)
-		MOV(32, R(EAX), MIPSSTATE_VAR(jitBranchExit));
+		PMOV(32, R(EAX), MIPSSTATE_VAR(jitBranchExit));
 
 	PSetJumpTarget(skip);
 }
@@ -375,12 +375,12 @@ void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 		if (gpr.IsImm(rt) && gpr.GetImm(rt) == 0)
 		{
 			gpr.KillImmediate(rs, true, false);
-			CMP(32, gpr.R(rs), Imm32(0));
+			PCMP(32, gpr.R(rs), Imm32(0));
 		}
 		else
 		{
 			gpr.MapReg(rs, true, false);
-			CMP(32, gpr.R(rs), gpr.R(rt));
+			PCMP(32, gpr.R(rs), gpr.R(rt));
 		}
 
 		CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, false);
@@ -454,7 +454,7 @@ void Jit::BranchRSZeroComp(MIPSOpcode op, Gen::CCFlags cc, bool andLink, bool li
 			CompileDelaySlot(DELAYSLOT_NICE);
 
 		gpr.MapReg(rs, true, false);
-		CMP(32, gpr.R(rs), Imm32(0));
+		PCMP(32, gpr.R(rs), Imm32(0));
 
 		CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, andLink);
 	}
@@ -520,7 +520,7 @@ void Jit::BranchFPFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 		CompileDelaySlot(DELAYSLOT_NICE);
 
 	gpr.KillImmediate(MIPS_REG_FPCOND, true, false);
-	TEST(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
+	P_TEST(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
 
 	CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, false);
 }
@@ -570,7 +570,7 @@ void Jit::BranchVFPUFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 	int imm3 = (op >> 18) & 7;
 
 	gpr.KillImmediate(MIPS_REG_VFPUCC, true, false);
-	TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << imm3));
+	P_TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << imm3));
 
 	u32 notTakenTarget = GetCompilerPC() + (delaySlotIsBranch ? 4 : 8);
 	CompBranchExits(cc, targetAddr, notTakenTarget, delaySlotIsNice, likely, false);
@@ -682,7 +682,7 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 	{
 		// If this is a syscall, write the pc (for thread switching and other good reasons.)
 		gpr.MapReg(rs, true, false);
-		MOV(32, MIPSSTATE_VAR(pc), gpr.R(rs));
+		PMOV(32, MIPSSTATE_VAR(pc), gpr.R(rs));
 		if (andLink)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_FLUSH);
@@ -722,17 +722,17 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 		if (gpr.R(rs).IsSimpleReg()) {
 			destReg = gpr.R(rs).GetSimpleReg();
 		} else {
-			MOV(32, R(EAX), gpr.R(rs));
+			PMOV(32, R(EAX), gpr.R(rs));
 		}
 		FlushAll();
 	} else {
 		// Latch destination now - save it in memory.
 		gpr.MapReg(rs, true, false);
-		MOV(32, MIPSSTATE_VAR(savedPC), gpr.R(rs));
+		PMOV(32, MIPSSTATE_VAR(savedPC), gpr.R(rs));
 		if (andLink)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
-		MOV(32, R(EAX), MIPSSTATE_VAR(savedPC));
+		PMOV(32, R(EAX), MIPSSTATE_VAR(savedPC));
 		FlushAll();
 	}
 
@@ -781,7 +781,7 @@ void Jit::Comp_Syscall(MIPSOpcode op)
 	js.downcountAmount = -offset;
 
 	if (!js.inDelaySlot) {
-		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 4));
+		PMOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 4));
 	}
 
 #ifdef USE_PROFILER

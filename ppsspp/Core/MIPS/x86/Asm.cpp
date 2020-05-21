@@ -72,14 +72,14 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 	restoreRoundingMode = PAlignCode16(); {
 		STMXCSR(MIPSSTATE_VAR(temp));
 		// Clear the rounding mode and flush-to-zero bits back to 0.
-		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
+		P_AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
 		LDMXCSR(MIPSSTATE_VAR(temp));
 		PRET();
 	}
 
 	applyRoundingMode = PAlignCode16(); {
-		MOV(32, R(EAX), MIPSSTATE_VAR(fcr31));
-		AND(32, R(EAX), Imm32(0x01000003));
+		PMOV(32, R(EAX), MIPSSTATE_VAR(fcr31));
+		P_AND(32, R(EAX), Imm32(0x01000003));
 
 		// If it's 0 (nearest + no flush0), we don't actually bother setting - we cleared the rounding
 		// mode out in restoreRoundingMode anyway. This is the most common.
@@ -88,20 +88,20 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 		// The MIPS bits don't correspond exactly, so we have to adjust.
 		// 0 -> 0 (skip2), 1 -> 3, 2 -> 2 (skip2), 3 -> 1
-		TEST(8, R(AL), Imm8(1));
+		P_TEST(8, R(AL), Imm8(1));
 		FixupBranch skip2 = PJ_CC(CC_Z);
-		XOR(32, R(EAX), Imm8(2));
+		P_XOR(32, R(EAX), Imm8(2));
 		PSetJumpTarget(skip2);
 
 		// Adjustment complete, now reconstruct MXCSR
 		SHL(32, R(EAX), Imm8(13));
 		// Before setting new bits, we must clear the old ones.
-		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));   // Clearing bits 13-14 (rounding mode) and 15 (flush to zero)
-		OR(32, MIPSSTATE_VAR(temp), R(EAX));
+		P_AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));   // Clearing bits 13-14 (rounding mode) and 15 (flush to zero)
+		P_OR(32, MIPSSTATE_VAR(temp), R(EAX));
 
-		TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
+		P_TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
 		FixupBranch skip3 = PJ_CC(CC_Z);
-		OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
+		P_OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
 		PSetJumpTarget(skip3);
 
 		LDMXCSR(MIPSSTATE_VAR(temp));
@@ -113,21 +113,21 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 #ifdef _M_X64
 	// Two statically allocated registers.
-	MOV(64, R(MEMBASEREG), ImmPtr(Memory::base));
+	PMOV(64, R(MEMBASEREG), ImmPtr(Memory::base));
 	uintptr_t jitbase = (uintptr_t)GetBasePtr();
 	if (jitbase > 0x7FFFFFFFULL) {
-		MOV(64, R(JITBASEREG), ImmPtr(GetBasePtr()));
+		PMOV(64, R(JITBASEREG), ImmPtr(GetBasePtr()));
 		jo.reserveR15ForAsm = true;
 	}
 #endif
 	// From the start of the FP reg, a single byte offset can reach all GPR + all FPR (but no VFPUR)
-	MOV(PTRBITS, R(CTXREG), ImmPtr(&mips_->f[0]));
+	PMOV(PTRBITS, R(CTXREG), ImmPtr(&mips_->f[0]));
 
 	outerLoop = GetCodePtr();
 		RestoreRoundingMode(true);
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		ApplyRoundingMode(true);
-		FixupBranch skipToCoreStateCheck = J();  //skip the downcount check
+		FixupBranch skipToCoreStateCheck = PJ();  //skip the downcount check
 
 		dispatcherCheckCoreState = GetCodePtr();
 
@@ -137,13 +137,13 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 		PSetJumpTarget(skipToCoreStateCheck);
 		if (RipAccessible((const void *)&coreState)) {
-			CMP(32, M(&coreState), Imm32(0));  // rip accessible
+			PCMP(32, M(&coreState), Imm32(0));  // rip accessible
 		} else {
-			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
-			CMP(32, MatR(RAX), Imm32(0));
+			PMOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
+			PCMP(32, MatR(RAX), Imm32(0));
 		}
 		FixupBranch badCoreState = PJ_CC(CC_NZ, true);
-		FixupBranch skipToRealDispatch2 = J(); //skip the sync and compare first time
+		FixupBranch skipToRealDispatch2 = PJ(); //skip the sync and compare first time
 
 		dispatcher = GetCodePtr();
 
@@ -155,36 +155,36 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 			dispatcherNoCheck = GetCodePtr();
 
-			MOV(32, R(EAX), MIPSSTATE_VAR(pc));
+			PMOV(32, R(EAX), MIPSSTATE_VAR(pc));
 			dispatcherInEAXNoCheck = GetCodePtr();
 
 #ifdef MASKED_PSP_MEMORY
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			P_AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
 #endif
 
 #ifdef _M_IX86
 			_assert_msg_(CPU, Memory::base != 0, "Memory base bogus");
-			MOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
+			PMOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
 #elif _M_X64
-			MOV(32, R(EAX), MComplex(MEMBASEREG, RAX, SCALE_1, 0));
+			PMOV(32, R(EAX), MComplex(MEMBASEREG, RAX, SCALE_1, 0));
 #endif
-			MOV(32, R(EDX), R(EAX));
+			PMOV(32, R(EDX), R(EAX));
 			_assert_msg_(JIT, MIPS_JITBLOCK_MASK == 0xFF000000, "Hardcoded assumption of emuhack mask");
 			SHR(32, R(EDX), Imm8(24));
-			CMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
+			PCMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
 			FixupBranch notfound = PJ_CC(CC_NE);
 				if (enableDebug) {
-					ADD(32, MIPSSTATE_VAR(debugCount), Imm8(1));
+					PADD(32, MIPSSTATE_VAR(debugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-				AND(32, R(EAX), Imm32(MIPS_EMUHACK_VALUE_MASK));
+				P_AND(32, R(EAX), Imm32(MIPS_EMUHACK_VALUE_MASK));
 #ifdef _M_IX86
-				ADD(32, R(EAX), ImmPtr(GetBasePtr()));
+				PADD(32, R(EAX), ImmPtr(GetBasePtr()));
 #elif _M_X64
 				if (jo.reserveR15ForAsm)
-					ADD(64, R(RAX), R(JITBASEREG));
+					PADD(64, R(RAX), R(JITBASEREG));
 				else
-					ADD(64, R(EAX), Imm32(jitbase));
+					PADD(64, R(EAX), Imm32(jitbase));
 #endif
 				PJMPptr(R(EAX));
 			PSetJumpTarget(notfound);
@@ -193,16 +193,16 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			RestoreRoundingMode(true);
 			ABI_CallFunction(&MIPSComp::JitAt);
 			ApplyRoundingMode(true);
-			JMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
+			PJMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
 
 		PSetJumpTarget(bail);
 		PSetJumpTarget(bailCoreState);
 
 		if (RipAccessible((const void *)&coreState)) {
-			CMP(32, M(&coreState), Imm32(0));  // rip accessible
+			PCMP(32, M(&coreState), Imm32(0));  // rip accessible
 		} else {
-			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
-			CMP(32, MatR(RAX), Imm32(0));
+			PMOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
+			PCMP(32, MatR(RAX), Imm32(0));
 		}
 		PJ_CC(CC_Z, outerLoop, true);
 

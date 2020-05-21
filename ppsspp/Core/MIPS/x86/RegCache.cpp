@@ -365,9 +365,9 @@ void GPRRegCache::MapReg(MIPSGPReg i, bool doLoad, bool makeDirty) {
 		if (doLoad) {
 			// Force ZERO to be 0.
 			if (i == MIPS_REG_ZERO)
-				emit->MOV(32, newloc, Imm32(0));
+				emit->PMOV(32, newloc, Imm32(0));
 			else
-				emit->MOV(32, newloc, regs[i].location);
+				emit->PMOV(32, newloc, regs[i].location);
 		}
 		for (int j = 0; j < 32; j++) {
 			if (i != MIPSGPReg(j) && regs[j].location.IsSimpleReg(xr)) {
@@ -403,7 +403,7 @@ void GPRRegCache::StoreFromRegister(MIPSGPReg i) {
 		OpArg newLoc = GetDefaultLocation(i);
 		// But never store to ZERO.
 		if (doStore && i != MIPS_REG_ZERO)
-			emit->MOV(32, newLoc, regs[i].location);
+			emit->PMOV(32, newLoc, regs[i].location);
 		regs[i].location = newLoc;
 		regs[i].away = false;
 	}

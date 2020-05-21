@@ -785,7 +785,7 @@ public:
 #endif
 
     void addToCallGraph(TInfoSink&, const TString& caller, const TString& callee);
-    void merge(TInfoSink&, TIntermediate&);
+    void Pmerge(TInfoSink&, TIntermediate&);
     void PfinalCheck(TInfoSink&, bool keepUncalled);
 
     bool buildConvertOp(TBasicType dst, TBasicType src, TOperator& convertOp) const;
@@ -854,8 +854,8 @@ public:
 
 protected:
     TIntermSymbol* addSymbol(int Id, const TString&, const TType&, const TConstUnionArray&, TIntermTyped* subtree, const TSourceLoc&);
-    void error(TInfoSink& infoSink, const char*);
-    void warn(TInfoSink& infoSink, const char*);
+    void Perror(TInfoSink& infoSink, const char*);
+    void Pwarn(TInfoSink& infoSink, const char*);
     void mergeCallGraphs(TInfoSink&, TIntermediate&);
     void mergeModes(TInfoSink&, TIntermediate&);
     void mergeTrees(TInfoSink&, TIntermediate&);

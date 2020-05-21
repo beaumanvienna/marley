@@ -241,17 +241,17 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 		}
 		if (setMXCSR != -1) {
 			STMXCSR(MIPSSTATE_VAR(mxcsrTemp));
-			MOV(32, R(TEMPREG), MIPSSTATE_VAR(mxcsrTemp));
-			AND(32, R(TEMPREG), Imm32(~(3 << 13)));
-			OR(32, R(TEMPREG), Imm32(setMXCSR << 13));
-			MOV(32, MIPSSTATE_VAR(temp), R(TEMPREG));
+			PMOV(32, R(TEMPREG), MIPSSTATE_VAR(mxcsrTemp));
+			P_AND(32, R(TEMPREG), Imm32(~(3 << 13)));
+			P_OR(32, R(TEMPREG), Imm32(setMXCSR << 13));
+			PMOV(32, MIPSSTATE_VAR(temp), R(TEMPREG));
 			LDMXCSR(MIPSSTATE_VAR(temp));
 		}
 
 		(this->*conv)(TEMPREG, fpr.R(fs));
 
 		// Did we get an indefinite integer value?
-		CMP(32, R(TEMPREG), Imm32(0x80000000));
+		PCMP(32, R(TEMPREG), Imm32(0x80000000));
 		FixupBranch skip = PJ_CC(CC_NE);
 		if (fd != fs) {
 			CopyFPReg(fpr.RX(fd), fpr.R(fs));
@@ -262,7 +262,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 		// At this point, -inf = 0xffffffff, inf/nan = 0x00000000.
 		// We want -inf to be 0x80000000 inf/nan to be 0x7fffffff, so we flip those bits.
 		PMOVD_xmm(R(TEMPREG), fpr.RX(fd));
-		XOR(32, R(TEMPREG), Imm32(0x7fffffff));
+		P_XOR(32, R(TEMPREG), Imm32(0x7fffffff));
 
 		PSetJumpTarget(skip);
 		PMOVD_xmm(fpr.RX(fd), R(TEMPREG));
@@ -276,7 +276,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 	case 5:	//F(fd)	= fabsf(F(fs)); break; //abs
 		fpr.SpillLock(fd, fs);
 		fpr.MapReg(fd, fd == fs, true);
-		MOV(PTRBITS, R(TEMPREG), ImmPtr(&ssNoSignMask[0]));
+		PMOV(PTRBITS, R(TEMPREG), ImmPtr(&ssNoSignMask[0]));
 		if (fd != fs && fpr.IsMapped(fs)) {
 			MOVAPS(fpr.RX(fd), MatR(TEMPREG));
 			ANDPS(fpr.RX(fd), fpr.R(fs));
@@ -299,7 +299,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 	case 7:	//F(fd)	= -F(fs);			 break; //neg
 		fpr.SpillLock(fd, fs);
 		fpr.MapReg(fd, fd == fs, true);
-		MOV(PTRBITS, R(TEMPREG), ImmPtr(&ssSignBits2[0]));
+		PMOV(PTRBITS, R(TEMPREG), ImmPtr(&ssSignBits2[0]));
 		if (fd != fs && fpr.IsMapped(fs)) {
 			MOVAPS(fpr.RX(fd), MatR(TEMPREG));
 			XORPS(fpr.RX(fd), fpr.R(fs));
@@ -370,7 +370,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 		if (fpr.R(fs).IsSimpleReg()) {
 			PMOVD_xmm(gpr.R(rt), fpr.RX(fs));
 		} else {
-			MOV(32, gpr.R(rt), fpr.R(fs));
+			PMOV(32, gpr.R(rt), fpr.R(fs));
 		}
 		break;
 
@@ -384,19 +384,19 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 				gpr.MapReg(MIPS_REG_FPCOND, true, false);
 			}
 			gpr.MapReg(rt, false, true);
-			MOV(32, gpr.R(rt), MIPSSTATE_VAR(fcr31));
+			PMOV(32, gpr.R(rt), MIPSSTATE_VAR(fcr31));
 			if (wasImm) {
 				if (gpr.GetImm(MIPS_REG_FPCOND) & 1) {
-					OR(32, gpr.R(rt), Imm32(1 << 23));
+					P_OR(32, gpr.R(rt), Imm32(1 << 23));
 				} else {
-					AND(32, gpr.R(rt), Imm32(~(1 << 23)));
+					P_AND(32, gpr.R(rt), Imm32(~(1 << 23)));
 				}
 			} else {
-				AND(32, gpr.R(rt), Imm32(~(1 << 23)));
-				MOV(32, R(TEMPREG), gpr.R(MIPS_REG_FPCOND));
-				AND(32, R(TEMPREG), Imm32(1));
+				P_AND(32, gpr.R(rt), Imm32(~(1 << 23)));
+				PMOV(32, R(TEMPREG), gpr.R(MIPS_REG_FPCOND));
+				P_AND(32, R(TEMPREG), Imm32(1));
 				SHL(32, R(TEMPREG), Imm8(23));
-				OR(32, gpr.R(rt), R(TEMPREG));
+				P_OR(32, gpr.R(rt), R(TEMPREG));
 			}
 			gpr.UnlockAll();
 		} else if (fs == 0) {
@@ -422,7 +422,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 			RestoreRoundingMode();
 			if (gpr.IsImm(rt)) {
 				gpr.SetImm(MIPS_REG_FPCOND, (gpr.GetImm(rt) >> 23) & 1);
-				MOV(32, MIPSSTATE_VAR(fcr31), Imm32(gpr.GetImm(rt) & 0x0181FFFF));
+				PMOV(32, MIPSSTATE_VAR(fcr31), Imm32(gpr.GetImm(rt) & 0x0181FFFF));
 				if ((gpr.GetImm(rt) & 0x1000003) == 0) {
 					// Default nearest / no-flush mode, just leave it cleared.
 				} else {
@@ -433,11 +433,11 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 				gpr.Lock(rt, MIPS_REG_FPCOND);
 				gpr.MapReg(rt, true, false);
 				gpr.MapReg(MIPS_REG_FPCOND, false, true);
-				MOV(32, gpr.R(MIPS_REG_FPCOND), gpr.R(rt));
+				PMOV(32, gpr.R(MIPS_REG_FPCOND), gpr.R(rt));
 				SHR(32, gpr.R(MIPS_REG_FPCOND), Imm8(23));
-				AND(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
-				MOV(32, MIPSSTATE_VAR(fcr31), gpr.R(rt));
-				AND(32, MIPSSTATE_VAR(fcr31), Imm32(0x0181FFFF));
+				P_AND(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
+				PMOV(32, MIPSSTATE_VAR(fcr31), gpr.R(rt));
+				P_AND(32, MIPSSTATE_VAR(fcr31), Imm32(0x0181FFFF));
 				gpr.UnlockAll();
 				UpdateRoundingMode();
 				ApplyRoundingMode();

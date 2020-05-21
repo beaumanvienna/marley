@@ -109,20 +109,20 @@ namespace MIPSComp {
 		{
 			if (needSwap)
 			{
-				MOV(32, R(EDX), gpr.R(rt));
-				MOV(bits, dest, R(EDX));
+				PMOV(32, R(EDX), gpr.R(rt));
+				PMOV(bits, dest, R(EDX));
 			}
 			else {
 				if (rt == MIPS_REG_ZERO) {
 					switch (bits) {
-					case 8: MOV(8, dest, Imm8(0)); break;
-					case 16: MOV(16, dest, Imm16(0)); break;
-					case 32: MOV(32, dest, Imm32(0)); break;
+					case 8: PMOV(8, dest, Imm8(0)); break;
+					case 16: PMOV(16, dest, Imm16(0)); break;
+					case 32: PMOV(32, dest, Imm32(0)); break;
 					}
 				} else {
 					// The downcast is needed so we don't try to generate a 8-bit write with a 32-bit imm
 					// (that might have been generated from an li instruction) which is illegal.
-					MOV(bits, dest, DowncastImm(gpr.R(rt), bits));
+					PMOV(bits, dest, DowncastImm(gpr.R(rt), bits));
 				}
 			}
 		}
@@ -155,9 +155,9 @@ namespace MIPSComp {
 		gpr.MapReg(rt, true, !isStore);
 
 		// Grab the offset from alignment for shifting (<< 3 for bytes -> bits.)
-		MOV(32, R(shiftReg), gpr.R(rs));
-		ADD(32, R(shiftReg), Imm32(offset));
-		AND(32, R(shiftReg), Imm32(3));
+		PMOV(32, R(shiftReg), gpr.R(rs));
+		PADD(32, R(shiftReg), Imm32(offset));
+		P_AND(32, R(shiftReg), Imm32(3));
 		SHL(32, R(shiftReg), Imm8(3));
 
 		{
@@ -166,7 +166,7 @@ namespace MIPSComp {
 			if (safe.PrepareRead(src, 4))
 			{
 				if (!src.IsSimpleReg(EAX))
-					MOV(32, R(EAX), src);
+					PMOV(32, R(EAX), src);
 
 				CompITypeMemUnpairedLRInner(op, shiftReg);
 			}
@@ -181,7 +181,7 @@ namespace MIPSComp {
 			JitSafeMem safe(this, rs, offset, ~3);
 			OpArg dest;
 			if (safe.PrepareWrite(dest, 4))
-				MOV(32, dest, R(EDX));
+				PMOV(32, dest, R(EDX));
 			if (safe.PrepareSlowWrite())
 				safe.DoSlowWrite(safeMemFuncs.writeU32, R(EDX));
 			safe.Finish();
@@ -199,15 +199,15 @@ namespace MIPSComp {
 
 		// Make sure we have the shift for the target in ECX.
 		if (shiftReg != ECX)
-			MOV(32, R(ECX), R(shiftReg));
+			PMOV(32, R(ECX), R(shiftReg));
 
 		// Now use that shift (left on target, right on source.)
 		switch (o)
 		{
 		case 34: //lwl
-			MOV(32, R(EDX), Imm32(0x00ffffff));
+			PMOV(32, R(EDX), Imm32(0x00ffffff));
 			SHR(32, R(EDX), R(CL));
-			AND(32, gpr.R(rt), R(EDX));
+			P_AND(32, gpr.R(rt), R(EDX));
 			break;
 
 		case 38: //lwr
@@ -215,16 +215,16 @@ namespace MIPSComp {
 			break;
 
 		case 42: //swl
-			MOV(32, R(EDX), Imm32(0xffffff00));
+			PMOV(32, R(EDX), Imm32(0xffffff00));
 			SHL(32, R(EDX), R(CL));
-			AND(32, R(EAX), R(EDX));
+			P_AND(32, R(EAX), R(EDX));
 			break;
 
 		case 46: //swr
-			MOV(32, R(EDX), gpr.R(rt));
+			PMOV(32, R(EDX), gpr.R(rt));
 			SHL(32, R(EDX), R(CL));
 			// EDX is already the target value to write, but may be overwritten below.  Save it.
-			PUSH(EDX);
+			PPUSH(EDX);
 			break;
 
 		default:
@@ -234,14 +234,14 @@ namespace MIPSComp {
 		// Flip ECX around from 3 bytes / 24 bits.
 		if (shiftReg == ECX)
 		{
-			MOV(32, R(EDX), Imm32(24));
-			SUB(32, R(EDX), R(ECX));
-			MOV(32, R(ECX), R(EDX));
+			PMOV(32, R(EDX), Imm32(24));
+			PSUB(32, R(EDX), R(ECX));
+			PMOV(32, R(ECX), R(EDX));
 		}
 		else
 		{
-			MOV(32, R(ECX), Imm32(24));
-			SUB(32, R(ECX), R(shiftReg));
+			PMOV(32, R(ECX), Imm32(24));
+			PSUB(32, R(ECX), R(shiftReg));
 		}
 
 		// Use the flipped shift (left on source, right on target) and write target.
@@ -250,32 +250,32 @@ namespace MIPSComp {
 		case 34: //lwl
 			SHL(32, R(EAX), R(CL));
 
-			OR(32, gpr.R(rt), R(EAX));
+			P_OR(32, gpr.R(rt), R(EAX));
 			break;
 
 		case 38: //lwr
-			MOV(32, R(EDX), Imm32(0xffffff00));
+			PMOV(32, R(EDX), Imm32(0xffffff00));
 			SHL(32, R(EDX), R(CL));
-			AND(32, gpr.R(rt), R(EDX));
+			P_AND(32, gpr.R(rt), R(EDX));
 
-			OR(32, gpr.R(rt), R(EAX));
+			P_OR(32, gpr.R(rt), R(EAX));
 			break;
 
 		case 42: //swl
-			MOV(32, R(EDX), gpr.R(rt));
+			PMOV(32, R(EDX), gpr.R(rt));
 			SHR(32, R(EDX), R(CL));
 
-			OR(32, R(EDX), R(EAX));
+			P_OR(32, R(EDX), R(EAX));
 			break;
 
 		case 46: //swr
-			MOV(32, R(EDX), Imm32(0x00ffffff));
+			PMOV(32, R(EDX), Imm32(0x00ffffff));
 			SHR(32, R(EDX), R(CL));
-			AND(32, R(EAX), R(EDX));
+			P_AND(32, R(EAX), R(EDX));
 
 			// This is the target value we saved earlier.
-			POP(EDX);
-			OR(32, R(EDX), R(EAX));
+			PPOP(EDX);
+			P_OR(32, R(EDX), R(EAX));
 			break;
 
 		default:

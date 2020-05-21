@@ -32,7 +32,7 @@ int Jit::Replace_fabsf() {
 	fpr.SpillLock(0, 12);
 	fpr.MapReg(0, false, true);
 	MOVSS(fpr.RX(0), fpr.R(12));
-	MOV(PTRBITS, R(RAX), ImmPtr(&ssNoSignMask));
+	PMOV(PTRBITS, R(RAX), ImmPtr(&ssNoSignMask));
 	ANDPS(fpr.RX(0), MatR(RAX));
 	fpr.ReleaseSpillLocks();
 	return 4;  // Number of instructions in the MIPS function

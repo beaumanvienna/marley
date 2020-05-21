@@ -392,7 +392,7 @@ public:
 	// Actually, REP MOVSB has gotten fast again on recent CPU generations, though it's not all that useful anyway.
 
 	// Debug breakpoint
-	void INT3();
+	void PINT3();
 
 	// Do nothing
 	void PNOP(size_t count = 1);
@@ -401,36 +401,36 @@ public:
 	void PPAUSE();
 
 	// Flag control
-	void STC();
+	void PSTC();
 	void PCLC();
 	void PCMC();
 
 	// These two can not be executed in 64-bit mode on early Intel 64-bit CPU:s, only on Core2 and AMD!
-	void LAHF(); // 3 cycle vector path
-	void SAHF(); // direct path fast
+	void PLAHF(); // 3 cycle vector path
+	void PSAHF(); // direct path fast
 
 	// Stack control
-	void PUSH(X64Reg reg);
-	void POP(X64Reg reg);
-	void PUSH(int bits, const OpArg &reg);
-	void POP(int bits, const OpArg &reg);
-	void PUSHF();
-	void POPF();
+	void PPUSH(X64Reg reg);
+	void PPOP(X64Reg reg);
+	void PPUSH(int bits, const OpArg &reg);
+	void PPOP(int bits, const OpArg &reg);
+	void PPUSHF();
+	void PPOPF();
 
 	// Flow control
 	void PRET();
 	void PRET_FAST();
 	void PUD2();
-	FixupBranch J(bool force5bytes = false);
+	FixupBranch PJ(bool force5bytes = false);
 
-	void JMP(const u8 * addr, bool force5Bytes = false);
-	void JMP(OpArg arg);
+	void PJMP(const u8 * addr, bool force5Bytes = false);
+	void PJMP(OpArg arg);
 	void PJMPptr(const OpArg &arg);
 	void PJMPself(); //infinite loop!
 #ifdef CALL
 #undef CALL
 #endif
-	void CALL(const void *fnptr);
+	void PCALL(const void *fnptr);
 	void PCALLptr(OpArg arg);
 
 	FixupBranch PJ_CC(CCFlags conditionCode, bool force5bytes = false);
@@ -494,38 +494,38 @@ public:
 	void SHLD(int bits, OpArg dest, OpArg src, OpArg shift);
 
 	// Extend EAX into EDX in various ways
-	void CWD(int bits = 16);
-	inline void CDQ() {CWD(32);}
-	inline void CQO() {CWD(64);}
-	void CBW(int bits = 8);
-	inline void CWDE() {CBW(16);}
-	inline void CDQE() {CBW(32);}
+	void PCWD(int bits = 16);
+	inline void CDQ() {PCWD(32);}
+	inline void CQO() {PCWD(64);}
+	void PCBW(int bits = 8);
+	inline void CWDE() {PCBW(16);}
+	inline void CDQE() {PCBW(32);}
 
 	// Load effective address
-	void LEA(int bits, X64Reg dest, OpArg src);
+	void PLEA(int bits, X64Reg dest, OpArg src);
 
 	// Integer arithmetic
 	void NEG (int bits, OpArg src);
-	void ADD (int bits, const OpArg &a1, const OpArg &a2);
-	void ADC (int bits, const OpArg &a1, const OpArg &a2);
-	void SUB (int bits, const OpArg &a1, const OpArg &a2);
-	void SBB (int bits, const OpArg &a1, const OpArg &a2);
-	void AND (int bits, const OpArg &a1, const OpArg &a2);
-	void CMP (int bits, const OpArg &a1, const OpArg &a2);
+	void PADD (int bits, const OpArg &a1, const OpArg &a2);
+	void PADC (int bits, const OpArg &a1, const OpArg &a2);
+	void PSUB (int bits, const OpArg &a1, const OpArg &a2);
+	void PSBB (int bits, const OpArg &a1, const OpArg &a2);
+	void P_AND (int bits, const OpArg &a1, const OpArg &a2);
+	void PCMP (int bits, const OpArg &a1, const OpArg &a2);
 
 	// Bit operations
 	void NOT (int bits, OpArg src);
-	void OR  (int bits, const OpArg &a1, const OpArg &a2);
-	void XOR (int bits, const OpArg &a1, const OpArg &a2);
-	void MOV (int bits, const OpArg &a1, const OpArg &a2);
-	void TEST(int bits, const OpArg &a1, const OpArg &a2);
+	void P_OR  (int bits, const OpArg &a1, const OpArg &a2);
+	void P_XOR (int bits, const OpArg &a1, const OpArg &a2);
+	void PMOV (int bits, const OpArg &a1, const OpArg &a2);
+	void P_TEST(int bits, const OpArg &a1, const OpArg &a2);
 
 	// Are these useful at all? Consider removing.
 	void PXCHG(int bits, const OpArg &a1, const OpArg &a2);
 	void PXCHG_AHAL();
 
 	// Byte swapping (32 and 64-bit only).
-	void BSWAP(int bits, X64Reg reg);
+	void PBSWAP(int bits, X64Reg reg);
 
 	// Sign/zero extension
 	void PMOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
@@ -544,9 +544,9 @@ public:
 	void LDMXCSR(OpArg memloc);
 
 	// Prefixes
-	void LOCK();
-	void REP();
-	void REPNE();
+	void PLOCK();
+	void PREP();
+	void PREPNE();
 	void PFSOverride();
 	void PGSOverride();
 
@@ -572,7 +572,7 @@ public:
 	void FST(int bits, OpArg dest);
 	void FSTP(int bits, OpArg dest);
 	void PFNSTSW_AX();
-	void FWAIT();
+	void PFWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
 	void ADDSS(X64Reg regOp, OpArg arg);
@@ -992,7 +992,7 @@ public:
 	void BEXTR(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
 	void ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
-	void RDTSC();
+	void PRDTSC();
 
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack

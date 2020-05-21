@@ -70,10 +70,10 @@ NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 	// Early exit on !srcPtr.
 	FixupBranch zeroSrc;
 	if (id.hasInvalidPtr) {
-		CMP(PTRBITS, R(srcReg), Imm8(0));
+		PCMP(PTRBITS, R(srcReg), Imm8(0));
 		FixupBranch nonZeroSrc = PJ_CC(CC_NZ);
-		XOR(32, R(RAX), R(RAX));
-		zeroSrc = J(true);
+		P_XOR(32, R(RAX), R(RAX));
+		zeroSrc = PJ(true);
 		PSetJumpTarget(nonZeroSrc);
 	}
 
@@ -122,38 +122,38 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	// We map these to nearest CALLs, with order: u, v, src, bufw, level
 
 	// Let's start by saving a bunch of registers.
-	PUSH(R15);
-	PUSH(R14);
-	PUSH(R13);
-	PUSH(R12);
+	PPUSH(R15);
+	PPUSH(R14);
+	PPUSH(R13);
+	PPUSH(R12);
 	// Won't need frac_u/frac_v for a while.
-	PUSH(arg4Reg);
-	PUSH(arg3Reg);
+	PPUSH(arg4Reg);
+	PPUSH(arg3Reg);
 	// Extra space to restore alignment and save resultReg for lerp.
 	// TODO: Maybe use XMMs instead?
-	SUB(64, R(RSP), Imm8(24));
+	PSUB(64, R(RSP), Imm8(24));
 
-	MOV(64, R(R12), R(arg1Reg));
-	MOV(64, R(R13), R(arg2Reg));
+	PMOV(64, R(R12), R(arg1Reg));
+	PMOV(64, R(R13), R(arg2Reg));
 #ifdef _WIN32
 	// First arg now starts at 24 (extra space) + 48 (pushed stack) + 8 (ret address) + 32 (shadow space)
 	const int argOffset = 24 + 48 + 8 + 32;
-	MOV(64, R(R14), MDisp(RSP, argOffset));
-	MOV(32, R(R15), MDisp(RSP, argOffset + 8));
+	PMOV(64, R(R14), MDisp(RSP, argOffset));
+	PMOV(32, R(R15), MDisp(RSP, argOffset + 8));
 	// level is at argOffset + 16.
 #else
-	MOV(64, R(R14), R(arg5Reg));
-	MOV(32, R(R15), R(arg6Reg));
+	PMOV(64, R(R14), R(arg5Reg));
+	PMOV(32, R(R15), R(arg6Reg));
 	// level is at 24 + 48 + 8.
 #endif
 
 	// Early exit on !srcPtr.
 	FixupBranch zeroSrc;
 	if (id.hasInvalidPtr) {
-		CMP(PTRBITS, R(R14), Imm8(0));
+		PCMP(PTRBITS, R(R14), Imm8(0));
 		FixupBranch nonZeroSrc = PJ_CC(CC_NZ);
-		XOR(32, R(RAX), R(RAX));
-		zeroSrc = J(true);
+		P_XOR(32, R(RAX), R(RAX));
+		zeroSrc = PJ(true);
 		PSetJumpTarget(nonZeroSrc);
 	}
 
@@ -161,14 +161,14 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	// R12=uptr, R13=vptr, stack+24=frac_u, stack+32=frac_v, R14=src, R15=bufw, stack+X=level
 
 	auto doNearestCall = [&](int off) {
-		MOV(32, R(uReg), MDisp(R12, off));
-		MOV(32, R(vReg), MDisp(R13, off));
-		MOV(64, R(srcReg), R(R14));
-		MOV(32, R(bufwReg), R(R15));
+		PMOV(32, R(uReg), MDisp(R12, off));
+		PMOV(32, R(vReg), MDisp(R13, off));
+		PMOV(64, R(srcReg), R(R14));
+		PMOV(32, R(bufwReg), R(R15));
 		// Leave level, we just always load from RAM.  Separate CLUTs is uncommon.
 
-		CALL(nearest);
-		MOV(32, MDisp(RSP, off), R(resultReg));
+		PCALL(nearest);
+		PMOV(32, MDisp(RSP, off), R(resultReg));
 	};
 
 	doNearestCall(0);
@@ -213,14 +213,14 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	if (RipAccessible(by256)) {
 		MULPS(fpScratchReg5, M(by256));
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(by256));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(by256));
 		MULPS(fpScratchReg5, MatR(tempReg1));
 	}
 
 	if (RipAccessible(ones)) {
 		MOVAPS(XMM0, M(ones));
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(ones));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(ones));
 		MOVAPS(XMM0, MatR(tempReg1));
 	}
 	SUBPS(XMM0, R(fpScratchReg5));
@@ -241,13 +241,13 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	if (RipAccessible(ones)) {
 		MULPS(fpScratchReg5, M(by256));
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(by256));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(by256));
 		MULPS(fpScratchReg5, MatR(tempReg1));
 	}
 	if (RipAccessible(ones)) {
 		MOVAPS(XMM0, M(ones));
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(ones));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(ones));
 		MOVAPS(XMM0, MatR(tempReg1));
 	}
 	SUBPS(XMM0, R(fpScratchReg5));
@@ -268,13 +268,13 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 		PSetJumpTarget(zeroSrc);
 	}
 
-	ADD(64, R(RSP), Imm8(24));
-	POP(arg3Reg);
-	POP(arg4Reg);
-	POP(R12);
-	POP(R13);
-	POP(R14);
-	POP(R15);
+	PADD(64, R(RSP), Imm8(24));
+	PPOP(arg3Reg);
+	PPOP(arg4Reg);
+	PPOP(R12);
+	PPOP(R13);
+	PPOP(R14);
+	PPOP(R15);
 
 	PRET();
 
@@ -358,17 +358,17 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 	case 32:
 	case 16:
 	case 8:
-		LEA(64, tempReg1, MComplex(srcReg, uReg, bitsPerTexel / 8, 0));
+		PLEA(64, tempReg1, MComplex(srcReg, uReg, bitsPerTexel / 8, 0));
 		break;
 
 	case 4: {
-		XOR(32, R(tempReg2), R(tempReg2));
+		P_XOR(32, R(tempReg2), R(tempReg2));
 		SHR(32, R(uReg), Imm8(1));
 		FixupBranch skip = PJ_CC(CC_NC);
 		// Track whether we shifted a 1 off or not.
-		MOV(32, R(tempReg2), Imm32(4));
+		PMOV(32, R(tempReg2), Imm32(4));
 		PSetJumpTarget(skip);
-		LEA(64, tempReg1, MRegSum(srcReg, uReg));
+		PLEA(64, tempReg1, MRegSum(srcReg, uReg));
 		break;
 	}
 
@@ -376,7 +376,7 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 		return false;
 	}
 
-	MOV(32, R(EAX), R(vReg));
+	PMOV(32, R(EAX), R(vReg));
 	MUL(32, R(bufwReg));
 
 	switch (bitsPerTexel) {
@@ -388,12 +388,12 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 
 	case 4: {
 		SHR(32, R(RAX), Imm8(1));
-		MOV(8, R(resultReg), MRegSum(tempReg1, RAX));
+		PMOV(8, R(resultReg), MRegSum(tempReg1, RAX));
 		// RCX is now free.
-		MOV(8, R(RCX), R(tempReg2));
+		PMOV(8, R(RCX), R(tempReg2));
 		SHR(8, R(resultReg), R(RCX));
 		// Zero out any bits not shifted off.
-		AND(32, R(resultReg), Imm8(0x0F));
+		P_AND(32, R(resultReg), Imm8(0x0F));
 		break;
 	}
 
@@ -406,33 +406,33 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 
 bool SamplerJitCache::Jit_GetTexDataSwizzled4() {
 	// Get the horizontal tile pos into tempReg1.
-	LEA(32, tempReg1, MScaled(uReg, SCALE_4, 0));
+	PLEA(32, tempReg1, MScaled(uReg, SCALE_4, 0));
 	// Note: imm8 sign extends negative.
-	AND(32, R(tempReg1), Imm8(~127));
+	P_AND(32, R(tempReg1), Imm8(~127));
 
 	// Add vertical offset inside tile to tempReg1.
-	LEA(32, tempReg2, MScaled(vReg, SCALE_4, 0));
-	AND(32, R(tempReg2), Imm8(31));
-	LEA(32, tempReg1, MComplex(tempReg1, tempReg2, SCALE_4, 0));
+	PLEA(32, tempReg2, MScaled(vReg, SCALE_4, 0));
+	P_AND(32, R(tempReg2), Imm8(31));
+	PLEA(32, tempReg1, MComplex(tempReg1, tempReg2, SCALE_4, 0));
 	// Add srcReg, since we'll need it at some point.
-	ADD(64, R(tempReg1), R(srcReg));
+	PADD(64, R(tempReg1), R(srcReg));
 
 	// Now find the vertical tile pos, and add to tempReg1.
 	SHR(32, R(vReg), Imm8(3));
-	LEA(32, EAX, MScaled(bufwReg, SCALE_4, 0));
+	PLEA(32, EAX, MScaled(bufwReg, SCALE_4, 0));
 	MUL(32, R(vReg));
-	ADD(64, R(tempReg1), R(EAX));
+	PADD(64, R(tempReg1), R(EAX));
 
 	// Last and possible also least, the horizontal offset inside the tile.
-	AND(32, R(uReg), Imm8(31));
+	P_AND(32, R(uReg), Imm8(31));
 	SHR(32, R(uReg), Imm8(1));
-	MOV(8, R(resultReg), MRegSum(tempReg1, uReg));
+	PMOV(8, R(resultReg), MRegSum(tempReg1, uReg));
 	FixupBranch skipNonZero = PJ_CC(CC_NC);
 	// If the horizontal offset was odd, take the upper 4.
 	SHR(8, R(resultReg), Imm8(4));
 	PSetJumpTarget(skipNonZero);
 	// Zero out the rest of the bits.
-	AND(32, R(resultReg), Imm8(0x0F));
+	P_AND(32, R(resultReg), Imm8(0x0F));
 
 	return true;
 }
@@ -443,12 +443,12 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled(const SamplerID &id, int bitsPerTex
 		return Jit_GetTexDataSwizzled4();
 	}
 
-	LEA(32, tempReg1, MScaled(vReg, SCALE_4, 0));
-	AND(32, R(tempReg1), Imm8(31));
-	AND(32, R(vReg), Imm8(~7));
+	PLEA(32, tempReg1, MScaled(vReg, SCALE_4, 0));
+	P_AND(32, R(tempReg1), Imm8(31));
+	P_AND(32, R(vReg), Imm8(~7));
 
-	MOV(32, R(tempReg2), R(uReg));
-	MOV(32, R(resultReg), R(uReg));
+	PMOV(32, R(tempReg2), R(uReg));
+	PMOV(32, R(resultReg), R(uReg));
 	switch (bitsPerTexel) {
 	case 32:
 		SHR(32, R(resultReg), Imm8(2));
@@ -466,31 +466,31 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled(const SamplerID &id, int bitsPerTex
 	default:
 		return false;
 	}
-	AND(32, R(tempReg2), Imm8(3));
+	P_AND(32, R(tempReg2), Imm8(3));
 	SHL(32, R(resultReg), Imm8(5));
-	ADD(32, R(tempReg1), R(tempReg2));
-	ADD(32, R(tempReg1), R(resultReg));
+	PADD(32, R(tempReg1), R(tempReg2));
+	PADD(32, R(tempReg1), R(resultReg));
 
 	// We may clobber srcReg in the MUL, so let's grab it now.
-	LEA(64, tempReg1, MComplex(srcReg, tempReg1, SCALE_4, 0));
+	PLEA(64, tempReg1, MComplex(srcReg, tempReg1, SCALE_4, 0));
 
-	LEA(32, EAX, MScaled(bufwReg, SCALE_4, 0));
+	PLEA(32, EAX, MScaled(bufwReg, SCALE_4, 0));
 	MUL(32, R(vReg));
 
 	switch (bitsPerTexel) {
 	case 32:
-		MOV(bitsPerTexel, R(resultReg), MRegSum(tempReg1, EAX));
+		PMOV(bitsPerTexel, R(resultReg), MRegSum(tempReg1, EAX));
 		break;
 	case 16:
-		AND(32, R(uReg), Imm8(1));
+		P_AND(32, R(uReg), Imm8(1));
 		// Multiply by two by just adding twice.
-		ADD(32, R(EAX), R(uReg));
-		ADD(32, R(EAX), R(uReg));
+		PADD(32, R(EAX), R(uReg));
+		PADD(32, R(EAX), R(uReg));
 		PMOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
 		break;
 	case 8:
-		AND(32, R(uReg), Imm8(3));
-		ADD(32, R(EAX), R(uReg));
+		P_AND(32, R(uReg), Imm8(3));
+		PADD(32, R(EAX), R(uReg));
 		PMOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
 		break;
 	default:
@@ -501,68 +501,68 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled(const SamplerID &id, int bitsPerTex
 }
 
 bool SamplerJitCache::Jit_Decode5650() {
-	MOV(32, R(tempReg2), R(resultReg));
-	AND(32, R(tempReg2), Imm32(0x0000001F));
+	PMOV(32, R(tempReg2), R(resultReg));
+	P_AND(32, R(tempReg2), Imm32(0x0000001F));
 
 	// B (we do R and B at the same time, they're both 5.)
-	MOV(32, R(tempReg1), R(resultReg));
-	AND(32, R(tempReg1), Imm32(0x0000F800));
+	PMOV(32, R(tempReg1), R(resultReg));
+	P_AND(32, R(tempReg1), Imm32(0x0000F800));
 	SHL(32, R(tempReg1), Imm8(5));
-	OR(32, R(tempReg2), R(tempReg1));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
 	// Expand 5 -> 8.  At this point we have 00BB00RR.
-	MOV(32, R(tempReg1), R(tempReg2));
+	PMOV(32, R(tempReg1), R(tempReg2));
 	SHL(32, R(tempReg2), Imm8(3));
 	SHR(32, R(tempReg1), Imm8(2));
-	OR(32, R(tempReg2), R(tempReg1));
-	AND(32, R(tempReg2), Imm32(0x00FF00FF));
+	P_OR(32, R(tempReg2), R(tempReg1));
+	P_AND(32, R(tempReg2), Imm32(0x00FF00FF));
 
 	// Now's as good a time to put in A as any.
-	OR(32, R(tempReg2), Imm32(0xFF000000));
+	P_OR(32, R(tempReg2), Imm32(0xFF000000));
 
 	// Last, we need to align, extract, and expand G.
 	// 3 to align to G, and then 2 to expand to 8.
 	SHL(32, R(resultReg), Imm8(3 + 2));
-	AND(32, R(resultReg), Imm32(0x0000FC00));
-	MOV(32, R(tempReg1), R(resultReg));
+	P_AND(32, R(resultReg), Imm32(0x0000FC00));
+	PMOV(32, R(tempReg1), R(resultReg));
 	// 2 to account for resultReg being preshifted, 4 for expansion.
 	SHR(32, R(tempReg1), Imm8(2 + 4));
-	OR(32, R(resultReg), R(tempReg1));
-	AND(32, R(resultReg), Imm32(0x0000FF00));
-	OR(32, R(resultReg), R(tempReg2));;
+	P_OR(32, R(resultReg), R(tempReg1));
+	P_AND(32, R(resultReg), Imm32(0x0000FF00));
+	P_OR(32, R(resultReg), R(tempReg2));;
 
 	return true;
 }
 
 bool SamplerJitCache::Jit_Decode5551() {
-	MOV(32, R(tempReg2), R(resultReg));
-	MOV(32, R(tempReg1), R(resultReg));
-	AND(32, R(tempReg2), Imm32(0x0000001F));
-	AND(32, R(tempReg1), Imm32(0x000003E0));
+	PMOV(32, R(tempReg2), R(resultReg));
+	PMOV(32, R(tempReg1), R(resultReg));
+	P_AND(32, R(tempReg2), Imm32(0x0000001F));
+	P_AND(32, R(tempReg1), Imm32(0x000003E0));
 	SHL(32, R(tempReg1), Imm8(3));
-	OR(32, R(tempReg2), R(tempReg1));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
-	MOV(32, R(tempReg1), R(resultReg));
-	AND(32, R(tempReg1), Imm32(0x00007C00));
+	PMOV(32, R(tempReg1), R(resultReg));
+	P_AND(32, R(tempReg1), Imm32(0x00007C00));
 	SHL(32, R(tempReg1), Imm8(6));
-	OR(32, R(tempReg2), R(tempReg1));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
 	// Expand 5 -> 8.  After this is just A.
-	MOV(32, R(tempReg1), R(tempReg2));
+	PMOV(32, R(tempReg1), R(tempReg2));
 	SHL(32, R(tempReg2), Imm8(3));
 	SHR(32, R(tempReg1), Imm8(2));
 	// Chop off the bits that were shifted out.
-	AND(32, R(tempReg1), Imm32(0x00070707));
-	OR(32, R(tempReg2), R(tempReg1));
+	P_AND(32, R(tempReg1), Imm32(0x00070707));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
 	// For A, we shift it to a single bit, and then subtract and XOR.
 	// That's probably the simplest way to expand it...
 	SHR(32, R(resultReg), Imm8(15));
 	// If it was 0, it's now -1, otherwise it's 0.  Easy.
-	SUB(32, R(resultReg), Imm8(1));
-	XOR(32, R(resultReg), Imm32(0xFF000000));
-	AND(32, R(resultReg), Imm32(0xFF000000));
-	OR(32, R(resultReg), R(tempReg2));
+	PSUB(32, R(resultReg), Imm8(1));
+	P_XOR(32, R(resultReg), Imm32(0xFF000000));
+	P_AND(32, R(resultReg), Imm32(0xFF000000));
+	P_OR(32, R(resultReg), R(tempReg2));
 
 	return true;
 }
@@ -575,7 +575,7 @@ bool SamplerJitCache::Jit_Decode4444() {
 	if (RipAccessible(color4444mask)) {
 		PAND(fpScratchReg1, M(color4444mask));
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(color4444mask));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(color4444mask));
 		PAND(fpScratchReg1, MatR(tempReg1));
 	}
 	MOVSS(fpScratchReg2, R(fpScratchReg1));
@@ -593,27 +593,27 @@ bool SamplerJitCache::Jit_TransformClutIndex(const SamplerID &id, int bitsPerInd
 	if (!id.hasClutShift && !id.hasClutMask && !id.hasClutOffset) {
 		// This is simple - just mask if necessary.
 		if (bitsPerIndex > 8) {
-			AND(32, R(resultReg), Imm32(0x000000FF));
+			P_AND(32, R(resultReg), Imm32(0x000000FF));
 		}
 		return true;
 	}
 
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate.clutformat));
-	MOV(32, R(tempReg1), MatR(tempReg1));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate.clutformat));
+	PMOV(32, R(tempReg1), MatR(tempReg1));
 
 	// Shift = (clutformat >> 2) & 0x1F
 	if (id.hasClutShift) {
-		MOV(32, R(RCX), R(tempReg1));
+		PMOV(32, R(RCX), R(tempReg1));
 		SHR(32, R(RCX), Imm8(2));
-		AND(32, R(RCX), Imm8(0x1F));
+		P_AND(32, R(RCX), Imm8(0x1F));
 		SHR(32, R(resultReg), R(RCX));
 	}
 
 	// Mask = (clutformat >> 8) & 0xFF
 	if (id.hasClutMask) {
-		MOV(32, R(tempReg2), R(tempReg1));
+		PMOV(32, R(tempReg2), R(tempReg1));
 		SHR(32, R(tempReg2), Imm8(8));
-		AND(32, R(resultReg), R(tempReg2));
+		P_AND(32, R(resultReg), R(tempReg2));
 	}
 
 	// We need to wrap any entries beyond the first 1024 bytes.
@@ -622,15 +622,15 @@ bool SamplerJitCache::Jit_TransformClutIndex(const SamplerID &id, int bitsPerInd
 	// We must mask to 0xFF before ORing 0x100 in 16 bit CMODEs.
 	// But skip if we'll mask 0xFF after offset anyway.
 	if (bitsPerIndex > 8 && (!id.hasClutOffset || offsetMask != 0x00FF)) {
-		AND(32, R(resultReg), Imm32(0x000000FF));
+		P_AND(32, R(resultReg), Imm32(0x000000FF));
 	}
 
 	// Offset = (clutformat >> 12) & 0x01F0
 	if (id.hasClutOffset) {
 		SHR(32, R(tempReg1), Imm8(16));
 		SHL(32, R(tempReg1), Imm8(4));
-		OR(32, R(resultReg), R(tempReg1));
-		AND(32, R(resultReg), Imm32(offsetMask));
+		P_OR(32, R(resultReg), R(tempReg1));
+		P_AND(32, R(resultReg), Imm32(offsetMask));
 	}
 	return true;
 }
@@ -642,28 +642,28 @@ bool SamplerJitCache::Jit_ReadClutColor(const SamplerID &id) {
 #ifdef _WIN32
 			const int argOffset = 24 + 48 + 8 + 32;
 			// Extra 8 to account for CALL.
-			MOV(32, R(tempReg2), MDisp(RSP, argOffset + 16 + 8));
+			PMOV(32, R(tempReg2), MDisp(RSP, argOffset + 16 + 8));
 #else
 			// Extra 8 to account for CALL.
-			MOV(32, R(tempReg2), MDisp(RSP, 24 + 48 + 8 + 8));
+			PMOV(32, R(tempReg2), MDisp(RSP, 24 + 48 + 8 + 8));
 #endif
-			LEA(32, tempReg2, MScaled(tempReg2, SCALE_4, 0));
+			PLEA(32, tempReg2, MScaled(tempReg2, SCALE_4, 0));
 		} else {
 #ifdef _WIN32
 			// The argument was saved on the stack.
-			MOV(32, R(tempReg2), MDisp(RSP, 40));
-			LEA(32, tempReg2, MScaled(tempReg2, SCALE_4, 0));
+			PMOV(32, R(tempReg2), MDisp(RSP, 40));
+			PLEA(32, tempReg2, MScaled(tempReg2, SCALE_4, 0));
 #else
 			// We need to multiply by 16 and add, LEA allows us to copy too.
-			LEA(32, tempReg2, MScaled(levelReg, SCALE_4, 0));
+			PLEA(32, tempReg2, MScaled(levelReg, SCALE_4, 0));
 #endif
 		}
 
 		// Second step of the multiply by 16 (since we only multiplied by 4 before.)
-		LEA(64, resultReg, MComplex(resultReg, tempReg2, SCALE_4, 0));
+		PLEA(64, resultReg, MComplex(resultReg, tempReg2, SCALE_4, 0));
 	}
 
-	MOV(PTRBITS, R(tempReg1), ImmPtr(clut));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(clut));
 
 	switch ((GEPaletteFormat)id.clutfmt) {
 	case GE_CMODE_16BIT_BGR5650:
@@ -679,7 +679,7 @@ bool SamplerJitCache::Jit_ReadClutColor(const SamplerID &id) {
 		return Jit_Decode4444();
 
 	case GE_CMODE_32BIT_ABGR8888:
-		MOV(32, R(resultReg), MComplex(tempReg1, resultReg, SCALE_4, 0));
+		PMOV(32, R(resultReg), MComplex(tempReg1, resultReg, SCALE_4, 0));
 		return true;
 
 	default:

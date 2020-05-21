@@ -374,7 +374,7 @@ void XEmitter::PRex(int w, int r, int x, int b)
 		Write8(rx);
 }
 
-void XEmitter::JMP(const u8 *addr, bool force5Bytes)
+void XEmitter::PJMP(const u8 *addr, bool force5Bytes)
 {
 	u64 fn = (u64)addr;
 	if (!force5Bytes)
@@ -425,7 +425,7 @@ void XEmitter::PCALLptr(OpArg arg)
 	arg.PWriteRest(this);
 }
 
-void XEmitter::CALL(const void *fnptr)
+void XEmitter::PCALL(const void *fnptr)
 {
 	u64 distance = u64(fnptr) - (u64(code) + 5);
 	_assert_msg_(DYNA_REC,
@@ -436,7 +436,7 @@ void XEmitter::CALL(const void *fnptr)
 	Write32(u32(distance));
 }
 
-FixupBranch XEmitter::J(bool force5bytes)
+FixupBranch XEmitter::PJ(bool force5bytes)
 {
 	FixupBranch branch;
 	branch.type = force5bytes ? 1 : 0;
@@ -538,7 +538,7 @@ void XEmitter::DEC(int bits, OpArg arg)
 
 //Single byte opcodes
 //There is no PUSHAD/POPAD in 64-bit mode.
-void XEmitter::INT3() {Write8(0xCC);}
+void XEmitter::PINT3() {Write8(0xCC);}
 void XEmitter::PRET()  {Write8(0xC3);}
 void XEmitter::PRET_FAST()  {Write8(0xF3); Write8(0xC3);} //two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to a ret
 
@@ -606,7 +606,7 @@ void XEmitter::PNOP(size_t size)
 void XEmitter::PPAUSE() {Write8(0xF3); PNOP();} //use in tight spinloops for energy saving on some cpu
 void XEmitter::PCLC()  {PCheckFlags(); Write8(0xF8);} //clear carry
 void XEmitter::PCMC()  {PCheckFlags(); Write8(0xF5);} //flip carry
-void XEmitter::STC()  {PCheckFlags(); Write8(0xF9);} //set carry
+void XEmitter::PSTC()  {PCheckFlags(); Write8(0xF9);} //set carry
 
 //TODO: xchg ah, al ???
 void XEmitter::PXCHG_AHAL()
@@ -617,11 +617,11 @@ void XEmitter::PXCHG_AHAL()
 }
 
 //These two can not be executed on early Intel 64-bit CPU:s, only on AMD!
-void XEmitter::LAHF() {Write8(0x9F);}
-void XEmitter::SAHF() {PCheckFlags(); Write8(0x9E);}
+void XEmitter::PLAHF() {Write8(0x9F);}
+void XEmitter::PSAHF() {PCheckFlags(); Write8(0x9E);}
 
-void XEmitter::PUSHF() {Write8(0x9C);}
-void XEmitter::POPF()  {PCheckFlags(); Write8(0x9D);}
+void XEmitter::PPUSHF() {Write8(0x9C);}
+void XEmitter::PPOPF()  {PCheckFlags(); Write8(0x9D);}
 
 void XEmitter::PLFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xE8);}
 void XEmitter::PMFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF0);}
@@ -644,7 +644,7 @@ void XEmitter::PWriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
 	Write8(byte2 + ((int)reg & 7));
 }
 
-void XEmitter::CWD(int bits)
+void XEmitter::PCWD(int bits)
 {
 	if (bits == 16)
 		Write8(0x66);
@@ -652,7 +652,7 @@ void XEmitter::CWD(int bits)
 	Write8(0x99);
 }
 
-void XEmitter::CBW(int bits)
+void XEmitter::PCBW(int bits)
 {
 	if (bits == 8)
 		Write8(0x66);
@@ -664,13 +664,13 @@ void XEmitter::CBW(int bits)
 
 
 //push/pop do not need wide to be 64-bit
-void XEmitter::PUSH(X64Reg reg) {PWriteSimple1Byte(32, 0x50, reg);}
-void XEmitter::POP(X64Reg reg)  {PWriteSimple1Byte(32, 0x58, reg);}
+void XEmitter::PPUSH(X64Reg reg) {PWriteSimple1Byte(32, 0x50, reg);}
+void XEmitter::PPOP(X64Reg reg)  {PWriteSimple1Byte(32, 0x58, reg);}
 
-void XEmitter::PUSH(int bits, const OpArg &reg)
+void XEmitter::PPUSH(int bits, const OpArg &reg)
 {
 	if (reg.IsSimpleReg())
-		PUSH(reg.GetSimpleReg());
+		PPUSH(reg.GetSimpleReg());
 	else if (reg.IsImm())
 	{
 		switch (reg.GetImmBits())
@@ -703,15 +703,15 @@ void XEmitter::PUSH(int bits, const OpArg &reg)
 	}
 }
 
-void XEmitter::POP(int /*bits*/, const OpArg &reg)
+void XEmitter::PPOP(int /*bits*/, const OpArg &reg)
 {
 	if (reg.IsSimpleReg())
-		POP(reg.GetSimpleReg());
+		PPOP(reg.GetSimpleReg());
 	else
 		_assert_msg_(DYNA_REC, 0, "POP - Unsupported encoding");
 }
 
-void XEmitter::BSWAP(int bits, X64Reg reg)
+void XEmitter::PBSWAP(int bits, X64Reg reg)
 {
 	if (bits >= 32)
 	{
@@ -843,7 +843,7 @@ void XEmitter::PMOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 	_assert_msg_(DYNA_REC, !src.IsImm(), "MOVSX - Imm argument");
 	if (dbits == sbits)
 	{
-		MOV(dbits, R(dest), src);
+		PMOV(dbits, R(dest), src);
 		return;
 	}
 	src.operandReg = (u8)dest;
@@ -876,7 +876,7 @@ void XEmitter::PMOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 	_assert_msg_(DYNA_REC, !src.IsImm(), "MOVZX - Imm argument");
 	if (dbits == sbits)
 	{
-		MOV(dbits, R(dest), src);
+		PMOV(dbits, R(dest), src);
 		return;
 	}
 	src.operandReg = (u8)dest;
@@ -910,7 +910,7 @@ void XEmitter::MOVBE(int bits, const OpArg& dest, const OpArg& src)
 	_assert_msg_(DYNA_REC, cpu_info.bMOVBE, "Generating MOVBE on a system that does not support it.");
 	if (bits == 8)
 	{
-		MOV(bits, dest, src);
+		PMOV(bits, dest, src);
 		return;
 	}
 
@@ -938,7 +938,7 @@ void XEmitter::MOVBE(int bits, const OpArg& dest, const OpArg& src)
 }
 
 
-void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
+void XEmitter::PLEA(int bits, X64Reg dest, OpArg src)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "LEA - Imm argument");
 	src.operandReg = (u8)dest;
@@ -1283,21 +1283,21 @@ void XEmitter::PWriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg
 	}
 }
 
-void XEmitter::ADD (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmADD, a1, a2);}
-void XEmitter::ADC (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmADC, a1, a2);}
-void XEmitter::SUB (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmSUB, a1, a2);}
-void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmSBB, a1, a2);}
-void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmAND, a1, a2);}
-void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmOR , a1, a2);}
-void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmXOR, a1, a2);}
-void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
+void XEmitter::PADD (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmADD, a1, a2);}
+void XEmitter::PADC (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmADC, a1, a2);}
+void XEmitter::PSUB (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmSUB, a1, a2);}
+void XEmitter::PSBB (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmSBB, a1, a2);}
+void XEmitter::P_AND (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmAND, a1, a2);}
+void XEmitter::P_OR  (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmOR , a1, a2);}
+void XEmitter::P_XOR (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmXOR, a1, a2);}
+void XEmitter::PMOV (int bits, const OpArg &a1, const OpArg &a2)
 {
 	if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
 		ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
 	PWriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
-void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmTEST, a1, a2);}
-void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmCMP, a1, a2);}
+void XEmitter::P_TEST(int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmTEST, a1, a2);}
+void XEmitter::PCMP (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmCMP, a1, a2);}
 void XEmitter::PXCHG(int bits, const OpArg &a1, const OpArg &a2) {PWriteNormalOp(this, bits, nrmXCHG, a1, a2);}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
@@ -1953,13 +1953,13 @@ void XEmitter::ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI
 
 // Prefixes
 
-void XEmitter::LOCK()  { Write8(0xF0); }
-void XEmitter::REP()   { Write8(0xF3); }
-void XEmitter::REPNE() { Write8(0xF2); }
+void XEmitter::PLOCK()  { Write8(0xF0); }
+void XEmitter::PREP()   { Write8(0xF3); }
+void XEmitter::PREPNE() { Write8(0xF2); }
 void XEmitter::PFSOverride() { Write8(0x64); }
 void XEmitter::PGSOverride() { Write8(0x65); }
 
-void XEmitter::FWAIT()
+void XEmitter::PFWAIT()
 {
 	Write8(0x9B);
 }
@@ -1988,7 +1988,7 @@ void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, flo
 void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, floatSTP80, dest);}
 void XEmitter::PFNSTSW_AX() { Write8(0xDF); Write8(0xE0); }
 
-void XEmitter::RDTSC() { Write8(0x0F); Write8(0x31); }
+void XEmitter::PRDTSC() { Write8(0x0F); Write8(0x31); }
 
 void XCodeBlock::PoisonMemory(int offset) {
 	// x86/64: 0xCC = breakpoint

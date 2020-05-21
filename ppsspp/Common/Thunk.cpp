@@ -49,23 +49,23 @@ void ThunkManager::Init()
 		MOVAPS(MDisp(RSP, stackOffset + (i - 2) * 16), (X64Reg)(XMM0 + i));
 	stackPosition = (ABI_GetNumXMMRegs() - 2) * 2;
 	STMXCSR(MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RCX));
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RDX));
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R8) );
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R9) );
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R10));
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R11));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RCX));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RDX));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R8) );
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R9) );
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R10));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(R11));
 #ifndef _WIN32
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RSI));
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RDI));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RSI));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RDI));
 #endif
-	MOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RBX));
+	PMOV(64, MDisp(RSP, stackOffset + (stackPosition++ * 8)), R(RBX));
 #else
 	for (int i = 2; i < ABI_GetNumXMMRegs(); i++)
 		MOVAPS(M(saved_fp_state + i * 16), (X64Reg)(XMM0 + i));
 	STMXCSR(M(&saved_mxcsr));
-	MOV(32, M(saved_gpr_state + 0 ), R(RCX));
-	MOV(32, M(saved_gpr_state + 4 ), R(RDX));
+	PMOV(32, M(saved_gpr_state + 0 ), R(RCX));
+	PMOV(32, M(saved_gpr_state + 4 ), R(RDX));
 #endif
 	PRET();
 
@@ -75,23 +75,23 @@ void ThunkManager::Init()
 		MOVAPS((X64Reg)(XMM0 + i), MDisp(RSP, stackOffset + (i - 2) * 16));
 	stackPosition = (ABI_GetNumXMMRegs() - 2) * 2;
 	LDMXCSR(MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(RCX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(RDX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(R8) , MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(R9) , MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(R10), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(R11), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(RCX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(RDX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(R8) , MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(R9) , MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(R10), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(R11), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
 #ifndef _WIN32
-	MOV(64, R(RSI), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
-	MOV(64, R(RDI), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(RSI), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(RDI), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
 #endif
-	MOV(64, R(RBX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
+	PMOV(64, R(RBX), MDisp(RSP, stackOffset + (stackPosition++ * 8)));
 #else
 	LDMXCSR(M(&saved_mxcsr));
 	for (int i = 2; i < ABI_GetNumXMMRegs(); i++)
 		MOVAPS((X64Reg)(XMM0 + i), M(saved_fp_state + i * 16));
-	MOV(32, R(RCX), M(saved_gpr_state + 0 ));
-	MOV(32, R(RDX), M(saved_gpr_state + 4 ));
+	PMOV(32, R(RCX), M(saved_gpr_state + 0 ));
+	PMOV(32, R(RDX), M(saved_gpr_state + 4 ));
 #endif
 	PRET();
 	EndWrite();
@@ -182,7 +182,7 @@ void ThunkManager::Enter(ThunkEmitter *emit, bool withinCall)
 {
 #ifdef _M_X64
 	// Make sure to align stack.
-	emit->SUB(64, R(ESP), Imm32(ThunkStackOffset() + ThunkBytesNeeded() + (withinCall ? 0 : 8)));
+	emit->PSUB(64, R(ESP), Imm32(ThunkStackOffset() + ThunkBytesNeeded() + (withinCall ? 0 : 8)));
 	emit->ABI_CallFunction(save_regs);
 #else
 	emit->CALL((const void *)save_regs);
@@ -193,7 +193,7 @@ void ThunkManager::Leave(ThunkEmitter *emit, bool withinCall)
 {
 #ifdef _M_X64
 	emit->ABI_CallFunction(load_regs);
-	emit->ADD(64, R(ESP), Imm32(ThunkStackOffset() + ThunkBytesNeeded() + (withinCall ? 0 : 8)));
+	emit->PADD(64, R(ESP), Imm32(ThunkStackOffset() + ThunkBytesNeeded() + (withinCall ? 0 : 8)));
 #else
 	emit->CALL((void*)load_regs);
 #endif

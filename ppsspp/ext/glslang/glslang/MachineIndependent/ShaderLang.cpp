@@ -2006,7 +2006,7 @@ bool TProgram::linkStage(EShLanguage stage, EShMessages messages)
     if (stages[stage].size() > 1) {
         std::list<TShader*>::const_iterator it;
         for (it = stages[stage].begin(); it != stages[stage].end(); ++it)
-            intermediate[stage]->merge(*infoSink, *(*it)->intermediate);
+            intermediate[stage]->Pmerge(*infoSink, *(*it)->intermediate);
     }
 #else
     intermediate[stage] = stages[stage].front()->intermediate;

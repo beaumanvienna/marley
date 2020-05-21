@@ -40,9 +40,9 @@
 //
 // Basic model is that during compilation, each compilation unit (shader) is
 // compiled into one TIntermediate instance.  Then, at link time, multiple
-// units for the same stage can be merged together, which can generate errors.
+// units for the same stage can be merged together, which can generate Perrors.
 // Then, after all merging, a single instance of TIntermediate represents
-// the whole stage.  A final error check can be done on the resulting stage,
+// the whole stage.  A final Perror check can be done on the resulting stage,
 // even if no merging was done (i.e., the stage was only one compilation unit).
 //
 
@@ -52,9 +52,9 @@
 namespace glslang {
 
 //
-// Link-time error emitter.
+// Link-time Perror emitter.
 //
-void TIntermediate::error(TInfoSink& infoSink, const char* message)
+void TIntermediate::Perror(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixError);
@@ -65,7 +65,7 @@ void TIntermediate::error(TInfoSink& infoSink, const char* message)
 }
 
 // Link-time warning.
-void TIntermediate::warn(TInfoSink& infoSink, const char* message)
+void TIntermediate::Pwarn(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixWarning);
@@ -80,7 +80,7 @@ void TIntermediate::warn(TInfoSink& infoSink, const char* message)
 //
 // Merge the information from 'unit' into 'this'
 //
-void TIntermediate::merge(TInfoSink& infoSink, TIntermediate& unit)
+void TIntermediate::Pmerge(TInfoSink& infoSink, TIntermediate& unit)
 {
 #ifndef GLSLANG_WEB
     mergeCallGraphs(infoSink, unit);
@@ -93,7 +93,7 @@ void TIntermediate::mergeCallGraphs(TInfoSink& infoSink, TIntermediate& unit)
 {
     if (unit.getNumEntryPoints() > 0) {
         if (getNumEntryPoints() > 0)
-            error(infoSink, "can't handle multiple entry points per stage");
+            Perror(infoSink, "can't handle multiple entry points per stage");
         else {
             entryPointName = unit.getEntryPointName();
             entryPointMangledName = unit.getEntryPointMangledName();
@@ -112,12 +112,12 @@ void TIntermediate::mergeCallGraphs(TInfoSink& infoSink, TIntermediate& unit)
 void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
 {
     if (language != unit.language)
-        error(infoSink, "stages must match when linking into a single stage");
+        Perror(infoSink, "stages must match when linking into a single stage");
 
     if (getSource() == EShSourceNone)
         setSource(unit.getSource());
     if (getSource() != unit.getSource())
-        error(infoSink, "can't link compilation units from different source languages");
+        Perror(infoSink, "can't link compilation units from different source languages");
 
     if (treeRoot == nullptr) {
         profile = unit.profile;
@@ -125,7 +125,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         requestedExtensions = unit.requestedExtensions;
     } else {
         if ((isEsProfile()) != (unit.isEsProfile()))
-            error(infoSink, "Cannot cross link ES and desktop profiles");
+            Perror(infoSink, "Cannot cross link ES and desktop profiles");
         else if (unit.profile == ECompatibilityProfile)
             profile = ECompatibilityProfile;
         version = std::max(version, unit.version);
@@ -144,16 +144,16 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         if (invocations == TQualifier::layoutNotSet)
             invocations = unit.invocations;
         else if (invocations != unit.invocations)
-            error(infoSink, "number of invocations must match between compilation units");
+            Perror(infoSink, "number of invocations must match between compilation units");
     }
 
     if (vertices == TQualifier::layoutNotSet)
         vertices = unit.vertices;
     else if (vertices != unit.vertices) {
         if (language == EShLangGeometry || language == EShLangMeshNV)
-            error(infoSink, "Contradictory layout max_vertices values");
+            Perror(infoSink, "Contradictory layout max_vertices values");
         else if (language == EShLangTessControl)
-            error(infoSink, "Contradictory layout vertices values");
+            Perror(infoSink, "Contradictory layout vertices values");
         else
             assert(0);
     }
@@ -161,7 +161,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         primitives = unit.primitives;
     else if (primitives != unit.primitives) {
         if (language == EShLangMeshNV)
-            error(infoSink, "Contradictory layout max_primitives values");
+            Perror(infoSink, "Contradictory layout max_primitives values");
         else
             assert(0);
     }
@@ -169,25 +169,25 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
     if (inputPrimitive == ElgNone)
         inputPrimitive = unit.inputPrimitive;
     else if (inputPrimitive != unit.inputPrimitive)
-        error(infoSink, "Contradictory input layout primitives");
+        Perror(infoSink, "Contradictory input layout primitives");
 
     if (outputPrimitive == ElgNone)
         outputPrimitive = unit.outputPrimitive;
     else if (outputPrimitive != unit.outputPrimitive)
-        error(infoSink, "Contradictory output layout primitives");
+        Perror(infoSink, "Contradictory output layout primitives");
 
     if (originUpperLeft != unit.originUpperLeft || pixelCenterInteger != unit.pixelCenterInteger)
-        error(infoSink, "gl_FragCoord redeclarations must match across shaders");
+        Perror(infoSink, "gl_FragCoord redeclarations must match across shaders");
 
     if (vertexSpacing == EvsNone)
         vertexSpacing = unit.vertexSpacing;
     else if (vertexSpacing != unit.vertexSpacing)
-        error(infoSink, "Contradictory input vertex spacing");
+        Perror(infoSink, "Contradictory input vertex spacing");
 
     if (vertexOrder == EvoNone)
         vertexOrder = unit.vertexOrder;
     else if (vertexOrder != unit.vertexOrder)
-        error(infoSink, "Contradictory triangle ordering");
+        Perror(infoSink, "Contradictory triangle ordering");
 
     MERGE_TRUE(pointMode);
 
@@ -197,12 +197,12 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
             localSizeNotDefault[i] = true;
         }
         else if (localSize[i] != unit.localSize[i])
-            error(infoSink, "Contradictory local size");
+            Perror(infoSink, "Contradictory local size");
 
         if (localSizeSpecId[i] == TQualifier::layoutNotSet)
             localSizeSpecId[i] = unit.localSizeSpecId[i];
         else if (localSizeSpecId[i] != unit.localSizeSpecId[i])
-            error(infoSink, "Contradictory local size specialization ids");
+            Perror(infoSink, "Contradictory local size specialization ids");
     }
 
     MERGE_TRUE(earlyFragmentTests);
@@ -211,7 +211,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
     if (depthLayout == EldNone)
         depthLayout = unit.depthLayout;
     else if (depthLayout != unit.depthLayout)
-        error(infoSink, "Contradictory depth layouts");
+        Perror(infoSink, "Contradictory depth layouts");
 
     MERGE_TRUE(depthReplacing);
     MERGE_TRUE(hlslFunctionality1);
@@ -224,7 +224,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         if (xfbBuffers[b].stride == TQualifier::layoutXfbStrideEnd)
             xfbBuffers[b].stride = unit.xfbBuffers[b].stride;
         else if (xfbBuffers[b].stride != unit.xfbBuffers[b].stride)
-            error(infoSink, "Contradictory xfb_stride");
+            Perror(infoSink, "Contradictory xfb_stride");
         xfbBuffers[b].implicitStride = std::max(xfbBuffers[b].implicitStride, unit.xfbBuffers[b].implicitStride);
         if (unit.xfbBuffers[b].contains64BitType)
             xfbBuffers[b].contains64BitType = true;
@@ -419,7 +419,7 @@ void TIntermediate::PmergeBodies(TInfoSink& infoSink, TIntermSequence& globals, 
             TIntermAggregate* body = globals[child]->getAsAggregate();
             TIntermAggregate* unitBody = unitGlobals[unitChild]->getAsAggregate();
             if (body && unitBody && body->getOp() == EOpFunction && unitBody->getOp() == EOpFunction && body->getName() == unitBody->getName()) {
-                error(infoSink, "Multiple function bodies in multiple compilation units for the same signature in the same stage:");
+                Perror(infoSink, "Multiple function bodies in multiple compilation units for the same signature in the same stage:");
                 infoSink.info << "    " << globals[child]->getAsAggregate()->getName() << "\n";
             }
         }
@@ -507,7 +507,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         if (! (symbol.getType().isArray() && unitSymbol.getType().isArray() &&
                 symbol.getType().sameElementType(unitSymbol.getType()) &&
                 (symbol.getType().isUnsizedArray() || unitSymbol.getType().isUnsizedArray()))) {
-            error(infoSink, "Types must match:");
+            Perror(infoSink, "Types must match:");
             writeTypeComparison = true;
         }
     }
@@ -516,25 +516,25 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
 
     // Storage...
     if (symbol.getQualifier().storage != unitSymbol.getQualifier().storage) {
-        error(infoSink, "Storage qualifiers must match:");
+        Perror(infoSink, "Storage qualifiers must match:");
         writeTypeComparison = true;
     }
 
     // Precision...
     if (symbol.getQualifier().precision != unitSymbol.getQualifier().precision) {
-        error(infoSink, "Precision qualifiers must match:");
+        Perror(infoSink, "Precision qualifiers must match:");
         writeTypeComparison = true;
     }
 
     // Invariance...
     if (! crossStage && symbol.getQualifier().invariant != unitSymbol.getQualifier().invariant) {
-        error(infoSink, "Presence of invariant qualifier must match:");
+        Perror(infoSink, "Presence of invariant qualifier must match:");
         writeTypeComparison = true;
     }
 
     // Precise...
     if (! crossStage && symbol.getQualifier().isNoContraction() != unitSymbol.getQualifier().isNoContraction()) {
-        error(infoSink, "Presence of precise qualifier must match:");
+        Perror(infoSink, "Presence of precise qualifier must match:");
         writeTypeComparison = true;
     }
 
@@ -545,7 +545,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().isSample()!= unitSymbol.getQualifier().isSample() ||
         symbol.getQualifier().isPatch() != unitSymbol.getQualifier().isPatch() ||
         symbol.getQualifier().isNonPerspective() != unitSymbol.getQualifier().isNonPerspective()) {
-        error(infoSink, "Interpolation and auxiliary storage qualifiers must match:");
+        Perror(infoSink, "Interpolation and auxiliary storage qualifiers must match:");
         writeTypeComparison = true;
     }
 
@@ -560,7 +560,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().restrict          != unitSymbol.getQualifier().restrict ||
         symbol.getQualifier().readonly          != unitSymbol.getQualifier().readonly ||
         symbol.getQualifier().writeonly         != unitSymbol.getQualifier().writeonly) {
-        error(infoSink, "Memory qualifiers must match:");
+        Perror(infoSink, "Memory qualifiers must match:");
         writeTypeComparison = true;
     }
 
@@ -575,7 +575,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().layoutIndex     != unitSymbol.getQualifier().layoutIndex ||
         symbol.getQualifier().layoutBinding   != unitSymbol.getQualifier().layoutBinding ||
         (symbol.getQualifier().hasBinding() && (symbol.getQualifier().layoutOffset != unitSymbol.getQualifier().layoutOffset))) {
-        error(infoSink, "Layout qualification must match:");
+        Perror(infoSink, "Layout qualification must match:");
         writeTypeComparison = true;
     }
 
@@ -583,7 +583,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
     if (! writeTypeComparison) {
         if (! symbol.getConstArray().empty() && ! unitSymbol.getConstArray().empty()) {
             if (symbol.getConstArray() != unitSymbol.getConstArray()) {
-                error(infoSink, "Initializers must match:");
+                Perror(infoSink, "Initializers must match:");
                 infoSink.info << "    " << symbol.getName() << "\n";
             }
         }
@@ -608,9 +608,9 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
 
     if (numEntryPoints < 1) {
         if (getSource() == EShSourceGlsl)
-            error(infoSink, "Missing entry point: Each stage requires one entry point");
+            Perror(infoSink, "Missing entry point: Each stage requires one entry point");
         else
-            warn(infoSink, "Entry point not found");
+            Pwarn(infoSink, "Entry point not found");
     }
 
     // recursion and missing body checking
@@ -622,21 +622,21 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
 
 #ifndef GLSLANG_WEB
     if (getNumPushConstants() > 1)
-        error(infoSink, "Only one push_constant block is allowed per stage");
+        Perror(infoSink, "Only one push_constant block is allowed per stage");
 
     // invocations
     if (invocations == TQualifier::layoutNotSet)
         invocations = 1;
 
     if (inIoAccessed("gl_ClipDistance") && inIoAccessed("gl_ClipVertex"))
-        error(infoSink, "Can only use one of gl_ClipDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
+        Perror(infoSink, "Can only use one of gl_ClipDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
     if (inIoAccessed("gl_CullDistance") && inIoAccessed("gl_ClipVertex"))
-        error(infoSink, "Can only use one of gl_CullDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
+        Perror(infoSink, "Can only use one of gl_CullDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
 
     if (PuserOutputUsed() && (inIoAccessed("gl_FragColor") || inIoAccessed("gl_FragData")))
-        error(infoSink, "Cannot use gl_FragColor or gl_FragData when using user-defined outputs");
+        Perror(infoSink, "Cannot use gl_FragColor or gl_FragData when using user-defined outputs");
     if (inIoAccessed("gl_FragColor") && inIoAccessed("gl_FragData"))
-        error(infoSink, "Cannot use both gl_FragColor and gl_FragData");
+        Perror(infoSink, "Cannot use both gl_FragColor and gl_FragData");
 
     for (size_t b = 0; b < xfbBuffers.size(); ++b) {
         if (xfbBuffers[b].contains64BitType)
@@ -651,7 +651,7 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // in different compilation units. While xfb_stride can be declared multiple times for the same buffer, it is a
         // compile-time or link-time error to have different values specified for the stride for the same buffer."
         if (xfbBuffers[b].stride != TQualifier::layoutXfbStrideEnd && xfbBuffers[b].implicitStride > xfbBuffers[b].stride) {
-            error(infoSink, "xfb_stride is too small to hold all buffer entries:");
+            Perror(infoSink, "xfb_stride is too small to hold all buffer entries:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << ", minimum stride needed: " << xfbBuffers[b].implicitStride << "\n";
         }
@@ -662,18 +662,18 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // outputs with double-precision or 64-bit integer components, the stride must be a multiple of 8, otherwise it must be a
         // multiple of 4, or a compile-time or link-time error results."
         if (xfbBuffers[b].contains64BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 8)) {
-            error(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double or 64-bit integer:");
+            Perror(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double or 64-bit integer:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         } else if (xfbBuffers[b].contains32BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 4)) {
-            error(infoSink, "xfb_stride must be multiple of 4:");
+            Perror(infoSink, "xfb_stride must be multiple of 4:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         }
         // "If the buffer is capturing any
         // outputs with half-precision or 16-bit integer components, the stride must be a multiple of 2"
         else if (xfbBuffers[b].contains16BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 2)) {
-            error(infoSink, "xfb_stride must be multiple of 2 for buffer holding a half float or 16-bit integer:");
+            Perror(infoSink, "xfb_stride must be multiple of 2 for buffer holding a half float or 16-bit integer:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         }
@@ -681,7 +681,7 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // "The resulting stride (implicit or explicit), when divided by 4, must be less than or equal to the
         // implementation-dependent constant gl_MaxTransformFeedbackInterleavedComponents."
         if (xfbBuffers[b].stride > (unsigned int)(4 * resources.maxTransformFeedbackInterleavedComponents)) {
-            error(infoSink, "xfb_stride is too large:");
+            Perror(infoSink, "xfb_stride is too large:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", components (1/4 stride) needed are " << xfbBuffers[b].stride/4 << ", gl_MaxTransformFeedbackInterleavedComponents is " << resources.maxTransformFeedbackInterleavedComponents << "\n";
         }
@@ -692,12 +692,12 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         break;
     case EShLangTessControl:
         if (vertices == TQualifier::layoutNotSet)
-            error(infoSink, "At least one shader must specify an output layout(vertices=...)");
+            Perror(infoSink, "At least one shader must specify an output layout(vertices=...)");
         break;
     case EShLangTessEvaluation:
         if (getSource() == EShSourceGlsl) {
             if (inputPrimitive == ElgNone)
-                error(infoSink, "At least one shader must specify an input layout primitive");
+                Perror(infoSink, "At least one shader must specify an input layout primitive");
             if (vertexSpacing == EvsNone)
                 vertexSpacing = EvsEqual;
             if (vertexOrder == EvoNone)
@@ -706,18 +706,18 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         break;
     case EShLangGeometry:
         if (inputPrimitive == ElgNone)
-            error(infoSink, "At least one shader must specify an input layout primitive");
+            Perror(infoSink, "At least one shader must specify an input layout primitive");
         if (outputPrimitive == ElgNone)
-            error(infoSink, "At least one shader must specify an output layout primitive");
+            Perror(infoSink, "At least one shader must specify an output layout primitive");
         if (vertices == TQualifier::layoutNotSet)
-            error(infoSink, "At least one shader must specify a layout(max_vertices = value)");
+            Perror(infoSink, "At least one shader must specify a layout(max_vertices = value)");
         break;
     case EShLangFragment:
         // for GL_ARB_post_depth_coverage, EarlyFragmentTest is set automatically in 
         // ParseHelper.cpp. So if we reach here, this must be GL_EXT_post_depth_coverage 
         // requiring explicit early_fragment_tests
         if (getPostDepthCoverage() && !getEarlyFragmentTests())
-            error(infoSink, "post_depth_coverage requires early_fragment_tests");
+            Perror(infoSink, "post_depth_coverage requires early_fragment_tests");
         break;
     case EShLangCompute:
         break;
@@ -728,33 +728,33 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
     case EShLangMissNV:
     case EShLangCallableNV:
         if (numShaderRecordNVBlocks > 1)
-            error(infoSink, "Only one shaderRecordNV buffer block is allowed per stage");
+            Perror(infoSink, "Only one shaderRecordNV buffer block is allowed per stage");
         break;
     case EShLangMeshNV:
         // NV_mesh_shader doesn't allow use of both single-view and per-view builtins.
         if (inIoAccessed("gl_Position") && inIoAccessed("gl_PositionPerViewNV"))
-            error(infoSink, "Can only use one of gl_Position or gl_PositionPerViewNV");
+            Perror(infoSink, "Can only use one of gl_Position or gl_PositionPerViewNV");
         if (inIoAccessed("gl_ClipDistance") && inIoAccessed("gl_ClipDistancePerViewNV"))
-            error(infoSink, "Can only use one of gl_ClipDistance or gl_ClipDistancePerViewNV");
+            Perror(infoSink, "Can only use one of gl_ClipDistance or gl_ClipDistancePerViewNV");
         if (inIoAccessed("gl_CullDistance") && inIoAccessed("gl_CullDistancePerViewNV"))
-            error(infoSink, "Can only use one of gl_CullDistance or gl_CullDistancePerViewNV");
+            Perror(infoSink, "Can only use one of gl_CullDistance or gl_CullDistancePerViewNV");
         if (inIoAccessed("gl_Layer") && inIoAccessed("gl_LayerPerViewNV"))
-            error(infoSink, "Can only use one of gl_Layer or gl_LayerPerViewNV");
+            Perror(infoSink, "Can only use one of gl_Layer or gl_LayerPerViewNV");
         if (inIoAccessed("gl_ViewportMask") && inIoAccessed("gl_ViewportMaskPerViewNV"))
-            error(infoSink, "Can only use one of gl_ViewportMask or gl_ViewportMaskPerViewNV");
+            Perror(infoSink, "Can only use one of gl_ViewportMask or gl_ViewportMaskPerViewNV");
         if (outputPrimitive == ElgNone)
-            error(infoSink, "At least one shader must specify an output layout primitive");
+            Perror(infoSink, "At least one shader must specify an output layout primitive");
         if (vertices == TQualifier::layoutNotSet)
-            error(infoSink, "At least one shader must specify a layout(max_vertices = value)");
+            Perror(infoSink, "At least one shader must specify a layout(max_vertices = value)");
         if (primitives == TQualifier::layoutNotSet)
-            error(infoSink, "At least one shader must specify a layout(max_primitives = value)");
+            Perror(infoSink, "At least one shader must specify a layout(max_primitives = value)");
         // fall through
     case EShLangTaskNV:
         if (numTaskNVBlocks > 1)
-            error(infoSink, "Only one taskNV interface block is allowed per shader");
+            Perror(infoSink, "Only one taskNV interface block is allowed per shader");
         break;
     default:
-        error(infoSink, "Unknown Stage.");
+        Perror(infoSink, "Unknown Stage.");
         break;
     }
 
@@ -835,7 +835,7 @@ void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
                     if (child->currentPath) {
                         // Then, we found a back edge
                         if (! child->errorGiven) {
-                            error(infoSink, "Recursion detected:");
+                            Perror(infoSink, "Recursion detected:");
                             infoSink.info << "    " << call->callee << " calling " << child->callee << "\n";
                             child->errorGiven = true;
                             recursive = true;
@@ -918,7 +918,7 @@ void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
         if (call->visited) {
             if (call->calleeBodyPosition == -1) {
-                error(infoSink, "No function definition (body) found: ");
+                Perror(infoSink, "No function definition (body) found: ");
                 infoSink.info << "    " << call->callee << "\n";
             } else
                 reachable[call->calleeBodyPosition] = true;
@@ -963,7 +963,7 @@ void TIntermediate::PinOutLocationCheck(TInfoSink& infoSink)
 
     if (isEsProfile()) {
         if (numFragOut > 1 && fragOutWithNoLocation)
-            error(infoSink, "when more than one fragment shader output, all must have location qualifiers");
+            Perror(infoSink, "when more than one fragment shader output, all must have location qualifiers");
     }
 }
 

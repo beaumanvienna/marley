@@ -176,15 +176,15 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 
 	// Read parameters
 	int offset = 4;
-	MOV(32, R(srcReg), MDisp(ESP, 16 + offset + 0));
-	MOV(32, R(dstReg), MDisp(ESP, 16 + offset + 4));
-	MOV(32, R(counterReg), MDisp(ESP, 16 + offset + 8));
+	PMOV(32, R(srcReg), MDisp(ESP, 16 + offset + 0));
+	PMOV(32, R(dstReg), MDisp(ESP, 16 + offset + 4));
+	PMOV(32, R(counterReg), MDisp(ESP, 16 + offset + 8));
 #endif
 
 	// Save XMM4/XMM5 which apparently can be problematic?
 	// Actually, if they are, it must be a compiler bug because they SHOULD be ok.
 	// So I won't bother.
-	SUB(PTRBITS, R(ESP), Imm8(64));
+	PSUB(PTRBITS, R(ESP), Imm8(64));
 	MOVUPS(MDisp(ESP, 0), XMM4);
 	MOVUPS(MDisp(ESP, 16), XMM5);
 	MOVUPS(MDisp(ESP, 32), XMM6);
@@ -209,12 +209,12 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	// Later we might want to do this when the matrices are loaded instead.
 	int boneCount = 0;
 	if (dec.weighttype && g_PConfig.bSoftwareSkinning) {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&threeMasks));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&threeMasks));
 		MOVAPS(XMM4, MatR(tempReg1));
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&aOne));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&aOne));
 		MOVUPS(XMM5, MatR(tempReg1));
-		MOV(PTRBITS, R(tempReg1), ImmPtr(gstate.boneMatrix));
-		MOV(PTRBITS, R(tempReg2), ImmPtr(bones));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(gstate.boneMatrix));
+		PMOV(PTRBITS, R(tempReg2), ImmPtr(bones));
 		for (int i = 0; i < dec.nweights; i++) {
 			MOVUPS(XMM0, MDisp(tempReg1, (12 * i) * 4));
 			MOVUPS(XMM1, MDisp(tempReg1, (12 * i + 3) * 4));
@@ -234,13 +234,13 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 
 	// Keep the scale/offset in a few fp registers if we need it.
 	if (prescaleStep) {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.uv));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.uv));
 		MOVUPS(fpScaleOffsetReg, MatR(tempReg1));
 		if ((dec.VertexType() & GE_VTYPE_TC_MASK) == GE_VTYPE_TC_8BIT) {
-			MOV(PTRBITS, R(tempReg2), ImmPtr(&by128_11));
+			PMOV(PTRBITS, R(tempReg2), ImmPtr(&by128_11));
 			MULPS(fpScaleOffsetReg, MatR(tempReg2));
 		} else if ((dec.VertexType() & GE_VTYPE_TC_MASK) == GE_VTYPE_TC_16BIT) {
-			MOV(PTRBITS, R(tempReg2), ImmPtr(&by32768_11));
+			PMOV(PTRBITS, R(tempReg2), ImmPtr(&by32768_11));
 			MULPS(fpScaleOffsetReg, MatR(tempReg2));
 		}
 	}
@@ -256,16 +256,16 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 		}
 	}
 
-	ADD(PTRBITS, R(srcReg), Imm32(dec.VertexSize()));
-	ADD(PTRBITS, R(dstReg), Imm32(dec.decFmt.stride));
-	SUB(32, R(counterReg), Imm8(1));
+	PADD(PTRBITS, R(srcReg), Imm32(dec.VertexSize()));
+	PADD(PTRBITS, R(dstReg), Imm32(dec.decFmt.stride));
+	PSUB(32, R(counterReg), Imm8(1));
 	PJ_CC(CC_NZ, loopStart, true);
 
 	MOVUPS(XMM4, MDisp(ESP, 0));
 	MOVUPS(XMM5, MDisp(ESP, 16));
 	MOVUPS(XMM6, MDisp(ESP, 32));
 	MOVUPS(XMM7, MDisp(ESP, 48));
-	ADD(PTRBITS, R(ESP), Imm8(64));
+	PADD(PTRBITS, R(ESP), Imm8(64));
 
 #ifdef _M_IX86
 	// Restore register values
@@ -291,36 +291,36 @@ void VertexDecoderJitCache::Jit_WeightsU8() {
 		PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
 		break;
 	case 3:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		AND(32, R(tempReg1), Imm32(0x00FFFFFF));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		P_AND(32, R(tempReg1), Imm32(0x00FFFFFF));
 		break;
 	case 4:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
 		break;
 	case 5:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
 		PMOVZX(32, 8, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
 		break;
 	case 6:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
 		PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
 		break;
 	case 7:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
-		AND(32, R(tempReg2), Imm32(0x00FFFFFF));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
+		P_AND(32, R(tempReg2), Imm32(0x00FFFFFF));
 		break;
 	case 8:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
 		break;
 	}
 
 	if (dec_->nweights <= 4) {
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
 	} else {
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w1off), R(tempReg2));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w1off), R(tempReg2));
 	}
 }
 
@@ -328,21 +328,21 @@ void VertexDecoderJitCache::Jit_WeightsU16() {
 	switch (dec_->nweights) {
 	case 1:
 		PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), Imm32(0));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), Imm32(0));
 		return;
 
 	case 2:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), Imm32(0));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), Imm32(0));
 		return;
 
 	case 3:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
 		PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), R(tempReg2));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), R(tempReg2));
 		return;
 
 	case 4:
@@ -351,21 +351,21 @@ void VertexDecoderJitCache::Jit_WeightsU16() {
 	case 6:
 	case 7:
 	case 8:
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), R(tempReg2));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
+		PMOV(32, R(tempReg2), MDisp(srcReg, dec_->weightoff + 4));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), R(tempReg2));
 		break;
 	}
 
 	// Basic implementation - a short at a time. TODO: Optimize
 	int j;
 	for (j = 4; j < dec_->nweights; j++) {
-		MOV(16, R(tempReg1), MDisp(srcReg, dec_->weightoff + j * 2));
-		MOV(16, MDisp(dstReg, dec_->decFmt.w0off + j * 2), R(tempReg1));
+		PMOV(16, R(tempReg1), MDisp(srcReg, dec_->weightoff + j * 2));
+		PMOV(16, MDisp(dstReg, dec_->decFmt.w0off + j * 2), R(tempReg1));
 	}
 	while (j & 3) {
-		MOV(16, MDisp(dstReg, dec_->decFmt.w0off + j * 2), Imm16(0));
+		PMOV(16, MDisp(dstReg, dec_->decFmt.w0off + j * 2), Imm16(0));
 		j++;
 	}
 }
@@ -440,11 +440,11 @@ void VertexDecoderJitCache::Jit_WeightsFloat() {
 
 	default:
 		for (j = 0; j < dec_->nweights; j++) {
-			MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff + j * 4));
-			MOV(32, MDisp(dstReg, dec_->decFmt.w0off + j * 4), R(tempReg1));
+			PMOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff + j * 4));
+			PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + j * 4), R(tempReg1));
 		}
 		while (j & 3) {  // Zero additional weights rounding up to 4.
-			MOV(32, MDisp(dstReg, dec_->decFmt.w0off + j * 4), Imm32(0));
+			PMOV(32, MDisp(dstReg, dec_->decFmt.w0off + j * 4), Imm32(0));
 			j++;
 		}
 		break;
@@ -452,7 +452,7 @@ void VertexDecoderJitCache::Jit_WeightsFloat() {
 }
 
 void VertexDecoderJitCache::Jit_WeightsU8Skin() {
-	MOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
 
 #ifdef _M_X64
 	if (dec_->nweights > 4) {
@@ -486,7 +486,7 @@ void VertexDecoderJitCache::Jit_WeightsU8Skin() {
 		if (dec_->nweights > 4)
 			MULPS(XMM9, M(&by128));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
 		MULPS(XMM8, MatR(tempReg1));
 		if (dec_->nweights > 4)
 			MULPS(XMM9, MatR(tempReg1));
@@ -557,12 +557,12 @@ void VertexDecoderJitCache::Jit_WeightsU8Skin() {
 			ADDPS(XMM6, R(XMM2));
 			ADDPS(XMM7, R(XMM3));
 		}
-		ADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
+		PADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
 	}
 }
 
 void VertexDecoderJitCache::Jit_WeightsU16Skin() {
-	MOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
 
 #ifdef _M_X64
 	if (dec_->nweights > 6) {
@@ -600,7 +600,7 @@ void VertexDecoderJitCache::Jit_WeightsU16Skin() {
 		if (dec_->nweights > 4)
 			MULPS(XMM9, M(&by32768));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
 		MULPS(XMM8, MatR(tempReg1));
 		if (dec_->nweights > 4)
 			MULPS(XMM9, MatR(tempReg1));
@@ -671,12 +671,12 @@ void VertexDecoderJitCache::Jit_WeightsU16Skin() {
 			ADDPS(XMM6, R(XMM2));
 			ADDPS(XMM7, R(XMM3));
 		}
-		ADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
+		PADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
 	}
 }
 
 void VertexDecoderJitCache::Jit_WeightsFloatSkin() {
-	MOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(&bones));
 	for (int j = 0; j < dec_->nweights; j++) {
 		MOVSS(XMM1, MDisp(srcReg, dec_->weightoff + j * 4));
 		SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(0, 0, 0, 0));
@@ -703,7 +703,7 @@ void VertexDecoderJitCache::Jit_WeightsFloatSkin() {
 			ADDPS(XMM6, R(XMM2));
 			ADDPS(XMM7, R(XMM3));
 		}
-		ADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
+		PADD(PTRBITS, R(tempReg2), Imm8(4 * 16));
 	}
 }
 
@@ -719,13 +719,13 @@ void VertexDecoderJitCache::Jit_TcU16ToFloat() {
 
 void VertexDecoderJitCache::Jit_TcFloat() {
 #ifdef _M_X64
-	MOV(64, R(tempReg1), MDisp(srcReg, dec_->tcoff));
-	MOV(64, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
+	PMOV(64, R(tempReg1), MDisp(srcReg, dec_->tcoff));
+	PMOV(64, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
 #else
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
-	MOV(32, R(tempReg2), MDisp(srcReg, dec_->tcoff + 4));
-	MOV(32, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
-	MOV(32, MDisp(dstReg, dec_->decFmt.uvoff + 4), R(tempReg2));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
+	PMOV(32, R(tempReg2), MDisp(srcReg, dec_->tcoff + 4));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.uvoff + 4), R(tempReg2));
 #endif
 }
 
@@ -765,7 +765,7 @@ void VertexDecoderJitCache::Jit_TcFloatPrescale() {
 }
 
 void VertexDecoderJitCache::Jit_TcAnyMorph(int bits) {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 	if (!cpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
@@ -821,7 +821,7 @@ void VertexDecoderJitCache::Jit_TcU8MorphToFloat() {
 	if (RipAccessible(&by128)) {
 		MULPS(fpScratchReg, M(&by128));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
 		MULPS(fpScratchReg, MatR(tempReg1));
 	}
 	PMOVQ_xmm(MDisp(dstReg, dec_->decFmt.uvoff), fpScratchReg);
@@ -833,7 +833,7 @@ void VertexDecoderJitCache::Jit_TcU16MorphToFloat() {
 	if (RipAccessible(&by32768)) {
 		MULPS(fpScratchReg, M(&by32768));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
 		MULPS(fpScratchReg, MatR(tempReg1));
 	}
 	PMOVQ_xmm(MDisp(dstReg, dec_->decFmt.uvoff), fpScratchReg);
@@ -875,20 +875,20 @@ void VertexDecoderJitCache::Jit_TcFloatPrescaleMorph() {
 
 void VertexDecoderJitCache::Jit_TcU16ThroughToFloat() {
 	PXOR(fpScratchReg2, R(fpScratchReg2));
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
 	PMOVD_xmm(fpScratchReg, R(tempReg1));
 	PPUNPCKLWD(fpScratchReg, R(fpScratchReg2));
 	CVTDQ2PS(fpScratchReg, R(fpScratchReg));
 	PMOVQ_xmm(MDisp(dstReg, dec_->decFmt.uvoff), fpScratchReg);
 
-	MOV(32, R(tempReg2), R(tempReg1));
+	PMOV(32, R(tempReg2), R(tempReg1));
 	SHR(32, R(tempReg2), Imm8(16));
 
-	MOV(PTRBITS, R(tempReg3), ImmPtr(&gstate_c.vertBounds));
+	PMOV(PTRBITS, R(tempReg3), ImmPtr(&gstate_c.vertBounds));
 	auto updateSide = [&](X64Reg r, CCFlags skipCC, int offset) {
-		CMP(16, R(r), MDisp(tempReg3, offset));
+		PCMP(16, R(r), MDisp(tempReg3, offset));
 		FixupBranch skip = PJ_CC(skipCC);
-		MOV(16, MDisp(tempReg3, offset), R(r));
+		PMOV(16, MDisp(tempReg3, offset), R(r));
 		PSetJumpTarget(skip);
 	};
 	// TODO: Can this actually be fast?  Hmm, floats aren't better.
@@ -900,27 +900,27 @@ void VertexDecoderJitCache::Jit_TcU16ThroughToFloat() {
 
 void VertexDecoderJitCache::Jit_TcFloatThrough() {
 #ifdef _M_X64
-	MOV(64, R(tempReg1), MDisp(srcReg, dec_->tcoff));
-	MOV(64, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
+	PMOV(64, R(tempReg1), MDisp(srcReg, dec_->tcoff));
+	PMOV(64, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
 #else
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
-	MOV(32, R(tempReg2), MDisp(srcReg, dec_->tcoff + 4));
-	MOV(32, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
-	MOV(32, MDisp(dstReg, dec_->decFmt.uvoff + 4), R(tempReg2));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->tcoff));
+	PMOV(32, R(tempReg2), MDisp(srcReg, dec_->tcoff + 4));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.uvoff), R(tempReg1));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.uvoff + 4), R(tempReg2));
 #endif
 }
 
 void VertexDecoderJitCache::Jit_Color8888() {
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->coloff));
-	MOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg1));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->coloff));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg1));
 
-	CMP(32, R(tempReg1), Imm32(0xFF000000));
+	PCMP(32, R(tempReg1), Imm32(0xFF000000));
 	FixupBranch skip = PJ_CC(CC_AE, false);
 	if (RipAccessible(&gstate_c.vertexFullAlpha)) {
-		MOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
+		PMOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
-		MOV(8, MatR(tempReg1), Imm8(0));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
+		PMOV(8, MatR(tempReg1), Imm8(0));
 	}
 	PSetJumpTarget(skip);
 }
@@ -935,7 +935,7 @@ void VertexDecoderJitCache::Jit_Color4444() {
 	if (RipAccessible(&color4444mask[0])) {
 		PAND(fpScratchReg, M(&color4444mask[0]));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&color4444mask));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&color4444mask));
 		PAND(fpScratchReg, MatR(tempReg1));
 	}
 	MOVSS(fpScratchReg2, R(fpScratchReg));
@@ -947,15 +947,15 @@ void VertexDecoderJitCache::Jit_Color4444() {
 	POR(fpScratchReg, R(fpScratchReg2));
 	POR(fpScratchReg, R(fpScratchReg3));
 	PMOVD_xmm(R(tempReg1), fpScratchReg);
-	MOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg1));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg1));
 
-	CMP(32, R(tempReg1), Imm32(0xFF000000));
+	PCMP(32, R(tempReg1), Imm32(0xFF000000));
 	FixupBranch skip = PJ_CC(CC_AE, false);
 	if (RipAccessible(&gstate_c.vertexFullAlpha)) {
-		MOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
+		PMOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
-		MOV(8, MatR(tempReg1), Imm8(0));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
+		PMOV(8, MatR(tempReg1), Imm8(0));
 	}
 	PSetJumpTarget(skip);
 }
@@ -963,87 +963,87 @@ void VertexDecoderJitCache::Jit_Color4444() {
 void VertexDecoderJitCache::Jit_Color565() {
 	PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
 
-	MOV(32, R(tempReg2), R(tempReg1));
-	AND(32, R(tempReg2), Imm32(0x0000001F));
+	PMOV(32, R(tempReg2), R(tempReg1));
+	P_AND(32, R(tempReg2), Imm32(0x0000001F));
 
 	// B (we do R and B at the same time, they're both 5.)
-	MOV(32, R(tempReg3), R(tempReg1));
-	AND(32, R(tempReg3), Imm32(0x0000F800));
+	PMOV(32, R(tempReg3), R(tempReg1));
+	P_AND(32, R(tempReg3), Imm32(0x0000F800));
 	SHL(32, R(tempReg3), Imm8(5));
-	OR(32, R(tempReg2), R(tempReg3));
+	P_OR(32, R(tempReg2), R(tempReg3));
 
 	// Expand 5 -> 8.  At this point we have 00BB00RR.
-	MOV(32, R(tempReg3), R(tempReg2));
+	PMOV(32, R(tempReg3), R(tempReg2));
 	SHL(32, R(tempReg2), Imm8(3));
 	SHR(32, R(tempReg3), Imm8(2));
-	OR(32, R(tempReg2), R(tempReg3));
-	AND(32, R(tempReg2), Imm32(0x00FF00FF));
+	P_OR(32, R(tempReg2), R(tempReg3));
+	P_AND(32, R(tempReg2), Imm32(0x00FF00FF));
 
 	// Now's as good a time to put in A as any.
-	OR(32, R(tempReg2), Imm32(0xFF000000));
+	P_OR(32, R(tempReg2), Imm32(0xFF000000));
 
 	// Last, we need to align, extract, and expand G.
 	// 3 to align to G, and then 2 to expand to 8.
 	SHL(32, R(tempReg1), Imm8(3 + 2));
-	AND(32, R(tempReg1), Imm32(0x0000FC00));
-	MOV(32, R(tempReg3), R(tempReg1));
+	P_AND(32, R(tempReg1), Imm32(0x0000FC00));
+	PMOV(32, R(tempReg3), R(tempReg1));
 	// 2 to account for tempReg1 being preshifted, 4 for expansion.
 	SHR(32, R(tempReg3), Imm8(2 + 4));
-	OR(32, R(tempReg1), R(tempReg3));
-	AND(32, R(tempReg1), Imm32(0x0000FF00));
-	OR(32, R(tempReg2), R(tempReg1));
+	P_OR(32, R(tempReg1), R(tempReg3));
+	P_AND(32, R(tempReg1), Imm32(0x0000FF00));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
-	MOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg2));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg2));
 	// Never has alpha, no need to update fullAlphaArg.
 }
 
 void VertexDecoderJitCache::Jit_Color5551() {
 	PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
 
-	MOV(32, R(tempReg2), R(tempReg1));
-	MOV(32, R(tempReg3), R(tempReg1));
-	AND(32, R(tempReg2), Imm32(0x0000001F));
-	AND(32, R(tempReg3), Imm32(0x000003E0));
+	PMOV(32, R(tempReg2), R(tempReg1));
+	PMOV(32, R(tempReg3), R(tempReg1));
+	P_AND(32, R(tempReg2), Imm32(0x0000001F));
+	P_AND(32, R(tempReg3), Imm32(0x000003E0));
 	SHL(32, R(tempReg3), Imm8(3));
-	OR(32, R(tempReg2), R(tempReg3));
+	P_OR(32, R(tempReg2), R(tempReg3));
 
-	MOV(32, R(tempReg3), R(tempReg1));
-	AND(32, R(tempReg3), Imm32(0x00007C00));
+	PMOV(32, R(tempReg3), R(tempReg1));
+	P_AND(32, R(tempReg3), Imm32(0x00007C00));
 	SHL(32, R(tempReg3), Imm8(6));
-	OR(32, R(tempReg2), R(tempReg3));
+	P_OR(32, R(tempReg2), R(tempReg3));
 
 	// Expand 5 -> 8.  After this is just A.
-	MOV(32, R(tempReg3), R(tempReg2));
+	PMOV(32, R(tempReg3), R(tempReg2));
 	SHL(32, R(tempReg2), Imm8(3));
 	SHR(32, R(tempReg3), Imm8(2));
 	// Chop off the bits that were shifted out.
-	AND(32, R(tempReg3), Imm32(0x00070707));
-	OR(32, R(tempReg2), R(tempReg3));
+	P_AND(32, R(tempReg3), Imm32(0x00070707));
+	P_OR(32, R(tempReg2), R(tempReg3));
 
 	// For A, we shift it to a single bit, and then subtract and XOR.
 	// That's probably the simplest way to expand it...
 	SHR(32, R(tempReg1), Imm8(15));
 	// If it was 0, it's now -1, otherwise it's 0.  Easy.
-	SUB(32, R(tempReg1), Imm8(1));
-	XOR(32, R(tempReg1), Imm32(0xFF000000));
-	AND(32, R(tempReg1), Imm32(0xFF000000));
-	OR(32, R(tempReg2), R(tempReg1));
+	PSUB(32, R(tempReg1), Imm8(1));
+	P_XOR(32, R(tempReg1), Imm32(0xFF000000));
+	P_AND(32, R(tempReg1), Imm32(0xFF000000));
+	P_OR(32, R(tempReg2), R(tempReg1));
 
-	MOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg2));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.c0off), R(tempReg2));
 
-	CMP(32, R(tempReg2), Imm32(0xFF000000));
+	PCMP(32, R(tempReg2), Imm32(0xFF000000));
 	FixupBranch skip = PJ_CC(CC_AE, false);
 	if (RipAccessible(&gstate_c.vertexFullAlpha)) {
-		MOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
+		PMOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
-		MOV(8, MatR(tempReg1), Imm8(0));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.vertexFullAlpha));
+		PMOV(8, MatR(tempReg1), Imm8(0));
 	}
 	PSetJumpTarget(skip);
 }
 
 void VertexDecoderJitCache::Jit_Color8888Morph() {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 	if (!cpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
@@ -1079,13 +1079,13 @@ void VertexDecoderJitCache::Jit_Color8888Morph() {
 alignas(16) static const float byColor4444[4] = { 255.0f / 15.0f, 255.0f / 15.0f, 255.0f / 15.0f, 255.0f / 15.0f, };
 
 void VertexDecoderJitCache::Jit_Color4444Morph() {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 	if (!cpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
-	MOV(PTRBITS, R(tempReg2), ImmPtr(color4444mask));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(color4444mask));
 	MOVDQA(XMM5, MatR(tempReg2));
-	MOV(PTRBITS, R(tempReg2), ImmPtr(byColor4444));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(byColor4444));
 	MOVAPS(XMM6, MatR(tempReg2));
 
 	bool first = true;
@@ -1129,10 +1129,10 @@ alignas(16) static const u32 color565Mask[4] = { 0x0000f800, 0x000007e0, 0x00000
 alignas(16) static const float byColor565[4] = { 255.0f / 31.0f, 255.0f / 63.0f, 255.0f / 31.0f, 255.0f / 1.0f, };
 
 void VertexDecoderJitCache::Jit_Color565Morph() {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	MOV(PTRBITS, R(tempReg2), ImmPtr(color565Mask));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(color565Mask));
 	MOVDQA(XMM5, MatR(tempReg2));
-	MOV(PTRBITS, R(tempReg2), ImmPtr(byColor565));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(byColor565));
 	MOVAPS(XMM6, MatR(tempReg2));
 
 	bool first = true;
@@ -1184,10 +1184,10 @@ alignas(16) static const u32 color5551Mask[4] = { 0x00008000, 0x00007c00, 0x0000
 alignas(16) static const float byColor5551[4] = { 255.0f / 31.0f, 255.0f / 31.0f, 255.0f / 31.0f, 255.0f / 1.0f, };
 
 void VertexDecoderJitCache::Jit_Color5551Morph() {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	MOV(PTRBITS, R(tempReg2), ImmPtr(color5551Mask));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(color5551Mask));
 	MOVDQA(XMM5, MatR(tempReg2));
-	MOV(PTRBITS, R(tempReg2), ImmPtr(byColor5551));
+	PMOV(PTRBITS, R(tempReg2), ImmPtr(byColor5551));
 	MOVAPS(XMM6, MatR(tempReg2));
 
 	bool first = true;
@@ -1246,28 +1246,28 @@ void VertexDecoderJitCache::Jit_WriteMorphColor(int outOff, bool checkAlpha) {
 
 	// TODO: May be a faster way to do this without the MOVD.
 	if (checkAlpha) {
-		CMP(32, R(tempReg1), Imm32(0xFF000000));
+		PCMP(32, R(tempReg1), Imm32(0xFF000000));
 		FixupBranch skip = PJ_CC(CC_AE, false);
 		if (RipAccessible(&gstate_c.vertexFullAlpha)) {
-			MOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
+			PMOV(8, M(&gstate_c.vertexFullAlpha), Imm8(0));  // rip accessible
 		} else {
-			MOV(PTRBITS, R(tempReg2), ImmPtr(&gstate_c.vertexFullAlpha));
-			MOV(8, MatR(tempReg2), Imm8(0));
+			PMOV(PTRBITS, R(tempReg2), ImmPtr(&gstate_c.vertexFullAlpha));
+			PMOV(8, MatR(tempReg2), Imm8(0));
 		}
 		PSetJumpTarget(skip);
 	} else {
 		// Force alpha to full if we're not checking it.
-		OR(32, R(tempReg1), Imm32(0xFF000000));
+		P_OR(32, R(tempReg1), Imm32(0xFF000000));
 	}
 
-	MOV(32, MDisp(dstReg, outOff), R(tempReg1));
+	PMOV(32, MDisp(dstReg, outOff), R(tempReg1));
 }
 
 // Copy 3 bytes and then a zero. Might as well copy four.
 void VertexDecoderJitCache::Jit_NormalS8() {
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
-	AND(32, R(tempReg1), Imm32(0x00FFFFFF));
-	MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
+	P_AND(32, R(tempReg1), Imm32(0x00FFFFFF));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
 }
 
 void VertexDecoderJitCache::Jit_NormalS8ToFloat() {
@@ -1277,25 +1277,25 @@ void VertexDecoderJitCache::Jit_NormalS8ToFloat() {
 
 // Copy 6 bytes and then 2 zeroes.
 void VertexDecoderJitCache::Jit_NormalS16() {
-	MOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
+	PMOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
 	PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->nrmoff + 4));
-	MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
-	MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 4), R(tempReg2));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
+	PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 4), R(tempReg2));
 }
 
 void VertexDecoderJitCache::Jit_NormalFloat() {
 	if (cpu_info.Mode64bit) {
-		MOV(64, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
-		MOV(32, R(tempReg3), MDisp(srcReg, dec_->nrmoff + 8));
-		MOV(64, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 8), R(tempReg3));
+		PMOV(64, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
+		PMOV(32, R(tempReg3), MDisp(srcReg, dec_->nrmoff + 8));
+		PMOV(64, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 8), R(tempReg3));
 	} else {
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
-		MOV(32, R(tempReg2), MDisp(srcReg, dec_->nrmoff + 4));
-		MOV(32, R(tempReg3), MDisp(srcReg, dec_->nrmoff + 8));
-		MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 4), R(tempReg2));
-		MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 8), R(tempReg3));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
+		PMOV(32, R(tempReg2), MDisp(srcReg, dec_->nrmoff + 4));
+		PMOV(32, R(tempReg3), MDisp(srcReg, dec_->nrmoff + 8));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 4), R(tempReg2));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 8), R(tempReg3));
 	}
 }
 
@@ -1379,17 +1379,17 @@ void VertexDecoderJitCache::Jit_PosS16() {
 // Just copy 12 bytes.
 void VertexDecoderJitCache::Jit_PosFloat() {
 	if (cpu_info.Mode64bit) {
-		MOV(64, R(tempReg1), MDisp(srcReg, dec_->posoff));
-		MOV(32, R(tempReg3), MDisp(srcReg, dec_->posoff + 8));
-		MOV(64, MDisp(dstReg, dec_->decFmt.posoff), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.posoff + 8), R(tempReg3));
+		PMOV(64, R(tempReg1), MDisp(srcReg, dec_->posoff));
+		PMOV(32, R(tempReg3), MDisp(srcReg, dec_->posoff + 8));
+		PMOV(64, MDisp(dstReg, dec_->decFmt.posoff), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.posoff + 8), R(tempReg3));
 	} else {
-		MOV(32, R(tempReg1), MDisp(srcReg, dec_->posoff));
-		MOV(32, R(tempReg2), MDisp(srcReg, dec_->posoff + 4));
-		MOV(32, R(tempReg3), MDisp(srcReg, dec_->posoff + 8));
-		MOV(32, MDisp(dstReg, dec_->decFmt.posoff), R(tempReg1));
-		MOV(32, MDisp(dstReg, dec_->decFmt.posoff + 4), R(tempReg2));
-		MOV(32, MDisp(dstReg, dec_->decFmt.posoff + 8), R(tempReg3));
+		PMOV(32, R(tempReg1), MDisp(srcReg, dec_->posoff));
+		PMOV(32, R(tempReg2), MDisp(srcReg, dec_->posoff + 4));
+		PMOV(32, R(tempReg3), MDisp(srcReg, dec_->posoff + 8));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.posoff), R(tempReg1));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.posoff + 4), R(tempReg2));
+		PMOV(32, MDisp(dstReg, dec_->decFmt.posoff + 8), R(tempReg3));
 	}
 }
 
@@ -1425,7 +1425,7 @@ void VertexDecoderJitCache::Jit_AnyS8ToFloat(int srcoff) {
 	if (RipAccessible(&by128)) {
 		MULPS(XMM3, M(&by128));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
 		MULPS(XMM3, MatR(tempReg1));
 	}
 }
@@ -1446,7 +1446,7 @@ void VertexDecoderJitCache::Jit_AnyS16ToFloat(int srcoff) {
 	if (RipAccessible(&by32768)) {
 		MULPS(XMM3, M(&by32768));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
 		MULPS(XMM3, MatR(tempReg1));
 	}
 }
@@ -1461,8 +1461,8 @@ void VertexDecoderJitCache::Jit_AnyU8ToFloat(int srcoff, u32 bits) {
 	if (bits == 32) {
 		PMOVD_xmm(XMM1, MDisp(srcReg, srcoff));
 	} else if (bits == 24) {
-		MOV(32, R(tempReg1), MDisp(srcReg, srcoff));
-		AND(32, R(tempReg1), Imm32(0x00FFFFFF));
+		PMOV(32, R(tempReg1), MDisp(srcReg, srcoff));
+		P_AND(32, R(tempReg1), Imm32(0x00FFFFFF));
 		PMOVD_xmm(XMM1, R(tempReg1));
 	} else {
 		PMOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
@@ -1478,7 +1478,7 @@ void VertexDecoderJitCache::Jit_AnyU8ToFloat(int srcoff, u32 bits) {
 	if (RipAccessible(&by128)) {
 		MULPS(XMM3, M(&by128));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
 		MULPS(XMM3, MatR(tempReg1));
 	}
 }
@@ -1510,20 +1510,20 @@ void VertexDecoderJitCache::Jit_AnyU16ToFloat(int srcoff, u32 bits) {
 	if (RipAccessible(&by32768)) {
 		MULPS(XMM3, M(&by32768));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
 		MULPS(XMM3, MatR(tempReg1));
 	}
 }
 
 void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 	if (!cpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 	if (RipAccessible(&by128)) {
 		MOVAPS(XMM5, M(&by128));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by128));
 		MOVAPS(XMM5, MatR(tempReg1));
 	}
 
@@ -1560,14 +1560,14 @@ void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 }
 
 void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 	if (!cpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 	if (RipAccessible(&by32768)) {
 		MOVAPS(XMM5, M(&by32768));  // rip accessible
 	} else {
-		MOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
+		PMOV(PTRBITS, R(tempReg1), ImmPtr(&by32768));
 		MOVAPS(XMM5, MatR(tempReg1));
 	}
 
@@ -1603,7 +1603,7 @@ void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
 }
 
 void VertexDecoderJitCache::Jit_AnyFloatMorph(int srcoff, int dstoff) {
-	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
+	PMOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
 
 	// Sum into fpScratchReg.
 	bool first = true;
