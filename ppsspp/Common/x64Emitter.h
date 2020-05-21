@@ -395,15 +395,15 @@ public:
 	void INT3();
 
 	// Do nothing
-	void NOP(size_t count = 1);
+	void PNOP(size_t count = 1);
 
 	// Save energy in wait-loops on P4 only. Probably not too useful.
-	void PAUSE();
+	void PPAUSE();
 
 	// Flag control
 	void STC();
-	void CLC();
-	void CMC();
+	void PCLC();
+	void PCMC();
 
 	// These two can not be executed in 64-bit mode on early Intel 64-bit CPU:s, only on Core2 and AMD!
 	void LAHF(); // 3 cycle vector path
@@ -418,9 +418,9 @@ public:
 	void POPF();
 
 	// Flow control
-	void RET();
-	void RET_FAST();
-	void UD2();
+	void PRET();
+	void PRET_FAST();
+	void PUD2();
 	FixupBranch J(bool force5bytes = false);
 
 	void JMP(const u8 * addr, bool force5Bytes = false);
@@ -444,9 +444,9 @@ public:
 	void PCMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
 
 	// Fences
-	void LFENCE();
-	void MFENCE();
-	void SFENCE();
+	void PLFENCE();
+	void PMFENCE();
+	void PSFENCE();
 
 	// Bit scan
 	void BSF(int bits, X64Reg dest, OpArg src); //bottom bit to top bit
@@ -521,15 +521,15 @@ public:
 	void TEST(int bits, const OpArg &a1, const OpArg &a2);
 
 	// Are these useful at all? Consider removing.
-	void XCHG(int bits, const OpArg &a1, const OpArg &a2);
+	void PXCHG(int bits, const OpArg &a1, const OpArg &a2);
 	void PXCHG_AHAL();
 
 	// Byte swapping (32 and 64-bit only).
 	void BSWAP(int bits, X64Reg reg);
 
 	// Sign/zero extension
-	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
-	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
+	void PMOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
+	void PMOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
@@ -706,7 +706,7 @@ public:
 	void MOVHPS(OpArg arg, X64Reg regOp);
 	void MOVHPD(OpArg arg, X64Reg regOp);
 
-	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
+	void PMOVHLPS(X64Reg regOp1, X64Reg regOp2);
 	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
 
 	void PMOVD_xmm(X64Reg dest, const OpArg &arg);
@@ -823,19 +823,19 @@ public:
 	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
 	void PSHUFHW(X64Reg dest, OpArg arg, u8 shuffle);
 
-	void PSRLW(X64Reg reg, int shift);
-	void PSRLD(X64Reg reg, int shift);
-	void PSRLQ(X64Reg reg, int shift);
-	void PSRLQ(X64Reg reg, OpArg arg);
-	void PSRLDQ(X64Reg reg, int shift);
+	void PPSRLW(X64Reg reg, int shift);
+	void PPSRLD(X64Reg reg, int shift);
+	void PPSRLQ(X64Reg reg, int shift);
+	void PPSRLQ(X64Reg reg, OpArg arg);
+	void PPSRLDQ(X64Reg reg, int shift);
 
-	void PSLLW(X64Reg reg, int shift);
-	void PSLLD(X64Reg reg, int shift);
-	void PSLLQ(X64Reg reg, int shift);
-	void PSLLDQ(X64Reg reg, int shift);
+	void PPSLLW(X64Reg reg, int shift);
+	void PPSLLD(X64Reg reg, int shift);
+	void PPSLLQ(X64Reg reg, int shift);
+	void PPSLLDQ(X64Reg reg, int shift);
 
-	void PSRAW(X64Reg reg, int shift);
-	void PSRAD(X64Reg reg, int shift);
+	void PPSRAW(X64Reg reg, int shift);
+	void PPSRAD(X64Reg reg, int shift);
 
 	void PMULLW(X64Reg dest, const OpArg &arg);
 	void PMULHW(X64Reg dest, const OpArg &arg);

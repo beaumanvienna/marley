@@ -67,7 +67,7 @@ void ThunkManager::Init()
 	MOV(32, M(saved_gpr_state + 0 ), R(RCX));
 	MOV(32, M(saved_gpr_state + 4 ), R(RDX));
 #endif
-	RET();
+	PRET();
 
 	load_regs = GetCodePtr();
 #ifdef _M_X64
@@ -93,7 +93,7 @@ void ThunkManager::Init()
 	MOV(32, R(RCX), M(saved_gpr_state + 0 ));
 	MOV(32, R(RDX), M(saved_gpr_state + 4 ));
 #endif
-	RET();
+	PRET();
 	EndWrite();
 }
 
@@ -171,7 +171,7 @@ const void *ThunkManager::ProtectFunction(const void *function, int num_params) 
 #endif
 
 	Leave(this, true);
-	RET();
+	PRET();
 	EndWrite();
 
 	thunks[function] = call_point;

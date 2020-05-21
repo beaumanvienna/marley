@@ -74,7 +74,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 		// Clear the rounding mode and flush-to-zero bits back to 0.
 		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
 		LDMXCSR(MIPSSTATE_VAR(temp));
-		RET();
+		PRET();
 	}
 
 	applyRoundingMode = PAlignCode16(); {
@@ -106,7 +106,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 		LDMXCSR(MIPSSTATE_VAR(temp));
 		PSetJumpTarget(skip);
-		RET();
+		PRET();
 	}
 
 	enterDispatcher = PAlignCode16();
@@ -209,7 +209,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 	PSetJumpTarget(badCoreState);
 	RestoreRoundingMode(true);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
+	PRET();
 
 	// Let's spare the pre-generated code from unprotect-reprotect.
 	endOfPregeneratedCode = PAlignCodePage();

@@ -472,17 +472,17 @@ void JitSafeMemFuncs::CreateReadFunc(int bits, const void *fallbackFunc) {
 	ADD(64, R(RSP), Imm8(0x28));
 #endif
 
-	RET();
+	PRET();
 
 	StartDirectAccess();
 
 #if PPSSPP_ARCH(32BIT)
-	MOVZX(32, bits, EAX, MDisp(EAX, (u32)Memory::base));
+	PMOVZX(32, bits, EAX, MDisp(EAX, (u32)Memory::base));
 #else
-	MOVZX(32, bits, EAX, MRegSum(MEMBASEREG, EAX));
+	PMOVZX(32, bits, EAX, MRegSum(MEMBASEREG, EAX));
 #endif
 
-	RET();
+	PRET();
 }
 
 void JitSafeMemFuncs::CreateWriteFunc(int bits, const void *fallbackFunc) {
@@ -500,7 +500,7 @@ void JitSafeMemFuncs::CreateWriteFunc(int bits, const void *fallbackFunc) {
 	ADD(64, R(RSP), Imm8(0x28));
 #endif
 
-	RET();
+	PRET();
 
 	StartDirectAccess();
 
@@ -510,7 +510,7 @@ void JitSafeMemFuncs::CreateWriteFunc(int bits, const void *fallbackFunc) {
 	MOV(bits, MRegSum(MEMBASEREG, EAX), R(EDX));
 #endif
 
-	RET();
+	PRET();
 }
 
 void JitSafeMemFuncs::CheckDirectEAX() {

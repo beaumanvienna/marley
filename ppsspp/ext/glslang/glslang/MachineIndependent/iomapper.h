@@ -126,7 +126,7 @@ public:
         if (stage < EShLangCount)
             stageMask[stage] = true;
     }
-    uint32_t computeTypeLocationSize(const TType& type, EShLanguage stage);
+    uint32_t PcomputeTypeLocationSize(const TType& type, EShLanguage stage);
 
     TSlotSetMap slots;
     bool hasError = false;

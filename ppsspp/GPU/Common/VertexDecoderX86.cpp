@@ -275,7 +275,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	POP(ESI);
 #endif
 
-	RET();
+	PRET();
 
 	*jittedSize = GetCodePtr() - start;
 	EndWrite();
@@ -285,10 +285,10 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 void VertexDecoderJitCache::Jit_WeightsU8() {
 	switch (dec_->nweights) {
 	case 1:
-		MOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->weightoff));
+		PMOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->weightoff));
 		break;
 	case 2:
-		MOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
+		PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
 		break;
 	case 3:
 		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
@@ -299,11 +299,11 @@ void VertexDecoderJitCache::Jit_WeightsU8() {
 		break;
 	case 5:
 		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOVZX(32, 8, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
+		PMOVZX(32, 8, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
 		break;
 	case 6:
 		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
+		PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
 		break;
 	case 7:
 		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
@@ -327,7 +327,7 @@ void VertexDecoderJitCache::Jit_WeightsU8() {
 void VertexDecoderJitCache::Jit_WeightsU16() {
 	switch (dec_->nweights) {
 	case 1:
-		MOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
+		PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff));
 		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
 		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), Imm32(0));
 		return;
@@ -340,7 +340,7 @@ void VertexDecoderJitCache::Jit_WeightsU16() {
 
 	case 3:
 		MOV(32, R(tempReg1), MDisp(srcReg, dec_->weightoff));
-		MOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
+		PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->weightoff + 4));
 		MOV(32, MDisp(dstReg, dec_->decFmt.w0off), R(tempReg1));
 		MOV(32, MDisp(dstReg, dec_->decFmt.w0off + 4), R(tempReg2));
 		return;
@@ -529,7 +529,7 @@ void VertexDecoderJitCache::Jit_WeightsU8Skin() {
 			}
 		}
 #else
-		MOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->weightoff + j));
+		PMOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->weightoff + j));
 		CVTSI2SS(weight, R(tempReg1));
 		MULSS(weight, M(&by128));  // rip accessible (x86)
 		SHUFPS(weight, R(weight), _MM_SHUFFLE(0, 0, 0, 0));
@@ -643,7 +643,7 @@ void VertexDecoderJitCache::Jit_WeightsU16Skin() {
 			}
 		}
 #else
-		MOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff + j * 2));
+		PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->weightoff + j * 2));
 		CVTSI2SS(weight, R(tempReg1));
 		MULSS(weight, M(&by32768));  // rip accessible (x86)
 		SHUFPS(weight, R(weight), _MM_SHUFFLE(0, 0, 0, 0));
@@ -731,8 +731,8 @@ void VertexDecoderJitCache::Jit_TcFloat() {
 
 void VertexDecoderJitCache::Jit_TcU8Prescale() {
 	// TODO: The first five instructions could be done in 1 or 2 in SSE4
-	MOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->tcoff));
-	MOVZX(32, 8, tempReg2, MDisp(srcReg, dec_->tcoff + 1));
+	PMOVZX(32, 8, tempReg1, MDisp(srcReg, dec_->tcoff));
+	PMOVZX(32, 8, tempReg2, MDisp(srcReg, dec_->tcoff + 1));
 	CVTSI2SS(fpScratchReg, R(tempReg1));
 	CVTSI2SS(fpScratchReg2, R(tempReg2));
 	UNPCKLPS(fpScratchReg, R(fpScratchReg2));
@@ -781,7 +781,7 @@ void VertexDecoderJitCache::Jit_TcAnyMorph(int bits) {
 			PMOVQ_xmm(reg, src);
 		} else {
 			if (bits == 8) {
-				MOVZX(32, 16, tempReg2, src);
+				PMOVZX(32, 16, tempReg2, src);
 				PMOVD_xmm(reg, R(tempReg2));
 			} else {
 				PMOVD_xmm(reg, src);
@@ -941,8 +941,8 @@ void VertexDecoderJitCache::Jit_Color4444() {
 	MOVSS(fpScratchReg2, R(fpScratchReg));
 	MOVSS(fpScratchReg3, R(fpScratchReg));
 	// Create 0R000B00 and 00G000A0.
-	PSRLW(fpScratchReg2, 4);
-	PSLLW(fpScratchReg3, 4);
+	PPSRLW(fpScratchReg2, 4);
+	PPSLLW(fpScratchReg3, 4);
 	// Combine for the complete set: RRGGBBAA.
 	POR(fpScratchReg, R(fpScratchReg2));
 	POR(fpScratchReg, R(fpScratchReg3));
@@ -961,7 +961,7 @@ void VertexDecoderJitCache::Jit_Color4444() {
 }
 
 void VertexDecoderJitCache::Jit_Color565() {
-	MOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
+	PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
 
 	MOV(32, R(tempReg2), R(tempReg1));
 	AND(32, R(tempReg2), Imm32(0x0000001F));
@@ -998,7 +998,7 @@ void VertexDecoderJitCache::Jit_Color565() {
 }
 
 void VertexDecoderJitCache::Jit_Color5551() {
-	MOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
+	PMOVZX(32, 16, tempReg1, MDisp(srcReg, dec_->coloff));
 
 	MOV(32, R(tempReg2), R(tempReg1));
 	MOV(32, R(tempReg3), R(tempReg1));
@@ -1095,9 +1095,9 @@ void VertexDecoderJitCache::Jit_Color4444Morph() {
 		PPUNPCKLBW(reg, R(reg));
 		PAND(reg, R(XMM5));
 		MOVSS(fpScratchReg3, R(reg));
-		PSLLW(fpScratchReg3, 4);
+		PPSLLW(fpScratchReg3, 4);
 		POR(reg, R(fpScratchReg3));
-		PSRLW(reg, 4);
+		PPSRLW(reg, 4);
 
 		if (cpu_info.bSSE4_1) {
 			PMOVZXBD(reg, R(reg));
@@ -1148,17 +1148,17 @@ void VertexDecoderJitCache::Jit_Color565Morph() {
 
 		// Blue first.
 		MOVSS(reg, R(fpScratchReg2));
-		PSRLD(reg, 6);
+		PPSRLD(reg, 6);
 		PSHUFD(reg, R(reg), _MM_SHUFFLE(3, 0, 0, 0));
 
 		// Green, let's shift it into the right lane first.
-		PSRLDQ(fpScratchReg2, 4);
+		PPSRLDQ(fpScratchReg2, 4);
 		MOVSS(reg, R(fpScratchReg2));
-		PSRLD(reg, 5);
+		PPSRLD(reg, 5);
 		PSHUFD(reg, R(reg), _MM_SHUFFLE(3, 2, 0, 0));
 
 		// Last one, red.
-		PSRLDQ(fpScratchReg2, 4);
+		PPSRLDQ(fpScratchReg2, 4);
 		MOVSS(reg, R(fpScratchReg2));
 
 		CVTDQ2PS(reg, R(reg));
@@ -1200,23 +1200,23 @@ void VertexDecoderJitCache::Jit_Color5551Morph() {
 
 		// Alpha first.
 		MOVSS(reg, R(fpScratchReg2));
-		PSRLD(reg, 5);
+		PPSRLD(reg, 5);
 		PSHUFD(reg, R(reg), _MM_SHUFFLE(0, 0, 0, 0));
 
 		// Blue, let's shift it into the right lane first.
-		PSRLDQ(fpScratchReg2, 4);
+		PPSRLDQ(fpScratchReg2, 4);
 		MOVSS(reg, R(fpScratchReg2));
-		PSRLD(reg, 5);
+		PPSRLD(reg, 5);
 		PSHUFD(reg, R(reg), _MM_SHUFFLE(3, 0, 0, 0));
 
 		// Green.
-		PSRLDQ(fpScratchReg2, 4);
+		PPSRLDQ(fpScratchReg2, 4);
 		MOVSS(reg, R(fpScratchReg2));
-		PSRLD(reg, 5);
+		PPSRLD(reg, 5);
 		PSHUFD(reg, R(reg), _MM_SHUFFLE(3, 2, 0, 0));
 
 		// Last one, red.
-		PSRLDQ(fpScratchReg2, 4);
+		PPSRLDQ(fpScratchReg2, 4);
 		MOVSS(reg, R(fpScratchReg2));
 
 		CVTDQ2PS(reg, R(reg));
@@ -1278,7 +1278,7 @@ void VertexDecoderJitCache::Jit_NormalS8ToFloat() {
 // Copy 6 bytes and then 2 zeroes.
 void VertexDecoderJitCache::Jit_NormalS16() {
 	MOV(32, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
-	MOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->nrmoff + 4));
+	PMOVZX(32, 16, tempReg2, MDisp(srcReg, dec_->nrmoff + 4));
 	MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
 	MOV(32, MDisp(dstReg, dec_->decFmt.nrmoff + 4), R(tempReg2));
 }
@@ -1337,7 +1337,7 @@ void VertexDecoderJitCache::Jit_PosS8Through() {
 	DEBUG_LOG_REPORT_ONCE(vertexS8Through, G3D, "Using S8 positions in throughmode");
 	// SIMD doesn't really matter since this isn't useful on hardware.
 	for (int i = 0; i < 3; i++) {
-		MOVSX(32, 8, tempReg1, MDisp(srcReg, dec_->posoff + i));
+		PMOVSX(32, 8, tempReg1, MDisp(srcReg, dec_->posoff + i));
 		CVTSI2SS(fpScratchReg, R(tempReg1));
 		MOVSS(MDisp(dstReg, dec_->decFmt.posoff + i * 4), fpScratchReg);
 	}
@@ -1347,16 +1347,16 @@ void VertexDecoderJitCache::Jit_PosS8Through() {
 void VertexDecoderJitCache::Jit_PosS16Through() {
 	if (cpu_info.bSSE4_1) {
 		PMOVD_xmm(fpScratchReg, MDisp(srcReg, dec_->posoff));
-		MOVZX(32, 16, tempReg3, MDisp(srcReg, dec_->posoff + 4));
+		PMOVZX(32, 16, tempReg3, MDisp(srcReg, dec_->posoff + 4));
 		PMOVD_xmm(fpScratchReg2, R(tempReg3));
 		PMOVSXWD(fpScratchReg, R(fpScratchReg));
 		PPUNPCKLQDQ(fpScratchReg, R(fpScratchReg2));
 		CVTDQ2PS(fpScratchReg, R(fpScratchReg));
 		MOVUPS(MDisp(dstReg, dec_->decFmt.posoff), fpScratchReg);
 	} else {
-		MOVSX(32, 16, tempReg1, MDisp(srcReg, dec_->posoff));
-		MOVSX(32, 16, tempReg2, MDisp(srcReg, dec_->posoff + 2));
-		MOVZX(32, 16, tempReg3, MDisp(srcReg, dec_->posoff + 4));  // NOTE: MOVZX
+		PMOVSX(32, 16, tempReg1, MDisp(srcReg, dec_->posoff));
+		PMOVSX(32, 16, tempReg2, MDisp(srcReg, dec_->posoff + 2));
+		PMOVZX(32, 16, tempReg3, MDisp(srcReg, dec_->posoff + 4));  // NOTE: MOVZX
 		CVTSI2SS(fpScratchReg, R(tempReg1));
 		MOVSS(MDisp(dstReg, dec_->decFmt.posoff), fpScratchReg);
 		CVTSI2SS(fpScratchReg, R(tempReg2));
@@ -1418,8 +1418,8 @@ void VertexDecoderJitCache::Jit_AnyS8ToFloat(int srcoff) {
 	} else {
 		PPUNPCKLBW(XMM1, R(XMM3));
 		PPUNPCKLWD(XMM1, R(XMM3));
-		PSLLD(XMM1, 24);
-		PSRAD(XMM1, 24);
+		PPSLLD(XMM1, 24);
+		PPSRAD(XMM1, 24);
 	}
 	CVTDQ2PS(XMM3, R(XMM1));
 	if (RipAccessible(&by128)) {
@@ -1439,8 +1439,8 @@ void VertexDecoderJitCache::Jit_AnyS16ToFloat(int srcoff) {
 		PMOVSXWD(XMM1, R(XMM1));
 	} else {
 		PPUNPCKLWD(XMM1, R(XMM3));
-		PSLLD(XMM1, 16);
-		PSRAD(XMM1, 16);
+		PPSLLD(XMM1, 16);
+		PPSRAD(XMM1, 16);
 	}
 	CVTDQ2PS(XMM3, R(XMM1));
 	if (RipAccessible(&by32768)) {
@@ -1465,7 +1465,7 @@ void VertexDecoderJitCache::Jit_AnyU8ToFloat(int srcoff, u32 bits) {
 		AND(32, R(tempReg1), Imm32(0x00FFFFFF));
 		PMOVD_xmm(XMM1, R(tempReg1));
 	} else {
-		MOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
+		PMOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
 		PMOVD_xmm(XMM1, R(tempReg1));
 	}
 	if (cpu_info.bSSE4_1) {
@@ -1498,7 +1498,7 @@ void VertexDecoderJitCache::Jit_AnyU16ToFloat(int srcoff, u32 bits) {
 	} else if (bits == 32) {
 		PMOVD_xmm(XMM1, MDisp(srcReg, srcoff));
 	} else if (bits == 16) {
-		MOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
+		PMOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
 		PMOVD_xmm(XMM1, R(tempReg1));
 	}
 	if (cpu_info.bSSE4_1) {
@@ -1538,8 +1538,8 @@ void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 		} else {
 			PPUNPCKLBW(reg, R(fpScratchReg4));
 			PPUNPCKLWD(reg, R(fpScratchReg4));
-			PSLLD(reg, 24);
-			PSRAD(reg, 24);
+			PPSLLD(reg, 24);
+			PPSRAD(reg, 24);
 		}
 		CVTDQ2PS(reg, R(reg));
 
@@ -1581,8 +1581,8 @@ void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
 			PMOVSXWD(reg, R(reg));
 		} else {
 			PPUNPCKLWD(reg, R(fpScratchReg4));
-			PSLLD(reg, 16);
-			PSRAD(reg, 16);
+			PPSLLD(reg, 16);
+			PPSRAD(reg, 16);
 		}
 		CVTDQ2PS(reg, R(reg));
 

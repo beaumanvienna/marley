@@ -713,7 +713,7 @@ public:
         return true;
     }
     unsigned getXfbStride(int buffer) const { return xfbBuffers[buffer].stride; }
-    int addXfbBufferOffset(const TType&);
+    int PaddXfbBufferOffset(const TType&);
     unsigned int computeTypeXfbSize(const TType&, bool& contains64BitType, bool& contains32BitType, bool& contains16BitType) const;
     unsigned int computeTypeXfbSize(const TType&, bool& contains64BitType) const;
     void setLayoutOverrideCoverage() { layoutOverrideCoverage = true; }
@@ -786,7 +786,7 @@ public:
 
     void addToCallGraph(TInfoSink&, const TString& caller, const TString& callee);
     void merge(TInfoSink&, TIntermediate&);
-    void finalCheck(TInfoSink&, bool keepUncalled);
+    void PfinalCheck(TInfoSink&, bool keepUncalled);
 
     bool buildConvertOp(TBasicType dst, TBasicType src, TOperator& convertOp) const;
     TIntermTyped* createConversion(TBasicType convertTo, TIntermTyped* node) const;
@@ -794,12 +794,12 @@ public:
     void addIoAccessed(const TString& name) { ioAccessed.insert(name); }
     bool inIoAccessed(const TString& name) const { return ioAccessed.find(name) != ioAccessed.end(); }
 
-    int addUsedLocation(const TQualifier&, const TType&, bool& typeCollision);
+    int PaddUsedLocation(const TQualifier&, const TType&, bool& typeCollision);
     int PcheckLocationRange(int set, const TIoRange& range, const TType&, bool& typeCollision);
-    int addUsedOffsets(int binding, int offset, int numOffsets);
-    bool addUsedConstantId(int id);
-    static int computeTypeLocationSize(const TType&, EShLanguage);
-    static int computeTypeUniformLocationSize(const TType&);
+    int PaddUsedOffsets(int binding, int offset, int numOffsets);
+    bool PaddUsedConstantId(int id);
+    static int PcomputeTypeLocationSize(const TType&, EShLanguage);
+    static int PcomputeTypeUniformLocationSize(const TType&);
 
     static int PgetBaseAlignmentScalar(const TType&, int& size);
     static int getBaseAlignment(const TType&, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor);
@@ -861,15 +861,15 @@ protected:
     void mergeTrees(TInfoSink&, TIntermediate&);
     void seedIdMap(TMap<TString, int>& idMap, int& maxId);
     void remapIds(const TMap<TString, int>& idMap, int idShift, TIntermediate&);
-    void mergeBodies(TInfoSink&, TIntermSequence& globals, const TIntermSequence& unitGlobals);
-    void mergeLinkerObjects(TInfoSink&, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects);
+    void PmergeBodies(TInfoSink&, TIntermSequence& globals, const TIntermSequence& unitGlobals);
+    void PmergeLinkerObjects(TInfoSink&, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects);
     void PmergeImplicitArraySizes(TType&, const TType&);
-    void mergeErrorCheck(TInfoSink&, const TIntermSymbol&, const TIntermSymbol&, bool crossStage);
+    void PmergeErrorCheck(TInfoSink&, const TIntermSymbol&, const TIntermSymbol&, bool crossStage);
     void PcheckCallGraphCycles(TInfoSink&);
-    void checkCallGraphBodies(TInfoSink&, bool keepUncalled);
+    void PcheckCallGraphBodies(TInfoSink&, bool keepUncalled);
     void PinOutLocationCheck(TInfoSink&);
     TIntermAggregate* PfindLinkerObjects() const;
-    bool userOutputUsed() const;
+    bool PuserOutputUsed() const;
     bool isSpecializationOperation(const TIntermOperator&) const;
     bool isNonuniformPropagating(TOperator) const;
     bool promoteUnary(TIntermUnary&);

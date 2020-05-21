@@ -90,7 +90,7 @@ public:
 	// 20 bits valid in code.
 	void BREAK(u32 code);
 
-	void NOP() {
+	void PNOP() {
 		SLL(R_ZERO, R_ZERO, 0);
 	}
 
@@ -100,7 +100,7 @@ public:
 	//
 	// Example:                        Translates to:
 	//    J(&myFunc);                  J(&myFunc);
-	//    ADDU(V0, V0, V1);            NOP();
+	//    ADDU(V0, V0, V1);            PNOP();
 	//                                 ADDU(V0, V0, V1);
 	//
 	//    J(&myFunc, [&] {             J(&myFunc);

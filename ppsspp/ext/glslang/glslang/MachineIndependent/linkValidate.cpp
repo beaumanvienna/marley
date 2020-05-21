@@ -304,8 +304,8 @@ void TIntermediate::mergeTrees(TInfoSink& infoSink, TIntermediate& unit)
     seedIdMap(idMap, maxId);
     remapIds(idMap, maxId + 1, unit);
 
-    mergeBodies(infoSink, globals, unitGlobals);
-    mergeLinkerObjects(infoSink, linkerObjects, unitLinkerObjects);
+    PmergeBodies(infoSink, globals, unitGlobals);
+    PmergeLinkerObjects(infoSink, linkerObjects, unitLinkerObjects);
     ioAccessed.insert(unit.ioAccessed.begin(), unit.ioAccessed.end());
 }
 
@@ -409,7 +409,7 @@ void TIntermediate::remapIds(const TMap<TString, int>& idMap, int idShift, TInte
 // Merge the function bodies and global-level initializers from unitGlobals into globals.
 // Will error check duplication of function bodies for the same signature.
 //
-void TIntermediate::mergeBodies(TInfoSink& infoSink, TIntermSequence& globals, const TIntermSequence& unitGlobals)
+void TIntermediate::PmergeBodies(TInfoSink& infoSink, TIntermSequence& globals, const TIntermSequence& unitGlobals)
 {
     // TODO: link-time performance: Processing in alphabetical order will be faster
 
@@ -433,7 +433,7 @@ void TIntermediate::mergeBodies(TInfoSink& infoSink, TIntermSequence& globals, c
 // Merge the linker objects from unitLinkerObjects into linkerObjects.
 // Duplication is expected and filtered out, but contradictions are an error.
 //
-void TIntermediate::mergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects)
+void TIntermediate::PmergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects)
 {
     // Error check and merge the linker objects (duplicates should not be created)
     std::size_t initialNumLinkerObjects = linkerObjects.size();
@@ -460,7 +460,7 @@ void TIntermediate::mergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& lin
                 PmergeImplicitArraySizes(symbol->getWritableType(), unitSymbol->getType());
 
                 // Check for consistent types/qualification/initializers etc.
-                mergeErrorCheck(infoSink, *symbol, *unitSymbol, false);
+                PmergeErrorCheck(infoSink, *symbol, *unitSymbol, false);
             }
         }
         if (merge)
@@ -496,7 +496,7 @@ void TIntermediate::PmergeImplicitArraySizes(TType& type, const TType& unitType)
 //
 // This function only does one of intra- or cross-stage matching per call.
 //
-void TIntermediate::mergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& symbol, const TIntermSymbol& unitSymbol, bool crossStage)
+void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& symbol, const TIntermSymbol& unitSymbol, bool crossStage)
 {
 #ifndef GLSLANG_WEB
     bool writeTypeComparison = false;
@@ -601,7 +601,7 @@ void TIntermediate::mergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& sy
 //
 // Also, lock in defaults of things not set, including array sizes.
 //
-void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
+void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
 {
     if (getTreeRoot() == nullptr)
         return;
@@ -615,7 +615,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
 
     // recursion and missing body checking
     PcheckCallGraphCycles(infoSink);
-    checkCallGraphBodies(infoSink, keepUncalled);
+    PcheckCallGraphBodies(infoSink, keepUncalled);
 
     // overlap/alias/missing I/O, etc.
     PinOutLocationCheck(infoSink);
@@ -633,7 +633,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
     if (inIoAccessed("gl_CullDistance") && inIoAccessed("gl_ClipVertex"))
         error(infoSink, "Can only use one of gl_CullDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
 
-    if (userOutputUsed() && (inIoAccessed("gl_FragColor") || inIoAccessed("gl_FragData")))
+    if (PuserOutputUsed() && (inIoAccessed("gl_FragColor") || inIoAccessed("gl_FragData")))
         error(infoSink, "Cannot use gl_FragColor or gl_FragData when using user-defined outputs");
     if (inIoAccessed("gl_FragColor") && inIoAccessed("gl_FragData"))
         error(infoSink, "Cannot use both gl_FragColor and gl_FragData");
@@ -863,7 +863,7 @@ void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
 // Reachable ones with missing bodies are errors.
 // Unreachable bodies are dead code.
 //
-void TIntermediate::checkCallGraphBodies(TInfoSink& infoSink, bool keepUncalled)
+void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled)
 {
     // Clear fields we'll use for this.
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
@@ -981,7 +981,7 @@ TIntermAggregate* TIntermediate::PfindLinkerObjects() const
 // See if a variable was both a user-declared output and used.
 // Note: the spec discusses writing to one, but this looks at read or write, which
 // is more useful, and perhaps the spec should be changed to reflect that.
-bool TIntermediate::userOutputUsed() const
+bool TIntermediate::PuserOutputUsed() const
 {
     const TIntermSequence& linkerObjects = PfindLinkerObjects()->getSequence();
 
@@ -1007,7 +1007,7 @@ bool TIntermediate::userOutputUsed() const
 // typeCollision is set to true if there is no direct collision, but the types in the same location
 // are different.
 //
-int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& type, bool& typeCollision)
+int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& type, bool& typeCollision)
 {
     typeCollision = false;
 
@@ -1033,9 +1033,9 @@ int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& typ
         // Strip off the outer array dimension for those having an extra one.
         if (type.isArray() && qualifier.isArrayedIo(language)) {
             TType elementType(type, 0);
-            size = computeTypeLocationSize(elementType, language);
+            size = PcomputeTypeLocationSize(elementType, language);
         } else
-            size = computeTypeLocationSize(type, language);
+            size = PcomputeTypeLocationSize(type, language);
     }
 
     // Locations, and components within locations.
@@ -1136,7 +1136,7 @@ int TIntermediate::PcheckLocationRange(int set, const TIoRange& range, const TTy
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::addUsedOffsets(int binding, int offset, int numOffsets)
+int TIntermediate::PaddUsedOffsets(int binding, int offset, int numOffsets)
 {
     TRange bindingRange(binding, binding);
     TRange offsetRange(offset, offset + numOffsets - 1);
@@ -1158,7 +1158,7 @@ int TIntermediate::addUsedOffsets(int binding, int offset, int numOffsets)
 // Accumulate used constant_id values.
 //
 // Return false is one was already used.
-bool TIntermediate::addUsedConstantId(int id)
+bool TIntermediate::PaddUsedConstantId(int id)
 {
     if (usedConstantId.find(id) != usedConstantId.end())
         return false;
@@ -1170,7 +1170,7 @@ bool TIntermediate::addUsedConstantId(int id)
 
 // Recursively figure out how many locations are used up by an input or output type.
 // Return the size of type, as measured by "locations".
-int TIntermediate::computeTypeLocationSize(const TType& type, EShLanguage stage)
+int TIntermediate::PcomputeTypeLocationSize(const TType& type, EShLanguage stage)
 {
     // "If the declared input is an array of size n and each element takes m locations, it will be assigned m * n
     // consecutive locations..."
@@ -1179,13 +1179,13 @@ int TIntermediate::computeTypeLocationSize(const TType& type, EShLanguage stage)
         // TODO: are there valid cases of having an unsized array with a location?  If so, running this code too early.
         TType elementType(type, 0);
         if (type.isSizedArray() && !type.getQualifier().isPerView())
-            return type.getOuterArraySize() * computeTypeLocationSize(elementType, stage);
+            return type.getOuterArraySize() * PcomputeTypeLocationSize(elementType, stage);
         else {
 #ifndef GLSLANG_WEB
             // unset perViewNV attributes for arrayed per-view outputs: "perviewNV vec4 v[MAX_VIEWS][3];"
             elementType.getQualifier().perViewNV = false;
 #endif
-            return computeTypeLocationSize(elementType, stage);
+            return PcomputeTypeLocationSize(elementType, stage);
         }
     }
 
@@ -1195,7 +1195,7 @@ int TIntermediate::computeTypeLocationSize(const TType& type, EShLanguage stage)
         int size = 0;
         for (int member = 0; member < (int)type.getStruct()->size(); ++member) {
             TType memberType(type, member);
-            size += computeTypeLocationSize(memberType, stage);
+            size += PcomputeTypeLocationSize(memberType, stage);
         }
         return size;
     }
@@ -1222,15 +1222,15 @@ int TIntermediate::computeTypeLocationSize(const TType& type, EShLanguage stage)
     // for an n-element array of m-component vectors..."
     if (type.isMatrix()) {
         TType columnType(type, 0);
-        return type.getMatrixCols() * computeTypeLocationSize(columnType, stage);
+        return type.getMatrixCols() * PcomputeTypeLocationSize(columnType, stage);
     }
 
     assert(0);
     return 1;
 }
 
-// Same as computeTypeLocationSize but for uniforms
-int TIntermediate::computeTypeUniformLocationSize(const TType& type)
+// Same as PcomputeTypeLocationSize but for uniforms
+int TIntermediate::PcomputeTypeUniformLocationSize(const TType& type)
 {
     // "Individual elements of a uniform array are assigned
     // consecutive locations with the first element taking location
@@ -1239,10 +1239,10 @@ int TIntermediate::computeTypeUniformLocationSize(const TType& type)
         // TODO: perf: this can be flattened by using getCumulativeArraySize(), and a deref that discards all arrayness
         TType elementType(type, 0);
         if (type.isSizedArray()) {
-            return type.getOuterArraySize() * computeTypeUniformLocationSize(elementType);
+            return type.getOuterArraySize() * PcomputeTypeUniformLocationSize(elementType);
         } else {
             // TODO: are there valid cases of having an implicitly-sized array with a location?  If so, running this code too early.
-            return computeTypeUniformLocationSize(elementType);
+            return PcomputeTypeUniformLocationSize(elementType);
         }
     }
 
@@ -1252,7 +1252,7 @@ int TIntermediate::computeTypeUniformLocationSize(const TType& type)
         int size = 0;
         for (int member = 0; member < (int)type.getStruct()->size(); ++member) {
             TType memberType(type, member);
-            size += computeTypeUniformLocationSize(memberType);
+            size += PcomputeTypeUniformLocationSize(memberType);
         }
         return size;
     }
@@ -1266,7 +1266,7 @@ int TIntermediate::computeTypeUniformLocationSize(const TType& type)
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::addXfbBufferOffset(const TType& type)
+int TIntermediate::PaddXfbBufferOffset(const TType& type)
 {
     const TQualifier& qualifier = type.getQualifier();
 

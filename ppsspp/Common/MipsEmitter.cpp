@@ -234,8 +234,8 @@ void MIPSEmitter::ApplyDelaySlot(std::function<void ()> delaySlot) {
 	if (delaySlot) {
 		delaySlot();
 	} else {
-		// We just insert a NOP if there's no delay slot provided.  Safer.
-		NOP();
+		// We just insert a PNOP if there's no delay slot provided.  Safer.
+		PNOP();
 	}
 }
 

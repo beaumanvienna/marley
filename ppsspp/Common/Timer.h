@@ -22,31 +22,31 @@
 
 namespace Common
 {
-class Timer
+class PTimer
 {
 public:
-	Timer();
+	PTimer();
 
-	void Start();
-	void Stop();
-	void Update();
+	void PStart();
+	void PStop();
+	void PUpdate();
 
 	// The time difference is always returned in milliseconds, regardless of alternative internal representation
 	u64 GetTimeDifference() const;
-	void AddTimeDifference();
+	void PAddTimeDifference();
 	void WindBackStartingTime(u64 WindBack);
 
-	static void IncreaseResolution();
-	static void RestoreResolution();
-	static u64 GetTimeSinceJan1970();
-	static u64 GetLocalTimeSinceJan1970();
-	static double GetDoubleTime();
+	static void PIncreaseResolution();
+	static void PRestoreResolution();
+	static u64 PGetTimeSinceJan1970();
+	static u64 PGetLocalTimeSinceJan1970();
+	static double PGetDoubleTime();
 
   static void GetTimeFormatted(char formattedTime[13]);
-	std::string GetTimeElapsedFormatted() const;
+	std::string PGetTimeElapsedFormatted() const;
 	u64 GetTimeElapsed() const;
 
-	static u32 GetTimeMs();
+	static u32 PGetTimeMs();
 
 private:
 	u64 m_LastTime;

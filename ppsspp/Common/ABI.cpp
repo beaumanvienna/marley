@@ -44,13 +44,13 @@ void XEmitter::ABI_EmitPrologue(int maxCallParams)
 void XEmitter::ABI_EmitEpilogue(int maxCallParams)
 {
 #ifdef _M_IX86
-	RET();
+	PRET();
 #elif defined(_M_X64)
 #ifdef _WIN32
 	int stacksize = ((maxCallParams+1)&~1)*8 + 8;
 	ADD(64, R(RSP), Imm8(stacksize));
 #endif
-	RET();
+	PRET();
 #else
 #error Arch not supported
 

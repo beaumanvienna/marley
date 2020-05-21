@@ -1254,7 +1254,7 @@ int HlslParseContext::addFlattenedMember(const TVariable& variable, const TType&
             // inherited locations must be auto bumped, not replicated
             if (flattenData.nextLocation != TQualifier::layoutLocationEnd) {
                 memberVariable->getWritableType().getQualifier().layoutLocation = flattenData.nextLocation;
-                flattenData.nextLocation += intermediate.computeTypeLocationSize(memberVariable->getType(), language);
+                flattenData.nextLocation += intermediate.PcomputeTypeLocationSize(memberVariable->getType(), language);
                 nextOutLocation = std::max(nextOutLocation, flattenData.nextLocation);
             }
         }
@@ -1545,9 +1545,9 @@ void HlslParseContext::assignToInterface(TVariable& variable)
                     int size;
                     if (type.isArray() && qualifier.isArrayedIo(language)) {
                         TType elementType(type, 0);
-                        size = intermediate.computeTypeLocationSize(elementType, language);
+                        size = intermediate.PcomputeTypeLocationSize(elementType, language);
                     } else
-                        size = intermediate.computeTypeLocationSize(type, language);
+                        size = intermediate.PcomputeTypeLocationSize(type, language);
 
                     if (qualifier.storage == EvqVaryingIn) {
                         variable.getWritableType().getQualifier().layoutLocation = nextInLocation;
@@ -7253,7 +7253,7 @@ void HlslParseContext::setSpecConstantId(const TSourceLoc& loc, TQualifier& qual
     } else {
         qualifier.layoutSpecConstantId = value;
         qualifier.specConstant = true;
-        if (! intermediate.addUsedConstantId(value))
+        if (! intermediate.PaddUsedConstantId(value))
             error(loc, "specialization-constant id already used", "constant_id", "");
     }
     return;
@@ -8730,7 +8730,7 @@ void HlslParseContext::fixBlockLocations(const TSourceLoc& loc, TQualifier& qual
                     memberQualifier.layoutComponent = 0;
                 }
                 nextLocation = memberQualifier.layoutLocation +
-                               intermediate.computeTypeLocationSize(*typeList[member].type, language);
+                               intermediate.PcomputeTypeLocationSize(*typeList[member].type, language);
             }
         }
     }

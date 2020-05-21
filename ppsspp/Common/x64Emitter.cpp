@@ -539,11 +539,11 @@ void XEmitter::DEC(int bits, OpArg arg)
 //Single byte opcodes
 //There is no PUSHAD/POPAD in 64-bit mode.
 void XEmitter::INT3() {Write8(0xCC);}
-void XEmitter::RET()  {Write8(0xC3);}
-void XEmitter::RET_FAST()  {Write8(0xF3); Write8(0xC3);} //two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to a ret
+void XEmitter::PRET()  {Write8(0xC3);}
+void XEmitter::PRET_FAST()  {Write8(0xF3); Write8(0xC3);} //two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to a ret
 
-// The first sign of decadence: optimized NOPs.
-void XEmitter::NOP(size_t size)
+// The first sign of decadence: optimized PNOPs.
+void XEmitter::PNOP(size_t size)
 {
 	_dbg_assert_(DYNA_REC, (int)size > 0);
 	while (true)
@@ -592,7 +592,7 @@ void XEmitter::NOP(size_t size)
 			return;
 		default:
 			// Even though x86 instructions are allowed to be up to 15 bytes long,
-			// AMD advises against using NOPs longer than 11 bytes because they
+			// AMD advises against using PNOPs longer than 11 bytes because they
 			// carry a performance penalty on CPUs older than AMD family 16h.
 			Write8(0x66); Write8(0x66); Write8(0x66); Write8(0x0F);
 			Write8(0x1F); Write8(0x84); Write8(0x00); Write8(0x00);
@@ -603,9 +603,9 @@ void XEmitter::NOP(size_t size)
 	}
 }
 
-void XEmitter::PAUSE() {Write8(0xF3); NOP();} //use in tight spinloops for energy saving on some cpu
-void XEmitter::CLC()  {PCheckFlags(); Write8(0xF8);} //clear carry
-void XEmitter::CMC()  {PCheckFlags(); Write8(0xF5);} //flip carry
+void XEmitter::PPAUSE() {Write8(0xF3); PNOP();} //use in tight spinloops for energy saving on some cpu
+void XEmitter::PCLC()  {PCheckFlags(); Write8(0xF8);} //clear carry
+void XEmitter::PCMC()  {PCheckFlags(); Write8(0xF5);} //flip carry
 void XEmitter::STC()  {PCheckFlags(); Write8(0xF9);} //set carry
 
 //TODO: xchg ah, al ???
@@ -623,9 +623,9 @@ void XEmitter::SAHF() {PCheckFlags(); Write8(0x9E);}
 void XEmitter::PUSHF() {Write8(0x9C);}
 void XEmitter::POPF()  {PCheckFlags(); Write8(0x9D);}
 
-void XEmitter::LFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xE8);}
-void XEmitter::MFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF0);}
-void XEmitter::SFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF8);}
+void XEmitter::PLFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xE8);}
+void XEmitter::PMFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF0);}
+void XEmitter::PSFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF8);}
 
 void XEmitter::PWriteSimple1Byte(int bits, u8 byte, X64Reg reg)
 {
@@ -733,7 +733,7 @@ void XEmitter::BSWAP(int bits, X64Reg reg)
 
 // Undefined opcode - reserved
 // If we ever need a way to always cause a non-breakpoint hard exception...
-void XEmitter::UD2()
+void XEmitter::PUD2()
 {
 	Write8(0x0F);
 	Write8(0x0B);
@@ -838,7 +838,7 @@ void XEmitter::LZCNT(int bits, X64Reg dest, OpArg src)
 	PWriteBitSearchType(bits, dest, src, 0xBD, true);
 }
 
-void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
+void XEmitter::PMOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "MOVSX - Imm argument");
 	if (dbits == sbits)
@@ -871,7 +871,7 @@ void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 	src.PWriteRest(this);
 }
 
-void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
+void XEmitter::PMOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "MOVZX - Imm argument");
 	if (dbits == sbits)
@@ -1298,7 +1298,7 @@ void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 }
 void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmTEST, a1, a2);}
 void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {PCheckFlags(); PWriteNormalOp(this, bits, nrmCMP, a1, a2);}
-void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {PWriteNormalOp(this, bits, nrmXCHG, a1, a2);}
+void XEmitter::PXCHG(int bits, const OpArg &a1, const OpArg &a2) {PWriteNormalOp(this, bits, nrmXCHG, a1, a2);}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 {
@@ -1609,7 +1609,7 @@ void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  { PWriteSSEOp(0x66, sseMOVHPfrom
 void XEmitter::MOVHPS(OpArg arg, X64Reg regOp)  { PWriteSSEOp(0x00, sseMOVHPtoRM, regOp, arg); }
 void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  { PWriteSSEOp(0x66, sseMOVHPtoRM, regOp, arg); }
 
-void XEmitter::MOVHLPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));}
+void XEmitter::PMOVHLPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));}
 void XEmitter::MOVLHPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVLHPS, regOp1, R(regOp2));}
 
 void XEmitter::CVTPS2PD(X64Reg regOp, OpArg arg) {PWriteSSEOp(0x00, 0x5A, regOp, arg);}
@@ -1678,64 +1678,64 @@ void XEmitter::PUNPCKHWD(X64Reg dest, const OpArg &arg) {PWriteSSEOp(0x66, 0x69,
 void XEmitter::PUNPCKHDQ(X64Reg dest, const OpArg &arg) {PWriteSSEOp(0x66, 0x6A, dest, arg);}
 void XEmitter::PUNPCKHQDQ(X64Reg dest, const OpArg &arg) {PWriteSSEOp(0x66, 0x6D, dest, arg);}
 
-void XEmitter::PSRLW(X64Reg reg, int shift)
+void XEmitter::PPSRLW(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x71, (X64Reg)2, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSRLD(X64Reg reg, int shift)
+void XEmitter::PPSRLD(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x72, (X64Reg)2, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSRLQ(X64Reg reg, int shift)
+void XEmitter::PPSRLQ(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x73, (X64Reg)2, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSRLQ(X64Reg reg, OpArg arg)
+void XEmitter::PPSRLQ(X64Reg reg, OpArg arg)
 {
 	PWriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
-void XEmitter::PSRLDQ(X64Reg reg, int shift) {
+void XEmitter::PPSRLDQ(X64Reg reg, int shift) {
 	PWriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSLLW(X64Reg reg, int shift)
+void XEmitter::PPSLLW(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSLLD(X64Reg reg, int shift)
+void XEmitter::PPSLLD(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x72, (X64Reg)6, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSLLQ(X64Reg reg, int shift)
+void XEmitter::PPSLLQ(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSLLDQ(X64Reg reg, int shift) {
+void XEmitter::PPSLLDQ(X64Reg reg, int shift) {
 	PWriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSRAW(X64Reg reg, int shift)
+void XEmitter::PPSRAW(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x71, (X64Reg)4, R(reg));
 	Write8(shift);
 }
 
-void XEmitter::PSRAD(X64Reg reg, int shift)
+void XEmitter::PPSRAD(X64Reg reg, int shift)
 {
 	PWriteSSEOp(0x66, 0x72, (X64Reg)4, R(reg));
 	Write8(shift);

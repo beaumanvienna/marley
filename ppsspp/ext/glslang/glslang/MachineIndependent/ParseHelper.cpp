@@ -5197,7 +5197,7 @@ void TParseContext::setLayoutQualifier(const TSourceLoc& loc, TPublicType& publi
         } else {
             publicType.qualifier.layoutSpecConstantId = value;
             publicType.qualifier.specConstant = true;
-            if (! intermediate.addUsedConstantId(value))
+            if (! intermediate.PaddUsedConstantId(value))
                 error(loc, "specialization-constant id already used", id.c_str(), "");
         }
         if (nonLiteral)
@@ -5673,7 +5673,7 @@ void TParseContext::layoutTypeCheck(const TSourceLoc& loc, const TType& type)
         }
 
         bool typeCollision;
-        int repeated = intermediate.addUsedLocation(qualifier, type, typeCollision);
+        int repeated = intermediate.PaddUsedLocation(qualifier, type, typeCollision);
         if (repeated >= 0 && ! typeCollision)
             error(loc, "overlapping use of location", "location", "%d", repeated);
         // "fragment-shader outputs ... if two variables are placed within the same
@@ -5684,7 +5684,7 @@ void TParseContext::layoutTypeCheck(const TSourceLoc& loc, const TType& type)
 
 #ifndef GLSLANG_WEB
     if (qualifier.hasXfbOffset() && qualifier.hasXfbBuffer()) {
-        int repeated = intermediate.addXfbBufferOffset(type);
+        int repeated = intermediate.PaddXfbBufferOffset(type);
         if (repeated >= 0)
             error(loc, "overlapping offsets at", "xfb_offset", "offset %d in buffer %d", repeated, qualifier.layoutXfbBuffer);
 
@@ -6054,7 +6054,7 @@ void TParseContext::fixOffset(const TSourceLoc& loc, TSymbol& symbol)
                     error(loc, "array must be explicitly sized", "atomic_uint", "");
                 }
             }
-            int repeated = intermediate.addUsedOffsets(qualifier.layoutBinding, offset, numOffsets);
+            int repeated = intermediate.PaddUsedOffsets(qualifier.layoutBinding, offset, numOffsets);
             if (repeated >= 0)
                 error(loc, "atomic counters sharing the same offset:", "offset", "%d", repeated);
 
@@ -7756,7 +7756,7 @@ void TParseContext::fixBlockLocations(const TSourceLoc& loc, TQualifier& qualifi
                     memberQualifier.layoutLocation = nextLocation;
                     memberQualifier.layoutComponent = TQualifier::layoutComponentEnd;
                 }
-                nextLocation = memberQualifier.layoutLocation + intermediate.computeTypeLocationSize(
+                nextLocation = memberQualifier.layoutLocation + intermediate.PcomputeTypeLocationSize(
                                     *typeList[member].type, language);
             }
         }

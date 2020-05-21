@@ -494,7 +494,7 @@ int TDefaultIoResolverBase::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
         return ent.newLocation = location;
     }
     location = nextUniformLocation;
-    nextUniformLocation += TIntermediate::computeTypeUniformLocationSize(type);
+    nextUniformLocation += TIntermediate::PcomputeTypeUniformLocationSize(type);
     return ent.newLocation = location;
 }
 
@@ -527,7 +527,7 @@ int TDefaultIoResolverBase::resolveInOutLocation(EShLanguage stage, TVarEntryInf
     int typeLocationSize;
     // Don’t take into account the outer-most array if the stage’s
     // interface is automatically an array.
-    typeLocationSize = computeTypeLocationSize(type, stage);
+    typeLocationSize = PcomputeTypeLocationSize(type, stage);
     nextLocation += typeLocationSize;
     return ent.newLocation = location;
 }
@@ -538,15 +538,15 @@ int TDefaultIoResolverBase::resolveInOutComponent(EShLanguage /*stage*/, TVarEnt
 
 int TDefaultIoResolverBase::resolveInOutIndex(EShLanguage /*stage*/, TVarEntryInfo& ent) { return ent.newIndex = -1; }
 
-uint32_t TDefaultIoResolverBase::computeTypeLocationSize(const TType& type, EShLanguage stage) {
+uint32_t TDefaultIoResolverBase::PcomputeTypeLocationSize(const TType& type, EShLanguage stage) {
     int typeLocationSize;
     // Don’t take into account the outer-most array if the stage’s
     // interface is automatically an array.
     if (type.getQualifier().isArrayedIo(stage)) {
         TType elementType(type, 0);
-        typeLocationSize = TIntermediate::computeTypeLocationSize(elementType, stage);
+        typeLocationSize = TIntermediate::PcomputeTypeLocationSize(elementType, stage);
     } else {
-        typeLocationSize = TIntermediate::computeTypeLocationSize(type, stage);
+        typeLocationSize = TIntermediate::PcomputeTypeLocationSize(type, stage);
     }
     return typeLocationSize;
 }
@@ -608,7 +608,7 @@ int TDefaultGlslIoResolver::resolveInOutLocation(EShLanguage stage, TVarEntryInf
             return ent.newLocation = -1;
         }
     }
-    int typeLocationSize = computeTypeLocationSize(type, stage);
+    int typeLocationSize = PcomputeTypeLocationSize(type, stage);
     int location = type.getQualifier().layoutLocation;
     bool hasLocation = false;
     EShLanguage keyStage(EShLangCount);
@@ -698,7 +698,7 @@ int TDefaultGlslIoResolver::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
         return ent.newLocation = location;
     }
 
-    int size = TIntermediate::computeTypeUniformLocationSize(type);
+    int size = TIntermediate::PcomputeTypeUniformLocationSize(type);
 
     // The uniform in current stage is not declared with location, but it is possible declared
     // with explicit location in other stages, find the storageSlotMap firstly to check whether
@@ -725,7 +725,7 @@ int TDefaultGlslIoResolver::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
             //
             // vs:    uniform vec4 a;
             // fs:    uniform vec4 a;
-            location = getFreeSlot(resourceKey, 0, computeTypeLocationSize(type, currentStage));
+            location = getFreeSlot(resourceKey, 0, PcomputeTypeLocationSize(type, currentStage));
             storageSlotMap[resourceKey][name] = location;
         }
     } else {
@@ -834,7 +834,7 @@ void TDefaultGlslIoResolver::reserverStorageSlot(TVarEntryInfo& ent, TInfoSink& 
             TVarSlotMap& varSlotMap = storageSlotMap[storageKey];
             TVarSlotMap::iterator iter = varSlotMap.find(name);
             if (iter == varSlotMap.end()) {
-                int numLocations = TIntermediate::computeTypeUniformLocationSize(type);
+                int numLocations = TIntermediate::PcomputeTypeUniformLocationSize(type);
                 reserveSlot(storageKey, location, numLocations);
                 varSlotMap[name] = location;
             } else {
@@ -860,7 +860,7 @@ void TDefaultGlslIoResolver::reserverStorageSlot(TVarEntryInfo& ent, TInfoSink& 
             TVarSlotMap& varSlotMap = storageSlotMap[storageKey];
             TVarSlotMap::iterator iter = varSlotMap.find(name);
             if (iter == varSlotMap.end()) {
-                int numLocations = TIntermediate::computeTypeUniformLocationSize(type);
+                int numLocations = TIntermediate::PcomputeTypeUniformLocationSize(type);
                 reserveSlot(storageKey, location, numLocations);
                 varSlotMap[name] = location;
             } else {

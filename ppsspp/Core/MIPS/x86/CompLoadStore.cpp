@@ -298,23 +298,23 @@ namespace MIPSComp {
 		switch (o)
 		{
 		case 37: //R(rt) = ReadMem16(addr); break; //lhu
-			CompITypeMemRead(op, 16, &XEmitter::MOVZX, safeMemFuncs.readU16);
+			CompITypeMemRead(op, 16, &XEmitter::PMOVZX, safeMemFuncs.readU16);
 			break;
 
 		case 36: //R(rt) = ReadMem8 (addr); break; //lbu
-			CompITypeMemRead(op, 8, &XEmitter::MOVZX,  safeMemFuncs.readU8);
+			CompITypeMemRead(op, 8, &XEmitter::PMOVZX,  safeMemFuncs.readU8);
 			break;
 
 		case 35: //R(rt) = ReadMem32(addr); break; //lw
-			CompITypeMemRead(op, 32, &XEmitter::MOVZX, safeMemFuncs.readU32);
+			CompITypeMemRead(op, 32, &XEmitter::PMOVZX, safeMemFuncs.readU32);
 			break;
 
 		case 32: //R(rt) = (u32)(s32)(s8) ReadMem8 (addr); break; //lb
-			CompITypeMemRead(op, 8, &XEmitter::MOVSX, safeMemFuncs.readU8);
+			CompITypeMemRead(op, 8, &XEmitter::PMOVSX, safeMemFuncs.readU8);
 			break;
 
 		case 33: //R(rt) = (u32)(s32)(s16)ReadMem16(addr); break; //lh
-			CompITypeMemRead(op, 16, &XEmitter::MOVSX, safeMemFuncs.readU16);
+			CompITypeMemRead(op, 16, &XEmitter::PMOVSX, safeMemFuncs.readU16);
 			break;
 
 		case 40: //WriteMem8 (addr, R(rt)); break; //sb
@@ -338,7 +338,7 @@ namespace MIPSComp {
 				{
 					EatInstruction(nextOp);
 					// nextOp has the correct address.
-					CompITypeMemRead(nextOp, 32, &XEmitter::MOVZX, safeMemFuncs.readU32);
+					CompITypeMemRead(nextOp, 32, &XEmitter::PMOVZX, safeMemFuncs.readU32);
 				}
 				else
 					CompITypeMemUnpairedLR(op, false);
@@ -354,7 +354,7 @@ namespace MIPSComp {
 				{
 					EatInstruction(nextOp);
 					// op has the correct address.
-					CompITypeMemRead(op, 32, &XEmitter::MOVZX, safeMemFuncs.readU32);
+					CompITypeMemRead(op, 32, &XEmitter::PMOVZX, safeMemFuncs.readU32);
 				}
 				else
 					CompITypeMemUnpairedLR(op, false);

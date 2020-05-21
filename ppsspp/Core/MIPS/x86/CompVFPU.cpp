@@ -1656,9 +1656,9 @@ void Jit::Comp_Vh2f(MIPSOpcode op) {
 	XORPS(XMM1, R(XMM0));  // xmm1 = justsign = expmant ^ xmm0
 	MOVAPS(tempR, R(XMM0));
 	PCMPGTD(tempR, M(&was_infnan[0]));  // xmm2 = b_wasinfnan. not rip accessible but bailing above
-	PSLLD(XMM0, 13);
+	PPSLLD(XMM0, 13);
 	MULPS(XMM0, M(magic));  /// xmm0 = scaled
-	PSLLD(XMM1, 16);  // xmm1 = sign
+	PPSLLD(XMM1, 16);  // xmm1 = sign
 	ANDPS(tempR, M(&exp_infnan[0])); // not rip accessible but bailing above
 	ORPS(XMM1, R(tempR));
 	ORPS(XMM0, R(XMM1));
@@ -1769,7 +1769,7 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 	// At this point we have the regs in the 4 lanes.
 	// In the "u" mode, we need to shift it out of the sign bit.
 	if (unsignedOp) {
-		PSRLD(XMM0, 1);
+		PPSRLD(XMM0, 1);
 	}
 
 	if (fpr.TryMapRegsVS(dregs, outsize, MAP_NOINIT | MAP_DIRTY)) {
@@ -1781,13 +1781,13 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 		// TODO: Could apply D-prefix in parallel here...
 
 		MOVSS(fpr.V(dregs[0]), XMM0);
-		PSRLDQ(XMM0, 4);
+		PPSRLDQ(XMM0, 4);
 		MOVSS(fpr.V(dregs[1]), XMM0);
 
 		if (outsize != V_Pair) {
-			PSRLDQ(XMM0, 4);
+			PPSRLDQ(XMM0, 4);
 			MOVSS(fpr.V(dregs[2]), XMM0);
-			PSRLDQ(XMM0, 4);
+			PPSRLDQ(XMM0, 4);
 			MOVSS(fpr.V(dregs[3]), XMM0);
 		}
 	}
@@ -3279,12 +3279,12 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 				PXOR(XMM1, R(XMM1));
 			}
 			PMAXSD(dst0, R(XMM1));
-			PSLLD(dst0, 1);
+			PPSLLD(dst0, 1);
 		} else {
 			// Get a mask of the sign bit in dst0, then and in the values.  This clamps to 0.
 			MOVDQA(XMM1, R(dst0));
-			PSRAD(dst0, 31);
-			PSLLD(XMM1, 1);
+			PPSRAD(dst0, 31);
+			PPSLLD(XMM1, 1);
 			PANDN(dst0, R(XMM1));
 		}
 	}
@@ -3299,7 +3299,7 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 		}
 	} else {
 		// Let's *arithmetically* shift in the sign so we can use saturating packs.
-		PSRAD(dst0, 32 - bits);
+		PPSRAD(dst0, 32 - bits);
 		// XMM1 used for the high part just so there's no dependency.  It contains garbage or 0.
 		PACKSSDW(dst0, R(XMM1));
 		if (bits == 8) {
@@ -3314,7 +3314,7 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 		fpr.MapRegV(dregs[1], MAP_NOINIT | MAP_DIRTY);
 		MOVDQA(fpr.V(dregs[1]), dst0);
 		// Shift out the lower result to get the result we want.
-		PSRLDQ(fpr.VX(dregs[1]), 4);
+		PPSRLDQ(fpr.VX(dregs[1]), 4);
 	}
 
 	ApplyPrefixD(dregs, outsize);
@@ -3386,7 +3386,7 @@ void Jit::Comp_Vhoriz(MIPSOpcode op) {
 				MOVAPS(XMM0, fpr.VS(sregs));
 				// This flips the sign of any -0.000.
 				ADDPS(XMM0, R(XMM1));
-				MOVHLPS(XMM1, XMM0);
+				PMOVHLPS(XMM1, XMM0);
 				ADDPS(XMM0, R(XMM1));
 				MOVAPS(XMM1, R(XMM0));
 				SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(1, 1, 1, 1));

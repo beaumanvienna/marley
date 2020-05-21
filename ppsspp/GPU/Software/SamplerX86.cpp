@@ -87,7 +87,7 @@ NearestFunc SamplerJitCache::Compile(const SamplerID &id) {
 		PSetJumpTarget(zeroSrc);
 	}
 
-	RET();
+	PRET();
 
 	EndWrite();
 	return (NearestFunc)start;
@@ -110,7 +110,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 		return nullptr;
 	}
 
-	RET();
+	PRET();
 
 	// Now the actual linear func, which is exposed externally.
 	const u8 *start = PAlignCode16();
@@ -276,7 +276,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	POP(R14);
 	POP(R15);
 
-	RET();
+	PRET();
 
 	EndWrite();
 	return (LinearFunc)start;
@@ -383,7 +383,7 @@ bool SamplerJitCache::Jit_GetTexData(const SamplerID &id, int bitsPerTexel) {
 	case 32:
 	case 16:
 	case 8:
-		MOVZX(32, bitsPerTexel, resultReg, MComplex(tempReg1, RAX, bitsPerTexel / 8, 0));
+		PMOVZX(32, bitsPerTexel, resultReg, MComplex(tempReg1, RAX, bitsPerTexel / 8, 0));
 		break;
 
 	case 4: {
@@ -486,12 +486,12 @@ bool SamplerJitCache::Jit_GetTexDataSwizzled(const SamplerID &id, int bitsPerTex
 		// Multiply by two by just adding twice.
 		ADD(32, R(EAX), R(uReg));
 		ADD(32, R(EAX), R(uReg));
-		MOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
+		PMOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
 		break;
 	case 8:
 		AND(32, R(uReg), Imm8(3));
 		ADD(32, R(EAX), R(uReg));
-		MOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
+		PMOVZX(32, bitsPerTexel, resultReg, MRegSum(tempReg1, EAX));
 		break;
 	default:
 		return false;
@@ -580,8 +580,8 @@ bool SamplerJitCache::Jit_Decode4444() {
 	}
 	MOVSS(fpScratchReg2, R(fpScratchReg1));
 	MOVSS(fpScratchReg3, R(fpScratchReg1));
-	PSRLW(fpScratchReg2, 4);
-	PSLLW(fpScratchReg3, 4);
+	PPSRLW(fpScratchReg2, 4);
+	PPSLLW(fpScratchReg3, 4);
 	POR(fpScratchReg1, R(fpScratchReg2));
 	POR(fpScratchReg1, R(fpScratchReg3));
 	PMOVD_xmm(R(resultReg), fpScratchReg1);
@@ -667,15 +667,15 @@ bool SamplerJitCache::Jit_ReadClutColor(const SamplerID &id) {
 
 	switch ((GEPaletteFormat)id.clutfmt) {
 	case GE_CMODE_16BIT_BGR5650:
-		MOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
+		PMOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
 		return Jit_Decode5650();
 
 	case GE_CMODE_16BIT_ABGR5551:
-		MOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
+		PMOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
 		return Jit_Decode5551();
 
 	case GE_CMODE_16BIT_ABGR4444:
-		MOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
+		PMOVZX(32, 16, resultReg, MComplex(tempReg1, resultReg, SCALE_2, 0));
 		return Jit_Decode4444();
 
 	case GE_CMODE_32BIT_ABGR8888:

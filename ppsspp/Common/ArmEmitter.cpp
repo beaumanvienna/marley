@@ -650,7 +650,7 @@ void ARMXEmitter::SetCC(CCFlags cond)
 	condition = cond << 28;
 }
 
-void ARMXEmitter::NOP(int count)
+void ARMXEmitter::PNOP(int count)
 {
 	for (int i = 0; i < count; i++) {
 		Write32(condition | 0x01A00000);
@@ -677,7 +677,7 @@ FixupBranch ARMXEmitter::B()
 	branch.type = 0; // Zero for B
 	branch.ptr = code;
 	branch.condition = condition;
-	//We'll write NOP here for now.
+	//We'll write PNOP here for now.
 	Write32(condition | 0x01A00000);
 	return branch;
 }
@@ -687,7 +687,7 @@ FixupBranch ARMXEmitter::BL()
 	branch.type = 1; // Zero for B
 	branch.ptr = code;
 	branch.condition = condition;
-	//We'll write NOP here for now.
+	//We'll write PNOP here for now.
 	Write32(condition | 0x01A00000);
 	return branch;
 }
@@ -698,7 +698,7 @@ FixupBranch ARMXEmitter::B_CC(CCFlags Cond)
 	branch.type = 0; // Zero for B
 	branch.ptr = code;
 	branch.condition = Cond << 28;
-	//We'll write NOP here for now.
+	//We'll write PNOP here for now.
 	Write32(condition | 0x01A00000);
 	return branch;
 }
@@ -716,7 +716,7 @@ FixupBranch ARMXEmitter::BL_CC(CCFlags Cond)
 	branch.type = 1; // Zero for B
 	branch.ptr = code;
 	branch.condition = Cond << 28;
-	//We'll write NOP here for now.
+	//We'll write PNOP here for now.
 	Write32(condition | 0x01A00000);
 	return branch;
 }

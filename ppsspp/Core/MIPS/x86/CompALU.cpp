@@ -130,7 +130,7 @@ namespace MIPSComp
 				if (needsTemp) {
 					CMP(32, gpr.R(rs), Imm32(suimm));
 					PSETcc(CC_L, R(TEMPREG));
-					MOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
+					PMOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rt), gpr.R(rt));
 					CMP(32, gpr.R(rs), Imm32(suimm));
@@ -152,7 +152,7 @@ namespace MIPSComp
 				if (needsTemp) {
 					CMP(32, gpr.R(rs), Imm32(suimm));
 					PSETcc(CC_B, R(TEMPREG));
-					MOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
+					PMOVZX(32, 8, gpr.RX(rt), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rt), gpr.R(rt));
 					CMP(32, gpr.R(rs), Imm32(suimm));
@@ -499,7 +499,7 @@ namespace MIPSComp
 				if (needsTemp) {
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
 					PSETcc(cc, R(TEMPREG));
-					MOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
+					PMOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rd), gpr.R(rd));
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
@@ -539,7 +539,7 @@ namespace MIPSComp
 				if (needsTemp) {
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
 					PSETcc(cc, R(TEMPREG));
-					MOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
+					PMOVZX(32, 8, gpr.RX(rd), R(TEMPREG));
 				} else {
 					XOR(32, gpr.R(rd), gpr.R(rd));
 					CMP(32, gpr.R(lhs), gpr.R(rhs));
@@ -808,12 +808,12 @@ namespace MIPSComp
 			if (gpr.R(rt).IsSimpleReg() && !HasLowSubregister(gpr.R(rt)))
 			{
 				MOV(32, R(TEMPREG), gpr.R(rt));
-				MOVSX(32, 8, gpr.RX(rd), R(TEMPREG));
+				PMOVSX(32, 8, gpr.RX(rd), R(TEMPREG));
 			}
 			else
 			{
 				gpr.KillImmediate(rt, true, false);
-				MOVSX(32, 8, gpr.RX(rd), gpr.R(rt));
+				PMOVSX(32, 8, gpr.RX(rd), gpr.R(rt));
 			}
 			gpr.UnlockAll();
 			break;
@@ -882,7 +882,7 @@ namespace MIPSComp
 
 			gpr.Lock(rd, rt);
 			gpr.MapReg(rd, rd == rt, true);
-			MOVSX(32, 16, gpr.RX(rd), gpr.R(rt));
+			PMOVSX(32, 16, gpr.RX(rd), gpr.R(rt));
 			gpr.UnlockAll();
 			break;
 
