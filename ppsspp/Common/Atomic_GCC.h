@@ -22,7 +22,7 @@
 //
 // These barriers affect not only the compiler, but also the CPU.
 
-namespace Common
+namespace PCommon
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value)

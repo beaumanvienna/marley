@@ -28,7 +28,7 @@
 // Minimize the diff against Dolphin
 #define DYNA_REC JIT
 
-namespace Gen
+namespace PGen
 {
 
 struct NormalOpDef

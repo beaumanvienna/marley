@@ -25,11 +25,11 @@
 #include "GPU/Software/Sampler.h"
 #include "GPU/ge_constants.h"
 
-using namespace Gen;
+using namespace PGen;
 
 extern u32 clut[4096];
 
-namespace Sampler {
+namespace PSampler {
 
 #ifdef _WIN32
 static const X64Reg arg1Reg = RCX;

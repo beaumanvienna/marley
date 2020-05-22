@@ -47,7 +47,7 @@
 
 namespace MIPSComp {
 
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 void Jit::CopyFPReg(X64Reg dst, OpArg src) {

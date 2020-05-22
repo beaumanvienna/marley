@@ -13,11 +13,11 @@ public:
 
 class IRToX86 : public IRToNativeInterface {
 public:
-	void SetCodeBlock(Gen::XCodeBlock *code) { code_ = code; }
+	void SetCodeBlock(PGen::XCodeBlock *code) { code_ = code; }
 	virtual void ConvertIRToNative(const IRInst *instructions, int count, const u32 *constants) override;
 
 private:
-	Gen::XCodeBlock *code_;
+	PGen::XCodeBlock *code_;
 };
 
 }  // namespace

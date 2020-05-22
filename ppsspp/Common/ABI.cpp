@@ -20,7 +20,7 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-using namespace Gen;
+using namespace PGen;
 
 // Shared code between Win64 and Unix64
 
@@ -132,7 +132,7 @@ void XEmitter::ABI_CallFunctionP(const void *func, void *param1) {
 	ABI_RestoreStack(1 * 4);
 }
 
-void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpArg &arg2) {
+void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const PGen::OpArg &arg2) {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, arg2);
 	PUSH(32, ImmPtr(param1));
@@ -140,7 +140,7 @@ void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpA
 	ABI_RestoreStack(2 * 4);
 }
 
-void XEmitter::ABI_CallFunctionPAA(const void *func, void *param1, const Gen::OpArg &arg2, const Gen::OpArg &arg3) {
+void XEmitter::ABI_CallFunctionPAA(const void *func, void *param1, const PGen::OpArg &arg2, const PGen::OpArg &arg3) {
 	ABI_AlignStack(3 * 4);
 	PUSH(32, arg3);
 	PUSH(32, arg2);
@@ -167,7 +167,7 @@ void XEmitter::ABI_CallFunctionR(const void *func, X64Reg reg1) {
 }
 
 // Pass two registers as parameters.
-void XEmitter::ABI_CallFunctionRR(const void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
+void XEmitter::ABI_CallFunctionRR(const void *func, PGen::X64Reg reg1, PGen::X64Reg reg2)
 {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, R(reg2));
@@ -176,7 +176,7 @@ void XEmitter::ABI_CallFunctionRR(const void *func, Gen::X64Reg reg1, Gen::X64Re
 	ABI_RestoreStack(2 * 4);
 }
 
-void XEmitter::ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 param2)
+void XEmitter::ABI_CallFunctionAC(const void *func, const PGen::OpArg &arg1, u32 param2)
 {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, Imm32(param2));
@@ -185,7 +185,7 @@ void XEmitter::ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 
 	ABI_RestoreStack(2 * 4);
 }
 
-void XEmitter::ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32 param2, u32 param3)
+void XEmitter::ABI_CallFunctionACC(const void *func, const PGen::OpArg &arg1, u32 param2, u32 param3)
 {
 	ABI_AlignStack(3 * 4);
 	PUSH(32, Imm32(param3));
@@ -195,7 +195,7 @@ void XEmitter::ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32
 	ABI_RestoreStack(3 * 4);
 }
 
-void XEmitter::ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1)
+void XEmitter::ABI_CallFunctionA(const void *func, const PGen::OpArg &arg1)
 {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, arg1);
@@ -203,7 +203,7 @@ void XEmitter::ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1)
 	ABI_RestoreStack(1 * 4);
 }
 
-void XEmitter::ABI_CallFunctionAA(const void *func, const Gen::OpArg &arg1, const Gen::OpArg &arg2)
+void XEmitter::ABI_CallFunctionAA(const void *func, const PGen::OpArg &arg1, const PGen::OpArg &arg2)
 {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, arg2);
@@ -391,7 +391,7 @@ void XEmitter::ABI_CallFunctionP(const void *func, void *param1) {
 	}
 }
 
-void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpArg &arg2) {
+void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const PGen::OpArg &arg2) {
 	PMOV(64, R(ABI_PARAM1), ImmPtr(param1));
 	if (!arg2.IsSimpleReg(ABI_PARAM2))
 		PMOV(32, R(ABI_PARAM2), arg2);
@@ -406,7 +406,7 @@ void XEmitter::ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpA
 	}
 }
 
-void XEmitter::ABI_CallFunctionPAA(const void *func, void *param1, const Gen::OpArg &arg2, const Gen::OpArg &arg3) {
+void XEmitter::ABI_CallFunctionPAA(const void *func, void *param1, const PGen::OpArg &arg2, const PGen::OpArg &arg3) {
 	PMOV(64, R(ABI_PARAM1), ImmPtr(param1));
 	if (!arg2.IsSimpleReg(ABI_PARAM2))
 		PMOV(32, R(ABI_PARAM2), arg2);
@@ -477,7 +477,7 @@ void XEmitter::ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2) {
 	}
 }
 
-void XEmitter::ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 param2)
+void XEmitter::ABI_CallFunctionAC(const void *func, const PGen::OpArg &arg1, u32 param2)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		PMOV(32, R(ABI_PARAM1), arg1);
@@ -493,7 +493,7 @@ void XEmitter::ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 
 	}
 }
 
-void XEmitter::ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32 param2, u32 param3)
+void XEmitter::ABI_CallFunctionACC(const void *func, const PGen::OpArg &arg1, u32 param2, u32 param3)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		PMOV(32, R(ABI_PARAM1), arg1);
@@ -510,7 +510,7 @@ void XEmitter::ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32
 	}
 }
 
-void XEmitter::ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1)
+void XEmitter::ABI_CallFunctionA(const void *func, const PGen::OpArg &arg1)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		PMOV(32, R(ABI_PARAM1), arg1);
@@ -525,7 +525,7 @@ void XEmitter::ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1)
 	}
 }
 
-void XEmitter::ABI_CallFunctionAA(const void *func, const Gen::OpArg &arg1, const Gen::OpArg &arg2)
+void XEmitter::ABI_CallFunctionAA(const void *func, const PGen::OpArg &arg1, const PGen::OpArg &arg2)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		PMOV(32, R(ABI_PARAM1), arg1);

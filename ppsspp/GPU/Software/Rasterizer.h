@@ -21,7 +21,7 @@
 
 struct GPUDebugBuffer;
 
-namespace Rasterizer {
+namespace PRasterizer {
 
 // Draws a triangle if its vertices are specified in counter-clockwise order
 void DrawTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2);

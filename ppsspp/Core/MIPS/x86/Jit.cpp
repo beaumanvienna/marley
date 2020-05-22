@@ -46,7 +46,7 @@
 
 namespace MIPSComp
 {
-using namespace Gen;
+using namespace PGen;
 
 const bool USE_JIT_MISSMAP = false;
 static std::map<std::string, u32> notJitOps;

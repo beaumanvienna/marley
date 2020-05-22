@@ -149,7 +149,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	dec_ = &dec;
 
 	BeginWrite();
-	const u8 *start = AlignCode16();
+	const u8 *start = PAlignCode16();
 
 	bool prescaleStep = false;
 	bool skinning = false;

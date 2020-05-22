@@ -38,7 +38,7 @@
 #include <emmintrin.h>
 #endif
 
-namespace Rasterizer {
+namespace PRasterizer {
 
 // Only OK on x64 where our stack is aligned
 #if defined(_M_SSE) && !defined(_M_IX86)
@@ -935,7 +935,7 @@ inline void DrawSinglePixel(const DrawingCoords &p, u16 z, u8 fog, const Vec4<in
 	SetPixelColor(p.x, p.y, new_color);
 }
 
-static inline void ApplyTexturing(Sampler::Funcs sampler, Vec4<int> &prim_color, float s, float t, int texlevel, int frac_texlevel, bool bilinear, u8 *texptr[], int texbufw[]) {
+static inline void ApplyTexturing(PSampler::Funcs sampler, Vec4<int> &prim_color, float s, float t, int texlevel, int frac_texlevel, bool bilinear, u8 *texptr[], int texbufw[]) {
 	int u[8] = {0}, v[8] = {0};   // 1.23.8 fixed point
 	int frac_u[2], frac_v[2];
 
@@ -1038,7 +1038,7 @@ static inline void CalculateSamplingParams(const float ds, const float dt, const
 	}
 }
 
-static inline void ApplyTexturing(Sampler::Funcs sampler, Vec4<int> *prim_color, const Vec4<float> &s, const Vec4<float> &t, int maxTexLevel, u8 *texptr[], int texbufw[]) {
+static inline void ApplyTexturing(PSampler::Funcs sampler, Vec4<int> *prim_color, const Vec4<float> &s, const Vec4<float> &t, int maxTexLevel, u8 *texptr[], int texbufw[]) {
 	float ds = s[1] - s[0];
 	float dt = t[2] - t[0];
 
@@ -1180,7 +1180,7 @@ void DrawTriangleSlice(
 	// This is common, and when we interpolate, we lose accuracy.
 	const bool flatZ = v0.screenpos.z == v1.screenpos.z && v0.screenpos.z == v2.screenpos.z;
 
-	Sampler::Funcs sampler = Sampler::GetFuncs();
+	PSampler::Funcs sampler = PSampler::GetFuncs();
 
 	for (pprime.y = minY; pprime.y < maxY; pprime.y += 32,
 										w0_base = e0.StepY(w0_base),
@@ -1362,7 +1362,7 @@ void DrawPoint(const VertexData &v0)
 
 	bool clearMode = gstate.isModeClear();
 
-	Sampler::Funcs sampler = Sampler::GetFuncs();
+	PSampler::Funcs sampler = PSampler::GetFuncs();
 
 	if (gstate.isTextureMapEnabled() && !clearMode) {
 		int texbufw[8] = {0};
@@ -1595,7 +1595,7 @@ void DrawLine(const VertexData &v0, const VertexData &v1)
 		}
 	}
 
-	Sampler::Funcs sampler = Sampler::GetFuncs();
+	PSampler::Funcs sampler = PSampler::GetFuncs();
 
 	float x = a.x > b.x ? a.x - 1 : a.x;
 	float y = a.y > b.y ? a.y - 1 : a.y;
@@ -1716,7 +1716,7 @@ bool GetCurrentTexture(GPUDebugBuffer &buffer, int level)
 
 	buffer.Allocate(w, h, GE_FORMAT_8888, false);
 
-	Sampler::Funcs sampler = Sampler::GetFuncs();
+	PSampler::Funcs sampler = PSampler::GetFuncs();
 
 	u8 *texptr = Memory_P::GetPointer(texaddr);
 	u32 *row = (u32 *)buffer.GetData();

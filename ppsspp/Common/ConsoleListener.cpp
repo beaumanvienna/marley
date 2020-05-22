@@ -192,7 +192,7 @@ void ConsoleListener::Close()
 	{
 		if (hThread != NULL)
 		{
-			Common::AtomicStoreRelease(logPendingWritePos, (u32) -1);
+			PCommon::AtomicStoreRelease(logPendingWritePos, (u32) -1);
 
 			SetEvent(hTriggerEvent);
 			WaitForSingleObject(hThread, LOG_SHUTDOWN_DELAY_MS);
@@ -319,7 +319,7 @@ void ConsoleListener::LogWriterThread()
 		WaitForSingleObject(hTriggerEvent, INFINITE);
 		Sleep(LOG_LATENCY_DELAY_MS);
 
-		u32 logRemotePos = Common::AtomicLoadAcquire(logPendingWritePos);
+		u32 logRemotePos = PCommon::AtomicLoadAcquire(logPendingWritePos);
 		if (logRemotePos == (u32) -1)
 			break;
 		else if (logRemotePos == logPendingReadPos)
@@ -327,7 +327,7 @@ void ConsoleListener::LogWriterThread()
 		else
 		{
 			EnterCriticalSection(&criticalSection);
-			logRemotePos = Common::AtomicLoadAcquire(logPendingWritePos);
+			logRemotePos = PCommon::AtomicLoadAcquire(logPendingWritePos);
 
 			int start = 0;
 			if (logRemotePos < logPendingReadPos)
@@ -402,7 +402,7 @@ void ConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
 	}
 
 	EnterCriticalSection(&criticalSection);
-	u32 logWritePos = Common::AtomicLoad(logPendingWritePos);
+	u32 logWritePos = PCommon::AtomicLoad(logPendingWritePos);
 	u32 prevLogWritePos = logWritePos;
 	if (logWritePos + ColorLen + Len >= LOG_PENDING_MAX)
 	{
@@ -452,7 +452,7 @@ void ConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
 		return;
 	}
 
-	Common::AtomicStoreRelease(logPendingWritePos, logWritePos);
+	PCommon::AtomicStoreRelease(logPendingWritePos, logWritePos);
 	LeaveCriticalSection(&criticalSection);
 
 	SetEvent(hTriggerEvent);

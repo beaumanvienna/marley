@@ -255,7 +255,7 @@ void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata
 		tsLast->next = ne;
 	tsLast = ne;
 
-	Common::AtomicStoreRelease(hasTsEvents, 1);
+	PCommon::AtomicStoreRelease(hasTsEvents, 1);
 }
 
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
@@ -535,7 +535,7 @@ void ProcessFifoWaitEvents()
 
 void MoveEvents()
 {
-	Common::AtomicStoreRelease(hasTsEvents, 0);
+	PCommon::AtomicStoreRelease(hasTsEvents, 0);
 
 	std::lock_guard<std::mutex> lk(externalEventLock);
 	// Move events from async queue into main queue
@@ -579,7 +579,7 @@ void Advance()
 	globalTimer += cyclesExecuted;
 	currentMIPS->downcount = slicelength;
 
-	if (Common::AtomicLoadAcquire(hasTsEvents))
+	if (PCommon::AtomicLoadAcquire(hasTsEvents))
 		MoveEvents();
 	ProcessFifoWaitEvents();
 

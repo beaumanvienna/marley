@@ -375,26 +375,26 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				case GE_PRIM_TRIANGLES:
 				{
 					if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-						Clipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
-						Clipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
+						PClipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
+						PClipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
 					} else if (!gstate.getCullMode()) {
-						Clipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
+						PClipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
 					} else {
-						Clipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
+						PClipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
 					}
 					break;
 				}
 
 				case GE_PRIM_RECTANGLES:
-					Clipper::ProcessRect(data[0], data[1]);
+					PClipper::ProcessRect(data[0], data[1]);
 					break;
 
 				case GE_PRIM_LINES:
-					Clipper::ProcessLine(data[0], data[1]);
+					PClipper::ProcessLine(data[0], data[1]);
 					break;
 
 				case GE_PRIM_POINTS:
-					Clipper::ProcessPoint(data[0]);
+					PClipper::ProcessPoint(data[0]);
 					break;
 
 				default:
@@ -428,7 +428,7 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 					--skip_count;
 				} else {
 					// We already incremented data_index, so data_index & 1 is previous one.
-					Clipper::ProcessLine(data[data_index & 1], data[(data_index & 1) ^ 1]);
+					PClipper::ProcessLine(data[data_index & 1], data[(data_index & 1) ^ 1]);
 				}
 			}
 			break;
@@ -461,14 +461,14 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				}
 
 				if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
-					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else if ((!gstate.getCullMode()) ^ ((data_index - 1) % 2)) {
 					// We need to reverse the vertex order for each second primitive,
 					// but we additionally need to do that for every primitive if CCW cullmode is used.
-					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else {
-					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
 				}
 			}
 			break;
@@ -515,14 +515,14 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				}
 
 				if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
-					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else if ((!gstate.getCullMode()) ^ ((data_index - 1) % 2)) {
 					// We need to reverse the vertex order for each second primitive,
 					// but we additionally need to do that for every primitive if CCW cullmode is used.
-					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else {
-					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
 				}
 			}
 			break;

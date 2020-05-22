@@ -24,7 +24,7 @@
 
 #include "profiler/profiler.h"
 
-namespace Clipper {
+namespace PClipper {
 
 enum {
 	SKIP_FLAG = -1,
@@ -220,13 +220,13 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 		RotateUVThrough(v0, v1, *topright, *bottomleft);
 
 		if (gstate.isModeClear()) {
-			Rasterizer::ClearRectangle(v0, v1);
+			PRasterizer::ClearRectangle(v0, v1);
 		} else {
 			// Four triangles to do backfaces as well. Two of them will get backface culled.
-			Rasterizer::DrawTriangle(*topleft, *topright, *bottomright);
-			Rasterizer::DrawTriangle(*bottomright, *topright, *topleft);
-			Rasterizer::DrawTriangle(*bottomright, *bottomleft, *topleft);
-			Rasterizer::DrawTriangle(*topleft, *bottomleft, *bottomright);
+			PRasterizer::DrawTriangle(*topleft, *topright, *bottomright);
+			PRasterizer::DrawTriangle(*bottomright, *topright, *topleft);
+			PRasterizer::DrawTriangle(*bottomright, *bottomleft, *topleft);
+			PRasterizer::DrawTriangle(*topleft, *bottomleft, *bottomright);
 		}
 	}
 }
@@ -234,14 +234,14 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 void ProcessPoint(VertexData& v0)
 {
 	// Points need no clipping. Will be bounds checked in the rasterizer (which seems backwards?)
-	Rasterizer::DrawPoint(v0);
+	PRasterizer::DrawPoint(v0);
 }
 
 void ProcessLine(VertexData& v0, VertexData& v1)
 {
 	if (gstate.isModeThrough()) {
 		// Actually, should clip this one too so we don't need to do bounds checks in the rasterizer.
-		Rasterizer::DrawLine(v0, v1);
+		PRasterizer::DrawLine(v0, v1);
 		return;
 	}
 
@@ -268,7 +268,7 @@ void ProcessLine(VertexData& v0, VertexData& v1)
 	VertexData data[2] = { *Vertices[0], *Vertices[1] };
 	data[0].screenpos = TransformUnit::ClipToScreen(data[0].clippos);
 	data[1].screenpos = TransformUnit::ClipToScreen(data[1].clippos);
-	Rasterizer::DrawLine(data[0], data[1]);
+	PRasterizer::DrawLine(data[0], data[1]);
 }
 
 void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const VertexData &provoking) {
@@ -278,9 +278,9 @@ void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const Verte
 			VertexData corrected2 = v2;
 			corrected2.color0 = provoking.color0;
 			corrected2.color1 = provoking.color1;
-			Rasterizer::DrawTriangle(v0, v1, corrected2);
+			PRasterizer::DrawTriangle(v0, v1, corrected2);
 		} else {
-			Rasterizer::DrawTriangle(v0, v1, v2);
+			PRasterizer::DrawTriangle(v0, v1, v2);
 		}
 		return;
 	}
@@ -359,7 +359,7 @@ void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const Verte
 				data[2].color1 = provoking.color1;
 			}
 
-			Rasterizer::DrawTriangle(data[0], data[1], data[2]);
+			PRasterizer::DrawTriangle(data[0], data[1], data[2]);
 		}
 	}
 }

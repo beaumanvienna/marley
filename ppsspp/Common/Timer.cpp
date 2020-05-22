@@ -30,7 +30,7 @@
 #include "Timer.h"
 #include "StringUtils.h"
 
-namespace Common
+namespace PCommon
 {
 
 u32 PTimer::PGetTimeMs()
@@ -229,7 +229,7 @@ double PTimer::PGetDoubleTime()
 	(void)gettimeofday(&t, NULL);
 #endif
 	// Get continuous timestamp
-	u64 TmpSeconds = Common::PTimer::PGetTimeSinceJan1970();
+	u64 TmpSeconds = PCommon::PTimer::PGetTimeSinceJan1970();
 
 	// Remove a few years. We only really want enough seconds to make
 	// sure that we are detecting actual actions, perhaps 60 seconds is
@@ -249,4 +249,4 @@ double PTimer::PGetDoubleTime()
 	return TmpTime;
 }
 
-} // Namespace Common
+} // Namespace PCommon

@@ -29,7 +29,7 @@
 // full memory barrier instead of a "one-way" memory barrier. The newest
 // Windows SDK has Acquire and Release versions of some Interlocked* functions.
 
-namespace Common
+namespace PCommon
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value)

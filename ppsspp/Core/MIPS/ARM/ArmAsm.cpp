@@ -75,7 +75,7 @@ void ArmJit::GenerateFixedCode() {
 	BeginWrite();
 
 	// LR == SCRATCHREG2 on ARM32 so it needs to be pushed.
-	restoreRoundingMode = AlignCode16(); {
+	restoreRoundingMode = PAlignCode16(); {
 		PUSH(1, R_LR);
 		VMRS(SCRATCHREG2);
 		// Outside the JIT we run with round-to-nearest and flush0 off.
@@ -85,7 +85,7 @@ void ArmJit::GenerateFixedCode() {
 	}
 
 	// Must preserve SCRATCHREG1 (R0), destroys SCRATCHREG2 (LR)
-	applyRoundingMode = AlignCode16(); {
+	applyRoundingMode = PAlignCode16(); {
 		PUSH(2, SCRATCHREG1, R_LR);
 		LDR(SCRATCHREG2, CTXREG, offsetof(MIPSState, fcr31));
 
@@ -125,7 +125,7 @@ void ArmJit::GenerateFixedCode() {
 
 	FlushLitPool();
 
-	enterDispatcher = AlignCode16();
+	enterDispatcher = PAlignCode16();
 
 	DEBUG_LOG(JIT, "Base: %08x", (u32)Memory::base);
 

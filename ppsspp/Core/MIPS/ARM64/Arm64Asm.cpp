@@ -101,12 +101,12 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	BeginWrite();
 
 	if (jo.useStaticAlloc) {
-		saveStaticRegisters = AlignCode16();
+		saveStaticRegisters = PAlignCode16();
 		STR(INDEX_UNSIGNED, DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount));
 		gpr.EmitSaveStaticRegisters();
 		RET();
 
-		loadStaticRegisters = AlignCode16();
+		loadStaticRegisters = PAlignCode16();
 		gpr.EmitLoadStaticRegisters();
 		LDR(INDEX_UNSIGNED, DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount));
 		RET();
@@ -117,7 +117,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		loadStaticRegisters = nullptr;
 	}
 
-	restoreRoundingMode = AlignCode16(); {
+	restoreRoundingMode = PAlignCode16(); {
 		MRS(SCRATCH2_64, FIELD_FPCR);
 		// We are not in flush-to-zero mode outside the JIT, so let's turn it off.
 		uint32_t mask = ~(4 << 22);
@@ -128,7 +128,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	applyRoundingMode = AlignCode16(); {
+	applyRoundingMode = PAlignCode16(); {
 		LDR(INDEX_UNSIGNED, SCRATCH2, CTXREG, offsetof(MIPSState, fcr31));
 		TSTI2R(SCRATCH2, 1 << 24);
 		ANDI2R(SCRATCH2, SCRATCH2, 3);
@@ -167,7 +167,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	updateRoundingMode = AlignCode16(); {
+	updateRoundingMode = PAlignCode16(); {
 		LDR(INDEX_UNSIGNED, SCRATCH2, CTXREG, offsetof(MIPSState, fcr31));
 
 		// Set SCRATCH2 to FZ:RM (FZ is bit 24, and RM are lowest 2 bits.)
@@ -186,7 +186,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	enterDispatcher = AlignCode16();
+	enterDispatcher = PAlignCode16();
 
 	uint32_t regs_to_save = Arm64Gen::ALL_CALLEE_SAVED;
 	uint32_t regs_to_save_fp = Arm64Gen::ALL_CALLEE_SAVED_FP;
@@ -290,7 +290,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	// MIPS order!
 	static const RoundingMode roundModes[8] = { ROUND_N, ROUND_Z, ROUND_P, ROUND_M, ROUND_N, ROUND_Z, ROUND_P, ROUND_M };
 	for (size_t i = 0; i < ARRAY_SIZE(roundModes); ++i) {
-		convertS0ToSCRATCH1[i] = AlignCode16();
+		convertS0ToSCRATCH1[i] = PAlignCode16();
 
 		fp.FCMP(S0, S0);  // Detect NaN
 		fp.FCVTS(S0, S0, roundModes[i]);

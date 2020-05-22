@@ -31,7 +31,7 @@ using namespace Math3D;
 
 extern u32 clut[4096];
 
-namespace Sampler {
+namespace PSampler {
 
 static u32 SampleNearest(int u, int v, const u8 *tptr, int bufw, int level);
 static u32 SampleLinear(int u[4], int v[4], int frac_u, int frac_v, const u8 *tptr, int bufw, int level);
@@ -89,7 +89,7 @@ SamplerJitCache::SamplerJitCache()
 
 	// Add some random code to "help" MSVC's buggy disassembler :(
 #if defined(_WIN32) && (defined(_M_IX86) || defined(_M_X64))
-	using namespace Gen;
+	using namespace PGen;
 	for (int i = 0; i < 100; i++) {
 		MOV(32, R(EAX), R(EBX));
 		RET();

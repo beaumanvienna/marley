@@ -1377,7 +1377,7 @@ VertexDecoderJitCache::VertexDecoderJitCache()
 
 	// Add some random code to "help" MSVC's buggy disassembler :(
 #if defined(_WIN32) && (defined(_M_IX86) || defined(_M_X64))
-	using namespace Gen;
+	using namespace PGen;
 	for (int i = 0; i < 100; i++) {
 		MOV(32, R(EAX), R(EBX));
 		RET();

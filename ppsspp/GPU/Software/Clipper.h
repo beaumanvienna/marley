@@ -19,7 +19,7 @@
 
 #include "TransformUnit.h"
 
-namespace Clipper {
+namespace PClipper {
 
 void ProcessPoint(VertexData& v0);
 void ProcessLine(VertexData& v0, VertexData& v1);

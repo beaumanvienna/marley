@@ -63,7 +63,7 @@ struct X64CachedFPReg {
 };
 
 struct MIPSCachedFPReg {
-	Gen::OpArg location;
+	PGen::OpArg location;
 	int lane;
 	bool away;  // value not in source register (memory)
 	u8 locked;
@@ -103,20 +103,20 @@ public:
 	void StoreFromRegisterV(int preg) {
 		StoreFromRegister(preg + 32);
 	}
-	Gen::OpArg GetDefaultLocation(int reg) const;
+	PGen::OpArg GetDefaultLocation(int reg) const;
 	void DiscardR(int freg);
 	void DiscardV(int vreg) {
 		DiscardR(vreg + 32);
 	}
 	void DiscardVS(int vreg);
-	bool IsTempX(Gen::X64Reg xreg);
+	bool IsTempX(PGen::X64Reg xreg);
 	int GetTempR();
 	int GetTempV() {
 		return GetTempR() - 32;
 	}
 	int GetTempVS(u8 *v, VectorSize vsz);
 
-	void SetEmitter(Gen::XEmitter *emitter) {emit = emitter;}
+	void SetEmitter(PGen::XEmitter *emitter) {emit = emitter;}
 
 	// Flushes one register and reuses the register for another one. Dirtyness is implied.
 	void FlushRemap(int oldreg, int newreg);
@@ -124,41 +124,41 @@ public:
 	void Flush();
 	int SanityCheck() const;
 
-	const Gen::OpArg &R(int freg) const {return regs[freg].location;}
-	const Gen::OpArg &V(int vreg) const {
+	const PGen::OpArg &R(int freg) const {return regs[freg].location;}
+	const PGen::OpArg &V(int vreg) const {
 		_dbg_assert_msg_(JIT, vregs[vreg].lane == 0, "SIMD reg %d used as V reg (use VS instead). pc=%08x", vreg, mips->pc);
 		return vregs[vreg].location;
 	}
-	const Gen::OpArg &VS(const u8 *vs) const {
+	const PGen::OpArg &VS(const u8 *vs) const {
 		_dbg_assert_msg_(JIT, vregs[vs[0]].lane != 0, "V reg %d used as VS reg (use V instead). pc=%08x", vs[0], mips->pc);
 		return vregs[vs[0]].location;
 	}
 
-	Gen::X64Reg RX(int freg) const {
+	PGen::X64Reg RX(int freg) const {
 		if (regs[freg].away && regs[freg].location.IsSimpleReg())
 			return regs[freg].location.GetSimpleReg();
 		PanicAlert("Not so simple - f%i", freg);
-		return (Gen::X64Reg)-1;
+		return (PGen::X64Reg)-1;
 	}
 
-	Gen::X64Reg VX(int vreg) const {
+	PGen::X64Reg VX(int vreg) const {
 		_dbg_assert_msg_(JIT, vregs[vreg].lane == 0, "SIMD reg %d used as V reg (use VSX instead). pc=%08x", vreg, mips->pc);
 		if (vregs[vreg].away && vregs[vreg].location.IsSimpleReg())
 			return vregs[vreg].location.GetSimpleReg();
 		PanicAlert("Not so simple - v%i", vreg);
-		return (Gen::X64Reg)-1;
+		return (PGen::X64Reg)-1;
 	}
 
-	Gen::X64Reg VSX(const u8 *vs) const {
+	PGen::X64Reg VSX(const u8 *vs) const {
 		_dbg_assert_msg_(JIT, vregs[vs[0]].lane != 0, "V reg %d used as VS reg (use VX instead). pc=%08x", vs[0], mips->pc);
 		if (vregs[vs[0]].away && vregs[vs[0]].location.IsSimpleReg())
 			return vregs[vs[0]].location.GetSimpleReg();
 		PanicAlert("Not so simple - v%i", vs[0]);
-		return (Gen::X64Reg)-1;
+		return (PGen::X64Reg)-1;
 	}
 
 	// Just to avoid coding mistakes, defined here to prevent compilation.
-	void R(Gen::X64Reg r);
+	void R(PGen::X64Reg r);
 
 	// Register locking. Prevents them from being spilled.
 	void SpillLock(int p1, int p2=0xff, int p3=0xff, int p4=0xff);
@@ -208,9 +208,9 @@ public:
 
 	MIPSState *mips;
 
-	void FlushX(Gen::X64Reg reg);
-	Gen::X64Reg GetFreeXReg();
-	int GetFreeXRegs(Gen::X64Reg *regs, int n, bool spill = true);
+	void FlushX(PGen::X64Reg reg);
+	PGen::X64Reg GetFreeXReg();
+	int GetFreeXRegs(PGen::X64Reg *regs, int n, bool spill = true);
 
 	void Invariant() const;
 
@@ -225,7 +225,7 @@ private:
 	}
 	void ReduceSpillLockV(const u8 *vec, VectorSize sz);
 
-	Gen::X64Reg LoadRegsVS(const u8 *v, int n);
+	PGen::X64Reg LoadRegsVS(const u8 *v, int n);
 
 	MIPSCachedFPReg regs[NUM_MIPS_FPRS];
 	X64CachedFPReg xregs[NUM_X_FPREGS];
@@ -237,7 +237,7 @@ private:
 	MIPSCachedFPReg regsInitial[NUM_MIPS_FPRS];
 	X64CachedFPReg xregsInitial[NUM_X_FPREGS];
 
-	Gen::XEmitter *emit;
+	PGen::XEmitter *emit;
 	MIPSComp::JitState *js_;
 	MIPSComp::JitOptions *jo_;
 };

@@ -34,8 +34,8 @@
 // we don't want to pollute the stack, so we store away regs somewhere global.
 // NOT THREAD SAFE. This may only be used from the CPU thread.
 // Any other thread using this stuff will be FATAL.
-typedef Gen::XEmitter ThunkEmitter;
-typedef Gen::XCodeBlock ThunkCodeBlock;
+typedef PGen::XEmitter ThunkEmitter;
+typedef PGen::XCodeBlock ThunkCodeBlock;
 
 class ThunkManager : public ThunkCodeBlock
 {

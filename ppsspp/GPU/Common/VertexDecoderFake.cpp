@@ -98,7 +98,7 @@ static const JitLookup jitLookup[] = {
 
 JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int32_t *jittedSize) {
 	dec_ = &dec;
-	//const u8 *start = AlignCode16();
+	//const u8 *start = PAlignCode16();
 
 	bool prescaleStep = false;
 	bool skinning = false;

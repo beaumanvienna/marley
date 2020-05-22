@@ -104,7 +104,7 @@ SoftGPU::SoftGPU(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	displayStride_ = 512;
 	displayFormat_ = GE_FORMAT_8888;
 
-	Sampler::Init();
+	PSampler::Init();
 	drawEngine_ = new SoftwareDrawEngine();
 	drawEngineCommon_ = drawEngine_;
 }
@@ -134,7 +134,7 @@ SoftGPU::~SoftGPU() {
 	samplerLinear->Release();
 	samplerLinear = nullptr;
 
-	Sampler::Shutdown();
+	PSampler::Shutdown();
 }
 
 void SoftGPU::SetDisplayFramebuffer(u32 framebuf, u32 stride, GEBufferFormat format) {
@@ -995,12 +995,12 @@ bool SoftGPU::GetCurrentDepthbuffer(GPUDebugBuffer &buffer)
 
 bool SoftGPU::GetCurrentStencilbuffer(GPUDebugBuffer &buffer)
 {
-	return Rasterizer::GetCurrentStencilbuffer(buffer);
+	return PRasterizer::GetCurrentStencilbuffer(buffer);
 }
 
 bool SoftGPU::GetCurrentTexture(GPUDebugBuffer &buffer, int level)
 {
-	return Rasterizer::GetCurrentTexture(buffer, level);
+	return PRasterizer::GetCurrentTexture(buffer, level);
 }
 
 bool SoftGPU::GetCurrentClut(GPUDebugBuffer &buffer)
@@ -1020,7 +1020,7 @@ bool SoftGPU::GetCurrentSimpleVertices(int count, std::vector<GPUDebugVertex> &v
 
 bool SoftGPU::DescribeCodePtr(const u8 *ptr, std::string &name) {
 	std::string subname;
-	if (Sampler::DescribeCodePtr(ptr, subname)) {
+	if (PSampler::DescribeCodePtr(ptr, subname)) {
 		name = "SamplerJit:" + subname;
 		return true;
 	}

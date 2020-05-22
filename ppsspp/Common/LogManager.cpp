@@ -227,7 +227,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 	}
 
 	std::lock_guard<std::mutex> lk(log_lock_);
-	Common::PTimer::GetTimeFormatted(message.timestamp);
+	PCommon::PTimer::GetTimeFormatted(message.timestamp);
 
 	if (hleCurrentThreadName) {
 		snprintf(message.header, sizeof(message.header), "%-12.12s %c[%s]: %s:%d",

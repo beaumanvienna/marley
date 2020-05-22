@@ -20,7 +20,7 @@
 #include "Common.h"
 #include <string>
 
-namespace Common
+namespace PCommon
 {
 class PTimer
 {
@@ -57,4 +57,4 @@ private:
 	bool m_Running;
 };
 
-} // Namespace Common
+} // Namespace PCommon

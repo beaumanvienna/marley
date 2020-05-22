@@ -29,7 +29,7 @@
 
 namespace MIPSComp
 {
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 void JitMemCheck(u32 addr, int size, int isWrite)
@@ -426,7 +426,7 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 static const int FUNCS_ARENA_SIZE = 512 * 1024;
 
 void JitSafeMemFuncs::Init(ThunkManager *thunks) {
-	using namespace Gen;
+	using namespace PGen;
 
 	AllocCodeSpace(FUNCS_ARENA_SIZE);
 	thunks_ = thunks;
