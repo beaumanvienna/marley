@@ -368,7 +368,7 @@ namespace Reporting
 	void AddGameplayInfo(UrlEncoder &postdata)
 	{
 		// Just to get an idea of how long they played.
-		postdata.Add("ticks", (const uint64_t)CoreTiming::GetTicks());
+		postdata.Add("ticks", (const uint64_t)CoreTiming_P::GetTicks());
 
 		float vps, fps;
 		__DisplayGetAveragedFPS(&vps, &fps);
@@ -425,10 +425,10 @@ namespace Reporting
 			postdata.Add("compat", payload.string1);
 			// We tend to get corrupted data, this acts as a very primitive verification check.
 			postdata.Add("verify", payload.string1);
-			postdata.Add("graphics", StringFromFormat("%d", payload.int1));
-			postdata.Add("speed", StringFromFormat("%d", payload.int2));
-			postdata.Add("gameplay", StringFromFormat("%d", payload.int3));
-			postdata.Add("crc", StringFromFormat("%08x", Core_GetPowerSaving() ? 0 : RetrieveCRC()));
+			postdata.Add("graphics", PStringFromFormat("%d", payload.int1));
+			postdata.Add("speed", PStringFromFormat("%d", payload.int2));
+			postdata.Add("gameplay", PStringFromFormat("%d", payload.int3));
+			postdata.Add("crc", PStringFromFormat("%08x", Core_GetPowerSaving() ? 0 : RetrieveCRC()));
 			postdata.Add("suggestions", payload.string1 != "perfect" && payload.string1 != "playable" ? "1" : "0");
 			AddScreenshotData(postdata, payload.string2);
 			payload.string1.clear();

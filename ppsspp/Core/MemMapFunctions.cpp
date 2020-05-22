@@ -27,7 +27,7 @@
 
 #include "Core/MIPS/MIPS.h"
 
-namespace Memory
+namespace Memory_P
 {
 
 // =================================

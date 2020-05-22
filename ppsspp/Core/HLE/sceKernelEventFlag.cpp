@@ -111,7 +111,7 @@ void __KernelEventFlagBeginCallback(SceUID threadID, SceUID prevCallbackId);
 void __KernelEventFlagEndCallback(SceUID threadID, SceUID prevCallbackId);
 
 void __KernelEventFlagInit() {
-	eventFlagWaitTimer = CoreTiming::RegisterEvent("EventFlagTimeout", __KernelEventFlagTimeout);
+	eventFlagWaitTimer = CoreTiming_P::RegisterEvent("EventFlagTimeout", __KernelEventFlagTimeout);
 	__KernelRegisterWaitTypeFuncs(WAITTYPE_EVENTFLAG, __KernelEventFlagBeginCallback, __KernelEventFlagEndCallback);
 }
 
@@ -121,7 +121,7 @@ void __KernelEventFlagDoState(PointerWrap &p) {
 		return;
 
 	p.Do(eventFlagWaitTimer);
-	CoreTiming::RestoreRegisterEvent(eventFlagWaitTimer, "EventFlagTimeout", __KernelEventFlagTimeout);
+	CoreTiming_P::RestoreRegisterEvent(eventFlagWaitTimer, "EventFlagTimeout", __KernelEventFlagTimeout);
 }
 
 KernelObject *__KernelEventFlagObject() {
@@ -140,8 +140,8 @@ static bool __KernelCheckEventFlagMatches(u32 pattern, u32 bits, u8 wait) {
 
 static bool __KernelApplyEventFlagMatch(u32_le *pattern, u32 bits, u8 wait, u32 outAddr) {
 	if (__KernelCheckEventFlagMatches(*pattern, bits, wait)) {
-		if (Memory::IsValidAddress(outAddr))
-			Memory::PWrite_U32(*pattern, outAddr);
+		if (Memory_P::IsValidAddress(outAddr))
+			Memory_P::PWrite_U32(*pattern, outAddr);
 
 		if (wait & PSP_EVENT_WAITCLEAR)
 			*pattern &= ~bits;
@@ -162,15 +162,15 @@ static bool __KernelUnlockEventFlagForThread(EventFlag *e, EventFlagTh &th, u32 
 			return false;
 	} else {
 		// Otherwise, we set the current result since we're bailing.
-		if (Memory::IsValidAddress(th.outAddr))
-			Memory::PWrite_U32(e->nef.currentPattern, th.outAddr);
+		if (Memory_P::IsValidAddress(th.outAddr))
+			Memory_P::PWrite_U32(e->nef.currentPattern, th.outAddr);
 	}
 
 	u32 timeoutPtr = __KernelGetWaitTimeoutPtr(th.threadID, error);
 	if (timeoutPtr != 0 && eventFlagWaitTimer != -1) {
 		// Remove any event for this thread.
-		s64 cyclesLeft = CoreTiming::UnscheduleEvent(eventFlagWaitTimer, th.threadID);
-		Memory::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+		s64 cyclesLeft = CoreTiming_P::UnscheduleEvent(eventFlagWaitTimer, th.threadID);
+		Memory_P::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 	}
 
 	__KernelResumeThreadFromWait(th.threadID, result);
@@ -228,7 +228,7 @@ int sceKernelCreateEventFlag(const char *name, u32 flag_attr, u32 flag_initPatte
 	e->nef.numWaitThreads = 0;
 
 	if (optPtr != 0) {
-		u32 size = Memory::PRead_U32(optPtr);
+		u32 size = Memory_P::PRead_U32(optPtr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateEventFlag(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -243,8 +243,8 @@ u32 sceKernelCancelEventFlag(SceUID uid, u32 pattern, u32 numWaitThreadsPtr) {
 	EventFlag *e = kernelObjects.Get<EventFlag>(uid, error);
 	if (e) {
 		e->nef.numWaitThreads = (int) e->waitingThreads.size();
-		if (Memory::IsValidAddress(numWaitThreadsPtr))
-			Memory::PWrite_U32(e->nef.numWaitThreads, numWaitThreadsPtr);
+		if (Memory_P::IsValidAddress(numWaitThreadsPtr))
+			Memory_P::PWrite_U32(e->nef.numWaitThreads, numWaitThreadsPtr);
 
 		e->nef.currentPattern = pattern;
 
@@ -321,7 +321,7 @@ void __KernelEventFlagTimeout(u64 userdata, int cycleslate) {
 	EventFlag *e = kernelObjects.Get<EventFlag>(flagID, error);
 	if (e) {
 		if (timeoutPtr != 0)
-			Memory::PWrite_U32(0, timeoutPtr);
+			Memory_P::PWrite_U32(0, timeoutPtr);
 
 		for (size_t i = 0; i < e->waitingThreads.size(); i++) {
 			EventFlagTh *t = &e->waitingThreads[i];
@@ -343,7 +343,7 @@ static void __KernelSetEventFlagTimeout(EventFlag *e, u32 timeoutPtr) {
 	if (timeoutPtr == 0 || eventFlagWaitTimer == -1)
 		return;
 
-	int micro = (int) Memory::PRead_U32(timeoutPtr);
+	int micro = (int) Memory_P::PRead_U32(timeoutPtr);
 
 	// This seems like the actual timing of timeouts on hardware.
 	if (micro <= 1)
@@ -352,7 +352,7 @@ static void __KernelSetEventFlagTimeout(EventFlag *e, u32 timeoutPtr) {
 		micro = 240;
 
 	// This should call __KernelEventFlagTimeout() later, unless we cancel it.
-	CoreTiming::ScheduleEvent(usToCycles(micro), eventFlagWaitTimer, __KernelGetCurThread());
+	CoreTiming_P::ScheduleEvent(usToCycles(micro), eventFlagWaitTimer, __KernelGetCurThread());
 }
 
 int sceKernelWaitEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 timeoutPtr) {
@@ -378,8 +378,8 @@ int sceKernelWaitEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 ti
 			HLEKernel::RemoveWaitingThread(e->waitingThreads, __KernelGetCurThread());
 
 			u32 timeout = 0xFFFFFFFF;
-			if (Memory::IsValidAddress(timeoutPtr))
-				timeout = Memory::PRead_U32(timeoutPtr);
+			if (Memory_P::IsValidAddress(timeoutPtr))
+				timeout = Memory_P::PRead_U32(timeoutPtr);
 
 			// Do we allow more than one thread to wait?
 			if (e->waitingThreads.size() > 0 && (e->nef.attr & PSP_EVENT_WAITMULTIPLE) == 0) {
@@ -441,8 +441,8 @@ int sceKernelWaitEventFlagCB(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 
 			HLEKernel::RemoveWaitingThread(e->waitingThreads, __KernelGetCurThread());
 
 			u32 timeout = 0xFFFFFFFF;
-			if (Memory::IsValidAddress(timeoutPtr))
-				timeout = Memory::PRead_U32(timeoutPtr);
+			if (Memory_P::IsValidAddress(timeoutPtr))
+				timeout = Memory_P::PRead_U32(timeoutPtr);
 
 			// Do we allow more than one thread to wait?
 			if (e->waitingThreads.size() > 0 && (e->nef.attr & PSP_EVENT_WAITMULTIPLE) == 0) {
@@ -493,8 +493,8 @@ int sceKernelPollEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr) {
 	EventFlag *e = kernelObjects.Get<EventFlag>(id, error);
 	if (e) {
 		if (!__KernelApplyEventFlagMatch(&e->nef.currentPattern, bits, wait, outBitsPtr)) {
-			if (Memory::IsValidAddress(outBitsPtr))
-				Memory::PWrite_U32(e->nef.currentPattern, outBitsPtr);
+			if (Memory_P::IsValidAddress(outBitsPtr))
+				Memory_P::PWrite_U32(e->nef.currentPattern, outBitsPtr);
 
 			if (e->waitingThreads.size() > 0 && (e->nef.attr & PSP_EVENT_WAITMULTIPLE) == 0) {
 				return hleLogDebug(SCEKERNEL, SCE_KERNEL_ERROR_EVF_MULTI);
@@ -515,14 +515,14 @@ u32 sceKernelReferEventFlagStatus(SceUID id, u32 statusPtr) {
 	u32 error;
 	EventFlag *e = kernelObjects.Get<EventFlag>(id, error);
 	if (e) {
-		if (!Memory::IsValidAddress(statusPtr))
+		if (!Memory_P::IsValidAddress(statusPtr))
 			return hleLogWarning(SCEKERNEL, -1, "invalid ptr");
 
 		HLEKernel::CleanupWaitingThreads(WAITTYPE_EVENTFLAG, id, e->waitingThreads);
 
 		e->nef.numWaitThreads = (int) e->waitingThreads.size();
-		if (Memory::PRead_U32(statusPtr) != 0)
-			Memory::WriteStruct(statusPtr, &e->nef);
+		if (Memory_P::PRead_U32(statusPtr) != 0)
+			Memory_P::WriteStruct(statusPtr, &e->nef);
 		return hleLogSuccessI(SCEKERNEL, 0);
 	} else {
 		return hleLogDebug(SCEKERNEL, error, "invalid event flag");

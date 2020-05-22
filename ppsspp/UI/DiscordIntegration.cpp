@@ -49,7 +49,7 @@ bool Discord::IsEnabled() const {
 	return g_PConfig.bDiscordPresence;
 }
 
-void Discord::Init() {
+void Discord::PInit() {
 	assert(IsEnabled());
 	assert(!initialized_);
 
@@ -63,7 +63,7 @@ void Discord::Init() {
 	initialized_ = true;
 }
 
-void Discord::Shutdown() {
+void Discord::PShutdown() {
 	assert(initialized_);
 #ifdef ENABLE_DISCORD
 	Discord_Shutdown();
@@ -74,12 +74,12 @@ void Discord::Shutdown() {
 void Discord::Update() {
 	if (!IsEnabled()) {
 		if (initialized_) {
-			Shutdown();
+			PShutdown();
 		}
 		return;
 	} else {
 		if (!initialized_) {
-			Init();
+			PInit();
 		}
 	}
 
@@ -96,7 +96,7 @@ void Discord::SetPresenceGame(const char *gameTitle) {
 		return;
 	
 	if (!initialized_) {
-		Init();
+		PInit();
 	}
 
 #ifdef ENABLE_DISCORD
@@ -122,7 +122,7 @@ void Discord::SetPresenceMenu() {
 		return;
 
 	if (!initialized_) {
-		Init();
+		PInit();
 	}
 
 #ifdef ENABLE_DISCORD

@@ -143,7 +143,7 @@ std::string PTimer::PGetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = StringFromFormat("%02d:%02d:%02d:%03d",
+	std::string TmpStr = PStringFromFormat("%02d:%02d:%02d:%03d",
 		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }

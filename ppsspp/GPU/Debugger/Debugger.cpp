@@ -92,7 +92,7 @@ static bool IsBreakpoint(u32 pc, u32 op) {
 void NotifyCommand(u32 pc) {
 	if (!active)
 		return;
-	u32 op = Memory::ReadUnchecked_U32(pc);
+	u32 op = Memory_P::ReadUnchecked_U32(pc);
 	u32 cmd = op >> 24;
 	if (thisFlipNum != gpuStats.numFlips) {
 		primsLastFrame = primsThisFrame;

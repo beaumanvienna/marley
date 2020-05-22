@@ -192,7 +192,7 @@ ID3D11PixelShader *DepalShaderCacheD3D11::GetDepalettizePixelShader(uint32_t clu
 std::vector<std::string> DepalShaderCacheD3D11::DebugGetShaderIDs(DebugShaderType type) {
 	std::vector<std::string> ids;
 	for (auto &iter : cache_) {
-		ids.push_back(StringFromFormat("%08x", iter.first));
+		ids.push_back(PStringFromFormat("%08x", iter.first));
 	}
 	return ids;
 }

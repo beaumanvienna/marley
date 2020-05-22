@@ -71,13 +71,13 @@ static std::string GenRecordingFilename() {
 	PFile::CreateFullPath(dumpDir);
 
 	for (int n = 1; n < 10000; ++n) {
-		std::string filename = StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
+		std::string filename = PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
 		if (!PFile::Exists(filename)) {
 			return filename;
 		}
 	}
 
-	return StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
+	return PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
 }
 
 static void BeginRecording() {
@@ -227,11 +227,11 @@ static void EmitTextureData(int level, u32 texaddr) {
 	const bool isTarget = lastRenderTargets.find(texaddr) != lastRenderTargets.end();
 
 	CommandType type = CommandType((int)CommandType::TEXTURE0 + level);
-	const u8 *p = Memory::GetPointerUnchecked(texaddr);
-	u32 bytes = Memory::ValidSize(texaddr, sizeInRAM);
+	const u8 *p = Memory_P::GetPointerUnchecked(texaddr);
+	u32 bytes = Memory_P::ValidSize(texaddr, sizeInRAM);
 	std::vector<u8> framebufData;
 
-	if (Memory::IsVRAMAddress(texaddr)) {
+	if (Memory_P::IsVRAMAddress(texaddr)) {
 		struct FramebufData {
 			u32 addr;
 			int bufw;
@@ -291,10 +291,10 @@ static void FlushPrimState(int vcount) {
 		}
 	}
 
-	const void *verts = Memory::GetPointer(gstate_c.vertexAddr);
+	const void *verts = Memory_P::GetPointer(gstate_c.vertexAddr);
 	const void *indices = nullptr;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		indices = Memory::GetPointer(gstate_c.indexAddr);
+		indices = Memory_P::GetPointer(gstate_c.indexAddr);
 	}
 
 	u32 ibytes = 0;
@@ -313,7 +313,7 @@ static void EmitTransfer(u32 op) {
 	FlushRegisters();
 
 	// This may not make a lot of sense right now, unless it's to a framebuf...
-	if (!Memory::IsVRAMAddress(gstate.getTransferDstAddress())) {
+	if (!Memory_P::IsVRAMAddress(gstate.getTransferDstAddress())) {
 		// Skip, not VRAM, so can't affect drawing (we flush textures each prim.)
 		return;
 	}
@@ -327,10 +327,10 @@ static void EmitTransfer(u32 op) {
 	int bpp = gstate.getTransferBpp();
 
 	u32 srcBytes = ((srcY + height - 1) * srcStride + (srcX + width)) * bpp;
-	srcBytes = Memory::ValidSize(srcBasePtr, srcBytes);
+	srcBytes = Memory_P::ValidSize(srcBasePtr, srcBytes);
 
 	if (srcBytes != 0) {
-		EmitCommandWithRAM(CommandType::TRANSFERSRC, Memory::GetPointerUnchecked(srcBasePtr), srcBytes);
+		EmitCommandWithRAM(CommandType::TRANSFERSRC, Memory_P::GetPointerUnchecked(srcBasePtr), srcBytes);
 	}
 
 	lastRegisters.push_back(op);
@@ -339,10 +339,10 @@ static void EmitTransfer(u32 op) {
 static void EmitClut(u32 op) {
 	u32 addr = gstate.getClutAddress();
 	u32 bytes = (op & 0x3F) * 32;
-	bytes = Memory::ValidSize(addr, bytes);
+	bytes = Memory_P::ValidSize(addr, bytes);
 
 	if (bytes != 0) {
-		EmitCommandWithRAM(CommandType::CLUT, Memory::GetPointerUnchecked(addr), bytes);
+		EmitCommandWithRAM(CommandType::CLUT, Memory_P::GetPointerUnchecked(addr), bytes);
 	}
 
 	lastRegisters.push_back(op);
@@ -403,7 +403,7 @@ void NotifyCommand(u32 pc) {
 		return;
 	}
 
-	const u32 op = Memory::PRead_U32(pc);
+	const u32 op = Memory_P::PRead_U32(pc);
 	const GECommand cmd = GECommand(op >> 24);
 
 	switch (cmd) {
@@ -455,15 +455,15 @@ void NotifyMemcpy(u32 dest, u32 src, u32 sz) {
 	if (!active) {
 		return;
 	}
-	if (Memory::IsVRAMAddress(dest)) {
+	if (Memory_P::IsVRAMAddress(dest)) {
 		FlushRegisters();
 		Command cmd{CommandType::MEMCPYDEST, sizeof(dest), (u32)pushbuf.size()};
 		pushbuf.resize(pushbuf.size() + sizeof(dest));
 		memcpy(pushbuf.data() + cmd.ptr, &dest, sizeof(dest));
 
-		sz = Memory::ValidSize(dest, sz);
+		sz = Memory_P::ValidSize(dest, sz);
 		if (sz != 0) {
-			EmitCommandWithRAM(CommandType::MEMCPYDATA, Memory::GetPointer(dest), sz);
+			EmitCommandWithRAM(CommandType::MEMCPYDATA, Memory_P::GetPointer(dest), sz);
 		}
 	}
 }
@@ -478,8 +478,8 @@ void NotifyMemset(u32 dest, int v, u32 sz) {
 		u32 sz;
 	};
 
-	if (Memory::IsVRAMAddress(dest)) {
-		sz = Memory::ValidSize(dest, sz);
+	if (Memory_P::IsVRAMAddress(dest)) {
+		sz = Memory_P::ValidSize(dest, sz);
 		MemsetCommand data{dest, v, sz};
 
 		FlushRegisters();

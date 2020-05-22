@@ -531,7 +531,7 @@ u32 GPUCommon::DrawSync(int mode) {
 			return SCE_KERNEL_ERROR_ILLEGAL_CONTEXT;
 		}
 
-		if (drawCompleteTicks > CoreTiming::GetTicks()) {
+		if (drawCompleteTicks > CoreTiming_P::GetTicks()) {
 			__GeWaitCurrentThread(GPU_SYNC_DRAW, 1, "GeDrawSync");
 		} else {
 			for (int i = 0; i < DisplayListMaxCount; ++i) {
@@ -605,7 +605,7 @@ int GPUCommon::ListSync(int listid, int mode) {
 		return SCE_KERNEL_ERROR_ILLEGAL_CONTEXT;
 	}
 
-	if (dl.waitTicks > CoreTiming::GetTicks()) {
+	if (dl.waitTicks > CoreTiming_P::GetTicks()) {
 		__GeWaitCurrentThread(GPU_SYNC_LIST, listid, "GeListSync");
 	}
 	return PSP_GE_LIST_COMPLETED;
@@ -641,13 +641,13 @@ u32 GPUCommon::EnqueueList(u32 listpc, u32 stall, int subIntrBase, PSPPointer<Ps
 
 	// Check alignment
 	// TODO Check the context and stack alignement too
-	if (((listpc | stall) & 3) != 0 || !Memory::IsValidAddress(listpc)) {
+	if (((listpc | stall) & 3) != 0 || !Memory_P::IsValidAddress(listpc)) {
 		ERROR_LOG_REPORT(G3D, "sceGeListEnqueue: invalid address %08x", listpc);
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
 	}
 
 	int id = -1;
-	u64 currentTicks = CoreTiming::GetTicks();
+	u64 currentTicks = CoreTiming_P::GetTicks();
 	u32_le stackAddr = args.IsValid() ? args->stackAddr : 0;
 	// Check compatibility
 	if (sceKernelGetCompiledSdkVersion() > 0x01FFFFFF) {
@@ -922,7 +922,7 @@ bool GPUCommon::InterpretList(DisplayList &list) {
 
 	gstate_c.offsetAddr = list.offsetAddr;
 
-	if (!Memory::IsValidAddress(list.pc)) {
+	if (!Memory_P::IsValidAddress(list.pc)) {
 		ERROR_LOG_REPORT(G3D, "DL PC = %08x WTF!!!!", list.pc);
 		return true;
 	}
@@ -988,7 +988,7 @@ void GPUCommon::FastRunLoop(DisplayList &list) {
 	int dc = downcount;
 	for (; dc > 0; --dc) {
 		// We know that display list PCs have the upper nibble == 0 - no need to mask the pointer
-		const u32 op = *(const u32 *)(Memory::base + list.pc);
+		const u32 op = *(const u32 *)(Memory_P::base + list.pc);
 		const u32 cmd = op >> 24;
 		const CommandInfo &info = cmdInfo[cmd];
 		const u32 diff = op ^ gstate.cmdmem[cmd];
@@ -1040,7 +1040,7 @@ void GPUCommon::SlowRunLoop(DisplayList &list)
 	{
 		GPUDebug::NotifyCommand(list.pc);
 		GPURecord::NotifyCommand(list.pc);
-		u32 op = Memory::ReadUnchecked_U32(list.pc);
+		u32 op = Memory_P::ReadUnchecked_U32(list.pc);
 		u32 cmd = op >> 24;
 
 		u32 diff = op ^ gstate.cmdmem[cmd];
@@ -1048,8 +1048,8 @@ void GPUCommon::SlowRunLoop(DisplayList &list)
 		if (dumpThisFrame) {
 			char temp[256];
 			u32 prev;
-			if (Memory::IsValidAddress(list.pc - 4)) {
-				prev = Memory::ReadUnchecked_U32(list.pc - 4);
+			if (Memory_P::IsValidAddress(list.pc - 4)) {
+				prev = Memory_P::ReadUnchecked_U32(list.pc - 4);
 			} else {
 				prev = 0;
 			}
@@ -1125,7 +1125,7 @@ int GPUCommon::GetNextListIndex() {
 }
 
 void GPUCommon::ProcessDLQueue() {
-	startingTicks = CoreTiming::GetTicks();
+	startingTicks = CoreTiming_P::GetTicks();
 	cyclesExecuted = 0;
 
 	// Seems to be correct behaviour to process the list anyway?
@@ -1178,7 +1178,7 @@ void GPUCommon::Execute_Origin(u32 op, u32 diff) {
 
 void GPUCommon::Execute_Jump(u32 op, u32 diff) {
 	const u32 target = gstate_c.getRelativeAddress(op & 0x00FFFFFC);
-	if (!Memory::IsValidAddress(target)) {
+	if (!Memory_P::IsValidAddress(target)) {
 		ERROR_LOG_REPORT(G3D, "JUMP to illegal address %08x - ignoring! data=%06x", target, op & 0x00FFFFFF);
 		UpdateState(GPUSTATE_ERROR);
 		return;
@@ -1197,7 +1197,7 @@ void GPUCommon::Execute_BJump(u32 op, u32 diff) {
 	if (!currentList->bboxResult) {
 		// bounding box jump.
 		const u32 target = gstate_c.getRelativeAddress(op & 0x00FFFFFC);
-		if (Memory::IsValidAddress(target)) {
+		if (Memory_P::IsValidAddress(target)) {
 			UpdatePC(currentList->pc, target - 4);
 			currentList->pc = target - 4; // pc will be increased after we return, counteract that
 		} else {
@@ -1211,7 +1211,7 @@ void GPUCommon::Execute_Call(u32 op, u32 diff) {
 	PROFILE_THIS_SCOPE("gpu_call");
 
 	const u32 target = gstate_c.getRelativeAddress(op & 0x00FFFFFC);
-	if (!Memory::IsValidAddress(target)) {
+	if (!Memory_P::IsValidAddress(target)) {
 		ERROR_LOG_REPORT(G3D, "CALL to illegal address %08x - ignoring! data=%06x", target, op & 0x00FFFFFF);
 		UpdateState(GPUSTATE_ERROR);
 		return;
@@ -1232,10 +1232,10 @@ void GPUCommon::DoExecuteCall(u32 target) {
 
 	// Bone matrix optimization - many games will CALL a bone matrix (!).
 	// We don't optimize during recording - so the matrix data gets recorded.
-	if (!debugRecording_ && (Memory::ReadUnchecked_U32(target) >> 24) == GE_CMD_BONEMATRIXDATA) {
+	if (!debugRecording_ && (Memory_P::ReadUnchecked_U32(target) >> 24) == GE_CMD_BONEMATRIXDATA) {
 		// Check for the end
-		if ((Memory::ReadUnchecked_U32(target + 11 * 4) >> 24) == GE_CMD_BONEMATRIXDATA &&
-				(Memory::ReadUnchecked_U32(target + 12 * 4) >> 24) == GE_CMD_RET) {
+		if ((Memory_P::ReadUnchecked_U32(target + 11 * 4) >> 24) == GE_CMD_BONEMATRIXDATA &&
+				(Memory_P::ReadUnchecked_U32(target + 12 * 4) >> 24) == GE_CMD_RET) {
 			// Yep, pretty sure this is a bone matrix call.  Double check stall first.
 			if (target > currentList->stall || target + 12 * 4 < currentList->stall) {
 				FastLoadBoneMatrix(target);
@@ -1267,7 +1267,7 @@ void GPUCommon::Execute_Ret(u32 op, u32 diff) {
 		UpdatePC(currentList->pc, target - 4);
 		currentList->pc = target - 4;
 #ifdef _DEBUG
-		if (!Memory::IsValidAddress(currentList->pc)) {
+		if (!Memory_P::IsValidAddress(currentList->pc)) {
 			ERROR_LOG_REPORT(G3D, "Invalid DL PC %08x on return", currentList->pc);
 			UpdateState(GPUSTATE_ERROR);
 		}
@@ -1278,7 +1278,7 @@ void GPUCommon::Execute_Ret(u32 op, u32 diff) {
 void GPUCommon::Execute_End(u32 op, u32 diff) {
 	Flush();
 
-	const u32 prev = Memory::ReadUnchecked_U32(currentList->pc - 4);
+	const u32 prev = Memory_P::ReadUnchecked_U32(currentList->pc - 4);
 	UpdatePC(currentList->pc, currentList->pc);
 	// Count in a few extra cycles on END.
 	cyclesExecuted += 60;
@@ -1331,7 +1331,7 @@ void GPUCommon::Execute_End(u32 op, u32 diff) {
 					currentList->signal = behaviour;
 					// pc will be increased after we return, counteract that.
 					u32 target = (((signal << 16) | enddata) & 0xFFFFFFFC) - 4;
-					if (!Memory::IsValidAddress(target)) {
+					if (!Memory_P::IsValidAddress(target)) {
 						ERROR_LOG_REPORT(G3D, "Signal with Jump: bad address. signal/end: %04x %04x", signal, enddata);
 						UpdateState(GPUSTATE_ERROR);
 					} else {
@@ -1349,7 +1349,7 @@ void GPUCommon::Execute_End(u32 op, u32 diff) {
 					u32 target = (((signal << 16) | enddata) & 0xFFFFFFFC) - 4;
 					if (currentList->stackptr == ARRAY_SIZE(currentList->stack)) {
 						ERROR_LOG_REPORT(G3D, "Signal with Call: stack full. signal/end: %04x %04x", signal, enddata);
-					} else if (!Memory::IsValidAddress(target)) {
+					} else if (!Memory_P::IsValidAddress(target)) {
 						ERROR_LOG_REPORT(G3D, "Signal with Call: bad address. signal/end: %04x %04x", signal, enddata);
 						UpdateState(GPUSTATE_ERROR);
 					} else {
@@ -1533,21 +1533,21 @@ void GPUCommon::Execute_Prim(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+	if (!Memory_P::IsValidAddress(gstate_c.vertexAddr)) {
 		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
 		return;
 	}
 
-	void *verts = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+	void *verts = Memory_P::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *inds = nullptr;
 	u32 vertexType = gstate.vertType;
 	if ((vertexType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
 		u32 indexAddr = gstate_c.indexAddr;
-		if (!Memory::IsValidAddress(indexAddr)) {
+		if (!Memory_P::IsValidAddress(indexAddr)) {
 			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", indexAddr);
 			return;
 		}
-		inds = Memory::GetPointerUnchecked(indexAddr);
+		inds = Memory_P::GetPointerUnchecked(indexAddr);
 	}
 
 #ifndef MOBILE_DEVICE
@@ -1575,8 +1575,8 @@ void GPUCommon::Execute_Prim(u32 op, u32 diff) {
 	int totalVertCount = count;
 
 	// PRIMs are often followed by more PRIMs. Save some work and submit them immediately.
-	const u32 *src = (const u32 *)Memory::GetPointerUnchecked(currentList->pc + 4);
-	const u32 *stall = currentList->stall ? (const u32 *)Memory::GetPointerUnchecked(currentList->stall) : 0;
+	const u32 *src = (const u32 *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
+	const u32 *stall = currentList->stall ? (const u32 *)Memory_P::GetPointerUnchecked(currentList->stall) : 0;
 	int cmdCount = 0;
 
 	// Optimized submission of sequences of PRIM. Allows us to avoid going through all the mess
@@ -1606,10 +1606,10 @@ void GPUCommon::Execute_Prim(u32 op, u32 diff) {
 			GEPrimitiveType newPrim = static_cast<GEPrimitiveType>((data >> 16) & 7);
 			SetDrawType(DRAW_PRIM, newPrim);
 			// TODO: more efficient updating of verts/inds
-			verts = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+			verts = Memory_P::GetPointerUnchecked(gstate_c.vertexAddr);
 			inds = nullptr;
 			if ((vertexType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-				inds = Memory::GetPointerUnchecked(gstate_c.indexAddr);
+				inds = Memory_P::GetPointerUnchecked(gstate_c.indexAddr);
 			}
 
 			drawEngineCommon_->SubmitPrim(verts, inds, newPrim, count, vertTypeID, cullMode, &bytesRead);
@@ -1689,9 +1689,9 @@ void GPUCommon::Execute_Prim(u32 op, u32 diff) {
 		{
 			// A bone matrix probably. If not we bail.
 			const u32 target = gstate_c.getRelativeAddress(data & 0x00FFFFFC);
-			if ((Memory::ReadUnchecked_U32(target) >> 24) == GE_CMD_BONEMATRIXDATA &&
-				(Memory::ReadUnchecked_U32(target + 11 * 4) >> 24) == GE_CMD_BONEMATRIXDATA &&
-				(Memory::ReadUnchecked_U32(target + 12 * 4) >> 24) == GE_CMD_RET &&
+			if ((Memory_P::ReadUnchecked_U32(target) >> 24) == GE_CMD_BONEMATRIXDATA &&
+				(Memory_P::ReadUnchecked_U32(target + 11 * 4) >> 24) == GE_CMD_BONEMATRIXDATA &&
+				(Memory_P::ReadUnchecked_U32(target + 12 * 4) >> 24) == GE_CMD_RET &&
 				(target > currentList->stall || target + 12 * 4 < currentList->stall)) {
 				FastLoadBoneMatrix(target);
 			} else {
@@ -1746,19 +1746,19 @@ void GPUCommon::Execute_Bezier(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+	if (!Memory_P::IsValidAddress(gstate_c.vertexAddr)) {
 		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
 		return;
 	}
 
-	void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+	void *control_points = Memory_P::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *indices = NULL;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
+		if (!Memory_P::IsValidAddress(gstate_c.indexAddr)) {
 			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
 			return;
 		}
-		indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
+		indices = Memory_P::GetPointerUnchecked(gstate_c.indexAddr);
 	}
 
 	if (vertTypeIsSkinningEnabled(gstate.vertType)) {
@@ -1810,19 +1810,19 @@ void GPUCommon::Execute_Spline(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+	if (!Memory_P::IsValidAddress(gstate_c.vertexAddr)) {
 		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
 		return;
 	}
 
-	void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+	void *control_points = Memory_P::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *indices = NULL;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
+		if (!Memory_P::IsValidAddress(gstate_c.indexAddr)) {
 			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
 			return;
 		}
-		indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
+		indices = Memory_P::GetPointerUnchecked(gstate_c.indexAddr);
 	}
 
 	if (vertTypeIsSkinningEnabled(gstate.vertType)) {
@@ -1873,7 +1873,7 @@ void GPUCommon::Execute_BoundingBox(u32 op, u32 diff) {
 		return;
 	}
 	if (((count & 7) == 0) && count <= 64) {  // Sanity check
-		void *control_points = Memory::GetPointer(gstate_c.vertexAddr);
+		void *control_points = Memory_P::GetPointer(gstate_c.vertexAddr);
 		if (!control_points) {
 			return;
 		}
@@ -1906,7 +1906,7 @@ void GPUCommon::Execute_BlockTransferStart(u32 op, u32 diff) {
 
 void GPUCommon::Execute_WorldMtxNum(u32 op, u32 diff) {
 	// This is almost always followed by GE_CMD_WORLDMATRIXDATA.
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(currentList->pc + 4);
+	const u32_le *src = (const u32_le *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
 	u32 *dst = (u32 *)(gstate.worldMatrix + (op & 0xF));
 	const int end = 12 - (op & 0xF);
 	int i = 0;
@@ -1955,7 +1955,7 @@ void GPUCommon::Execute_WorldMtxData(u32 op, u32 diff) {
 
 void GPUCommon::Execute_ViewMtxNum(u32 op, u32 diff) {
 	// This is almost always followed by GE_CMD_VIEWMATRIXDATA.
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(currentList->pc + 4);
+	const u32_le *src = (const u32_le *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
 	u32 *dst = (u32 *)(gstate.viewMatrix + (op & 0xF));
 	const int end = 12 - (op & 0xF);
 	int i = 0;
@@ -2002,7 +2002,7 @@ void GPUCommon::Execute_ViewMtxData(u32 op, u32 diff) {
 
 void GPUCommon::Execute_ProjMtxNum(u32 op, u32 diff) {
 	// This is almost always followed by GE_CMD_PROJMATRIXDATA.
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(currentList->pc + 4);
+	const u32_le *src = (const u32_le *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
 	u32 *dst = (u32 *)(gstate.projMatrix + (op & 0xF));
 	const int end = 16 - (op & 0xF);
 	int i = 0;
@@ -2050,7 +2050,7 @@ void GPUCommon::Execute_ProjMtxData(u32 op, u32 diff) {
 
 void GPUCommon::Execute_TgenMtxNum(u32 op, u32 diff) {
 	// This is almost always followed by GE_CMD_TGENMATRIXDATA.
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(currentList->pc + 4);
+	const u32_le *src = (const u32_le *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
 	u32 *dst = (u32 *)(gstate.tgenMatrix + (op & 0xF));
 	const int end = 12 - (op & 0xF);
 	int i = 0;
@@ -2097,7 +2097,7 @@ void GPUCommon::Execute_TgenMtxData(u32 op, u32 diff) {
 
 void GPUCommon::Execute_BoneMtxNum(u32 op, u32 diff) {
 	// This is almost always followed by GE_CMD_BONEMATRIXDATA.
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(currentList->pc + 4);
+	const u32_le *src = (const u32_le *)Memory_P::GetPointerUnchecked(currentList->pc + 4);
 	u32 *dst = (u32 *)(gstate.boneMatrix + (op & 0x7F));
 	const int end = 12 * 8 - (op & 0x7F);
 	int i = 0;
@@ -2520,7 +2520,7 @@ void GPUCommon::ResetListState(int listID, DisplayListState state) {
 
 GPUDebugOp GPUCommon::DissassembleOp(u32 pc, u32 op) {
 	char buffer[1024];
-	GeDisassembleOp(pc, op, Memory::PRead_U32(pc - 4), buffer, sizeof(buffer));
+	GeDisassembleOp(pc, op, Memory_P::PRead_U32(pc - 4), buffer, sizeof(buffer));
 
 	GPUDebugOp info;
 	info.pc = pc;
@@ -2536,9 +2536,9 @@ std::vector<GPUDebugOp> GPUCommon::DissassembleOpRange(u32 startpc, u32 endpc) {
 	GPUDebugOp info;
 
 	// Don't trigger a pause.
-	u32 prev = Memory::IsValidAddress(startpc - 4) ? Memory::PRead_U32(startpc - 4) : 0;
+	u32 prev = Memory_P::IsValidAddress(startpc - 4) ? Memory_P::PRead_U32(startpc - 4) : 0;
 	for (u32 pc = startpc; pc < endpc; pc += 4) {
-		u32 op = Memory::IsValidAddress(pc) ? Memory::PRead_U32(pc) : 0;
+		u32 op = Memory_P::IsValidAddress(pc) ? Memory_P::PRead_U32(pc) : 0;
 		GeDisassembleOp(pc, op, prev, buffer, sizeof(buffer));
 		prev = op;
 
@@ -2605,12 +2605,12 @@ void GPUCommon::DoBlockTransfer(u32 skipDrawReason) {
 
 	DEBUG_LOG(G3D, "Block transfer: %08x/%x -> %08x/%x, %ix%ix%i (%i,%i)->(%i,%i)", srcBasePtr, srcStride, dstBasePtr, dstStride, width, height, bpp, srcX, srcY, dstX, dstY);
 
-	if (!Memory::IsValidAddress(srcBasePtr)) {
+	if (!Memory_P::IsValidAddress(srcBasePtr)) {
 		ERROR_LOG_REPORT(G3D, "BlockTransfer: Bad source transfer address %08x!", srcBasePtr);
 		return;
 	}
 
-	if (!Memory::IsValidAddress(dstBasePtr)) {
+	if (!Memory_P::IsValidAddress(dstBasePtr)) {
 		ERROR_LOG_REPORT(G3D, "BlockTransfer: Bad destination transfer address %08x!", dstBasePtr);
 		return;
 	}
@@ -2620,11 +2620,11 @@ void GPUCommon::DoBlockTransfer(u32 skipDrawReason) {
 	u32 srcLastAddr = srcBasePtr + ((srcY + height - 1) * srcStride + (srcX + width - 1)) * bpp;
 	u32 dstLastAddr = dstBasePtr + ((dstY + height - 1) * dstStride + (dstX + width - 1)) * bpp;
 
-	if (!Memory::IsValidAddress(srcLastAddr)) {
+	if (!Memory_P::IsValidAddress(srcLastAddr)) {
 		ERROR_LOG_REPORT(G3D, "Bottom-right corner of source of block transfer is at an invalid address: %08x", srcLastAddr);
 		return;
 	}
-	if (!Memory::IsValidAddress(dstLastAddr)) {
+	if (!Memory_P::IsValidAddress(dstLastAddr)) {
 		ERROR_LOG_REPORT(G3D, "Bottom-right corner of destination of block transfer is at an invalid address: %08x", srcLastAddr);
 		return;
 	}
@@ -2638,8 +2638,8 @@ void GPUCommon::DoBlockTransfer(u32 skipDrawReason) {
 			// Common case in God of War, let's do it all in one chunk.
 			u32 srcLineStartAddr = srcBasePtr + (srcY * srcStride + srcX) * bpp;
 			u32 dstLineStartAddr = dstBasePtr + (dstY * dstStride + dstX) * bpp;
-			const u8 *src = Memory::GetPointerUnchecked(srcLineStartAddr);
-			u8 *dst = Memory::GetPointerUnchecked(dstLineStartAddr);
+			const u8 *src = Memory_P::GetPointerUnchecked(srcLineStartAddr);
+			u8 *dst = Memory_P::GetPointerUnchecked(dstLineStartAddr);
 			memcpy(dst, src, width * height * bpp);
 			GPURecord::NotifyMemcpy(dstLineStartAddr, srcLineStartAddr, width * height * bpp);
 		} else {
@@ -2647,8 +2647,8 @@ void GPUCommon::DoBlockTransfer(u32 skipDrawReason) {
 				u32 srcLineStartAddr = srcBasePtr + ((y + srcY) * srcStride + srcX) * bpp;
 				u32 dstLineStartAddr = dstBasePtr + ((y + dstY) * dstStride + dstX) * bpp;
 
-				const u8 *src = Memory::GetPointerUnchecked(srcLineStartAddr);
-				u8 *dst = Memory::GetPointerUnchecked(dstLineStartAddr);
+				const u8 *src = Memory_P::GetPointerUnchecked(srcLineStartAddr);
+				u8 *dst = Memory_P::GetPointerUnchecked(dstLineStartAddr);
 				memcpy(dst, src, width * bpp);
 				GPURecord::NotifyMemcpy(dstLineStartAddr, srcLineStartAddr, width * bpp);
 			}
@@ -2672,8 +2672,8 @@ bool GPUCommon::PerformMemoryCopy(u32 dest, u32 src, int size) {
 		if (!framebufferManager_->NotifyFramebufferCopy(src, dest, size, false, gstate_c.skipDrawReason)) {
 			// We use a little hack for Download/Upload using a VRAM mirror.
 			// Since they're identical we don't need to copy.
-			if (!Memory::IsVRAMAddress(dest) || (dest ^ 0x00400000) != src) {
-				Memory::Memcpy(dest, src, size);
+			if (!Memory_P::IsVRAMAddress(dest) || (dest ^ 0x00400000) != src) {
+				Memory_P::Memcpy(dest, src, size);
 			}
 		}
 		InvalidateCache(dest, size, GPU_INVALIDATE_HINT);
@@ -2688,7 +2688,7 @@ bool GPUCommon::PerformMemoryCopy(u32 dest, u32 src, int size) {
 bool GPUCommon::PerformMemorySet(u32 dest, u8 v, int size) {
 	// This may indicate a memset, usually to 0, of a framebuffer.
 	if (framebufferManager_->MayIntersectFramebuffer(dest)) {
-		Memory::Memset(dest, v, size);
+		Memory_P::Memset(dest, v, size);
 		if (!framebufferManager_->NotifyFramebufferCopy(dest, dest, size, true, gstate_c.skipDrawReason)) {
 			InvalidateCache(dest, size, GPU_INVALIDATE_HINT);
 		}
@@ -2704,7 +2704,7 @@ bool GPUCommon::PerformMemorySet(u32 dest, u8 v, int size) {
 bool GPUCommon::PerformMemoryDownload(u32 dest, int size) {
 	// Cheat a bit to force a download of the framebuffer.
 	// VRAM + 0x00400000 is simply a VRAM mirror.
-	if (Memory::IsVRAMAddress(dest)) {
+	if (Memory_P::IsVRAMAddress(dest)) {
 		return PerformMemoryCopy(dest ^ 0x00400000, dest, size);
 	}
 	return false;
@@ -2713,7 +2713,7 @@ bool GPUCommon::PerformMemoryDownload(u32 dest, int size) {
 bool GPUCommon::PerformMemoryUpload(u32 dest, int size) {
 	// Cheat a bit to force an upload of the framebuffer.
 	// VRAM + 0x00400000 is simply a VRAM mirror.
-	if (Memory::IsVRAMAddress(dest)) {
+	if (Memory_P::IsVRAMAddress(dest)) {
 		GPURecord::NotifyUpload(dest, size);
 		return PerformMemoryCopy(dest, dest ^ 0x00400000, size);
 	}
@@ -2735,7 +2735,7 @@ void GPUCommon::InvalidateCache(u32 addr, int size, GPUInvalidationType type) {
 }
 
 void GPUCommon::NotifyVideoUpload(u32 addr, int size, int width, int format) {
-	if (Memory::IsVRAMAddress(addr)) {
+	if (Memory_P::IsVRAMAddress(addr)) {
 		framebufferManager_->NotifyVideoUpload(addr, size, width, (GEBufferFormat)format);
 	}
 	textureCache_->NotifyVideoUpload(addr, size, width, (GEBufferFormat)format);

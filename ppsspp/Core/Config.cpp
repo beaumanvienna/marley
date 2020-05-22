@@ -686,7 +686,7 @@ struct ConfigTranslator {
 
 	static int From(const std::string &v) {
 		int result;
-		if (TryParse(v, &result)) {
+		if (PTryParse(v, &result)) {
 			return result;
 		}
 		return (int)FFrom(v);
@@ -1498,7 +1498,7 @@ bool Config::saveGameConfig(const std::string &pGameId, const std::string &title
 	IniFile iniFile;
 
 	IniFile::Section *top = iniFile.GetOrCreateSection("");
-	top->AddComment(StringFromFormat("Game config for %s - %s", pGameId.c_str(), title.c_str()));
+	top->AddComment(PStringFromFormat("Game config for %s - %s", pGameId.c_str(), title.c_str()));
 
 	IterateSettings(iniFile, [](IniFile::Section *section, ConfigSetting *setting) {
 		if (setting->perGame_) {

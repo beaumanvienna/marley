@@ -197,14 +197,14 @@ void TextureReplacer::ParseHashRange(const std::string &key, const std::string &
 	u32 addr;
 	u32 fromW;
 	u32 fromH;
-	if (!TryParse(keyParts[0], &addr) || !TryParse(keyParts[1], &fromW) || !TryParse(keyParts[2], &fromH)) {
+	if (!PTryParse(keyParts[0], &addr) || !PTryParse(keyParts[1], &fromW) || !PTryParse(keyParts[2], &fromH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, key format is 0x12345678,512,512", key.c_str(), value.c_str());
 		return;
 	}
 
 	u32 toW;
 	u32 toH;
-	if (!TryParse(valueParts[0], &toW) || !TryParse(valueParts[1], &toH)) {
+	if (!PTryParse(valueParts[0], &toW) || !PTryParse(valueParts[1], &toH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, value format is 512,512", key.c_str(), value.c_str());
 		return;
 	}
@@ -228,7 +228,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 		}
 	}
 
-	const u8 *checkp = Memory::GetPointer(addr);
+	const u8 *checkp = Memory_P::GetPointer(addr);
 	float reduceHashSize = 1.0;
 	if (reduceHash_)
 		reduceHashSize = 0.5;

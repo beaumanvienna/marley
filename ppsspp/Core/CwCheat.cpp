@@ -100,7 +100,7 @@ bool CheatFileParser::Parse() {
 		} else if (line.length() >= 1 && line[0] == '#') {
 			// Comment, ignore.
 		} else if (line.length() > 0) {
-			errors_.push_back(StringFromFormat("Unrecognized content on line %d: expecting _", line_));
+			errors_.push_back(PStringFromFormat("Unrecognized content on line %d: expecting _", line_));
 		}
 	}
 
@@ -118,7 +118,7 @@ void CheatFileParser::Flush() {
 }
 
 void CheatFileParser::AddError(const std::string &err) {
-	errors_.push_back(StringFromFormat("Error on line %d: %s", line_, err.c_str()));
+	errors_.push_back(PStringFromFormat("Error on line %d: %s", line_, err.c_str()));
 }
 
 void CheatFileParser::ParseLine(const std::string &line) {
@@ -254,14 +254,14 @@ static int GetRefreshMs() {
 
 void __CheatInit() {
 	// Always register the event, want savestates to be compatible whether cheats on or off.
-	CheatEvent = CoreTiming::RegisterEvent("CheatEvent", &hleCheat);
+	CheatEvent = CoreTiming_P::RegisterEvent("CheatEvent", &hleCheat);
 
 	if (g_PConfig.bEnableCheats) {
 		__CheatStart();
 	}
 
 	// Only check once a second for cheats to be enabled.
-	CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+	CoreTiming_P::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 }
 
 void __CheatShutdown() {
@@ -275,13 +275,13 @@ void __CheatDoState(PointerWrap &p) {
 	}
 
 	p.Do(CheatEvent);
-	CoreTiming::RestoreRegisterEvent(CheatEvent, "CheatEvent", &hleCheat);
+	CoreTiming_P::RestoreRegisterEvent(CheatEvent, "CheatEvent", &hleCheat);
 
 	if (s < 2) {
 		// Before this we didn't have a checkpoint, so reset didn't work.
 		// Let's just force one in.
-		CoreTiming::RemoveEvent(CheatEvent);
-		CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+		CoreTiming_P::RemoveEvent(CheatEvent);
+		CoreTiming_P::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 	}
 }
 
@@ -296,7 +296,7 @@ void hleCheat(u64 userdata, int cyclesLate) {
 	}
 
 	// Check periodically for cheats.
-	CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+	CoreTiming_P::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 
 	if (PSP_CoreParameter().compat.flags().JitInvalidationHack) {
 		std::string gameTitle = g_paramSFO.GetValueString("DISC_ID");
@@ -728,28 +728,28 @@ CheatOperation CWCheatEngine::InterpretNextOp(const CheatCode &cheat, size_t &i)
 }
 
 void CWCheatEngine::ApplyMemoryOperator(const CheatOperation &op, uint32_t(*oper)(uint32_t, uint32_t)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (Memory_P::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 		if (op.sz == 1)
-			Memory::PWrite_U8((u8)oper(Memory::PRead_U8(op.addr), op.val), op.addr);
+			Memory_P::PWrite_U8((u8)oper(Memory_P::PRead_U8(op.addr), op.val), op.addr);
 		else if (op.sz == 2)
-			Memory::PWrite_U16((u16)oper(Memory::PRead_U16(op.addr), op.val),op. addr);
+			Memory_P::PWrite_U16((u16)oper(Memory_P::PRead_U16(op.addr), op.val),op. addr);
 		else if (op.sz == 4)
-			Memory::PWrite_U32((u32)oper(Memory::PRead_U32(op.addr), op.val), op.addr);
+			Memory_P::PWrite_U32((u32)oper(Memory_P::PRead_U32(op.addr), op.val), op.addr);
 	}
 }
 
 bool CWCheatEngine::TestIf(const CheatOperation &op, bool(*oper)(int, int)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (Memory_P::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 
 		int memoryValue = 0;
 		if (op.sz == 1)
-			memoryValue = (int)Memory::PRead_U8(op.addr);
+			memoryValue = (int)Memory_P::PRead_U8(op.addr);
 		else if (op.sz == 2)
-			memoryValue = (int)Memory::PRead_U16(op.addr);
+			memoryValue = (int)Memory_P::PRead_U16(op.addr);
 		else if (op.sz == 4)
-			memoryValue = (int)Memory::PRead_U32(op.addr);
+			memoryValue = (int)Memory_P::PRead_U32(op.addr);
 
 		return oper(memoryValue, (int)op.val);
 	}
@@ -757,20 +757,20 @@ bool CWCheatEngine::TestIf(const CheatOperation &op, bool(*oper)(int, int)) {
 }
 
 bool CWCheatEngine::TestIfAddr(const CheatOperation &op, bool(*oper)(int, int)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (Memory_P::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 
 		int memoryValue1 = 0;
 		int memoryValue2 = 0;
 		if (op.sz == 1) {
-			memoryValue1 = (int)Memory::PRead_U8(op.addr);
-			memoryValue2 = (int)Memory::PRead_U8(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)Memory_P::PRead_U8(op.addr);
+			memoryValue2 = (int)Memory_P::PRead_U8(op.ifAddrTypes.compareAddr);
 		} else if (op.sz == 2) {
-			memoryValue1 = (int)Memory::PRead_U16(op.addr);
-			memoryValue2 = (int)Memory::PRead_U16(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)Memory_P::PRead_U16(op.addr);
+			memoryValue2 = (int)Memory_P::PRead_U16(op.ifAddrTypes.compareAddr);
 		} else if (op.sz == 4) {
-			memoryValue1 = (int)Memory::PRead_U32(op.addr);
-			memoryValue2 = (int)Memory::PRead_U32(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)Memory_P::PRead_U32(op.addr);
+			memoryValue2 = (int)Memory_P::PRead_U32(op.ifAddrTypes.compareAddr);
 		}
 
 		return oper(memoryValue1, memoryValue2);
@@ -788,14 +788,14 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::Write:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (Memory_P::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, 4);
 			if (op.sz == 1)
-				Memory::PWrite_U8((u8)op.val, op.addr);
+				Memory_P::PWrite_U8((u8)op.val, op.addr);
 			else if (op.sz == 2)
-				Memory::PWrite_U16((u16)op.val, op.addr);
+				Memory_P::PWrite_U16((u16)op.val, op.addr);
 			else if (op.sz == 4)
-				Memory::PWrite_U32((u32)op.val, op.addr);
+				Memory_P::PWrite_U32((u32)op.val, op.addr);
 		}
 		break;
 
@@ -830,19 +830,19 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::MultiWrite:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (Memory_P::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, op.multiWrite.count * op.multiWrite.step + op.sz);
 
 			uint32_t data = op.val;
 			uint32_t addr = op.addr;
 			for (uint32_t a = 0; a < op.multiWrite.count; a++) {
-				if (Memory::IsValidAddress(addr)) {
+				if (Memory_P::IsValidAddress(addr)) {
 					if (op.sz == 1)
-						Memory::PWrite_U8((u8)data, addr);
+						Memory_P::PWrite_U8((u8)data, addr);
 					else if (op.sz == 2)
-						Memory::PWrite_U16((u16)data, addr);
+						Memory_P::PWrite_U16((u16)data, addr);
 					else if (op.sz == 4)
-						Memory::PWrite_U32((u32)data, addr);
+						Memory_P::PWrite_U32((u32)data, addr);
 				}
 				addr += op.multiWrite.step;
 				data += op.multiWrite.add;
@@ -851,11 +851,11 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::CopyBytesFrom:
-		if (Memory::IsValidRange(op.addr, op.val) && Memory::IsValidRange(op.copyBytesFrom.destAddr, op.val)) {
+		if (Memory_P::IsValidRange(op.addr, op.val) && Memory_P::IsValidRange(op.copyBytesFrom.destAddr, op.val)) {
 			InvalidateICache(op.addr, op.val);
 			InvalidateICache(op.copyBytesFrom.destAddr, op.val);
 
-			Memory::MemcpyUnchecked(op.copyBytesFrom.destAddr, op.addr, op.val);
+			Memory_P::MemcpyUnchecked(op.copyBytesFrom.destAddr, op.addr, op.val);
 		}
 		break;
 
@@ -864,9 +864,9 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::Assert:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (Memory_P::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, 4);
-			if (Memory::PRead_U32(op.addr) != op.val) {
+			if (Memory_P::PRead_U32(op.addr) != op.val) {
 				i = cheat.lines.size();
 			}
 		}
@@ -956,7 +956,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 	case CheatOp::CwCheatPointerCommands:
 		{
 			InvalidateICache(op.addr + op.pointerCommands.baseOffset, 4);
-			u32 base = Memory::PRead_U32(op.addr + op.pointerCommands.baseOffset);
+			u32 base = Memory_P::PRead_U32(op.addr + op.pointerCommands.baseOffset);
 			u32 val = op.val;
 			int type = op.pointerCommands.type;
 			for (int a = 0; a < op.pointerCommands.count; ++a) {
@@ -965,12 +965,12 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 				case 0x1: // type copy byte
 					{
 						InvalidateICache(op.addr, 4);
-						u32 srcAddr = Memory::PRead_U32(op.addr) + op.pointerCommands.offset;
-						u32 dstAddr = Memory::PRead_U32(op.addr + op.pointerCommands.baseOffset) + (line.part1 & 0x0FFFFFFF);
-						if (Memory::IsValidRange(dstAddr, val) && Memory::IsValidRange(srcAddr, val)) {
+						u32 srcAddr = Memory_P::PRead_U32(op.addr) + op.pointerCommands.offset;
+						u32 dstAddr = Memory_P::PRead_U32(op.addr + op.pointerCommands.baseOffset) + (line.part1 & 0x0FFFFFFF);
+						if (Memory_P::IsValidRange(dstAddr, val) && Memory_P::IsValidRange(srcAddr, val)) {
 							InvalidateICache(dstAddr, val);
 							InvalidateICache(srcAddr, val);
-							Memory::MemcpyUnchecked(dstAddr, srcAddr, val);
+							Memory_P::MemcpyUnchecked(dstAddr, srcAddr, val);
 						}
 						// Don't perform any further action.
 						type = -1;
@@ -985,7 +985,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 							walkOffset = -walkOffset;
 						}
 						InvalidateICache(base + walkOffset, 4);
-						base = Memory::PRead_U32(base + walkOffset);
+						base = Memory_P::PRead_U32(base + walkOffset);
 						switch (line.part2 >> 28) {
 						case 0x2:
 						case 0x3: // type pointer walk
@@ -994,7 +994,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 								walkOffset = -walkOffset;
 							}
 							InvalidateICache(base + walkOffset, 4);
-							base = Memory::PRead_U32(base + walkOffset);
+							base = Memory_P::PRead_U32(base + walkOffset);
 							break;
 
 						default:
@@ -1018,27 +1018,27 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 			switch (type) {
 			case 0: // 8 bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::PWrite_U8((u8)val, base + op.pointerCommands.offset);
+				Memory_P::PWrite_U8((u8)val, base + op.pointerCommands.offset);
 				break;
 			case 1: // 16-bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::PWrite_U16((u16)val, base + op.pointerCommands.offset);
+				Memory_P::PWrite_U16((u16)val, base + op.pointerCommands.offset);
 				break;
 			case 2: // 32-bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::PWrite_U32((u32)val, base + op.pointerCommands.offset);
+				Memory_P::PWrite_U32((u32)val, base + op.pointerCommands.offset);
 				break;
 			case 3: // 8 bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::PWrite_U8((u8)val, base - op.pointerCommands.offset);
+				Memory_P::PWrite_U8((u8)val, base - op.pointerCommands.offset);
 				break;
 			case 4: // 16-bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::PWrite_U16((u16)val, base - op.pointerCommands.offset);
+				Memory_P::PWrite_U16((u16)val, base - op.pointerCommands.offset);
 				break;
 			case 5: // 32-bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::PWrite_U32((u32)val, base - op.pointerCommands.offset);
+				Memory_P::PWrite_U32((u32)val, base - op.pointerCommands.offset);
 				break;
 			case -1: // Operation already performed, nothing to do
 				break;

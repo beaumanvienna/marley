@@ -120,7 +120,7 @@ WebSocketServer *WebSocketServer::CreateAsUpgrade(const http::Request &request, 
 	sha1((unsigned char *)key.c_str(), (int)key.size(), accept);
 
 	std::string acceptKey = Base64Encode(accept, 20);
-	std::string otherHeaders = StringFromFormat("Upgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n%s", acceptKey.c_str(), obtainedProtocolHeader.c_str());
+	std::string otherHeaders = PStringFromFormat("Upgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n%s", acceptKey.c_str(), obtainedProtocolHeader.c_str());
 
 	// Okay, we're good to go then.
 	request.WriteHttpResponseHeader("1.1", 101, -1, "websocket", otherHeaders.c_str());

@@ -66,8 +66,8 @@ namespace MIPSStackWalk {
 
 		// It ought to be pretty close.
 		u32 stop = pc - 32 * 4;
-		for (; Memory::IsValidAddress(pc) && pc >= stop; pc -= 4) {
-			MIPSOpcode op = Memory::Read_Instruction(pc, true);
+		for (; Memory_P::IsValidAddress(pc) && pc >= stop; pc -= 4) {
+			MIPSOpcode op = Memory_P::Read_Instruction(pc, true);
 
 			// We're looking for a "mov fp, sp" close by a "addiu sp, sp, -N".
 			if (IsMovRegsInstr(op) && _RD == MIPS_REG_FP && (_RS == MIPS_REG_SP || _RT == MIPS_REG_SP)) {
@@ -97,8 +97,8 @@ namespace MIPSStackWalk {
 		if (stop < start - LONGEST_FUNCTION) {
 			stop = start - LONGEST_FUNCTION;
 		}
-		for (u32 pc = start; Memory::IsValidAddress(pc) && pc >= stop; pc -= 4) {
-			MIPSOpcode op = Memory::Read_Instruction(pc, true);
+		for (u32 pc = start; Memory_P::IsValidAddress(pc) && pc >= stop; pc -= 4) {
+			MIPSOpcode op = Memory_P::Read_Instruction(pc, true);
 
 			// Here's where they store the ra address.
 			if (IsSWInstr(op) && _RT == MIPS_REG_RA && _RS == MIPS_REG_SP) {
@@ -117,8 +117,8 @@ namespace MIPSStackWalk {
 
 				frame.entry = pc;
 				frame.stackSize = -_IMM16;
-				if (ra_offset != -1 && Memory::IsValidAddress(frame.sp + ra_offset)) {
-					ra = Memory::PRead_U32(frame.sp + ra_offset);
+				if (ra_offset != -1 && Memory_P::IsValidAddress(frame.sp + ra_offset)) {
+					ra = Memory_P::PRead_U32(frame.sp + ra_offset);
 				}
 				return true;
 			}

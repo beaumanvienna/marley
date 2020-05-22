@@ -25,7 +25,7 @@
 // To avoid pulling in the entire HLE.h.
 extern MIPSState *currentMIPS;
 
-namespace Memory
+namespace Memory_P
 {
 
 inline void Memcpy(const u32 to_address, const void *from_data, const u32 len)

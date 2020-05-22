@@ -419,13 +419,13 @@ int ISOFileSystem::Ioctl(u32 handle, u32 cmd, u32 indataPtr, u32 inlen, u32 outd
 			return SCE_KERNEL_ERROR_ERRNO_FUNCTION_NOT_SUPPORTED;
 		}
 
-		if (!Memory::IsValidAddress(outdataPtr) || outlen < 0x800) {
+		if (!Memory_P::IsValidAddress(outdataPtr) || outlen < 0x800) {
 			WARN_LOG_REPORT(FILESYS, "sceIoIoctl: Invalid out pointer while reading ISO9660 volume descriptor");
 			return SCE_KERNEL_ERROR_ERRNO_INVALID_ARGUMENT;
 		}
 
 		INFO_LOG(SCEIO, "sceIoIoctl: reading ISO9660 volume descriptor read");
-		blockDevice->ReadBlock(16, Memory::GetPointer(outdataPtr));
+		blockDevice->ReadBlock(16, Memory_P::GetPointer(outdataPtr));
 		return 0;
 
 	// Get ISO9660 path table (from open ISO9660 file.)
@@ -442,7 +442,7 @@ int ISOFileSystem::Ioctl(u32 handle, u32 cmd, u32 indataPtr, u32 inlen, u32 outd
 		} else {
 			int block = (u16)desc.firstLETableSectorLE;
 			u32 size = (u32)desc.pathTableLengthLE;
-			u8 *out = Memory::GetPointer(outdataPtr);
+			u8 *out = Memory_P::GetPointer(outdataPtr);
 
 			int blocks = size / blockDevice->GetBlockSize();
 			blockDevice->ReadBlocks(block, blocks, out);

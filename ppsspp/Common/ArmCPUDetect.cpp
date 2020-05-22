@@ -308,9 +308,9 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = StringFromFormat("%s, %d core", cpu_string, num_cores);
+		sum = PStringFromFormat("%s, %d core", cpu_string, num_cores);
 	else
-		sum = StringFromFormat("%s, %d cores", cpu_string, num_cores);
+		sum = PStringFromFormat("%s, %d cores", cpu_string, num_cores);
 	if (bSwp) sum += ", SWP";
 	if (bHalf) sum += ", Half";
 	if (bThumb) sum += ", Thumb";

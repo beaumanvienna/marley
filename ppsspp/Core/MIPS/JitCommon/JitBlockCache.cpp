@@ -230,9 +230,9 @@ static void ExpandRange(std::pair<u32, u32> &range, u32 newStart, u32 newEnd) {
 void JitBlockCache::FinalizeBlock(int block_num, bool block_link) {
 	JitBlock &b = blocks_[block_num];
 
-	b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
+	b.originalFirstOpcode = Memory_P::Read_Opcode_JIT(b.originalAddress);
 	MIPSOpcode opcode = GetEmuHackOpForBlock(block_num);
-	Memory::Write_Opcode_JIT(b.originalAddress, opcode);
+	Memory_P::Write_Opcode_JIT(b.originalAddress, opcode);
 
 	AddBlockMap(block_num);
 
@@ -248,7 +248,7 @@ void JitBlockCache::FinalizeBlock(int block_num, bool block_link) {
 	}
 
 	const u32 blockEnd = b.originalAddress + b.originalSize * 4 - 4;
-	if (Memory::IsScratchpadAddress(b.originalAddress)) {
+	if (Memory_P::IsScratchpadAddress(b.originalAddress)) {
 		ExpandRange(blockMemRanges_[JITBLOCK_RANGE_SCRATCH], b.originalAddress, blockEnd);
 	}
 	const u32 halfUserMemory = (PSP_GetUserMemoryEnd() - PSP_GetUserMemoryBase()) / 2;
@@ -331,10 +331,10 @@ MIPSOpcode JitBlockCache::GetEmuHackOpForBlock(int blockNum) const {
 }
 
 int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr, bool realBlocksOnly) const {
-	if (!blocks_ || !Memory::IsValidAddress(addr))
+	if (!blocks_ || !Memory_P::IsValidAddress(addr))
 		return -1;
 
-	MIPSOpcode inst = MIPSOpcode(Memory::PRead_U32(addr));
+	MIPSOpcode inst = MIPSOpcode(Memory_P::PRead_U32(addr));
 	int bl = GetBlockNumberFromEmuHackOp(inst);
 	if (bl < 0) {
 		if (!realBlocksOnly) {
@@ -449,10 +449,10 @@ std::vector<u32> JitBlockCache::SaveAndClearEmuHackOps() {
 			continue;
 
 		const u32 emuhack = GetEmuHackOpForBlock(block_num).encoding;
-		if (Memory::ReadUnchecked_U32(b.originalAddress) == emuhack)
+		if (Memory_P::ReadUnchecked_U32(b.originalAddress) == emuhack)
 		{
 			result[block_num] = emuhack;
-			Memory::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
+			Memory_P::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
 		}
 		else
 			result[block_num] = 0;
@@ -473,8 +473,8 @@ void JitBlockCache::RestoreSavedEmuHackOps(std::vector<u32> saved) {
 			continue;
 
 		// Only if we restored it, write it back.
-		if (Memory::ReadUnchecked_U32(b.originalAddress) == b.originalFirstOpcode.encoding)
-			Memory::Write_Opcode_JIT(b.originalAddress, MIPSOpcode(saved[block_num]));
+		if (Memory_P::ReadUnchecked_U32(b.originalAddress) == b.originalFirstOpcode.encoding)
+			Memory_P::Write_Opcode_JIT(b.originalAddress, MIPSOpcode(saved[block_num]));
 	}
 }
 
@@ -524,8 +524,8 @@ void JitBlockCache::DestroyBlock(int block_num, DestroyType type) {
 
 	b->invalid = true;
 	if (!b->IsPureProxy()) {
-		if (Memory::ReadUnchecked_U32(b->originalAddress) == GetEmuHackOpForBlock(block_num).encoding)
-			Memory::Write_Opcode_JIT(b->originalAddress, b->originalFirstOpcode);
+		if (Memory_P::ReadUnchecked_U32(b->originalAddress) == GetEmuHackOpForBlock(block_num).encoding)
+			Memory_P::Write_Opcode_JIT(b->originalAddress, b->originalFirstOpcode);
 	}
 
 	// It's not safe to set normalEntry to 0 here, since we use a binary search
@@ -592,7 +592,7 @@ void JitBlockCache::InvalidateChangedBlocks() {
 			continue;
 
 		const u32 emuhack = GetEmuHackOpForBlock(block_num).encoding;
-		if (Memory::ReadUnchecked_U32(b.originalAddress) != emuhack) {
+		if (Memory_P::ReadUnchecked_U32(b.originalAddress) != emuhack) {
 			DEBUG_LOG(JIT, "Invalidating changed block at %08x", b.originalAddress);
 			DestroyBlock(block_num, DestroyType::INVALIDATE);
 		}
@@ -648,7 +648,7 @@ JitBlockDebugInfo JitBlockCache::GetBlockDebugInfo(int blockNum) const {
 	debugInfo.originalAddress = block->originalAddress;
 	for (u32 addr = block->originalAddress; addr <= block->originalAddress + block->originalSize * 4; addr += 4) {
 		char temp[256];
-		MIPSDisAsm(Memory::Read_Instruction(addr), addr, temp, true);
+		MIPSDisAsm(Memory_P::Read_Instruction(addr), addr, temp, true);
 		std::string mipsDis = temp;
 		debugInfo.origDisasm.push_back(mipsDis);
 	}

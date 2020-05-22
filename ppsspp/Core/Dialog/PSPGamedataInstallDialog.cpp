@@ -86,10 +86,10 @@ int PSPGamedataInstallDialog::Init(u32 paramAddr) {
 		return -1;
 	}
 
-	int size = Memory::PRead_U32(paramAddr);
+	int size = Memory_P::PRead_U32(paramAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different request format
-	Memory::Memcpy(&request, paramAddr, size);
+	Memory_P::Memcpy(&request, paramAddr, size);
 
 	ChangeStatusInit(GAMEDATA_INIT_DELAY_US);
 	return 0;
@@ -117,7 +117,7 @@ int PSPGamedataInstallDialog::Update(int animSpeed) {
 		// TODO: What is this?  Should one of these update per file or anything?
 		request.unknownResult1 = readFiles;
 		request.unknownResult2 = readFiles;
-		Memory::WriteStruct(param.ptr, &request);
+		Memory_P::WriteStruct(param.ptr, &request);
 
 		ChangeStatus(SCE_UTILITY_STATUS_FINISHED, 0);
 	}
@@ -246,7 +246,7 @@ void PSPGamedataInstallDialog::UpdateProgress() {
 	else 
 		progressValue = 100;
 	request.progress = progressValue;
-	Memory::WriteStruct(param.ptr, &request);
+	Memory_P::WriteStruct(param.ptr, &request);
 }
 
 void PSPGamedataInstallDialog::DoState(PointerWrap &p) {

@@ -68,9 +68,9 @@ static inline void SkipLikely()
 int MIPS_SingleStep()
 {
 #if defined(ARM)
-	MIPSOpcode op = MIPSOpcode(Memory::ReadUnchecked_U32(mipsr4k.pc));
+	MIPSOpcode op = MIPSOpcode(Memory_P::ReadUnchecked_U32(mipsr4k.pc));
 #else
-	MIPSOpcode op = Memory::Read_Opcode_JIT(mipsr4k.pc);
+	MIPSOpcode op = Memory_P::Read_Opcode_JIT(mipsr4k.pc);
 #endif
 	if (mipsr4k.inDelaySlot) {
 		MIPSInterpret(op);
@@ -333,13 +333,13 @@ namespace MIPSInt
 		{
 		case 48: // ll
 			if (rt != 0) {
-				R(rt) = Memory::PRead_U32(addr);
+				R(rt) = Memory_P::PRead_U32(addr);
 			}
 			currentMIPS->llBit = 1;
 			break;
 		case 56: // sc
 			if (currentMIPS->llBit) {
-				Memory::PWrite_U32(R(rt), addr);
+				Memory_P::PWrite_U32(R(rt), addr);
 				if (rt != 0) {
 					R(rt) = 1;
 				}
@@ -408,21 +408,21 @@ namespace MIPSInt
 
 		switch (op >> 26) 
 		{
-		case 32: R(rt) = (u32)(s32)(s8) Memory::PRead_U8(addr); break; //lb
-		case 33: R(rt) = (u32)(s32)(s16)Memory::PRead_U16(addr); break; //lh
-		case 35: R(rt) = Memory::PRead_U32(addr); break; //lw
-		case 36: R(rt) = Memory::PRead_U8 (addr); break; //lbu
-		case 37: R(rt) = Memory::PRead_U16(addr); break; //lhu
-		case 40: Memory::PWrite_U8(R(rt), addr); break; //sb
-		case 41: Memory::PWrite_U16(R(rt), addr); break; //sh
-		case 43: Memory::PWrite_U32(R(rt), addr); break; //sw
+		case 32: R(rt) = (u32)(s32)(s8) Memory_P::PRead_U8(addr); break; //lb
+		case 33: R(rt) = (u32)(s32)(s16)Memory_P::PRead_U16(addr); break; //lh
+		case 35: R(rt) = Memory_P::PRead_U32(addr); break; //lw
+		case 36: R(rt) = Memory_P::PRead_U8 (addr); break; //lbu
+		case 37: R(rt) = Memory_P::PRead_U16(addr); break; //lhu
+		case 40: Memory_P::PWrite_U8(R(rt), addr); break; //sb
+		case 41: Memory_P::PWrite_U16(R(rt), addr); break; //sh
+		case 43: Memory_P::PWrite_U32(R(rt), addr); break; //sw
 
 		// When there's an LWL and an LWR together, we should be able to peephole optimize that
 		// into a single non-alignment-checking LW.
 		case 34: //lwl
 			{
 				u32 shift = (addr & 3) * 8;
-				u32 mem = Memory::PRead_U32(addr & 0xfffffffc);
+				u32 mem = Memory_P::PRead_U32(addr & 0xfffffffc);
 				u32 result = ( u32(R(rt)) & (0x00ffffff >> shift) ) | ( mem << (24 - shift) );
 				R(rt) = result;
 			}
@@ -431,7 +431,7 @@ namespace MIPSInt
 		case 38: //lwr
 			{
 				u32 shift = (addr & 3) * 8;
-				u32 mem = Memory::PRead_U32(addr & 0xfffffffc);
+				u32 mem = Memory_P::PRead_U32(addr & 0xfffffffc);
 				u32 regval = R(rt);
 				u32 result = ( regval & (0xffffff00 << (24 - shift)) ) | ( mem	>> shift );
 				R(rt) = result;
@@ -441,18 +441,18 @@ namespace MIPSInt
 		case 42: //swl
 			{
 				u32 shift = (addr & 3) * 8;
-				u32 mem = Memory::PRead_U32(addr & 0xfffffffc);
+				u32 mem = Memory_P::PRead_U32(addr & 0xfffffffc);
 				u32 result = ( ( u32(R(rt)) >>	(24 - shift) ) ) | (	mem & (0xffffff00 << shift) );
-				Memory::PWrite_U32(result, (addr & 0xfffffffc));
+				Memory_P::PWrite_U32(result, (addr & 0xfffffffc));
 			}
 			break;
 
 		case 46: //swr
 			{
 				u32 shift = (addr & 3) << 3;
-				u32 mem = Memory::PRead_U32(addr & 0xfffffffc);
+				u32 mem = Memory_P::PRead_U32(addr & 0xfffffffc);
 				u32 result = ( ( u32(R(rt)) << shift ) | (mem	& (0x00ffffff >> (24 - shift)) ) );
-				Memory::PWrite_U32(result, (addr & 0xfffffffc));
+				Memory_P::PWrite_U32(result, (addr & 0xfffffffc));
 			}
 			break;
 
@@ -472,8 +472,8 @@ namespace MIPSInt
 
 		switch(op >> 26)
 		{
-		case 49: FI(ft) = Memory::PRead_U32(addr); break; //lwc1
-		case 57: Memory::PWrite_U32(FI(ft), addr); break; //swc1
+		case 49: FI(ft) = Memory_P::PRead_U32(addr); break; //lwc1
+		case 57: Memory_P::PWrite_U32(FI(ft), addr); break; //swc1
 		default:
 			_dbg_assert_msg_(CPU,0,"Trying to interpret FPULS instruction that can't be interpreted");
 			break;
@@ -1012,7 +1012,7 @@ namespace MIPSInt
 
 			if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 				// Interpret the original instruction under the hook.
-				MIPSInterpret(Memory::Read_Instruction(PC, true));
+				MIPSInterpret(Memory_P::Read_Instruction(PC, true));
 			} else {
 				PC = currentMIPS->r[MIPS_REG_RA];
 			}
@@ -1021,7 +1021,7 @@ namespace MIPSInt
 				ERROR_LOG(CPU, "Bad replacement function index %i", index);
 			}
 			// Interpret the original instruction under it.
-			MIPSInterpret(Memory::Read_Instruction(PC, true));
+			MIPSInterpret(Memory_P::Read_Instruction(PC, true));
 		}
 	}
 

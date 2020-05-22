@@ -30,16 +30,16 @@ inline void truncate_cpy(char(&out)[Count], const char *src) {
 
 long parseHexLong(std::string s);
 long parseLong(std::string s);
-std::string StringFromFormat(const char* format, ...);
+std::string PStringFromFormat(const char* format, ...);
 // Cheap!
-bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
+bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 
 template<size_t Count>
 inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	CharArrayFromFormatV(out, Count, format, args);
+	PCharArrayFromFormatV(out, Count, format, args);
 	va_end(args);
 }
 

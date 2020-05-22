@@ -86,13 +86,13 @@ static int chanQueueMinSizeFactor;
 
 static void hleAudioUpdate(u64 userdata, int cyclesLate) {
 	// Schedule the next cycle first.  __AudioUpdate() may consume cycles.
-	CoreTiming::ScheduleEvent(audioIntervalCycles - cyclesLate, eventAudioUpdate, 0);
+	CoreTiming_P::ScheduleEvent(audioIntervalCycles - cyclesLate, eventAudioUpdate, 0);
 
 	__AudioUpdate();
 }
 
 static void hleHostAudioUpdate(u64 userdata, int cyclesLate) {
-	CoreTiming::ScheduleEvent(audioHostIntervalCycles - cyclesLate, eventHostAudioUpdate, 0);
+	CoreTiming_P::ScheduleEvent(audioHostIntervalCycles - cyclesLate, eventHostAudioUpdate, 0);
 
 	// Not all hosts need this call to poke their audio system once in a while, but those that don't
 	// can just ignore it.
@@ -134,11 +134,11 @@ void __AudioInit() {
 
 	__AudioCPUMHzChange();
 
-	eventAudioUpdate = CoreTiming::RegisterEvent("AudioUpdate", &hleAudioUpdate);
-	eventHostAudioUpdate = CoreTiming::RegisterEvent("AudioUpdateHost", &hleHostAudioUpdate);
+	eventAudioUpdate = CoreTiming_P::RegisterEvent("AudioUpdate", &hleAudioUpdate);
+	eventHostAudioUpdate = CoreTiming_P::RegisterEvent("AudioUpdateHost", &hleHostAudioUpdate);
 
-	CoreTiming::ScheduleEvent(audioIntervalCycles, eventAudioUpdate, 0);
-	CoreTiming::ScheduleEvent(audioHostIntervalCycles, eventHostAudioUpdate, 0);
+	CoreTiming_P::ScheduleEvent(audioIntervalCycles, eventAudioUpdate, 0);
+	CoreTiming_P::ScheduleEvent(audioHostIntervalCycles, eventHostAudioUpdate, 0);
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 
@@ -147,7 +147,7 @@ void __AudioInit() {
 	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
 	resampler.Clear();
-	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
+	CoreTiming_P::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
 void __AudioDoState(PointerWrap &p) {
@@ -156,9 +156,9 @@ void __AudioDoState(PointerWrap &p) {
 		return;
 
 	p.Do(eventAudioUpdate);
-	CoreTiming::RestoreRegisterEvent(eventAudioUpdate, "AudioUpdate", &hleAudioUpdate);
+	CoreTiming_P::RestoreRegisterEvent(eventAudioUpdate, "AudioUpdate", &hleAudioUpdate);
 	p.Do(eventHostAudioUpdate);
-	CoreTiming::RestoreRegisterEvent(eventHostAudioUpdate, "AudioUpdateHost", &hleHostAudioUpdate);
+	CoreTiming_P::RestoreRegisterEvent(eventHostAudioUpdate, "AudioUpdateHost", &hleHostAudioUpdate);
 
 	p.Do(mixFrequency);
 	if (s >= 2) {
@@ -261,10 +261,10 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		size_t sz1, sz2;
 		chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-		if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
-			Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
+		if (Memory_P::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+			Memory_P::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
 			if (buf2)
-				Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
+				Memory_P::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
 		}
 	} else {
 		// Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
@@ -275,10 +275,10 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		if (chan.format == PSP_AUDIO_FORMAT_STEREO) {
 			const u32 totalSamples = chan.sampleCount * 2;
 
-			s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
+			s16_le *sampleData = (s16_le *) Memory_P::GetPointer(chan.sampleAddress);
 
 			// Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
-			if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+			if (Memory_P::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
 				s16 *buf1 = 0, *buf2 = 0;
 				size_t sz1, sz2;
 				chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
@@ -290,7 +290,7 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		} else if (chan.format == PSP_AUDIO_FORMAT_MONO) {
 			// Rare, so unoptimized. Expands to stereo.
 			for (u32 i = 0; i < chan.sampleCount; i++) {
-				s16 sample = (s16)Memory::PRead_U16(chan.sampleAddress + 2 * i);
+				s16 sample = (s16)Memory_P::PRead_U16(chan.sampleAddress + 2 * i);
 				chan.sampleQueue.push(ApplySampleVolume(sample, leftVol));
 				chan.sampleQueue.push(ApplySampleVolume(sample, rightVol));
 			}
@@ -443,7 +443,7 @@ void __AudioUpdate(bool resetRecording) {
 		if (g_PConfig.bSaveLoadResetsAVdumping && resetRecording) {
 			__StopLogAudio();
 			std::string discID = g_paramSFO.GetDiscID();
-			std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+			std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 			INFO_LOG(COMMON, "Restarted audio recording to: %s", audio_file_name.c_str());
 			if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
 				PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
@@ -454,7 +454,7 @@ void __AudioUpdate(bool resetRecording) {
 			if (g_PConfig.bDumpAudio) {
 				// Use gameID_EmulatedTimestamp for filename
 				std::string discID = g_paramSFO.GetDiscID();
-				std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+				std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 				INFO_LOG(COMMON,"Recording audio to: %s", audio_file_name.c_str());
 				// Create the path just in case it doesn't exist
 				if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))

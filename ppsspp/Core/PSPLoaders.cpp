@@ -63,9 +63,9 @@ static void UseLargeMem(int memsize) {
 		return;
 	}
 
-	if (Memory::g_PSPModel != PSP_MODEL_FAT) {
+	if (Memory_P::g_PSPModel != PSP_MODEL_FAT) {
 		INFO_LOG(LOADER, "Game requested full PSP-2000 memory access");
-		Memory::g_MemorySize = Memory::RAM_DOUBLE_SIZE;
+		Memory_P::g_MemorySize = Memory_P::RAM_DOUBLE_SIZE;
 	} else {
 		WARN_LOG(LOADER, "Game requested full PSP-2000 memory access, ignoring in PSP-1000 mode");
 	}
@@ -133,7 +133,7 @@ void InitMemoryForGameISO(FileLoader *fileLoader) {
 		}
 
 		g_RemasterMode = true;
-		Memory::g_MemorySize = entry.memorySize;
+		Memory_P::g_MemorySize = entry.memorySize;
 		g_DoubleTextureCoordinates = entry.doubleTextureCoordinates;
 		break;
 	}
@@ -193,7 +193,7 @@ bool Load_PSP_ISO(FileLoader *fileLoader, std::string *error_string) {
 		std::vector<u8> paramsfo;
 		pspFileSystem.ReadEntireFile(sfoPath, paramsfo);
 		if (g_paramSFO.ReadSFO(paramsfo)) {
-			std::string title = StringFromFormat("%s : %s", g_paramSFO.GetValueString("DISC_ID").c_str(), g_paramSFO.GetValueString("TITLE").c_str());
+			std::string title = PStringFromFormat("%s : %s", g_paramSFO.GetValueString("DISC_ID").c_str(), g_paramSFO.GetValueString("TITLE").c_str());
 			INFO_LOG(LOADER, "%s", title.c_str());
 			host->SetWindowTitle(title.c_str());
 		}
@@ -354,7 +354,7 @@ bool Load_PSP_ELF_PBP(FileLoader *fileLoader, std::string *error_string) {
 	homebrewName = homebrewName.substr(lslash + 1);
 	std::string madeUpID = g_paramSFO.GenerateFakeID();
 
-	std::string title = StringFromFormat("%s : %s", madeUpID.c_str(), homebrewName.c_str());
+	std::string title = PStringFromFormat("%s : %s", madeUpID.c_str(), homebrewName.c_str());
 	INFO_LOG(LOADER, "%s", title.c_str());
 	host->SetWindowTitle(title.c_str());
 
@@ -364,16 +364,16 @@ bool Load_PSP_ELF_PBP(FileLoader *fileLoader, std::string *error_string) {
 	std::string savestateDir = GetSysDirectory(DIRECTORY_SAVESTATE);
 
 	for (int i = 0; i < 5; i += 1) {
-		std::string oldName = StringFromFormat("%s%s_%d.ppst", savestateDir.c_str(), homebrewName.c_str(), i);
+		std::string oldName = PStringFromFormat("%s%s_%d.ppst", savestateDir.c_str(), homebrewName.c_str(), i);
 		if (PFile::Exists(oldName)) {
-			std::string newName = StringFromFormat("%s%s_1.00_%d.ppst", savestateDir.c_str(), madeUpID.c_str(), i);
+			std::string newName = PStringFromFormat("%s%s_1.00_%d.ppst", savestateDir.c_str(), madeUpID.c_str(), i);
 			PFile::Rename(oldName, newName);
 		}
 	}
 	for (int i = 0; i < 5; i += 1) {
-		std::string oldName = StringFromFormat("%s%s_%d.jpg", savestateDir.c_str(), homebrewName.c_str(), i);
+		std::string oldName = PStringFromFormat("%s%s_%d.jpg", savestateDir.c_str(), homebrewName.c_str(), i);
 		if (PFile::Exists(oldName)) {
-			std::string newName = StringFromFormat("%s%s_1.00_%d.jpg", savestateDir.c_str(), madeUpID.c_str(), i);
+			std::string newName = PStringFromFormat("%s%s_1.00_%d.jpg", savestateDir.c_str(), madeUpID.c_str(), i);
 			PFile::Rename(oldName, newName);
 		}
 	}

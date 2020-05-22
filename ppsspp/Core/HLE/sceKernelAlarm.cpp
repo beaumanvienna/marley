@@ -130,7 +130,7 @@ void __KernelAlarmInit()
 {
 	triggeredAlarm.clear();
 	__RegisterIntrHandler(PSP_SYSTIMER0_INTR, new AlarmIntrHandler());
-	alarmTimer = CoreTiming::RegisterEvent("Alarm", __KernelTriggerAlarm);
+	alarmTimer = CoreTiming_P::RegisterEvent("Alarm", __KernelTriggerAlarm);
 }
 
 void __KernelAlarmDoState(PointerWrap &p)
@@ -141,7 +141,7 @@ void __KernelAlarmDoState(PointerWrap &p)
 
 	p.Do(alarmTimer);
 	p.Do(triggeredAlarm);
-	CoreTiming::RestoreRegisterEvent(alarmTimer, "Alarm", __KernelTriggerAlarm);
+	CoreTiming_P::RestoreRegisterEvent(alarmTimer, "Alarm", __KernelTriggerAlarm);
 }
 
 KernelObject *__KernelAlarmObject()
@@ -152,13 +152,13 @@ KernelObject *__KernelAlarmObject()
 
 void __KernelScheduleAlarm(Alarm *alarm, u64 micro)
 {
-	alarm->alm.schedule = CoreTiming::GetGlobalTimeUs() + micro;
-	CoreTiming::ScheduleEvent(usToCycles(micro), alarmTimer, alarm->GetUID());
+	alarm->alm.schedule = CoreTiming_P::GetGlobalTimeUs() + micro;
+	CoreTiming_P::ScheduleEvent(usToCycles(micro), alarmTimer, alarm->GetUID());
 }
 
 static SceUID __KernelSetAlarm(u64 micro, u32 handlerPtr, u32 commonPtr)
 {
-	if (!Memory::IsValidAddress(handlerPtr))
+	if (!Memory_P::IsValidAddress(handlerPtr))
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 
 	Alarm *alarm = new Alarm;
@@ -182,8 +182,8 @@ SceUID sceKernelSetSysClockAlarm(u32 microPtr, u32 handlerPtr, u32 commonPtr)
 {
 	u64 micro;
 
-	if (Memory::IsValidAddress(microPtr))
-		micro = Memory::PRead_U64(microPtr);
+	if (Memory_P::IsValidAddress(microPtr))
+		micro = Memory_P::PRead_U64(microPtr);
 	else
 		return -1;
 
@@ -195,7 +195,7 @@ int sceKernelCancelAlarm(SceUID uid)
 {
 	DEBUG_LOG(SCEKERNEL, "sceKernelCancelAlarm(%08x)", uid);
 
-	CoreTiming::UnscheduleEvent(alarmTimer, uid);
+	CoreTiming_P::UnscheduleEvent(alarmTimer, uid);
 
 	return kernelObjects.Destroy<Alarm>(uid);
 }
@@ -212,20 +212,20 @@ int sceKernelReferAlarmStatus(SceUID uid, u32 infoPtr)
 
 	DEBUG_LOG(SCEKERNEL, "sceKernelReferAlarmStatus(%08x, %08x)", uid, infoPtr);
 
-	if (!Memory::IsValidAddress(infoPtr))
+	if (!Memory_P::IsValidAddress(infoPtr))
 		return -1;
 
-	u32 size = Memory::PRead_U32(infoPtr);
+	u32 size = Memory_P::PRead_U32(infoPtr);
 
 	// Alarms actually respect size and write (kinda) what it can hold.
 	if (size > 0)
-		Memory::PWrite_U32(alarm->alm.size, infoPtr);
+		Memory_P::PWrite_U32(alarm->alm.size, infoPtr);
 	if (size > 4)
-		Memory::Write_U64(alarm->alm.schedule, infoPtr + 4);
+		Memory_P::Write_U64(alarm->alm.schedule, infoPtr + 4);
 	if (size > 12)
-		Memory::PWrite_U32(alarm->alm.handlerPtr, infoPtr + 12);
+		Memory_P::PWrite_U32(alarm->alm.handlerPtr, infoPtr + 12);
 	if (size > 16)
-		Memory::PWrite_U32(alarm->alm.commonPtr, infoPtr + 16);
+		Memory_P::PWrite_U32(alarm->alm.commonPtr, infoPtr + 16);
 
 	return 0;
 }

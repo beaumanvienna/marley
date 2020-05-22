@@ -13,7 +13,7 @@
 
 std::string VertexShaderDesc(const VShaderID &id) {
 	std::stringstream desc;
-	desc << StringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
+	desc << PStringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
 	if (id.Bit(VS_BIT_IS_THROUGH)) desc << "THR ";
 	if (id.Bit(VS_BIT_USE_HW_TRANSFORM)) desc << "HWX ";
 	if (id.Bit(VS_BIT_HAS_COLOR)) desc << "C ";
@@ -161,7 +161,7 @@ static bool MatrixNeedsProjection(const float m[12]) {
 
 std::string FragmentShaderDesc(const FShaderID &id) {
 	std::stringstream desc;
-	desc << StringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
+	desc << PStringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
 	if (id.Bit(FS_BIT_CLEARMODE)) desc << "Clear ";
 	if (id.Bit(FS_BIT_DO_TEXTURE)) desc << "Tex ";
 	if (id.Bit(FS_BIT_DO_TEXTURE_PROJ)) desc << "TexProj ";

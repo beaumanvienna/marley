@@ -681,7 +681,7 @@ static u32 sceUtilitySetSystemParamString(u32 id, u32 strPtr)
 static u32 sceUtilityGetSystemParamString(u32 id, u32 destaddr, int destSize)
 {
 	DEBUG_LOG(SCEUTILITY, "sceUtilityGetSystemParamString(%i, %08x, %i)", id, destaddr, destSize);
-	char *buf = (char *)Memory::GetPointer(destaddr);
+	char *buf = (char *)Memory_P::GetPointer(destaddr);
 	switch (id) {
 	case PSP_SYSTEMPARAM_ID_STRING_NICKNAME:
 		// If there's not enough space for the string and null terminator, fail.
@@ -752,7 +752,7 @@ static u32 sceUtilityGetSystemParamInt(u32 id, u32 destaddr)
 		return PSP_SYSTEMPARAM_RETVAL_FAIL;
 	}
 
-	Memory::PWrite_U32(param, destaddr);
+	Memory_P::PWrite_U32(param, destaddr);
 
 	return 0;
 }

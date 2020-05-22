@@ -13,14 +13,14 @@ class Discord {
 public:
 	~Discord();
 	void Update();  // Call every frame or at least regularly. Will initialize if necessary.
-	void Shutdown();
+	void PShutdown();
 
 	void SetPresenceGame(const char *gameTitle);
 	void SetPresenceMenu();
 	void ClearPresence();
 
 private:
-	void Init();
+	void PInit();
 	bool IsEnabled() const;
 
 	bool initialized_ = false;

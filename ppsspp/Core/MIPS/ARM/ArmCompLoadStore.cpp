@@ -138,7 +138,7 @@ namespace MIPSComp
 		bool doCheck = false;
 		FixupBranch skip;
 
-		if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
+		if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
 			u32 addr = iaddr & 0x3FFFFFFF;
 			// Need to initialize since this only loads part of the register.
 			// But rs no longer matters (even if rs == rt) since we have the address.
@@ -322,7 +322,7 @@ namespace MIPSComp
 				}
 			}
 
-			if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
+			if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
 				// TODO: Avoid mapping a register for the "zero" register, use R0 instead.
 
 				// We can compute the full address at compile time. Kickass.

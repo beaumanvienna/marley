@@ -101,7 +101,7 @@ static AtlasTextMetrics char_lines_metrics;
 
 //only 0xFFFFFF of data is used
 static void WriteCmd(u8 cmd, u32 data) {
-	Memory::PWrite_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
+	Memory_P::PWrite_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
 	dlWritePtr += 4;
 }
 
@@ -131,14 +131,14 @@ static void Vertex(float x, float y, float u, float v, int tw, int th, u32 color
 		vtx.x = x - 0.5f; vtx.y = y - 0.5f; vtx.z = 0;
 		vtx.u = u * tw - 0.5f; vtx.v = v * th - 0.5f;
 		vtx.color = color;
-		Memory::WriteStruct(dataWritePtr, &vtx);
+		Memory_P::WriteStruct(dataWritePtr, &vtx);
 		dataWritePtr += sizeof(vtx);
 	} else {
 		PPGeVertex vtx;
 		vtx.x = x - 0.5f; vtx.y = y - 0.5f; vtx.z = 0;
 		vtx.u = u * tw - 0.5f; vtx.v = v * th - 0.5f;
 		vtx.color = color;
-		Memory::WriteStruct(dataWritePtr, &vtx);
+		Memory_P::WriteStruct(dataWritePtr, &vtx);
 		dataWritePtr += sizeof(vtx);
 	}
 	vertexCount++;
@@ -206,7 +206,7 @@ void __PPGeInit()
 	}
 
 	const u32_le *imagePtr = (u32_le *)imageData[0];
-	u8 *ramPtr = (u8 *)Memory::GetPointer(atlasPtr);
+	u8 *ramPtr = (u8 *)Memory_P::GetPointer(atlasPtr);
 
 	// Palettize to 4-bit, the easy way.
 	for (int i = 0; i < width[0] * height[0] / 2; i++) {
@@ -904,7 +904,7 @@ bool PPGeImage::Load() {
 	unsigned char *textureData;
 	int success;
 	if (filename_.empty()) {
-		success = pngLoadPtr(Memory::GetPointer(png_), size_, &width_, &height_, &textureData, false);
+		success = pngLoadPtr(Memory_P::GetPointer(png_), size_, &width_, &height_, &textureData, false);
 	} else {
 		std::vector<u8> pngData;
 		if (pspFileSystem.ReadEntireFile(filename_, pngData) < 0) {
@@ -927,7 +927,7 @@ bool PPGeImage::Load() {
 		return false;
 	}
 
-	Memory::Memcpy(texture_, textureData, texSize);
+	Memory_P::Memcpy(texture_, textureData, texSize);
 	free(textureData);
 
 	lastFrame_ = gpuStats.numFlips;

@@ -67,7 +67,7 @@ std::string VulkanVendorString(uint32_t vendorId) {
 	case VULKAN_VENDOR_IMGTEC: return "Imagination";
 
 	default:
-		return StringFromFormat("%08x", vendorId);
+		return PStringFromFormat("%08x", vendorId);
 	}
 }
 
@@ -1417,11 +1417,11 @@ std::string FormatDriverVersion(const VkPhysicalDeviceProperties &props) {
 		uint32_t minor = (props.driverVersion >> 14) & 0x0ff;
 		uint32_t secondaryBranch = (props.driverVersion >> 6) & 0x0ff;
 		uint32_t tertiaryBranch = (props.driverVersion) & 0x003f;
-		return StringFromFormat("%d.%d.%d.%d", major, minor, secondaryBranch, tertiaryBranch);
+		return PStringFromFormat("%d.%d.%d.%d", major, minor, secondaryBranch, tertiaryBranch);
 	} else if (props.vendorID == VULKAN_VENDOR_ARM) {
 		// ARM used to just put a hash here. No point in splitting it up.
 		if (IsHashMaliDriverVersion(props)) {
-			return StringFromFormat("(hash) %08x", props.driverVersion);
+			return PStringFromFormat("(hash) %08x", props.driverVersion);
 		}
 	}
 	// Qualcomm has an inscrutable versioning scheme. Let's just display it as normal.
@@ -1429,5 +1429,5 @@ std::string FormatDriverVersion(const VkPhysicalDeviceProperties &props) {
 	uint32_t major = VK_VERSION_MAJOR(props.driverVersion);
 	uint32_t minor = VK_VERSION_MINOR(props.driverVersion);
 	uint32_t branch = VK_VERSION_PATCH(props.driverVersion);
-	return StringFromFormat("%d.%d.%d (%08x)", major, minor, branch, props.driverVersion);
+	return PStringFromFormat("%d.%d.%d (%08x)", major, minor, branch, props.driverVersion);
 }

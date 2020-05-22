@@ -25,11 +25,11 @@ static int sceOpenPSIDGetOpenPSID(u32 OpenPSIDPtr)
 	ERROR_LOG(HLE, "UNTESTED sceOpenPSIDGetOpenPSID(%d)", OpenPSIDPtr);
 	u8 dummyOpenPSID[16] = {0x10, 0x02, 0xA3, 0x44, 0x13, 0xF5, 0x93, 0xB0, 0xCC, 0x6E, 0xD1, 0x32, 0x27, 0x85, 0x0F, 0x9D};
 
-	if (Memory::IsValidAddress(OpenPSIDPtr))
+	if (Memory_P::IsValidAddress(OpenPSIDPtr))
 	{
 		for (int i = 0; i < 16; i++) 
 		{
-			Memory::PWrite_U8(dummyOpenPSID[i], OpenPSIDPtr+i);
+			Memory_P::PWrite_U8(dummyOpenPSID[i], OpenPSIDPtr+i);
 		}
 	}
 	return 0;

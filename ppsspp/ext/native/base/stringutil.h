@@ -85,20 +85,20 @@ private:
   const char *ptr_;
 };
 
-std::string StringFromFormat(const char* format, ...);
+std::string PStringFromFormat(const char* format, ...);
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
-std::string ArrayToString(const uint8_t *data, uint32_t size, int line_len = 20, bool spaces = true);
+std::string PArrayToString(const uint8_t *data, uint32_t size, int line_len = 20, bool spaces = true);
 
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
 
-bool TryParse(const std::string &str, bool *const output);
-bool TryParse(const std::string &str, uint32_t *const output);
+bool PTryParse(const std::string &str, bool *const output);
+bool PTryParse(const std::string &str, uint32_t *const output);
 
 template <typename N>
-static bool TryParse(const std::string &str, N *const output)
+static bool PTryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
 

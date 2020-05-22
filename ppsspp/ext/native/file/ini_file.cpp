@@ -278,7 +278,7 @@ bool IniFile::Section::Get(const char* key, int* value, int defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParse(temp.c_str(), value))
+	if (retval && PTryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -288,7 +288,7 @@ bool IniFile::Section::Get(const char* key, uint32_t* value, uint32_t defaultVal
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParse(temp, value))
+	if (retval && PTryParse(temp, value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -298,7 +298,7 @@ bool IniFile::Section::Get(const char* key, bool* value, bool defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParse(temp.c_str(), value))
+	if (retval && PTryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -308,7 +308,7 @@ bool IniFile::Section::Get(const char* key, float* value, float defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParse(temp.c_str(), value))
+	if (retval && PTryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -318,7 +318,7 @@ bool IniFile::Section::Get(const char* key, double* value, double defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParse(temp.c_str(), value))
+	if (retval && PTryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -494,7 +494,7 @@ bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines,
 }
 
 
-void IniFile::SortSections()
+void IniFile::PSortSections()
 {
 	std::sort(sections.begin(), sections.end());
 }
@@ -678,7 +678,7 @@ bool IniFile::Get(const char* sectionName, const char* key, bool* value, bool de
     ini.Get("Hej", "B", &x, "boo");
     ini.DeleteKey("Mossa", "A");
     ini.DeleteSection("Mossa");
-    ini.SortSections();
+    ini.PSortSections();
     ini.Save("my.ini");
     //UpdateVars(ini);
     return 0;

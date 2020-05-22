@@ -267,9 +267,9 @@ protected:
 		}
 
 		const u32 sizeInRAM = (textureBitsPerPixel[format] * bufw * h) / 8;
-		const u32 *checkp = (const u32 *)Memory::GetPointer(addr);
+		const u32 *checkp = (const u32 *)Memory_P::GetPointer(addr);
 
-		if (Memory::IsValidAddress(addr + sizeInRAM)) {
+		if (Memory_P::IsValidAddress(addr + sizeInRAM)) {
 			return DoQuickTexHash(checkp, sizeInRAM);
 		} else {
 			return 0;

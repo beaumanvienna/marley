@@ -51,8 +51,8 @@ void __UsbCamShutdown() {
 
 static int sceUsbCamSetupMic(u32 paramAddr, u32 workareaAddr, int wasize) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupMic");
-	if (Memory::IsValidRange(paramAddr, sizeof(micParam))) {
-		Memory::ReadStruct(paramAddr, &micParam);
+	if (Memory_P::IsValidRange(paramAddr, sizeof(micParam))) {
+		Memory_P::ReadStruct(paramAddr, &micParam);
 	}
 	return 0;
 }
@@ -70,8 +70,8 @@ static int sceUsbCamStopMic() {
 static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamReadMicBlocking: size: %d", size);
 	for (unsigned int i = 0; i < size; i++) {
-		if (Memory::IsValidAddress(bufAddr + i)) {
-			Memory::PWrite_U8(i & 0xFF, bufAddr + i);
+		if (Memory_P::IsValidAddress(bufAddr + i)) {
+			Memory_P::PWrite_U8(i & 0xFF, bufAddr + i);
 		}
 	}
 	hleEatMicro(1000000 / micParam.frequency * (size / 2));
@@ -80,8 +80,8 @@ static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 
 static int sceUsbCamSetupVideo(u32 paramAddr, u32 workareaAddr, int wasize) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupVideo");
-	if (Memory::IsValidRange(paramAddr, sizeof(videoParam))) {
-		Memory::ReadStruct(paramAddr, &videoParam);
+	if (Memory_P::IsValidRange(paramAddr, sizeof(videoParam))) {
+		Memory_P::ReadStruct(paramAddr, &videoParam);
 	}
 
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupVideo - size: %d", videoParam.size);
@@ -116,8 +116,8 @@ static int sceUsbCamReadVideoFrameBlocking(u32 bufAddr, u32 size) {
 	std::lock_guard<std::mutex> lock(videoBufferMutex);
 
 	u32 transferSize = std::min(videoBufferLength, size);
-	if (Memory::IsValidRange(bufAddr, size)) {
-		Memory::Memcpy(bufAddr, videoBuffer, transferSize);
+	if (Memory_P::IsValidRange(bufAddr, size)) {
+		Memory_P::Memcpy(bufAddr, videoBuffer, transferSize);
 	}
 	return videoBufferLength;
 }
@@ -125,8 +125,8 @@ static int sceUsbCamReadVideoFrameBlocking(u32 bufAddr, u32 size) {
 static int sceUsbCamReadVideoFrame(u32 bufAddr, u32 size) {
 	std::lock_guard<std::mutex> lock(videoBufferMutex);
 	u32 transferSize = std::min(videoBufferLength, size);
-	if (Memory::IsValidRange(bufAddr, size)) {
-		Memory::Memcpy(bufAddr, videoBuffer, transferSize);
+	if (Memory_P::IsValidRange(bufAddr, size)) {
+		Memory_P::Memcpy(bufAddr, videoBuffer, transferSize);
 	}
 	nextVideoFrame = videoBufferLength;
 	return 0;

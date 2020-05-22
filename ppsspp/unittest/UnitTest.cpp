@@ -485,7 +485,7 @@ bool TestCLZ() {
 }
 
 static bool TestMemMap() {
-	Memory::g_MemorySize = Memory::RAM_DOUBLE_SIZE;
+	Memory_P::g_MemorySize = Memory_P::RAM_DOUBLE_SIZE;
 
 	enum class Flags {
 		NO_KERNEL = 0,
@@ -497,8 +497,8 @@ static bool TestMemMap() {
 		Flags flags;
 	};
 	static const Range ranges[] = {
-		{ 0x08000000, Memory::RAM_DOUBLE_SIZE, Flags::ALLOW_KERNEL },
-		{ 0x00010000, Memory::SCRATCHPAD_SIZE, Flags::NO_KERNEL },
+		{ 0x08000000, Memory_P::RAM_DOUBLE_SIZE, Flags::ALLOW_KERNEL },
+		{ 0x00010000, Memory_P::SCRATCHPAD_SIZE, Flags::NO_KERNEL },
 		{ 0x04000000, 0x00800000, Flags::NO_KERNEL },
 	};
 	static const uint32_t extraBits[] = {
@@ -512,19 +512,19 @@ static bool TestMemMap() {
 		for (size_t i = 0; i < testBits; ++i) {
 			uint32_t base = range.base | extraBits[i];
 
-			EXPECT_TRUE(Memory::IsValidAddress(base));
-			EXPECT_TRUE(Memory::IsValidAddress(base + range.size - 1));
-			EXPECT_FALSE(Memory::IsValidAddress(base + range.size));
-			EXPECT_FALSE(Memory::IsValidAddress(base - 1));
+			EXPECT_TRUE(Memory_P::IsValidAddress(base));
+			EXPECT_TRUE(Memory_P::IsValidAddress(base + range.size - 1));
+			EXPECT_FALSE(Memory_P::IsValidAddress(base + range.size));
+			EXPECT_FALSE(Memory_P::IsValidAddress(base - 1));
 
-			EXPECT_EQ_HEX(Memory::ValidSize(base, range.size), range.size);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, range.size + 1), range.size);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, range.size - 1), range.size - 1);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, 0), 0);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, 0x80000001), range.size);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, 0x40000001), range.size);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, 0x20000001), range.size);
-			EXPECT_EQ_HEX(Memory::ValidSize(base, 0x10000001), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, range.size), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, range.size + 1), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, range.size - 1), range.size - 1);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, 0), 0);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, 0x80000001), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, 0x40000001), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, 0x20000001), range.size);
+			EXPECT_EQ_HEX(Memory_P::ValidSize(base, 0x10000001), range.size);
 		}
 	}
 

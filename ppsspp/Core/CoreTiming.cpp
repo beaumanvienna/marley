@@ -41,7 +41,7 @@ int CPU_HZ = 222000000;
 #define INITIAL_SLICE_LENGTH 20000
 #define MAX_SLICE_LENGTH 100000000
 
-namespace CoreTiming
+namespace CoreTiming_P
 {
 
 struct EventType

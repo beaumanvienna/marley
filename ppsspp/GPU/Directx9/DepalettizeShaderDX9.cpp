@@ -177,7 +177,7 @@ LPDIRECT3DPIXELSHADER9 DepalShaderCacheDX9::GetDepalettizePixelShader(uint32_t c
 std::vector<std::string> DepalShaderCacheDX9::DebugGetShaderIDs(DebugShaderType type) {
 	std::vector<std::string> ids;
 	for (auto &iter : cache_) {
-		ids.push_back(StringFromFormat("%08x", iter.first));
+		ids.push_back(PStringFromFormat("%08x", iter.first));
 	}
 	return ids;
 }

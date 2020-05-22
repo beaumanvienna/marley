@@ -89,7 +89,7 @@ void hleDelayResultFinish(u64 userdata, int cycleslate)
 void HLEInit()
 {
 	RegisterAllModules();
-	delayedResultEvent = CoreTiming::RegisterEvent("HLEDelayedResult", hleDelayResultFinish);
+	delayedResultEvent = CoreTiming_P::RegisterEvent("HLEDelayedResult", hleDelayResultFinish);
 	idleOp = GetSyscallOp("FakeSysCalls", NID_IDLE);
 }
 
@@ -102,7 +102,7 @@ void HLEDoState(PointerWrap &p)
 	// Can't be inside a syscall, reset this so errors aren't misleading.
 	latestSyscall = nullptr;
 	p.Do(delayedResultEvent);
-	CoreTiming::RestoreRegisterEvent(delayedResultEvent, "HLEDelayedResult", hleDelayResultFinish);
+	CoreTiming_P::RestoreRegisterEvent(delayedResultEvent, "HLEDelayedResult", hleDelayResultFinish);
 }
 
 void HLEShutdown()
@@ -208,17 +208,17 @@ bool FuncImportIsSyscall(const char *module, u32 nib)
 void WriteFuncStub(u32 stubAddr, u32 symAddr)
 {
 	// Note that this should be J not JAL, as otherwise control will return to the stub..
-	Memory::PWrite_U32(MIPS_MAKE_J(symAddr), stubAddr);
+	Memory_P::PWrite_U32(MIPS_MAKE_J(symAddr), stubAddr);
 	// Note: doing that, we can't trace external module calls, so maybe something else should be done to debug more efficiently
 	// Perhaps a syscall here (and verify support in jit), marking the module by uid (debugIdentifier)?
-	Memory::PWrite_U32(MIPS_MAKE_NOP(), stubAddr + 4);
+	Memory_P::PWrite_U32(MIPS_MAKE_NOP(), stubAddr + 4);
 }
 
 void WriteFuncMissingStub(u32 stubAddr, u32 nid)
 {
 	// Write a trap so we notice this func if it's called before resolving.
-	Memory::PWrite_U32(MIPS_MAKE_JR_RA(), stubAddr); // jr ra
-	Memory::PWrite_U32(GetSyscallOp(NULL, nid), stubAddr + 4);
+	Memory_P::PWrite_U32(MIPS_MAKE_JR_RA(), stubAddr); // jr ra
+	Memory_P::PWrite_U32(GetSyscallOp(NULL, nid), stubAddr + 4);
 }
 
 bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
@@ -226,15 +226,15 @@ bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
 	if (nib == 0)
 	{
 		WARN_LOG_REPORT(HLE, "Wrote patched out nid=0 syscall (%s)", moduleName);
-		Memory::PWrite_U32(MIPS_MAKE_JR_RA(), address); //patched out?
-		Memory::PWrite_U32(MIPS_MAKE_NOP(), address+4); //patched out?
+		Memory_P::PWrite_U32(MIPS_MAKE_JR_RA(), address); //patched out?
+		Memory_P::PWrite_U32(MIPS_MAKE_NOP(), address+4); //patched out?
 		return true;
 	}
 	int modindex = GetModuleIndex(moduleName);
 	if (modindex != -1)
 	{
-		Memory::PWrite_U32(MIPS_MAKE_JR_RA(), address); // jr ra
-		Memory::PWrite_U32(GetSyscallOp(moduleName, nib), address + 4);
+		Memory_P::PWrite_U32(MIPS_MAKE_JR_RA(), address); // jr ra
+		Memory_P::PWrite_U32(GetSyscallOp(moduleName, nib), address + 4);
 		return true;
 	}
 	else
@@ -320,7 +320,7 @@ u32 hleDelayResult(u32 result, const char *reason, int usec)
 {
 	if (__KernelIsDispatchEnabled())
 	{
-		CoreTiming::ScheduleEvent(usToCycles(usec), delayedResultEvent, __KernelGetCurThread());
+		CoreTiming_P::ScheduleEvent(usToCycles(usec), delayedResultEvent, __KernelGetCurThread());
 		__KernelWaitCurThread(WAITTYPE_HLEDELAY, 1, result, 0, false, reason);
 	}
 	else
@@ -333,7 +333,7 @@ u64 hleDelayResult(u64 result, const char *reason, int usec)
 	if (__KernelIsDispatchEnabled())
 	{
 		u64 param = (result & 0xFFFFFFFF00000000) | __KernelGetCurThread();
-		CoreTiming::ScheduleEvent(usToCycles(usec), delayedResultEvent, param);
+		CoreTiming_P::ScheduleEvent(usToCycles(usec), delayedResultEvent, param);
 		__KernelWaitCurThread(WAITTYPE_HLEDELAY, 1, (u32) result, 0, false, reason);
 	}
 	else
@@ -445,7 +445,7 @@ inline void CallSyscallWithFlags(const HLEFunction *info)
 	if (flags & HLE_CLEAR_STACK_BYTES) {
 		u32 stackStart = __KernelGetCurThreadStackStart();
 		if (currentMIPS->r[MIPS_REG_SP] - info->stackBytesToClear >= stackStart) {
-			Memory::Memset(currentMIPS->r[MIPS_REG_SP] - info->stackBytesToClear, 0, info->stackBytesToClear);
+			Memory_P::Memset(currentMIPS->r[MIPS_REG_SP] - info->stackBytesToClear, 0, info->stackBytesToClear);
 		}
 	}
 
@@ -578,33 +578,33 @@ size_t hleFormatLogArgs(char *message, size_t sz, const char *argmask) {
 			u32 sp = currentMIPS->r[MIPS_REG_SP];
 			// Goes upward on stack.
 			// NOTE: Currently we only support > 8 for 32-bit integer args.
-			regval = Memory::PRead_U32(sp + (reg - 8) * 4);
+			regval = Memory_P::PRead_U32(sp + (reg - 8) * 4);
 		}
 
 		switch (argmask[i]) {
 		case 'p':
-			if (Memory::IsValidAddress(regval)) {
-				APPEND_FMT("%08x[%08x]", regval, Memory::PRead_U32(regval));
+			if (Memory_P::IsValidAddress(regval)) {
+				APPEND_FMT("%08x[%08x]", regval, Memory_P::PRead_U32(regval));
 			} else {
 				APPEND_FMT("%08x[invalid]", regval);
 			}
 			break;
 
 		case 'P':
-			if (Memory::IsValidAddress(regval)) {
-				APPEND_FMT("%08x[%016llx]", regval, Memory::PRead_U64(regval));
+			if (Memory_P::IsValidAddress(regval)) {
+				APPEND_FMT("%08x[%016llx]", regval, Memory_P::PRead_U64(regval));
 			} else {
 				APPEND_FMT("%08x[invalid]", regval);
 			}
 			break;
 
 		case 's':
-			if (Memory::IsValidAddress(regval)) {
-				const char *s = Memory::GetCharPointer(regval);
+			if (Memory_P::IsValidAddress(regval)) {
+				const char *s = Memory_P::GetCharPointer(regval);
 				if (strnlen(s, 64) >= 64) {
-					APPEND_FMT("%.64s...", Memory::GetCharPointer(regval));
+					APPEND_FMT("%.64s...", Memory_P::GetCharPointer(regval));
 				} else {
-					APPEND_FMT("%s", Memory::GetCharPointer(regval));
+					APPEND_FMT("%s", Memory_P::GetCharPointer(regval));
 				}
 			} else {
 				APPEND_FMT("(invalid)");

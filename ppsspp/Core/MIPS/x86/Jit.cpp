@@ -318,7 +318,7 @@ u32 Jit::GetCompilerPC() {
 }
 
 MIPSOpcode Jit::GetOffsetInstruction(int offset) {
-	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
+	return Memory_P::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
@@ -354,7 +354,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 		// Jit breakpoints are quite fast, so let's do them in release too.
 		CheckJitBreakpoint(GetCompilerPC(), 0);
 
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
+		MIPSOpcode inst = Memory_P::Read_Opcode_JIT(GetCompilerPC());
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst, this);
@@ -579,7 +579,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op) {
 
 	// Hack for old savestates: Avoid stack overflow (MIPSCompileOp/CompReplacementFunc)
 	// Not sure about the cause.
-	Memory::Opcode origInstruction = Memory::Read_Instruction(GetCompilerPC(), true);
+	Memory_P::Opcode origInstruction = Memory_P::Read_Instruction(GetCompilerPC(), true);
 	if (origInstruction.encoding == op.encoding) {
 		ERROR_LOG(HLE, "Replacement broken (savestate problem?): %08x", op.encoding);
 		return;
@@ -613,7 +613,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op) {
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			PMOV(32, R(ECX), MIPSSTATE_VAR(r[MIPS_REG_RA]));
 			PSUB(32, MIPSSTATE_VAR(downcount), R(EAX));
@@ -659,7 +659,7 @@ void Jit::Comp_Generic(MIPSOpcode op) {
 void Jit::WriteExit(u32 destination, int exit_num) {
 	_dbg_assert_msg_(JIT, exit_num < MAX_JIT_BLOCK_EXITS, "Expected a valid exit_num");
 
-	if (!Memory::IsValidAddress(destination)) {
+	if (!Memory_P::IsValidAddress(destination)) {
 		ERROR_LOG_REPORT(JIT, "Trying to write block exit to illegal destination %08x: pc = %08x", destination, currentMIPS->pc);
 	}
 	// If we need to verify coreState and rewind, we may not jump yet.
@@ -741,7 +741,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		PSetJumpTarget(tooLow);
 		PSetJumpTarget(tooHigh);
 
-		ABI_CallFunctionA((const void *)&Memory::GetPointer, R(reg));
+		ABI_CallFunctionA((const void *)&Memory_P::GetPointer, R(reg));
 
 		// If we're ignoring, coreState didn't trip - so trip it now.
 		if (g_PConfig.bIgnoreBadMemAccess) {

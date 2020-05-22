@@ -91,7 +91,7 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 	// u32 addr = R(rs) + offset;
 	std::vector<FixupBranch> skips;
 	switch (op >> 26) {
-	case 49: //FI(ft) = Memory::PRead_U32(addr); break; //lwc1
+	case 49: //FI(ft) = Memory_P::PRead_U32(addr); break; //lwc1
 		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
@@ -123,7 +123,7 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 		fpr.ReleaseSpillLocksAndDiscardTemps();
 		break;
 
-	case 57: //Memory::PWrite_U32(FI(ft), addr); break; //swc1
+	case 57: //Memory_P::PWrite_U32(FI(ft), addr); break; //swc1
 		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, 0);

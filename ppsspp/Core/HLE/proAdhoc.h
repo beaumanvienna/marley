@@ -243,7 +243,7 @@ typedef struct SceNetAdhocctlPeerInfo {
   SceNetEtherAddr mac_addr;
   u32_le ip_addr;
   uint8_t padding[2];
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocctlPeerInfo;
 
 // Peer Information with u32 pointers
@@ -253,7 +253,7 @@ typedef struct SceNetAdhocctlPeerInfoEmu {
   SceNetEtherAddr mac_addr;
   u32_le ip_addr; //jpcsp wrote 6bytes of 0x11 for this & padding
   u16 padding; // Changed the padding to u16
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocctlPeerInfoEmu;
 
 // Member Information
@@ -310,7 +310,7 @@ typedef struct SceNetAdhocPtpStat {
 typedef struct SceNetAdhocGameModeOptData {
   u32_le size;
   u32_le flag;
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocGameModeOptData;
 
 // Gamemode Buffer Status
@@ -349,7 +349,7 @@ typedef struct SceNetAdhocMatchingMemberInternal {
   s32_le sending;
 
   // Last Heartbeat
-  u64_le lastping; // May need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le lastping; // May need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } SceNetAdhocMatchingMemberInternal;
 
 

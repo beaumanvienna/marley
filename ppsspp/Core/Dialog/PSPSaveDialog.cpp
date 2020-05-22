@@ -73,15 +73,15 @@ int PSPSaveDialog::Init(int paramAddr)
 	ioThreadStatus = SAVEIO_NONE;
 
 	requestAddr = paramAddr;
-	int size = Memory::PRead_U32(requestAddr);
+	int size = Memory_P::PRead_U32(requestAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different save request format
 	if (size != SAVEDATA_DIALOG_SIZE_V1 && size != SAVEDATA_DIALOG_SIZE_V2 && size != SAVEDATA_DIALOG_SIZE_V3) {
 		ERROR_LOG_REPORT(SCEUTILITY, "sceUtilitySavedataInitStart: invalid size %d", size);
 		return SCE_ERROR_UTILITY_INVALID_PARAM_SIZE;
 	}
-	Memory::Memcpy(&request, requestAddr, size);
-	Memory::Memcpy(&originalRequest, requestAddr, size);
+	Memory_P::Memcpy(&request, requestAddr, size);
+	Memory_P::Memcpy(&originalRequest, requestAddr, size);
 
 	int retval = param.SetPspParam(&request);
 
@@ -525,7 +525,7 @@ void PSPSaveDialog::DisplaySaveDataInfo2(bool showNewData) {
 		snprintf(date, 256, "%d/%02d/%02d", year, month, day);
 	}
 
-	std::string saveinfoTxt = StringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date, hour_time, sizeK);
+	std::string saveinfoTxt = PStringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date, hour_time, sizeK);
 	PPGeDrawText(saveinfoTxt.c_str(), 9, 202, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0x80000000));
 	PPGeDrawText(saveinfoTxt.c_str(), 8, 200, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0xFFFFFFFF));
 }
@@ -598,11 +598,11 @@ int PSPSaveDialog::Update(int animSpeed)
 	// The struct may have been updated by the game.  This happens in "Where Is My Heart?"
 	// Check if it has changed, reload it.
 	// TODO: Cut down on preloading?  This rebuilds the list from scratch.
-	int size = Memory::PRead_U32(requestAddr);
-	if (memcmp(Memory::GetPointer(requestAddr), &originalRequest, size) != 0) {
+	int size = Memory_P::PRead_U32(requestAddr);
+	if (memcmp(Memory_P::GetPointer(requestAddr), &originalRequest, size) != 0) {
 		memset(&request, 0, sizeof(request));
-		Memory::Memcpy(&request, requestAddr, size);
-		Memory::Memcpy(&originalRequest, requestAddr, size);
+		Memory_P::Memcpy(&request, requestAddr, size);
+		Memory_P::Memcpy(&originalRequest, requestAddr, size);
 		std::lock_guard<std::mutex> guard(paramLock);
 		param.SetPspParam(&request);
 	}
@@ -1010,7 +1010,7 @@ int PSPSaveDialog::Update(int animSpeed)
 	}
 
 	if (status == SCE_UTILITY_STATUS_FINISHED || pendingStatus == SCE_UTILITY_STATUS_FINISHED)
-		Memory::Memcpy(requestAddr, &request, request.common.size);
+		Memory_P::Memcpy(requestAddr, &request, request.common.size);
 	
 	return 0;
 }

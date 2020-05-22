@@ -113,7 +113,7 @@ void addFriend(SceNetAdhocctlConnectPacketS2C * packet) {
 		peer->mac_addr = packet->mac;
 		peer->ip_addr = packet->ip;
 		// Update TimeStamp
-		peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+		peer->last_recv = CoreTiming_P::GetGlobalTimeUsScaled();
 	}
 	else
 	{
@@ -134,7 +134,7 @@ void addFriend(SceNetAdhocctlConnectPacketS2C * packet) {
 			peer->ip_addr = packet->ip;
 
 			// TimeStamp
-			peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+			peer->last_recv = CoreTiming_P::GetGlobalTimeUsScaled();
 
 			// Link to existing Peers
 			peer->next = friends;
@@ -407,7 +407,7 @@ void postAcceptAddSiblings(SceNetAdhocMatchingContext * context, int siblingcoun
 			sibling->state = PSP_ADHOC_MATCHING_PEER_CHILD;
 
 			// Initialize Ping Timer
-			sibling->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+			sibling->lastping = CoreTiming_P::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 			// Link Peer, should check whether it's already added before
 			sibling->next = context->peerlist;
@@ -797,7 +797,7 @@ void handleTimeout(SceNetAdhocMatchingContext * context)
 		// Get Next Pointer (to avoid crash on memory freeing)
 		SceNetAdhocMatchingMemberInternal * next = peer->next;
 
-		u64_le now = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0
+		u64_le now = CoreTiming_P::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0
 		// Timeout!
 		if ((now - peer->lastping) >= context->timeout) 
 		{
@@ -942,11 +942,11 @@ void notifyMatchingHandler(SceNetAdhocMatchingContext * context, ThreadMessage *
 	//u32_le args[5] = { 0, 0, 0, 0, 0 };
 	if ((s32)bufLen < (msg->optlen + 8)) {
 		bufLen = msg->optlen + 8;
-		if (Memory::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
+		if (Memory_P::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
 		bufAddr = userMemory.Alloc(bufLen);
 		INFO_LOG(SCENET, "MatchingHandler: Alloc(%i -> %i) = %08x", msg->optlen + 8, bufLen, bufAddr);
 	}
-	u8 * optPtr = Memory::GetPointer(bufAddr);
+	u8 * optPtr = Memory_P::GetPointer(bufAddr);
 	memcpy(optPtr, &msg->mac, sizeof(msg->mac));
 	if (msg->optlen > 0) memcpy(optPtr + 8, opt, msg->optlen);
 	args[0] = context->id;

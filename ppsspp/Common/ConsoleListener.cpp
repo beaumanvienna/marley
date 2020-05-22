@@ -549,11 +549,11 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	{
 		Str.resize(Str.size() + 1);
 		if (!ReadConsoleOutputCharacter(hConsole, Str.back().data(), ReadBufferSize, coordScreen, &cCharsRead))
-			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
+			SLog += PStringFromFormat("WriteConsoleOutputCharacter error");
 
 		Attr.resize(Attr.size() + 1);
 		if (!ReadConsoleOutputAttribute(hConsole, Attr.back().data(), ReadBufferSize, coordScreen, &cAttrRead))
-			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
+			SLog += PStringFromFormat("WriteConsoleOutputAttribute error");
 
 		// Break on error
 		if (cAttrRead == 0) break;
@@ -579,9 +579,9 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	for (size_t i = 0; i < Attr.size(); i++)
 	{
 		if (!WriteConsoleOutputCharacter(hConsole, Str[i].data(), ReadBufferSize, coordScreen, &cCharsWritten))
-			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
+			SLog += PStringFromFormat("WriteConsoleOutputCharacter error");
 		if (!WriteConsoleOutputAttribute(hConsole, Attr[i].data(), ReadBufferSize, coordScreen, &cAttrWritten))
-			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
+			SLog += PStringFromFormat("WriteConsoleOutputAttribute error");
 
 		BytesWritten += cAttrWritten;
 		coordScreen = GetCoordinates(BytesWritten, LBufWidth);

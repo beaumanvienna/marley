@@ -30,9 +30,9 @@
 // Not really sure where these belong - is it worth giving them their own file?
 u32 sceKernelUtilsMt19937Init(u32 ctx, u32 seed) {
 	DEBUG_LOG(HLE, "sceKernelUtilsMt19937Init(%08x, %08x)", ctx, seed);
-	if (!Memory::IsValidAddress(ctx))
+	if (!Memory_P::IsValidAddress(ctx))
 		return -1;
-	void *ptr = Memory::GetPointer(ctx);
+	void *ptr = Memory_P::GetPointer(ctx);
 	// This is made to match the memory layout of a PSP MT structure exactly.
 	// Let's just construct it in place with placement new. Elite C++ hackery FTW.
 	new (ptr) MersenneTwister(seed);
@@ -41,9 +41,9 @@ u32 sceKernelUtilsMt19937Init(u32 ctx, u32 seed) {
 
 u32 sceKernelUtilsMt19937UInt(u32 ctx) {
 	VERBOSE_LOG(HLE, "sceKernelUtilsMt19937UInt(%08x)", ctx);
-	if (!Memory::IsValidAddress(ctx))
+	if (!Memory_P::IsValidAddress(ctx))
 		return -1;
-	MersenneTwister *mt = (MersenneTwister *)Memory::GetPointer(ctx);
+	MersenneTwister *mt = (MersenneTwister *)Memory_P::GetPointer(ctx);
 	return mt->R32();
 }
 
@@ -54,16 +54,16 @@ static md5_context md5_ctx;
 static int sceMd5Digest(u32 dataAddr, u32 len, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceMd5Digest(%08x, %d, %08x)", dataAddr, len, digestAddr);
 
-	if (!Memory::IsValidAddress(dataAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(dataAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	md5(Memory::GetPointer(dataAddr), (int)len, Memory::GetPointer(digestAddr));
+	md5(Memory_P::GetPointer(dataAddr), (int)len, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 
 static int sceMd5BlockInit(u32 ctxAddr) {
 	DEBUG_LOG(HLE, "sceMd5BlockInit(%08x)", ctxAddr);
-	if (!Memory::IsValidAddress(ctxAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr))
 		return -1;
 
 	// TODO: Until I know how large a context is, we just go all lazy and use a global context,
@@ -75,35 +75,35 @@ static int sceMd5BlockInit(u32 ctxAddr) {
 
 static int sceMd5BlockUpdate(u32 ctxAddr, u32 dataPtr, u32 len) {
 	DEBUG_LOG(HLE, "sceMd5BlockUpdate(%08x, %08x, %d)", ctxAddr, dataPtr, len);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(dataPtr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(dataPtr))
 		return -1;
 	
-	md5_update(&md5_ctx, Memory::GetPointer(dataPtr), (int)len);
+	md5_update(&md5_ctx, Memory_P::GetPointer(dataPtr), (int)len);
 	return 0;
 }
 
 static int sceMd5BlockResult(u32 ctxAddr, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceMd5BlockResult(%08x, %08x)", ctxAddr, digestAddr);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	md5_Pfinish(&md5_ctx, Memory::GetPointer(digestAddr));
+	md5_Pfinish(&md5_ctx, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 
 int sceKernelUtilsMd5Digest(u32 dataAddr, int len, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsMd5Digest(%08x, %d, %08x)", dataAddr, len, digestAddr);
 
-	if (!Memory::IsValidAddress(dataAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(dataAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	md5(Memory::GetPointer(dataAddr), (int)len, Memory::GetPointer(digestAddr));
+	md5(Memory_P::GetPointer(dataAddr), (int)len, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 
 int sceKernelUtilsMd5BlockInit(u32 ctxAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsMd5BlockInit(%08x)", ctxAddr);
-	if (!Memory::IsValidAddress(ctxAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr))
 		return -1;
 
 	// TODO: Until I know how large a context is, we just go all lazy and use a global context,
@@ -115,19 +115,19 @@ int sceKernelUtilsMd5BlockInit(u32 ctxAddr) {
 
 int sceKernelUtilsMd5BlockUpdate(u32 ctxAddr, u32 dataPtr, int len) {
 	DEBUG_LOG(HLE, "sceKernelUtilsMd5BlockUpdate(%08x, %08x, %d)", ctxAddr, dataPtr, len);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(dataPtr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(dataPtr))
 		return -1;
 
-	md5_update(&md5_ctx, Memory::GetPointer(dataPtr), (int)len);
+	md5_update(&md5_ctx, Memory_P::GetPointer(dataPtr), (int)len);
 	return 0;
 }
 
 int sceKernelUtilsMd5BlockResult(u32 ctxAddr, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsMd5BlockResult(%08x, %08x)", ctxAddr, digestAddr);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	md5_Pfinish(&md5_ctx, Memory::GetPointer(digestAddr));
+	md5_Pfinish(&md5_ctx, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 
@@ -137,16 +137,16 @@ static sha1_context sha1_ctx;
 int sceKernelUtilsSha1Digest(u32 dataAddr, int len, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsSha1Digest(%08x, %d, %08x)", dataAddr, len, digestAddr);
 
-	if (!Memory::IsValidAddress(dataAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(dataAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	sha1(Memory::GetPointer(dataAddr), (int)len, Memory::GetPointer(digestAddr));
+	sha1(Memory_P::GetPointer(dataAddr), (int)len, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 
 int sceKernelUtilsSha1BlockInit(u32 ctxAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsSha1BlockInit(%08x)", ctxAddr);
-	if (!Memory::IsValidAddress(ctxAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr))
 		return -1;
 
 	// TODO: Until I know how large a context is, we just go all lazy and use a global context,
@@ -159,19 +159,19 @@ int sceKernelUtilsSha1BlockInit(u32 ctxAddr) {
 
 int sceKernelUtilsSha1BlockUpdate(u32 ctxAddr, u32 dataAddr, int len) {
 	DEBUG_LOG(HLE, "sceKernelUtilsSha1BlockUpdate(%08x, %08x, %d)", ctxAddr, dataAddr, len);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(dataAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(dataAddr))
 		return -1;
 
-	sha1_update(&sha1_ctx, Memory::GetPointer(dataAddr), (int)len);
+	sha1_update(&sha1_ctx, Memory_P::GetPointer(dataAddr), (int)len);
 	return 0;
 }
 
 int sceKernelUtilsSha1BlockResult(u32 ctxAddr, u32 digestAddr) {
 	DEBUG_LOG(HLE, "sceKernelUtilsSha1BlockResult(%08x, %08x)", ctxAddr, digestAddr);
-	if (!Memory::IsValidAddress(ctxAddr) || !Memory::IsValidAddress(digestAddr))
+	if (!Memory_P::IsValidAddress(ctxAddr) || !Memory_P::IsValidAddress(digestAddr))
 		return -1;
 
-	sha1_finish(&sha1_ctx, Memory::GetPointer(digestAddr));
+	sha1_finish(&sha1_ctx, Memory_P::GetPointer(digestAddr));
 	return 0;
 }
 

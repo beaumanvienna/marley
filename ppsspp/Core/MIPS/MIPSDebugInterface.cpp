@@ -175,13 +175,13 @@ public:
 		switch (size)
 		{
 		case 1:
-			dest = Memory::PRead_U8(address);
+			dest = Memory_P::PRead_U8(address);
 			break;
 		case 2:
-			dest = Memory::PRead_U16(address);
+			dest = Memory_P::PRead_U16(address);
 			break;
 		case 4:
-			dest = Memory::PRead_U32(address);
+			dest = Memory_P::PRead_U32(address);
 			break;
 		}
 
@@ -197,8 +197,8 @@ private:
 const char *MIPSDebugInterface::disasm(unsigned int address, unsigned int align)
 {
 	static char mojs[256];
-	if (Memory::IsValidAddress(address))
-		MIPSDisAsm(Memory::Read_Opcode_JIT(address), address, mojs);
+	if (Memory_P::IsValidAddress(address))
+		MIPSDisAsm(Memory_P::Read_Opcode_JIT(address), address, mojs);
 	else
 		strcpy(mojs, "-");
 	return mojs;
@@ -206,7 +206,7 @@ const char *MIPSDebugInterface::disasm(unsigned int address, unsigned int align)
 
 unsigned int MIPSDebugInterface::readMemory(unsigned int address)
 {
-	return Memory::Read_Instruction(address).encoding;
+	return Memory_P::Read_Instruction(address).encoding;
 }
 
 bool MIPSDebugInterface::isAlive()

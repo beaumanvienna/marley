@@ -610,11 +610,11 @@ static u32 sceKernelMemset(u32 addr, u32 fillc, u32 n)
 	DEBUG_LOG(SCEINTC, "sceKernelMemset(ptr = %08x, c = %02x, n = %08x)", addr, c, n);
 	bool skip = false;
 	if (n != 0) {
-		if (Memory::IsVRAMAddress(addr)) {
+		if (Memory_P::IsVRAMAddress(addr)) {
 			skip = gpu->PerformMemorySet(addr, fillc, n);
 		}
 		if (!skip) {
-			Memory::Memset(addr, c, n);
+			Memory_P::Memset(addr, c, n);
 		}
 	}
 	return addr;
@@ -628,15 +628,15 @@ static u32 sceKernelMemcpy(u32 dst, u32 src, u32 size)
 	currentMIPS->InvalidateICache(src, size);
 
 	bool skip = false;
-	if (Memory::IsVRAMAddress(src) || Memory::IsVRAMAddress(dst)) {
+	if (Memory_P::IsVRAMAddress(src) || Memory_P::IsVRAMAddress(dst)) {
 		skip = gpu->PerformMemoryCopy(dst, src, size);
 	}
 
 	// Technically should crash if these are invalid and size > 0...
-	if (!skip && Memory::IsValidAddress(dst) && Memory::IsValidAddress(src) && Memory::IsValidAddress(dst + size - 1) && Memory::IsValidAddress(src + size - 1))
+	if (!skip && Memory_P::IsValidAddress(dst) && Memory_P::IsValidAddress(src) && Memory_P::IsValidAddress(dst + size - 1) && Memory_P::IsValidAddress(src + size - 1))
 	{
-		u8 *dstp = Memory::GetPointerUnchecked(dst);
-		u8 *srcp = Memory::GetPointerUnchecked(src);
+		u8 *dstp = Memory_P::GetPointerUnchecked(dst);
+		u8 *srcp = Memory_P::GetPointerUnchecked(src);
 
 		// If it's non-overlapping, just do it in one go.
 		if (dst + size < src || src + size < dst)
@@ -684,24 +684,24 @@ const HLEFunction Kernel_Library[] =
 
 static u32 sysclib_memcpy(u32 dst, u32 src, u32 size) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_memcpy(dest=%08x, src=%08x, size=%i)", dst, src, size);
-	if (Memory::IsValidRange(dst, size) && Memory::IsValidRange(src, size)) {
-		memcpy(Memory::GetPointer(dst), Memory::GetPointer(src), size);
+	if (Memory_P::IsValidRange(dst, size) && Memory_P::IsValidRange(src, size)) {
+		memcpy(Memory_P::GetPointer(dst), Memory_P::GetPointer(src), size);
 	}
 	return dst;
 }
 
 static u32 sysclib_strcat(u32 dst, u32 src) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_strcat(dest=%08x, src=%08x)", dst, src);
-	if (Memory::IsValidAddress(dst) && Memory::IsValidAddress(src)) {
-		strcat((char *)Memory::GetPointer(dst), (char *)Memory::GetPointer(src));
+	if (Memory_P::IsValidAddress(dst) && Memory_P::IsValidAddress(src)) {
+		strcat((char *)Memory_P::GetPointer(dst), (char *)Memory_P::GetPointer(src));
 	}
 	return dst;
 }
 
 static int sysclib_strcmp(u32 dst, u32 src) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_strcmp(dest=%08x, src=%08x)", dst, src);
-	if (Memory::IsValidAddress(dst) && Memory::IsValidAddress(src)) {
-		return strcmp((char *)Memory::GetPointer(dst), (char *)Memory::GetPointer(src));
+	if (Memory_P::IsValidAddress(dst) && Memory_P::IsValidAddress(src)) {
+		return strcmp((char *)Memory_P::GetPointer(dst), (char *)Memory_P::GetPointer(src));
 	} else {
 		// What to do? Crash, probably.
 		return 0;
@@ -710,16 +710,16 @@ static int sysclib_strcmp(u32 dst, u32 src) {
 
 static u32 sysclib_strcpy(u32 dst, u32 src) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_strcpy(dest=%08x, src=%08x)", dst, src);
-	if (Memory::IsValidAddress(dst) && Memory::IsValidAddress(src)) {
-		strcpy((char *)Memory::GetPointer(dst), (char *)Memory::GetPointer(src));
+	if (Memory_P::IsValidAddress(dst) && Memory_P::IsValidAddress(src)) {
+		strcpy((char *)Memory_P::GetPointer(dst), (char *)Memory_P::GetPointer(src));
 	}
 	return dst;
 }
 
 static u32 sysclib_strlen(u32 src) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_strlen(src=%08x)", src);
-	if (Memory::IsValidAddress(src)) {
-		return (u32)strlen(Memory::GetCharPointer(src));
+	if (Memory_P::IsValidAddress(src)) {
+		return (u32)strlen(Memory_P::GetCharPointer(src));
 	} else {
 		// What to do? Crash, probably.
 		return 0;
@@ -728,8 +728,8 @@ static u32 sysclib_strlen(u32 src) {
 
 static int sysclib_memcmp(u32 dst, u32 src, u32 size) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_memcmp(dest=%08x, src=%08x, size=%i)", dst, src, size);
-	if (Memory::IsValidRange(dst, size) && Memory::IsValidRange(src, size)) {
-		return memcmp(Memory::GetCharPointer(dst), Memory::GetCharPointer(src), size);
+	if (Memory_P::IsValidRange(dst, size) && Memory_P::IsValidRange(src, size)) {
+		return memcmp(Memory_P::GetCharPointer(dst), Memory_P::GetCharPointer(src), size);
 	} else {
 		// What to do? Crash, probably.
 		return 0;
@@ -738,9 +738,9 @@ static int sysclib_memcmp(u32 dst, u32 src, u32 size) {
 
 static int sysclib_sprintf(u32 dst, u32 fmt) {
 	ERROR_LOG(SCEKERNEL, "Unimpl sysclib_sprintf(dest=%08x, src=%08x)", dst, fmt);
-	if (Memory::IsValidAddress(dst) && Memory::IsValidAddress(fmt)) {
+	if (Memory_P::IsValidAddress(dst) && Memory_P::IsValidAddress(fmt)) {
 		// TODO: Properly use the format string with more parameters.
-		return sprintf((char *)Memory::GetPointer(dst), "%s", Memory::GetCharPointer(fmt));
+		return sprintf((char *)Memory_P::GetPointer(dst), "%s", Memory_P::GetCharPointer(fmt));
 	} else {
 		// What to do? Crash, probably.
 		return 0;
@@ -749,8 +749,8 @@ static int sysclib_sprintf(u32 dst, u32 fmt) {
 
 static u32 sysclib_memset(u32 destAddr, int data, int size) {
 	ERROR_LOG(SCEKERNEL, "Untested sysclib_memset(dest=%08x, data=%d ,size=%d)", destAddr, data, size);
-	if (Memory::IsValidRange(destAddr, size)) {
-		memset(Memory::GetPointer(destAddr), data, size);
+	if (Memory_P::IsValidRange(destAddr, size)) {
+		memset(Memory_P::GetPointer(destAddr), data, size);
 	}
 	return 0;
 }

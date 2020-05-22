@@ -442,7 +442,7 @@ VirtualFramebuffer *FramebufferManagerCommon::DoSetRenderFrameBuffer(const Frame
 		SetColorUpdated(vfb, skipDrawReason);
 
 		u32 byteSize = ColorBufferByteSize(vfb);
-		if (Memory::IsVRAMAddress(params.fb_address) && params.fb_address + byteSize > framebufRangeEnd_) {
+		if (Memory_P::IsVRAMAddress(params.fb_address) && params.fb_address + byteSize > framebufRangeEnd_) {
 			framebufRangeEnd_ = params.fb_address + byteSize;
 		}
 
@@ -689,7 +689,7 @@ void FramebufferManagerCommon::UpdateFromMemory(u32 addr, int size, bool safe) {
 	bool isDisplayBuf = addr == DisplayFramebufAddr() || addr == PrevDisplayFramebufAddr();
 	if (isDisplayBuf || safe) {
 		// TODO: Deleting the FBO is a heavy hammer solution, so let's only do it if it'd help.
-		if (!Memory::IsValidAddress(displayFramebufPtr_))
+		if (!Memory_P::IsValidAddress(displayFramebufPtr_))
 			return;
 
 		for (size_t i = 0; i < vfbs_.size(); ++i) {
@@ -703,7 +703,7 @@ void FramebufferManagerCommon::UpdateFromMemory(u32 addr, int size, bool safe) {
 						// If we're not rendering to it, format may be wrong.  Use displayFormat_ instead.
 						fmt = displayFormat_;
 					}
-					DrawPixels(vfb, 0, 0, Memory::GetPointer(addr), fmt, vfb->fb_stride, vfb->width, vfb->height);
+					DrawPixels(vfb, 0, 0, Memory_P::GetPointer(addr), fmt, vfb->fb_stride, vfb->width, vfb->height);
 					SetColorUpdated(vfb, gstate_c.skipDrawReason);
 				} else {
 					INFO_LOG(FRAMEBUF, "Invalidating FBO for %08x (%i x %i x %i)", vfb->fb_address, vfb->width, vfb->height, vfb->format);
@@ -897,7 +897,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 	}
 
 	if (!vfb) {
-		if (Memory::IsValidAddress(displayFramebufPtr_)) {
+		if (Memory_P::IsValidAddress(displayFramebufPtr_)) {
 			// The game is displaying something directly from RAM. In GTA, it's decoded video.
 			if (!vfb) {
 				shaderManager_->DirtyLastShader();
@@ -908,7 +908,7 @@ void FramebufferManagerCommon::CopyDisplayToOutput() {
 				// Just a pointer to plain memory to draw. We should create a framebuffer, then draw to it.
 				SetViewport2D(0, 0, pixelWidth_, pixelHeight_);
 				draw_->SetScissorRect(0, 0, pixelWidth_, pixelHeight_);
-				DrawFramebufferToOutput(Memory::GetPointer(displayFramebufPtr_), displayFormat_, displayStride_, true);
+				DrawFramebufferToOutput(Memory_P::GetPointer(displayFramebufPtr_), displayFormat_, displayStride_, true);
 				gstate_c.Dirty(DIRTY_BLEND_STATE);
 				return;
 			}
@@ -1254,7 +1254,7 @@ bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size,
 		}
 		WARN_LOG_ONCE(btucpy, G3D, "Memcpy fbo upload %08x -> %08x", src, dst);
 		FlushBeforeCopy();
-		const u8 *srcBase = Memory::GetPointerUnchecked(src);
+		const u8 *srcBase = Memory_P::GetPointerUnchecked(src);
 		DrawPixels(dstBuffer, 0, dstY, srcBase, dstBuffer->format, dstBuffer->fb_stride, dstBuffer->width, dstH);
 		SetColorUpdated(dstBuffer, skipDrawReason);
 		RebindFramebuffer();
@@ -1483,7 +1483,7 @@ void FramebufferManagerCommon::ApplyClearToMemory(int x1, int y1, int x2, int y2
 		}
 	}
 
-	u8 *addr = Memory::GetPointer(gstate.getFrameBufAddress());
+	u8 *addr = Memory_P::GetPointer(gstate.getFrameBufAddress());
 	const int bpp = gstate.FrameBufFormat() == GE_FORMAT_8888 ? 4 : 2;
 
 	u32 clearBits = clearColor;
@@ -1661,7 +1661,7 @@ void FramebufferManagerCommon::NotifyBlockTransferAfter(u32 dstBasePtr, int dstS
 		(displayBuffer != 0 && dstBasePtr == displayBuffer)) &&
 		dstStride == 512 && height == 272 && !useBufferedRendering_) {
 		FlushBeforeCopy();
-		DrawFramebufferToOutput(Memory::GetPointerUnchecked(dstBasePtr), displayFormat_, 512, false);
+		DrawFramebufferToOutput(Memory_P::GetPointerUnchecked(dstBasePtr), displayFormat_, 512, false);
 	}
 
 	if (MayIntersectFramebuffer(srcBasePtr) || MayIntersectFramebuffer(dstBasePtr)) {
@@ -1680,7 +1680,7 @@ void FramebufferManagerCommon::NotifyBlockTransferAfter(u32 dstBasePtr, int dstS
 		if (dstBuffer && !srcBuffer) {
 			WARN_LOG_ONCE(btu, G3D, "Block transfer upload %08x -> %08x", srcBasePtr, dstBasePtr);
 			FlushBeforeCopy();
-			const u8 *srcBase = Memory::GetPointerUnchecked(srcBasePtr) + (srcX + srcY * srcStride) * bpp;
+			const u8 *srcBase = Memory_P::GetPointerUnchecked(srcBasePtr) + (srcX + srcY * srcStride) * bpp;
 			int dstBpp = dstBuffer->format == GE_FORMAT_8888 ? 4 : 2;
 			float dstXFactor = (float)bpp / dstBpp;
 			if (dstWidth > dstBuffer->width || dstHeight > dstBuffer->height) {
@@ -1875,7 +1875,7 @@ bool FramebufferManagerCommon::GetFramebuffer(u32 fb_address, int fb_stride, GEB
 
 	if (!vfb) {
 		// If there's no vfb and we're drawing there, must be memory?
-		buffer = GPUDebugBuffer(Memory::GetPointer(fb_address), fb_stride, 512, format);
+		buffer = GPUDebugBuffer(Memory_P::GetPointer(fb_address), fb_stride, 512, format);
 		return true;
 	}
 
@@ -1929,7 +1929,7 @@ bool FramebufferManagerCommon::GetDepthbuffer(u32 fb_address, int fb_stride, u32
 
 	if (!vfb) {
 		// If there's no vfb and we're drawing there, must be memory?
-		buffer = GPUDebugBuffer(Memory::GetPointer(z_address), z_stride, 512, GPU_DBG_FORMAT_16BIT);
+		buffer = GPUDebugBuffer(Memory_P::GetPointer(z_address), z_stride, 512, GPU_DBG_FORMAT_16BIT);
 		return true;
 	}
 
@@ -1965,7 +1965,7 @@ bool FramebufferManagerCommon::GetStencilbuffer(u32 fb_address, int fb_stride, G
 	if (!vfb) {
 		// If there's no vfb and we're drawing there, must be memory?
 		// TODO: Actually get the stencil.
-		buffer = GPUDebugBuffer(Memory::GetPointer(fb_address), fb_stride, 512, GPU_DBG_FORMAT_8888);
+		buffer = GPUDebugBuffer(Memory_P::GetPointer(fb_address), fb_stride, 512, GPU_DBG_FORMAT_8888);
 		return true;
 	}
 
@@ -2024,12 +2024,12 @@ void FramebufferManagerCommon::PackFramebufferSync_(VirtualFramebuffer *vfb, int
 
 	const int dstByteOffset = (y * vfb->fb_stride + x) * dstBpp;
 
-	if (!Memory::IsValidRange(fb_address + dstByteOffset, ((h - 1) * vfb->fb_stride + w) * dstBpp)) {
+	if (!Memory_P::IsValidRange(fb_address + dstByteOffset, ((h - 1) * vfb->fb_stride + w) * dstBpp)) {
 		ERROR_LOG(G3D, "PackFramebufferSync_ would write outside of memory, ignoring");
 		return;
 	}
 
-	u8 *destPtr = Memory::GetPointer(fb_address + dstByteOffset);
+	u8 *destPtr = Memory_P::GetPointer(fb_address + dstByteOffset);
 
 	// We always need to convert from the framebuffer native format.
 	// Right now that's always 8888.

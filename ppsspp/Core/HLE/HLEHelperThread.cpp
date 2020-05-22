@@ -30,11 +30,11 @@ HLEHelperThread::HLEHelperThread(const char *threadName, u32 instructions[], u32
 	u32 instrBytes = instrCount * sizeof(u32);
 	u32 totalBytes = instrBytes + sizeof(u32) * 2;
 	AllocEntry(totalBytes);
-	Memory::Memcpy(entry_, instructions, instrBytes);
+	Memory_P::Memcpy(entry_, instructions, instrBytes);
 
 	// Just to simplify things, we add the return here.
-	Memory::PWrite_U32(MIPS_MAKE_JR_RA(), entry_ + instrBytes + 0);
-	Memory::PWrite_U32(MIPS_MAKE_NOP(), entry_ + instrBytes + 4);
+	Memory_P::PWrite_U32(MIPS_MAKE_JR_RA(), entry_ + instrBytes + 0);
+	Memory_P::PWrite_U32(MIPS_MAKE_NOP(), entry_ + instrBytes + 4);
 
 	Create(threadName, prio, stacksize);
 }
@@ -42,8 +42,8 @@ HLEHelperThread::HLEHelperThread(const char *threadName, u32 instructions[], u32
 HLEHelperThread::HLEHelperThread(const char *threadName, const char *module, const char *func, u32 prio, int stacksize) {
 	const u32 bytes = sizeof(u32) * 2;
 	AllocEntry(bytes);
-	Memory::PWrite_U32(MIPS_MAKE_JR_RA(), entry_ + 0);
-	Memory::PWrite_U32(MIPS_MAKE_SYSCALL(module, func), entry_ + 4);
+	Memory_P::PWrite_U32(MIPS_MAKE_JR_RA(), entry_ + 0);
+	Memory_P::PWrite_U32(MIPS_MAKE_SYSCALL(module, func), entry_ + 4);
 
 	Create(threadName, prio, stacksize);
 }

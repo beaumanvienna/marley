@@ -182,11 +182,11 @@ void CPU_Init() {
 
 	// Default memory settings
 	// Seems to be the safest place currently..
-	Memory::g_MemorySize = Memory::RAM_NORMAL_SIZE; // 32 MB of ram by default
+	Memory_P::g_MemorySize = Memory_P::RAM_NORMAL_SIZE; // 32 MB of ram by default
 
 	g_RemasterMode = false;
 	g_DoubleTextureCoordinates = false;
-	Memory::g_PSPModel = g_PConfig.iPSPModel;
+	Memory_P::g_PSPModel = g_PConfig.iPSPModel;
 
 	std::string filename = coreParameter.fileToStart;
 	loadedFile = ResolveFileLoaderTarget(ConstructFileLoader(filename));
@@ -227,7 +227,7 @@ void CPU_Init() {
 	std::string discID = g_paramSFO.GetDiscID();
 	coreParameter.compat.Load(discID);
 
-	Memory::Init();
+	Memory_P::Init();
 	mipsr4k.Reset();
 
 	host->AttemptLoadSymbolMap();
@@ -236,7 +236,7 @@ void CPU_Init() {
 		Audio_Init();
 	}
 
-	CoreTiming::Init();
+	CoreTiming_P::Init();
 
 	// Init all the HLE modules
 	HLEInit();
@@ -275,7 +275,7 @@ void CPU_Shutdown() {
 
 	Replacement_Shutdown();
 
-	CoreTiming::Shutdown();
+	CoreTiming_P::Shutdown();
 	__KernelShutdown();
 	HLEShutdown();
 	if (coreParameter.enableSound) {
@@ -283,7 +283,7 @@ void CPU_Shutdown() {
 	}
 	pspFileSystem.Shutdown();
 	mipsr4k.Shutdown();
-	Memory::Shutdown();
+	Memory_P::Shutdown();
 
 	delete loadedFile;
 	loadedFile = nullptr;
@@ -483,7 +483,7 @@ void PSP_RunLoopUntil(u64 globalticks) {
 }
 
 void PSP_RunLoopFor(int cycles) {
-	PSP_RunLoopUntil(CoreTiming::GetTicks() + cycles);
+	PSP_RunLoopUntil(CoreTiming_P::GetTicks() + cycles);
 }
 
 void PSP_SetLoading(const std::string &reason) {

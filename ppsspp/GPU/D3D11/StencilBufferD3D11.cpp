@@ -90,7 +90,7 @@ bool FramebufferManagerD3D11::NotifyStencilUpload(u32 addr, int size, bool skipZ
 	int values = 0;
 	u8 usedBits = 0;
 
-	const u8 *src = Memory::GetPointer(addr);
+	const u8 *src = Memory_P::GetPointer(addr);
 	if (!src) {
 		return false;
 	}

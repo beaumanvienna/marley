@@ -277,7 +277,7 @@ namespace SaveState
 		}
 
 		// Gotta do CoreTiming first since we'll restore into it.
-		CoreTiming::DoState(p);
+		CoreTiming_P::DoState(p);
 
 		// Memory is a bit tricky when jit is enabled, since there's emuhacks in it.
 		auto savedReplacements = SaveAndClearReplacements();
@@ -285,11 +285,11 @@ namespace SaveState
 		{
 			std::vector<u32> savedBlocks;
 			savedBlocks = MIPSComp::jit->SaveAndClearEmuHackOps();
-			Memory::DoState(p);
+			Memory_P::DoState(p);
 			MIPSComp::jit->RestoreSavedEmuHackOps(savedBlocks);
 		}
 		else
-			Memory::DoState(p);
+			Memory_P::DoState(p);
 		RestoreSavedReplacements(savedReplacements);
 
 		MemoryStick_DoState(p);
@@ -373,13 +373,13 @@ namespace SaveState
 		};
 
 		if (detectSlot(STATE_EXTENSION)) {
-			return StringFromFormat("%s (%c)", title.c_str(), slotChar);
+			return PStringFromFormat("%s (%c)", title.c_str(), slotChar);
 		}
 		if (detectSlot(UNDO_STATE_EXTENSION)) {
 			I18NCategory *sy = GetI18NCategory("System");
 			// Allow the number to be positioned where it makes sense.
 			std::string undo = sy->T("undo %c");
-			return title + " (" + StringFromFormat(undo.c_str(), slotChar) + ")";
+			return title + " (" + PStringFromFormat(undo.c_str(), slotChar) + ")";
 		}
 
 		// Couldn't detect, use the filename.
@@ -410,9 +410,9 @@ namespace SaveState
 			discId = g_paramSFO.GenerateFakeID();
 			discVer = "1.00";
 		}
-		fullDiscId = StringFromFormat("%s_%s", discId.c_str(), discVer.c_str());
+		fullDiscId = PStringFromFormat("%s_%s", discId.c_str(), discVer.c_str());
 
-		std::string filename = StringFromFormat("%s_%d.%s", fullDiscId.c_str(), slot, extension);
+		std::string filename = PStringFromFormat("%s_%d.%s", fullDiscId.c_str(), slot, extension);
 		return GetSysDirectory(DIRECTORY_SAVESTATE) + filename;
 	}
 
@@ -677,7 +677,7 @@ namespace SaveState
 
 	bool IsStale() {
 		if (saveStateGeneration >= STALE_STATE_USES) {
-			return CoreTiming::GetGlobalTimeUs() > STALE_STATE_TIME;
+			return CoreTiming_P::GetGlobalTimeUs() > STALE_STATE_TIME;
 		}
 		return false;
 	}

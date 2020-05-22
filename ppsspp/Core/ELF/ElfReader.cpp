@@ -84,7 +84,7 @@ bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 		// It appears that misaligned relocations are allowed.
 		// Will they work correctly on big-endian?
 
-		if (((addr & 3) && type != R_MIPS_32) || !Memory::IsValidAddress(addr)) {
+		if (((addr & 3) && type != R_MIPS_32) || !Memory_P::IsValidAddress(addr)) {
 			if (numErrors < 10) {
 				WARN_LOG_REPORT(LOADER, "Suspicious address %08x, skipping reloc, type = %d", addr, type);
 			} else if (numErrors == 10) {
@@ -94,7 +94,7 @@ bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 			continue;
 		}
 
-		u32 op = Memory::Read_Instruction(addr, true).encoding;
+		u32 op = Memory_P::Read_Instruction(addr, true).encoding;
 
 		const bool log = false;
 		//log=true;
@@ -135,8 +135,8 @@ bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 						if (log) {
 							DEBUG_LOG(LOADER,"Corresponding lo found at %08x", corrLoAddr);
 						}
-						if (Memory::IsValidAddress(corrLoAddr)) {
-							s16 lo = (s32)(s16)(u16)(Memory::ReadUnchecked_U32(corrLoAddr) & 0xFFFF); //signed??
+						if (Memory_P::IsValidAddress(corrLoAddr)) {
+							s16 lo = (s32)(s16)(u16)(Memory_P::ReadUnchecked_U32(corrLoAddr) & 0xFFFF); //signed??
 							cur += lo;
 							cur += relocateTo;
 							addrToHiLo(cur, hi, lo);
@@ -189,7 +189,7 @@ bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 			}
 			break;
 		}
-		Memory::PWrite_U32(op, addr);
+		Memory_P::PWrite_U32(op, addr);
 	}
 	if (numErrors) {
 		WARN_LOG(LOADER, "%i bad relocations found!!!", numErrors);
@@ -262,7 +262,7 @@ void PElfReader::LoadRelocations2(int rel_seg)
 		}else{
 			addr_seg = seg;
 			relocate_to = segmentVAddr[addr_seg];
-			if (!Memory::IsValidAddress(relocate_to)) {
+			if (!Memory_P::IsValidAddress(relocate_to)) {
 				ERROR_LOG(LOADER, "ELF: Bad address to relocate to: %08x", relocate_to);
 				continue;
 			}
@@ -294,7 +294,7 @@ void PElfReader::LoadRelocations2(int rel_seg)
 
 
 			rel_offset = rel_base+segmentVAddr[off_seg];
-			if (!Memory::IsValidAddress(rel_offset)) {
+			if (!Memory_P::IsValidAddress(rel_offset)) {
 				ERROR_LOG(LOADER, "ELF: Bad rel_offset: %08x", rel_offset);
 				continue;
 			}
@@ -313,7 +313,7 @@ void PElfReader::LoadRelocations2(int rel_seg)
 				ERROR_LOG_REPORT(LOADER, "Rel2: invalid lo16 type! %x", flag);
 			}
 
-			op = Memory::Read_Instruction(rel_offset, true).encoding;
+			op = Memory_P::Read_Instruction(rel_offset, true).encoding;
 			DEBUG_LOG(LOADER, "Rel2: %5d: CMD=0x%04X flag=%x type=%d off_seg=%d offset=%08x addr_seg=%d op=%08x\n", rcount, cmd, flag, type, off_seg, rel_base, addr_seg, op);
 
 			switch(type){
@@ -347,7 +347,7 @@ void PElfReader::LoadRelocations2(int rel_seg)
 				break;
 			}
 
-			Memory::PWrite_U32(op, rel_offset);
+			Memory_P::PWrite_U32(op, rel_offset);
 			rcount += 1;
 		}
 	}
@@ -466,7 +466,7 @@ int PElfReader::LoadInto(u32 loadAddress, bool fromTop)
 			u32 writeAddr = segmentVAddr[i];
 
 			const u8 *src = GetSegmentPtr(i);
-			u8 *dst = Memory::GetPointer(writeAddr);
+			u8 *dst = Memory_P::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
 

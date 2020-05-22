@@ -223,7 +223,7 @@ namespace MIPSInt
 					// It's an LVL
 					for (int i = 0; i < offset + 1; i++)
 					{
-						d[3 - i] = Memory::Read_Float(addr - 4 * i);
+						d[3 - i] = Memory_P::Read_Float(addr - 4 * i);
 					}
 				}
 				else
@@ -231,7 +231,7 @@ namespace MIPSInt
 					// It's an LVR
 					for (int i = 0; i < (3 - offset) + 1; i++)
 					{
-						d[i] = Memory::Read_Float(addr + 4 * i);
+						d[i] = Memory_P::Read_Float(addr + 4 * i);
 					}
 				}
 				WriteVector(d, V_Quad, vt);
@@ -244,14 +244,14 @@ namespace MIPSInt
 				_dbg_assert_msg_(CPU, 0, "Misaligned lv.q");
 			}
 #ifndef COMMON_BIG_ENDIAN
-			WriteVector((const float*)Memory::GetPointer(addr), V_Quad, vt);
+			WriteVector((const float*)Memory_P::GetPointer(addr), V_Quad, vt);
 #else
 			float lvqd[4];
 
-			lvqd[0] = Memory::Read_Float(addr);
-			lvqd[1] = Memory::Read_Float(addr + 4);
-			lvqd[2] = Memory::Read_Float(addr + 8);
-			lvqd[3] = Memory::Read_Float(addr + 12);
+			lvqd[0] = Memory_P::Read_Float(addr);
+			lvqd[1] = Memory_P::Read_Float(addr + 4);
+			lvqd[2] = Memory_P::Read_Float(addr + 8);
+			lvqd[3] = Memory_P::Read_Float(addr + 12);
 
 			WriteVector(lvqd, V_Quad, vt);
 #endif
@@ -271,7 +271,7 @@ namespace MIPSInt
 					// It's an SVL
 					for (int i = 0; i < offset + 1; i++)
 					{
-						Memory::Write_Float(d[3 - i], addr - i * 4);
+						Memory_P::Write_Float(d[3 - i], addr - i * 4);
 					}
 				}
 				else
@@ -279,7 +279,7 @@ namespace MIPSInt
 					// It's an SVR
 					for (int i = 0; i < (3 - offset) + 1; i++)
 					{
-						Memory::Write_Float(d[i], addr + 4 * i);
+						Memory_P::Write_Float(d[i], addr + 4 * i);
 					}
 				}
 				break;
@@ -291,15 +291,15 @@ namespace MIPSInt
 				_dbg_assert_msg_(CPU, 0, "Misaligned sv.q");
 			}
 #ifndef COMMON_BIG_ENDIAN
-			ReadVector(reinterpret_cast<float *>(Memory::GetPointer(addr)), V_Quad, vt);
+			ReadVector(reinterpret_cast<float *>(Memory_P::GetPointer(addr)), V_Quad, vt);
 #else
 			float svqd[4];
 			ReadVector(svqd, V_Quad, vt);
 
-			Memory::Write_Float(svqd[0], addr);
-			Memory::Write_Float(svqd[1], addr + 4);
-			Memory::Write_Float(svqd[2], addr + 8);
-			Memory::Write_Float(svqd[3], addr + 12);
+			Memory_P::Write_Float(svqd[0], addr);
+			Memory_P::Write_Float(svqd[1], addr + 4);
+			Memory_P::Write_Float(svqd[2], addr + 8);
+			Memory_P::Write_Float(svqd[3], addr + 12);
 #endif
 			break;
 
@@ -1718,10 +1718,10 @@ namespace MIPSInt
 		switch (op >> 26)
 		{
 		case 50: //lv.s
-			VI(vt) = Memory::PRead_U32(addr);
+			VI(vt) = Memory_P::PRead_U32(addr);
 			break;
 		case 58: //sv.s
-			Memory::PWrite_U32(VI(vt), addr);
+			Memory_P::PWrite_U32(VI(vt), addr);
 			break;
 		default:
 			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");

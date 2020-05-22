@@ -106,7 +106,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 std::string SamplerCache::DebugGetSamplerString(std::string id, DebugShaderStringType stringType) {
 	SamplerCacheKey key;
 	key.FromString(id);
-	return StringFromFormat("%s/%s mag:%s min:%s mip:%s maxLod:%f minLod:%f bias:%f",
+	return PStringFromFormat("%s/%s mag:%s min:%s mip:%s maxLod:%f minLod:%f bias:%f",
 		key.sClamp ? "Clamp" : "Wrap",
 		key.tClamp ? "Clamp" : "Wrap",
 		key.magFilt ? "Linear" : "Nearest",
@@ -518,7 +518,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 	for (int i = 0; i <= maxLevel; i++) {
 		// If encountering levels pointing to nothing, adjust max level.
 		u32 levelTexaddr = gstate.getTextureAddress(i);
-		if (!Memory::IsValidAddress(levelTexaddr)) {
+		if (!Memory_P::IsValidAddress(levelTexaddr)) {
 			maxLevel = i - 1;
 			break;
 		}

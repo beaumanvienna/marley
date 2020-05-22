@@ -189,9 +189,9 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
+		sum = PStringFromFormat("%s, %i core", cpu_string, num_cores);
 	else
-		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
+		sum = PStringFromFormat("%s, %i cores", cpu_string, num_cores);
 	if (bXBurst1) sum += ", XBurst1";
 	if (bXBurst2) sum += ", XBurst2";
 	if (CPU64bit) sum += ", 64-bit";

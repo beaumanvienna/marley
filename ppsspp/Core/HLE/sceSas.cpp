@@ -184,7 +184,7 @@ static void sasMixFinish(u64 userdata, int cycleslate) {
 void __SasInit() {
 	sas = new SasInstance();
 
-	sasMixEvent = CoreTiming::RegisterEvent("SasMix", sasMixFinish);
+	sasMixEvent = CoreTiming_P::RegisterEvent("SasMix", sasMixFinish);
 
 	if (g_PConfig.bSeparateSASThread) {
 		sasThreadState = SasThreadState::READY;
@@ -214,7 +214,7 @@ void __SasDoState(PointerWrap &p) {
 	}
 
 	if (sasMixEvent != -1) {
-		CoreTiming::RestoreRegisterEvent(sasMixEvent, "SasMix", sasMixFinish);
+		CoreTiming_P::RestoreRegisterEvent(sasMixEvent, "SasMix", sasMixFinish);
 	}
 }
 
@@ -227,7 +227,7 @@ void __SasShutdown() {
 
 
 static u32 sceSasInit(u32 core, u32 grainSize, u32 maxVoices, u32 outputMode, u32 sampleRate) {
-	if (!Memory::IsValidAddress(core) || (core & 0x3F) != 0) {
+	if (!Memory_P::IsValidAddress(core) || (core & 0x3F) != 0) {
 		ERROR_LOG_REPORT(SCESAS, "sceSasInit(%08x, %i, %i, %i, %i): bad core address", core, grainSize, maxVoices, outputMode, sampleRate);
 		return ERROR_SAS_BAD_ADDRESS;
 	}
@@ -281,7 +281,7 @@ static int delaySasResult(int result) {
 		return hleDelayResult(result, "sas core", usec);
 	}
 
-	CoreTiming::ScheduleEvent(usToCycles(usec), sasMixEvent, __KernelGetCurThread());
+	CoreTiming_P::ScheduleEvent(usToCycles(usec), sasMixEvent, __KernelGetCurThread());
 	__KernelWaitCurThread(WAITTYPE_HLEDELAY, 1, result, 0, false, "sas core");
 	return result;
 }
@@ -290,7 +290,7 @@ static int delaySasResult(int result) {
 static u32 _sceSasCore(u32 core, u32 outAddr) {
 	PROFILE_THIS_SCOPE("mixer");
 
-	if (!Memory::IsValidAddress(outAddr)) {
+	if (!Memory_P::IsValidAddress(outAddr)) {
 		return hleReportError(SCESAS, ERROR_SAS_INVALID_PARAMETER, "invalid address");
 	}
 	if (!__KernelIsDispatchEnabled()) {
@@ -306,7 +306,7 @@ static u32 _sceSasCore(u32 core, u32 outAddr) {
 static u32 _sceSasCoreWithMix(u32 core, u32 inoutAddr, int leftVolume, int rightVolume) {
 	PROFILE_THIS_SCOPE("mixer");
 
-	if (!Memory::IsValidAddress(inoutAddr)) {
+	if (!Memory_P::IsValidAddress(inoutAddr)) {
 		return hleReportError(SCESAS, ERROR_SAS_INVALID_PARAMETER, "invalid address");
 	}
 	if (sas->outputMode == PSP_SAS_OUTPUTMODE_RAW) {
@@ -339,7 +339,7 @@ static u32 sceSasSetVoice(u32 core, int voiceNum, u32 vagAddr, int size, int loo
 		return ERROR_SAS_INVALID_LOOP_POS;
 	}
 
-	if (!Memory::IsValidAddress(vagAddr)) {
+	if (!Memory_P::IsValidAddress(vagAddr)) {
 		ERROR_LOG(SCESAS, "%s: Ignoring invalid VAG audio address %08x", __FUNCTION__, vagAddr);
 		return 0;
 	}
@@ -383,7 +383,7 @@ static u32 sceSasSetVoicePCM(u32 core, int voiceNum, u32 pcmAddr, int size, int 
 		ERROR_LOG_REPORT(SCESAS, "sceSasSetVoicePCM(%08x, %i, %08x, %i, %i): bad loop pos", core, voiceNum, pcmAddr, size, loopPos);
 		return ERROR_SAS_INVALID_LOOP_POS;
 	}
-	if (!Memory::IsValidAddress(pcmAddr)) {
+	if (!Memory_P::IsValidAddress(pcmAddr)) {
 		ERROR_LOG(SCESAS, "Ignoring invalid PCM audio address %08x", pcmAddr);
 		return 0;
 	}
@@ -719,14 +719,14 @@ static u32 sceSasSetOutputMode(u32 core, u32 outputMode) {
 static u32 sceSasGetAllEnvelopeHeights(u32 core, u32 heightsAddr) {
 	DEBUG_LOG(SCESAS, "sceSasGetAllEnvelopeHeights(%08x, %i)", core, heightsAddr);
 
-	if (!Memory::IsValidAddress(heightsAddr)) {
+	if (!Memory_P::IsValidAddress(heightsAddr)) {
 		return ERROR_SAS_INVALID_PARAMETER;
 	}
 
 	__SasDrain();
 	for (int i = 0; i < PSP_SAS_VOICES_MAX; i++) {
 		int voiceHeight = sas->voices[i].envelope.GetHeight();
-		Memory::PWrite_U32(voiceHeight, heightsAddr + i * 4);
+		Memory_P::PWrite_U32(voiceHeight, heightsAddr + i * 4);
 	}
 
 	return 0;
@@ -756,7 +756,7 @@ static u32 __sceSasSetVoiceATRAC3(u32 core, int voiceNum, u32 atrac3Context) {
 	v.loop = false;
 	v.playing = true;
 	v.atrac3.setContext(atrac3Context);
-	Memory::PWrite_U32(atrac3Context, core + 56 * voiceNum + 20);
+	Memory_P::PWrite_U32(atrac3Context, core + 56 * voiceNum + 20);
 
 	return hleLogSuccessI(SCESAS, 0);
 }
@@ -769,7 +769,7 @@ static u32 __sceSasConcatenateATRAC3(u32 core, int voiceNum, u32 atrac3DataAddr,
 	DEBUG_LOG_REPORT(SCESAS, "__sceSasConcatenateATRAC3(%08x, %i, %08x, %i)", core, voiceNum, atrac3DataAddr, atrac3DataLength);
 	__SasDrain();
 	SasVoice &v = sas->voices[voiceNum];
-	if (Memory::IsValidAddress(atrac3DataAddr))
+	if (Memory_P::IsValidAddress(atrac3DataAddr))
 		v.atrac3.addStreamData(atrac3DataAddr, atrac3DataLength);
 	return 0;
 }
@@ -789,7 +789,7 @@ static u32 __sceSasUnsetATRAC3(u32 core, int voiceNum) {
 	v.on = false;
 	// This unpauses.  Some games, like Sol Trigger, depend on this.
 	v.paused = false;
-	Memory::PWrite_U32(0, core + 56 * voiceNum + 20);
+	Memory_P::PWrite_U32(0, core + 56 * voiceNum + 20);
 
 	return hleLogSuccessI(SCESAS, 0);
 }

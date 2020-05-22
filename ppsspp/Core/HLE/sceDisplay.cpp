@@ -185,7 +185,7 @@ static void ScheduleLagSync(int over = 0) {
 		if (over > 1000000 / 60) {
 			over = 0;
 		}
-		CoreTiming::ScheduleEvent(usToCycles(1000 + over), lagSyncEvent, 0);
+		CoreTiming_P::ScheduleEvent(usToCycles(1000 + over), lagSyncEvent, 0);
 		lastLagSync = real_time_now();
 	}
 }
@@ -212,14 +212,14 @@ void __DisplayInit() {
 	nextFlipCycles = 0;
 	wasPaused = false;
 
-	enterVblankEvent = CoreTiming::RegisterEvent("EnterVBlank", &hleEnterVblank);
-	leaveVblankEvent = CoreTiming::RegisterEvent("LeaveVBlank", &hleLeaveVblank);
-	afterFlipEvent = CoreTiming::RegisterEvent("AfterFlip", &hleAfterFlip);
+	enterVblankEvent = CoreTiming_P::RegisterEvent("EnterVBlank", &hleEnterVblank);
+	leaveVblankEvent = CoreTiming_P::RegisterEvent("LeaveVBlank", &hleLeaveVblank);
+	afterFlipEvent = CoreTiming_P::RegisterEvent("AfterFlip", &hleAfterFlip);
 
-	lagSyncEvent = CoreTiming::RegisterEvent("LagSync", &hleLagSync);
+	lagSyncEvent = CoreTiming_P::RegisterEvent("LagSync", &hleLagSync);
 	ScheduleLagSync();
 
-	CoreTiming::ScheduleEvent(msToCycles(frameMs - vblankMs), enterVblankEvent, 0);
+	CoreTiming_P::ScheduleEvent(msToCycles(frameMs - vblankMs), enterVblankEvent, 0);
 	isVblank = 0;
 	frameStartTicks = 0;
 	vCount = 0;
@@ -277,22 +277,22 @@ void __DisplayDoState(PointerWrap &p) {
 	p.Do(vblankPausedWaits);
 
 	p.Do(enterVblankEvent);
-	CoreTiming::RestoreRegisterEvent(enterVblankEvent, "EnterVBlank", &hleEnterVblank);
+	CoreTiming_P::RestoreRegisterEvent(enterVblankEvent, "EnterVBlank", &hleEnterVblank);
 	p.Do(leaveVblankEvent);
-	CoreTiming::RestoreRegisterEvent(leaveVblankEvent, "LeaveVBlank", &hleLeaveVblank);
+	CoreTiming_P::RestoreRegisterEvent(leaveVblankEvent, "LeaveVBlank", &hleLeaveVblank);
 	p.Do(afterFlipEvent);
-	CoreTiming::RestoreRegisterEvent(afterFlipEvent, "AfterFlip", &hleAfterFlip);
+	CoreTiming_P::RestoreRegisterEvent(afterFlipEvent, "AfterFlip", &hleAfterFlip);
 
 	if (s >= 5) {
 		p.Do(lagSyncEvent);
 		p.Do(lagSyncScheduled);
-		CoreTiming::RestoreRegisterEvent(lagSyncEvent, "LagSync", &hleLagSync);
+		CoreTiming_P::RestoreRegisterEvent(lagSyncEvent, "LagSync", &hleLagSync);
 		lastLagSync = real_time_now();
 		if (lagSyncScheduled != g_PConfig.bForceLagSync) {
 			ScheduleLagSync();
 		}
 	} else {
-		lagSyncEvent = CoreTiming::RegisterEvent("LagSync", &hleLagSync);
+		lagSyncEvent = CoreTiming_P::RegisterEvent("LagSync", &hleLagSync);
 		ScheduleLagSync();
 	}
 
@@ -314,7 +314,7 @@ void __DisplayDoState(PointerWrap &p) {
 	}
 
 	if (s < 7) {
-		u64 now = CoreTiming::GetTicks();
+		u64 now = CoreTiming_P::GetTicks();
 		lastFlipCycles = now;
 		nextFlipCycles = now;
 	} else {
@@ -659,9 +659,9 @@ void hleEnterVblank(u64 userdata, int cyclesLate) {
 	if (hCountBase > 0x7FFFFFFF) {
 		hCountBase -= 0x80000000;
 	}
-	frameStartTicks = CoreTiming::GetTicks();
+	frameStartTicks = CoreTiming_P::GetTicks();
 
-	CoreTiming::ScheduleEvent(msToCycles(vblankMs) - cyclesLate, leaveVblankEvent, vbCount + 1);
+	CoreTiming_P::ScheduleEvent(msToCycles(vblankMs) - cyclesLate, leaveVblankEvent, vbCount + 1);
 
 	// Trigger VBlank interrupt handlers.
 	__TriggerInterrupt(PSP_INTR_IMMEDIATE | PSP_INTR_ONLY_IF_ENABLED | PSP_INTR_ALWAYS_RESCHED, PSP_VBLANK_INTR, PSP_INTR_SUB_ALL);
@@ -773,7 +773,7 @@ void __DisplayFlip(int cyclesLate) {
 		// Right after, we regain control for a little bit in hleAfterFlip. I think that's a great
 		// place to do housekeeping.
 
-		CoreTiming::ScheduleEvent(0 - cyclesLate, afterFlipEvent, 0);
+		CoreTiming_P::ScheduleEvent(0 - cyclesLate, afterFlipEvent, 0);
 		numVBlanksSinceFlip = 0;
 	} else {
 		// Okay, there's no new frame to draw.  But audio may be playing, so we need to time still.
@@ -794,7 +794,7 @@ void hleLeaveVblank(u64 userdata, int cyclesLate) {
 	isVblank = 0;
 	flippedThisFrame = false;
 	VERBOSE_LOG(SCEDISPLAY,"Leave VBlank %i", (int)userdata - 1);
-	CoreTiming::ScheduleEvent(msToCycles(frameMs - vblankMs) - cyclesLate, enterVblankEvent, userdata);
+	CoreTiming_P::ScheduleEvent(msToCycles(frameMs - vblankMs) - cyclesLate, enterVblankEvent, userdata);
 
 	// Fire the vblank listeners after the vblank completes.
 	__DisplayFireVblank();
@@ -840,7 +840,7 @@ static u32 sceDisplayIsVblank() {
 }
 
 static int DisplayWaitForVblanks(const char *reason, int vblanks, bool callbacks = false) {
-	const s64 ticksIntoFrame = CoreTiming::GetTicks() - frameStartTicks;
+	const s64 ticksIntoFrame = CoreTiming_P::GetTicks() - frameStartTicks;
 	const s64 cyclesToNextVblank = msToCycles(frameMs) - ticksIntoFrame;
 
 	// These syscalls take about 115 us, so if the next vblank is before then, we're waiting extra.
@@ -910,7 +910,7 @@ u32 sceDisplaySetFramebuf(u32 topaddr, int linesize, int pixelformat, int sync) 
 	if (sync != PSP_DISPLAY_SETBUF_IMMEDIATE && sync != PSP_DISPLAY_SETBUF_NEXTFRAME) {
 		return hleLogError(SCEDISPLAY, SCE_KERNEL_ERROR_INVALID_MODE, "invalid sync mode");
 	}
-	if (topaddr != 0 && !Memory::IsRAMAddress(topaddr) && !Memory::IsVRAMAddress(topaddr)) {
+	if (topaddr != 0 && !Memory_P::IsRAMAddress(topaddr) && !Memory_P::IsVRAMAddress(topaddr)) {
 		return hleLogError(SCEDISPLAY, SCE_KERNEL_ERROR_INVALID_POINTER, "invalid address");
 	}
 	if ((topaddr & 0xF) != 0) {
@@ -944,7 +944,7 @@ u32 sceDisplaySetFramebuf(u32 topaddr, int linesize, int pixelformat, int sync) 
 		// Otherwise it'll always be ahead if the game messes up even once.
 		const s64 LEEWAY_CYCLES_PER_FLIP = usToCycles(10);
 
-		u64 now = CoreTiming::GetTicks();
+		u64 now = CoreTiming_P::GetTicks();
 		s64 cyclesAhead = nextFlipCycles - now;
 		if (cyclesAhead > FLIP_DELAY_CYCLES_MIN) {
 			if (lastFlipsTooFrequent >= FLIP_DELAY_MIN_FLIPS) {
@@ -996,12 +996,12 @@ static u32 sceDisplayGetFramebuf(u32 topaddrPtr, u32 linesizePtr, u32 pixelForma
 	// See #8816. Could also be a firmware version difference, there are a few of those...
 	const FrameBufferState &fbState = (latchedMode == PSP_DISPLAY_SETBUF_NEXTFRAME && framebufIsLatched) ? latchedFramebuf : framebuf;
 
-	if (Memory::IsValidAddress(topaddrPtr))
-		Memory::PWrite_U32(fbState.topaddr, topaddrPtr);
-	if (Memory::IsValidAddress(linesizePtr))
-		Memory::PWrite_U32(fbState.stride, linesizePtr);
-	if (Memory::IsValidAddress(pixelFormatPtr))
-		Memory::PWrite_U32(fbState.fmt, pixelFormatPtr);
+	if (Memory_P::IsValidAddress(topaddrPtr))
+		Memory_P::PWrite_U32(fbState.topaddr, topaddrPtr);
+	if (Memory_P::IsValidAddress(linesizePtr))
+		Memory_P::PWrite_U32(fbState.stride, linesizePtr);
+	if (Memory_P::IsValidAddress(pixelFormatPtr))
+		Memory_P::PWrite_U32(fbState.fmt, pixelFormatPtr);
 
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
@@ -1069,8 +1069,8 @@ static u32 sceDisplayGetVcount() {
 }
 
 static u32 __DisplayGetCurrentHcount() {
-	const int ticksIntoFrame = CoreTiming::GetTicks() - frameStartTicks;
-	const int ticksPerVblank = CoreTiming::GetClockFrequencyHz() / 60 / hCountPerVblank;
+	const int ticksIntoFrame = CoreTiming_P::GetTicks() - frameStartTicks;
+	const int ticksPerVblank = CoreTiming_P::GetClockFrequencyHz() / 60 / hCountPerVblank;
 	// Can't seem to produce a 0 on real hardware, offsetting by 1 makes things look right.
 	return 1 + (ticksIntoFrame / ticksPerVblank);
 }
@@ -1117,17 +1117,17 @@ static u32 sceDisplayIsForeground() {
 }
 
 static u32 sceDisplayGetMode(u32 modeAddr, u32 widthAddr, u32 heightAddr) {
-	if (Memory::IsValidAddress(modeAddr))
-		Memory::PWrite_U32(mode, modeAddr);
-	if (Memory::IsValidAddress(widthAddr))
-		Memory::PWrite_U32(width, widthAddr);
-	if (Memory::IsValidAddress(heightAddr))
-		Memory::PWrite_U32(height, heightAddr);
+	if (Memory_P::IsValidAddress(modeAddr))
+		Memory_P::PWrite_U32(mode, modeAddr);
+	if (Memory_P::IsValidAddress(widthAddr))
+		Memory_P::PWrite_U32(width, widthAddr);
+	if (Memory_P::IsValidAddress(heightAddr))
+		Memory_P::PWrite_U32(height, heightAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
 static u32 sceDisplayIsVsync() {
-	u64 now = CoreTiming::GetTicks();
+	u64 now = CoreTiming_P::GetTicks();
 	u64 start = frameStartTicks + msToCycles(vsyncStartMs);
 	u64 end = frameStartTicks + msToCycles(vsyncEndMs);
 
@@ -1135,8 +1135,8 @@ static u32 sceDisplayIsVsync() {
 }
 
 static u32 sceDisplayGetResumeMode(u32 resumeModeAddr) {
-	if (Memory::IsValidAddress(resumeModeAddr))
-		Memory::PWrite_U32(resumeMode, resumeModeAddr);
+	if (Memory_P::IsValidAddress(resumeModeAddr))
+		Memory_P::PWrite_U32(resumeMode, resumeModeAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
@@ -1149,12 +1149,12 @@ static u32 sceDisplaySetResumeMode(u32 rMode) {
 static u32 sceDisplayGetBrightness(u32 levelAddr, u32 otherAddr) {
 	// Standard levels on a PSP: 44, 60, 72, 84 (AC only)
 
-	if (Memory::IsValidAddress(levelAddr)) {
-		Memory::PWrite_U32(brightnessLevel, levelAddr);
+	if (Memory_P::IsValidAddress(levelAddr)) {
+		Memory_P::PWrite_U32(brightnessLevel, levelAddr);
 	}
 	// Always seems to write zero?
-	if (Memory::IsValidAddress(otherAddr)) {
-		Memory::PWrite_U32(0, otherAddr);
+	if (Memory_P::IsValidAddress(otherAddr)) {
+		Memory_P::PWrite_U32(0, otherAddr);
 	}
 	return hleLogWarning(SCEDISPLAY, 0);
 }

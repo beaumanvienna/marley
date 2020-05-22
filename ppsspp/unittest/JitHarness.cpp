@@ -79,21 +79,21 @@ static void SetupJitHarness() {
 	// This is pretty much the bare minimum required to setup jit.
 	coreState = CORE_POWERUP;
 	currentMIPS = &mipsr4k;
-	Memory::g_MemorySize = Memory::RAM_NORMAL_SIZE;
+	Memory_P::g_MemorySize = Memory_P::RAM_NORMAL_SIZE;
 	PSP_CoreParameter().cpuCore = CPUCore::INTERPRETER;
 	PSP_CoreParameter().unthrottle = true;
 
-	Memory::Init();
+	Memory_P::Init();
 	mipsr4k.Reset();
-	CoreTiming::Init();
+	CoreTiming_P::Init();
 }
 
 static void DestroyJitHarness() {
 	// Clear our custom module out to be safe.
 	HLEShutdown();
-	CoreTiming::Shutdown();
+	CoreTiming_P::Shutdown();
 	mipsr4k.Shutdown();
-	Memory::Shutdown();
+	Memory_P::Shutdown();
 	coreState = CORE_POWERDOWN;
 	currentMIPS = nullptr;
 }
@@ -102,7 +102,7 @@ bool TestJit() {
 	SetupJitHarness();
 
 	currentMIPS->pc = PSP_GetUserMemoryBase();
-	u32 *p = (u32 *)Memory::GetPointer(currentMIPS->pc);
+	u32 *p = (u32 *)Memory_P::GetPointer(currentMIPS->pc);
 
 	// TODO: Smarter way of seeding in the code sequence.
 	static const char *lines[] = {
@@ -156,7 +156,7 @@ bool TestJit() {
 	addr = currentMIPS->pc;
 	for (size_t j = 0; j < ARRAY_SIZE(lines); ++j) {
 		char line[512];
-		MIPSDisAsm(Memory::Read_Instruction(addr), addr, line, true);
+		MIPSDisAsm(Memory_P::Read_Instruction(addr), addr, line, true);
 		addr += 4;
 		printf("%s\n", line);
 	}

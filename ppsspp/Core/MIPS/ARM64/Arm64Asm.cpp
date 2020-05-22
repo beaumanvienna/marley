@@ -193,7 +193,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	fp.ABI_PushRegisters(regs_to_save, regs_to_save_fp);
 
 	// Fixed registers, these are always kept when in Jit context.
-	MOVP2R(MEMBASEREG, Memory::base);
+	MOVP2R(MEMBASEREG, Memory_P::base);
 	MOVP2R(CTXREG, mips_);
 	MOVP2R(JITBASEREG, GetBasePtr());
 
@@ -204,7 +204,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	outerLoop = GetCodePtr();
 		SaveStaticRegisters();  // Advance can change the downcount, so must save/restore
 		RestoreRoundingMode(true);
-		QuickCallFunction(SCRATCH1_64, &CoreTiming::Advance);
+		QuickCallFunction(SCRATCH1_64, &CoreTiming_P::Advance);
 		ApplyRoundingMode(true);
 		LoadStaticRegisters();
 		FixupBranch skipToCoreStateCheck = B();  //skip the downcount check

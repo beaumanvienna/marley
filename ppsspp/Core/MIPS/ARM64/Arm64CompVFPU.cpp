@@ -211,7 +211,7 @@ namespace MIPSComp {
 
 		std::vector<FixupBranch> skips;
 		switch (op >> 26) {
-		case 50: //lv.s  // VI(vt) = Memory::PRead_U32(addr);
+		case 50: //lv.s  // VI(vt) = Memory_P::PRead_U32(addr);
 		{
 			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
 				gpr.MapRegAsPointer(rs);
@@ -244,7 +244,7 @@ namespace MIPSComp {
 		}
 			break;
 
-		case 58: //sv.s   // Memory::PWrite_U32(VI(vt), addr);
+		case 58: //sv.s   // Memory_P::PWrite_U32(VI(vt), addr);
 		{
 			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
 				gpr.MapRegAsPointer(rs);
@@ -307,7 +307,7 @@ namespace MIPSComp {
 #else
 					u32 addr = imm + gpr.GetImm(rs);
 #endif
-					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory::base);
+					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory_P::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_PConfig.bFastMemory) {
@@ -316,7 +316,7 @@ namespace MIPSComp {
 						skips = SetScratch1ForSafeAddress(rs, imm, SCRATCH2);
 					}
 					if (jo.enablePointerify) {
-						MOVK(SCRATCH1_64, ((uint64_t)Memory::base) >> 32, SHIFT_32);
+						MOVK(SCRATCH1_64, ((uint64_t)Memory_P::base) >> 32, SHIFT_32);
 					} else {
 						ADD(SCRATCH1_64, SCRATCH1_64, MEMBASEREG);
 					}
@@ -344,7 +344,7 @@ namespace MIPSComp {
 #else
 					u32 addr = imm + gpr.GetImm(rs);
 #endif
-					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory::base);
+					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory_P::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_PConfig.bFastMemory) {
@@ -353,7 +353,7 @@ namespace MIPSComp {
 						skips = SetScratch1ForSafeAddress(rs, imm, SCRATCH2);
 					}
 					if (jo.enablePointerify) {
-						MOVK(SCRATCH1_64, ((uint64_t)Memory::base) >> 32, SHIFT_32);
+						MOVK(SCRATCH1_64, ((uint64_t)Memory_P::base) >> 32, SHIFT_32);
 					} else {
 						ADD(SCRATCH1_64, SCRATCH1_64, MEMBASEREG);
 					}

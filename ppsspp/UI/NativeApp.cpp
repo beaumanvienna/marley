@@ -1074,7 +1074,7 @@ void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 	}
 	if (msg == "savestate_displayslot") {
 		I18NCategory *sy = GetI18NCategory("System");
-		std::string msg = StringFromFormat("%s: %d", sy->T("Savestate Slot"), SaveState::GetCurrentSlot() + 1);
+		std::string msg = PStringFromFormat("%s: %d", sy->T("Savestate Slot"), SaveState::GetCurrentSlot() + 1);
 		// Show for the same duration as the preview.
 		osm.Show(msg, 2.0f, 0xFFFFFF, -1, true, "savestate_slot");
 	}
@@ -1319,7 +1319,7 @@ void NativeShutdown() {
 
 	net::Shutdown();
 
-	g_Discord.Shutdown();
+	g_Discord.PShutdown();
 
 	delete logger;
 	logger = nullptr;

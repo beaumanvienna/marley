@@ -193,7 +193,7 @@ public:
 	virtual void ResetListState(int listID, DisplayListState state) = 0;
 
 	GPUDebugOp DissassembleOp(u32 pc) {
-		return DissassembleOp(pc, Memory::PRead_U32(pc));
+		return DissassembleOp(pc, Memory_P::PRead_U32(pc));
 	}
 	virtual GPUDebugOp DissassembleOp(u32 pc, u32 op) = 0;
 	virtual std::vector<GPUDebugOp> DissassembleOpRange(u32 startpc, u32 endpc) = 0;

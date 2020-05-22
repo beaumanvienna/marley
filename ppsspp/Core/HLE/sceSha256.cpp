@@ -22,17 +22,17 @@
 #include "Core/HLE/sceSha256.h"
 
 static int sceSha256Digest(u32 data, int dataLen, u32 digestPtr) {
-	if (!Memory::IsValidAddress(data) || !Memory::IsValidAddress(digestPtr) || !Memory::IsValidAddress(data + dataLen)) {
+	if (!Memory_P::IsValidAddress(data) || !Memory_P::IsValidAddress(digestPtr) || !Memory_P::IsValidAddress(data + dataLen)) {
 		ERROR_LOG(HLE, "sceSha256Digest(data=%08x, len=%d, digest=%08x) - bad address(es)", data, dataLen, digestPtr);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSha256Digest(data=%08x, len=%d, digest=%08x)", data, dataLen, digestPtr);
 
 	// Already checked above...
-	u8 *digest = Memory::GetPointerUnchecked(digestPtr);
+	u8 *digest = Memory_P::GetPointerUnchecked(digestPtr);
 	sha256_context ctx;
 	sha256_starts(&ctx);
-	sha256_update(&ctx, Memory::GetPointerUnchecked(data), dataLen);
+	sha256_update(&ctx, Memory_P::GetPointerUnchecked(data), dataLen);
 	sha256_finish(&ctx, digest);
 
 	return 0;

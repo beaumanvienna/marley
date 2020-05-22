@@ -1152,8 +1152,8 @@ void DrawTriangleSlice(
 		for (int i = 0; i <= maxTexLevel; i++) {
 			u32 texaddr = gstate.getTextureAddress(i);
 			texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-			if (Memory::IsValidAddress(texaddr))
-				texptr[i] = Memory::GetPointerUnchecked(texaddr);
+			if (Memory_P::IsValidAddress(texaddr))
+				texptr[i] = Memory_P::GetPointerUnchecked(texaddr);
 			else
 				texptr[i] = 0;
 		}
@@ -1380,8 +1380,8 @@ void DrawPoint(const VertexData &v0)
 			for (int i = 0; i <= maxTexLevel; i++) {
 				u32 texaddr = gstate.getTextureAddress(i);
 				texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-				if (Memory::IsValidAddress(texaddr))
-					texptr[i] = Memory::GetPointerUnchecked(texaddr);
+				if (Memory_P::IsValidAddress(texaddr))
+					texptr[i] = Memory_P::GetPointerUnchecked(texaddr);
 				else
 					texptr[i] = 0;
 			}
@@ -1591,7 +1591,7 @@ void DrawLine(const VertexData &v0, const VertexData &v1)
 		for (int i = 0; i <= maxTexLevel; i++) {
 			u32 texaddr = gstate.getTextureAddress(i);
 			texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-			texptr[i] = Memory::GetPointer(texaddr);
+			texptr[i] = Memory_P::GetPointer(texaddr);
 		}
 	}
 
@@ -1711,14 +1711,14 @@ bool GetCurrentTexture(GPUDebugBuffer &buffer, int level)
 	int w = gstate.getTextureWidth(level);
 	int h = gstate.getTextureHeight(level);
 
-	if (!texaddr || !Memory::IsValidRange(texaddr, (textureBitsPerPixel[texfmt] * texbufw * h) / 8))
+	if (!texaddr || !Memory_P::IsValidRange(texaddr, (textureBitsPerPixel[texfmt] * texbufw * h) / 8))
 		return false;
 
 	buffer.Allocate(w, h, GE_FORMAT_8888, false);
 
 	Sampler::Funcs sampler = Sampler::GetFuncs();
 
-	u8 *texptr = Memory::GetPointer(texaddr);
+	u8 *texptr = Memory_P::GetPointer(texaddr);
 	u32 *row = (u32 *)buffer.GetData();
 	for (int y = 0; y < h; ++y) {
 		for (int x = 0; x < w; ++x) {

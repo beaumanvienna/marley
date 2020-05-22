@@ -43,7 +43,7 @@ static std::string RegValueAsFloat(uint32_t u) {
 		uint32_t u;
 		float f;
 	} bits = { u };
-	return StringFromFormat("%f", bits.f);
+	return PStringFromFormat("%f", bits.f);
 }
 
 static DebugInterface *CPUFromRequest(DebuggerRequest &req) {
@@ -110,7 +110,7 @@ void WebSocketCPUStatus(DebuggerRequest &req) {
 	// Avoid NULL deference.
 	json.writeUint("pc", PSP_IsInited() ? currentMIPS->pc : 0);
 	// A double ought to be good enough for a 156 day debug session.
-	json.writeFloat("ticks", PSP_IsInited() ? CoreTiming::GetTicks() : 0);
+	json.writeFloat("ticks", PSP_IsInited() ? CoreTiming_P::GetTicks() : 0);
 }
 
 // Retrieve all regs and their values (cpu.getAllRegs)
@@ -400,10 +400,10 @@ void WebSocketCPUEvaluate(DebuggerRequest &req) {
 	u32 val;
 	PostfixExpression postfix;
 	if (!cpuDebug->initExpression(exp.c_str(), postfix)) {
-		return req.Fail(StringFromFormat("Could not parse expression syntax: %s", getExpressionError()));
+		return req.Fail(PStringFromFormat("Could not parse expression syntax: %s", getExpressionError()));
 	}
 	if (!cpuDebug->parseExpression(postfix, val)) {
-		return req.Fail(StringFromFormat("Could not evaluate expression: %s", getExpressionError()));
+		return req.Fail(PStringFromFormat("Could not evaluate expression: %s", getExpressionError()));
 	}
 
 	JsonWriter &json = req.Respond();

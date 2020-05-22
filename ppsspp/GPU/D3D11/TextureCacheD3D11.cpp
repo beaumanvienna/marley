@@ -458,7 +458,7 @@ void TextureCacheD3D11::BuildTexture(TexCacheEntry *const entry) {
 	for (int i = 0; i <= maxLevel; i++) {
 		// If encountering levels pointing to nothing, adjust max level.
 		u32 levelTexaddr = gstate.getTextureAddress(i);
-		if (!Memory::IsValidAddress(levelTexaddr)) {
+		if (!Memory_P::IsValidAddress(levelTexaddr)) {
 			maxLevel = i - 1;
 			break;
 		}

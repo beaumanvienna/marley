@@ -45,11 +45,11 @@ void __DmacDoState(PointerWrap &p) {
 
 static int __DmacMemcpy(u32 dst, u32 src, u32 size) {
 	bool skip = false;
-	if (Memory::IsVRAMAddress(src) || Memory::IsVRAMAddress(dst)) {
+	if (Memory_P::IsVRAMAddress(src) || Memory_P::IsVRAMAddress(dst)) {
 		skip = gpu->PerformMemoryCopy(dst, src, size);
 	}
 	if (!skip) {
-		Memory::Memcpy(dst, Memory::GetPointer(src), size);
+		Memory_P::Memcpy(dst, Memory_P::GetPointer(src), size);
 		currentMIPS->InvalidateICache(dst, size);
 	}
 
@@ -57,7 +57,7 @@ static int __DmacMemcpy(u32 dst, u32 src, u32 size) {
 	if (size >= 272) {
 		// Approx. 225 MiB/s or 235929600 B/s, so let's go with 236 B/us.
 		int delayUs = size / 236;
-		dmacMemcpyDeadline = CoreTiming::GetTicks() + usToCycles(delayUs);
+		dmacMemcpyDeadline = CoreTiming_P::GetTicks() + usToCycles(delayUs);
 		return hleDelayResult(0, "dmac copy", delayUs);
 	}
 	return 0;
@@ -69,7 +69,7 @@ static u32 sceDmacMemcpy(u32 dst, u32 src, u32 size) {
 		DEBUG_LOG(HLE, "sceDmacMemcpy(dest=%08x, src=%08x, size=%i): invalid size", dst, src, size);
 		return SCE_KERNEL_ERROR_INVALID_SIZE;
 	}
-	if (!Memory::IsValidAddress(dst) || !Memory::IsValidAddress(src)) {
+	if (!Memory_P::IsValidAddress(dst) || !Memory_P::IsValidAddress(src)) {
 		ERROR_LOG(HLE, "sceDmacMemcpy(dest=%08x, src=%08x, size=%i): invalid address", dst, src, size);
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
 	}
@@ -78,7 +78,7 @@ static u32 sceDmacMemcpy(u32 dst, u32 src, u32 size) {
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 	}
 
-	if (dmacMemcpyDeadline > CoreTiming::GetTicks()) {
+	if (dmacMemcpyDeadline > CoreTiming_P::GetTicks()) {
 		WARN_LOG_REPORT_ONCE(overlapDmacMemcpy, HLE, "sceDmacMemcpy(dest=%08x, src=%08x, size=%d): overlapping read", dst, src, size);
 		// TODO: Should block, seems like copy doesn't start until previous finishes.
 		// Might matter for overlapping copies.
@@ -94,7 +94,7 @@ static u32 sceDmacTryMemcpy(u32 dst, u32 src, u32 size) {
 		ERROR_LOG(HLE, "sceDmacTryMemcpy(dest=%08x, src=%08x, size=%i): invalid size", dst, src, size);
 		return SCE_KERNEL_ERROR_INVALID_SIZE;
 	}
-	if (!Memory::IsValidAddress(dst) || !Memory::IsValidAddress(src)) {
+	if (!Memory_P::IsValidAddress(dst) || !Memory_P::IsValidAddress(src)) {
 		ERROR_LOG(HLE, "sceDmacTryMemcpy(dest=%08x, src=%08x, size=%i): invalid address", dst, src, size);
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
 	}
@@ -103,7 +103,7 @@ static u32 sceDmacTryMemcpy(u32 dst, u32 src, u32 size) {
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 	}
 
-	if (dmacMemcpyDeadline > CoreTiming::GetTicks()) {
+	if (dmacMemcpyDeadline > CoreTiming_P::GetTicks()) {
 		DEBUG_LOG(HLE, "sceDmacTryMemcpy(dest=%08x, src=%08x, size=%i): busy", dst, src, size);
 		return SCE_KERNEL_ERROR_BUSY;
 	} else {

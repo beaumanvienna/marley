@@ -71,7 +71,7 @@ const int PSP_TIME_INVALID_MICROSECONDS = -7;
 static u64 __RtcGetCurrentTick()
 {
 	// TODO: It's probably expecting ticks since January 1, 0001?
-	return CoreTiming::GetGlobalTimeUs() + rtcBaseTicks;
+	return CoreTiming_P::GetGlobalTimeUs() + rtcBaseTicks;
 }
 
 #if defined(__MINGW32__)
@@ -167,7 +167,7 @@ void __RtcDoState(PointerWrap &p)
 
 void __RtcTimeOfDay(PSPTimeval *tv)
 {
-	s64 additionalUs = CoreTiming::GetGlobalTimeUs();
+	s64 additionalUs = CoreTiming_P::GetGlobalTimeUs();
 	*tv = rtcBaseTime;
 
 	s64 adjustedUs = additionalUs + tv->tv_usec;
@@ -297,8 +297,8 @@ static u32 sceRtcGetCurrentTick(u32 tickPtr)
 	VERBOSE_LOG(SCERTC, "sceRtcGetCurrentTick(%08x)", tickPtr);
 
 	u64 curTick = __RtcGetCurrentTick();
-	if (Memory::IsValidAddress(tickPtr))
-		Memory::Write_U64(curTick, tickPtr);
+	if (Memory_P::IsValidAddress(tickPtr))
+		Memory_P::Write_U64(curTick, tickPtr);
 	hleEatCycles(300);
 	hleReSchedule("rtc current tick");
 	return 0;
@@ -334,8 +334,8 @@ static u32 sceRtcGetCurrentClock(u32 pspTimePtr, int tz)
 	__RtcTmToPspTime(ret, utc);
 	ret.microsecond = tv.tv_usec;
 
-	if (Memory::IsValidAddress(pspTimePtr))
-		Memory::WriteStruct(pspTimePtr, &ret);
+	if (Memory_P::IsValidAddress(pspTimePtr))
+		Memory_P::WriteStruct(pspTimePtr, &ret);
 
 	hleEatCycles(1900);
 	hleReSchedule("rtc current clock");
@@ -360,8 +360,8 @@ static u32 sceRtcGetCurrentClockLocalTime(u32 pspTimePtr)
 	__RtcTmToPspTime(ret, local);
 	ret.microsecond = tv.tv_usec;
 
-	if (Memory::IsValidAddress(pspTimePtr))
-		Memory::WriteStructUnchecked(pspTimePtr, &ret);
+	if (Memory_P::IsValidAddress(pspTimePtr))
+		Memory_P::WriteStructUnchecked(pspTimePtr, &ret);
 
 	hleEatCycles(2000);
 	hleReSchedule("rtc current clock local");
@@ -371,13 +371,13 @@ static u32 sceRtcGetCurrentClockLocalTime(u32 pspTimePtr)
 static u32 sceRtcSetTick(u32 pspTimePtr, u32 tickPtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcSetTick(%08x, %08x)", pspTimePtr, tickPtr);
-	if (Memory::IsValidAddress(pspTimePtr) && Memory::IsValidAddress(tickPtr))
+	if (Memory_P::IsValidAddress(pspTimePtr) && Memory_P::IsValidAddress(tickPtr))
 	{
-		u64 ticks = Memory::PRead_U64(tickPtr);
+		u64 ticks = Memory_P::PRead_U64(tickPtr);
 
 		ScePspDateTime ret;
 		__RtcTicksToPspTime(ret, ticks);
-		Memory::WriteStructUnchecked(pspTimePtr, &ret);
+		Memory_P::WriteStructUnchecked(pspTimePtr, &ret);
 	}
 	return 0;
 }
@@ -387,16 +387,16 @@ static u32 sceRtcGetTick(u32 pspTimePtr, u32 tickPtr)
 	DEBUG_LOG(SCERTC, "sceRtcGetTick(%08x, %08x)", pspTimePtr, tickPtr);
 	ScePspDateTime pt;
 
-	if (Memory::IsValidAddress(pspTimePtr) && Memory::IsValidAddress(tickPtr))
+	if (Memory_P::IsValidAddress(pspTimePtr) && Memory_P::IsValidAddress(tickPtr))
 	{
-		Memory::ReadStructUnchecked(pspTimePtr, &pt);
+		Memory_P::ReadStructUnchecked(pspTimePtr, &pt);
 
 		if (!__RtcValidatePspTime(pt))
 			return SCE_KERNEL_ERROR_INVALID_VALUE;
 
 		u64 result = __RtcPspTimeToTicks(pt);
 
-		Memory::Write_U64(result, tickPtr);
+		Memory_P::Write_U64(result, tickPtr);
 	}
 
 	return 0;
@@ -486,9 +486,9 @@ static u32 sceRtcIsLeapYear(u32 year)
 static int sceRtcConvertLocalTimeToUTC(u32 tickLocalPtr,u32 tickUTCPtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcConvertLocalTimeToUTC(%d, %d)", tickLocalPtr, tickUTCPtr);
-	if (Memory::IsValidAddress(tickLocalPtr) && Memory::IsValidAddress(tickUTCPtr))
+	if (Memory_P::IsValidAddress(tickLocalPtr) && Memory_P::IsValidAddress(tickUTCPtr))
 	{
-		u64 srcTick = Memory::PRead_U64(tickLocalPtr);
+		u64 srcTick = Memory_P::PRead_U64(tickLocalPtr);
 		// TODO : Let the user select his timezone / daylight saving instead of taking system param ?
 #ifdef _WIN32
 		long timezone_val;
@@ -499,7 +499,7 @@ static int sceRtcConvertLocalTimeToUTC(u32 tickLocalPtr,u32 tickUTCPtr)
 		tm *time = localtime(&timezone);
 		srcTick -= time->tm_gmtoff*1000000ULL;
 #endif
-		Memory::Write_U64(srcTick, tickUTCPtr);
+		Memory_P::Write_U64(srcTick, tickUTCPtr);
 	}
 	else
 	{
@@ -511,9 +511,9 @@ static int sceRtcConvertLocalTimeToUTC(u32 tickLocalPtr,u32 tickUTCPtr)
 static int sceRtcConvertUtcToLocalTime(u32 tickUTCPtr,u32 tickLocalPtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcConvertLocalTimeToUTC(%d, %d)", tickLocalPtr, tickUTCPtr);
-	if (Memory::IsValidAddress(tickLocalPtr) && Memory::IsValidAddress(tickUTCPtr))
+	if (Memory_P::IsValidAddress(tickLocalPtr) && Memory_P::IsValidAddress(tickUTCPtr))
 	{
-		u64 srcTick = Memory::PRead_U64(tickUTCPtr);
+		u64 srcTick = Memory_P::PRead_U64(tickUTCPtr);
 		// TODO : Let the user select his timezone / daylight saving instead of taking system param ?
 #ifdef _WIN32
 		long timezone_val;
@@ -524,7 +524,7 @@ static int sceRtcConvertUtcToLocalTime(u32 tickUTCPtr,u32 tickLocalPtr)
 		tm *time = localtime(&timezone);
 		srcTick += time->tm_gmtoff*1000000ULL;
 #endif
-		Memory::Write_U64(srcTick, tickLocalPtr);
+		Memory_P::Write_U64(srcTick, tickLocalPtr);
 	}
 	else
 	{
@@ -537,10 +537,10 @@ static int sceRtcCheckValid(u32 datePtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcCheckValid(%d)", datePtr);
 
-	if (Memory::IsValidAddress(datePtr))
+	if (Memory_P::IsValidAddress(datePtr))
 	{
 		ScePspDateTime pt;
-		Memory::ReadStructUnchecked(datePtr, &pt);
+		Memory_P::ReadStructUnchecked(datePtr, &pt);
 		if (pt.year < 1 || pt.year > 9999)
 		{
 			return PSP_TIME_INVALID_YEAR;
@@ -586,11 +586,11 @@ static int sceRtcCheckValid(u32 datePtr)
 static int sceRtcSetTime_t(u32 datePtr, u32 time)
 {
 	DEBUG_LOG(SCERTC, "sceRtcSetTime_t(%08x,%d)", datePtr, time);
-	if (Memory::IsValidAddress(datePtr))
+	if (Memory_P::IsValidAddress(datePtr))
 	{
 		ScePspDateTime pt;
 		__RtcTicksToPspTime(pt, time*1000000ULL + rtcMagicOffset);
-		Memory::WriteStructUnchecked(datePtr, &pt);
+		Memory_P::WriteStructUnchecked(datePtr, &pt);
 	}
 	else
 	{
@@ -602,11 +602,11 @@ static int sceRtcSetTime_t(u32 datePtr, u32 time)
 static int sceRtcSetTime64_t(u32 datePtr, u64 time)
 {
 	DEBUG_LOG(SCERTC, "sceRtcSetTime64_t(%08x,%lld)", datePtr, time);
-	if (Memory::IsValidAddress(datePtr))
+	if (Memory_P::IsValidAddress(datePtr))
 	{
 		ScePspDateTime pt;
 		__RtcTicksToPspTime(pt, time*1000000ULL + rtcMagicOffset);
-		Memory::WriteStruct(datePtr, &pt);
+		Memory_P::WriteStruct(datePtr, &pt);
 	}
 	else
 	{
@@ -618,12 +618,12 @@ static int sceRtcSetTime64_t(u32 datePtr, u64 time)
 static int sceRtcGetTime_t(u32 datePtr, u32 timePtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcGetTime_t(%08x,%08x)", datePtr, timePtr);
-	if (Memory::IsValidAddress(datePtr)&&Memory::IsValidAddress(timePtr))
+	if (Memory_P::IsValidAddress(datePtr)&&Memory_P::IsValidAddress(timePtr))
 	{
 		ScePspDateTime pt;
-		Memory::ReadStructUnchecked(datePtr, &pt);
+		Memory_P::ReadStructUnchecked(datePtr, &pt);
 		u32 result = (u32) ((__RtcPspTimeToTicks(pt)-rtcMagicOffset)/1000000ULL);
-		Memory::PWrite_U32(result, timePtr);
+		Memory_P::PWrite_U32(result, timePtr);
 	}
 	else
 	{
@@ -635,12 +635,12 @@ static int sceRtcGetTime_t(u32 datePtr, u32 timePtr)
 static int sceRtcGetTime64_t(u32 datePtr, u32 timePtr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcGetTime64_t(%08x,%08x)", datePtr, timePtr);
-	if (Memory::IsValidAddress(datePtr)&&Memory::IsValidAddress(timePtr))
+	if (Memory_P::IsValidAddress(datePtr)&&Memory_P::IsValidAddress(timePtr))
 	{
 		ScePspDateTime pt;
-		Memory::ReadStructUnchecked(datePtr, &pt);
+		Memory_P::ReadStructUnchecked(datePtr, &pt);
 		u64 result = (__RtcPspTimeToTicks(pt)-rtcMagicOffset)/1000000ULL;
-		Memory::Write_U64(result, timePtr);
+		Memory_P::Write_U64(result, timePtr);
 	}
 	else
 	{
@@ -652,7 +652,7 @@ static int sceRtcGetTime64_t(u32 datePtr, u32 timePtr)
 static int sceRtcSetDosTime(u32 datePtr, u32 dosTime)
 {
 	DEBUG_LOG(SCERTC, "sceRtcSetDosTime(%d,%d)", datePtr, dosTime);
-	if (Memory::IsValidAddress(datePtr))
+	if (Memory_P::IsValidAddress(datePtr))
 	{
 		ScePspDateTime pt;
 
@@ -667,7 +667,7 @@ static int sceRtcSetDosTime(u32 datePtr, u32 dosTime)
 		pt.second = (hms << 1) & 0x3E;
 		pt.microsecond = 0;
 
-		Memory::WriteStructUnchecked(datePtr, &pt);
+		Memory_P::WriteStructUnchecked(datePtr, &pt);
 	}
 	else
 	{
@@ -680,10 +680,10 @@ static int sceRtcGetDosTime(u32 datePtr, u32 dosTime)
 {
 	int retValue = 0;
 	DEBUG_LOG(SCERTC, "sceRtcGetDosTime(%d,%d)", datePtr, dosTime);
-	if (Memory::IsValidAddress(datePtr)&&Memory::IsValidAddress(dosTime))
+	if (Memory_P::IsValidAddress(datePtr)&&Memory_P::IsValidAddress(dosTime))
 	{
 		ScePspDateTime pt;
-		Memory::ReadStructUnchecked(datePtr, &pt);
+		Memory_P::ReadStructUnchecked(datePtr, &pt);
 
 		u32 result = 0;
 		if(pt.year < 1980)
@@ -710,7 +710,7 @@ static int sceRtcGetDosTime(u32 datePtr, u32 dosTime)
 			retValue = 0;
 		}
 
-		Memory::PWrite_U32(result, dosTime);
+		Memory_P::PWrite_U32(result, dosTime);
 	}
 	else
 	{
@@ -721,7 +721,7 @@ static int sceRtcGetDosTime(u32 datePtr, u32 dosTime)
 
 static int sceRtcSetWin32FileTime(u32 datePtr, u64 win32Time)
 {
-	if (!Memory::IsValidAddress(datePtr))
+	if (!Memory_P::IsValidAddress(datePtr))
 	{
 		ERROR_LOG_REPORT(SCERTC, "sceRtcSetWin32FileTime(%08x, %lld): invalid address", datePtr, win32Time);
 		return -1;
@@ -737,14 +737,14 @@ static int sceRtcSetWin32FileTime(u32 datePtr, u64 win32Time)
 
 static int sceRtcGetWin32FileTime(u32 datePtr, u32 win32TimePtr)
 {
-	if (!Memory::IsValidAddress(datePtr))
+	if (!Memory_P::IsValidAddress(datePtr))
 	{
 		ERROR_LOG_REPORT(SCERTC, "sceRtcGetWin32FileTime(%08x, %08x): invalid address", datePtr, win32TimePtr);
 		return -1;
 	}
 
 	DEBUG_LOG(SCERTC, "sceRtcGetWin32FileTime(%08x, %08x)", datePtr, win32TimePtr);
-	if (!Memory::IsValidAddress(win32TimePtr))
+	if (!Memory_P::IsValidAddress(win32TimePtr))
 		return SCE_KERNEL_ERROR_INVALID_VALUE;
 
 	auto pspTime = PSPPointer<const ScePspDateTime>::Create(datePtr);
@@ -752,21 +752,21 @@ static int sceRtcGetWin32FileTime(u32 datePtr, u32 win32TimePtr)
 
 	if (!__RtcValidatePspTime(*pspTime) || result < rtcFiletimeOffset)
 	{
-		Memory::Write_U64(0, win32TimePtr);
+		Memory_P::Write_U64(0, win32TimePtr);
 		return SCE_KERNEL_ERROR_INVALID_VALUE;
 	}
 
-	Memory::Write_U64((result - rtcFiletimeOffset) * 10, win32TimePtr);
+	Memory_P::Write_U64((result - rtcFiletimeOffset) * 10, win32TimePtr);
 	return 0;
 }
 
 static int sceRtcCompareTick(u32 tick1Ptr, u32 tick2Ptr)
 {
 	DEBUG_LOG(SCERTC, "sceRtcCompareTick(%d,%d)", tick1Ptr, tick2Ptr);
-	if (Memory::IsValidAddress(tick1Ptr) && Memory::IsValidAddress(tick2Ptr))
+	if (Memory_P::IsValidAddress(tick1Ptr) && Memory_P::IsValidAddress(tick2Ptr))
 	{
-		u64 tick1 = Memory::PRead_U64(tick1Ptr);
-		u64 tick2 = Memory::PRead_U64(tick2Ptr);
+		u64 tick1 = Memory_P::PRead_U64(tick1Ptr);
+		u64 tick2 = Memory_P::PRead_U64(tick2Ptr);
 		if (tick1 > tick2)
 			return 1;
 		if (tick1 < tick2)
@@ -777,12 +777,12 @@ static int sceRtcCompareTick(u32 tick1Ptr, u32 tick2Ptr)
 
 static int sceRtcTickAddTicks(u32 destTickPtr, u32 srcTickPtr, u64 numTicks)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		u64 srcTick = Memory::PRead_U64(srcTickPtr);
+		u64 srcTick = Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numTicks;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 
 	DEBUG_LOG(SCERTC, "sceRtcTickAddTicks(%x,%x,%llu)", destTickPtr, srcTickPtr, numTicks);
@@ -791,12 +791,12 @@ static int sceRtcTickAddTicks(u32 destTickPtr, u32 srcTickPtr, u64 numTicks)
 
 static int sceRtcTickAddMicroseconds(u32 destTickPtr,u32 srcTickPtr, u64 numMS)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numMS;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 
 	DEBUG_LOG(SCERTC, "sceRtcTickAddMicroseconds(%x,%x,%llu)", destTickPtr, srcTickPtr, numMS);
@@ -805,12 +805,12 @@ static int sceRtcTickAddMicroseconds(u32 destTickPtr,u32 srcTickPtr, u64 numMS)
 
 static int sceRtcTickAddSeconds(u32 destTickPtr, u32 srcTickPtr, u64 numSecs)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numSecs * 1000000UL;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 	DEBUG_LOG(SCERTC, "sceRtcTickAddSeconds(%x,%x,%llu)", destTickPtr, srcTickPtr, numSecs);
 	return 0;
@@ -818,12 +818,12 @@ static int sceRtcTickAddSeconds(u32 destTickPtr, u32 srcTickPtr, u64 numSecs)
 
 static int sceRtcTickAddMinutes(u32 destTickPtr, u32 srcTickPtr, u64 numMins)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numMins*60000000UL;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 	DEBUG_LOG(SCERTC, "sceRtcTickAddMinutes(%x,%x,%llu)", destTickPtr, srcTickPtr, numMins);
 	return 0;
@@ -831,11 +831,11 @@ static int sceRtcTickAddMinutes(u32 destTickPtr, u32 srcTickPtr, u64 numMins)
 
 static int sceRtcTickAddHours(u32 destTickPtr, u32 srcTickPtr, int numHours)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 		srcTick += numHours * 3600ULL * 1000000ULL;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 	DEBUG_LOG(SCERTC, "sceRtcTickAddMinutes(%d,%d,%d)", destTickPtr, srcTickPtr, numHours);
 	return 0;
@@ -843,12 +843,12 @@ static int sceRtcTickAddHours(u32 destTickPtr, u32 srcTickPtr, int numHours)
 
 static int sceRtcTickAddDays(u32 destTickPtr, u32 srcTickPtr, int numDays)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numDays * 86400ULL * 1000000ULL;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 	DEBUG_LOG(SCERTC, "sceRtcTickAddDays(%d,%d,%d)", destTickPtr, srcTickPtr, numDays);
 	return 0;
@@ -856,12 +856,12 @@ static int sceRtcTickAddDays(u32 destTickPtr, u32 srcTickPtr, int numDays)
 
 static int sceRtcTickAddWeeks(u32 destTickPtr, u32 srcTickPtr, int numWeeks)
 {
-	if (Memory::IsValidAddress(destTickPtr) && Memory::IsValidAddress(srcTickPtr))
+	if (Memory_P::IsValidAddress(destTickPtr) && Memory_P::IsValidAddress(srcTickPtr))
 	{
-		s64 srcTick = (s64)Memory::PRead_U64(srcTickPtr);
+		s64 srcTick = (s64)Memory_P::PRead_U64(srcTickPtr);
 
 		srcTick += numWeeks * 7ULL * 86400ULL * 1000000ULL;
-		Memory::Write_U64(srcTick, destTickPtr);
+		Memory_P::Write_U64(srcTick, destTickPtr);
 	}
 	DEBUG_LOG(SCERTC, "sceRtcTickAddWeeks(%d,%d,%d)", destTickPtr, srcTickPtr, numWeeks);
 	return 0;
@@ -869,13 +869,13 @@ static int sceRtcTickAddWeeks(u32 destTickPtr, u32 srcTickPtr, int numWeeks)
 
 static int sceRtcTickAddMonths(u32 destTickPtr, u32 srcTickPtr, int numMonths)
 {
-	if (!Memory::IsValidAddress(destTickPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(destTickPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		WARN_LOG(SCERTC, "sceRtcTickAddMonths(%08x, %08x, %d): invalid address", destTickPtr, srcTickPtr, numMonths);
 		return -1;
 	}
 
-	u64 srcTick = Memory::PRead_U64(srcTickPtr);
+	u64 srcTick = Memory_P::PRead_U64(srcTickPtr);
 
 	ScePspDateTime pt;
 	memset(&pt, 0, sizeof(pt));
@@ -900,7 +900,7 @@ static int sceRtcTickAddMonths(u32 destTickPtr, u32 srcTickPtr, int numMonths)
 		// Did we land on a year that isn't a leap year?
 		if (pt.month == 2 && pt.day == 29 && !__RtcIsLeapYear((s16)pt.year))
 			pt.day = 28;
-		Memory::Write_U64(__RtcPspTimeToTicks(pt), destTickPtr);
+		Memory_P::Write_U64(__RtcPspTimeToTicks(pt), destTickPtr);
 	}
 
 	DEBUG_LOG(SCERTC, "sceRtcTickAddMonths(%08x, %08x = %lld, %d)", destTickPtr, srcTickPtr, srcTick, numMonths);
@@ -909,13 +909,13 @@ static int sceRtcTickAddMonths(u32 destTickPtr, u32 srcTickPtr, int numMonths)
 
 static int sceRtcTickAddYears(u32 destTickPtr, u32 srcTickPtr, int numYears)
 {
-	if (!Memory::IsValidAddress(destTickPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(destTickPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		WARN_LOG(SCERTC, "sceRtcTickAddYears(%08x, %08x, %d): invalid address", destTickPtr, srcTickPtr, numYears);
 		return -1;
 	}
 
-	u64 srcTick = Memory::PRead_U64(srcTickPtr);
+	u64 srcTick = Memory_P::PRead_U64(srcTickPtr);
 
 	ScePspDateTime pt;
 	memset(&pt, 0, sizeof(pt));
@@ -928,7 +928,7 @@ static int sceRtcTickAddYears(u32 destTickPtr, u32 srcTickPtr, int numYears)
 		// Did we land on a year that isn't a leap year?
 		if (pt.month == 2 && pt.day == 29 && !__RtcIsLeapYear((s16)pt.year))
 			pt.day = 28;
-		Memory::Write_U64(__RtcPspTimeToTicks(pt), destTickPtr);
+		Memory_P::Write_U64(__RtcPspTimeToTicks(pt), destTickPtr);
 	}
 
 	DEBUG_LOG(SCERTC, "sceRtcTickAddYears(%08x, %08x = %lld, %d)", destTickPtr, srcTickPtr, srcTick, numYears);
@@ -943,16 +943,16 @@ static int sceRtcParseDateTime(u32 destTickPtr, u32 dateStringPtr)
 
 static int sceRtcGetLastAdjustedTime(u32 tickPtr)
 {
-	if (Memory::IsValidAddress(tickPtr))
-		Memory::Write_U64(rtcLastAdjustedTicks, tickPtr);
+	if (Memory_P::IsValidAddress(tickPtr))
+		Memory_P::Write_U64(rtcLastAdjustedTicks, tickPtr);
 	DEBUG_LOG(SCERTC, "sceRtcGetLastAdjustedTime(%d)", tickPtr);
 	return 0;
 }
 
 static int sceRtcGetLastReincarnatedTime(u32 tickPtr)
 {
-	if (Memory::IsValidAddress(tickPtr))
-		Memory::Write_U64(rtcLastReincarnatedTicks, tickPtr);
+	if (Memory_P::IsValidAddress(tickPtr))
+		Memory_P::Write_U64(rtcLastReincarnatedTicks, tickPtr);
 	DEBUG_LOG(SCERTC, "sceRtcGetLastReincarnatedTime(%d)", tickPtr);
 	return 0;
 }
@@ -966,7 +966,7 @@ static int sceRtcSetAlarmTick(u32 unknown1, u32 unknown2)
 
 static int __RtcFormatRFC2822(u32 outPtr, u32 srcTickPtr, int tz)
 {
-	u64 srcTick = Memory::PRead_U64(srcTickPtr);
+	u64 srcTick = Memory_P::PRead_U64(srcTickPtr);
 
 	ScePspDateTime pt;
 	memset(&pt, 0, sizeof(pt));
@@ -982,7 +982,7 @@ static int __RtcFormatRFC2822(u32 outPtr, u32 srcTickPtr, int tz)
 	local.tm_min += tz;
 	rtc_timegm(&local);
 
-	char *out = (char *)Memory::GetPointer(outPtr);
+	char *out = (char *)Memory_P::GetPointer(outPtr);
 	char *end = out + 32;
 	out += strftime(out, end - out, "%a, %d %b ", &local);
 	out += snprintf(out, end - out, "%04d", pt.year);
@@ -997,7 +997,7 @@ static int __RtcFormatRFC2822(u32 outPtr, u32 srcTickPtr, int tz)
 
 static int __RtcFormatRFC3339(u32 outPtr, u32 srcTickPtr, int tz)
 {
-	u64 srcTick = Memory::PRead_U64(srcTickPtr);
+	u64 srcTick = Memory_P::PRead_U64(srcTickPtr);
 
 	ScePspDateTime pt;
 	memset(&pt, 0, sizeof(pt));
@@ -1013,7 +1013,7 @@ static int __RtcFormatRFC3339(u32 outPtr, u32 srcTickPtr, int tz)
 	local.tm_min += tz;
 	rtc_timegm(&local);
 
-	char *out = (char *)Memory::GetPointer(outPtr);
+	char *out = (char *)Memory_P::GetPointer(outPtr);
 	char *end = out + 32;
 	out += snprintf(out, end - out, "%04d", pt.year);
 	out += strftime(out, end - out, "-%m-%dT%H:%M:%S.00", &local);
@@ -1029,7 +1029,7 @@ static int __RtcFormatRFC3339(u32 outPtr, u32 srcTickPtr, int tz)
 
 static int sceRtcFormatRFC2822(u32 outPtr, u32 srcTickPtr, int tz)
 {
-	if (!Memory::IsValidAddress(outPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(outPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		// TODO: Not well tested.
 		ERROR_LOG(SCERTC, "sceRtcFormatRFC2822(%08x, %08x, %d): invalid address", outPtr, srcTickPtr, tz);
@@ -1042,7 +1042,7 @@ static int sceRtcFormatRFC2822(u32 outPtr, u32 srcTickPtr, int tz)
 
 static int sceRtcFormatRFC2822LocalTime(u32 outPtr, u32 srcTickPtr)
 {
-	if (!Memory::IsValidAddress(outPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(outPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		// TODO: Not well tested.
 		ERROR_LOG(SCERTC, "sceRtcFormatRFC2822LocalTime(%08x, %08x): invalid address", outPtr, srcTickPtr);
@@ -1066,7 +1066,7 @@ static int sceRtcFormatRFC2822LocalTime(u32 outPtr, u32 srcTickPtr)
 
 static int sceRtcFormatRFC3339(u32 outPtr, u32 srcTickPtr, int tz)
 {
-	if (!Memory::IsValidAddress(outPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(outPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		// TODO: Not well tested.
 		ERROR_LOG(SCERTC, "sceRtcFormatRFC3339(%08x, %08x, %d): invalid address", outPtr, srcTickPtr, tz);
@@ -1079,7 +1079,7 @@ static int sceRtcFormatRFC3339(u32 outPtr, u32 srcTickPtr, int tz)
 
 static int sceRtcFormatRFC3339LocalTime(u32 outPtr, u32 srcTickPtr)
 {
-	if (!Memory::IsValidAddress(outPtr) || !Memory::IsValidAddress(srcTickPtr))
+	if (!Memory_P::IsValidAddress(outPtr) || !Memory_P::IsValidAddress(srcTickPtr))
 	{
 		// TODO: Not well tested.
 		ERROR_LOG(SCERTC, "sceRtcFormatRFC3339LocalTime(%08x, %08x): invalid address", outPtr, srcTickPtr);

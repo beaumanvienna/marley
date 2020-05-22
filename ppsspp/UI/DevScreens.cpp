@@ -460,7 +460,7 @@ void SystemInfoScreen::CreateViews() {
 	deviceSpecs->Add(new InfoItem(si->T("Cores"), StringFromInt(cpu_info.num_cores)));
 #else
 	int totalThreads = cpu_info.num_cores * cpu_info.logical_cpu_count;
-	std::string cores = StringFromFormat(si->T("%d (%d per core, %d cores)"), totalThreads, cpu_info.logical_cpu_count, cpu_info.num_cores);
+	std::string cores = PStringFromFormat(si->T("%d (%d per core, %d cores)"), totalThreads, cpu_info.logical_cpu_count, cpu_info.num_cores);
 	deviceSpecs->Add(new InfoItem(si->T("Threads"), cores));
 #endif
 	deviceSpecs->Add(new ItemHeader(si->T("GPU Information")));
@@ -481,9 +481,9 @@ void SystemInfoScreen::CreateViews() {
 #if !PPSSPP_PLATFORM(UWP)
 	if (GetGPUBackend() == GPUBackend::DIRECT3D9) {
 #if PPSSPP_API(D3DX9)
-		deviceSpecs->Add(new InfoItem(si->T("D3DX Version"), StringFromFormat("%d", GetD3DXVersion())));
+		deviceSpecs->Add(new InfoItem(si->T("D3DX Version"), PStringFromFormat("%d", GetD3DXVersion())));
 #elif PPSSPP_API(D3D9_D3DCOMPILER)
-		deviceSpecs->Add(new InfoItem(si->T("D3DCompiler Version"), StringFromFormat("%d", GetD3DCompilerVersion())));
+		deviceSpecs->Add(new InfoItem(si->T("D3DCompiler Version"), PStringFromFormat("%d", GetD3DCompilerVersion())));
 #endif
 	}
 #endif
@@ -499,7 +499,7 @@ void SystemInfoScreen::CreateViews() {
 		}
 	}
 	deviceSpecs->Add(new ItemHeader(si->T("OS Information")));
-	deviceSpecs->Add(new InfoItem(si->T("Memory Page Size"), StringFromFormat(si->T("%d bytes"), GetMemoryProtectPageSize())));
+	deviceSpecs->Add(new InfoItem(si->T("Memory Page Size"), PStringFromFormat(si->T("%d bytes"), GetMemoryProtectPageSize())));
 	deviceSpecs->Add(new InfoItem(si->T("RW/RX exclusive"), PlatformIsWXExclusive() ? di->T("Active") : di->T("Inactive")));
 #ifdef ANDROID
 	deviceSpecs->Add(new InfoItem(si->T("Sustained perf mode"), System_GetPropertyBool(SYSPROP_SUPPORTS_SUSTAINED_PERF_MODE) ? di->T("Supported") : di->T("Unsupported")));
@@ -513,25 +513,25 @@ void SystemInfoScreen::CreateViews() {
 
 #ifdef __ANDROID__
 	deviceSpecs->Add(new ItemHeader(si->T("Audio Information")));
-	deviceSpecs->Add(new InfoItem(si->T("Sample rate"), StringFromFormat("%d Hz", System_GetPropertyInt(SYSPROP_AUDIO_SAMPLE_RATE))));
-	deviceSpecs->Add(new InfoItem(si->T("Frames per buffer"), StringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_FRAMES_PER_BUFFER))));
-	deviceSpecs->Add(new InfoItem(si->T("Optimal sample rate"), StringFromFormat("%d Hz", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_SAMPLE_RATE))));
-	deviceSpecs->Add(new InfoItem(si->T("Optimal frames per buffer"), StringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_FRAMES_PER_BUFFER))));
+	deviceSpecs->Add(new InfoItem(si->T("Sample rate"), PStringFromFormat("%d Hz", System_GetPropertyInt(SYSPROP_AUDIO_SAMPLE_RATE))));
+	deviceSpecs->Add(new InfoItem(si->T("Frames per buffer"), PStringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_FRAMES_PER_BUFFER))));
+	deviceSpecs->Add(new InfoItem(si->T("Optimal sample rate"), PStringFromFormat("%d Hz", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_SAMPLE_RATE))));
+	deviceSpecs->Add(new InfoItem(si->T("Optimal frames per buffer"), PStringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_FRAMES_PER_BUFFER))));
 
 	deviceSpecs->Add(new ItemHeader(si->T("Display Information")));
-	deviceSpecs->Add(new InfoItem(si->T("Native Resolution"), StringFromFormat("%dx%d",
+	deviceSpecs->Add(new InfoItem(si->T("Native Resolution"), PStringFromFormat("%dx%d",
 		System_GetPropertyInt(SYSPROP_DISPLAY_XRES),
 		System_GetPropertyInt(SYSPROP_DISPLAY_YRES))));
-	deviceSpecs->Add(new InfoItem(si->T("Refresh rate"), StringFromFormat("%0.3f Hz", (float)System_GetPropertyInt(SYSPROP_DISPLAY_REFRESH_RATE) / 1000.0f)));
+	deviceSpecs->Add(new InfoItem(si->T("Refresh rate"), PStringFromFormat("%0.3f Hz", (float)System_GetPropertyInt(SYSPROP_DISPLAY_REFRESH_RATE) / 1000.0f)));
 #endif
 
 #if 0
 	// For debugging, DO NOT translate
 	deviceSpecs->Add(new InfoItem("Resolution1",
-		StringFromFormat("dp: %dx%d px: %dx%d dpi_s: %0.1fx%0.1f",
+		PStringFromFormat("dp: %dx%d px: %dx%d dpi_s: %0.1fx%0.1f",
 			dp_xres, dp_yres, pixel_xres, pixel_yres, g_dpi_scale_x, g_dpi_scale_y)));
 	deviceSpecs->Add(new InfoItem("Resolution2",
-		StringFromFormat("dpi_s_r: %0.1fx%0.1f px_in_dp: %0.1fx%0.1f",
+		PStringFromFormat("dpi_s_r: %0.1fx%0.1f px_in_dp: %0.1fx%0.1f",
 			g_dpi_scale_real_x, g_dpi_scale_real_y, pixel_in_dps_x, pixel_in_dps_y)));
 #endif
 
@@ -539,9 +539,9 @@ void SystemInfoScreen::CreateViews() {
 	std::string apiVersion;
 	if (GetGPUBackend() == GPUBackend::OPENGL) {
 		if (gl_extensions.IsGLES) {
-			apiVersion = StringFromFormat("v%d.%d.%d ES", gl_extensions.ver[0], gl_extensions.ver[1], gl_extensions.ver[2]);
+			apiVersion = PStringFromFormat("v%d.%d.%d ES", gl_extensions.ver[0], gl_extensions.ver[1], gl_extensions.ver[2]);
 		} else {
-			apiVersion = StringFromFormat("v%d.%d.%d", gl_extensions.ver[0], gl_extensions.ver[1], gl_extensions.ver[2]);
+			apiVersion = PStringFromFormat("v%d.%d.%d", gl_extensions.ver[0], gl_extensions.ver[1], gl_extensions.ver[2]);
 		}
 	} else {
 		apiVersion = draw->GetInfoString(InfoField::APIVERSION);
@@ -591,7 +591,7 @@ void SystemInfoScreen::CreateViews() {
 	buildConfig->Add(new InfoItem("ARM_NEON", ""));
 #endif
 #ifdef _M_SSE
-	buildConfig->Add(new InfoItem("_M_SSE", StringFromFormat("0x%x", _M_SSE)));
+	buildConfig->Add(new InfoItem("_M_SSE", PStringFromFormat("0x%x", _M_SSE)));
 #endif
 	if (System_GetPropertyBool(SYSPROP_APP_GOLD)) {
 		buildConfig->Add(new InfoItem("GOLD", ""));
@@ -863,7 +863,7 @@ UI::EventReturn JitCompareScreen::OnAddressChange(UI::EventParams &e) {
 	if (blockAddr_->GetText().size() > 8)
 		return UI::EVENT_DONE;
 	if (1 == sscanf(blockAddr_->GetText().c_str(), "%08x", &addr)) {
-		if (Memory::IsValidAddress(addr)) {
+		if (Memory_P::IsValidAddress(addr)) {
 			currentBlock_ = blockCache->GetBlockNumberFromStartAddress(addr);
 			UpdateDisasm();
 		}
@@ -927,7 +927,7 @@ UI::EventReturn JitCompareScreen::OnBlockAddress(UI::EventParams &e) {
 	if (!blockCache)
 		return UI::EVENT_DONE;
 
-	if (Memory::IsValidAddress(e.a)) {
+	if (Memory_P::IsValidAddress(e.a)) {
 		currentBlock_ = blockCache->GetBlockNumberFromStartAddress(e.a);
 	} else {
 		currentBlock_ = -1;
@@ -980,7 +980,7 @@ void JitCompareScreen::OnRandomBlock(int flag) {
 			JitBlockDebugInfo b = blockCache->GetBlockDebugInfo(currentBlock_);
 			u32 mipsBytes = (u32)b.origDisasm.size() * 4;
 			for (u32 addr = b.originalAddress; addr <= b.originalAddress + mipsBytes; addr += 4) {
-				MIPSOpcode opcode = Memory::Read_Instruction(addr);
+				MIPSOpcode opcode = Memory_P::Read_Instruction(addr);
 				if (MIPSGetInfo(opcode) & flag) {
 					char temp[256];
 					MIPSDisAsm(opcode, addr, temp);
@@ -1056,7 +1056,7 @@ void ShaderListScreen::CreateViews() {
 		LinearLayout *shaderList = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, WRAP_CONTENT));
 		int count = ListShaders(shaderTypes[i].type, shaderList);
 		scroll->Add(shaderList);
-		tabs_->AddTab(StringFromFormat("%s (%d)", shaderTypes[i].name, count), scroll);
+		tabs_->AddTab(PStringFromFormat("%s (%d)", shaderTypes[i].name, count), scroll);
 	}
 }
 

@@ -326,12 +326,12 @@ size_t AuCtx::FindNextMp3Sync() {
 
 // return output pcm size, <0 error
 u32 AuCtx::AuDecode(u32 pcmAddr) {
-	if (!Memory::IsValidAddress(pcmAddr)){
+	if (!Memory_P::IsValidAddress(pcmAddr)){
 		ERROR_LOG(ME, "%s: output bufferAddress %08x is invalctx", __FUNCTION__, pcmAddr);
 		return -1;
 	}
 
-	auto outbuf = Memory::GetPointer(PCMBuf);
+	auto outbuf = Memory_P::GetPointer(PCMBuf);
 	int outpcmbufsize = 0;
 
 	// Decode a single frame in sourcebuff and output into PCMBuf.
@@ -375,7 +375,7 @@ u32 AuCtx::AuDecode(u32 pcmAddr) {
 		memset(outbuf + outpcmbufsize, 0, PCMBufSize - outpcmbufsize);
 	}
 
-	Memory::PWrite_U32(PCMBuf, pcmAddr);
+	Memory_P::PWrite_U32(PCMBuf, pcmAddr);
 	return outpcmbufsize;
 }
 
@@ -438,9 +438,9 @@ u32 AuCtx::AuNotifyAddStreamData(int size) {
 		AuBufAvailable += size;
 	}
 
-	if (Memory::IsValidRange(AuBuf, size)) {
+	if (Memory_P::IsValidRange(AuBuf, size)) {
 		sourcebuff.resize(sourcebuff.size() + size);
-		Memory::MemcpyUnchecked(&sourcebuff[sourcebuff.size() - size], AuBuf + offset, size);
+		Memory_P::MemcpyUnchecked(&sourcebuff[sourcebuff.size() - size], AuBuf + offset, size);
 	}
 
 	return 0;
@@ -454,19 +454,19 @@ u32 AuCtx::AuGetInfoToAddStreamData(u32 bufPtr, u32 sizePtr, u32 srcPosPtr) {
 
 	// we can recharge AuBuf from its beginning
 	if (readsize != 0) {
-		if (Memory::IsValidAddress(bufPtr))
-			Memory::PWrite_U32(AuBuf + offset, bufPtr);
-		if (Memory::IsValidAddress(sizePtr))
-			Memory::PWrite_U32(readsize, sizePtr);
-		if (Memory::IsValidAddress(srcPosPtr))
-			Memory::PWrite_U32(readPos, srcPosPtr);
+		if (Memory_P::IsValidAddress(bufPtr))
+			Memory_P::PWrite_U32(AuBuf + offset, bufPtr);
+		if (Memory_P::IsValidAddress(sizePtr))
+			Memory_P::PWrite_U32(readsize, sizePtr);
+		if (Memory_P::IsValidAddress(srcPosPtr))
+			Memory_P::PWrite_U32(readPos, srcPosPtr);
 	} else {
-		if (Memory::IsValidAddress(bufPtr))
-			Memory::PWrite_U32(0, bufPtr);
-		if (Memory::IsValidAddress(sizePtr))
-			Memory::PWrite_U32(0, sizePtr);
-		if (Memory::IsValidAddress(srcPosPtr))
-			Memory::PWrite_U32(0, srcPosPtr);
+		if (Memory_P::IsValidAddress(bufPtr))
+			Memory_P::PWrite_U32(0, bufPtr);
+		if (Memory_P::IsValidAddress(sizePtr))
+			Memory_P::PWrite_U32(0, sizePtr);
+		if (Memory_P::IsValidAddress(srcPosPtr))
+			Memory_P::PWrite_U32(0, srcPosPtr);
 	}
 
 	// Just for old save states.
