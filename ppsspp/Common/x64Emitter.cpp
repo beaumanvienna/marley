@@ -1610,7 +1610,7 @@ void XEmitter::MOVHPS(OpArg arg, X64Reg regOp)  { PWriteSSEOp(0x00, sseMOVHPtoRM
 void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  { PWriteSSEOp(0x66, sseMOVHPtoRM, regOp, arg); }
 
 void XEmitter::PMOVHLPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));}
-void XEmitter::MOVLHPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVLHPS, regOp1, R(regOp2));}
+void XEmitter::PMOVLHPS(X64Reg regOp1, X64Reg regOp2) {PWriteSSEOp(0x00, sseMOVLHPS, regOp1, R(regOp2));}
 
 void XEmitter::CVTPS2PD(X64Reg regOp, OpArg arg) {PWriteSSEOp(0x00, 0x5A, regOp, arg);}
 void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {PWriteSSEOp(0x66, 0x5A, regOp, arg);}

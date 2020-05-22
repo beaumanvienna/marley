@@ -707,7 +707,7 @@ public:
 	void MOVHPD(OpArg arg, X64Reg regOp);
 
 	void PMOVHLPS(X64Reg regOp1, X64Reg regOp2);
-	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
+	void PMOVLHPS(X64Reg regOp1, X64Reg regOp2);
 
 	void PMOVD_xmm(X64Reg dest, const OpArg &arg);
 	void PMOVQ_xmm(X64Reg dest, OpArg arg);

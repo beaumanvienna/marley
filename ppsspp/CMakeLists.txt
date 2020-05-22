@@ -1968,11 +1968,11 @@ endif()
 
 if(TargetBin)
 	
-    add_executable(${TargetBin} ${NativeAppSource})
-	target_link_libraries(${TargetBin} ${LinkCommon} Common)
-    
-	#add_library(${TargetBin} ${NativeAppSource})
+    #add_executable(${TargetBin} ${NativeAppSource})
 	#target_link_libraries(${TargetBin} ${LinkCommon} Common)
+    
+	add_library(${TargetBin} ${NativeAppSource})
+	target_link_libraries(${TargetBin} ${LinkCommon} Common)
 endif()
 
 # installs
