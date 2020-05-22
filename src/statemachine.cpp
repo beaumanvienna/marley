@@ -435,7 +435,7 @@ bool statemachine(int cmd)
 
 #ifdef PPSSPP
                             
-                            if ((ext == "iso") && (str.find("psp") >= 0))
+                            if ((ext == "iso") && (str.find("psp") != string::npos))
                             {
                                 
                                 
@@ -457,7 +457,7 @@ bool statemachine(int cmd)
 
 #ifdef DOLPHIN
                             
-                            if ((ext == "iso") && (str.find("wii") >= 0))
+                            if ((ext == "iso") && ((str.find("wii") != string::npos)||(str.find("gamecube") != string::npos)))
                             {
                                 
                                 
