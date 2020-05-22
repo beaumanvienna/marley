@@ -84,7 +84,7 @@ static int sdl_write_trailer(AVFormatContext *s)
     sdl->init_cond = NULL;
 
     if (!sdl->sdl_was_already_inited)
-        SDL_Quit();
+        //SDL_Quit();
 
     return 0;
 }

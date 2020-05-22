@@ -357,7 +357,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		if (window == nullptr) {
 			NativeShutdown();
 			fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
-			SDL_Quit();
+			//SDL_Quit();
 			return 2;
 		}
 
@@ -365,7 +365,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		if (glContext == nullptr) {
 			NativeShutdown();
 			fprintf(stderr, "SDL_GL_CreateContext failed: %s\n", SDL_GetError());
-			SDL_Quit();
+			//SDL_Quit();
 			return 2;
 		}
 	}

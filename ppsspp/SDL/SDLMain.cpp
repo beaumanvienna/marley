@@ -930,7 +930,7 @@ int ppsspp_main(int argc, char *argv[]) {
 
 	SDL_PauseAudio(1);
 	SDL_CloseAudio();
-	SDL_Quit();
+	//SDL_Quit();
 #if PPSSPP_PLATFORM(RPI)
 	bcm_host_deinit();
 #endif
