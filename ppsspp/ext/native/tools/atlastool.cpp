@@ -174,19 +174,19 @@ struct Image {
     FILE *fil = fopen(png_name, "wb");
     png_structp  png_ptr;
     png_infop  info_ptr;
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_ptr = Ppng_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     CHECK(png_ptr);
-    info_ptr = png_create_info_struct(png_ptr);
+    info_ptr = Ppng_create_info_struct(png_ptr);
     CHECK(info_ptr);
-    png_init_io(png_ptr, fil);
-    //png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
-    png_set_IHDR(png_ptr, info_ptr, dat[0].size(), dat.size(), 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-    png_write_info(png_ptr, info_ptr);
+    Ppng_init_io(png_ptr, fil);
+    //Ppng_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
+    Ppng_set_IHDR(png_ptr, info_ptr, dat[0].size(), dat.size(), 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    Ppng_write_info(png_ptr, info_ptr);
     for(int y = 0; y < (int)dat.size(); y++) {
-      png_write_row(png_ptr, (png_byte*)&dat[y][0]);
+      Ppng_write_row(png_ptr, (png_byte*)&dat[y][0]);
     }
-    png_write_end(png_ptr, NULL);
-    png_destroy_write_struct(&png_ptr, &info_ptr);
+    Ppng_write_end(png_ptr, NULL);
+    Ppng_destroy_write_struct(&png_ptr, &info_ptr);
   }
   void SaveZIM(const char *zim_name, int zim_format) {
     uint8_t *image_data = new uint8_t[width() * height() * 4];

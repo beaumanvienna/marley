@@ -209,21 +209,21 @@ struct png_struct_def
    /* ERROR HANDLING */
 #ifdef PNG_SETJMP_SUPPORTED
    jmp_buf        *jmp_buf_ptr;   /* passed to longjmp_fn */
-   png_longjmp_ptr longjmp_fn;    /* setjmp non-local goto function. */
+   Ppng_longjmp_ptr longjmp_fn;    /* setjmp non-local goto function. */
    size_t          jmp_buf_size;  /* size of *jmp_buf_ptr, if allocated */
 #endif
 
    /* Error/warning callbacks */
-   png_error_ptr error_fn;        /* print an error message and abort */
+   Ppng_error_ptr error_fn;        /* print an error message and abort */
 #ifdef PNG_WARNINGS_SUPPORTED
-   png_error_ptr warning_fn;      /* print a warning and continue */
+   Ppng_error_ptr warning_fn;      /* print a warning and continue */
 #endif
    png_voidp     error_ptr;       /* user supplied data for the above */
 
    /* MEMORY ALLOCATION */
 #ifdef PNG_USER_MEM_SUPPORTED
-   png_malloc_ptr malloc_fn; /* allocate memory */
-   png_free_ptr   free_fn;   /* free memory */
+   Ppng_malloc_ptr malloc_fn; /* allocate memory */
+   Ppng_free_ptr   free_fn;   /* free memory */
    png_voidp      mem_ptr;   /* user supplied data for the above */
 #endif
 

@@ -33,7 +33,7 @@ write_unknown_chunks(png_structrp png_ptr, png_const_inforp info_ptr,
    {
       png_const_unknown_chunkp up;
 
-      png_debug(5, "writing extra chunks");
+      Ppng_debug(5, "writing extra chunks");
 
       for (up = info_ptr->unknown_chunks;
            up < info_ptr->unknown_chunks + info_ptr->unknown_chunks_num;
@@ -44,7 +44,7 @@ write_unknown_chunks(png_structrp png_ptr, png_const_inforp info_ptr,
           * just write the chunks the application has set.
           */
 #ifdef PNG_SET_UNKNOWN_CHUNKS_SUPPORTED
-         int keep = png_handle_as_unknown(png_ptr, up->name);
+         int keep = Ppng_handle_as_unknown(png_ptr, up->name);
 
          /* NOTE: this code is radically different from the read side in the
           * matter of handling an ancillary unknown chunk.  In the read side
@@ -67,9 +67,9 @@ write_unknown_chunks(png_structrp png_ptr, png_const_inforp info_ptr,
          {
             /* TODO: review, what is wrong with a zero length unknown chunk? */
             if (up->size == 0)
-               png_warning(png_ptr, "Writing zero-length unknown chunk");
+               Ppng_warning(png_ptr, "Writing zero-length unknown chunk");
 
-            png_write_chunk(png_ptr, up->name, up->data, up->size);
+            Ppng_write_chunk(png_ptr, up->name, up->data, up->size);
          }
       }
    }
@@ -79,16 +79,16 @@ write_unknown_chunks(png_structrp png_ptr, png_const_inforp info_ptr,
 /* Writes all the PNG information.  This is the suggested way to use the
  * library.  If you have a new chunk to add, make a function to write it,
  * and put it in the correct location here.  If you want the chunk written
- * after the image data, put it in png_write_end().  I strongly encourage
+ * after the image data, put it in Ppng_write_end().  I strongly encourage
  * you to supply a PNG_INFO_ flag, and check info_ptr->valid before writing
  * the chunk, as that will keep the code from breaking if you want to just
  * write a plain PNG file.  If you have long comments, I suggest writing
- * them in png_write_end(), and compressing them.
+ * them in Ppng_write_end(), and compressing them.
  */
 void PNGAPI
-png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
+Ppng_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
 {
-   png_debug(1, "in png_write_info_before_PLTE");
+   Ppng_debug(1, "in Ppng_write_info_before_PLTE");
 
    if (png_ptr == NULL || info_ptr == NULL)
       return;
@@ -96,13 +96,13 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
    if (!(png_ptr->mode & PNG_WROTE_INFO_BEFORE_PLTE))
    {
    /* Write PNG signature */
-   png_write_sig(png_ptr);
+   Ppng_write_sig(png_ptr);
 
 #ifdef PNG_MNG_FEATURES_SUPPORTED
    if ((png_ptr->mode&PNG_HAVE_PNG_SIGNATURE) && \
        (png_ptr->mng_features_permitted))
    {
-      png_warning(png_ptr, "MNG features are not allowed in a PNG datastream");
+      Ppng_warning(png_ptr, "MNG features are not allowed in a PNG datastream");
       png_ptr->mng_features_permitted = 0;
    }
 #endif
@@ -128,7 +128,7 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
     *
     * Under certain circumstances the colorspace can be invalidated without
     * syncing the info_struct 'valid' flags; this happens if libpng detects and
-    * error and calls png_error while the color space is being set, yet the
+    * error and calls Ppng_error while the color space is being set, yet the
     * application continues writing the PNG.  So check the 'invalid' flag here
     * too.
     */
@@ -193,25 +193,25 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
 }
 
 void PNGAPI
-png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
+Ppng_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
 {
 #if defined(PNG_WRITE_TEXT_SUPPORTED) || defined(PNG_WRITE_sPLT_SUPPORTED)
    int i;
 #endif
 
-   png_debug(1, "in png_write_info");
+   Ppng_debug(1, "in Ppng_write_info");
 
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
-   png_write_info_before_PLTE(png_ptr, info_ptr);
+   Ppng_write_info_before_PLTE(png_ptr, info_ptr);
 
    if (info_ptr->valid & PNG_INFO_PLTE)
       png_write_PLTE(png_ptr, info_ptr->palette,
           (png_uint_32)info_ptr->num_palette);
 
    else if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
-      png_error(png_ptr, "Valid palette required for paletted images");
+      Ppng_error(png_ptr, "Valid palette required for paletted images");
 
 #ifdef PNG_WRITE_tRNS_SUPPORTED
    if (info_ptr->valid & PNG_INFO_tRNS)
@@ -289,7 +289,7 @@ png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
    /* Check to see if we need to write text chunks */
    for (i = 0; i < info_ptr->num_text; i++)
    {
-      png_debug2(2, "Writing header text chunk %d, type %d", i,
+      Ppng_debug2(2, "Writing header text chunk %d, type %d", i,
           info_ptr->text[i].compression);
       /* An internationalized chunk? */
       if (info_ptr->text[i].compression > 0)
@@ -303,7 +303,7 @@ png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
              info_ptr->text[i].lang_key,
              info_ptr->text[i].text);
 #else
-          png_warning(png_ptr, "Unable to write international text");
+          Ppng_warning(png_ptr, "Unable to write international text");
 #endif
           /* Mark this chunk as written */
           info_ptr->text[i].compression = PNG_TEXT_COMPRESSION_NONE_WR;
@@ -318,7 +318,7 @@ png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
              info_ptr->text[i].text, 0,
              info_ptr->text[i].compression);
 #else
-         png_warning(png_ptr, "Unable to write compressed text");
+         Ppng_warning(png_ptr, "Unable to write compressed text");
 #endif
          /* Mark this chunk as written */
          info_ptr->text[i].compression = PNG_TEXT_COMPRESSION_zTXt_WR;
@@ -335,7 +335,7 @@ png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
          info_ptr->text[i].compression = PNG_TEXT_COMPRESSION_NONE_WR;
 #else
          /* Can't get here */
-         png_warning(png_ptr, "Unable to write uncompressed text");
+         Ppng_warning(png_ptr, "Unable to write uncompressed text");
 #endif
       }
    }
@@ -348,23 +348,23 @@ png_write_info(png_structrp png_ptr, png_const_inforp info_ptr)
 
 /* Writes the end of the PNG file.  If you don't want to write comments or
  * time information, you can pass NULL for info.  If you already wrote these
- * in png_write_info(), do not write them again here.  If you have long
+ * in Ppng_write_info(), do not write them again here.  If you have long
  * comments, I suggest writing them here, and compressing them.
  */
 void PNGAPI
-png_write_end(png_structrp png_ptr, png_inforp info_ptr)
+Ppng_write_end(png_structrp png_ptr, png_inforp info_ptr)
 {
-   png_debug(1, "in png_write_end");
+   Ppng_debug(1, "in Ppng_write_end");
 
    if (png_ptr == NULL)
       return;
 
    if (!(png_ptr->mode & PNG_HAVE_IDAT))
-      png_error(png_ptr, "No IDATs written into file");
+      Ppng_error(png_ptr, "No IDATs written into file");
 
 #ifdef PNG_WRITE_CHECK_FOR_INVALID_INDEX_SUPPORTED
    if (png_ptr->num_palette_max > png_ptr->num_palette)
-      png_benign_error(png_ptr, "Wrote palette index exceeding num_palette");
+      Ppng_benign_error(png_ptr, "Wrote palette index exceeding num_palette");
 #endif
 
    /* See if user wants us to write information chunks */
@@ -384,7 +384,7 @@ png_write_end(png_structrp png_ptr, png_inforp info_ptr)
       /* Loop through comment chunks */
       for (i = 0; i < info_ptr->num_text; i++)
       {
-         png_debug2(2, "Writing trailer text chunk %d, type %d", i,
+         Ppng_debug2(2, "Writing trailer text chunk %d, type %d", i,
             info_ptr->text[i].compression);
          /* An internationalized chunk? */
          if (info_ptr->text[i].compression > 0)
@@ -398,7 +398,7 @@ png_write_end(png_structrp png_ptr, png_inforp info_ptr)
                 info_ptr->text[i].lang_key,
                 info_ptr->text[i].text);
 #else
-            png_warning(png_ptr, "Unable to write international text");
+            Ppng_warning(png_ptr, "Unable to write international text");
 #endif
             /* Mark this chunk as written */
             info_ptr->text[i].compression = PNG_TEXT_COMPRESSION_NONE_WR;
@@ -412,7 +412,7 @@ png_write_end(png_structrp png_ptr, png_inforp info_ptr)
                 info_ptr->text[i].text, 0,
                 info_ptr->text[i].compression);
 #else
-            png_warning(png_ptr, "Unable to write compressed text");
+            Ppng_warning(png_ptr, "Unable to write compressed text");
 #endif
             /* Mark this chunk as written */
             info_ptr->text[i].compression = PNG_TEXT_COMPRESSION_zTXt_WR;
@@ -425,7 +425,7 @@ png_write_end(png_structrp png_ptr, png_inforp info_ptr)
             png_write_tEXt(png_ptr, info_ptr->text[i].key,
                 info_ptr->text[i].text, 0);
 #else
-            png_warning(png_ptr, "Unable to write uncompressed text");
+            Ppng_warning(png_ptr, "Unable to write uncompressed text");
 #endif
 
             /* Mark this chunk as written */
@@ -458,9 +458,9 @@ png_write_end(png_structrp png_ptr, png_inforp info_ptr)
 
 #ifdef PNG_CONVERT_tIME_SUPPORTED
 void PNGAPI
-png_convert_from_struct_tm(png_timep ptime, PNG_CONST struct tm * ttime)
+Ppng_convert_from_struct_tm(png_timep ptime, PNG_CONST struct tm * ttime)
 {
-   png_debug(1, "in png_convert_from_struct_tm");
+   Ppng_debug(1, "in Ppng_convert_from_struct_tm");
 
    ptime->year = (png_uint_16)(1900 + ttime->tm_year);
    ptime->month = (png_byte)(ttime->tm_mon + 1);
@@ -471,35 +471,35 @@ png_convert_from_struct_tm(png_timep ptime, PNG_CONST struct tm * ttime)
 }
 
 void PNGAPI
-png_convert_from_time_t(png_timep ptime, time_t ttime)
+Ppng_convert_from_time_t(png_timep ptime, time_t ttime)
 {
    struct tm *tbuf;
 
-   png_debug(1, "in png_convert_from_time_t");
+   Ppng_debug(1, "in Ppng_convert_from_time_t");
 
    tbuf = gmtime(&ttime);
-   png_convert_from_struct_tm(ptime, tbuf);
+   Ppng_convert_from_struct_tm(ptime, tbuf);
 }
 #endif
 
 /* Initialize png_ptr structure, and allocate any memory needed */
 PNG_FUNCTION(png_structp,PNGAPI
-png_create_write_struct,(png_const_charp user_png_ver, png_voidp error_ptr,
-    png_error_ptr error_fn, png_error_ptr warn_fn),PNG_ALLOCATED)
+Ppng_create_write_struct,(png_const_charp user_png_ver, png_voidp error_ptr,
+    Ppng_error_ptr error_fn, Ppng_error_ptr warn_fn),PNG_ALLOCATED)
 {
 #ifndef PNG_USER_MEM_SUPPORTED
    png_structrp png_ptr = png_create_png_struct(user_png_ver, error_ptr,
       error_fn, warn_fn, NULL, NULL, NULL);
 #else
-   return png_create_write_struct_2(user_png_ver, error_ptr, error_fn,
+   return Ppng_create_write_struct_2(user_png_ver, error_ptr, error_fn,
        warn_fn, NULL, NULL, NULL);
 }
 
 /* Alternate initialize png_ptr structure, and allocate any memory needed */
 PNG_FUNCTION(png_structp,PNGAPI
-png_create_write_struct_2,(png_const_charp user_png_ver, png_voidp error_ptr,
-    png_error_ptr error_fn, png_error_ptr warn_fn, png_voidp mem_ptr,
-    png_malloc_ptr malloc_fn, png_free_ptr free_fn),PNG_ALLOCATED)
+Ppng_create_write_struct_2,(png_const_charp user_png_ver, png_voidp error_ptr,
+    Ppng_error_ptr error_fn, Ppng_error_ptr warn_fn, png_voidp mem_ptr,
+    Ppng_malloc_ptr malloc_fn, Ppng_free_ptr free_fn),PNG_ALLOCATED)
 {
    png_structrp png_ptr = png_create_png_struct(user_png_ver, error_ptr,
       error_fn, warn_fn, mem_ptr, malloc_fn, free_fn);
@@ -549,11 +549,11 @@ png_create_write_struct_2,(png_const_charp user_png_ver, png_voidp error_ptr,
          png_ptr->flags |= PNG_FLAG_APP_WARNINGS_WARN;
 #endif
 
-      /* TODO: delay this, it can be done in png_init_io() (if the app doesn't
+      /* TODO: delay this, it can be done in Ppng_init_io() (if the app doesn't
        * do it itself) avoiding setting the default function if it is not
        * required.
        */
-      png_set_write_fn(png_ptr, NULL, NULL, NULL);
+      Ppng_set_write_fn(png_ptr, NULL, NULL, NULL);
    }
 
    return png_ptr;
@@ -562,17 +562,17 @@ png_create_write_struct_2,(png_const_charp user_png_ver, png_voidp error_ptr,
 
 /* Write a few rows of image data.  If the image is interlaced,
  * either you will have to write the 7 sub images, or, if you
- * have called png_set_interlace_handling(), you will have to
+ * have called Ppng_set_interlace_handling(), you will have to
  * "write" the image seven times.
  */
 void PNGAPI
-png_write_rows(png_structrp png_ptr, png_bytepp row,
+Ppng_write_rows(png_structrp png_ptr, png_bytepp row,
     png_uint_32 num_rows)
 {
    png_uint_32 i; /* row counter */
    png_bytepp rp; /* row pointer */
 
-   png_debug(1, "in png_write_rows");
+   Ppng_debug(1, "in Ppng_write_rows");
 
    if (png_ptr == NULL)
       return;
@@ -580,7 +580,7 @@ png_write_rows(png_structrp png_ptr, png_bytepp row,
    /* Loop through the rows */
    for (i = 0, rp = row; i < num_rows; i++, rp++)
    {
-      png_write_row(png_ptr, *rp);
+      Ppng_write_row(png_ptr, *rp);
    }
 }
 
@@ -588,7 +588,7 @@ png_write_rows(png_structrp png_ptr, png_bytepp row,
  * if you are writing an interlaced image.
  */
 void PNGAPI
-png_write_image(png_structrp png_ptr, png_bytepp image)
+Ppng_write_image(png_structrp png_ptr, png_bytepp image)
 {
    png_uint_32 i; /* row index */
    int pass, num_pass; /* pass variables */
@@ -597,13 +597,13 @@ png_write_image(png_structrp png_ptr, png_bytepp image)
    if (png_ptr == NULL)
       return;
 
-   png_debug(1, "in png_write_image");
+   Ppng_debug(1, "in Ppng_write_image");
 
 #ifdef PNG_WRITE_INTERLACING_SUPPORTED
    /* Initialize interlace handling.  If image is not interlaced,
     * this will set pass to 1
     */
-   num_pass = png_set_interlace_handling(png_ptr);
+   num_pass = Ppng_set_interlace_handling(png_ptr);
 #else
    num_pass = 1;
 #endif
@@ -613,7 +613,7 @@ png_write_image(png_structrp png_ptr, png_bytepp image)
       /* Loop through image */
       for (i = 0, rp = image; i < png_ptr->height; i++, rp++)
       {
-         png_write_row(png_ptr, *rp);
+         Ppng_write_row(png_ptr, *rp);
       }
    }
 }
@@ -623,7 +623,7 @@ png_write_image(png_structrp png_ptr, png_bytepp image)
 static void
 png_do_write_intrapixel(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_write_intrapixel");
+   Ppng_debug(1, "in png_do_write_intrapixel");
 
    if ((row_info->color_type & PNG_COLOR_MASK_COLOR))
    {
@@ -685,7 +685,7 @@ png_do_write_intrapixel(png_row_infop row_info, png_bytep row)
 
 /* Called by user to write a row of image data */
 void PNGAPI
-png_write_row(png_structrp png_ptr, png_const_bytep row)
+Ppng_write_row(png_structrp png_ptr, png_const_bytep row)
 {
    /* 1.5.6: moved from png_struct to be a local structure: */
    png_row_info row_info;
@@ -693,7 +693,7 @@ png_write_row(png_structrp png_ptr, png_const_bytep row)
    if (png_ptr == NULL)
       return;
 
-   png_debug2(1, "in png_write_row (row %u, pass %d)",
+   Ppng_debug2(1, "in Ppng_write_row (row %u, pass %d)",
       png_ptr->row_number, png_ptr->pass);
 
    /* Initialize transformations and other stuff if first time */
@@ -701,44 +701,44 @@ png_write_row(png_structrp png_ptr, png_const_bytep row)
    {
       /* Make sure we wrote the header info */
       if (!(png_ptr->mode & PNG_WROTE_INFO_BEFORE_PLTE))
-         png_error(png_ptr,
-             "png_write_info was never called before png_write_row");
+         Ppng_error(png_ptr,
+             "Ppng_write_info was never called before Ppng_write_row");
 
       /* Check for transforms that have been set but were defined out */
 #if !defined(PNG_WRITE_INVERT_SUPPORTED) && defined(PNG_READ_INVERT_SUPPORTED)
       if (png_ptr->transformations & PNG_INVERT_MONO)
-         png_warning(png_ptr, "PNG_WRITE_INVERT_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_INVERT_SUPPORTED is not defined");
 #endif
 
 #if !defined(PNG_WRITE_FILLER_SUPPORTED) && defined(PNG_READ_FILLER_SUPPORTED)
       if (png_ptr->transformations & PNG_FILLER)
-         png_warning(png_ptr, "PNG_WRITE_FILLER_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_FILLER_SUPPORTED is not defined");
 #endif
 #if !defined(PNG_WRITE_PACKSWAP_SUPPORTED) && \
     defined(PNG_READ_PACKSWAP_SUPPORTED)
       if (png_ptr->transformations & PNG_PACKSWAP)
-         png_warning(png_ptr,
+         Ppng_warning(png_ptr,
              "PNG_WRITE_PACKSWAP_SUPPORTED is not defined");
 #endif
 
 #if !defined(PNG_WRITE_PACK_SUPPORTED) && defined(PNG_READ_PACK_SUPPORTED)
       if (png_ptr->transformations & PNG_PACK)
-         png_warning(png_ptr, "PNG_WRITE_PACK_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_PACK_SUPPORTED is not defined");
 #endif
 
 #if !defined(PNG_WRITE_SHIFT_SUPPORTED) && defined(PNG_READ_SHIFT_SUPPORTED)
       if (png_ptr->transformations & PNG_SHIFT)
-         png_warning(png_ptr, "PNG_WRITE_SHIFT_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_SHIFT_SUPPORTED is not defined");
 #endif
 
 #if !defined(PNG_WRITE_BGR_SUPPORTED) && defined(PNG_READ_BGR_SUPPORTED)
       if (png_ptr->transformations & PNG_BGR)
-         png_warning(png_ptr, "PNG_WRITE_BGR_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_BGR_SUPPORTED is not defined");
 #endif
 
 #if !defined(PNG_WRITE_SWAP_SUPPORTED) && defined(PNG_READ_SWAP_SUPPORTED)
       if (png_ptr->transformations & PNG_SWAP_BYTES)
-         png_warning(png_ptr, "PNG_WRITE_SWAP_SUPPORTED is not defined");
+         Ppng_warning(png_ptr, "PNG_WRITE_SWAP_SUPPORTED is not defined");
 #endif
 
       png_write_start_row(png_ptr);
@@ -820,12 +820,12 @@ png_write_row(png_structrp png_ptr, png_const_bytep row)
    row_info.pixel_depth = (png_byte)(row_info.bit_depth * row_info.channels);
    row_info.rowbytes = PNG_ROWBYTES(row_info.pixel_depth, row_info.width);
 
-   png_debug1(3, "row_info->color_type = %d", row_info.color_type);
-   png_debug1(3, "row_info->width = %u", row_info.width);
-   png_debug1(3, "row_info->channels = %d", row_info.channels);
-   png_debug1(3, "row_info->bit_depth = %d", row_info.bit_depth);
-   png_debug1(3, "row_info->pixel_depth = %d", row_info.pixel_depth);
-   png_debug1(3, "row_info->rowbytes = %lu", (unsigned long)row_info.rowbytes);
+   Ppng_debug1(3, "row_info->color_type = %d", row_info.color_type);
+   Ppng_debug1(3, "row_info->width = %u", row_info.width);
+   Ppng_debug1(3, "row_info->channels = %d", row_info.channels);
+   Ppng_debug1(3, "row_info->bit_depth = %d", row_info.bit_depth);
+   Ppng_debug1(3, "row_info->pixel_depth = %d", row_info.pixel_depth);
+   Ppng_debug1(3, "row_info->rowbytes = %lu", (unsigned long)row_info.rowbytes);
 
    /* Copy user's row into buffer, leaving room for filter byte. */
    memcpy(png_ptr->row_buf + 1, row, row_info.rowbytes);
@@ -856,14 +856,14 @@ png_write_row(png_structrp png_ptr, png_const_bytep row)
     */
    if (row_info.pixel_depth != png_ptr->pixel_depth ||
       row_info.pixel_depth != png_ptr->transformed_pixel_depth)
-      png_error(png_ptr, "internal write transform logic error");
+      Ppng_error(png_ptr, "internal write transform logic error");
 
 #ifdef PNG_MNG_FEATURES_SUPPORTED
    /* Write filter_method 64 (intrapixel differencing) only if
     * 1. Libpng was compiled with PNG_MNG_FEATURES_SUPPORTED and
     * 2. Libpng did not write a PNG signature (this filter_method is only
     *    used in PNG datastreams that are embedded in MNG datastreams) and
-    * 3. The application called png_permit_mng_features with a mask that
+    * 3. The application called Ppng_permit_mng_features with a mask that
     *    included PNG_FLAG_MNG_FILTER_64 and
     * 4. The filter_method is 64 and
     * 5. The color_type is RGB or RGBA
@@ -894,9 +894,9 @@ png_write_row(png_structrp png_ptr, png_const_bytep row)
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
 /* Set the automatic flush interval or 0 to turn flushing off */
 void PNGAPI
-png_set_flush(png_structrp png_ptr, int nrows)
+Ppng_set_flush(png_structrp png_ptr, int nrows)
 {
-   png_debug(1, "in png_set_flush");
+   Ppng_debug(1, "in Ppng_set_flush");
 
    if (png_ptr == NULL)
       return;
@@ -906,9 +906,9 @@ png_set_flush(png_structrp png_ptr, int nrows)
 
 /* Flush the current output buffers now */
 void PNGAPI
-png_write_flush(png_structrp png_ptr)
+Ppng_write_flush(png_structrp png_ptr)
 {
-   png_debug(1, "in png_write_flush");
+   Ppng_debug(1, "in Ppng_write_flush");
 
    if (png_ptr == NULL)
       return;
@@ -931,32 +931,32 @@ static void png_reset_filter_heuristics(png_structrp png_ptr);/* forward decl */
 static void
 png_write_destroy(png_structrp png_ptr)
 {
-   png_debug(1, "in png_write_destroy");
+   Ppng_debug(1, "in png_write_destroy");
 
    /* Free any memory zlib uses */
    if (png_ptr->flags & PNG_FLAG_ZSTREAM_INITIALIZED)
       deflateEnd(&png_ptr->zstream);
 
-   /* Free our memory.  png_free checks NULL for us. */
-   png_free_buffer_list(png_ptr, &png_ptr->zbuffer_list);
-   png_free(png_ptr, png_ptr->row_buf);
+   /* Free our memory.  Ppng_free checks NULL for us. */
+   Ppng_free_buffer_list(png_ptr, &png_ptr->zbuffer_list);
+   Ppng_free(png_ptr, png_ptr->row_buf);
 #ifdef PNG_WRITE_FILTER_SUPPORTED
-   png_free(png_ptr, png_ptr->prev_row);
-   png_free(png_ptr, png_ptr->sub_row);
-   png_free(png_ptr, png_ptr->up_row);
-   png_free(png_ptr, png_ptr->avg_row);
-   png_free(png_ptr, png_ptr->paeth_row);
+   Ppng_free(png_ptr, png_ptr->prev_row);
+   Ppng_free(png_ptr, png_ptr->sub_row);
+   Ppng_free(png_ptr, png_ptr->up_row);
+   Ppng_free(png_ptr, png_ptr->avg_row);
+   Ppng_free(png_ptr, png_ptr->paeth_row);
 #endif
 
 #ifdef PNG_WRITE_WEIGHTED_FILTER_SUPPORTED
    /* Use this to save a little code space, it doesn't free the filter_costs */
    png_reset_filter_heuristics(png_ptr);
-   png_free(png_ptr, png_ptr->filter_costs);
-   png_free(png_ptr, png_ptr->inv_filter_costs);
+   Ppng_free(png_ptr, png_ptr->filter_costs);
+   Ppng_free(png_ptr, png_ptr->inv_filter_costs);
 #endif
 
 #ifdef PNG_SET_UNKNOWN_CHUNKS_SUPPORTED
-   png_free(png_ptr, png_ptr->chunk_list);
+   Ppng_free(png_ptr, png_ptr->chunk_list);
 #endif
 
    /* The error handling and memory handling information is left intact at this
@@ -973,9 +973,9 @@ png_write_destroy(png_structrp png_ptr)
  * has no png_ptr.)
  */
 void PNGAPI
-png_destroy_write_struct(png_structpp png_ptr_ptr, png_infopp info_ptr_ptr)
+Ppng_destroy_write_struct(png_structpp png_ptr_ptr, png_infopp info_ptr_ptr)
 {
-   png_debug(1, "in png_destroy_write_struct");
+   Ppng_debug(1, "in Ppng_destroy_write_struct");
 
    if (png_ptr_ptr != NULL)
    {
@@ -983,7 +983,7 @@ png_destroy_write_struct(png_structpp png_ptr_ptr, png_infopp info_ptr_ptr)
 
       if (png_ptr != NULL) /* added in libpng 1.6.0 */
       {
-         png_destroy_info_struct(png_ptr, info_ptr_ptr);
+         Ppng_destroy_info_struct(png_ptr, info_ptr_ptr);
 
          *png_ptr_ptr = NULL;
          png_write_destroy(png_ptr);
@@ -994,9 +994,9 @@ png_destroy_write_struct(png_structpp png_ptr_ptr, png_infopp info_ptr_ptr)
 
 /* Allow the application to select one or more row filters to use. */
 void PNGAPI
-png_set_filter(png_structrp png_ptr, int method, int filters)
+Ppng_set_filter(png_structrp png_ptr, int method, int filters)
 {
-   png_debug(1, "in png_set_filter");
+   Ppng_debug(1, "in Ppng_set_filter");
 
    if (png_ptr == NULL)
       return;
@@ -1029,7 +1029,7 @@ png_set_filter(png_structrp png_ptr, int method, int filters)
 
       else if ((filters & ~PNG_ALL_FILTERS) != 0)
       {
-         png_app_error(png_ptr, "png_set_filter: invalid filters mask/value");
+         png_app_error(png_ptr, "Ppng_set_filter: invalid filters mask/value");
 
          /* For compatibility with the previous behavior assume a mask value was
           * passed and ignore the non-mask bits.
@@ -1045,7 +1045,7 @@ png_set_filter(png_structrp png_ptr, int method, int filters)
 #  else
       /* PNG_FILTER_VALUE_NONE and PNG_NO_FILTERS are both 0. */
       if (filters != 0 && filters != PNG_FILTER_NONE)
-         png_app_error(png_ptr, "png_set_filter: no filters supported");
+         png_app_error(png_ptr, "Ppng_set_filter: no filters supported");
 
       filters = PNG_FILTER_NONE;
 #  endif
@@ -1083,7 +1083,7 @@ png_set_filter(png_structrp png_ptr, int method, int filters)
              * is not available so the filter can't be used.  Just warn here.
              */
             png_app_warning(png_ptr,
-               "png_set_filter: UP/AVG/PAETH cannot be added after start");
+               "Ppng_set_filter: UP/AVG/PAETH cannot be added after start");
             filters &= ~(PNG_FILTER_UP|PNG_FILTER_AVG|PNG_FILTER_PAETH);
          }
 
@@ -1123,20 +1123,20 @@ png_reset_filter_heuristics(png_structrp png_ptr)
    {
       png_bytep old = png_ptr->prev_filters;
       png_ptr->prev_filters = NULL;
-      png_free(png_ptr, old);
+      Ppng_free(png_ptr, old);
    }
    if (png_ptr->filter_weights != NULL)
    {
       png_uint_16p old = png_ptr->filter_weights;
       png_ptr->filter_weights = NULL;
-      png_free(png_ptr, old);
+      Ppng_free(png_ptr, old);
    }
 
    if (png_ptr->inv_filter_weights != NULL)
    {
       png_uint_16p old = png_ptr->inv_filter_weights;
       png_ptr->inv_filter_weights = NULL;
-      png_free(png_ptr, old);
+      Ppng_free(png_ptr, old);
    }
 
    /* Leave the filter_costs - this array is fixed size. */
@@ -1162,7 +1162,7 @@ png_init_filter_heuristics(png_structrp png_ptr, int heuristic_method,
 
       if (num_weights > 0)
       {
-         png_ptr->prev_filters = (png_bytep)png_malloc(png_ptr,
+         png_ptr->prev_filters = (png_bytep)Ppng_malloc(png_ptr,
              (png_uint_32)((sizeof (png_byte)) * num_weights));
 
          /* To make sure that the weighting starts out fairly */
@@ -1171,10 +1171,10 @@ png_init_filter_heuristics(png_structrp png_ptr, int heuristic_method,
             png_ptr->prev_filters[i] = 255;
          }
 
-         png_ptr->filter_weights = (png_uint_16p)png_malloc(png_ptr,
+         png_ptr->filter_weights = (png_uint_16p)Ppng_malloc(png_ptr,
              (png_uint_32)((sizeof (png_uint_16)) * num_weights));
 
-         png_ptr->inv_filter_weights = (png_uint_16p)png_malloc(png_ptr,
+         png_ptr->inv_filter_weights = (png_uint_16p)Ppng_malloc(png_ptr,
              (png_uint_32)((sizeof (png_uint_16)) * num_weights));
 
          for (i = 0; i < num_weights; i++)
@@ -1192,10 +1192,10 @@ png_init_filter_heuristics(png_structrp png_ptr, int heuristic_method,
        */
       if (png_ptr->filter_costs == NULL)
       {
-         png_ptr->filter_costs = (png_uint_16p)png_malloc(png_ptr,
+         png_ptr->filter_costs = (png_uint_16p)Ppng_malloc(png_ptr,
              (png_uint_32)((sizeof (png_uint_16)) * PNG_FILTER_VALUE_LAST));
 
-         png_ptr->inv_filter_costs = (png_uint_16p)png_malloc(png_ptr,
+         png_ptr->inv_filter_costs = (png_uint_16p)Ppng_malloc(png_ptr,
              (png_uint_32)((sizeof (png_uint_16)) * PNG_FILTER_VALUE_LAST));
       }
 
@@ -1218,7 +1218,7 @@ png_init_filter_heuristics(png_structrp png_ptr, int heuristic_method,
    }
    else
    {
-      png_warning(png_ptr, "Unknown filter heuristic method");
+      Ppng_warning(png_ptr, "Unknown filter heuristic method");
       return 0;
    }
 }
@@ -1226,11 +1226,11 @@ png_init_filter_heuristics(png_structrp png_ptr, int heuristic_method,
 /* Provide floating and fixed point APIs */
 #ifdef PNG_FLOATING_POINT_SUPPORTED
 void PNGAPI
-png_set_filter_heuristics(png_structrp png_ptr, int heuristic_method,
+Ppng_set_filter_heuristics(png_structrp png_ptr, int heuristic_method,
     int num_weights, png_const_doublep filter_weights,
     png_const_doublep filter_costs)
 {
-   png_debug(1, "in png_set_filter_heuristics");
+   Ppng_debug(1, "in Ppng_set_filter_heuristics");
 
    /* The internal API allocates all the arrays and ensures that the elements of
     * those arrays are set to the default value.
@@ -1281,11 +1281,11 @@ png_set_filter_heuristics(png_structrp png_ptr, int heuristic_method,
 
 #ifdef PNG_FIXED_POINT_SUPPORTED
 void PNGAPI
-png_set_filter_heuristics_fixed(png_structrp png_ptr, int heuristic_method,
+Ppng_set_filter_heuristics_fixed(png_structrp png_ptr, int heuristic_method,
     int num_weights, png_const_fixed_point_p filter_weights,
     png_const_fixed_point_p filter_costs)
 {
-   png_debug(1, "in png_set_filter_heuristics_fixed");
+   Ppng_debug(1, "in Ppng_set_filter_heuristics_fixed");
 
    /* The internal API allocates all the arrays and ensures that the elements of
     * those arrays are set to the default value.
@@ -1347,9 +1347,9 @@ png_set_filter_heuristics_fixed(png_structrp png_ptr, int heuristic_method,
 #endif /* PNG_WRITE_WEIGHTED_FILTER_SUPPORTED */
 
 void PNGAPI
-png_set_compression_level(png_structrp png_ptr, int level)
+Ppng_set_compression_level(png_structrp png_ptr, int level)
 {
-   png_debug(1, "in png_set_compression_level");
+   Ppng_debug(1, "in Ppng_set_compression_level");
 
    if (png_ptr == NULL)
       return;
@@ -1358,9 +1358,9 @@ png_set_compression_level(png_structrp png_ptr, int level)
 }
 
 void PNGAPI
-png_set_compression_mem_level(png_structrp png_ptr, int mem_level)
+Ppng_set_compression_mem_level(png_structrp png_ptr, int mem_level)
 {
-   png_debug(1, "in png_set_compression_mem_level");
+   Ppng_debug(1, "in Ppng_set_compression_mem_level");
 
    if (png_ptr == NULL)
       return;
@@ -1369,9 +1369,9 @@ png_set_compression_mem_level(png_structrp png_ptr, int mem_level)
 }
 
 void PNGAPI
-png_set_compression_strategy(png_structrp png_ptr, int strategy)
+Ppng_set_compression_strategy(png_structrp png_ptr, int strategy)
 {
-   png_debug(1, "in png_set_compression_strategy");
+   Ppng_debug(1, "in Ppng_set_compression_strategy");
 
    if (png_ptr == NULL)
       return;
@@ -1386,7 +1386,7 @@ png_set_compression_strategy(png_structrp png_ptr, int strategy)
  * smaller value of window_bits if it can do so safely.
  */
 void PNGAPI
-png_set_compression_window_bits(png_structrp png_ptr, int window_bits)
+Ppng_set_compression_window_bits(png_structrp png_ptr, int window_bits)
 {
    if (png_ptr == NULL)
       return;
@@ -1399,13 +1399,13 @@ png_set_compression_window_bits(png_structrp png_ptr, int window_bits)
     */
    if (window_bits > 15)
    {
-      png_warning(png_ptr, "Only compression windows <= 32k supported by PNG");
+      Ppng_warning(png_ptr, "Only compression windows <= 32k supported by PNG");
       window_bits = 15;
    }
 
    else if (window_bits < 8)
    {
-      png_warning(png_ptr, "Only compression windows >= 256 supported by PNG");
+      Ppng_warning(png_ptr, "Only compression windows >= 256 supported by PNG");
       window_bits = 8;
    }
 
@@ -1413,9 +1413,9 @@ png_set_compression_window_bits(png_structrp png_ptr, int window_bits)
 }
 
 void PNGAPI
-png_set_compression_method(png_structrp png_ptr, int method)
+Ppng_set_compression_method(png_structrp png_ptr, int method)
 {
-   png_debug(1, "in png_set_compression_method");
+   Ppng_debug(1, "in Ppng_set_compression_method");
 
    if (png_ptr == NULL)
       return;
@@ -1424,7 +1424,7 @@ png_set_compression_method(png_structrp png_ptr, int method)
     * deflate will fault it, so it is harmless to just warn here.
     */
    if (method != 8)
-      png_warning(png_ptr, "Only compression method 8 is supported by PNG");
+      Ppng_warning(png_ptr, "Only compression method 8 is supported by PNG");
 
    png_ptr->zlib_method = method;
 }
@@ -1432,9 +1432,9 @@ png_set_compression_method(png_structrp png_ptr, int method)
 /* The following were added to libpng-1.5.4 */
 #ifdef PNG_WRITE_CUSTOMIZE_ZTXT_COMPRESSION_SUPPORTED
 void PNGAPI
-png_set_text_compression_level(png_structrp png_ptr, int level)
+Ppng_set_text_compression_level(png_structrp png_ptr, int level)
 {
-   png_debug(1, "in png_set_text_compression_level");
+   Ppng_debug(1, "in Ppng_set_text_compression_level");
 
    if (png_ptr == NULL)
       return;
@@ -1443,9 +1443,9 @@ png_set_text_compression_level(png_structrp png_ptr, int level)
 }
 
 void PNGAPI
-png_set_text_compression_mem_level(png_structrp png_ptr, int mem_level)
+Ppng_set_text_compression_mem_level(png_structrp png_ptr, int mem_level)
 {
-   png_debug(1, "in png_set_text_compression_mem_level");
+   Ppng_debug(1, "in Ppng_set_text_compression_mem_level");
 
    if (png_ptr == NULL)
       return;
@@ -1454,9 +1454,9 @@ png_set_text_compression_mem_level(png_structrp png_ptr, int mem_level)
 }
 
 void PNGAPI
-png_set_text_compression_strategy(png_structrp png_ptr, int strategy)
+Ppng_set_text_compression_strategy(png_structrp png_ptr, int strategy)
 {
-   png_debug(1, "in png_set_text_compression_strategy");
+   Ppng_debug(1, "in Ppng_set_text_compression_strategy");
 
    if (png_ptr == NULL)
       return;
@@ -1468,20 +1468,20 @@ png_set_text_compression_strategy(png_structrp png_ptr, int strategy)
  * smaller value of window_bits if it can do so safely.
  */
 void PNGAPI
-png_set_text_compression_window_bits(png_structrp png_ptr, int window_bits)
+Ppng_set_text_compression_window_bits(png_structrp png_ptr, int window_bits)
 {
    if (png_ptr == NULL)
       return;
 
    if (window_bits > 15)
    {
-      png_warning(png_ptr, "Only compression windows <= 32k supported by PNG");
+      Ppng_warning(png_ptr, "Only compression windows <= 32k supported by PNG");
       window_bits = 15;
    }
 
    else if (window_bits < 8)
    {
-      png_warning(png_ptr, "Only compression windows >= 256 supported by PNG");
+      Ppng_warning(png_ptr, "Only compression windows >= 256 supported by PNG");
       window_bits = 8;
    }
 
@@ -1489,15 +1489,15 @@ png_set_text_compression_window_bits(png_structrp png_ptr, int window_bits)
 }
 
 void PNGAPI
-png_set_text_compression_method(png_structrp png_ptr, int method)
+Ppng_set_text_compression_method(png_structrp png_ptr, int method)
 {
-   png_debug(1, "in png_set_text_compression_method");
+   Ppng_debug(1, "in Ppng_set_text_compression_method");
 
    if (png_ptr == NULL)
       return;
 
    if (method != 8)
-      png_warning(png_ptr, "Only compression method 8 is supported by PNG");
+      Ppng_warning(png_ptr, "Only compression method 8 is supported by PNG");
 
    png_ptr->zlib_text_method = method;
 }
@@ -1505,7 +1505,7 @@ png_set_text_compression_method(png_structrp png_ptr, int method)
 /* end of API added to libpng-1.5.4 */
 
 void PNGAPI
-png_set_write_status_fn(png_structrp png_ptr, png_write_status_ptr write_row_fn)
+Ppng_set_write_status_fn(png_structrp png_ptr, png_write_status_ptr write_row_fn)
 {
    if (png_ptr == NULL)
       return;
@@ -1515,10 +1515,10 @@ png_set_write_status_fn(png_structrp png_ptr, png_write_status_ptr write_row_fn)
 
 #ifdef PNG_WRITE_USER_TRANSFORM_SUPPORTED
 void PNGAPI
-png_set_write_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr
+Ppng_set_write_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr
     write_user_transform_fn)
 {
-   png_debug(1, "in png_set_write_user_transform_fn");
+   Ppng_debug(1, "in Ppng_set_write_user_transform_fn");
 
    if (png_ptr == NULL)
       return;
@@ -1531,7 +1531,7 @@ png_set_write_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr
 
 #ifdef PNG_INFO_IMAGE_SUPPORTED
 void PNGAPI
-png_write_png(png_structrp png_ptr, png_inforp info_ptr,
+Ppng_write_png(png_structrp png_ptr, png_inforp info_ptr,
     int transforms, voidp params)
 {
    if (png_ptr == NULL || info_ptr == NULL)
@@ -1539,19 +1539,19 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
 
    if ((info_ptr->valid & PNG_INFO_IDAT) == 0)
    {
-      png_app_error(png_ptr, "no rows for png_write_image to write");
+      png_app_error(png_ptr, "no rows for Ppng_write_image to write");
       return;
    }
 
    /* Write the file header information. */
-   png_write_info(png_ptr, info_ptr);
+   Ppng_write_info(png_ptr, info_ptr);
 
    /* ------ these transformations don't touch the info structure ------- */
 
    /* Invert monochrome pixels */
    if (transforms & PNG_TRANSFORM_INVERT_MONO)
 #ifdef PNG_WRITE_INVERT_SUPPORTED
-      png_set_invert_mono(png_ptr);
+      Ppng_set_invert_mono(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_INVERT_MONO not supported");
 #endif
@@ -1562,7 +1562,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    if (transforms & PNG_TRANSFORM_SHIFT)
 #ifdef PNG_WRITE_SHIFT_SUPPORTED
       if (info_ptr->valid & PNG_INFO_sBIT)
-         png_set_shift(png_ptr, &info_ptr->sig_bit);
+         Ppng_set_shift(png_ptr, &info_ptr->sig_bit);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_SHIFT not supported");
 #endif
@@ -1570,7 +1570,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Pack pixels into bytes */
    if (transforms & PNG_TRANSFORM_PACKING)
 #ifdef PNG_WRITE_PACK_SUPPORTED
-      png_set_packing(png_ptr);
+      Ppng_set_packing(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_PACKING not supported");
 #endif
@@ -1578,7 +1578,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Swap location of alpha bytes from ARGB to RGBA */
    if (transforms & PNG_TRANSFORM_SWAP_ALPHA)
 #ifdef PNG_WRITE_SWAP_ALPHA_SUPPORTED
-      png_set_swap_alpha(png_ptr);
+      Ppng_set_swap_alpha(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_SWAP_ALPHA not supported");
 #endif
@@ -1598,11 +1598,11 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
                "PNG_TRANSFORM_STRIP_FILLER: BEFORE+AFTER not supported");
 
          /* Continue if ignored - this is the pre-1.6.10 behavior */
-         png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
+         Ppng_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
       }
 
       else if (transforms & PNG_TRANSFORM_STRIP_FILLER_BEFORE)
-         png_set_filler(png_ptr, 0, PNG_FILLER_BEFORE);
+         Ppng_set_filler(png_ptr, 0, PNG_FILLER_BEFORE);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_STRIP_FILLER not supported");
 #endif
@@ -1611,7 +1611,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Flip BGR pixels to RGB */
    if (transforms & PNG_TRANSFORM_BGR)
 #ifdef PNG_WRITE_BGR_SUPPORTED
-      png_set_bgr(png_ptr);
+      Ppng_set_bgr(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_BGR not supported");
 #endif
@@ -1619,7 +1619,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Swap bytes of 16-bit files to most significant byte first */
    if (transforms & PNG_TRANSFORM_SWAP_ENDIAN)
 #ifdef PNG_WRITE_SWAP_SUPPORTED
-      png_set_swap(png_ptr);
+      Ppng_set_swap(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_SWAP_ENDIAN not supported");
 #endif
@@ -1627,7 +1627,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Swap bits of 1, 2, 4 bit packed pixel formats */
    if (transforms & PNG_TRANSFORM_PACKSWAP)
 #ifdef PNG_WRITE_PACKSWAP_SUPPORTED
-      png_set_packswap(png_ptr);
+      Ppng_set_packswap(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_PACKSWAP not supported");
 #endif
@@ -1635,7 +1635,7 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* Invert the alpha channel from opacity to transparency */
    if (transforms & PNG_TRANSFORM_INVERT_ALPHA)
 #ifdef PNG_WRITE_INVERT_ALPHA_SUPPORTED
-      png_set_invert_alpha(png_ptr);
+      Ppng_set_invert_alpha(png_ptr);
 #else
       png_app_error(png_ptr, "PNG_TRANSFORM_INVERT_ALPHA not supported");
 #endif
@@ -1643,10 +1643,10 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
    /* ----------------------- end of transformations ------------------- */
 
    /* Write the bits */
-   png_write_image(png_ptr, info_ptr->row_pointers);
+   Ppng_write_image(png_ptr, info_ptr->row_pointers);
 
    /* It is REQUIRED to call this to finish writing the rest of the file */
-   png_write_end(png_ptr, info_ptr);
+   Ppng_write_end(png_ptr, info_ptr);
 
    PNG_UNUSED(params)
 }
@@ -1659,17 +1659,17 @@ png_write_png(png_structrp png_ptr, png_inforp info_ptr,
 static int
 png_image_write_init(png_imagep image)
 {
-   png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, image,
+   png_structp png_ptr = Ppng_create_write_struct(PNG_LIBPNG_VER_STRING, image,
           png_safe_error, png_safe_warning);
 
    if (png_ptr != NULL)
    {
-      png_infop info_ptr = png_create_info_struct(png_ptr);
+      png_infop info_ptr = Ppng_create_info_struct(png_ptr);
 
       if (info_ptr != NULL)
       {
          png_controlp control = png_voidcast(png_controlp,
-            png_malloc_warn(png_ptr, (sizeof *control)));
+            Ppng_malloc_warn(png_ptr, (sizeof *control)));
 
          if (control != NULL)
          {
@@ -1684,10 +1684,10 @@ png_image_write_init(png_imagep image)
          }
 
          /* Error clean up */
-         png_destroy_info_struct(png_ptr, &info_ptr);
+         Ppng_destroy_info_struct(png_ptr, &info_ptr);
       }
 
-      png_destroy_write_struct(&png_ptr, NULL);
+      Ppng_destroy_write_struct(&png_ptr, NULL);
    }
 
    return png_image_error(image, "png_image_write_: out of memory");
@@ -1713,7 +1713,7 @@ typedef struct
  * png_image format value.
  */
 static int
-png_write_image_16bit(png_voidp argument)
+Ppng_write_image_16bit(png_voidp argument)
 {
    png_image_write_control *display = png_voidcast(png_image_write_control*,
       argument);
@@ -1744,7 +1744,7 @@ png_write_image_16bit(png_voidp argument)
    }
 
    else
-      png_error(png_ptr, "png_write_image: internal call error");
+      Ppng_error(png_ptr, "Ppng_write_image: internal call error");
 
    /* Work out the output row end and count over this, note that the increment
     * above to 'row' means that row_end can actually be beyond the end of the
@@ -1807,7 +1807,7 @@ png_write_image_16bit(png_voidp argument)
          ++out_ptr;
       }
 
-      png_write_row(png_ptr, png_voidcast(png_const_bytep, display->local_row));
+      Ppng_write_row(png_ptr, png_voidcast(png_const_bytep, display->local_row));
       input_row += display->row_bytes/(sizeof (png_uint_16));
    }
 
@@ -1870,7 +1870,7 @@ png_unpremultiply(png_uint_32 component, png_uint_32 alpha,
 }
 
 static int
-png_write_image_8bit(png_voidp argument)
+Ppng_write_image_8bit(png_voidp argument)
 {
    png_image_write_control *display = png_voidcast(png_image_write_control*,
       argument);
@@ -1931,7 +1931,7 @@ png_write_image_8bit(png_voidp argument)
             ++out_ptr;
          } /* while out_ptr < row_end */
 
-         png_write_row(png_ptr, png_voidcast(png_const_bytep,
+         Ppng_write_row(png_ptr, png_voidcast(png_const_bytep,
             display->local_row));
          input_row += display->row_bytes/(sizeof (png_uint_16));
       } /* while y */
@@ -1957,7 +1957,7 @@ png_write_image_8bit(png_voidp argument)
             *out_ptr++ = (png_byte)PNG_sRGB_FROM_LINEAR(component);
          }
 
-         png_write_row(png_ptr, output_row);
+         Ppng_write_row(png_ptr, output_row);
          input_row += display->row_bytes/(sizeof (png_uint_16));
       }
    }
@@ -2032,7 +2032,7 @@ png_image_set_PLTE(png_image_write_control *display)
             png_byte alphabyte = (png_byte)PNG_DIV257(alpha);
             png_uint_32 reciprocal = 0;
 
-            /* Calculate a reciprocal, as in the png_write_image_8bit code above
+            /* Calculate a reciprocal, as in the Ppng_write_image_8bit code above
              * this is designed to produce a value scaled to 255*65535 when
              * divided by 128 (i.e. asr 7).
              */
@@ -2101,11 +2101,11 @@ png_image_set_PLTE(png_image_write_control *display)
 #     undef bgr
 #  endif
 
-   png_set_PLTE(image->opaque->png_ptr, image->opaque->info_ptr, palette,
+   Ppng_set_PLTE(image->opaque->png_ptr, image->opaque->info_ptr, palette,
       entries);
 
    if (num_trans > 0)
-      png_set_tRNS(image->opaque->png_ptr, image->opaque->info_ptr, tRNS,
+      Ppng_set_tRNS(image->opaque->png_ptr, image->opaque->info_ptr, tRNS,
          num_trans, NULL);
 
    image->colormap_entries = entries;
@@ -2128,7 +2128,7 @@ png_image_write_main(png_voidp argument)
 
 #  ifdef PNG_BENIGN_ERRORS_SUPPORTED
       /* Make sure we error out on any bad situation */
-      png_set_benign_errors(png_ptr, 0/*error*/);
+      Ppng_set_benign_errors(png_ptr, 0/*error*/);
 #  endif
 
    /* Default the 'row_stride' parameter if required. */
@@ -2142,7 +2142,7 @@ png_image_write_main(png_voidp argument)
       {
          png_uint_32 entries = image->colormap_entries;
 
-         png_set_IHDR(png_ptr, info_ptr, image->width, image->height,
+         Ppng_set_IHDR(png_ptr, info_ptr, image->width, image->height,
             entries > 16 ? 8 : (entries > 4 ? 4 : (entries > 2 ? 2 : 1)),
             PNG_COLOR_TYPE_PALETTE, PNG_INTERLACE_NONE,
             PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
@@ -2151,19 +2151,19 @@ png_image_write_main(png_voidp argument)
       }
 
       else
-         png_error(image->opaque->png_ptr,
+         Ppng_error(image->opaque->png_ptr,
             "no color-map for color-mapped image");
    }
 
    else
-      png_set_IHDR(png_ptr, info_ptr, image->width, image->height,
+      Ppng_set_IHDR(png_ptr, info_ptr, image->width, image->height,
          write_16bit ? 16 : 8,
          ((format & PNG_FORMAT_FLAG_COLOR) ? PNG_COLOR_MASK_COLOR : 0) +
          ((format & PNG_FORMAT_FLAG_ALPHA) ? PNG_COLOR_MASK_ALPHA : 0),
          PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
    /* Counter-intuitively the data transformations must be called *after*
-    * png_write_info, not before as in the read code, but the 'set' functions
+    * Ppng_write_info, not before as in the read code, but the 'set' functions
     * must still be called before.  Just set the color space information, never
     * write an interlaced image.
     */
@@ -2184,7 +2184,7 @@ png_image_write_main(png_voidp argument)
    }
 
    else if (!(image->flags & PNG_IMAGE_FLAG_COLORSPACE_NOT_sRGB))
-      png_set_sRGB(png_ptr, info_ptr, PNG_sRGB_INTENT_PERCEPTUAL);
+      Ppng_set_sRGB(png_ptr, info_ptr, PNG_sRGB_INTENT_PERCEPTUAL);
 
    /* Else writing an 8-bit file and the *colors* aren't sRGB, but the 8-bit
     * space must still be gamma encoded.
@@ -2193,7 +2193,7 @@ png_image_write_main(png_voidp argument)
       png_set_gAMA_fixed(png_ptr, info_ptr, PNG_GAMMA_sRGB_INVERSE);
 
    /* Write the file header. */
-   png_write_info(png_ptr, info_ptr);
+   Ppng_write_info(png_ptr, info_ptr);
 
    /* Now set up the data transformations (*after* the header is written),
     * remove the handled transformations from the 'format' flags for checking.
@@ -2205,14 +2205,14 @@ png_image_write_main(png_voidp argument)
       PNG_CONST png_uint_16 le = 0x0001;
 
       if (*(png_const_bytep)&le)
-         png_set_swap(png_ptr);
+         Ppng_set_swap(png_ptr);
    }
 
 #  ifdef PNG_SIMPLIFIED_WRITE_BGR_SUPPORTED
       if (format & PNG_FORMAT_FLAG_BGR)
       {
          if (!colormap && (format & PNG_FORMAT_FLAG_COLOR) != 0)
-            png_set_bgr(png_ptr);
+            Ppng_set_bgr(png_ptr);
          format &= ~PNG_FORMAT_FLAG_BGR;
       }
 #  endif
@@ -2221,7 +2221,7 @@ png_image_write_main(png_voidp argument)
       if (format & PNG_FORMAT_FLAG_AFIRST)
       {
          if (!colormap && (format & PNG_FORMAT_FLAG_ALPHA) != 0)
-            png_set_swap_alpha(png_ptr);
+            Ppng_set_swap_alpha(png_ptr);
          format &= ~PNG_FORMAT_FLAG_AFIRST;
       }
 #  endif
@@ -2230,12 +2230,12 @@ png_image_write_main(png_voidp argument)
     * above, but the application data is still byte packed.
     */
    if (colormap && image->colormap_entries <= 16)
-      png_set_packing(png_ptr);
+      Ppng_set_packing(png_ptr);
 
    /* That should have handled all (both) the transforms. */
    if ((format & ~(png_uint_32)(PNG_FORMAT_FLAG_COLOR | PNG_FORMAT_FLAG_LINEAR |
          PNG_FORMAT_FLAG_ALPHA | PNG_FORMAT_FLAG_COLORMAP)) != 0)
-      png_error(png_ptr, "png_write_image: unsupported transformation");
+      Ppng_error(png_ptr, "Ppng_write_image: unsupported transformation");
 
    {
       png_const_bytep row = png_voidcast(png_const_bytep, display->buffer);
@@ -2254,13 +2254,13 @@ png_image_write_main(png_voidp argument)
    /* Apply 'fast' options if the flag is set. */
    if ((image->flags & PNG_IMAGE_FLAG_FAST) != 0)
    {
-      png_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_NO_FILTERS);
+      Ppng_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_NO_FILTERS);
       /* NOTE: determined by experiment using pngstest, this reflects some
        * balance between the time to write the image once and the time to read
        * it about 50 times.  The speed-up in pngstest was about 10-20% of the
        * total (user) time on a heavily loaded system.
        */
-      png_set_compression_level(png_ptr, 3);
+      Ppng_set_compression_level(png_ptr, 3);
    }
 
    /* Check for the cases that currently require a pre-transform on the row
@@ -2269,18 +2269,18 @@ png_image_write_main(png_voidp argument)
     */
    if ((linear && alpha) || (!colormap && display->convert_to_8bit))
    {
-      png_bytep row = png_voidcast(png_bytep, png_malloc(png_ptr,
-         png_get_rowbytes(png_ptr, info_ptr)));
+      png_bytep row = png_voidcast(png_bytep, Ppng_malloc(png_ptr,
+         Ppng_get_rowbytes(png_ptr, info_ptr)));
       int result;
 
       display->local_row = row;
       if (write_16bit != 0)
-         result = png_safe_execute(image, png_write_image_16bit, display);
+         result = Ppng_safe_execute(image, Ppng_write_image_16bit, display);
       else
-         result = png_safe_execute(image, png_write_image_8bit, display);
+         result = Ppng_safe_execute(image, Ppng_write_image_8bit, display);
       display->local_row = NULL;
 
-      png_free(png_ptr, row);
+      Ppng_free(png_ptr, row);
 
       /* Skip the 'write_end' on error: */
       if (result == 0)
@@ -2298,17 +2298,17 @@ png_image_write_main(png_voidp argument)
 
       while (y-- > 0)
       {
-         png_write_row(png_ptr, row);
+         Ppng_write_row(png_ptr, row);
          row += row_bytes;
       }
    }
 
-   png_write_end(png_ptr, info_ptr);
+   Ppng_write_end(png_ptr, info_ptr);
    return 1;
 }
 
 int PNGAPI
-png_image_write_to_stdio(png_imagep image, FILE *file, int convert_to_8bit,
+Ppng_image_write_to_stdio(png_imagep image, FILE *file, int convert_to_8bit,
    const void *buffer, png_int_32 row_stride, const void *colormap)
 {
    /* Write the image to the given (FILE*). */
@@ -2321,7 +2321,7 @@ png_image_write_to_stdio(png_imagep image, FILE *file, int convert_to_8bit,
             png_image_write_control display;
             int result;
 
-            /* This is slightly evil, but png_init_io doesn't do anything other
+            /* This is slightly evil, but Ppng_init_io doesn't do anything other
              * than this and we haven't changed the standard IO functions so
              * this saves a 'safe' function.
              */
@@ -2334,8 +2334,8 @@ png_image_write_to_stdio(png_imagep image, FILE *file, int convert_to_8bit,
             display.colormap = colormap;
             display.convert_to_8bit = convert_to_8bit;
 
-            result = png_safe_execute(image, png_image_write_main, &display);
-            png_image_free(image);
+            result = Ppng_safe_execute(image, png_image_write_main, &display);
+            Ppng_image_free(image);
             return result;
          }
 
@@ -2345,19 +2345,19 @@ png_image_write_to_stdio(png_imagep image, FILE *file, int convert_to_8bit,
 
       else
          return png_image_error(image,
-            "png_image_write_to_stdio: invalid argument");
+            "Ppng_image_write_to_stdio: invalid argument");
    }
 
    else if (image != NULL)
       return png_image_error(image,
-         "png_image_write_to_stdio: incorrect PNG_IMAGE_VERSION");
+         "Ppng_image_write_to_stdio: incorrect PNG_IMAGE_VERSION");
 
    else
       return 0;
 }
 
 int PNGAPI
-png_image_write_to_file(png_imagep image, const char *file_name,
+Ppng_image_write_to_file(png_imagep image, const char *file_name,
    int convert_to_8bit, const void *buffer, png_int_32 row_stride,
    const void *colormap)
 {
@@ -2370,7 +2370,7 @@ png_image_write_to_file(png_imagep image, const char *file_name,
 
          if (fp != NULL)
          {
-            if (png_image_write_to_stdio(image, fp, convert_to_8bit, buffer,
+            if (Ppng_image_write_to_stdio(image, fp, convert_to_8bit, buffer,
                row_stride, colormap))
             {
                int error; /* from fflush/fclose */
@@ -2412,12 +2412,12 @@ png_image_write_to_file(png_imagep image, const char *file_name,
 
       else
          return png_image_error(image,
-            "png_image_write_to_file: invalid argument");
+            "Ppng_image_write_to_file: invalid argument");
    }
 
    else if (image != NULL)
       return png_image_error(image,
-         "png_image_write_to_file: incorrect PNG_IMAGE_VERSION");
+         "Ppng_image_write_to_file: incorrect PNG_IMAGE_VERSION");
 
    else
       return 0;

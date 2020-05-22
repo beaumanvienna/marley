@@ -63,22 +63,22 @@ static bool StreamBufferToDataURI(DebuggerRequest &req, const GPUDebugBuffer &bu
 		h = totalPixels / w;
 	}
 
-	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+	png_structp png_ptr = Ppng_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 	if (!png_ptr) {
 		req.Fail("Internal error setting up PNG encoder (png_ptr)");
 		return false;
 	}
-	png_infop info_ptr = png_create_info_struct(png_ptr);
+	png_infop info_ptr = Ppng_create_info_struct(png_ptr);
 	if (!info_ptr) {
-		png_destroy_write_struct(&png_ptr, nullptr);
+		Ppng_destroy_write_struct(&png_ptr, nullptr);
 		req.Fail("Internal error setting up PNG encoder (info_ptr)");
 		return false;
 	}
 
 	// Speed.  Wireless N should give 35 KB/ms.  For most devices, zlib/filters will cost more.
-	png_set_compression_strategy(png_ptr, Z_RLE);
-	png_set_compression_level(png_ptr, 1);
-	png_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_FILTER_NONE);
+	Ppng_set_compression_strategy(png_ptr, Z_RLE);
+	Ppng_set_compression_level(png_ptr, 1);
+	Ppng_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_FILTER_NONE);
 
 	auto &json = req.Respond();
 	json.writeInt("width", w);
@@ -98,7 +98,7 @@ static bool StreamBufferToDataURI(DebuggerRequest &req, const GPUDebugBuffer &bu
 	Context ctx = { &req, {}, 0 };
 
 	auto write = [](png_structp png_ptr, png_bytep data, png_size_t length) {
-		auto ctx = (Context *)png_get_io_ptr(png_ptr);
+		auto ctx = (Context *)Ppng_get_io_ptr(png_ptr);
 		auto &req = *ctx->req;
 
 		// If we buffered some bytes, fill to 3 bytes for a clean base64 encode.
@@ -136,13 +136,13 @@ static bool StreamBufferToDataURI(DebuggerRequest &req, const GPUDebugBuffer &bu
 		row_pointers[i] = (u8 *)buffer + stride * i;
 	}
 
-	png_set_write_fn(png_ptr, &ctx, write, flush);
+	Ppng_set_write_fn(png_ptr, &ctx, write, flush);
 	int colorType = includeAlpha ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB;
-	png_set_IHDR(png_ptr, info_ptr, w, h, 8, colorType, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-	png_set_rows(png_ptr, info_ptr, row_pointers);
-	png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
+	Ppng_set_IHDR(png_ptr, info_ptr, w, h, 8, colorType, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	Ppng_set_rows(png_ptr, info_ptr, row_pointers);
+	Ppng_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
 
-	png_destroy_write_struct(&png_ptr, &info_ptr);
+	Ppng_destroy_write_struct(&png_ptr, &info_ptr);
 	delete [] row_pointers;
 	delete [] flipbuffer;
 

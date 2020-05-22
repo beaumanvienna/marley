@@ -41,7 +41,7 @@ int pngLoad(const char *file, int *pwidth, int *pheight, unsigned char **image_d
 	memset(&png, 0, sizeof(png));
 	png.version = PNG_IMAGE_VERSION;
 
-	png_image_begin_read_from_file(&png, file);
+	Ppng_image_begin_read_from_file(&png, file);
 
 	if (PNG_IMAGE_FAILED(png))
 	{
@@ -54,7 +54,7 @@ int pngLoad(const char *file, int *pwidth, int *pheight, unsigned char **image_d
 
 	int stride = PNG_IMAGE_ROW_STRIDE(png);
 	*image_data_ptr = (unsigned char *)malloc(PNG_IMAGE_SIZE(png));
-	png_image_finish_read(&png, NULL, *image_data_ptr, stride, NULL);
+	Ppng_image_finish_read(&png, NULL, *image_data_ptr, stride, NULL);
 #endif
 
 	return 1;
@@ -87,7 +87,7 @@ int pngLoadPtr(const unsigned char *input_ptr, size_t input_len, int *pwidth, in
 	png_image png{};
 	png.version = PNG_IMAGE_VERSION;
 
-	png_image_begin_read_from_memory(&png, input_ptr, input_len);
+	Ppng_image_begin_read_from_memory(&png, input_ptr, input_len);
 
 	if (PNG_IMAGE_FAILED(png)) {
 		ELOG("pngLoad: %s", png.message);
@@ -106,7 +106,7 @@ int pngLoadPtr(const unsigned char *input_ptr, size_t input_len, int *pwidth, in
 	}
 
 	*image_data_ptr = (unsigned char *)malloc(size);
-	png_image_finish_read(&png, NULL, *image_data_ptr, stride, NULL);
+	Ppng_image_finish_read(&png, NULL, *image_data_ptr, stride, NULL);
 #endif
 
 	return 1;

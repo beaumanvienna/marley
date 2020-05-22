@@ -348,7 +348,7 @@
 /* SECURITY and SAFETY:
  *
  * By default libpng is built without any internal limits on image size,
- * individual heap (png_malloc) allocations or the total amount of memory used.
+ * individual heap (Ppng_malloc) allocations or the total amount of memory used.
  * If PNG_SAFE_LIMITS_SUPPORTED is defined, however, the limits below are used
  * (unless individually overridden).  These limits are believed to be fairly
  * safe, but builders of secure systems should verify the values against the
@@ -427,16 +427,16 @@
  * error and warning messages - this code will also be disabled here.
  */
 #ifdef PNG_WARNINGS_SUPPORTED
-#  define PNG_WARNING_PARAMETERS(p) png_warning_parameters p;
+#  define PNG_WARNING_PARAMETERS(p) Ppng_warning_parameters p;
 #else
-#  define png_warning_parameter(p,number,string) ((void)0)
-#  define png_warning_parameter_unsigned(p,number,format,value) ((void)0)
-#  define png_warning_parameter_signed(p,number,format,value) ((void)0)
+#  define Ppng_warning_parameter(p,number,string) ((void)0)
+#  define Ppng_warning_parameter_unsigned(p,number,format,value) ((void)0)
+#  define Ppng_warning_parameter_signed(p,number,format,value) ((void)0)
 #  define png_formatted_warning(pp,p,message) ((void)(pp))
 #  define PNG_WARNING_PARAMETERS(p)
 #endif
 #ifndef PNG_ERROR_TEXT_SUPPORTED
-#  define png_fixed_error(s1,s2) png_err(s1)
+#  define png_fixed_error(s1,s2) Ppng_err(s1)
 #endif
 
 /* C allows up-casts from (void*) to any pointer and (const void*) to any
@@ -688,7 +688,7 @@
  * (2^31-1) * 100000). 's' is a string that describes the value being
  * converted.
  *
- * NOTE: this macro will raise a png_error if the range check fails,
+ * NOTE: this macro will raise a Ppng_error if the range check fails,
  * therefore it is normally only appropriate to use this on values
  * that come from API calls or other sources where an out of range
  * error indicates a programming error, not a data error!
@@ -776,7 +776,7 @@ PNG_INTERNAL_FUNCTION(void, png_zstream_error,(png_structrp png_ptr, int ret),
     */
 
 #ifdef PNG_WRITE_SUPPORTED
-PNG_INTERNAL_FUNCTION(void,png_free_buffer_list,(png_structrp png_ptr,
+PNG_INTERNAL_FUNCTION(void,Ppng_free_buffer_list,(png_structrp png_ptr,
    png_compression_bufferp *list),PNG_EMPTY);
    /* Free the buffer list used by the compressed write code. */
 #endif
@@ -810,9 +810,9 @@ PNG_INTERNAL_FUNCTION(int,png_user_version_check,(png_structrp png_ptr,
 
 /* Internal base allocator - no messages, NULL on failure to allocate.  This
  * does, however, call the application provided allocator and that could call
- * png_error (although that would be a bug in the application implementation.)
+ * Ppng_error (although that would be a bug in the application implementation.)
  */
-PNG_INTERNAL_FUNCTION(png_voidp,png_malloc_base,(png_const_structrp png_ptr,
+PNG_INTERNAL_FUNCTION(png_voidp,Ppng_malloc_base,(png_const_structrp png_ptr,
    png_alloc_size_t size),PNG_ALLOCATED);
 
 #if defined(PNG_TEXT_SUPPORTED) || defined(PNG_sPLT_SUPPORTED) ||\
@@ -820,7 +820,7 @@ PNG_INTERNAL_FUNCTION(png_voidp,png_malloc_base,(png_const_structrp png_ptr,
 /* Internal array allocator, outputs no error or warning messages on failure,
  * just returns NULL.
  */
-PNG_INTERNAL_FUNCTION(png_voidp,png_malloc_array,(png_const_structrp png_ptr,
+PNG_INTERNAL_FUNCTION(png_voidp,Ppng_malloc_array,(png_const_structrp png_ptr,
    int nelements, size_t element_size),PNG_ALLOCATED);
 
 /* The same but an existing array is extended by add_elements.  This function
@@ -834,21 +834,21 @@ PNG_INTERNAL_FUNCTION(png_voidp,png_realloc_array,(png_structrp png_ptr,
 
 /* Magic to create a struct when there is no struct to call the user supplied
  * memory allocators.  Because error handling has not been set up the memory
- * handlers can't safely call png_error, but this is an obscure and undocumented
+ * handlers can't safely call Ppng_error, but this is an obscure and undocumented
  * restriction so libpng has to assume that the 'free' handler, at least, might
- * call png_error.
+ * call Ppng_error.
  */
 PNG_INTERNAL_FUNCTION(png_structp,png_create_png_struct,
-   (png_const_charp user_png_ver, png_voidp error_ptr, png_error_ptr error_fn,
-    png_error_ptr warn_fn, png_voidp mem_ptr, png_malloc_ptr malloc_fn,
-    png_free_ptr free_fn),PNG_ALLOCATED);
+   (png_const_charp user_png_ver, png_voidp error_ptr, Ppng_error_ptr error_fn,
+    Ppng_error_ptr warn_fn, png_voidp mem_ptr, Ppng_malloc_ptr malloc_fn,
+    Ppng_free_ptr free_fn),PNG_ALLOCATED);
 
 /* Free memory from internal libpng struct */
 PNG_INTERNAL_FUNCTION(void,png_destroy_png_struct,(png_structrp png_ptr),
    PNG_EMPTY);
 
 /* Free an allocated jmp_buf (always succeeds) */
-PNG_INTERNAL_FUNCTION(void,png_free_jmpbuf,(png_structrp png_ptr),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,Ppng_free_jmpbuf,(png_structrp png_ptr),PNG_EMPTY);
 
 /* Function to allocate memory for zlib.  PNGAPI is disallowed. */
 PNG_INTERNAL_FUNCTION(voidpf,png_zalloc,(voidpf png_ptr, uInt items, uInt size),
@@ -1008,7 +1008,7 @@ PNG_INTERNAL_FUNCTION(void,png_write_iTXt,(png_structrp png_ptr,
 #endif
 
 #ifdef PNG_TEXT_SUPPORTED  /* Added at version 1.0.14 and 1.2.4 */
-PNG_INTERNAL_FUNCTION(int,png_set_text_2,(png_structrp png_ptr,
+PNG_INTERNAL_FUNCTION(int,Ppng_set_text_2,(png_structrp png_ptr,
     png_inforp info_ptr, png_const_textp text_ptr, int num_text),PNG_EMPTY);
 #endif
 
@@ -1290,7 +1290,7 @@ PNG_INTERNAL_FUNCTION(void,png_handle_unknown,(png_structrp png_ptr,
     defined(PNG_HANDLE_AS_UNKNOWN_SUPPORTED)
 PNG_INTERNAL_FUNCTION(int,png_chunk_unknown_handling,
     (png_const_structrp png_ptr, png_uint_32 chunk_name),PNG_EMPTY);
-   /* Exactly as the API png_handle_as_unknown() except that the argument is a
+   /* Exactly as the API Ppng_handle_as_unknown() except that the argument is a
     * 32-bit chunk name, not a string.
     */
 #endif /* READ_UNKNOWN_CHUNKS || HANDLE_AS_UNKNOWN */
@@ -1509,26 +1509,26 @@ PNG_INTERNAL_FUNCTION(png_charp,png_format_number,(png_const_charp start,
 /* An l-value of this type has to be passed to the APIs below to cache the
  * values of the parameters to a formatted warning message.
  */
-typedef char png_warning_parameters[PNG_WARNING_PARAMETER_COUNT][
+typedef char Ppng_warning_parameters[PNG_WARNING_PARAMETER_COUNT][
    PNG_WARNING_PARAMETER_SIZE];
 
-PNG_INTERNAL_FUNCTION(void,png_warning_parameter,(png_warning_parameters p,
+PNG_INTERNAL_FUNCTION(void,Ppng_warning_parameter,(Ppng_warning_parameters p,
    int number, png_const_charp string),PNG_EMPTY);
    /* Parameters are limited in size to PNG_WARNING_PARAMETER_SIZE characters,
     * including the trailing '\0'.
     */
-PNG_INTERNAL_FUNCTION(void,png_warning_parameter_unsigned,
-   (png_warning_parameters p, int number, int format, png_alloc_size_t value),
+PNG_INTERNAL_FUNCTION(void,Ppng_warning_parameter_unsigned,
+   (Ppng_warning_parameters p, int number, int format, png_alloc_size_t value),
    PNG_EMPTY);
    /* Use png_alloc_size_t because it is an unsigned type as big as any we
     * need to output.  Use the following for a signed value.
     */
-PNG_INTERNAL_FUNCTION(void,png_warning_parameter_signed,
-   (png_warning_parameters p, int number, int format, png_int_32 value),
+PNG_INTERNAL_FUNCTION(void,Ppng_warning_parameter_signed,
+   (Ppng_warning_parameters p, int number, int format, png_int_32 value),
    PNG_EMPTY);
 
 PNG_INTERNAL_FUNCTION(void,png_formatted_warning,(png_const_structrp png_ptr,
-   png_warning_parameters p, png_const_charp message),PNG_EMPTY);
+   Ppng_warning_parameters p, png_const_charp message),PNG_EMPTY);
    /* 'message' follows the X/Open approach of using @1, @2 to insert
     * parameters previously supplied using the above functions.  Errors in
     * specifying the parameters will simply result in garbage substitutions.
@@ -1542,13 +1542,13 @@ PNG_INTERNAL_FUNCTION(void,png_formatted_warning,(png_const_structrp png_ptr,
  * 'error' for one which can be handled safely but which may lose application
  * information or settings.
  *
- * By default these both result in a png_error call prior to release, while in a
+ * By default these both result in a Ppng_error call prior to release, while in a
  * released version the 'warning' is just a warning.  However if the application
  * explicitly disables benign errors (explicitly permitting the code to lose
  * information) they both turn into warnings.
  *
  * If benign errors aren't supported they end up as the corresponding base call
- * (png_warning or png_error.)
+ * (Ppng_warning or Ppng_error.)
  */
 PNG_INTERNAL_FUNCTION(void,png_app_warning,(png_const_structrp png_ptr,
    png_const_charp message),PNG_EMPTY);
@@ -1562,15 +1562,15 @@ PNG_INTERNAL_FUNCTION(void,png_app_error,(png_const_structrp png_ptr,
     * recovery from the error.
     */
 #else
-#  define png_app_warning(pp,s) png_warning(pp,s)
-#  define png_app_error(pp,s) png_error(pp,s)
+#  define png_app_warning(pp,s) Ppng_warning(pp,s)
+#  define png_app_error(pp,s) Ppng_error(pp,s)
 #endif
 
 PNG_INTERNAL_FUNCTION(void,png_chunk_report,(png_const_structrp png_ptr,
    png_const_charp message, int error),PNG_EMPTY);
    /* Report a recoverable issue in chunk data.  On read this is used to report
     * a problem found while reading a particular chunk and the
-    * png_chunk_benign_error or png_chunk_warning function is used as
+    * Ppng_chunk_benign_error or Ppng_chunk_warning function is used as
     * appropriate.  On write this is used to report an error that comes from
     * data set via an application call to a png_set_ API and png_app_error or
     * png_app_warning is used as appropriate.
@@ -1794,7 +1794,7 @@ typedef struct png_control
 
 /* Utility to safely execute a piece of libpng code catching and logging any
  * errors that might occur.  Returns true on success, false on failure (either
- * of the function or as a result of a png_error.)
+ * of the function or as a result of a Ppng_error.)
  */
 PNG_INTERNAL_CALLBACK(void,png_safe_error,(png_structp png_ptr,
    png_const_charp error_message),PNG_NORETURN);
@@ -1806,7 +1806,7 @@ PNG_INTERNAL_CALLBACK(void,png_safe_warning,(png_structp png_ptr,
 #  define png_safe_warning 0/*dummy argument*/
 #endif
 
-PNG_INTERNAL_FUNCTION(int,png_safe_execute,(png_imagep image,
+PNG_INTERNAL_FUNCTION(int,Ppng_safe_execute,(png_imagep image,
    int (*function)(png_voidp), png_voidp arg),PNG_EMPTY);
 
 /* Utility to log an error; this also cleans up the png_image; the function
@@ -1816,8 +1816,8 @@ PNG_INTERNAL_FUNCTION(int,png_image_error,(png_imagep image,
    png_const_charp error_message),PNG_EMPTY);
 
 #ifndef PNG_SIMPLIFIED_READ_SUPPORTED
-/* png_image_free is used by the write code but not exported */
-PNG_INTERNAL_FUNCTION(void, png_image_free, (png_imagep image), PNG_EMPTY);
+/* Ppng_image_free is used by the write code but not exported */
+PNG_INTERNAL_FUNCTION(void, Ppng_image_free, (png_imagep image), PNG_EMPTY);
 #endif /* !SIMPLIFIED_READ */
 
 #endif /* SIMPLIFIED READ/WRITE */

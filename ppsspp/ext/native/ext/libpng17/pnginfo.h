@@ -17,7 +17,7 @@
  * If you are reading the file, this structure will tell you what is
  * in the PNG file.  If you are writing the file, fill in the information
  * you want to put into the PNG file, using png_set_*() functions, then
- * call png_write_info().
+ * call Ppng_write_info().
  *
  * The names chosen should be very close to the PNG specification, so
  * consult that document for information about the meaning of each field.
@@ -43,11 +43,11 @@
  * More allocation details: all the chunk-reading functions that
  * change these members go through the corresponding png_set_*
  * functions.  A function to clear these members is available: see
- * png_free_data().  The png_set_* functions do not depend on being
+ * Ppng_free_data().  The png_set_* functions do not depend on being
  * able to point info structure members to any of the storage they are
- * passed (they make their own copies), EXCEPT that the png_set_text
+ * passed (they make their own copies), EXCEPT that the Ppng_set_text
  * functions use the same storage passed to them in the text_ptr or
- * itxt_ptr structure argument, and the png_set_rows and png_set_unknowns
+ * itxt_ptr structure argument, and the Ppng_set_rows and png_set_unknowns
  * functions do not make their own copies.
  */
 #ifndef PNGINFO_H
@@ -70,7 +70,7 @@ struct png_info_def
    png_byte filter_type;    /* must be PNG_FILTER_TYPE_BASE (from IHDR) */
    png_byte interlace_type; /* One of PNG_INTERLACE_NONE, PNG_INTERLACE_ADAM7 */
 
-   /* The following are set by png_set_IHDR, called from the application on
+   /* The following are set by Ppng_set_IHDR, called from the application on
     * write, but the are never actually used by the write code.
     */
    png_byte channels;       /* number of data channels per pixel (1, 2, 3, 4) */

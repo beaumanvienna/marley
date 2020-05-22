@@ -340,7 +340,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 		png_image png = {};
 		png.version = PNG_IMAGE_VERSION;
 		FILE *fp = PFile::OpenCFile(filename, "rb");
-		if (png_image_begin_read_from_stdio(&png, fp)) {
+		if (Ppng_image_begin_read_from_stdio(&png, fp)) {
 			// We pad files that have been hashrange'd so they are the same texture size.
 			level.w = (png.width * w) / newW;
 			level.h = (png.height * h) / newH;
@@ -350,7 +350,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 		}
 		fclose(fp);
 
-		png_image_free(&png);
+		Ppng_image_free(&png);
 #endif
 
 		if (good && i != 0) {
@@ -379,7 +379,7 @@ static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int
 		return false;
 	}
 
-	if (png_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
+	if (Ppng_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
 		if (fclose(fp) != 0) {
 			ERROR_LOG(SYSTEM, "Texture file write failed.");
 			return false;
@@ -499,7 +499,7 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	png.width = w;
 	png.height = h;
 	bool success = WriteTextureToPNG(&png, saveFilename, 0, data, pitch, nullptr);
-	png_image_free(&png);
+	Ppng_image_free(&png);
 
 	if (png.warning_or_error >= 2) {
 		ERROR_LOG(COMMON, "Saving screenshot to PNG produced errors.");
@@ -626,7 +626,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	png.version = PNG_IMAGE_VERSION;
 
 	FILE *fp = PFile::OpenCFile(info.file, "rb");
-	if (!png_image_begin_read_from_stdio(&png, fp)) {
+	if (!Ppng_image_begin_read_from_stdio(&png, fp)) {
 		ERROR_LOG(G3D, "Could not load texture replacement info: %s - %s", info.file.c_str(), png.message);
 		return;
 	}
@@ -641,7 +641,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	}
 	png.format = PNG_FORMAT_RGBA;
 
-	if (!png_image_finish_read(&png, nullptr, out, rowPitch, nullptr)) {
+	if (!Ppng_image_finish_read(&png, nullptr, out, rowPitch, nullptr)) {
 		ERROR_LOG(G3D, "Could not load texture replacement: %s - %s", info.file.c_str(), png.message);
 		return;
 	}
@@ -655,7 +655,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	}
 
 	fclose(fp);
-	png_image_free(&png);
+	Ppng_image_free(&png);
 #endif
 }
 

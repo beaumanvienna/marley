@@ -24,7 +24,7 @@
 static void
 png_do_pack(png_row_infop row_info, png_bytep row, png_uint_32 bit_depth)
 {
-   png_debug(1, "in png_do_pack");
+   Ppng_debug(1, "in png_do_pack");
 
    if (row_info->bit_depth == 8 &&
       row_info->channels == 1)
@@ -170,7 +170,7 @@ static void
 png_do_shift(png_row_infop row_info, png_bytep row,
     png_const_color_8p bit_depth)
 {
-   png_debug(1, "in png_do_shift");
+   Ppng_debug(1, "in png_do_shift");
 
    if (row_info->color_type != PNG_COLOR_TYPE_PALETTE)
    {
@@ -285,7 +285,7 @@ png_do_shift(png_row_infop row_info, png_bytep row,
             int j;
             unsigned int value, v;
 
-            v = png_get_uint_16(bp);
+            v = Ppng_get_uint_16(bp);
             value = 0;
 
             for (j = shift_start[c]; j > -shift_dec[c]; j -= shift_dec[c])
@@ -308,7 +308,7 @@ png_do_shift(png_row_infop row_info, png_bytep row,
 static void
 png_do_write_swap_alpha(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_write_swap_alpha");
+   Ppng_debug(1, "in png_do_write_swap_alpha");
 
    {
       if (row_info->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -402,7 +402,7 @@ png_do_write_swap_alpha(png_row_infop row_info, png_bytep row)
 static void
 png_do_write_invert_alpha(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_write_invert_alpha");
+   Ppng_debug(1, "in png_do_write_invert_alpha");
 
    {
       if (row_info->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -499,7 +499,7 @@ png_do_write_invert_alpha(png_row_infop row_info, png_bytep row)
 void /* PRIVATE */
 png_do_write_transformations(png_structrp png_ptr, png_row_infop row_info)
 {
-   png_debug(1, "in png_do_write_transformations");
+   Ppng_debug(1, "in png_do_write_transformations");
 
    if (png_ptr == NULL)
       return;

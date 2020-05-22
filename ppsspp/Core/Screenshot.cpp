@@ -110,7 +110,7 @@ static bool WriteScreenshotToPNG(png_imagep image, const char *filename, int con
 		return false;
 	}
 
-	if (png_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
+	if (Ppng_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
 		if (fclose(fp) != 0) {
 			ERROR_LOG(SYSTEM, "Screenshot file write failed.");
 			return false;
@@ -365,7 +365,7 @@ bool Save888RGBScreenshot(const char *filename, ScreenshotFormat fmt, const u8 *
 		png.width = w;
 		png.height = h;
 		bool success = WriteScreenshotToPNG(&png, filename, 0, bufferRGB888, w * 3, nullptr);
-		png_image_free(&png);
+		Ppng_image_free(&png);
 
 		if (png.warning_or_error >= 2) {
 			ERROR_LOG(SYSTEM, "Saving screenshot to PNG produced errors.");
@@ -394,7 +394,7 @@ bool Save8888RGBAScreenshot(const char *filename, const u8 *buffer, int w, int h
 	png.width = w;
 	png.height = h;
 	bool success = WriteScreenshotToPNG(&png, filename, 0, buffer, w * 4, nullptr);
-	png_image_free(&png);
+	Ppng_image_free(&png);
 
 	if (png.warning_or_error >= 2) {
 		ERROR_LOG(SYSTEM, "Saving screenshot to PNG produced errors.");

@@ -4,7 +4,7 @@ project(PPSSPP)
 
 #This is supposed to work but doesn't!
 if(NOT ANDROID)
-	set(CMAKE_CXX_STANDARD 11)
+	set(CMAKE_CXX_STANDARD 17)
 	set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 

@@ -22,9 +22,9 @@
 
 /* Set the action on getting a CRC error for an ancillary or critical chunk. */
 void PNGAPI
-png_set_crc_action(png_structrp png_ptr, int crit_action, int ancil_action)
+Ppng_set_crc_action(png_structrp png_ptr, int crit_action, int ancil_action)
 {
-   png_debug(1, "in png_set_crc_action");
+   Ppng_debug(1, "in Ppng_set_crc_action");
 
    if (png_ptr == NULL)
       return;
@@ -47,7 +47,7 @@ png_set_crc_action(png_structrp png_ptr, int crit_action, int ancil_action)
          break;
 
       case PNG_CRC_WARN_DISCARD:    /* Not a valid action for critical data */
-         png_warning(png_ptr,
+         Ppng_warning(png_ptr,
             "Can't discard critical data on CRC error");
       case PNG_CRC_ERROR_QUIT:                                /* Error/quit */
 
@@ -89,8 +89,8 @@ png_set_crc_action(png_structrp png_ptr, int crit_action, int ancil_action)
 }
 
 #ifdef PNG_READ_TRANSFORMS_SUPPORTED
-/* Is it OK to set a transformation now?  Only if png_start_read_image or
- * png_read_update_info have not been called.  It is not necessary for the IHDR
+/* Is it OK to set a transformation now?  Only if Ppng_start_read_image or
+ * Ppng_read_update_info have not been called.  It is not necessary for the IHDR
  * to have been read in all cases, the parameter allows for this check too.
  */
 static int
@@ -100,7 +100,7 @@ png_rtran_ok(png_structrp png_ptr, int need_IHDR)
    {
       if (png_ptr->flags & PNG_FLAG_ROW_INIT)
          png_app_error(png_ptr,
-            "invalid after png_start_read_image or png_read_update_info");
+            "invalid after Ppng_start_read_image or Ppng_read_update_info");
 
       else if (need_IHDR && (png_ptr->mode & PNG_HAVE_IHDR) == 0)
          png_app_error(png_ptr, "invalid before the PNG header has been read");
@@ -114,7 +114,7 @@ png_rtran_ok(png_structrp png_ptr, int need_IHDR)
       }
    }
 
-   return 0; /* no png_error possible! */
+   return 0; /* no Ppng_error possible! */
 }
 #endif
 
@@ -125,7 +125,7 @@ png_set_background_fixed(png_structrp png_ptr,
     png_const_color_16p background_color, int background_gamma_code,
     int need_expand, png_fixed_point background_gamma)
 {
-   png_debug(1, "in png_set_background_fixed");
+   Ppng_debug(1, "in png_set_background_fixed");
 
    if (!png_rtran_ok(png_ptr, 0) || background_color == NULL)
       return;
@@ -171,9 +171,9 @@ png_set_background(png_structrp png_ptr,
  */
 #ifdef PNG_READ_SCALE_16_TO_8_SUPPORTED
 void PNGAPI
-png_set_scale_16(png_structrp png_ptr)
+Ppng_set_scale_16(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_scale_16");
+   Ppng_debug(1, "in Ppng_set_scale_16");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -185,9 +185,9 @@ png_set_scale_16(png_structrp png_ptr)
 #ifdef PNG_READ_STRIP_16_TO_8_SUPPORTED
 /* Chop 16-bit depth files to 8-bit depth */
 void PNGAPI
-png_set_strip_16(png_structrp png_ptr)
+Ppng_set_strip_16(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_strip_16");
+   Ppng_debug(1, "in Ppng_set_strip_16");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -198,9 +198,9 @@ png_set_strip_16(png_structrp png_ptr)
 
 #ifdef PNG_READ_STRIP_ALPHA_SUPPORTED
 void PNGAPI
-png_set_strip_alpha(png_structrp png_ptr)
+Ppng_set_strip_alpha(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_strip_alpha");
+   Ppng_debug(1, "in Ppng_set_strip_alpha");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -275,7 +275,7 @@ png_set_alpha_mode_fixed(png_structrp png_ptr, int mode,
    int compose = 0;
    png_fixed_point file_gamma;
 
-   png_debug(1, "in png_set_alpha_mode");
+   Ppng_debug(1, "in png_set_alpha_mode");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -289,7 +289,7 @@ png_set_alpha_mode_fixed(png_structrp png_ptr, int mode,
     * values are reasonable this may have to be changed.
     */
    if (output_gamma < 70000 || output_gamma > 300000)
-      png_error(png_ptr, "output gamma out of expected range");
+      Ppng_error(png_ptr, "output gamma out of expected range");
 
    /* The default file gamma is the inverse of the output gamma; the output
     * gamma may be changed below so get the file value first:
@@ -342,7 +342,7 @@ png_set_alpha_mode_fixed(png_structrp png_ptr, int mode,
          break;
 
       default:
-         png_error(png_ptr, "invalid alpha mode");
+         Ppng_error(png_ptr, "invalid alpha mode");
    }
 
    /* Only set the default gamma if the file gamma has not been set (this has
@@ -370,7 +370,7 @@ png_set_alpha_mode_fixed(png_structrp png_ptr, int mode,
       png_ptr->flags &= ~PNG_FLAG_BACKGROUND_EXPAND;
 
       if (png_ptr->transformations & PNG_COMPOSE)
-         png_error(png_ptr,
+         Ppng_error(png_ptr,
             "conflicting calls to set alpha mode and background");
 
       png_ptr->transformations |= PNG_COMPOSE;
@@ -407,11 +407,11 @@ typedef png_dsort *   png_dsortp;
 typedef png_dsort * * png_dsortpp;
 
 void PNGAPI
-png_set_quantize(png_structrp png_ptr, png_colorp palette,
+Ppng_set_quantize(png_structrp png_ptr, png_colorp palette,
     int num_palette, int maximum_colors, png_const_uint_16p histogram,
     int full_quantize)
 {
-   png_debug(1, "in png_set_quantize");
+   Ppng_debug(1, "in Ppng_set_quantize");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -422,7 +422,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
    {
       int i;
 
-      png_ptr->quantize_index = (png_bytep)png_malloc(png_ptr,
+      png_ptr->quantize_index = (png_bytep)Ppng_malloc(png_ptr,
           (png_uint_32)(num_palette * (sizeof (png_byte))));
       for (i = 0; i < num_palette; i++)
          png_ptr->quantize_index[i] = (png_byte)i;
@@ -439,7 +439,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
          int i;
 
          /* Initialize an array to sort colors */
-         png_ptr->quantize_sort = (png_bytep)png_malloc(png_ptr,
+         png_ptr->quantize_sort = (png_bytep)Ppng_malloc(png_ptr,
              (png_uint_32)(num_palette * (sizeof (png_byte))));
 
          /* Initialize the quantize_sort array */
@@ -551,7 +551,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
                }
             }
          }
-         png_free(png_ptr, png_ptr->quantize_sort);
+         Ppng_free(png_ptr, png_ptr->quantize_sort);
          png_ptr->quantize_sort = NULL;
       }
       else
@@ -573,9 +573,9 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
          t = NULL;
 
          /* Initialize palette index arrays */
-         png_ptr->index_to_palette = (png_bytep)png_malloc(png_ptr,
+         png_ptr->index_to_palette = (png_bytep)Ppng_malloc(png_ptr,
              (png_uint_32)(num_palette * (sizeof (png_byte))));
-         png_ptr->palette_to_index = (png_bytep)png_malloc(png_ptr,
+         png_ptr->palette_to_index = (png_bytep)Ppng_malloc(png_ptr,
              (png_uint_32)(num_palette * (sizeof (png_byte))));
 
          /* Initialize the sort array */
@@ -585,7 +585,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
             png_ptr->palette_to_index[i] = (png_byte)i;
          }
 
-         hash = (png_dsortpp)png_calloc(png_ptr, (png_uint_32)(769 *
+         hash = (png_dsortpp)Ppng_calloc(png_ptr, (png_uint_32)(769 *
              (sizeof (png_dsortp))));
 
          num_new_palette = num_palette;
@@ -615,7 +615,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
                   if (d <= max_d)
                   {
 
-                     t = (png_dsortp)png_malloc_warn(png_ptr,
+                     t = (png_dsortp)Ppng_malloc_warn(png_ptr,
                          (png_uint_32)(sizeof (png_dsort)));
 
                      if (t == NULL)
@@ -707,7 +707,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
                   while (p)
                   {
                      t = p->next;
-                     png_free(png_ptr, p);
+                     Ppng_free(png_ptr, p);
                      p = t;
                   }
                }
@@ -715,9 +715,9 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
             }
             max_d += 96;
          }
-         png_free(png_ptr, hash);
-         png_free(png_ptr, png_ptr->palette_to_index);
-         png_free(png_ptr, png_ptr->index_to_palette);
+         Ppng_free(png_ptr, hash);
+         Ppng_free(png_ptr, png_ptr->palette_to_index);
+         Ppng_free(png_ptr, png_ptr->index_to_palette);
          png_ptr->palette_to_index = NULL;
          png_ptr->index_to_palette = NULL;
       }
@@ -740,10 +740,10 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
       int num_blue = (1 << PNG_QUANTIZE_BLUE_BITS);
       png_size_t num_entries = ((png_size_t)1 << total_bits);
 
-      png_ptr->palette_lookup = (png_bytep)png_calloc(png_ptr,
+      png_ptr->palette_lookup = (png_bytep)Ppng_calloc(png_ptr,
           (png_uint_32)(num_entries * (sizeof (png_byte))));
 
-      distance = (png_bytep)png_malloc(png_ptr, (png_uint_32)(num_entries *
+      distance = (png_bytep)Ppng_malloc(png_ptr, (png_uint_32)(num_entries *
           (sizeof (png_byte))));
 
       memset(distance, 0xff, num_entries * (sizeof (png_byte)));
@@ -788,7 +788,7 @@ png_set_quantize(png_structrp png_ptr, png_colorp palette,
          }
       }
 
-      png_free(png_ptr, distance);
+      Ppng_free(png_ptr, distance);
    }
 }
 #endif /* PNG_READ_QUANTIZE_SUPPORTED */
@@ -798,7 +798,7 @@ void PNGFAPI
 png_set_gamma_fixed(png_structrp png_ptr, png_fixed_point scrn_gamma,
    png_fixed_point file_gamma)
 {
-   png_debug(1, "in png_set_gamma_fixed");
+   Ppng_debug(1, "in png_set_gamma_fixed");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -819,10 +819,10 @@ png_set_gamma_fixed(png_structrp png_ptr, png_fixed_point scrn_gamma,
     * libpng-1.6.0.
     */
    if (file_gamma <= 0)
-      png_error(png_ptr, "invalid file gamma in png_set_gamma");
+      Ppng_error(png_ptr, "invalid file gamma in png_set_gamma");
 
    if (scrn_gamma <= 0)
-      png_error(png_ptr, "invalid screen gamma in png_set_gamma");
+      Ppng_error(png_ptr, "invalid screen gamma in png_set_gamma");
 
    /* Set the gamma values unconditionally - this overrides the value in the PNG
     * file if a gAMA chunk was present.  png_set_alpha_mode provides a
@@ -849,9 +849,9 @@ png_set_gamma(png_structrp png_ptr, double scrn_gamma, double file_gamma)
  * to alpha channels.
  */
 void PNGAPI
-png_set_expand(png_structrp png_ptr)
+Ppng_set_expand(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_expand");
+   Ppng_debug(1, "in Ppng_set_expand");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -860,7 +860,7 @@ png_set_expand(png_structrp png_ptr)
 }
 
 /* GRR 19990627:  the following three functions currently are identical
- *  to png_set_expand().  However, it is entirely reasonable that someone
+ *  to Ppng_set_expand().  However, it is entirely reasonable that someone
  *  might wish to expand an indexed image to RGB but *not* expand a single,
  *  fully transparent palette entry to a full alpha channel--perhaps instead
  *  convert tRNS to the grayscale/RGB format (16-bit RGB value), or replace
@@ -874,14 +874,14 @@ png_set_expand(png_structrp png_ptr)
  *
  *  GRP 20060307: In libpng-1.2.9, png_set_gray_1_2_4_to_8() was modified
  *  to expand only the sample depth but not to expand the tRNS to alpha
- *  and its name was changed to png_set_expand_gray_1_2_4_to_8().
+ *  and its name was changed to Ppng_set_expand_gray_1_2_4_to_8().
  */
 
 /* Expand paletted images to RGB. */
 void PNGAPI
-png_set_palette_to_rgb(png_structrp png_ptr)
+Ppng_set_palette_to_rgb(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_palette_to_rgb");
+   Ppng_debug(1, "in Ppng_set_palette_to_rgb");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -891,9 +891,9 @@ png_set_palette_to_rgb(png_structrp png_ptr)
 
 /* Expand grayscale images of less than 8-bit depth to 8 bits. */
 void PNGAPI
-png_set_expand_gray_1_2_4_to_8(png_structrp png_ptr)
+Ppng_set_expand_gray_1_2_4_to_8(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_expand_gray_1_2_4_to_8");
+   Ppng_debug(1, "in Ppng_set_expand_gray_1_2_4_to_8");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -903,9 +903,9 @@ png_set_expand_gray_1_2_4_to_8(png_structrp png_ptr)
 
 /* Expand tRNS chunks to alpha channels. */
 void PNGAPI
-png_set_tRNS_to_alpha(png_structrp png_ptr)
+Ppng_set_tRNS_to_alpha(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_tRNS_to_alpha");
+   Ppng_debug(1, "in Ppng_set_tRNS_to_alpha");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -919,9 +919,9 @@ png_set_tRNS_to_alpha(png_structrp png_ptr)
  * it may not work correctly.)
  */
 void PNGAPI
-png_set_expand_16(png_structrp png_ptr)
+Ppng_set_expand_16(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_expand_16");
+   Ppng_debug(1, "in Ppng_set_expand_16");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
@@ -932,15 +932,15 @@ png_set_expand_16(png_structrp png_ptr)
 
 #ifdef PNG_READ_GRAY_TO_RGB_SUPPORTED
 void PNGAPI
-png_set_gray_to_rgb(png_structrp png_ptr)
+Ppng_set_gray_to_rgb(png_structrp png_ptr)
 {
-   png_debug(1, "in png_set_gray_to_rgb");
+   Ppng_debug(1, "in Ppng_set_gray_to_rgb");
 
    if (!png_rtran_ok(png_ptr, 0))
       return;
 
    /* Because rgb must be 8 bits or more: */
-   png_set_expand_gray_1_2_4_to_8(png_ptr);
+   Ppng_set_expand_gray_1_2_4_to_8(png_ptr);
    png_ptr->transformations |= PNG_GRAY_TO_RGB;
 }
 #endif
@@ -950,7 +950,7 @@ void PNGFAPI
 png_set_rgb_to_gray_fixed(png_structrp png_ptr, int error_action,
     png_fixed_point red, png_fixed_point green)
 {
-   png_debug(1, "in png_set_rgb_to_gray");
+   Ppng_debug(1, "in png_set_rgb_to_gray");
 
    /* Need the IHDR here because of the check on color_type below. */
    /* TODO: fix this */
@@ -972,7 +972,7 @@ png_set_rgb_to_gray_fixed(png_structrp png_ptr, int error_action,
          break;
 
       default:
-         png_error(png_ptr, "invalid error action to rgb_to_gray");
+         Ppng_error(png_ptr, "invalid error action to rgb_to_gray");
          break;
    }
 
@@ -984,7 +984,7 @@ png_set_rgb_to_gray_fixed(png_structrp png_ptr, int error_action,
       /* Make this an error in 1.6 because otherwise the application may assume
        * that it just worked and get a memory overwrite.
        */
-      png_error(png_ptr,
+      Ppng_error(png_ptr,
         "Cannot do RGB_TO_GRAY without EXPAND_SUPPORTED");
 
       /* png_ptr->transformations &= ~PNG_RGB_TO_GRAY; */
@@ -1053,10 +1053,10 @@ png_set_rgb_to_gray(png_structrp png_ptr, int error_action, double red,
 #if defined(PNG_READ_USER_TRANSFORM_SUPPORTED) || \
     defined(PNG_WRITE_USER_TRANSFORM_SUPPORTED)
 void PNGAPI
-png_set_read_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr
+Ppng_set_read_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr
     read_user_transform_fn)
 {
-   png_debug(1, "in png_set_read_user_transform_fn");
+   Ppng_debug(1, "in Ppng_set_read_user_transform_fn");
 
 #ifdef PNG_READ_USER_TRANSFORM_SUPPORTED
    png_ptr->transformations |= PNG_USER_TRANSFORM;
@@ -1273,7 +1273,7 @@ png_init_background_transformations(png_structrp png_ptr)
       if (bit_depth > required_bit_depth)
       {
          if (bit_depth != 16 || required_bit_depth != 8)
-            png_error(png_ptr, "internal error handling background depth");
+            Ppng_error(png_ptr, "internal error handling background depth");
       }
 
       if ((color_type & PNG_COLOR_MASK_COLOR) != 0)
@@ -1416,7 +1416,7 @@ png_init_rgb_transformations(png_structrp png_ptr)
 void /* PRIVATE */
 png_init_read_transformations(png_structrp png_ptr)
 {
-   png_debug(1, "in png_init_read_transformations");
+   Ppng_debug(1, "in png_init_read_transformations");
 
    /* This internal function is called from png_read_start_row in pngrutil.c
     * and it is called before the 'rowbytes' calculation is done, so the code
@@ -1585,7 +1585,7 @@ png_init_read_transformations(png_structrp png_ptr)
     *
     * NOTE: this is Not Yet Implemented, the code behaves as in 1.5.1 and
     * earlier and the palette stuff is actually handled on the first row.  This
-    * leads to the reported bug that the palette returned by png_get_PLTE is not
+    * leads to the reported bug that the palette returned by Ppng_get_PLTE is not
     * updated.
     */
 #if 0 /* NYI */
@@ -1633,7 +1633,7 @@ png_init_read_transformations(png_structrp png_ptr)
           * libpng to date.
           */
          if (png_ptr->transformations & PNG_RGB_TO_GRAY)
-            png_warning(png_ptr,
+            Ppng_warning(png_ptr,
                "libpng does not support gamma+background+rgb_to_gray");
 
          if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
@@ -1820,7 +1820,7 @@ png_init_read_transformations(png_structrp png_ptr)
 void /* PRIVATE */
 png_read_transform_info(png_structrp png_ptr, png_inforp info_ptr)
 {
-   png_debug(1, "in png_read_transform_info");
+   Ppng_debug(1, "in png_read_transform_info");
 
 #ifdef PNG_READ_EXPAND_SUPPORTED
    if (png_ptr->transformations & PNG_EXPAND)
@@ -1841,7 +1841,7 @@ png_read_transform_info(png_structrp png_ptr, png_inforp info_ptr)
          info_ptr->num_trans = 0;
 
          if (png_ptr->palette == NULL)
-            png_error (png_ptr, "Palette is NULL in indexed image");
+            Ppng_error (png_ptr, "Palette is NULL in indexed image");
       }
       else
       {
@@ -1870,7 +1870,7 @@ png_read_transform_info(png_structrp png_ptr, png_inforp info_ptr)
 #ifdef PNG_READ_GAMMA_SUPPORTED
    /* The following used to be conditional on PNG_GAMMA (prior to 1.5.4),
     * however it seems that the code in png_init_read_transformations, which has
-    * been called before this from png_read_update_info->png_read_start_row
+    * been called before this from Ppng_read_update_info->png_read_start_row
     * sometimes does the gamma transform and cancels the flag.
     *
     * TODO: this looks wrong; the info_ptr should end up with a gamma equal to
@@ -2008,7 +2008,7 @@ defined(PNG_READ_USER_TRANSFORM_SUPPORTED)
 
    /* Adding in 1.5.4: cache the above value in png_struct so that we can later
     * check in png_rowbytes that the user buffer won't get overwritten.  Note
-    * that the field is not always set - if png_read_update_info isn't called
+    * that the field is not always set - if Ppng_read_update_info isn't called
     * the application has to either not do any transforms or get the calculation
     * right itself.
     */
@@ -2030,7 +2030,7 @@ defined(PNG_READ_USER_TRANSFORM_SUPPORTED)
 static void
 png_do_unpack(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_unpack");
+   Ppng_debug(1, "in png_do_unpack");
 
    if (row_info->bit_depth < 8)
    {
@@ -2131,7 +2131,7 @@ png_do_unshift(png_row_infop row_info, png_bytep row,
 {
    int color_type;
 
-   png_debug(1, "in png_do_unshift");
+   Ppng_debug(1, "in png_do_unshift");
 
    /* The palette case has already been handled in the _init routine. */
    color_type = row_info->color_type;
@@ -2267,7 +2267,7 @@ png_do_unshift(png_row_infop row_info, png_bytep row,
 static void
 png_do_scale_16_to_8(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_scale_16_to_8");
+   Ppng_debug(1, "in png_do_scale_16_to_8");
 
    if (row_info->bit_depth == 16)
    {
@@ -2328,7 +2328,7 @@ static void
  */
 png_do_chop(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_chop");
+   Ppng_debug(1, "in png_do_chop");
 
    if (row_info->bit_depth == 16)
    {
@@ -2353,7 +2353,7 @@ png_do_chop(png_row_infop row_info, png_bytep row)
 static void
 png_do_read_swap_alpha(png_row_infop row_info, png_bytep row)
 {
-   png_debug(1, "in png_do_read_swap_alpha");
+   Ppng_debug(1, "in png_do_read_swap_alpha");
 
    {
       png_uint_32 row_width = row_info->width;
@@ -2451,7 +2451,7 @@ static void
 png_do_read_invert_alpha(png_row_infop row_info, png_bytep row)
 {
    png_uint_32 row_width;
-   png_debug(1, "in png_do_read_invert_alpha");
+   Ppng_debug(1, "in png_do_read_invert_alpha");
 
    row_width = row_info->width;
    if (row_info->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -2561,7 +2561,7 @@ png_do_read_filler(png_row_infop row_info, png_bytep row,
 #endif
    png_byte lo_filler = (png_byte)(filler & 0xff);
 
-   png_debug(1, "in png_do_read_filler");
+   Ppng_debug(1, "in png_do_read_filler");
 
    if (
        row_info->color_type == PNG_COLOR_TYPE_GRAY)
@@ -2742,7 +2742,7 @@ png_do_gray_to_rgb(png_row_infop row_info, png_bytep row)
    png_uint_32 i;
    png_uint_32 row_width = row_info->width;
 
-   png_debug(1, "in png_do_gray_to_rgb");
+   Ppng_debug(1, "in png_do_gray_to_rgb");
 
    if (row_info->bit_depth >= 8 &&
        !(row_info->color_type & PNG_COLOR_MASK_COLOR))
@@ -2881,7 +2881,7 @@ png_do_rgb_to_gray(png_structrp png_ptr, png_row_infop row_info, png_bytep row)
 {
    int rgb_error = 0;
 
-   png_debug(1, "in png_do_rgb_to_gray");
+   Ppng_debug(1, "in png_do_rgb_to_gray");
 
    if (!(row_info->color_type & PNG_COLOR_MASK_PALETTE) &&
        (row_info->color_type & PNG_COLOR_MASK_COLOR))
@@ -3088,7 +3088,7 @@ png_do_compose(png_row_infop row_info, png_bytep row, png_structrp png_ptr)
    png_uint_32 i;
    png_uint_32 row_width = row_info->width;
 
-   png_debug(1, "in png_do_compose");
+   Ppng_debug(1, "in png_do_compose");
 
    {
       switch (row_info->color_type)
@@ -3845,7 +3845,7 @@ png_do_gamma(png_row_infop row_info, png_bytep row, png_structrp png_ptr)
    png_uint_32 i;
    png_uint_32 row_width=row_info->width;
 
-   png_debug(1, "in png_do_gamma");
+   Ppng_debug(1, "in png_do_gamma");
 
    /* Prior to libpng 1.7.0 this code would attempt to gamma correct 2 and 4 bit
     * gray level values, the results are ridiculously inaccurate.  In 1.7.0 the
@@ -4018,7 +4018,7 @@ png_do_encode_alpha(png_row_infop row_info, png_bytep row, png_structrp png_ptr)
 {
    png_uint_32 row_width = row_info->width;
 
-   png_debug(1, "in png_do_encode_alpha");
+   Ppng_debug(1, "in png_do_encode_alpha");
 
    if (row_info->color_type & PNG_COLOR_MASK_ALPHA)
    {
@@ -4073,7 +4073,7 @@ png_do_encode_alpha(png_row_infop row_info, png_bytep row, png_structrp png_ptr)
    /* Only get to here if called with a weird row_info; no harm has been done,
     * so just issue a warning.
     */
-   png_warning(png_ptr, "png_do_encode_alpha: unexpected call");
+   Ppng_warning(png_ptr, "png_do_encode_alpha: unexpected call");
 }
 #endif
 
@@ -4090,7 +4090,7 @@ png_do_expand_palette(png_row_infop row_info, png_bytep row,
    png_uint_32 i;
    png_uint_32 row_width=row_info->width;
 
-   png_debug(1, "in png_do_expand_palette");
+   Ppng_debug(1, "in png_do_expand_palette");
 
    if (row_info->color_type == PNG_COLOR_TYPE_PALETTE)
    {
@@ -4243,7 +4243,7 @@ png_do_expand(png_row_infop row_info, png_bytep row,
    png_uint_32 i;
    png_uint_32 row_width=row_info->width;
 
-   png_debug(1, "in png_do_expand");
+   Ppng_debug(1, "in png_do_expand");
 
    {
       if (row_info->color_type == PNG_COLOR_TYPE_GRAY)
@@ -4500,7 +4500,7 @@ png_do_quantize(png_row_infop row_info, png_bytep row,
    png_uint_32 i;
    png_uint_32 row_width=row_info->width;
 
-   png_debug(1, "in png_do_quantize");
+   Ppng_debug(1, "in png_do_quantize");
 
    if (row_info->bit_depth == 8)
    {
@@ -4592,7 +4592,7 @@ png_do_quantize(png_row_infop row_info, png_bytep row,
 void /* PRIVATE */
 png_do_read_transformations(png_structrp png_ptr, png_row_infop row_info)
 {
-   png_debug(1, "in png_do_read_transformations");
+   Ppng_debug(1, "in png_do_read_transformations");
 
    if (png_ptr->row_buf == NULL)
    {
@@ -4600,7 +4600,7 @@ png_do_read_transformations(png_structrp png_ptr, png_row_infop row_info)
        * error is incredibly rare and incredibly easy to debug without this
        * information.
        */
-      png_error(png_ptr, "NULL row buffer");
+      Ppng_error(png_ptr, "NULL row buffer");
    }
 
    /* The following is debugging; prior to 1.5.4 the code was never compiled in;
@@ -4613,10 +4613,10 @@ png_do_read_transformations(png_structrp png_ptr, png_row_infop row_info)
       !(png_ptr->flags & PNG_FLAG_ROW_INIT))
    {
       /* Application has failed to call either png_read_start_image() or
-       * png_read_update_info() after setting transforms that expand pixels.
+       * Ppng_read_update_info() after setting transforms that expand pixels.
        * This check added to libpng-1.2.19 (but not enabled until 1.5.4).
        */
-      png_error(png_ptr, "Uninitialized row");
+      Ppng_error(png_ptr, "Uninitialized row");
    }
 
 #ifdef PNG_READ_EXPAND_SUPPORTED
@@ -4663,11 +4663,11 @@ png_do_read_transformations(png_structrp png_ptr, png_row_infop row_info)
          png_ptr->rgb_to_gray_status=1;
          if ((png_ptr->transformations & PNG_RGB_TO_GRAY) ==
              PNG_RGB_TO_GRAY_WARN)
-            png_warning(png_ptr, "png_do_rgb_to_gray found nongray pixel");
+            Ppng_warning(png_ptr, "png_do_rgb_to_gray found nongray pixel");
 
          if ((png_ptr->transformations & PNG_RGB_TO_GRAY) ==
              PNG_RGB_TO_GRAY_ERR)
-            png_error(png_ptr, "png_do_rgb_to_gray found nongray pixel");
+            Ppng_error(png_ptr, "png_do_rgb_to_gray found nongray pixel");
       }
    }
 #endif
@@ -4776,7 +4776,7 @@ png_do_read_transformations(png_structrp png_ptr, png_row_infop row_info)
           png_ptr->palette_lookup, png_ptr->quantize_index);
 
       if (row_info->rowbytes == 0)
-         png_error(png_ptr, "png_do_quantize returned rowbytes=0");
+         Ppng_error(png_ptr, "png_do_quantize returned rowbytes=0");
    }
 #endif /* PNG_READ_QUANTIZE_SUPPORTED */
 
