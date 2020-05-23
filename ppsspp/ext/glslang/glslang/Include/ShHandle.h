@@ -161,16 +161,16 @@ protected:
 // destroy the machine dependent objects, which contain the
 // above machine independent information.
 //
-TCompiler* ConstructCompiler(EShLanguage, int);
+TCompiler* PConstructCompiler(EShLanguage, int);
 
-TShHandleBase* ConstructLinker(EShExecutable, int);
-TShHandleBase* ConstructBindings();
-void DeleteLinker(TShHandleBase*);
-void DeleteBindingList(TShHandleBase* bindingList);
+TShHandleBase* PConstructLinker(EShExecutable, int);
+TShHandleBase* PConstructBindings();
+void PDeleteLinker(TShHandleBase*);
+void PDeleteBindingList(TShHandleBase* bindingList);
 
-TUniformMap* ConstructUniformMap();
-void DeleteCompiler(TCompiler*);
+TUniformMap* PConstructUniformMap();
+void PDeleteCompiler(TCompiler*);
 
-void DeleteUniformMap(TUniformMap*);
+void PDeleteUniformMap(TUniformMap*);
 
 #endif // _SHHANDLE_INCLUDED_

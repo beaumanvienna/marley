@@ -39,9 +39,9 @@
 //
 // Here is where real machine specific high-level data would be defined.
 //
-class TGenericCompiler : public TCompiler {
+class PTGenericCompiler : public TCompiler {
 public:
-    TGenericCompiler(EShLanguage l, int dOptions) : TCompiler(l, infoSink), debugOptions(dOptions) { }
+    PTGenericCompiler(EShLanguage l, int dOptions) : TCompiler(l, infoSink), debugOptions(dOptions) { }
     virtual bool compile(TIntermNode* root, int version = 0, EProfile profile = ENoProfile);
     TInfoSink infoSink;
     int debugOptions;
@@ -52,15 +52,15 @@ public:
 // compile object used by higher level code.  It returns
 // a subclass of TCompiler.
 //
-TCompiler* ConstructCompiler(EShLanguage language, int debugOptions)
+TCompiler* PConstructCompiler(EShLanguage language, int debugOptions)
 {
-    return new TGenericCompiler(language, debugOptions);
+    return new PTGenericCompiler(language, debugOptions);
 }
 
 //
-// Delete the compiler made by ConstructCompiler
+// Delete the compiler made by PConstructCompiler
 //
-void DeleteCompiler(TCompiler* compiler)
+void PDeleteCompiler(TCompiler* compiler)
 {
     delete compiler;
 }
@@ -68,7 +68,7 @@ void DeleteCompiler(TCompiler* compiler)
 //
 //  Generate code from the given parse tree
 //
-bool TGenericCompiler::compile(TIntermNode* /*root*/, int /*version*/, EProfile /*profile*/)
+bool PTGenericCompiler::compile(TIntermNode* /*root*/, int /*version*/, EProfile /*profile*/)
 {
     haveValidObjectCode = true;
 

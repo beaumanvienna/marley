@@ -1340,7 +1340,7 @@ ShHandle PShConstructCompiler(const EShLanguage language, int debugOptions)
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructCompiler(language, debugOptions));
+    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructCompiler(language, debugOptions));
 
     return reinterpret_cast<void*>(base);
 }
@@ -1350,7 +1350,7 @@ ShHandle PShConstructLinker(const EShExecutable executable, int debugOptions)
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructLinker(executable, debugOptions));
+    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructLinker(executable, debugOptions));
 
     return reinterpret_cast<void*>(base);
 }
@@ -1360,7 +1360,7 @@ ShHandle PShConstructUniformMap()
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructUniformMap());
+    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructUniformMap());
 
     return reinterpret_cast<void*>(base);
 }
@@ -1373,11 +1373,11 @@ void PShDestruct(ShHandle handle)
     TShHandleBase* base = static_cast<TShHandleBase*>(handle);
 
     if (base->getAsCompiler())
-        DeleteCompiler(base->getAsCompiler());
+        PDeleteCompiler(base->getAsCompiler());
     else if (base->getAsLinker())
-        DeleteLinker(base->getAsLinker());
+        PDeleteLinker(base->getAsLinker());
     else if (base->getAsUniformMap())
-        DeleteUniformMap(base->getAsUniformMap());
+        PDeleteUniformMap(base->getAsUniformMap());
 }
 
 //

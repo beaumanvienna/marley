@@ -287,7 +287,7 @@ void MainWindow::dumpNextAct()
 
 void MainWindow::consoleAct()
 {
-	LogManager::GetInstance()->GetConsoleListener()->Show(LogManager::GetInstance()->GetConsoleListener()->Hidden());
+	LogManager::GetInstance()->GetPConsoleListener()->Show(LogManager::GetInstance()->GetPConsoleListener()->Hidden());
 }
 
 void MainWindow::raiseTopMost()

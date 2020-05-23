@@ -43,17 +43,17 @@ const int LOG_LATENCY_DELAY_MS = 20;
 const int LOG_SHUTDOWN_DELAY_MS = 250;
 const int LOG_MAX_DISPLAY_LINES = 4000;
 
-int ConsoleListener::refCount = 0;
-HANDLE ConsoleListener::hThread = NULL;
-HANDLE ConsoleListener::hTriggerEvent = NULL;
-CRITICAL_SECTION ConsoleListener::criticalSection;
+int PConsoleListener::refCount = 0;
+HANDLE PConsoleListener::hThread = NULL;
+HANDLE PConsoleListener::hTriggerEvent = NULL;
+CRITICAL_SECTION PConsoleListener::criticalSection;
 
-char *ConsoleListener::logPending = NULL;
-volatile u32 ConsoleListener::logPendingReadPos = 0;
-volatile u32 ConsoleListener::logPendingWritePos = 0;
+char *PConsoleListener::logPending = NULL;
+volatile u32 PConsoleListener::logPendingReadPos = 0;
+volatile u32 PConsoleListener::logPendingWritePos = 0;
 #endif
 
-ConsoleListener::ConsoleListener() : bHidden(true)
+PConsoleListener::PConsoleListener() : bHidden(true)
 {
 #if defined(USING_WIN_UI)
 	hConsole = NULL;
@@ -77,7 +77,7 @@ ConsoleListener::ConsoleListener() : bHidden(true)
 #endif
 }
 
-ConsoleListener::~ConsoleListener()
+PConsoleListener::~PConsoleListener()
 {
 	Close();
 }
@@ -110,7 +110,7 @@ bool WINAPI ConsoleHandler(DWORD msgType)
 // 100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void ConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Title)
+void PConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Title)
 {
 #if defined(USING_WIN_UI)
 	openWidth_ = Width;
@@ -122,7 +122,7 @@ void ConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Tit
 #endif
 }
 
-void ConsoleListener::Open()
+void PConsoleListener::Open()
 {
 #if defined(USING_WIN_UI)
 	if (!GetConsoleWindow())
@@ -153,11 +153,11 @@ void ConsoleListener::Open()
 	}
 
 	if (hTriggerEvent != NULL && hThread == NULL)
-		hThread = (HANDLE)_beginthreadex(NULL, 0, &ConsoleListener::RunThread, this, 0, NULL);
+		hThread = (HANDLE)_beginthreadex(NULL, 0, &PConsoleListener::RunThread, this, 0, NULL);
 #endif
 }
 
-void ConsoleListener::Show(bool bShow)
+void PConsoleListener::Show(bool bShow)
 {
 #if defined(USING_WIN_UI)
 	if (bShow && bHidden)
@@ -176,7 +176,7 @@ void ConsoleListener::Show(bool bShow)
 }
 
 
-void ConsoleListener::UpdateHandle()
+void PConsoleListener::UpdateHandle()
 {
 #if defined(USING_WIN_UI)
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -184,7 +184,7 @@ void ConsoleListener::UpdateHandle()
 }
 
 // Close the console window and close the eventual file handle
-void ConsoleListener::Close()
+void PConsoleListener::Close()
 {
 #if defined(USING_WIN_UI)
 
@@ -222,7 +222,7 @@ void ConsoleListener::Close()
 #endif
 }
 
-bool ConsoleListener::IsOpen()
+bool PConsoleListener::IsOpen()
 {
 #if defined(USING_WIN_UI)
 	return (hConsole != NULL);
@@ -235,7 +235,7 @@ bool ConsoleListener::IsOpen()
   LetterSpace: SetConsoleScreenBufferSize and SetConsoleWindowInfo are
 	dependent on each other, that's the reason for the additional checks.  
 */
-void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
+void PConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
@@ -260,7 +260,7 @@ void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int S
 	}
 #endif
 }
-void ConsoleListener::LetterSpace(int Width, int Height)
+void PConsoleListener::LetterSpace(int Width, int Height)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
@@ -290,7 +290,7 @@ void ConsoleListener::LetterSpace(int Width, int Height)
 }
 
 #if defined(USING_WIN_UI)
-COORD ConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
+COORD PConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 {
 	COORD Ret = {0, 0};
 	// Full rows
@@ -301,15 +301,15 @@ COORD ConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 	return Ret;
 }
 
-unsigned int WINAPI ConsoleListener::RunThread(void *lpParam)
+unsigned int WINAPI PConsoleListener::RunThread(void *lpParam)
 {
 	setCurrentThreadName("Console");
-	ConsoleListener *consoleLog = (ConsoleListener *)lpParam;
+	PConsoleListener *consoleLog = (PConsoleListener *)lpParam;
 	consoleLog->LogWriterThread();
 	return 0;
 }
 
-void ConsoleListener::LogWriterThread()
+void PConsoleListener::LogWriterThread()
 {
 	char *logLocal = new char[LOG_PENDING_MAX];
 	int logLocalSize = 0;
@@ -380,7 +380,7 @@ void ConsoleListener::LogWriterThread()
 	delete [] logLocal;
 }
 
-void ConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
+void PConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
 {
 	// Oops, we're already quitting.  Just do nothing.
 	if (logPendingWritePos == (u32) -1)
@@ -458,7 +458,7 @@ void ConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
 	SetEvent(hTriggerEvent);
 }
 
-void ConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Text, size_t Len)
+void PConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Text, size_t Len)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
 
@@ -513,7 +513,7 @@ void ConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Tex
 }
 #endif
 
-void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
+void PConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
@@ -598,7 +598,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 #endif
 }
 
-void ConsoleListener::Log(const LogMessage &msg) {
+void PConsoleListener::Log(const LogMessage &msg) {
 	char Text[2048];
 	snprintf(Text, sizeof(Text), "%s %s %s", msg.timestamp, msg.header, msg.msg.c_str());
 	Text[sizeof(Text) - 2] = '\n';
@@ -635,7 +635,7 @@ void ConsoleListener::Log(const LogMessage &msg) {
 #endif
 }
 // Clear console screen
-void ConsoleListener::ClearScreen(bool Cursor)
+void PConsoleListener::ClearScreen(bool Cursor)
 { 
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
