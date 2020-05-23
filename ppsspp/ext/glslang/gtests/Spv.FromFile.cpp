@@ -39,7 +39,7 @@
 
 #include "TestFixture.h"
 
-namespace glslangtest {
+namespace Pglslangtest {
 namespace {
 
 struct IoMapData {
@@ -83,14 +83,14 @@ using CompileUpgradeTextureToSampledTextureAndDropSamplersTest = GlslangTest<::t
 TEST_P(CompileVulkanToSpirvTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv);
 }
 
 TEST_P(CompileVulkanToSpirvDeadCodeElimTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv);
 }
 
@@ -100,7 +100,7 @@ TEST_P(CompileVulkanToDebugSpirvTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
                             Source::GLSL, Semantics::Vulkan,
-                            glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv, true, "",
                             "/baseResults/", false, true);
 }
@@ -108,14 +108,14 @@ TEST_P(CompileVulkanToDebugSpirvTest, FromFile)
 TEST_P(CompileVulkan1_1ToSpirvTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_1, glslang::EShTargetSpv_1_3,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_1, Pglslang::EShTargetSpv_1_3,
                             Target::Spv);
 }
 
 TEST_P(CompileToSpirv14Test, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_1, glslang::EShTargetSpv_1_4,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_1, Pglslang::EShTargetSpv_1_4,
                             Target::Spv);
 }
 
@@ -124,7 +124,7 @@ TEST_P(CompileToSpirv14Test, FromFile)
 TEST_P(CompileOpenGLToSpirvTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::OpenGL, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv);
 }
 
@@ -133,7 +133,7 @@ TEST_P(CompileOpenGLToSpirvTest, FromFile)
 TEST_P(VulkanSemantics, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv, false);
 }
 
@@ -142,7 +142,7 @@ TEST_P(VulkanSemantics, FromFile)
 TEST_P(OpenGLSemantics, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::OpenGL, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv, false);
 }
 
@@ -150,7 +150,7 @@ TEST_P(OpenGLSemantics, FromFile)
 TEST_P(VulkanAstSemantics, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::AST);
 }
 
@@ -189,7 +189,7 @@ TEST_P(GlslIoMap, FromFile)
 TEST_P(CompileVulkanToSpirvTestAMD, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv);
 }
 
@@ -198,7 +198,7 @@ TEST_P(CompileVulkanToSpirvTestAMD, FromFile)
 TEST_P(CompileVulkanToSpirvTestNV, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
                             Target::Spv);
 }
 
@@ -541,8 +541,8 @@ INSTANTIATE_TEST_CASE_P(
         { "spv.ssboAlias.frag", "main", 0, 0, 0, 0, 83, true, false },
         { "spv.rw.autoassign.frag", "main", 5, 10, 20, 15, 30, true, true },
         { "spv.register.autoassign.rangetest.frag", "main",
-                glslang::TQualifier::layoutBindingEnd-2,
-                glslang::TQualifier::layoutBindingEnd+5,
+                Pglslang::TQualifier::layoutBindingEnd-2,
+                Pglslang::TQualifier::layoutBindingEnd+5,
                 20, 30, true, false },
     }),
     FileNameAsCustomTestSuffixIoMap
@@ -684,4 +684,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace glslangtest
+}  // namespace Pglslangtest

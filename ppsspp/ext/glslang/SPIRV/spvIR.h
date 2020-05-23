@@ -56,7 +56,7 @@
 #include <memory>
 #include <vector>
 
-namespace spv {
+namespace Pspv {
 
 class Block;
 class Function;
@@ -398,7 +398,7 @@ public:
 
     void mapInstruction(Instruction *instruction)
     {
-        spv::Id resultId = instruction->getResultId();
+        Pspv::Id resultId = instruction->getResultId();
         // map the instruction's result id
         if (resultId >= idToInstruction.size())
             idToInstruction.resize(resultId + 16);
@@ -407,12 +407,12 @@ public:
 
     Instruction* getInstruction(Id id) const { return idToInstruction[id]; }
     const std::vector<Function*>& getFunctions() const { return functions; }
-    spv::Id getTypeId(Id resultId) const {
+    Pspv::Id getTypeId(Id resultId) const {
         return idToInstruction[resultId] == nullptr ? NoType : idToInstruction[resultId]->getTypeId();
     }
     StorageClass getStorageClass(Id typeId) const
     {
-        assert(idToInstruction[typeId]->getOpCode() == spv::OpTypePointer);
+        assert(idToInstruction[typeId]->getOpCode() == Pspv::OpTypePointer);
         return (StorageClass)idToInstruction[typeId]->getImmediateOperand(0);
     }
 

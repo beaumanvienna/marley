@@ -44,11 +44,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static_assert(int(GLSLANG_STAGE_COUNT) == EShLangCount, "");
 static_assert(int(GLSLANG_STAGE_MASK_COUNT) == EShLanguageMaskCount, "");
-static_assert(int(GLSLANG_SOURCE_COUNT) == glslang::EShSourceCount, "");
-static_assert(int(GLSLANG_CLIENT_COUNT) == glslang::EShClientCount, "");
-static_assert(int(GLSLANG_TARGET_COUNT) == glslang::EShTargetCount, "");
-static_assert(int(GLSLANG_TARGET_CLIENT_VERSION_COUNT) == glslang::EShTargetClientVersionCount, "");
-static_assert(int(GLSLANG_TARGET_LANGUAGE_VERSION_COUNT) == glslang::EShTargetLanguageVersionCount, "");
+static_assert(int(GLSLANG_SOURCE_COUNT) == Pglslang::EShSourceCount, "");
+static_assert(int(GLSLANG_CLIENT_COUNT) == Pglslang::EShClientCount, "");
+static_assert(int(GLSLANG_TARGET_COUNT) == Pglslang::EShTargetCount, "");
+static_assert(int(GLSLANG_TARGET_CLIENT_VERSION_COUNT) == Pglslang::EShTargetClientVersionCount, "");
+static_assert(int(GLSLANG_TARGET_LANGUAGE_VERSION_COUNT) == Pglslang::EShTargetLanguageVersionCount, "");
 static_assert(int(GLSLANG_OPT_LEVEL_COUNT) == EshOptLevelCount, "");
 static_assert(int(GLSLANG_TEX_SAMP_TRANS_COUNT) == EShTexSampTransCount, "");
 static_assert(int(GLSLANG_MSG_COUNT) == EShMsgCount, "");
@@ -56,12 +56,12 @@ static_assert(int(GLSLANG_REFLECTION_COUNT) == EShReflectionCount, "");
 static_assert(int(GLSLANG_PROFILE_COUNT) == EProfileCount, "");
 
 typedef struct glslang_shader_s {
-    glslang::TShader* shader;
+    Pglslang::TShader* shader;
     std::string preprocessedGLSL;
 } glslang_shader_t;
 
 typedef struct glslang_program_s {
-    glslang::TProgram* program;
+    Pglslang::TProgram* program;
     std::vector<unsigned int> spirv;
     std::string loggerMessages;
 } glslang_program_t;
@@ -79,14 +79,14 @@ typedef struct glslang_program_s {
    to allow its lifetime management by another C callback
    (CallbackIncluder::callbacks::free_include_result)
 */
-class CallbackIncluder : public glslang::TShader::Includer {
+class CallbackIncluder : public Pglslang::TShader::Includer {
 public:
     /* Wrapper of IncludeResult which stores a glsl_include_result object internally */
-    class CallbackIncludeResult : public glslang::TShader::Includer::IncludeResult {
+    class CallbackIncludeResult : public Pglslang::TShader::Includer::IncludeResult {
     public:
         CallbackIncludeResult(const std::string& headerName, const char* const headerData, const size_t headerLength,
                               void* userData, glsl_include_result_t* includeResult)
-            : glslang::TShader::Includer::IncludeResult(headerName, headerData, headerLength, userData),
+            : Pglslang::TShader::Includer::IncludeResult(headerName, headerData, headerLength, userData),
               includeResult(includeResult)
         {
         }
@@ -115,7 +115,7 @@ public:
                                              nullptr, result);
         }
 
-        return glslang::TShader::Includer::includeSystem(headerName, includerName, inclusionDepth);
+        return Pglslang::TShader::Includer::includeSystem(headerName, includerName, inclusionDepth);
     }
 
     virtual IncludeResult* includeLocal(const char* headerName, const char* includerName,
@@ -129,7 +129,7 @@ public:
                                              nullptr, result);
         }
 
-        return glslang::TShader::Includer::includeLocal(headerName, includerName, inclusionDepth);
+        return Pglslang::TShader::Includer::includeLocal(headerName, includerName, inclusionDepth);
     }
 
     /* This function only calls free_include_result callback
@@ -161,9 +161,9 @@ private:
     void* context;
 };
 
-int glslang_initialize_process() { return static_cast<int>(glslang::InitializeProcess()); }
+int glslang_initialize_process() { return static_cast<int>(Pglslang::InitializeProcess()); }
 
-void glslang_finalize_process() { glslang::FinalizeProcess(); }
+void glslang_finalize_process() { Pglslang::FinalizeProcess(); }
 
 static EShLanguage c_shader_stage(glslang_stage_t stage)
 {
@@ -229,76 +229,76 @@ static int c_shader_messages(glslang_messages_t messages)
 #undef CONVERT_MSG
 }
 
-static glslang::EShTargetLanguageVersion
+static Pglslang::EShTargetLanguageVersion
 c_shader_target_language_version(glslang_target_language_version_t target_language_version)
 {
     switch (target_language_version) {
     case GLSLANG_TARGET_SPV_1_0:
-        return glslang::EShTargetSpv_1_0;
+        return Pglslang::EShTargetSpv_1_0;
     case GLSLANG_TARGET_SPV_1_1:
-        return glslang::EShTargetSpv_1_1;
+        return Pglslang::EShTargetSpv_1_1;
     case GLSLANG_TARGET_SPV_1_2:
-        return glslang::EShTargetSpv_1_2;
+        return Pglslang::EShTargetSpv_1_2;
     case GLSLANG_TARGET_SPV_1_3:
-        return glslang::EShTargetSpv_1_3;
+        return Pglslang::EShTargetSpv_1_3;
     case GLSLANG_TARGET_SPV_1_4:
-        return glslang::EShTargetSpv_1_4;
+        return Pglslang::EShTargetSpv_1_4;
     case GLSLANG_TARGET_SPV_1_5:
-        return glslang::EShTargetSpv_1_5;
+        return Pglslang::EShTargetSpv_1_5;
     default:
         break;
     }
-    return glslang::EShTargetSpv_1_0;
+    return Pglslang::EShTargetSpv_1_0;
 }
 
-static glslang::EShClient c_shader_client(glslang_client_t client)
+static Pglslang::EShClient c_shader_client(glslang_client_t client)
 {
     switch (client) {
     case GLSLANG_CLIENT_VULKAN:
-        return glslang::EShClientVulkan;
+        return Pglslang::EShClientVulkan;
     case GLSLANG_CLIENT_OPENGL:
-        return glslang::EShClientOpenGL;
+        return Pglslang::EShClientOpenGL;
     default:
         break;
     }
 
-    return glslang::EShClientNone;
+    return Pglslang::EShClientNone;
 }
 
-static glslang::EShTargetClientVersion c_shader_client_version(glslang_target_client_version_t client_version)
+static Pglslang::EShTargetClientVersion c_shader_client_version(glslang_target_client_version_t client_version)
 {
     switch (client_version) {
     case GLSLANG_TARGET_VULKAN_1_1:
-        return glslang::EShTargetVulkan_1_1;
+        return Pglslang::EShTargetVulkan_1_1;
     case GLSLANG_TARGET_OPENGL_450:
-        return glslang::EShTargetOpenGL_450;
+        return Pglslang::EShTargetOpenGL_450;
     default:
         break;
     }
 
-    return glslang::EShTargetVulkan_1_0;
+    return Pglslang::EShTargetVulkan_1_0;
 }
 
-static glslang::EShTargetLanguage c_shader_target_language(glslang_target_language_t target_language)
+static Pglslang::EShTargetLanguage c_shader_target_language(glslang_target_language_t target_language)
 {
     if (target_language == GLSLANG_TARGET_NONE)
-        return glslang::EShTargetNone;
+        return Pglslang::EShTargetNone;
 
-    return glslang::EShTargetSpv;
+    return Pglslang::EShTargetSpv;
 }
 
-static glslang::EShSource c_shader_source(glslang_source_t source)
+static Pglslang::EShSource c_shader_source(glslang_source_t source)
 {
     switch (source) {
     case GLSLANG_SOURCE_GLSL:
-        return glslang::EShSourceGlsl;
+        return Pglslang::EShSourceGlsl;
     case GLSLANG_SOURCE_HLSL:
-        return glslang::EShSourceHlsl;
+        return Pglslang::EShSourceHlsl;
     default:
         break;
     }
 
-    return glslang::EShSourceNone;
+    return Pglslang::EShSourceNone;
 }
 
 static EProfile c_shader_profile(glslang_profile_t profile)
@@ -334,7 +334,7 @@ glslang_shader_t* glslang_shader_create(const glslang_input_t* input)
 
     glslang_shader_t* shader = new glslang_shader_t();
 
-    shader->shader = new glslang::TShader(c_shader_stage(input->stage));
+    shader->shader = new Pglslang::TShader(c_shader_stage(input->stage));
     shader->shader->setStrings(&input->code, 1);
     shader->shader->setEnvInput(c_shader_source(input->language), c_shader_stage(input->stage),
                                 c_shader_client(input->client), input->default_version);
@@ -395,19 +395,19 @@ void glslang_shader_delete(glslang_shader_t* shader)
 glslang_program_t* glslang_program_create()
 {
     glslang_program_t* p = new glslang_program_t();
-    p->program = new glslang::TProgram();
+    p->program = new Pglslang::TProgram();
     return p;
 }
 
 void glslang_program_SPIRV_generate(glslang_program_t* program, glslang_stage_t stage)
 {
-    spv::SpvBuildLogger logger;
-    glslang::SpvOptions spvOptions;
+    Pspv::SpvBuildLogger logger;
+    Pglslang::SpvOptions spvOptions;
     spvOptions.validate = true;
 
-    const glslang::TIntermediate* intermediate = program->program->getIntermediate(c_shader_stage(stage));
+    const Pglslang::TIntermediate* intermediate = program->program->getIntermediate(c_shader_stage(stage));
 
-    glslang::GlslangToSpv(*intermediate, program->spirv, &logger, &spvOptions);
+    Pglslang::GlslangToSpv(*intermediate, program->spirv, &logger, &spvOptions);
 
     program->loggerMessages = logger.getAllMessages();
 }

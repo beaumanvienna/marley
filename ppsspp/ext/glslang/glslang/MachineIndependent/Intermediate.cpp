@@ -49,7 +49,7 @@
 #include <utility>
 #include <tuple>
 
-namespace glslang {
+namespace Pglslang {
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -88,7 +88,7 @@ TIntermSymbol* TIntermediate::addSymbol(const TIntermSymbol& intermSymbol)
 
 TIntermSymbol* TIntermediate::addSymbol(const TVariable& variable)
 {
-    glslang::TSourceLoc loc; // just a null location
+    Pglslang::TSourceLoc loc; // just a null location
     loc.init();
 
     return addSymbol(variable, loc);
@@ -2766,7 +2766,7 @@ bool TIntermediate::postProcess(TIntermNode* root, EShLanguage /*language*/)
 
 #ifndef GLSLANG_WEB
     // Propagate 'noContraction' label in backward from 'precise' variables.
-    glslang::PropagateNoContraction(*this);
+    Pglslang::PropagateNoContraction(*this);
 
     switch (textureSamplerTransformMode) {
     case EShTexSampTransKeep:
@@ -3964,4 +3964,4 @@ const char* TIntermediate::getResourceName(TResourceType res)
 }
 
 
-} // end namespace glslang
+} // end namespace Pglslang

@@ -49,7 +49,7 @@
 #include "localintermediate.h"
 #include "../Include/InfoSink.h"
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Link-time Perror emitter.
@@ -58,7 +58,7 @@ void TIntermediate::Perror(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixError);
-    infoSink.info << "Linking " << StageName(language) << " stage: " << message << "\n";
+    infoSink.info << "Linking " << PStageName(language) << " stage: " << message << "\n";
 #endif
 
     ++numErrors;
@@ -69,7 +69,7 @@ void TIntermediate::Pwarn(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixWarning);
-    infoSink.info << "Linking " << StageName(language) << " stage: " << message << "\n";
+    infoSink.info << "Linking " << PStageName(language) << " stage: " << message << "\n";
 #endif
 }
 
@@ -878,8 +878,8 @@ void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled
     TIntermSequence &functionSequence = getTreeRoot()->getAsAggregate()->getSequence();
     std::vector<bool> reachable(functionSequence.size(), true); // so that non-functions are reachable
     for (int f = 0; f < (int)functionSequence.size(); ++f) {
-        glslang::TIntermAggregate* node = functionSequence[f]->getAsAggregate();
-        if (node && (node->getOp() == glslang::EOpFunction)) {
+        Pglslang::TIntermAggregate* node = functionSequence[f]->getAsAggregate();
+        if (node && (node->getOp() == Pglslang::EOpFunction)) {
             if (node->getName().compare(getEntryPointMangledName().c_str()) != 0)
                 reachable[f] = false; // so that function bodies are unreachable, until proven otherwise
             for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
@@ -1424,7 +1424,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 {
     int alignment;
 
-    bool std140 = layoutPacking == glslang::ElpStd140;
+    bool std140 = layoutPacking == Pglslang::ElpStd140;
     // When using the std140 storage layout, structures will be laid out in buffer
     // storage with its members stored in monotonically increasing order based on their
     // location in the declaration. A structure and each structure member have a base
@@ -1643,7 +1643,7 @@ int TIntermediate::getScalarAlignment(const TType& type, int& size, int& stride,
 
 int TIntermediate::getMemberAlignment(const TType& type, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor)
 {
-    if (layoutPacking == glslang::ElpScalar) {
+    if (layoutPacking == Pglslang::ElpScalar) {
         return getScalarAlignment(type, size, stride, rowMajor);
     } else {
         return getBaseAlignment(type, size, stride, layoutPacking, rowMajor);
@@ -1720,4 +1720,4 @@ int TIntermediate::computeBufferReferenceTypeSize(const TType& type)
     return size;
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

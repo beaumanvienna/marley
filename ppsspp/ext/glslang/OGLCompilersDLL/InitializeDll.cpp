@@ -41,7 +41,7 @@
 #include "../glslang/Public/ShaderLang.h"
 #include "../glslang/Include/PoolAlloc.h"
 
-namespace glslang {
+namespace Pglslang {
 
 OS_TLSIndex ThreadInitializeIndex = OS_INVALID_TLS_INDEX;
 
@@ -51,14 +51,14 @@ OS_TLSIndex ThreadInitializeIndex = OS_INVALID_TLS_INDEX;
 // threads will need to do that explicitly.
 bool InitProcess()
 {
-    glslang::GetGlobalLock();
+    Pglslang::GetGlobalLock();
 
     if (ThreadInitializeIndex != OS_INVALID_TLS_INDEX) {
         //
         // Function is re-entrant.
         //
 
-        glslang::ReleaseGlobalLock();
+        Pglslang::ReleaseGlobalLock();
         return true;
     }
 
@@ -67,25 +67,25 @@ bool InitProcess()
     if (ThreadInitializeIndex == OS_INVALID_TLS_INDEX) {
         assert(0 && "InitProcess(): Failed to allocate TLS area for init flag");
 
-        glslang::ReleaseGlobalLock();
+        Pglslang::ReleaseGlobalLock();
         return false;
     }
 
     if (! InitializePoolIndex()) {
         assert(0 && "InitProcess(): Failed to initialize global pool");
 
-        glslang::ReleaseGlobalLock();
+        Pglslang::ReleaseGlobalLock();
         return false;
     }
 
     if (! InitThread()) {
         assert(0 && "InitProcess(): Failed to initialize thread");
 
-        glslang::ReleaseGlobalLock();
+        Pglslang::ReleaseGlobalLock();
         return false;
     }
 
-    glslang::ReleaseGlobalLock();
+    Pglslang::ReleaseGlobalLock();
     return true;
 }
 
@@ -110,7 +110,7 @@ bool InitThread()
         return false;
     }
 
-    glslang::SetThreadPoolAllocator(nullptr);
+    Pglslang::SetThreadPoolAllocator(nullptr);
 
     return true;
 }
@@ -145,7 +145,7 @@ bool DetachThread()
 // This is kept, with memory management removed, to satisfy any exiting
 // calls to it that rely on it.
 //
-// Users of glslang should call shFinalize() or glslang::FinalizeProcess() for
+// Users of glslang should call shFinalize() or Pglslang::FinalizeProcess() for
 // process-scoped memory tear down.
 bool DetachProcess()
 {
@@ -162,4 +162,4 @@ bool DetachProcess()
     return success;
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

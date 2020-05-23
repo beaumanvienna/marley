@@ -52,7 +52,7 @@
 
 // Ensures that there is at least one operator<< in the global namespace.
 // See Message& operator<<(...) below for why.
-void operator<<(const testing::internal::Secret&, int);
+void operator<<(const testing::Pinternal::Secret&, int);
 
 namespace testing {
 
@@ -106,7 +106,7 @@ class GTEST_API_ Message {
   // Streams a value (either a pointer or not) to this object.
   template <typename T>
   inline Message& operator <<(const T& value) {
-    StreamHelper(typename internal::is_pointer<T>::type(), value);
+    StreamHelper(typename Pinternal::is_pointer<T>::type(), value);
     return *this;
   }
 #else
@@ -203,7 +203,7 @@ class GTEST_API_ Message {
   // decide between class template specializations for T and T*, so a
   // tr1::type_traits-like is_pointer works, and we can overload on that.
   template <typename T>
-  inline void StreamHelper(internal::true_type /*is_pointer*/, T* pointer) {
+  inline void StreamHelper(Pinternal::true_type /*is_pointer*/, T* pointer) {
     if (pointer == NULL) {
       *ss_ << "(null)";
     } else {
@@ -211,7 +211,7 @@ class GTEST_API_ Message {
     }
   }
   template <typename T>
-  inline void StreamHelper(internal::false_type /*is_pointer*/,
+  inline void StreamHelper(Pinternal::false_type /*is_pointer*/,
                            const T& value) {
     // See the comments in Message& operator <<(const T&) above for why
     // we need this using statement.
@@ -221,7 +221,7 @@ class GTEST_API_ Message {
 #endif  // GTEST_OS_SYMBIAN
 
   // We'll hold the text streamed to this object here.
-  const internal::scoped_ptr< ::std::stringstream> ss_;
+  const Pinternal::scoped_ptr< ::std::stringstream> ss_;
 
   // We declare (but don't implement) this to prevent the compiler
   // from implementing the assignment operator.
@@ -233,7 +233,7 @@ inline std::ostream& operator <<(std::ostream& os, const Message& sb) {
   return os << sb.GetString();
 }
 
-namespace internal {
+namespace Pinternal {
 
 // Converts a streamable value to an std::string.  A NULL pointer is
 // converted to "(null)".  When the input value is a ::string,
@@ -244,7 +244,7 @@ std::string StreamableToString(const T& streamable) {
   return (Message() << streamable).GetString();
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_GTEST_MESSAGE_H_

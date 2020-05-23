@@ -46,7 +46,7 @@
 
 #include <algorithm>
 
-namespace glslang {
+namespace Pglslang {
 
 const int GlslangMaxTypeLength = 200;  // TODO: need to print block/struct one member per line, so this can stay bounded
 
@@ -2361,7 +2361,7 @@ public:
     unsigned int getBufferReferenceAlignment() const
     {
 #ifndef GLSLANG_WEB
-        if (getBasicType() == glslang::EbtReference) {
+        if (getBasicType() == Pglslang::EbtReference) {
             return getReferentType()->getQualifier().hasBufferReferenceAlign() ?
                         (1u << getReferentType()->getQualifier().layoutBufferReferenceAlign) : 16u;
         }
@@ -2442,6 +2442,6 @@ protected:
     TArraySizes* typeParameters;// nullptr unless a parameterized type; can be shared across types
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _TYPES_INCLUDED_

@@ -186,7 +186,7 @@ class StringMatchResultListener : public MatchResultListener {
   StringMatchResultListener() : MatchResultListener(&ss_) {}
 
   // Returns the explanation accumulated so far.
-  internal::string str() const { return ss_.str(); }
+  Pinternal::string str() const { return ss_.str(); }
 
   // Clears the explanation accumulated so far.
   void Clear() { ss_.str(""); }
@@ -197,7 +197,7 @@ class StringMatchResultListener : public MatchResultListener {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(StringMatchResultListener);
 };
 
-namespace internal {
+namespace Pinternal {
 
 struct AnyEq {
   template <typename A, typename B>
@@ -305,10 +305,10 @@ class MatcherBase {
   //
   // If performance becomes a problem, we should see if using
   // shared_ptr helps.
-  ::testing::internal::linked_ptr<const MatcherInterface<T> > impl_;
+  ::testing::Pinternal::linked_ptr<const MatcherInterface<T> > impl_;
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // A Matcher<T> is a copyable and IMMUTABLE (except by assignment)
 // object that can check whether a value of type T matches.  The
@@ -316,7 +316,7 @@ class MatcherBase {
 // MatcherInterface<T>, so copying is fairly cheap.  Don't inherit
 // from Matcher!
 template <typename T>
-class Matcher : public internal::MatcherBase<T> {
+class Matcher : public Pinternal::MatcherBase<T> {
  public:
   // Constructs a null matcher.  Needed for storing Matcher objects in STL
   // containers.  A default-constructed matcher is not yet initialized.  You
@@ -325,7 +325,7 @@ class Matcher : public internal::MatcherBase<T> {
 
   // Constructs a matcher from its implementation.
   explicit Matcher(const MatcherInterface<T>* impl)
-      : internal::MatcherBase<T>(impl) {}
+      : Pinternal::MatcherBase<T>(impl) {}
 
   // Implicit constructor here allows people to write
   // EXPECT_CALL(foo, Bar(5)) instead of EXPECT_CALL(foo, Bar(Eq(5))) sometimes
@@ -336,34 +336,34 @@ class Matcher : public internal::MatcherBase<T> {
 // instead of Eq(str) and "foo" instead of Eq("foo") when a string
 // matcher is expected.
 template <>
-class GTEST_API_ Matcher<const internal::string&>
-    : public internal::MatcherBase<const internal::string&> {
+class GTEST_API_ Matcher<const Pinternal::string&>
+    : public Pinternal::MatcherBase<const Pinternal::string&> {
  public:
   Matcher() {}
 
-  explicit Matcher(const MatcherInterface<const internal::string&>* impl)
-      : internal::MatcherBase<const internal::string&>(impl) {}
+  explicit Matcher(const MatcherInterface<const Pinternal::string&>* impl)
+      : Pinternal::MatcherBase<const Pinternal::string&>(impl) {}
 
   // Allows the user to write str instead of Eq(str) sometimes, where
   // str is a string object.
-  Matcher(const internal::string& s);  // NOLINT
+  Matcher(const Pinternal::string& s);  // NOLINT
 
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
 };
 
 template <>
-class GTEST_API_ Matcher<internal::string>
-    : public internal::MatcherBase<internal::string> {
+class GTEST_API_ Matcher<Pinternal::string>
+    : public Pinternal::MatcherBase<Pinternal::string> {
  public:
   Matcher() {}
 
-  explicit Matcher(const MatcherInterface<internal::string>* impl)
-      : internal::MatcherBase<internal::string>(impl) {}
+  explicit Matcher(const MatcherInterface<Pinternal::string>* impl)
+      : Pinternal::MatcherBase<Pinternal::string>(impl) {}
 
   // Allows the user to write str instead of Eq(str) sometimes, where
   // str is a string object.
-  Matcher(const internal::string& s);  // NOLINT
+  Matcher(const Pinternal::string& s);  // NOLINT
 
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
@@ -375,16 +375,16 @@ class GTEST_API_ Matcher<internal::string>
 // matcher is expected.
 template <>
 class GTEST_API_ Matcher<const StringPiece&>
-    : public internal::MatcherBase<const StringPiece&> {
+    : public Pinternal::MatcherBase<const StringPiece&> {
  public:
   Matcher() {}
 
   explicit Matcher(const MatcherInterface<const StringPiece&>* impl)
-      : internal::MatcherBase<const StringPiece&>(impl) {}
+      : Pinternal::MatcherBase<const StringPiece&>(impl) {}
 
   // Allows the user to write str instead of Eq(str) sometimes, where
   // str is a string object.
-  Matcher(const internal::string& s);  // NOLINT
+  Matcher(const Pinternal::string& s);  // NOLINT
 
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
@@ -395,16 +395,16 @@ class GTEST_API_ Matcher<const StringPiece&>
 
 template <>
 class GTEST_API_ Matcher<StringPiece>
-    : public internal::MatcherBase<StringPiece> {
+    : public Pinternal::MatcherBase<StringPiece> {
  public:
   Matcher() {}
 
   explicit Matcher(const MatcherInterface<StringPiece>* impl)
-      : internal::MatcherBase<StringPiece>(impl) {}
+      : Pinternal::MatcherBase<StringPiece>(impl) {}
 
   // Allows the user to write str instead of Eq(str) sometimes, where
   // str is a string object.
-  Matcher(const internal::string& s);  // NOLINT
+  Matcher(const Pinternal::string& s);  // NOLINT
 
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
@@ -531,7 +531,7 @@ class MatcherCastImpl {
     return CastImpl(
         polymorphic_matcher_or_value,
         BooleanConstant<
-            internal::ImplicitlyConvertible<M, Matcher<T> >::value>());
+            Pinternal::ImplicitlyConvertible<M, Matcher<T> >::value>());
   }
 
  private:
@@ -608,7 +608,7 @@ class MatcherCastImpl<T, Matcher<T> > {
 // statically converted to the argument type of m.
 template <typename T, typename M>
 inline Matcher<T> MatcherCast(const M& matcher) {
-  return internal::MatcherCastImpl<T, M>::Cast(matcher);
+  return Pinternal::MatcherCastImpl<T, M>::Cast(matcher);
 }
 
 // Implements SafeMatcherCast().
@@ -625,7 +625,7 @@ class SafeMatcherCastImpl {
   // monomorphic matchers are handled by the next one.
   template <typename M>
   static inline Matcher<T> Cast(const M& polymorphic_matcher_or_value) {
-    return internal::MatcherCastImpl<T, M>::Cast(polymorphic_matcher_or_value);
+    return Pinternal::MatcherCastImpl<T, M>::Cast(polymorphic_matcher_or_value);
   }
 
   // This overload handles monomorphic matchers.
@@ -640,22 +640,22 @@ class SafeMatcherCastImpl {
   template <typename U>
   static inline Matcher<T> Cast(const Matcher<U>& matcher) {
     // Enforce that T can be implicitly converted to U.
-    GTEST_COMPILE_ASSERT_((internal::ImplicitlyConvertible<T, U>::value),
+    GTEST_COMPILE_ASSERT_((Pinternal::ImplicitlyConvertible<T, U>::value),
                           T_must_be_implicitly_convertible_to_U);
     // Enforce that we are not converting a non-reference type T to a reference
     // type U.
     GTEST_COMPILE_ASSERT_(
-        internal::is_reference<T>::value || !internal::is_reference<U>::value,
+        Pinternal::is_reference<T>::value || !Pinternal::is_reference<U>::value,
         cannot_convert_non_referentce_arg_to_reference);
     // In case both T and U are arithmetic types, enforce that the
     // conversion is not lossy.
     typedef GTEST_REMOVE_REFERENCE_AND_CONST_(T) RawT;
     typedef GTEST_REMOVE_REFERENCE_AND_CONST_(U) RawU;
-    const bool kTIsOther = GMOCK_KIND_OF_(RawT) == internal::kOther;
-    const bool kUIsOther = GMOCK_KIND_OF_(RawU) == internal::kOther;
+    const bool kTIsOther = GMOCK_KIND_OF_(RawT) == Pinternal::kOther;
+    const bool kUIsOther = GMOCK_KIND_OF_(RawU) == Pinternal::kOther;
     GTEST_COMPILE_ASSERT_(
         kTIsOther || kUIsOther ||
-        (internal::LosslessArithmeticConvertible<RawT, RawU>::value),
+        (Pinternal::LosslessArithmeticConvertible<RawT, RawU>::value),
         conversion_of_arithmetic_types_must_be_lossless);
     return MatcherCast<T>(matcher);
   }
@@ -675,7 +675,7 @@ Matcher<T> A();
 namespace internal {
 
 // If the explanation is not empty, prints it to the ostream.
-inline void PrintIfNotEmpty(const internal::string& explanation,
+inline void PrintIfNotEmpty(const Pinternal::string& explanation,
                             ::std::ostream* os) {
   if (explanation != "" && os != NULL) {
     *os << ", " << explanation;
@@ -764,7 +764,7 @@ class TuplePrefix {
       // isn't interesting to the user most of the time.  The
       // matcher's MatchAndExplain() method handles the case when
       // the address is interesting.
-      internal::UniversalPrint(value, os);
+      Pinternal::UniversalPrint(value, os);
       PrintIfNotEmpty(listener.str(), os);
       *os << "\n";
     }
@@ -1335,17 +1335,17 @@ class MatchesRegexMatcher {
   //   wchar_t*
   template <typename CharType>
   bool MatchAndExplain(CharType* s, MatchResultListener* listener) const {
-    return s != NULL && MatchAndExplain(internal::string(s), listener);
+    return s != NULL && MatchAndExplain(Pinternal::string(s), listener);
   }
 
-  // Matches anything that can convert to internal::string.
+  // Matches anything that can convert to Pinternal::string.
   //
-  // This is a template, not just a plain function with const internal::string&,
+  // This is a template, not just a plain function with const Pinternal::string&,
   // because StringPiece has some interfering non-explicit constructors.
   template <class MatcheeStringType>
   bool MatchAndExplain(const MatcheeStringType& s,
                        MatchResultListener* /* listener */) const {
-    const internal::string& s2(s);
+    const Pinternal::string& s2(s);
     return full_match_ ? RE::FullMatch(s2, *regex_) :
         RE::PartialMatch(s2, *regex_);
   }
@@ -1353,17 +1353,17 @@ class MatchesRegexMatcher {
   void DescribeTo(::std::ostream* os) const {
     *os << (full_match_ ? "matches" : "contains")
         << " regular expression ";
-    UniversalPrinter<internal::string>::Print(regex_->pattern(), os);
+    UniversalPrinter<Pinternal::string>::Print(regex_->pattern(), os);
   }
 
   void DescribeNegationTo(::std::ostream* os) const {
     *os << "doesn't " << (full_match_ ? "match" : "contain")
         << " regular expression ";
-    UniversalPrinter<internal::string>::Print(regex_->pattern(), os);
+    UniversalPrinter<Pinternal::string>::Print(regex_->pattern(), os);
   }
 
  private:
-  const internal::linked_ptr<const RE> regex_;
+  const Pinternal::linked_ptr<const RE> regex_;
   const bool full_match_;
 
   GTEST_DISALLOW_ASSIGN_(MatchesRegexMatcher);
@@ -1526,8 +1526,8 @@ class BothOfMatcherImpl : public MatcherInterface<T> {
     }
 
     // Otherwise we need to explain why *both* of them match.
-    const internal::string s1 = listener1.str();
-    const internal::string s2 = listener2.str();
+    const Pinternal::string s1 = listener1.str();
+    const Pinternal::string s2 = listener2.str();
 
     if (s1 == "") {
       *listener << s2;
@@ -1698,8 +1698,8 @@ class EitherOfMatcherImpl : public MatcherInterface<T> {
     }
 
     // Otherwise we need to explain why *both* of them fail.
-    const internal::string s1 = listener1.str();
-    const internal::string s2 = listener2.str();
+    const Pinternal::string s1 = listener1.str();
+    const Pinternal::string s2 = listener2.str();
 
     if (s1 == "") {
       *listener << s2;
@@ -1833,7 +1833,7 @@ class MatcherAsPredicate {
 template <typename M>
 class PredicateFormatterFromMatcher {
  public:
-  explicit PredicateFormatterFromMatcher(M m) : matcher_(internal::move(m)) {}
+  explicit PredicateFormatterFromMatcher(M m) : matcher_(Pinternal::move(m)) {}
 
   // This template () operator allows a PredicateFormatterFromMatcher
   // object to act as a predicate-formatter suitable for using with
@@ -1877,7 +1877,7 @@ class PredicateFormatterFromMatcher {
 template <typename M>
 inline PredicateFormatterFromMatcher<M>
 MakePredicateFormatterFromMatcher(M matcher) {
-  return PredicateFormatterFromMatcher<M>(internal::move(matcher));
+  return PredicateFormatterFromMatcher<M>(Pinternal::move(matcher));
 }
 
 // Implements the polymorphic floating point equality matcher, which matches
@@ -2197,7 +2197,7 @@ class FieldMatcher {
   template <typename T>
   bool MatchAndExplain(const T& value, MatchResultListener* listener) const {
     return MatchAndExplainImpl(
-        typename ::testing::internal::
+        typename ::testing::Pinternal::
             is_pointer<GTEST_REMOVE_CONST_(T)>::type(),
         value, listener);
   }
@@ -2258,7 +2258,7 @@ class PropertyMatcher {
   template <typename T>
   bool MatchAndExplain(const T&value, MatchResultListener* listener) const {
     return MatchAndExplainImpl(
-        typename ::testing::internal::
+        typename ::testing::Pinternal::
             is_pointer<GTEST_REMOVE_CONST_(T)>::type(),
         value, listener);
   }
@@ -2410,7 +2410,7 @@ class SizeIsMatcher {
   template <typename Container>
   class Impl : public MatcherInterface<Container> {
    public:
-    typedef internal::StlContainerView<
+    typedef Pinternal::StlContainerView<
          GTEST_REMOVE_REFERENCE_AND_CONST_(Container)> ContainerView;
     typedef typename ContainerView::type::size_type SizeType;
     explicit Impl(const SizeMatcher& size_matcher)
@@ -2462,7 +2462,7 @@ class BeginEndDistanceIsMatcher {
   template <typename Container>
   class Impl : public MatcherInterface<Container> {
    public:
-    typedef internal::StlContainerView<
+    typedef Pinternal::StlContainerView<
         GTEST_REMOVE_REFERENCE_AND_CONST_(Container)> ContainerView;
     typedef typename std::iterator_traits<
         typename ContainerView::type::const_iterator>::difference_type
@@ -2520,7 +2520,7 @@ class BeginEndDistanceIsMatcher {
 template <typename Container>
 class ContainerEqMatcher {
  public:
-  typedef internal::StlContainerView<Container> View;
+  typedef Pinternal::StlContainerView<Container> View;
   typedef typename View::type StlContainer;
   typedef typename View::const_reference StlContainerReference;
 
@@ -2548,7 +2548,7 @@ class ContainerEqMatcher {
                        MatchResultListener* listener) const {
     // GTEST_REMOVE_CONST_() is needed to work around an MSVC 8.0 bug
     // that causes LhsContainer to be a const type sometimes.
-    typedef internal::StlContainerView<GTEST_REMOVE_CONST_(LhsContainer)>
+    typedef Pinternal::StlContainerView<GTEST_REMOVE_CONST_(LhsContainer)>
         LhsView;
     typedef typename LhsView::type LhsStlContainer;
     StlContainerReference lhs_stl_container = LhsView::ConstReference(lhs);
@@ -2562,7 +2562,7 @@ class ContainerEqMatcher {
       for (typename LhsStlContainer::const_iterator it =
                lhs_stl_container.begin();
            it != lhs_stl_container.end(); ++it) {
-        if (internal::ArrayAwareFind(expected_.begin(), expected_.end(), *it) ==
+        if (Pinternal::ArrayAwareFind(expected_.begin(), expected_.end(), *it) ==
             expected_.end()) {
           if (printed_header) {
             *os << ", ";
@@ -2578,7 +2578,7 @@ class ContainerEqMatcher {
       bool printed_header2 = false;
       for (typename StlContainer::const_iterator it = expected_.begin();
            it != expected_.end(); ++it) {
-        if (internal::ArrayAwareFind(
+        if (Pinternal::ArrayAwareFind(
                 lhs_stl_container.begin(), lhs_stl_container.end(), *it) ==
             lhs_stl_container.end()) {
           if (printed_header2) {
@@ -2624,7 +2624,7 @@ class WhenSortedByMatcher {
   template <typename LhsContainer>
   class Impl : public MatcherInterface<LhsContainer> {
    public:
-    typedef internal::StlContainerView<
+    typedef Pinternal::StlContainerView<
          GTEST_REMOVE_REFERENCE_AND_CONST_(LhsContainer)> LhsView;
     typedef typename LhsView::type LhsStlContainer;
     typedef typename LhsView::const_reference LhsStlContainerReference;
@@ -2692,7 +2692,7 @@ class WhenSortedByMatcher {
 template <typename TupleMatcher, typename RhsContainer>
 class PointwiseMatcher {
  public:
-  typedef internal::StlContainerView<RhsContainer> RhsView;
+  typedef Pinternal::StlContainerView<RhsContainer> RhsView;
   typedef typename RhsView::type RhsStlContainer;
   typedef typename RhsStlContainer::value_type RhsValue;
 
@@ -2714,7 +2714,7 @@ class PointwiseMatcher {
   template <typename LhsContainer>
   class Impl : public MatcherInterface<LhsContainer> {
    public:
-    typedef internal::StlContainerView<
+    typedef Pinternal::StlContainerView<
          GTEST_REMOVE_REFERENCE_AND_CONST_(LhsContainer)> LhsView;
     typedef typename LhsView::type LhsStlContainer;
     typedef typename LhsView::const_reference LhsStlContainerReference;
@@ -2953,7 +2953,7 @@ class KeyMatcherImpl : public MatcherInterface<PairType> {
     StringMatchResultListener inner_listener;
     const bool match = inner_matcher_.MatchAndExplain(key_value.first,
                                                       &inner_listener);
-    const internal::string explanation = inner_listener.str();
+    const Pinternal::string explanation = inner_listener.str();
     if (explanation != "") {
       *listener << "whose first field is a value " << explanation;
     }
@@ -3058,8 +3058,8 @@ class PairMatcherImpl : public MatcherInterface<PairType> {
   }
 
  private:
-  void ExplainSuccess(const internal::string& first_explanation,
-                      const internal::string& second_explanation,
+  void ExplainSuccess(const Pinternal::string& first_explanation,
+                      const Pinternal::string& second_explanation,
                       MatchResultListener* listener) const {
     *listener << "whose both fields match";
     if (first_explanation != "") {
@@ -3108,7 +3108,7 @@ template <typename Container>
 class ElementsAreMatcherImpl : public MatcherInterface<Container> {
  public:
   typedef GTEST_REMOVE_REFERENCE_AND_CONST_(Container) RawContainer;
-  typedef internal::StlContainerView<RawContainer> View;
+  typedef Pinternal::StlContainerView<RawContainer> View;
   typedef typename View::type StlContainer;
   typedef typename View::const_reference StlContainerReference;
   typedef typename StlContainer::value_type Element;
@@ -3166,7 +3166,7 @@ class ElementsAreMatcherImpl : public MatcherInterface<Container> {
     const bool listener_interested = listener->IsInterested();
 
     // explanations[i] is the explanation of the element at index i.
-    ::std::vector<internal::string> explanations(count());
+    ::std::vector<Pinternal::string> explanations(count());
     StlContainerReference stl_container = View::ConstReference(container);
     typename StlContainer::const_iterator it = stl_container.begin();
     size_t exam_pos = 0;
@@ -3225,7 +3225,7 @@ class ElementsAreMatcherImpl : public MatcherInterface<Container> {
     if (listener_interested) {
       bool reason_printed = false;
       for (size_t i = 0; i != count(); ++i) {
-        const internal::string& s = explanations[i];
+        const Pinternal::string& s = explanations[i];
         if (!s.empty()) {
           if (reason_printed) {
             *listener << ",\nand ";
@@ -3347,7 +3347,7 @@ class UnorderedElementsAreMatcherImpl
       public UnorderedElementsAreMatcherImplBase {
  public:
   typedef GTEST_REMOVE_REFERENCE_AND_CONST_(Container) RawContainer;
-  typedef internal::StlContainerView<RawContainer> View;
+  typedef Pinternal::StlContainerView<RawContainer> View;
   typedef typename View::type StlContainer;
   typedef typename View::const_reference StlContainerReference;
   typedef typename StlContainer::const_iterator StlContainerConstIterator;
@@ -3456,7 +3456,7 @@ class UnorderedElementsAreMatcher {
   template <typename Container>
   operator Matcher<Container>() const {
     typedef GTEST_REMOVE_REFERENCE_AND_CONST_(Container) RawContainer;
-    typedef typename internal::StlContainerView<RawContainer>::type View;
+    typedef typename Pinternal::StlContainerView<RawContainer>::type View;
     typedef typename View::value_type Element;
     typedef ::std::vector<Matcher<const Element&> > MatcherVec;
     MatcherVec matchers;
@@ -3481,7 +3481,7 @@ class ElementsAreMatcher {
   template <typename Container>
   operator Matcher<Container>() const {
     typedef GTEST_REMOVE_REFERENCE_AND_CONST_(Container) RawContainer;
-    typedef typename internal::StlContainerView<RawContainer>::type View;
+    typedef typename Pinternal::StlContainerView<RawContainer>::type View;
     typedef typename View::value_type Element;
     typedef ::std::vector<Matcher<const Element&> > MatcherVec;
     MatcherVec matchers;
@@ -3641,34 +3641,34 @@ GTEST_API_ string FormatMatcherDescription(bool negation,
 // All forms of ElementsAreArray() make a copy of the input matcher sequence.
 
 template <typename Iter>
-inline internal::ElementsAreArrayMatcher<
+inline Pinternal::ElementsAreArrayMatcher<
     typename ::std::iterator_traits<Iter>::value_type>
 ElementsAreArray(Iter first, Iter last) {
   typedef typename ::std::iterator_traits<Iter>::value_type T;
-  return internal::ElementsAreArrayMatcher<T>(first, last);
+  return Pinternal::ElementsAreArrayMatcher<T>(first, last);
 }
 
 template <typename T>
-inline internal::ElementsAreArrayMatcher<T> ElementsAreArray(
+inline Pinternal::ElementsAreArrayMatcher<T> ElementsAreArray(
     const T* pointer, size_t count) {
   return ElementsAreArray(pointer, pointer + count);
 }
 
 template <typename T, size_t N>
-inline internal::ElementsAreArrayMatcher<T> ElementsAreArray(
+inline Pinternal::ElementsAreArrayMatcher<T> ElementsAreArray(
     const T (&array)[N]) {
   return ElementsAreArray(array, N);
 }
 
 template <typename Container>
-inline internal::ElementsAreArrayMatcher<typename Container::value_type>
+inline Pinternal::ElementsAreArrayMatcher<typename Container::value_type>
 ElementsAreArray(const Container& container) {
   return ElementsAreArray(container.begin(), container.end());
 }
 
 #if GTEST_HAS_STD_INITIALIZER_LIST_
 template <typename T>
-inline internal::ElementsAreArrayMatcher<T>
+inline Pinternal::ElementsAreArrayMatcher<T>
 ElementsAreArray(::std::initializer_list<T> xs) {
   return ElementsAreArray(xs.begin(), xs.end());
 }
@@ -3683,27 +3683,27 @@ ElementsAreArray(::std::initializer_list<T> xs) {
 // The UnorderedElementsAreArray() functions are like
 // ElementsAreArray(...), but allow matching the elements in any order.
 template <typename Iter>
-inline internal::UnorderedElementsAreArrayMatcher<
+inline Pinternal::UnorderedElementsAreArrayMatcher<
     typename ::std::iterator_traits<Iter>::value_type>
 UnorderedElementsAreArray(Iter first, Iter last) {
   typedef typename ::std::iterator_traits<Iter>::value_type T;
-  return internal::UnorderedElementsAreArrayMatcher<T>(first, last);
+  return Pinternal::UnorderedElementsAreArrayMatcher<T>(first, last);
 }
 
 template <typename T>
-inline internal::UnorderedElementsAreArrayMatcher<T>
+inline Pinternal::UnorderedElementsAreArrayMatcher<T>
 UnorderedElementsAreArray(const T* pointer, size_t count) {
   return UnorderedElementsAreArray(pointer, pointer + count);
 }
 
 template <typename T, size_t N>
-inline internal::UnorderedElementsAreArrayMatcher<T>
+inline Pinternal::UnorderedElementsAreArrayMatcher<T>
 UnorderedElementsAreArray(const T (&array)[N]) {
   return UnorderedElementsAreArray(array, N);
 }
 
 template <typename Container>
-inline internal::UnorderedElementsAreArrayMatcher<
+inline Pinternal::UnorderedElementsAreArrayMatcher<
     typename Container::value_type>
 UnorderedElementsAreArray(const Container& container) {
   return UnorderedElementsAreArray(container.begin(), container.end());
@@ -3711,7 +3711,7 @@ UnorderedElementsAreArray(const Container& container) {
 
 #if GTEST_HAS_STD_INITIALIZER_LIST_
 template <typename T>
-inline internal::UnorderedElementsAreArrayMatcher<T>
+inline Pinternal::UnorderedElementsAreArrayMatcher<T>
 UnorderedElementsAreArray(::std::initializer_list<T> xs) {
   return UnorderedElementsAreArray(xs.begin(), xs.end());
 }
@@ -3726,10 +3726,10 @@ UnorderedElementsAreArray(::std::initializer_list<T> xs) {
 //   2. The AnythingMatcher class has no data member or constructor,
 //      so it's OK to create global variables of this type.
 //   3. c-style has approved of using _ in this case.
-const internal::AnythingMatcher _ = {};
+const Pinternal::AnythingMatcher _ = {};
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
-inline Matcher<T> A() { return MakeMatcher(new internal::AnyMatcherImpl<T>()); }
+inline Matcher<T> A() { return MakeMatcher(new Pinternal::AnyMatcherImpl<T>()); }
 
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
@@ -3739,7 +3739,7 @@ inline Matcher<T> An() { return A<T>(); }
 // Note: if the parameter of Eq() were declared as const T&, Eq("foo")
 // wouldn't compile.
 template <typename T>
-inline internal::EqMatcher<T> Eq(T x) { return internal::EqMatcher<T>(x); }
+inline Pinternal::EqMatcher<T> Eq(T x) { return Pinternal::EqMatcher<T>(x); }
 
 // Constructs a Matcher<T> from a 'value' of type T.  The constructed
 // matcher matches any value that's equal to 'value'.
@@ -3763,115 +3763,115 @@ inline Matcher<Lhs> TypedEq(const Rhs& rhs) { return Eq(rhs); }
 
 // Creates a polymorphic matcher that matches anything >= x.
 template <typename Rhs>
-inline internal::GeMatcher<Rhs> Ge(Rhs x) {
-  return internal::GeMatcher<Rhs>(x);
+inline Pinternal::GeMatcher<Rhs> Ge(Rhs x) {
+  return Pinternal::GeMatcher<Rhs>(x);
 }
 
 // Creates a polymorphic matcher that matches anything > x.
 template <typename Rhs>
-inline internal::GtMatcher<Rhs> Gt(Rhs x) {
-  return internal::GtMatcher<Rhs>(x);
+inline Pinternal::GtMatcher<Rhs> Gt(Rhs x) {
+  return Pinternal::GtMatcher<Rhs>(x);
 }
 
 // Creates a polymorphic matcher that matches anything <= x.
 template <typename Rhs>
-inline internal::LeMatcher<Rhs> Le(Rhs x) {
-  return internal::LeMatcher<Rhs>(x);
+inline Pinternal::LeMatcher<Rhs> Le(Rhs x) {
+  return Pinternal::LeMatcher<Rhs>(x);
 }
 
 // Creates a polymorphic matcher that matches anything < x.
 template <typename Rhs>
-inline internal::LtMatcher<Rhs> Lt(Rhs x) {
-  return internal::LtMatcher<Rhs>(x);
+inline Pinternal::LtMatcher<Rhs> Lt(Rhs x) {
+  return Pinternal::LtMatcher<Rhs>(x);
 }
 
 // Creates a polymorphic matcher that matches anything != x.
 template <typename Rhs>
-inline internal::NeMatcher<Rhs> Ne(Rhs x) {
-  return internal::NeMatcher<Rhs>(x);
+inline Pinternal::NeMatcher<Rhs> Ne(Rhs x) {
+  return Pinternal::NeMatcher<Rhs>(x);
 }
 
 // Creates a polymorphic matcher that matches any NULL pointer.
-inline PolymorphicMatcher<internal::IsNullMatcher > IsNull() {
-  return MakePolymorphicMatcher(internal::IsNullMatcher());
+inline PolymorphicMatcher<Pinternal::IsNullMatcher > IsNull() {
+  return MakePolymorphicMatcher(Pinternal::IsNullMatcher());
 }
 
 // Creates a polymorphic matcher that matches any non-NULL pointer.
 // This is convenient as Not(NULL) doesn't compile (the compiler
 // thinks that that expression is comparing a pointer with an integer).
-inline PolymorphicMatcher<internal::NotNullMatcher > NotNull() {
-  return MakePolymorphicMatcher(internal::NotNullMatcher());
+inline PolymorphicMatcher<Pinternal::NotNullMatcher > NotNull() {
+  return MakePolymorphicMatcher(Pinternal::NotNullMatcher());
 }
 
 // Creates a polymorphic matcher that matches any argument that
 // references variable x.
 template <typename T>
-inline internal::RefMatcher<T&> Ref(T& x) {  // NOLINT
-  return internal::RefMatcher<T&>(x);
+inline Pinternal::RefMatcher<T&> Ref(T& x) {  // NOLINT
+  return Pinternal::RefMatcher<T&>(x);
 }
 
 // Creates a matcher that matches any double argument approximately
 // equal to rhs, where two NANs are considered unequal.
-inline internal::FloatingEqMatcher<double> DoubleEq(double rhs) {
-  return internal::FloatingEqMatcher<double>(rhs, false);
+inline Pinternal::FloatingEqMatcher<double> DoubleEq(double rhs) {
+  return Pinternal::FloatingEqMatcher<double>(rhs, false);
 }
 
 // Creates a matcher that matches any double argument approximately
 // equal to rhs, including NaN values when rhs is NaN.
-inline internal::FloatingEqMatcher<double> NanSensitiveDoubleEq(double rhs) {
-  return internal::FloatingEqMatcher<double>(rhs, true);
+inline Pinternal::FloatingEqMatcher<double> NanSensitiveDoubleEq(double rhs) {
+  return Pinternal::FloatingEqMatcher<double>(rhs, true);
 }
 
 // Creates a matcher that matches any double argument approximately equal to
 // rhs, up to the specified max absolute error bound, where two NANs are
 // considered unequal.  The max absolute error bound must be non-negative.
-inline internal::FloatingEqMatcher<double> DoubleNear(
+inline Pinternal::FloatingEqMatcher<double> DoubleNear(
     double rhs, double max_abs_error) {
-  return internal::FloatingEqMatcher<double>(rhs, false, max_abs_error);
+  return Pinternal::FloatingEqMatcher<double>(rhs, false, max_abs_error);
 }
 
 // Creates a matcher that matches any double argument approximately equal to
 // rhs, up to the specified max absolute error bound, including NaN values when
 // rhs is NaN.  The max absolute error bound must be non-negative.
-inline internal::FloatingEqMatcher<double> NanSensitiveDoubleNear(
+inline Pinternal::FloatingEqMatcher<double> NanSensitiveDoubleNear(
     double rhs, double max_abs_error) {
-  return internal::FloatingEqMatcher<double>(rhs, true, max_abs_error);
+  return Pinternal::FloatingEqMatcher<double>(rhs, true, max_abs_error);
 }
 
 // Creates a matcher that matches any float argument approximately
 // equal to rhs, where two NANs are considered unequal.
-inline internal::FloatingEqMatcher<float> FloatEq(float rhs) {
-  return internal::FloatingEqMatcher<float>(rhs, false);
+inline Pinternal::FloatingEqMatcher<float> FloatEq(float rhs) {
+  return Pinternal::FloatingEqMatcher<float>(rhs, false);
 }
 
 // Creates a matcher that matches any float argument approximately
 // equal to rhs, including NaN values when rhs is NaN.
-inline internal::FloatingEqMatcher<float> NanSensitiveFloatEq(float rhs) {
-  return internal::FloatingEqMatcher<float>(rhs, true);
+inline Pinternal::FloatingEqMatcher<float> NanSensitiveFloatEq(float rhs) {
+  return Pinternal::FloatingEqMatcher<float>(rhs, true);
 }
 
 // Creates a matcher that matches any float argument approximately equal to
 // rhs, up to the specified max absolute error bound, where two NANs are
 // considered unequal.  The max absolute error bound must be non-negative.
-inline internal::FloatingEqMatcher<float> FloatNear(
+inline Pinternal::FloatingEqMatcher<float> FloatNear(
     float rhs, float max_abs_error) {
-  return internal::FloatingEqMatcher<float>(rhs, false, max_abs_error);
+  return Pinternal::FloatingEqMatcher<float>(rhs, false, max_abs_error);
 }
 
 // Creates a matcher that matches any float argument approximately equal to
 // rhs, up to the specified max absolute error bound, including NaN values when
 // rhs is NaN.  The max absolute error bound must be non-negative.
-inline internal::FloatingEqMatcher<float> NanSensitiveFloatNear(
+inline Pinternal::FloatingEqMatcher<float> NanSensitiveFloatNear(
     float rhs, float max_abs_error) {
-  return internal::FloatingEqMatcher<float>(rhs, true, max_abs_error);
+  return Pinternal::FloatingEqMatcher<float>(rhs, true, max_abs_error);
 }
 
 // Creates a matcher that matches a pointer (raw or smart) that points
 // to a value that matches inner_matcher.
 template <typename InnerMatcher>
-inline internal::PointeeMatcher<InnerMatcher> Pointee(
+inline Pinternal::PointeeMatcher<InnerMatcher> Pointee(
     const InnerMatcher& inner_matcher) {
-  return internal::PointeeMatcher<InnerMatcher>(inner_matcher);
+  return Pinternal::PointeeMatcher<InnerMatcher>(inner_matcher);
 }
 
 // Creates a matcher that matches a pointer or reference that matches
@@ -3881,10 +3881,10 @@ inline internal::PointeeMatcher<InnerMatcher> Pointee(
 // If To is a reference and the cast fails, this matcher returns false
 // immediately.
 template <typename To>
-inline PolymorphicMatcher<internal::WhenDynamicCastToMatcher<To> >
+inline PolymorphicMatcher<Pinternal::WhenDynamicCastToMatcher<To> >
 WhenDynamicCastTo(const Matcher<To>& inner_matcher) {
   return MakePolymorphicMatcher(
-      internal::WhenDynamicCastToMatcher<To>(inner_matcher));
+      Pinternal::WhenDynamicCastToMatcher<To>(inner_matcher));
 }
 
 // Creates a matcher that matches an object whose given field matches
@@ -3893,10 +3893,10 @@ WhenDynamicCastTo(const Matcher<To>& inner_matcher) {
 // matches a Foo object x iff x.number >= 5.
 template <typename Class, typename FieldType, typename FieldMatcher>
 inline PolymorphicMatcher<
-  internal::FieldMatcher<Class, FieldType> > Field(
+  Pinternal::FieldMatcher<Class, FieldType> > Field(
     FieldType Class::*field, const FieldMatcher& matcher) {
   return MakePolymorphicMatcher(
-      internal::FieldMatcher<Class, FieldType>(
+      Pinternal::FieldMatcher<Class, FieldType>(
           field, MatcherCast<const FieldType&>(matcher)));
   // The call to MatcherCast() is required for supporting inner
   // matchers of compatible types.  For example, it allows
@@ -3910,10 +3910,10 @@ inline PolymorphicMatcher<
 // matches a Foo object x iff x.str() starts with "hi".
 template <typename Class, typename PropertyType, typename PropertyMatcher>
 inline PolymorphicMatcher<
-  internal::PropertyMatcher<Class, PropertyType> > Property(
+  Pinternal::PropertyMatcher<Class, PropertyType> > Property(
     PropertyType (Class::*property)() const, const PropertyMatcher& matcher) {
   return MakePolymorphicMatcher(
-      internal::PropertyMatcher<Class, PropertyType>(
+      Pinternal::PropertyMatcher<Class, PropertyType>(
           property,
           MatcherCast<GTEST_REFERENCE_TO_CONST_(PropertyType)>(matcher)));
   // The call to MatcherCast() is required for supporting inner
@@ -3936,11 +3936,11 @@ inline PolymorphicMatcher<
 //   * If it is a function object, it has to define type result_type.
 //     We recommend deriving your functor classes from std::unary_function.
 template <typename Callable, typename ResultOfMatcher>
-internal::ResultOfMatcher<Callable> ResultOf(
+Pinternal::ResultOfMatcher<Callable> ResultOf(
     Callable callable, const ResultOfMatcher& matcher) {
-  return internal::ResultOfMatcher<Callable>(
+  return Pinternal::ResultOfMatcher<Callable>(
           callable,
-          MatcherCast<typename internal::CallableTraits<Callable>::ResultType>(
+          MatcherCast<typename Pinternal::CallableTraits<Callable>::ResultType>(
               matcher));
   // The call to MatcherCast() is required for supporting inner
   // matchers of compatible types.  For example, it allows
@@ -3951,127 +3951,127 @@ internal::ResultOfMatcher<Callable> ResultOf(
 // String matchers.
 
 // Matches a string equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::string> >
-    StrEq(const internal::string& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::string> >
+    StrEq(const Pinternal::string& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::string>(
       str, true, true));
 }
 
 // Matches a string not equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::string> >
-    StrNe(const internal::string& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::string> >
+    StrNe(const Pinternal::string& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::string>(
       str, false, true));
 }
 
 // Matches a string equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::string> >
-    StrCaseEq(const internal::string& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::string> >
+    StrCaseEq(const Pinternal::string& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::string>(
       str, true, false));
 }
 
 // Matches a string not equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::string> >
-    StrCaseNe(const internal::string& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::string> >
+    StrCaseNe(const Pinternal::string& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::string>(
       str, false, false));
 }
 
 // Creates a matcher that matches any string, std::string, or C string
 // that contains the given substring.
-inline PolymorphicMatcher<internal::HasSubstrMatcher<internal::string> >
-    HasSubstr(const internal::string& substring) {
-  return MakePolymorphicMatcher(internal::HasSubstrMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::HasSubstrMatcher<Pinternal::string> >
+    HasSubstr(const Pinternal::string& substring) {
+  return MakePolymorphicMatcher(Pinternal::HasSubstrMatcher<Pinternal::string>(
       substring));
 }
 
 // Matches a string that starts with 'prefix' (case-sensitive).
-inline PolymorphicMatcher<internal::StartsWithMatcher<internal::string> >
-    StartsWith(const internal::string& prefix) {
-  return MakePolymorphicMatcher(internal::StartsWithMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::StartsWithMatcher<Pinternal::string> >
+    StartsWith(const Pinternal::string& prefix) {
+  return MakePolymorphicMatcher(Pinternal::StartsWithMatcher<Pinternal::string>(
       prefix));
 }
 
 // Matches a string that ends with 'suffix' (case-sensitive).
-inline PolymorphicMatcher<internal::EndsWithMatcher<internal::string> >
-    EndsWith(const internal::string& suffix) {
-  return MakePolymorphicMatcher(internal::EndsWithMatcher<internal::string>(
+inline PolymorphicMatcher<Pinternal::EndsWithMatcher<Pinternal::string> >
+    EndsWith(const Pinternal::string& suffix) {
+  return MakePolymorphicMatcher(Pinternal::EndsWithMatcher<Pinternal::string>(
       suffix));
 }
 
 // Matches a string that fully matches regular expression 'regex'.
 // The matcher takes ownership of 'regex'.
-inline PolymorphicMatcher<internal::MatchesRegexMatcher> MatchesRegex(
-    const internal::RE* regex) {
-  return MakePolymorphicMatcher(internal::MatchesRegexMatcher(regex, true));
+inline PolymorphicMatcher<Pinternal::MatchesRegexMatcher> MatchesRegex(
+    const Pinternal::RE* regex) {
+  return MakePolymorphicMatcher(Pinternal::MatchesRegexMatcher(regex, true));
 }
-inline PolymorphicMatcher<internal::MatchesRegexMatcher> MatchesRegex(
-    const internal::string& regex) {
-  return MatchesRegex(new internal::RE(regex));
+inline PolymorphicMatcher<Pinternal::MatchesRegexMatcher> MatchesRegex(
+    const Pinternal::string& regex) {
+  return MatchesRegex(new Pinternal::RE(regex));
 }
 
 // Matches a string that contains regular expression 'regex'.
 // The matcher takes ownership of 'regex'.
-inline PolymorphicMatcher<internal::MatchesRegexMatcher> ContainsRegex(
-    const internal::RE* regex) {
-  return MakePolymorphicMatcher(internal::MatchesRegexMatcher(regex, false));
+inline PolymorphicMatcher<Pinternal::MatchesRegexMatcher> ContainsRegex(
+    const Pinternal::RE* regex) {
+  return MakePolymorphicMatcher(Pinternal::MatchesRegexMatcher(regex, false));
 }
-inline PolymorphicMatcher<internal::MatchesRegexMatcher> ContainsRegex(
-    const internal::string& regex) {
-  return ContainsRegex(new internal::RE(regex));
+inline PolymorphicMatcher<Pinternal::MatchesRegexMatcher> ContainsRegex(
+    const Pinternal::string& regex) {
+  return ContainsRegex(new Pinternal::RE(regex));
 }
 
 #if GTEST_HAS_GLOBAL_WSTRING || GTEST_HAS_STD_WSTRING
 // Wide string matchers.
 
 // Matches a string equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::wstring> >
-    StrEq(const internal::wstring& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::wstring> >
+    StrEq(const Pinternal::wstring& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::wstring>(
       str, true, true));
 }
 
 // Matches a string not equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::wstring> >
-    StrNe(const internal::wstring& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::wstring> >
+    StrNe(const Pinternal::wstring& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::wstring>(
       str, false, true));
 }
 
 // Matches a string equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::wstring> >
-    StrCaseEq(const internal::wstring& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::wstring> >
+    StrCaseEq(const Pinternal::wstring& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::wstring>(
       str, true, false));
 }
 
 // Matches a string not equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<internal::wstring> >
-    StrCaseNe(const internal::wstring& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::StrEqualityMatcher<Pinternal::wstring> >
+    StrCaseNe(const Pinternal::wstring& str) {
+  return MakePolymorphicMatcher(Pinternal::StrEqualityMatcher<Pinternal::wstring>(
       str, false, false));
 }
 
 // Creates a matcher that matches any wstring, std::wstring, or C wide string
 // that contains the given substring.
-inline PolymorphicMatcher<internal::HasSubstrMatcher<internal::wstring> >
-    HasSubstr(const internal::wstring& substring) {
-  return MakePolymorphicMatcher(internal::HasSubstrMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::HasSubstrMatcher<Pinternal::wstring> >
+    HasSubstr(const Pinternal::wstring& substring) {
+  return MakePolymorphicMatcher(Pinternal::HasSubstrMatcher<Pinternal::wstring>(
       substring));
 }
 
 // Matches a string that starts with 'prefix' (case-sensitive).
-inline PolymorphicMatcher<internal::StartsWithMatcher<internal::wstring> >
-    StartsWith(const internal::wstring& prefix) {
-  return MakePolymorphicMatcher(internal::StartsWithMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::StartsWithMatcher<Pinternal::wstring> >
+    StartsWith(const Pinternal::wstring& prefix) {
+  return MakePolymorphicMatcher(Pinternal::StartsWithMatcher<Pinternal::wstring>(
       prefix));
 }
 
 // Matches a string that ends with 'suffix' (case-sensitive).
-inline PolymorphicMatcher<internal::EndsWithMatcher<internal::wstring> >
-    EndsWith(const internal::wstring& suffix) {
-  return MakePolymorphicMatcher(internal::EndsWithMatcher<internal::wstring>(
+inline PolymorphicMatcher<Pinternal::EndsWithMatcher<Pinternal::wstring> >
+    EndsWith(const Pinternal::wstring& suffix) {
+  return MakePolymorphicMatcher(Pinternal::EndsWithMatcher<Pinternal::wstring>(
       suffix));
 }
 
@@ -4079,42 +4079,42 @@ inline PolymorphicMatcher<internal::EndsWithMatcher<internal::wstring> >
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field == the second field.
-inline internal::Eq2Matcher Eq() { return internal::Eq2Matcher(); }
+inline Pinternal::Eq2Matcher Eq() { return Pinternal::Eq2Matcher(); }
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field >= the second field.
-inline internal::Ge2Matcher Ge() { return internal::Ge2Matcher(); }
+inline Pinternal::Ge2Matcher Ge() { return Pinternal::Ge2Matcher(); }
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field > the second field.
-inline internal::Gt2Matcher Gt() { return internal::Gt2Matcher(); }
+inline Pinternal::Gt2Matcher Gt() { return Pinternal::Gt2Matcher(); }
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field <= the second field.
-inline internal::Le2Matcher Le() { return internal::Le2Matcher(); }
+inline Pinternal::Le2Matcher Le() { return Pinternal::Le2Matcher(); }
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field < the second field.
-inline internal::Lt2Matcher Lt() { return internal::Lt2Matcher(); }
+inline Pinternal::Lt2Matcher Lt() { return Pinternal::Lt2Matcher(); }
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field != the second field.
-inline internal::Ne2Matcher Ne() { return internal::Ne2Matcher(); }
+inline Pinternal::Ne2Matcher Ne() { return Pinternal::Ne2Matcher(); }
 
 // Creates a matcher that matches any value of type T that m doesn't
 // match.
 template <typename InnerMatcher>
-inline internal::NotMatcher<InnerMatcher> Not(InnerMatcher m) {
-  return internal::NotMatcher<InnerMatcher>(m);
+inline Pinternal::NotMatcher<InnerMatcher> Not(InnerMatcher m) {
+  return Pinternal::NotMatcher<InnerMatcher>(m);
 }
 
 // Returns a matcher that matches anything that satisfies the given
 // predicate.  The predicate can be any unary function or functor
 // whose return type can be implicitly converted to bool.
 template <typename Predicate>
-inline PolymorphicMatcher<internal::TrulyMatcher<Predicate> >
+inline PolymorphicMatcher<Pinternal::TrulyMatcher<Predicate> >
 Truly(Predicate pred) {
-  return MakePolymorphicMatcher(internal::TrulyMatcher<Predicate>(pred));
+  return MakePolymorphicMatcher(Pinternal::TrulyMatcher<Predicate>(pred));
 }
 
 // Returns a matcher that matches the container size. The container must
@@ -4124,9 +4124,9 @@ Truly(Predicate pred) {
 //   EXPECT_THAT(container, SizeIs(2));     // Checks container has 2 elements.
 //   EXPECT_THAT(container, SizeIs(Le(2));  // Checks container has at most 2.
 template <typename SizeMatcher>
-inline internal::SizeIsMatcher<SizeMatcher>
+inline Pinternal::SizeIsMatcher<SizeMatcher>
 SizeIs(const SizeMatcher& size_matcher) {
-  return internal::SizeIsMatcher<SizeMatcher>(size_matcher);
+  return Pinternal::SizeIsMatcher<SizeMatcher>(size_matcher);
 }
 
 // Returns a matcher that matches the distance between the container's begin()
@@ -4135,9 +4135,9 @@ SizeIs(const SizeMatcher& size_matcher) {
 // do not implement size(). The container must provide const_iterator (with
 // valid iterator_traits), begin() and end().
 template <typename DistanceMatcher>
-inline internal::BeginEndDistanceIsMatcher<DistanceMatcher>
+inline Pinternal::BeginEndDistanceIsMatcher<DistanceMatcher>
 BeginEndDistanceIs(const DistanceMatcher& distance_matcher) {
-  return internal::BeginEndDistanceIsMatcher<DistanceMatcher>(distance_matcher);
+  return Pinternal::BeginEndDistanceIsMatcher<DistanceMatcher>(distance_matcher);
 }
 
 // Returns a matcher that matches an equal container.
@@ -4145,34 +4145,34 @@ BeginEndDistanceIs(const DistanceMatcher& distance_matcher) {
 // values that are included in one container but not the other. (Duplicate
 // values and order differences are not explained.)
 template <typename Container>
-inline PolymorphicMatcher<internal::ContainerEqMatcher<  // NOLINT
+inline PolymorphicMatcher<Pinternal::ContainerEqMatcher<  // NOLINT
                             GTEST_REMOVE_CONST_(Container)> >
     ContainerEq(const Container& rhs) {
   // This following line is for working around a bug in MSVC 8.0,
   // which causes Container to be a const type sometimes.
   typedef GTEST_REMOVE_CONST_(Container) RawContainer;
   return MakePolymorphicMatcher(
-      internal::ContainerEqMatcher<RawContainer>(rhs));
+      Pinternal::ContainerEqMatcher<RawContainer>(rhs));
 }
 
 // Returns a matcher that matches a container that, when sorted using
 // the given comparator, matches container_matcher.
 template <typename Comparator, typename ContainerMatcher>
-inline internal::WhenSortedByMatcher<Comparator, ContainerMatcher>
+inline Pinternal::WhenSortedByMatcher<Comparator, ContainerMatcher>
 WhenSortedBy(const Comparator& comparator,
              const ContainerMatcher& container_matcher) {
-  return internal::WhenSortedByMatcher<Comparator, ContainerMatcher>(
+  return Pinternal::WhenSortedByMatcher<Comparator, ContainerMatcher>(
       comparator, container_matcher);
 }
 
 // Returns a matcher that matches a container that, when sorted using
 // the < operator, matches container_matcher.
 template <typename ContainerMatcher>
-inline internal::WhenSortedByMatcher<internal::LessComparator, ContainerMatcher>
+inline Pinternal::WhenSortedByMatcher<Pinternal::LessComparator, ContainerMatcher>
 WhenSorted(const ContainerMatcher& container_matcher) {
   return
-      internal::WhenSortedByMatcher<internal::LessComparator, ContainerMatcher>(
-          internal::LessComparator(), container_matcher);
+      Pinternal::WhenSortedByMatcher<Pinternal::LessComparator, ContainerMatcher>(
+          Pinternal::LessComparator(), container_matcher);
 }
 
 // Matches an STL-style container or a native array that contains the
@@ -4182,14 +4182,14 @@ WhenSorted(const ContainerMatcher& container_matcher) {
 // T1&, const T2&> >, where T1 and T2 are the types of elements in the
 // LHS container and the RHS container respectively.
 template <typename TupleMatcher, typename Container>
-inline internal::PointwiseMatcher<TupleMatcher,
+inline Pinternal::PointwiseMatcher<TupleMatcher,
                                   GTEST_REMOVE_CONST_(Container)>
 Pointwise(const TupleMatcher& tuple_matcher, const Container& rhs) {
   // This following line is for working around a bug in MSVC 8.0,
   // which causes Container to be a const type sometimes (e.g. when
   // rhs is a const int[])..
   typedef GTEST_REMOVE_CONST_(Container) RawContainer;
-  return internal::PointwiseMatcher<TupleMatcher, RawContainer>(
+  return Pinternal::PointwiseMatcher<TupleMatcher, RawContainer>(
       tuple_matcher, rhs);
 }
 
@@ -4197,7 +4197,7 @@ Pointwise(const TupleMatcher& tuple_matcher, const Container& rhs) {
 
 // Supports the Pointwise(m, {a, b, c}) syntax.
 template <typename TupleMatcher, typename T>
-inline internal::PointwiseMatcher<TupleMatcher, std::vector<T> > Pointwise(
+inline Pinternal::PointwiseMatcher<TupleMatcher, std::vector<T> > Pointwise(
     const TupleMatcher& tuple_matcher, std::initializer_list<T> rhs) {
   return Pointwise(tuple_matcher, std::vector<T>(rhs));
 }
@@ -4216,9 +4216,9 @@ inline internal::PointwiseMatcher<TupleMatcher, std::vector<T> > Pointwise(
 // This is like Pointwise(pair_matcher, rhs), except that the element
 // order doesn't matter.
 template <typename Tuple2Matcher, typename RhsContainer>
-inline internal::UnorderedElementsAreArrayMatcher<
-    typename internal::BoundSecondMatcher<
-        Tuple2Matcher, typename internal::StlContainerView<GTEST_REMOVE_CONST_(
+inline Pinternal::UnorderedElementsAreArrayMatcher<
+    typename Pinternal::BoundSecondMatcher<
+        Tuple2Matcher, typename Pinternal::StlContainerView<GTEST_REMOVE_CONST_(
                            RhsContainer)>::type::value_type> >
 UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
                    const RhsContainer& rhs_container) {
@@ -4229,18 +4229,18 @@ UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
 
   // RhsView allows the same code to handle RhsContainer being a
   // STL-style container and it being a native C-style array.
-  typedef typename internal::StlContainerView<RawRhsContainer> RhsView;
+  typedef typename Pinternal::StlContainerView<RawRhsContainer> RhsView;
   typedef typename RhsView::type RhsStlContainer;
   typedef typename RhsStlContainer::value_type Second;
   const RhsStlContainer& rhs_stl_container =
       RhsView::ConstReference(rhs_container);
 
   // Create a matcher for each element in rhs_container.
-  ::std::vector<internal::BoundSecondMatcher<Tuple2Matcher, Second> > matchers;
+  ::std::vector<Pinternal::BoundSecondMatcher<Tuple2Matcher, Second> > matchers;
   for (typename RhsStlContainer::const_iterator it = rhs_stl_container.begin();
        it != rhs_stl_container.end(); ++it) {
     matchers.push_back(
-        internal::MatcherBindSecond(tuple2_matcher, *it));
+        Pinternal::MatcherBindSecond(tuple2_matcher, *it));
   }
 
   // Delegate the work to UnorderedElementsAreArray().
@@ -4251,8 +4251,8 @@ UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
 
 // Supports the UnorderedPointwise(m, {a, b, c}) syntax.
 template <typename Tuple2Matcher, typename T>
-inline internal::UnorderedElementsAreArrayMatcher<
-    typename internal::BoundSecondMatcher<Tuple2Matcher, T> >
+inline Pinternal::UnorderedElementsAreArrayMatcher<
+    typename Pinternal::BoundSecondMatcher<Tuple2Matcher, T> >
 UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
                    std::initializer_list<T> rhs) {
   return UnorderedPointwise(tuple2_matcher, std::vector<T>(rhs));
@@ -4279,8 +4279,8 @@ UnorderedPointwise(const Tuple2Matcher& tuple2_matcher,
 //   const char* user_ids[] = { "joe", "mike", "tom" };
 //   EXPECT_THAT(user_ids, Contains(Eq(::std::string("tom"))));
 template <typename M>
-inline internal::ContainsMatcher<M> Contains(M matcher) {
-  return internal::ContainsMatcher<M>(matcher);
+inline Pinternal::ContainsMatcher<M> Contains(M matcher) {
+  return Pinternal::ContainsMatcher<M>(matcher);
 }
 
 // Matches an STL-style container or a native array that contains only
@@ -4311,16 +4311,16 @@ inline internal::ContainsMatcher<M> Contains(M matcher) {
 //   const char* user_ids[] = { "joe", "mike", "tom" };
 //   EXPECT_THAT(user_ids, Not(Each(Eq(::std::string("tom")))));
 template <typename M>
-inline internal::EachMatcher<M> Each(M matcher) {
-  return internal::EachMatcher<M>(matcher);
+inline Pinternal::EachMatcher<M> Each(M matcher) {
+  return Pinternal::EachMatcher<M>(matcher);
 }
 
 // Key(inner_matcher) matches an std::pair whose 'first' field matches
 // inner_matcher.  For example, Contains(Key(Ge(5))) can be used to match an
 // std::map that contains at least one element whose key is >= 5.
 template <typename M>
-inline internal::KeyMatcher<M> Key(M inner_matcher) {
-  return internal::KeyMatcher<M>(inner_matcher);
+inline Pinternal::KeyMatcher<M> Key(M inner_matcher) {
+  return Pinternal::KeyMatcher<M>(inner_matcher);
 }
 
 // Pair(first_matcher, second_matcher) matches a std::pair whose 'first' field
@@ -4329,17 +4329,17 @@ inline internal::KeyMatcher<M> Key(M inner_matcher) {
 // to match a std::map<int, string> that contains exactly one element whose key
 // is >= 5 and whose value equals "foo".
 template <typename FirstMatcher, typename SecondMatcher>
-inline internal::PairMatcher<FirstMatcher, SecondMatcher>
+inline Pinternal::PairMatcher<FirstMatcher, SecondMatcher>
 Pair(FirstMatcher first_matcher, SecondMatcher second_matcher) {
-  return internal::PairMatcher<FirstMatcher, SecondMatcher>(
+  return Pinternal::PairMatcher<FirstMatcher, SecondMatcher>(
       first_matcher, second_matcher);
 }
 
 // Returns a predicate that is satisfied by anything that matches the
 // given matcher.
 template <typename M>
-inline internal::MatcherAsPredicate<M> Matches(M matcher) {
-  return internal::MatcherAsPredicate<M>(matcher);
+inline Pinternal::MatcherAsPredicate<M> Matches(M matcher) {
+  return Pinternal::MatcherAsPredicate<M>(matcher);
 }
 
 // Returns true iff the value matches the matcher.
@@ -4360,13 +4360,13 @@ inline bool ExplainMatchResult(
 // Define variadic matcher versions. They are overloaded in
 // gmock-generated-matchers.h for the cases supported by pre C++11 compilers.
 template <typename... Args>
-inline internal::AllOfMatcher<Args...> AllOf(const Args&... matchers) {
-  return internal::AllOfMatcher<Args...>(matchers...);
+inline Pinternal::AllOfMatcher<Args...> AllOf(const Args&... matchers) {
+  return Pinternal::AllOfMatcher<Args...>(matchers...);
 }
 
 template <typename... Args>
-inline internal::AnyOfMatcher<Args...> AnyOf(const Args&... matchers) {
-  return internal::AnyOfMatcher<Args...>(matchers...);
+inline Pinternal::AnyOfMatcher<Args...> AnyOf(const Args&... matchers) {
+  return Pinternal::AnyOfMatcher<Args...>(matchers...);
 }
 
 #endif  // GTEST_LANG_CXX11
@@ -4386,9 +4386,9 @@ inline InnerMatcher AllArgs(const InnerMatcher& matcher) { return matcher; }
 // succeed iff the value matches the matcher.  If the assertion fails,
 // the value and the description of the matcher will be printed.
 #define ASSERT_THAT(value, matcher) ASSERT_PRED_FORMAT1(\
-    ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value)
+    ::testing::Pinternal::MakePredicateFormatterFromMatcher(matcher), value)
 #define EXPECT_THAT(value, matcher) EXPECT_PRED_FORMAT1(\
-    ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value)
+    ::testing::Pinternal::MakePredicateFormatterFromMatcher(matcher), value)
 
 }  // namespace testing
 

@@ -45,34 +45,34 @@ protected:
 	bool isRecentGame(const std::string &gamePath);
 
 private:
-	UI::Choice *AddOtherChoice(UI::Choice *choice);
+	PUI::Choice *AddOtherChoice(PUI::Choice *choice);
 
 	// Event handlers
-	UI::EventReturn OnPlay(UI::EventParams &e);
-	UI::EventReturn OnGameSettings(UI::EventParams &e);
-	UI::EventReturn OnDeleteSaveData(UI::EventParams &e);
-	UI::EventReturn OnDeleteGame(UI::EventParams &e);
-	UI::EventReturn OnSwitchBack(UI::EventParams &e);
-	UI::EventReturn OnCreateShortcut(UI::EventParams &e);
-	UI::EventReturn OnRemoveFromRecent(UI::EventParams &e);
-	UI::EventReturn OnShowInFolder(UI::EventParams &e);
-	UI::EventReturn OnCreateConfig(UI::EventParams &e);
-	UI::EventReturn OnDeleteConfig(UI::EventParams &e);
-	UI::EventReturn OnCwCheat(UI::EventParams &e);
-	UI::EventReturn OnSetBackground(UI::EventParams &e);
+	PUI::EventReturn OnPlay(PUI::EventParams &e);
+	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
+	PUI::EventReturn OnDeleteSaveData(PUI::EventParams &e);
+	PUI::EventReturn OnDeleteGame(PUI::EventParams &e);
+	PUI::EventReturn OnSwitchBack(PUI::EventParams &e);
+	PUI::EventReturn OnCreateShortcut(PUI::EventParams &e);
+	PUI::EventReturn OnRemoveFromRecent(PUI::EventParams &e);
+	PUI::EventReturn OnShowInFolder(PUI::EventParams &e);
+	PUI::EventReturn OnCreateConfig(PUI::EventParams &e);
+	PUI::EventReturn OnDeleteConfig(PUI::EventParams &e);
+	PUI::EventReturn OnCwCheat(PUI::EventParams &e);
+	PUI::EventReturn OnSetBackground(PUI::EventParams &e);
 
 	// As we load metadata in the background, we need to be able to update these after the fact.
-	UI::TextView *tvTitle_;
-	UI::TextView *tvGameSize_;
-	UI::TextView *tvSaveDataSize_;
-	UI::TextView *tvInstallDataSize_;
-	UI::TextView *tvRegion_;
+	PUI::TextView *tvTitle_;
+	PUI::TextView *tvGameSize_;
+	PUI::TextView *tvSaveDataSize_;
+	PUI::TextView *tvInstallDataSize_;
+	PUI::TextView *tvRegion_;
 
-	UI::Choice *btnGameSettings_;
-	UI::Choice *btnCreateGameConfig_;
-	UI::Choice *btnDeleteGameConfig_;
-	UI::Choice *btnDeleteSaveData_;
-	UI::Choice *btnSetBackground_;
-	std::vector<UI::Choice *> otherChoices_;
+	PUI::Choice *btnGameSettings_;
+	PUI::Choice *btnCreateGameConfig_;
+	PUI::Choice *btnDeleteGameConfig_;
+	PUI::Choice *btnDeleteSaveData_;
+	PUI::Choice *btnSetBackground_;
+	std::vector<PUI::Choice *> otherChoices_;
 	std::vector<std::string> saveDirs;
 };

@@ -34,7 +34,7 @@ static u32 GetButtonColor() {
 	return g_PConfig.iTouchButtonStyle != 0 ? 0xFFFFFF : 0xc0b080;
 }
 
-GamepadView::GamepadView(UI::LayoutParams *layoutParams) : UI::View(layoutParams), secondsWithoutTouch_(0) {
+GamepadView::GamepadView(PUI::LayoutParams *layoutParams) : PUI::View(layoutParams), secondsWithoutTouch_(0) {
 	lastFrameTime_ = time_now_d();
 }
 
@@ -135,7 +135,7 @@ void BoolButton::Touch(const TouchInput &input) {
 
 	if (down != lastDown) {
 		*value_ = down;
-		UI::EventParams params{ this };
+		PUI::EventParams params{ this };
 		params.a = down;
 		OnChange.Trigger(params);
 	}
@@ -203,7 +203,7 @@ bool PSPButton::IsDown() {
 	return (__CtrlPeekButtons() & pspButtonBit_) != 0;
 }
 
-PSPDpad::PSPDpad(int arrowIndex, int arrowDownIndex, int overlayIndex, float scale, float spacing, UI::LayoutParams *layoutParams)
+PSPDpad::PSPDpad(int arrowIndex, int arrowDownIndex, int overlayIndex, float scale, float spacing, PUI::LayoutParams *layoutParams)
 	: GamepadView(layoutParams), arrowIndex_(arrowIndex), arrowDownIndex_(arrowDownIndex), overlayIndex_(overlayIndex),
 		scale_(scale), spacing_(spacing), dragPointerId_(-1), down_(0) {
 }
@@ -333,7 +333,7 @@ void PSPDpad::Draw(UIContext &dc) {
 	}
 }
 
-PSPStick::PSPStick(int bgImg, int stickImg, int stickDownImg, int stick, float scale, UI::LayoutParams *layoutParams)
+PSPStick::PSPStick(int bgImg, int stickImg, int stickDownImg, int stick, float scale, PUI::LayoutParams *layoutParams)
 	: GamepadView(layoutParams), dragPointerId_(-1), bgImg_(bgImg), stickImageIndex_(stickImg), stickDownImg_(stickDownImg), stick_(stick), scale_(scale), centerX_(-1), centerY_(-1) {
 	stick_size_ = 50;
 }
@@ -545,8 +545,8 @@ void InitPadLayout(float xres, float yres, float globalScale) {
 	initTouchPos(g_PConfig.touchCombo4, combo4_key_X, combo4_key_Y);
 }
 
-UI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause) {
-	using namespace UI;
+PUI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause) {
+	using namespace PUI;
 
 	AnchorLayout *root = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 	if (!g_PConfig.bShowTouchControls) {
@@ -625,11 +625,11 @@ UI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause) {
 	BoolButton *unthrottle = addBoolButton(&PSP_CoreParameter().unthrottle, rectImage, I_RECT, I_ARROW, g_PConfig.touchUnthrottleKey);
 	if (unthrottle) {
 		unthrottle->SetAngle(180.0f);
-		unthrottle->OnChange.Add([](UI::EventParams &e) {
+		unthrottle->OnChange.Add([](PUI::EventParams &e) {
 			if (e.a && coreState == CORE_STEPPING) {
 				Core_EnableStepping(false);
 			}
-			return UI::EVENT_DONE;
+			return PUI::EVENT_DONE;
 		});
 	}
 

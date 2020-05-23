@@ -45,35 +45,35 @@ namespace testing {
 
 // Constructs a matcher that matches a const string& whose value is
 // equal to s.
-Matcher<const internal::string&>::Matcher(const internal::string& s) {
+Matcher<const Pinternal::string&>::Matcher(const Pinternal::string& s) {
   *this = Eq(s);
 }
 
 // Constructs a matcher that matches a const string& whose value is
 // equal to s.
-Matcher<const internal::string&>::Matcher(const char* s) {
-  *this = Eq(internal::string(s));
+Matcher<const Pinternal::string&>::Matcher(const char* s) {
+  *this = Eq(Pinternal::string(s));
 }
 
 // Constructs a matcher that matches a string whose value is equal to s.
-Matcher<internal::string>::Matcher(const internal::string& s) { *this = Eq(s); }
+Matcher<Pinternal::string>::Matcher(const Pinternal::string& s) { *this = Eq(s); }
 
 // Constructs a matcher that matches a string whose value is equal to s.
-Matcher<internal::string>::Matcher(const char* s) {
-  *this = Eq(internal::string(s));
+Matcher<Pinternal::string>::Matcher(const char* s) {
+  *this = Eq(Pinternal::string(s));
 }
 
 #if GTEST_HAS_STRING_PIECE_
 // Constructs a matcher that matches a const StringPiece& whose value is
 // equal to s.
-Matcher<const StringPiece&>::Matcher(const internal::string& s) {
+Matcher<const StringPiece&>::Matcher(const Pinternal::string& s) {
   *this = Eq(s);
 }
 
 // Constructs a matcher that matches a const StringPiece& whose value is
 // equal to s.
 Matcher<const StringPiece&>::Matcher(const char* s) {
-  *this = Eq(internal::string(s));
+  *this = Eq(Pinternal::string(s));
 }
 
 // Constructs a matcher that matches a const StringPiece& whose value is
@@ -83,13 +83,13 @@ Matcher<const StringPiece&>::Matcher(StringPiece s) {
 }
 
 // Constructs a matcher that matches a StringPiece whose value is equal to s.
-Matcher<StringPiece>::Matcher(const internal::string& s) {
+Matcher<StringPiece>::Matcher(const Pinternal::string& s) {
   *this = Eq(s);
 }
 
 // Constructs a matcher that matches a StringPiece whose value is equal to s.
 Matcher<StringPiece>::Matcher(const char* s) {
-  *this = Eq(internal::string(s));
+  *this = Eq(Pinternal::string(s));
 }
 
 // Constructs a matcher that matches a StringPiece whose value is equal to s.
@@ -98,7 +98,7 @@ Matcher<StringPiece>::Matcher(StringPiece s) {
 }
 #endif  // GTEST_HAS_STRING_PIECE_
 
-namespace internal {
+namespace Pinternal {
 
 // Joins a vector of strings as if they are fields of a tuple; returns
 // the joined string.
@@ -494,5 +494,5 @@ VerifyAllElementsAndMatchersAreMatched(
   return result;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

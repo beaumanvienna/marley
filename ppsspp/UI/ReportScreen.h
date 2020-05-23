@@ -43,15 +43,15 @@ protected:
 	void UpdateSubmit();
 	void UpdateOverallDescription();
 
-	UI::EventReturn HandleChoice(UI::EventParams &e);
-	UI::EventReturn HandleSubmit(UI::EventParams &e);
-	UI::EventReturn HandleBrowser(UI::EventParams &e);
-	UI::EventReturn HandleReportingChange(UI::EventParams &e);
+	PUI::EventReturn HandleChoice(PUI::EventParams &e);
+	PUI::EventReturn HandleSubmit(PUI::EventParams &e);
+	PUI::EventReturn HandleBrowser(PUI::EventParams &e);
+	PUI::EventReturn HandleReportingChange(PUI::EventParams &e);
 
-	UI::Choice *submit_ = nullptr;
-	UI::View *screenshot_ = nullptr;
-	UI::TextView *reportingNotice_ = nullptr;
-	UI::TextView *overallDescription_ = nullptr;
+	PUI::Choice *submit_ = nullptr;
+	PUI::View *screenshot_ = nullptr;
+	PUI::TextView *reportingNotice_ = nullptr;
+	PUI::TextView *overallDescription_ = nullptr;
 	std::string screenshotFilename_;
 
 	ReportingOverallScore overall_ = ReportingOverallScore::INVALID;
@@ -72,10 +72,10 @@ protected:
 	void CreateViews() override;
 	void ShowSuggestions();
 
-	UI::EventReturn HandleViewFeedback(UI::EventParams &e);
+	PUI::EventReturn HandleViewFeedback(PUI::EventParams &e);
 
-	UI::TextView *resultNotice_ = nullptr;
-	UI::LinearLayout *resultItems_ = nullptr;
+	PUI::TextView *resultNotice_ = nullptr;
+	PUI::LinearLayout *resultItems_ = nullptr;
 	ReportingOverallScore score_;
 	bool setStatus_ = false;
 };

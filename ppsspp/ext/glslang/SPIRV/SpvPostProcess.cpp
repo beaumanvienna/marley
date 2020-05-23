@@ -48,7 +48,7 @@
 #include "spirv.hpp"
 #include "GlslangToSpv.h"
 #include "SpvBuilder.h"
-namespace spv {
+namespace Pspv {
     #include "GLSL.std.450.h"
     #include "GLSL.ext.KHR.h"
     #include "GLSL.ext.EXT.h"
@@ -56,7 +56,7 @@ namespace spv {
     #include "GLSL.ext.NV.h"
 }
 
-namespace spv {
+namespace Pspv {
 
 #ifndef GLSLANG_WEB
 // Hook to visit each operand type and result type of an instruction.
@@ -125,11 +125,11 @@ void Builder::postProcessType(const Instruction& inst, Id typeId)
         if (containsType(typeId, OpTypeFloat, 16) || containsType(typeId, OpTypeInt, 16)) {
             bool foundStorage = false;
             for (auto it = capabilities.begin(); it != capabilities.end(); ++it) {
-                spv::Capability cap = *it;
-                if (cap == spv::CapabilityStorageInputOutput16 ||
-                    cap == spv::CapabilityStoragePushConstant16 ||
-                    cap == spv::CapabilityStorageUniformBufferBlock16 ||
-                    cap == spv::CapabilityStorageUniform16) {
+                Pspv::Capability cap = *it;
+                if (cap == Pspv::CapabilityStorageInputOutput16 ||
+                    cap == Pspv::CapabilityStoragePushConstant16 ||
+                    cap == Pspv::CapabilityStorageUniformBufferBlock16 ||
+                    cap == Pspv::CapabilityStorageUniform16) {
                     foundStorage = true;
                     break;
                 }
@@ -144,10 +144,10 @@ void Builder::postProcessType(const Instruction& inst, Id typeId)
         if (containsType(typeId, OpTypeInt, 8)) {
             bool foundStorage = false;
             for (auto it = capabilities.begin(); it != capabilities.end(); ++it) {
-                spv::Capability cap = *it;
-                if (cap == spv::CapabilityStoragePushConstant8 ||
-                    cap == spv::CapabilityUniformAndStorageBuffer8BitAccess ||
-                    cap == spv::CapabilityStorageBuffer8BitAccess) {
+                Pspv::Capability cap = *it;
+                if (cap == Pspv::CapabilityStoragePushConstant8 ||
+                    cap == Pspv::CapabilityUniformAndStorageBuffer8BitAccess ||
+                    cap == Pspv::CapabilityStorageBuffer8BitAccess) {
                     foundStorage = true;
                     break;
                 }
@@ -161,14 +161,14 @@ void Builder::postProcessType(const Instruction& inst, Id typeId)
         switch (inst.getImmediateOperand(1)) {
         case GLSLstd450Frexp:
         case GLSLstd450FrexpStruct:
-            if (getSpvVersion() < glslang::EShTargetSpv_1_3 && containsType(typeId, OpTypeInt, 16))
-                addExtension(spv::E_SPV_AMD_gpu_shader_int16);
+            if (getSpvVersion() < Pglslang::EShTargetSpv_1_3 && containsType(typeId, OpTypeInt, 16))
+                addExtension(Pspv::E_SPV_AMD_gpu_shader_int16);
             break;
         case GLSLstd450InterpolateAtCentroid:
         case GLSLstd450InterpolateAtSample:
         case GLSLstd450InterpolateAtOffset:
-            if (getSpvVersion() < glslang::EShTargetSpv_1_3 && containsType(typeId, OpTypeFloat, 16))
-                addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
+            if (getSpvVersion() < Pglslang::EShTargetSpv_1_3 && containsType(typeId, OpTypeFloat, 16))
+                addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float);
             break;
         default:
             break;
@@ -393,13 +393,13 @@ void Builder::postProcessFeatures() {
         Instruction* type = groupedTypes[OpTypePointer][t];
         if (type->getImmediateOperand(0) == (unsigned)StorageClassPhysicalStorageBufferEXT) {
             if (containsType(type->getIdOperand(1), OpTypeInt, 8)) {
-                addIncorporatedExtension(spv::E_SPV_KHR_8bit_storage, spv::Spv_1_5);
-                addCapability(spv::CapabilityStorageBuffer8BitAccess);
+                addIncorporatedExtension(Pspv::E_SPV_KHR_8bit_storage, Pspv::Spv_1_5);
+                addCapability(Pspv::CapabilityStorageBuffer8BitAccess);
             }
             if (containsType(type->getIdOperand(1), OpTypeInt, 16) ||
                 containsType(type->getIdOperand(1), OpTypeFloat, 16)) {
-                addIncorporatedExtension(spv::E_SPV_KHR_16bit_storage, spv::Spv_1_3);
-                addCapability(spv::CapabilityStorageBuffer16BitAccess);
+                addIncorporatedExtension(Pspv::E_SPV_KHR_16bit_storage, Pspv::Spv_1_3);
+                addCapability(Pspv::CapabilityStorageBuffer16BitAccess);
             }
         }
     }
@@ -423,14 +423,14 @@ void Builder::postProcessFeatures() {
                     const auto function = [&](const std::unique_ptr<Instruction>& decoration) {
                         if (decoration.get()->getIdOperand(0) == resultId &&
                             decoration.get()->getOpCode() == OpDecorate &&
-                            (decoration.get()->getImmediateOperand(1) == spv::DecorationAliasedPointerEXT ||
-                             decoration.get()->getImmediateOperand(1) == spv::DecorationRestrictPointerEXT)) {
+                            (decoration.get()->getImmediateOperand(1) == Pspv::DecorationAliasedPointerEXT ||
+                             decoration.get()->getImmediateOperand(1) == Pspv::DecorationRestrictPointerEXT)) {
                             foundDecoration = true;
                         }
                     };
                     std::for_each(decorations.begin(), decorations.end(), function);
                     if (!foundDecoration) {
-                        addDecoration(resultId, spv::DecorationAliasedPointerEXT);
+                        addDecoration(resultId, Pspv::DecorationAliasedPointerEXT);
                     }
                 }
             }

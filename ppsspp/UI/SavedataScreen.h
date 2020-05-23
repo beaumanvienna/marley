@@ -32,25 +32,25 @@ enum class SavedataSortOption {
 	DATE,
 };
 
-class SavedataBrowser : public UI::LinearLayout {
+class SavedataBrowser : public PUI::LinearLayout {
 public:
-	SavedataBrowser(std::string path, UI::LayoutParams *layoutParams = 0);
+	SavedataBrowser(std::string path, PUI::LayoutParams *layoutParams = 0);
 
 	void SetSortOption(SavedataSortOption opt);
 
-	UI::Event OnChoice;
+	PUI::Event OnChoice;
 
 private:
-	static bool ByFilename(const UI::View *, const UI::View *);
-	static bool BySize(const UI::View *, const UI::View *);
-	static bool ByDate(const UI::View *, const UI::View *);
+	static bool ByFilename(const PUI::View *, const PUI::View *);
+	static bool BySize(const PUI::View *, const PUI::View *);
+	static bool ByDate(const PUI::View *, const PUI::View *);
 	static bool SortDone();
 
 	void Refresh();
-	UI::EventReturn SavedataButtonClick(UI::EventParams &e);
+	PUI::EventReturn SavedataButtonClick(PUI::EventParams &e);
 
 	SavedataSortOption sortOption_ = SavedataSortOption::FILENAME;
-	UI::ViewGroup *gameList_ = nullptr;
+	PUI::ViewGroup *gameList_ = nullptr;
 	std::string path_;
 };
 
@@ -63,8 +63,8 @@ public:
 	void dialogFinished(const Screen *dialog, DialogResult result) override;
 
 protected:
-	UI::EventReturn OnSavedataButtonClick(UI::EventParams &e);
-	UI::EventReturn OnSortClick(UI::EventParams &e);
+	PUI::EventReturn OnSavedataButtonClick(PUI::EventParams &e);
+	PUI::EventReturn OnSortClick(PUI::EventParams &e);
 	void CreateViews() override;
 	bool gridStyle_;
 	SavedataSortOption sortOption_ = SavedataSortOption::FILENAME;

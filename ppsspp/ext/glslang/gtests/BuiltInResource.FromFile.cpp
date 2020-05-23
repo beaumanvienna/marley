@@ -49,7 +49,7 @@ TEST_F(DefaultResourceTest, FromFile)
     const std::string path = GlobalTestSettings.testRoot + "/baseResults/test.conf";
     std::string expectedConfig;
     tryLoadFile(path, "expected resource limit", &expectedConfig);
-    const std::string realConfig = glslang::GetDefaultTBuiltInResourceString();
+    const std::string realConfig = Pglslang::GetDefaultTBuiltInResourceString();
     ASSERT_EQ(expectedConfig, realConfig);
 }
 

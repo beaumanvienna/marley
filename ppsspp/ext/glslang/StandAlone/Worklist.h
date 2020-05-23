@@ -40,7 +40,7 @@
 #include <mutex>
 #include <string>
 
-namespace glslang {
+namespace Pglslang {
 
     class TWorkItem {
     public:
@@ -90,6 +90,6 @@ namespace glslang {
         std::list<TWorkItem*> worklist;
     };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // WORKLIST_H_INCLUDED

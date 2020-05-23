@@ -24,9 +24,9 @@
 #include "ui/viewgroup.h"
 #include "Core/CoreParameter.h"
 
-class GamepadView : public UI::View {
+class GamepadView : public PUI::View {
 public:
-	GamepadView(UI::LayoutParams *layoutParams);
+	GamepadView(PUI::LayoutParams *layoutParams);
 
 	void Touch(const TouchInput &input) override;
 	bool Key(const KeyInput &input) override {
@@ -43,7 +43,7 @@ protected:
 
 class MultiTouchButton : public GamepadView {
 public:
-	MultiTouchButton(int bgImg, int bgDownImg, int img, float scale, UI::LayoutParams *layoutParams)
+	MultiTouchButton(int bgImg, int bgDownImg, int img, float scale, PUI::LayoutParams *layoutParams)
 		: GamepadView(layoutParams), scale_(scale), bgImg_(bgImg), bgDownImg_(bgDownImg), img_(img) {
 	}
 
@@ -71,14 +71,14 @@ private:
 
 class BoolButton : public MultiTouchButton {
 public:
-	BoolButton(bool *value, int bgImg, int bgDownImg, int img, float scale, UI::LayoutParams *layoutParams)
+	BoolButton(bool *value, int bgImg, int bgDownImg, int img, float scale, PUI::LayoutParams *layoutParams)
 		: MultiTouchButton(bgImg, bgDownImg, img, scale, layoutParams), value_(value) {
 
 	}
 	void Touch(const TouchInput &input) override;
 	bool IsDown() override { return *value_; }
 
-	UI::Event OnChange;
+	PUI::Event OnChange;
 
 private:
 	bool *value_;
@@ -86,7 +86,7 @@ private:
 
 class FPSLimitButton : public MultiTouchButton {
 public:
-	FPSLimitButton(FPSLimit limit, int bgImg, int bgDownImg, int img, float scale, UI::LayoutParams *layoutParams)
+	FPSLimitButton(FPSLimit limit, int bgImg, int bgDownImg, int img, float scale, PUI::LayoutParams *layoutParams)
 		: MultiTouchButton(bgImg, bgDownImg, img, scale, layoutParams), limit_(limit) {
 
 	}
@@ -99,7 +99,7 @@ private:
 
 class PSPButton : public MultiTouchButton {
 public:
-	PSPButton(int pspButtonBit, int bgImg, int bgDownImg, int img, float scale, UI::LayoutParams *layoutParams)
+	PSPButton(int pspButtonBit, int bgImg, int bgDownImg, int img, float scale, PUI::LayoutParams *layoutParams)
 		: MultiTouchButton(bgImg, bgDownImg, img, scale, layoutParams), pspButtonBit_(pspButtonBit) {
 	}
 	void Touch(const TouchInput &input) override;
@@ -111,7 +111,7 @@ private:
 
 class PSPDpad : public GamepadView {
 public:
-	PSPDpad(int arrowIndex, int arrowDownIndex, int overlayIndex, float scale, float spacing, UI::LayoutParams *layoutParams);
+	PSPDpad(int arrowIndex, int arrowDownIndex, int overlayIndex, float scale, float spacing, PUI::LayoutParams *layoutParams);
 
 	void Touch(const TouchInput &input) override;
 	void Draw(UIContext &dc) override;
@@ -132,7 +132,7 @@ private:
 
 class PSPStick : public GamepadView {
 public:
-	PSPStick(int bgImg, int stickImg, int stickDownImg, int stick, float scale, UI::LayoutParams *layoutParams);
+	PSPStick(int bgImg, int stickImg, int stickDownImg, int stick, float scale, PUI::LayoutParams *layoutParams);
 
 	void Touch(const TouchInput &input) override;
 	void Draw(UIContext &dc) override;
@@ -156,14 +156,14 @@ private:
 //initializes the layout from Config. if a default layout does not exist,
 //it sets up default values
 void InitPadLayout(float xres, float yres, float globalScale = 1.15f);
-UI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause);
+PUI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause);
 
 const int D_pad_Radius = 50;
 const int baseActionButtonSpacing = 60;
 
 class ComboKey : public MultiTouchButton {
 public:
-	ComboKey(int pspButtonBit, int bgImg, int bgDownImg, int img, float scale, UI::LayoutParams *layoutParams)
+	ComboKey(int pspButtonBit, int bgImg, int bgDownImg, int img, float scale, PUI::LayoutParams *layoutParams)
 		: MultiTouchButton(bgImg, bgDownImg, img, scale, layoutParams), pspButtonBit_(pspButtonBit)  {
 	}
 	void Touch(const TouchInput &input) override;

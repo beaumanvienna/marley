@@ -143,7 +143,7 @@
 #include "parseVersions.h"
 #include "localintermediate.h"
 
-namespace glslang {
+namespace Pglslang {
 
 #ifndef GLSLANG_WEB
 
@@ -534,7 +534,7 @@ void TParseVersions::getPreamble(std::string& preamble)
 //
 // Map from stage enum to externally readable text name.
 //
-const char* StageName(EShLanguage stage)
+const char* PStageName(EShLanguage stage)
 {
     switch(stage) {
     case EShLangVertex:         return "vertex";
@@ -567,7 +567,7 @@ const char* StageName(EShLanguage stage)
 void TParseVersions::requireStage(const TSourceLoc& loc, EShLanguageMask languageMask, const char* featureDesc)
 {
     if (((1 << language) & languageMask) == 0)
-        error(loc, "not supported in this stage:", featureDesc, StageName(language));
+        error(loc, "not supported in this stage:", featureDesc, PStageName(language));
 }
 
 // If only one stage supports a feature, this can be called.  But, all supporting stages
@@ -1170,4 +1170,4 @@ void TParseVersions::requireSpv(const TSourceLoc& loc, const char* op)
 #endif
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

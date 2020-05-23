@@ -48,7 +48,7 @@
 #endif
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 template <typename F>
 class FunctionMockerBase;
@@ -63,10 +63,10 @@ class FunctionMocker;
 
 template <typename R>
 class FunctionMocker<R()> : public
-    internal::FunctionMockerBase<R()> {
+    Pinternal::FunctionMockerBase<R()> {
  public:
   typedef R F();
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With() {
     return this->current_spec();
@@ -83,10 +83,10 @@ class FunctionMocker<R()> : public
 
 template <typename R, typename A1>
 class FunctionMocker<R(A1)> : public
-    internal::FunctionMockerBase<R(A1)> {
+    Pinternal::FunctionMockerBase<R(A1)> {
  public:
   typedef R F(A1);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1) {
     this->current_spec().SetMatchers(::testing::make_tuple(m1));
@@ -104,10 +104,10 @@ class FunctionMocker<R(A1)> : public
 
 template <typename R, typename A1, typename A2>
 class FunctionMocker<R(A1, A2)> : public
-    internal::FunctionMockerBase<R(A1, A2)> {
+    Pinternal::FunctionMockerBase<R(A1, A2)> {
  public:
   typedef R F(A1, A2);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2) {
     this->current_spec().SetMatchers(::testing::make_tuple(m1, m2));
@@ -125,10 +125,10 @@ class FunctionMocker<R(A1, A2)> : public
 
 template <typename R, typename A1, typename A2, typename A3>
 class FunctionMocker<R(A1, A2, A3)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3)> {
  public:
   typedef R F(A1, A2, A3);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3) {
@@ -147,10 +147,10 @@ class FunctionMocker<R(A1, A2, A3)> : public
 
 template <typename R, typename A1, typename A2, typename A3, typename A4>
 class FunctionMocker<R(A1, A2, A3, A4)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4)> {
  public:
   typedef R F(A1, A2, A3, A4);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4) {
@@ -170,10 +170,10 @@ class FunctionMocker<R(A1, A2, A3, A4)> : public
 template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5>
 class FunctionMocker<R(A1, A2, A3, A4, A5)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5)> {
  public:
   typedef R F(A1, A2, A3, A4, A5);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5) {
@@ -193,10 +193,10 @@ class FunctionMocker<R(A1, A2, A3, A4, A5)> : public
 template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5, typename A6>
 class FunctionMocker<R(A1, A2, A3, A4, A5, A6)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6)> {
  public:
   typedef R F(A1, A2, A3, A4, A5, A6);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5,
@@ -218,10 +218,10 @@ class FunctionMocker<R(A1, A2, A3, A4, A5, A6)> : public
 template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5, typename A6, typename A7>
 class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7)> {
  public:
   typedef R F(A1, A2, A3, A4, A5, A6, A7);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5,
@@ -243,10 +243,10 @@ class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7)> : public
 template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5, typename A6, typename A7, typename A8>
 class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7, A8)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8)> {
  public:
   typedef R F(A1, A2, A3, A4, A5, A6, A7, A8);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5,
@@ -268,10 +268,10 @@ class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7, A8)> : public
 template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5, typename A6, typename A7, typename A8, typename A9>
 class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7, A8, A9)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8, A9)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8, A9)> {
  public:
   typedef R F(A1, A2, A3, A4, A5, A6, A7, A8, A9);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5,
@@ -295,10 +295,10 @@ template <typename R, typename A1, typename A2, typename A3, typename A4,
     typename A5, typename A6, typename A7, typename A8, typename A9,
     typename A10>
 class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> : public
-    internal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> {
+    Pinternal::FunctionMockerBase<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> {
  public:
   typedef R F(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10);
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   MockSpec<F>& With(const Matcher<A1>& m1, const Matcher<A2>& m2,
       const Matcher<A3>& m3, const Matcher<A4>& m4, const Matcher<A5>& m5,
@@ -327,7 +327,7 @@ class FunctionMocker<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> : public
 // is meant to be defined in the ::testing namespace.  The following
 // line is just a trick for working around a bug in MSVC 8.0, which
 // cannot handle it if we define FunctionMocker in ::testing.
-using internal::FunctionMocker;
+using Pinternal::FunctionMocker;
 
 // GMOCK_RESULT_(tn, F) expands to the result type of function type F.
 // We define this as a variadic macro in case F contains unprotected
@@ -335,12 +335,12 @@ using internal::FunctionMocker;
 // in this file).
 // INTERNAL IMPLEMENTATION - DON'T USE IN USER CODE!!!
 #define GMOCK_RESULT_(tn, ...) \
-    tn ::testing::internal::Function<__VA_ARGS__>::Result
+    tn ::testing::Pinternal::Function<__VA_ARGS__>::Result
 
 // The type of argument N of the given function type.
 // INTERNAL IMPLEMENTATION - DON'T USE IN USER CODE!!!
 #define GMOCK_ARG_(tn, N, ...) \
-    tn ::testing::internal::Function<__VA_ARGS__>::Argument##N
+    tn ::testing::Pinternal::Function<__VA_ARGS__>::Argument##N
 
 // The matcher type for argument N of the given function type.
 // INTERNAL IMPLEMENTATION - DON'T USE IN USER CODE!!!
@@ -357,7 +357,7 @@ using internal::FunctionMocker;
   GMOCK_RESULT_(tn, __VA_ARGS__) ct Method( \
       ) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 0), \
         this_method_does_not_take_0_arguments); \
     GMOCK_MOCKER_(0, constness, Method).SetOwnerAndName(this, #Method); \
@@ -376,7 +376,7 @@ using internal::FunctionMocker;
   GMOCK_RESULT_(tn, __VA_ARGS__) ct Method( \
       GMOCK_ARG_(tn, 1, __VA_ARGS__) gmock_a1) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 1), \
         this_method_does_not_take_1_argument); \
     GMOCK_MOCKER_(1, constness, Method).SetOwnerAndName(this, #Method); \
@@ -396,7 +396,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 1, __VA_ARGS__) gmock_a1, \
       GMOCK_ARG_(tn, 2, __VA_ARGS__) gmock_a2) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 2), \
         this_method_does_not_take_2_arguments); \
     GMOCK_MOCKER_(2, constness, Method).SetOwnerAndName(this, #Method); \
@@ -418,7 +418,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 2, __VA_ARGS__) gmock_a2, \
       GMOCK_ARG_(tn, 3, __VA_ARGS__) gmock_a3) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 3), \
         this_method_does_not_take_3_arguments); \
     GMOCK_MOCKER_(3, constness, Method).SetOwnerAndName(this, #Method); \
@@ -444,7 +444,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 3, __VA_ARGS__) gmock_a3, \
       GMOCK_ARG_(tn, 4, __VA_ARGS__) gmock_a4) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 4), \
         this_method_does_not_take_4_arguments); \
     GMOCK_MOCKER_(4, constness, Method).SetOwnerAndName(this, #Method); \
@@ -472,7 +472,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 4, __VA_ARGS__) gmock_a4, \
       GMOCK_ARG_(tn, 5, __VA_ARGS__) gmock_a5) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 5), \
         this_method_does_not_take_5_arguments); \
     GMOCK_MOCKER_(5, constness, Method).SetOwnerAndName(this, #Method); \
@@ -502,7 +502,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 5, __VA_ARGS__) gmock_a5, \
       GMOCK_ARG_(tn, 6, __VA_ARGS__) gmock_a6) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 6), \
         this_method_does_not_take_6_arguments); \
     GMOCK_MOCKER_(6, constness, Method).SetOwnerAndName(this, #Method); \
@@ -534,7 +534,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 6, __VA_ARGS__) gmock_a6, \
       GMOCK_ARG_(tn, 7, __VA_ARGS__) gmock_a7) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 7), \
         this_method_does_not_take_7_arguments); \
     GMOCK_MOCKER_(7, constness, Method).SetOwnerAndName(this, #Method); \
@@ -568,7 +568,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 7, __VA_ARGS__) gmock_a7, \
       GMOCK_ARG_(tn, 8, __VA_ARGS__) gmock_a8) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 8), \
         this_method_does_not_take_8_arguments); \
     GMOCK_MOCKER_(8, constness, Method).SetOwnerAndName(this, #Method); \
@@ -604,7 +604,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 8, __VA_ARGS__) gmock_a8, \
       GMOCK_ARG_(tn, 9, __VA_ARGS__) gmock_a9) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 9), \
         this_method_does_not_take_9_arguments); \
     GMOCK_MOCKER_(9, constness, Method).SetOwnerAndName(this, #Method); \
@@ -644,7 +644,7 @@ using internal::FunctionMocker;
       GMOCK_ARG_(tn, 9, __VA_ARGS__) gmock_a9, \
       GMOCK_ARG_(tn, 10, __VA_ARGS__) gmock_a10) constness { \
     GTEST_COMPILE_ASSERT_((::testing::tuple_size<                          \
-        tn ::testing::internal::Function<__VA_ARGS__>::ArgumentTuple>::value \
+        tn ::testing::Pinternal::Function<__VA_ARGS__>::ArgumentTuple>::value \
             == 10), \
         this_method_does_not_take_10_arguments); \
     GMOCK_MOCKER_(10, constness, Method).SetOwnerAndName(this, #Method); \

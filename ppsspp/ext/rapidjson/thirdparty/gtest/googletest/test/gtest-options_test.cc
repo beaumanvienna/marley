@@ -56,7 +56,7 @@
 #undef GTEST_IMPLEMENTATION_
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 namespace {
 
 // Turns the given relative path into an absolute path.
@@ -211,5 +211,5 @@ TEST_F(XmlOutputChangeDirTest, PreserveOriginalWorkingDirWithAbsolutePath) {
 }
 
 }  // namespace
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

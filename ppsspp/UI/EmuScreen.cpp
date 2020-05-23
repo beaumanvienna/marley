@@ -285,7 +285,7 @@ void EmuScreen::bootGame(const std::string &filename) {
 	}
 
 	loadingViewColor_->Divert(0xFFFFFFFF, 0.75f);
-	loadingViewVisible_->Divert(UI::V_VISIBLE, 0.75f);
+	loadingViewVisible_->Divert(PUI::V_VISIBLE, 0.75f);
 }
 
 void EmuScreen::bootComplete() {
@@ -334,7 +334,7 @@ void EmuScreen::bootComplete() {
 	saveStateSlot_ = SaveState::GetCurrentSlot();
 
 	loadingViewColor_->Divert(0x00FFFFFF, 0.2f);
-	loadingViewVisible_->Divert(UI::V_INVISIBLE, 0.2f);
+	loadingViewVisible_->Divert(PUI::V_INVISIBLE, 0.2f);
 }
 
 EmuScreen::~EmuScreen() {
@@ -537,7 +537,7 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 
 	case VIRTKEY_DEVMENU:
 	{
-		UI::EventParams e{};
+		PUI::EventParams e{};
 		OnDevMenu.Trigger(e);
 		break;
 	}
@@ -918,9 +918,9 @@ void EmuScreen::processAxis(const AxisInput &axis, int direction) {
 	}
 }
 
-class GameInfoBGView : public UI::InertView {
+class GameInfoBGView : public PUI::InertView {
 public:
-	GameInfoBGView(const std::string &gamePath, UI::LayoutParams *layoutParams) : InertView(layoutParams), gamePath_(gamePath) {
+	GameInfoBGView(const std::string &gamePath, PUI::LayoutParams *layoutParams) : InertView(layoutParams), gamePath_(gamePath) {
 	}
 
 	void Draw(UIContext &dc) {
@@ -953,7 +953,7 @@ protected:
 };
 
 void EmuScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *sc = GetI18NCategory("Screen");
 	I18NCategory *dev = GetI18NCategory("Developer");
@@ -1003,7 +1003,7 @@ void EmuScreen::CreateViews() {
 	loadingViewColor_->Persist();
 
 	// We start invisible here, in case of recreated views.
-	loadingViewVisible_ = loadingSpinner->AddTween(new VisibilityTween(UI::V_INVISIBLE, UI::V_INVISIBLE, 0.2f, &bezierEaseInOut));
+	loadingViewVisible_ = loadingSpinner->AddTween(new VisibilityTween(PUI::V_INVISIBLE, PUI::V_INVISIBLE, 0.2f, &bezierEaseInOut));
 	loadingViewVisible_->Persist();
 	loadingViewVisible_->Finish.Add([loadingBG, loadingSpinner](EventParams &p) {
 		loadingBG->SetVisibility(p.v->GetVisibility());
@@ -1020,13 +1020,13 @@ void EmuScreen::CreateViews() {
 	});
 }
 
-UI::EventReturn EmuScreen::OnDevTools(UI::EventParams &params) {
+PUI::EventReturn EmuScreen::OnDevTools(PUI::EventParams &params) {
 	I18NCategory *dev = GetI18NCategory("Developer");
 	DevMenu *devMenu = new DevMenu(dev);
 	if (params.v)
 		devMenu->SetPopupOrigin(params.v);
 	screenManager()->push(devMenu);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void EmuScreen::update() {
@@ -1094,20 +1094,20 @@ void EmuScreen::update() {
 
 			saveStatePreview_->SetFilename(fn);
 			if (!fn.empty()) {
-				saveStatePreview_->SetVisibility(UI::V_VISIBLE);
+				saveStatePreview_->SetVisibility(PUI::V_VISIBLE);
 				saveStatePreviewShownTime_ = time_now_d();
 			} else {
-				saveStatePreview_->SetVisibility(UI::V_GONE);
+				saveStatePreview_->SetVisibility(PUI::V_GONE);
 			}
 		}
 
-		if (saveStatePreview_->GetVisibility() == UI::V_VISIBLE) {
+		if (saveStatePreview_->GetVisibility() == PUI::V_VISIBLE) {
 			double endTime = saveStatePreviewShownTime_ + 2.0;
 			float alpha = clamp_value((endTime - time_now_d()) * 4.0, 0.0, 1.0);
 			saveStatePreview_->SetColor(colorAlpha(0x00FFFFFF, alpha));
 
 			if (time_now_d() - saveStatePreviewShownTime_ > 2) {
-				saveStatePreview_->SetVisibility(UI::V_GONE);
+				saveStatePreview_->SetVisibility(PUI::V_GONE);
 			}
 		}
 	}
@@ -1229,7 +1229,7 @@ void EmuScreen::render() {
 
 	if (invalid_) {
 		// Loading, or after shutdown?
-		if (loadingTextView_->GetVisibility() == UI::V_VISIBLE)
+		if (loadingTextView_->GetVisibility() == PUI::V_VISIBLE)
 			loadingTextView_->SetText(PSP_GetLoading());
 
 		// It's possible this might be set outside PSP_RunLoopFor().
@@ -1306,7 +1306,7 @@ void EmuScreen::render() {
 
 bool EmuScreen::hasVisibleUI() {
 	// Regular but uncommon UI.
-	if (saveStatePreview_->GetVisibility() != UI::V_GONE || loadingSpinner_->GetVisibility() == UI::V_VISIBLE)
+	if (saveStatePreview_->GetVisibility() != PUI::V_GONE || loadingSpinner_->GetVisibility() == PUI::V_VISIBLE)
 		return true;
 	if (!osm.IsEmpty() || g_PConfig.bShowTouchControls || g_PConfig.iShowFPSCounter != 0)
 		return true;
@@ -1338,7 +1338,7 @@ void EmuScreen::renderUI() {
 
 	DrawBuffer *draw2d = ctx->Draw();
 	if (root_) {
-		UI::LayoutViewHierarchy(*ctx, root_);
+		PUI::LayoutViewHierarchy(*ctx, root_);
 		root_->Draw(*ctx);
 	}
 

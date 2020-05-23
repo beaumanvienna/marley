@@ -21,7 +21,7 @@
 #include "i18n/i18n.h"
 
 void TiltAnalogSettingsScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *co = GetI18NCategory("Controls");
 	I18NCategory *di = GetI18NCategory("Dialog");
@@ -69,10 +69,10 @@ bool TiltAnalogSettingsScreen::axis(const AxisInput &axis) {
 	return false;
 }
 
-UI::EventReturn TiltAnalogSettingsScreen::OnCalibrate(UI::EventParams &e) {
+PUI::EventReturn TiltAnalogSettingsScreen::OnCalibrate(PUI::EventParams &e) {
 	g_PConfig.fTiltBaseX = currentTiltX_;
 	g_PConfig.fTiltBaseY = currentTiltY_;
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 

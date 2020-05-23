@@ -41,7 +41,7 @@ static float local_dp_yres;
 class DragDropDisplay : public MultiTouchDisplay {
 public:
 	DragDropDisplay(float &x, float &y, int img, float &scale)
-		: MultiTouchDisplay(img, scale, new UI::AnchorLayoutParams(x*local_dp_xres, y*local_dp_yres, UI::NONE, UI::NONE, true)),
+		: MultiTouchDisplay(img, scale, new PUI::AnchorLayoutParams(x*local_dp_xres, y*local_dp_yres, PUI::NONE, PUI::NONE, true)),
 		x_(x), y_(y), theScale_(scale) {
 		scale_ = theScale_;
 	}	
@@ -70,7 +70,7 @@ DisplayLayoutScreen::DisplayLayoutScreen() {
 bool DisplayLayoutScreen::touch(const TouchInput &touch) {
 	UIScreen::touch(touch);
 
-	using namespace UI;
+	using namespace PUI;
 
 	int mode = mode_ ? mode_->GetSelection() : 0;
 	if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) { mode = -1; }
@@ -129,7 +129,7 @@ bool DisplayLayoutScreen::touch(const TouchInput &touch) {
 			if (touchY > minY - limitY - 10 && touchY < minY + limitY + 10) {
 				newY = touchY;
 			}
-			picked_->ReplaceLayoutParams(new UI::AnchorLayoutParams(newX, newY, NONE, NONE, true));
+			picked_->ReplaceLayoutParams(new PUI::AnchorLayoutParams(newX, newY, NONE, NONE, true));
 		} else if (mode == 1) {
 			// Resize. Vertical = scaling, horizontal = spacing;
 			// Up should be bigger so let's negate in that direction
@@ -176,16 +176,16 @@ void DisplayLayoutScreen::onFinish(DialogResult reason) {
 	g_PConfig.Save("DisplayLayoutScreen::onFinish");
 }
 
-UI::EventReturn DisplayLayoutScreen::OnCenter(UI::EventParams &e) {
+PUI::EventReturn DisplayLayoutScreen::OnCenter(PUI::EventParams &e) {
 	if (!stickToEdgeX || (stickToEdgeX && stickToEdgeY))
 		g_PConfig.fSmallDisplayOffsetX = 0.5f;
 	if (!stickToEdgeY || (stickToEdgeX && stickToEdgeY))
 		g_PConfig.fSmallDisplayOffsetY = 0.5f;
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
-UI::EventReturn DisplayLayoutScreen::OnZoomTypeChange(UI::EventParams &e) {
+PUI::EventReturn DisplayLayoutScreen::OnZoomTypeChange(PUI::EventParams &e) {
 	if (g_PConfig.iSmallDisplayZoomType < (int)SmallDisplayZoom::MANUAL) {
 		const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 		float autoBound = bounds.w / 480.0f;
@@ -195,16 +195,16 @@ UI::EventReturn DisplayLayoutScreen::OnZoomTypeChange(UI::EventParams &e) {
 		g_PConfig.fSmallDisplayOffsetY = 0.5f;
 	}
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
 void DisplayLayoutScreen::dialogFinished(const Screen *dialog, DialogResult result) {
 	RecreateViews();
 }
 
-class Boundary : public UI::View {
+class Boundary : public PUI::View {
 public:
-	Boundary(UI::LayoutParams *layoutParams) : UI::View(layoutParams) {
+	Boundary(PUI::LayoutParams *layoutParams) : PUI::View(layoutParams) {
 	}
 
 	void Draw(UIContext &dc) override {
@@ -213,10 +213,10 @@ public:
 };
 
 // Stealing StickyChoice's layout and text rendering.
-class HighlightLabel : public UI::StickyChoice {
+class HighlightLabel : public PUI::StickyChoice {
 public:
-	HighlightLabel(const std::string &text, UI::LayoutParams *layoutParams)
-		: UI::StickyChoice(text, "", layoutParams) {
+	HighlightLabel(const std::string &text, PUI::LayoutParams *layoutParams)
+		: PUI::StickyChoice(text, "", layoutParams) {
 		Press();
 	}
 
@@ -229,7 +229,7 @@ void DisplayLayoutScreen::CreateViews() {
 	local_dp_xres = bounds.w;
 	local_dp_yres = bounds.h;
 
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *gr = GetI18NCategory("Graphics");

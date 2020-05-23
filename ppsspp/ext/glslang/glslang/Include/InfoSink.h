@@ -38,7 +38,7 @@
 #include "../Include/Common.h"
 #include <cmath>
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // TPrefixType is used to centralize how info log messages start.
@@ -133,12 +133,12 @@ protected:
     int outputStream;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 class TInfoSink {
 public:
-    glslang::TInfoSinkBase info;
-    glslang::TInfoSinkBase debug;
+    Pglslang::TInfoSinkBase info;
+    Pglslang::TInfoSinkBase debug;
 };
 
 #endif // _INFOSINK_INCLUDED_

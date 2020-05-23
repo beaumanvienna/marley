@@ -67,8 +67,8 @@ public:
 	SavedataPopupScreen(std::string savePath, std::string title) : PopupScreen(TrimString(title)), savePath_(savePath) {
 	}
 
-	void CreatePopupContents(UI::ViewGroup *parent) override {
-		using namespace UI;
+	void CreatePopupContents(PUI::ViewGroup *parent) override {
+		using namespace PUI;
 		UIContext &dc = *screenManager()->getUIContext();
 		const Style &textStyle = dc.theme->popupStyle;
 
@@ -116,20 +116,20 @@ public:
 	}
 
 protected:
-	UI::Size PopupWidth() const override { return 500; }
+	PUI::Size PopupWidth() const override { return 500; }
 
 private:
-	UI::EventReturn OnDeleteButtonClick(UI::EventParams &e);
+	PUI::EventReturn OnDeleteButtonClick(PUI::EventParams &e);
 	std::string savePath_;
 };
 
-class SortedLinearLayout : public UI::LinearLayout {
+class SortedLinearLayout : public PUI::LinearLayout {
 public:
 	typedef std::function<bool(const View *, const View *)> CompareFunc;
 	typedef std::function<bool()> DoneFunc;
 
-	SortedLinearLayout(UI::Orientation orientation, UI::LayoutParams *layoutParams = nullptr)
-		: UI::LinearLayout(orientation, layoutParams) {
+	SortedLinearLayout(PUI::Orientation orientation, PUI::LayoutParams *layoutParams = nullptr)
+		: PUI::LinearLayout(orientation, layoutParams) {
 	}
 
 	void SetCompare(CompareFunc lessFunc, DoneFunc doneFunc) {
@@ -151,13 +151,13 @@ void SortedLinearLayout::Update() {
 	if (doneFunc_ && doneFunc_()) {
 		lessFunc_ = CompareFunc();
 	}
-	UI::LinearLayout::Update();
+	PUI::LinearLayout::Update();
 }
 
-class SavedataButton : public UI::Clickable {
+class SavedataButton : public PUI::Clickable {
 public:
-	SavedataButton(const std::string &gamePath, UI::LayoutParams *layoutParams = 0)
-		: UI::Clickable(layoutParams), savePath_(gamePath) {
+	SavedataButton(const std::string &gamePath, PUI::LayoutParams *layoutParams = 0)
+		: PUI::Clickable(layoutParams), savePath_(gamePath) {
 		SetTag(gamePath);
 	}
 
@@ -175,11 +175,11 @@ private:
 	std::string subtitle_;
 };
 
-UI::EventReturn SavedataPopupScreen::OnDeleteButtonClick(UI::EventParams &e) {
+PUI::EventReturn SavedataPopupScreen::OnDeleteButtonClick(PUI::EventParams &e) {
 	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(nullptr, savePath_, GAMEINFO_WANTSIZE);
 	ginfo->Delete();
 	TriggerFinish(DR_NO);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 static std::string CleanSaveString(std::string str) {
@@ -193,7 +193,7 @@ void SavedataButton::Draw(UIContext &dc) {
 	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(dc.GetDrawContext(), savePath_, GAMEINFO_WANTSIZE);
 	Draw::Texture *texture = 0;
 	u32 color = 0, shadowColor = 0;
-	using namespace UI;
+	using namespace PUI;
 
 	if (ginfo->icon.texture) {
 		texture = ginfo->icon.texture->GetTexture();
@@ -204,7 +204,7 @@ void SavedataButton::Draw(UIContext &dc) {
 	int w = 144;
 	int h = bounds_.h;
 
-	UI::Style style = dc.theme->itemStyle;
+	PUI::Style style = dc.theme->itemStyle;
 	if (down_)
 		style = dc.theme->itemDownStyle;
 
@@ -311,8 +311,8 @@ void SavedataButton::Draw(UIContext &dc) {
 	dc.RebindTexture();
 }
 
-SavedataBrowser::SavedataBrowser(std::string path, UI::LayoutParams *layoutParams)
-	: LinearLayout(UI::ORIENT_VERTICAL, layoutParams), path_(path) {
+SavedataBrowser::SavedataBrowser(std::string path, PUI::LayoutParams *layoutParams)
+	: LinearLayout(PUI::ORIENT_VERTICAL, layoutParams), path_(path) {
 	Refresh();
 }
 
@@ -330,7 +330,7 @@ void SavedataBrowser::SetSortOption(SavedataSortOption opt) {
 	}
 }
 
-bool SavedataBrowser::ByFilename(const UI::View *v1, const UI::View *v2) {
+bool SavedataBrowser::ByFilename(const PUI::View *v1, const PUI::View *v2) {
 	const SavedataButton *b1 = static_cast<const SavedataButton *>(v1);
 	const SavedataButton *b2 = static_cast<const SavedataButton *>(v2);
 
@@ -349,7 +349,7 @@ static time_t GetTotalSize(const SavedataButton *b) {
 	}
 }
 
-bool SavedataBrowser::BySize(const UI::View *v1, const UI::View *v2) {
+bool SavedataBrowser::BySize(const PUI::View *v1, const PUI::View *v2) {
 	const SavedataButton *b1 = static_cast<const SavedataButton *>(v1);
 	const SavedataButton *b2 = static_cast<const SavedataButton *>(v2);
 
@@ -374,7 +374,7 @@ static time_t GetDateSeconds(const SavedataButton *b) {
 	return (time_t)0;
 }
 
-bool SavedataBrowser::ByDate(const UI::View *v1, const UI::View *v2) {
+bool SavedataBrowser::ByDate(const PUI::View *v1, const PUI::View *v2) {
 	const SavedataButton *b1 = static_cast<const SavedataButton *>(v1);
 	const SavedataButton *b2 = static_cast<const SavedataButton *>(v2);
 
@@ -388,7 +388,7 @@ bool SavedataBrowser::SortDone() {
 }
 
 void SavedataBrowser::Refresh() {
-	using namespace UI;
+	using namespace PUI;
 
 	// Kill all the contents
 	Clear();
@@ -397,7 +397,7 @@ void SavedataBrowser::Refresh() {
 	I18NCategory *mm = GetI18NCategory("MainMenu");
 	I18NCategory *sa = GetI18NCategory("Savedata");
 
-	SortedLinearLayout *gl = new SortedLinearLayout(UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+	SortedLinearLayout *gl = new SortedLinearLayout(PUI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	gl->SetSpacing(4.0f);
 	gameList_ = gl;
 	Add(gameList_);
@@ -417,7 +417,7 @@ void SavedataBrowser::Refresh() {
 			isSaveData = true;
 
 		if (isSaveData || isState) {
-			savedataButtons.push_back(new SavedataButton(fileInfo[i].fullName, new UI::LinearLayoutParams(UI::FILL_PARENT, UI::WRAP_CONTENT)));
+			savedataButtons.push_back(new SavedataButton(fileInfo[i].fullName, new PUI::LinearLayoutParams(PUI::FILL_PARENT, PUI::WRAP_CONTENT)));
 		}
 	}
 
@@ -427,7 +427,7 @@ void SavedataBrowser::Refresh() {
 	}
 
 	if (savedataButtons.empty()) {
-		ViewGroup *group = new LinearLayout(ORIENT_VERTICAL, new UI::LinearLayoutParams(UI::Margins(12, 0)));
+		ViewGroup *group = new LinearLayout(ORIENT_VERTICAL, new PUI::LinearLayoutParams(PUI::Margins(12, 0)));
 		group->Add(new TextView(sa->T("None yet.  Things will appear here after you save.")));
 		gameList_->Add(group);
 	}
@@ -436,14 +436,14 @@ void SavedataBrowser::Refresh() {
 	SetSortOption(sortOption_);
 }
 
-UI::EventReturn SavedataBrowser::SavedataButtonClick(UI::EventParams &e) {
+PUI::EventReturn SavedataBrowser::SavedataButtonClick(PUI::EventParams &e) {
 	SavedataButton *button = static_cast<SavedataButton *>(e.v);
-	UI::EventParams e2{};
+	PUI::EventParams e2{};
 	e2.v = e.v;
 	e2.s = button->GamePath();
 	// Insta-update - here we know we are already on the right thread.
 	OnChoice.Trigger(e2);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 SavedataScreen::SavedataScreen(std::string gamePath) : UIDialogScreenWithGameBackground(gamePath) {
@@ -457,7 +457,7 @@ SavedataScreen::~SavedataScreen() {
 }
 
 void SavedataScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	I18NCategory *sa = GetI18NCategory("Savedata");
 	I18NCategory *di = GetI18NCategory("Dialog");
 	std::string savedata_dir = GetSysDirectory(DIRECTORY_SAVEDATA);
@@ -499,16 +499,16 @@ void SavedataScreen::CreateViews() {
 	root_->Add(sortStrip);
 }
 
-UI::EventReturn SavedataScreen::OnSortClick(UI::EventParams &e) {
+PUI::EventReturn SavedataScreen::OnSortClick(PUI::EventParams &e) {
 	sortOption_ = SavedataSortOption(e.a);
 
 	dataBrowser_->SetSortOption(sortOption_);
 	stateBrowser_->SetSortOption(sortOption_);
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn SavedataScreen::OnSavedataButtonClick(UI::EventParams &e) {
+PUI::EventReturn SavedataScreen::OnSavedataButtonClick(PUI::EventParams &e) {
 	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(screenManager()->getDrawContext(), e.s, 0);
 	SavedataPopupScreen *popupScreen = new SavedataPopupScreen(e.s, ginfo->GetTitle());
 	if (e.v) {
@@ -516,7 +516,7 @@ UI::EventReturn SavedataScreen::OnSavedataButtonClick(UI::EventParams &e) {
 	}
 	screenManager()->push(popupScreen);
 	// the game path: e.s;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void SavedataScreen::dialogFinished(const Screen *dialog, DialogResult result) {

@@ -21,7 +21,7 @@
 
 #include <map>
 
-namespace UI {
+namespace PUI {
 	class CheckBox;
 }
 
@@ -31,19 +31,19 @@ public:
 
 	void CreateViews() override;
 	void onFinish(DialogResult result) override;
-	UI::EventReturn onCombo(UI::EventParams &e);
+	PUI::EventReturn onCombo(PUI::EventParams &e);
 private:
 	std::map<std::string, bool*> keyToggles;
 	bool array[16];
 	int *mode;
-	UI::ChoiceStrip *comboselect;
-	UI::ScrollView *rightScroll_;
+	PUI::ChoiceStrip *comboselect;
+	PUI::ScrollView *rightScroll_;
 	class ChoiceEventHandler{
 	public:
-		ChoiceEventHandler(UI::CheckBox *checkbox) : checkbox_(checkbox) {}
-		UI::EventReturn onChoiceClick(UI::EventParams &e);
+		ChoiceEventHandler(PUI::CheckBox *checkbox) : checkbox_(checkbox) {}
+		PUI::EventReturn onChoiceClick(PUI::EventParams &e);
 	private:
-		UI::CheckBox *checkbox_;
+		PUI::CheckBox *checkbox_;
 	};
 };
 

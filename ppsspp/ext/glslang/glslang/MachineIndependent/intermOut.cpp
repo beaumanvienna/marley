@@ -79,7 +79,7 @@ bool IsNan(double x) {
 
 }
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Two purposes:
@@ -1534,6 +1534,6 @@ void TIntermediate::output(TInfoSink& infoSink, bool tree)
     treeRoot->traverse(&it);
 }
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // not GLSLANG_WEB

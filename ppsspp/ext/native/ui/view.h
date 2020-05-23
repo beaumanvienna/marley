@@ -39,7 +39,7 @@ namespace Draw {
 
 
 // I don't generally like namespaces but I think we do need one for UI, so many potentially-clashing names.
-namespace UI {
+namespace PUI {
 
 class View;
 
@@ -209,7 +209,7 @@ enum PersistStatus {
 };
 
 typedef std::vector<int> PersistBuffer;
-typedef std::map<std::string, UI::PersistBuffer> PersistMap;
+typedef std::map<std::string, PUI::PersistBuffer> PersistMap;
 
 class ViewGroup;
 

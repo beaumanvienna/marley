@@ -33,7 +33,7 @@
 #include "gtest/gtest.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 #if GTEST_HAS_TYPED_TEST_P
 
@@ -114,5 +114,5 @@ const char* TypedTestCasePState::VerifyRegisteredTestNames(
 
 #endif  // GTEST_HAS_TYPED_TEST_P
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

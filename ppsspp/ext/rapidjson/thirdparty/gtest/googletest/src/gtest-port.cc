@@ -78,7 +78,7 @@
 #undef GTEST_IMPLEMENTATION_
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 // MSVC and C++Builder do not provide a definition of STDERR_FILENO.
@@ -1102,16 +1102,16 @@ std::string ReadEntireFile(FILE* file) {
 
 #if GTEST_HAS_DEATH_TEST
 
-static const ::std::vector<testing::internal::string>* g_injected_test_argvs =
+static const ::std::vector<testing::Pinternal::string>* g_injected_test_argvs =
                                         NULL;  // Owned.
 
-void SetInjectableArgvs(const ::std::vector<testing::internal::string>* argvs) {
+void SetInjectableArgvs(const ::std::vector<testing::Pinternal::string>* argvs) {
   if (g_injected_test_argvs != argvs)
     delete g_injected_test_argvs;
   g_injected_test_argvs = argvs;
 }
 
-const ::std::vector<testing::internal::string>& GetInjectableArgvs() {
+const ::std::vector<testing::Pinternal::string>& GetInjectableArgvs() {
   if (g_injected_test_argvs != NULL) {
     return *g_injected_test_argvs;
   }
@@ -1255,5 +1255,5 @@ std::string StringFromGTestEnv(const char* flag, const char* default_value) {
   return default_value;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

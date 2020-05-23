@@ -34,12 +34,12 @@ protected:
 	virtual void CreateViews() override;
 
 private:
-	UI::EventReturn OnInstall(UI::EventParams &params);
+	PUI::EventReturn OnInstall(PUI::EventParams &params);
 
-	UI::Choice *installChoice_ = nullptr;
-	UI::Choice *backChoice_ = nullptr;
-	UI::ProgressBar *progressBar_ = nullptr;
-	UI::TextView *doneView_ = nullptr;
+	PUI::Choice *installChoice_ = nullptr;
+	PUI::Choice *backChoice_ = nullptr;
+	PUI::ProgressBar *progressBar_ = nullptr;
+	PUI::TextView *doneView_ = nullptr;
 	std::string zipPath_;
 	bool returnToHomebrew_ = true;
 	bool installStarted_ = false;

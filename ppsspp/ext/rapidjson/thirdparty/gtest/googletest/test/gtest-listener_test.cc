@@ -50,7 +50,7 @@ using ::testing::UnitTest;
 std::vector<std::string>* g_events = NULL;
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 class EventRecordingListener : public TestEventListener {
  public:
@@ -167,12 +167,12 @@ TEST_F(ListenerTest, DoesBar) {
   SUCCEED();  // Triggers OnTestPartResult.
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing
 
-using ::testing::internal::EnvironmentInvocationCatcher;
-using ::testing::internal::EventRecordingListener;
+using ::testing::Pinternal::EnvironmentInvocationCatcher;
+using ::testing::Pinternal::EventRecordingListener;
 
 void VerifyResults(const std::vector<std::string>& data,
                    const char* const* expected_data,

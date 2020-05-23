@@ -20,7 +20,7 @@ RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(type-limits)
 #endif
 
-using namespace rapidjson::internal;
+using namespace rapidjson::Pinternal;
 
 TEST(dtoa, normal) {
     char buffer[30];

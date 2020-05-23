@@ -78,7 +78,7 @@ void CwCheatScreen::CreateCodeList() {
 }
 
 void CwCheatScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	I18NCategory *cw = GetI18NCategory("CwCheats");
 	I18NCategory *di = GetI18NCategory("Dialog");
 	CreateCodeList();
@@ -131,7 +131,7 @@ void CwCheatScreen::onFinish(DialogResult result) {
 	}
 }
 
-UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
+PUI::EventReturn CwCheatScreen::OnEnableAll(PUI::EventParams &params) {
 	std::fstream fs;
 	enableAll = !enableAll;
 	PFile::OpenCPPFile(fs, activeCheatFile, std::ios::out);
@@ -156,16 +156,16 @@ UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
 	fs.close();
 
 	g_PConfig.bReloadCheats = true;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CwCheatScreen::OnAddCheat(UI::EventParams &params) {
+PUI::EventReturn CwCheatScreen::OnAddCheat(PUI::EventParams &params) {
 	TriggerFinish(DR_OK);
 	g_PConfig.bReloadCheats = true;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
+PUI::EventReturn CwCheatScreen::OnEditCheatFile(PUI::EventParams &params) {
 	g_PConfig.bReloadCheats = true;
 	if (MIPSComp::jit) {
 		MIPSComp::jit->ClearCache();
@@ -176,13 +176,13 @@ UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
 #else
 	PFile::openIniFile(activeCheatFile);
 #endif
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
+PUI::EventReturn CwCheatScreen::OnImportCheat(PUI::EventParams &params) {
 	if (gameTitle.length() != 9) {
 		WARN_LOG(COMMON, "CWCHEAT: Incorrect ID(%s) - can't import cheats.", gameTitle.c_str());
-		return UI::EVENT_DONE;
+		return PUI::EVENT_DONE;
 	}
 	std::string line;
 	std::vector<std::string> title;
@@ -262,11 +262,11 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	g_PConfig.bReloadCheats = true;
 	//Need a better way to refresh the screen, rather than exiting and having to re-enter.
 	TriggerFinish(DR_OK);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CwCheatScreen::OnCheckBox(UI::EventParams &params) {
-	return UI::EVENT_DONE;
+PUI::EventReturn CwCheatScreen::OnCheckBox(PUI::EventParams &params) {
+	return PUI::EVENT_DONE;
 }
 
 void CwCheatScreen::processFileOn(std::string activatedCheat) {
@@ -318,7 +318,7 @@ void CheatCheckBox::Draw(UIContext &dc) {
 
 	int image = *toggle_ ? dc.theme->checkOn : dc.theme->checkOff;
 
-	UI::Style style = dc.theme->itemStyle;
+	PUI::Style style = dc.theme->itemStyle;
 	if (!IsEnabled())
 		style = dc.theme->itemDisabledStyle;
 

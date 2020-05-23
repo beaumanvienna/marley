@@ -145,7 +145,7 @@ void GameSettingsScreen::CreateViews() {
 	// Information in the top left.
 	// Back button to the bottom left.
 	// Scrolling action menu to the right.
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *gr = GetI18NCategory("Graphics");
@@ -231,7 +231,7 @@ void GameSettingsScreen::CreateViews() {
 		case FB_BUFFERED_MODE:
 			break;
 		}
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	renderingModeChoice->OnChoice.Handle(this, &GameSettingsScreen::OnRenderingMode);
 	renderingModeChoice->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
@@ -239,7 +239,7 @@ void GameSettingsScreen::CreateViews() {
 	blockTransfer->OnClick.Add([=](EventParams &e) {
 		if (!g_PConfig.bBlockTransferGPU)
 			settingInfo_->Show(gr->T("BlockTransfer Tip", "Some games require this to be On for correct graphics"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	blockTransfer->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
 
@@ -254,7 +254,7 @@ void GameSettingsScreen::CreateViews() {
 		softwareGPU->OnClick.Add([=](EventParams &e) {
 			if (g_PConfig.bSoftwareRendering)
 				settingInfo_->Show(gr->T("SoftGPU Tip", "Currently VERY slow"), e.v);
-			return UI::EVENT_CONTINUE;
+			return PUI::EVENT_CONTINUE;
 		});
 		softwareGPU->OnClick.Handle(this, &GameSettingsScreen::OnSoftwareRendering);
 		if (PSP_IsInited())
@@ -327,7 +327,7 @@ void GameSettingsScreen::CreateViews() {
 		if (max_res_temp == 3)
 			max_res_temp = 4;  // At least allow 2x
 		int max_res = std::min(max_res_temp, (int)ARRAY_SIZE(deviceResolutions));
-		UI::PopupMultiChoice *hwscale = graphicsSettings->Add(new PopupMultiChoice(&g_PConfig.iAndroidHwScale, gr->T("Display Resolution (HW scaler)"), deviceResolutions, 0, max_res, gr->GetName(), screenManager()));
+		PUI::PopupMultiChoice *hwscale = graphicsSettings->Add(new PopupMultiChoice(&g_PConfig.iAndroidHwScale, gr->T("Display Resolution (HW scaler)"), deviceResolutions, 0, max_res, gr->GetName(), screenManager()));
 		hwscale->OnChoice.Handle(this, &GameSettingsScreen::OnHwScaleChange);  // To refresh the display mode
 	}
 #endif
@@ -343,14 +343,14 @@ void GameSettingsScreen::CreateViews() {
 	CheckBox *swSkin = graphicsSettings->Add(new CheckBox(&g_PConfig.bSoftwareSkinning, gr->T("Software Skinning")));
 	swSkin->OnClick.Add([=](EventParams &e) {
 		settingInfo_->Show(gr->T("SoftwareSkinning Tip", "Combine skinned model draws on the CPU, faster in most games"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	swSkin->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
 
 	CheckBox *vtxCache = graphicsSettings->Add(new CheckBox(&g_PConfig.bVertexCache, gr->T("Vertex Cache")));
 	vtxCache->OnClick.Add([=](EventParams &e) {
 		settingInfo_->Show(gr->T("VertexCache Tip", "Faster, but may cause temporary flicker"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	vtxCacheEnable_ = !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
 	vtxCache->SetEnabledPtr(&vtxCacheEnable_);
@@ -361,7 +361,7 @@ void GameSettingsScreen::CreateViews() {
 	CheckBox *texSecondary_ = graphicsSettings->Add(new CheckBox(&g_PConfig.bTextureSecondaryCache, gr->T("Retain changed textures", "Retain changed textures (speedup, mem hog)")));
 	texSecondary_->OnClick.Add([=](EventParams &e) {
 		settingInfo_->Show(gr->T("RetainChangedTextures Tip", "Makes many games slower, but some games a lot faster"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	texSecondary_->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
 
@@ -381,13 +381,13 @@ void GameSettingsScreen::CreateViews() {
 		if (g_PConfig.iSplineBezierQuality != 0) {
 			settingInfo_->Show(gr->T("LowCurves Tip", "Only used by some games, controls smoothness of curves"), e.v);
 		}
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 
 	CheckBox *tessellationHW = graphicsSettings->Add(new CheckBox(&g_PConfig.bHardwareTessellation, gr->T("Hardware Tessellation")));
 	tessellationHW->OnClick.Add([=](EventParams &e) {
 		settingInfo_->Show(gr->T("HardwareTessellation Tip", "Uses hardware to make curves"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	tessHWEnable_ = DoesBackendSupportHWTess() && !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
 	tessellationHW->SetEnabledPtr(&tessHWEnable_);
@@ -413,7 +413,7 @@ void GameSettingsScreen::CreateViews() {
 		if (g_PConfig.iTexScalingLevel != 1) {
 			settingInfo_->Show(gr->T("UpscaleLevel Tip", "CPU heavy - some scaling may be delayed to avoid stutter"), e.v);
 		}
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	texScalingChoice->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
 
@@ -426,7 +426,7 @@ void GameSettingsScreen::CreateViews() {
 		if (g_PConfig.bTexDeposterize == true) {
 			settingInfo_->Show(gr->T("Deposterize Tip", "Fixes visual banding glitches in upscaled textures"), e.v);
 		}
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	deposterize->SetDisabledPtr(&g_PConfig.bSoftwareRendering);
 
@@ -597,7 +597,7 @@ void GameSettingsScreen::CreateViews() {
 	controlsSettings->Add(analogLimiter);
 	analogLimiter->OnChange.Add([=](EventParams &e) {
 		settingInfo_->Show(co->T("AnalogLimiter Tip", "When the analog limiter button is pressed"), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 #if defined(USING_WIN_UI)
 	controlsSettings->Add(new ItemHeader(co->T("Mouse", "Mouse settings")));
@@ -605,7 +605,7 @@ void GameSettingsScreen::CreateViews() {
 	mouseControl->OnClick.Add([=](EventParams &e) {
 		if(g_PConfig.bMouseControl)
 			settingInfo_->Show(co->T("MouseControl Tip", "You can now map mouse in control mapping screen by pressing the 'M' icon."), e.v);
-		return UI::EVENT_CONTINUE;
+		return PUI::EVENT_CONTINUE;
 	});
 	controlsSettings->Add(new CheckBox(&g_PConfig.bMouseConfine, co->T("Confine Mouse", "Trap mouse within window/display area")))->SetEnabledPtr(&g_PConfig.bMouseControl);
 	controlsSettings->Add(new PopupSliderChoiceFloat(&g_PConfig.fMouseSensitivity, 0.01f, 1.0f, co->T("Mouse sensitivity"), 0.01f, screenManager(), "x"))->SetEnabledPtr(&g_PConfig.bMouseControl);
@@ -806,37 +806,37 @@ void GameSettingsScreen::CreateViews() {
 	systemSettings->Add(new PopupMultiChoice(&g_PConfig.iButtonPreference, sy->T("Confirmation Button"), buttonPref, 0, 2, sy->GetName(), screenManager()));
 }
 
-UI::EventReturn GameSettingsScreen::OnAutoFrameskip(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnAutoFrameskip(PUI::EventParams &e) {
 	if (g_PConfig.bAutoFrameSkip && g_PConfig.iFrameSkip == 0) {
 		g_PConfig.iFrameSkip = 1;
 	}
 	if (g_PConfig.bAutoFrameSkip && g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE) {
 		g_PConfig.iRenderingMode = FB_BUFFERED_MODE;
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnSoftwareRendering(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSoftwareRendering(PUI::EventParams &e) {
 	vtxCacheEnable_ = !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
 	postProcEnable_ = !g_PConfig.bSoftwareRendering && (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE);
 	resolutionEnable_ = !g_PConfig.bSoftwareRendering && (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE);
 	bloomHackEnable_ = !g_PConfig.bSoftwareRendering && (g_PConfig.iInternalResolution != 1);
 	tessHWEnable_ = DoesBackendSupportHWTess() && !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnHardwareTransform(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnHardwareTransform(PUI::EventParams &e) {
 	vtxCacheEnable_ = !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
 	tessHWEnable_ = DoesBackendSupportHWTess() && !g_PConfig.bSoftwareRendering && g_PConfig.bHardwareTransform;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnScreenRotation(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnScreenRotation(PUI::EventParams &e) {
 	ILOG("New display rotation: %d", g_PConfig.iScreenRotation);
 	ILOG("Sending rotate");
 	System_SendMessage("rotate", "");
 	ILOG("Got back from rotate");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void RecreateActivity() {
@@ -851,25 +851,25 @@ void RecreateActivity() {
 	}
 }
 
-UI::EventReturn GameSettingsScreen::OnAdhocGuides(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnAdhocGuides(PUI::EventParams &e) {
 	LaunchBrowser("https://forums.ppsspp.org/forumdisplay.php?fid=34");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnImmersiveModeChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnImmersiveModeChange(PUI::EventParams &e) {
 	System_SendMessage("immersive", "");
 	if (g_PConfig.iAndroidHwScale != 0) {
 		RecreateActivity();
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnSustainedPerformanceModeChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSustainedPerformanceModeChange(PUI::EventParams &e) {
 	System_SendMessage("sustainedPerfMode", "");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnRenderingMode(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnRenderingMode(PUI::EventParams &e) {
 	// We do not want to report when rendering mode is Framebuffer to memory - so many issues
 	// are caused by that (framebuffer copies overwriting display lists, etc).
 	Reporting::UpdateConfig();
@@ -882,25 +882,25 @@ UI::EventReturn GameSettingsScreen::OnRenderingMode(UI::EventParams &e) {
 	if (g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE) {
 		g_PConfig.bAutoFrameSkip = false;
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnJitAffectingSetting(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnJitAffectingSetting(PUI::EventParams &e) {
 	NativeMessageReceived("clear jit", "");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 #if PPSSPP_PLATFORM(ANDROID)
 
-UI::EventReturn GameSettingsScreen::OnChangeMemStickDir(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnChangeMemStickDir(PUI::EventParams &e) {
 	I18NCategory *sy = GetI18NCategory("System");
 	System_SendMessage("inputbox", (std::string(sy->T("Memory Stick Folder")) + ":" + g_PConfig.memStickDirectory).c_str());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 #elif defined(_WIN32) && !PPSSPP_PLATFORM(UWP)
 
-UI::EventReturn GameSettingsScreen::OnSavePathMydoc(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSavePathMydoc(PUI::EventParams &e) {
 	const std::string PPSSPPpath = PFile::GetExeDirectory();
 	const std::string installedFile = PPSSPPpath + "installed.txt";
 	installed_ = PFile::Exists(installedFile);
@@ -931,10 +931,10 @@ UI::EventReturn GameSettingsScreen::OnSavePathMydoc(UI::EventParams &e) {
 		g_PConfig.memStickDirectory = myDocsPath;
 		installed_ = true;
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSavePathOther(PUI::EventParams &e) {
 	const std::string PPSSPPpath = PFile::GetExeDirectory();
 	if (otherinstalled_) {
 		I18NCategory *di = GetI18NCategory("Dialog");
@@ -960,18 +960,18 @@ UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
 		installed_ = false;
 		g_PConfig.memStickDirectory = PPSSPPpath + "memstick/";
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 #endif
 
-UI::EventReturn GameSettingsScreen::OnClearRecents(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnClearRecents(PUI::EventParams &e) {
 	g_PConfig.recentIsos.clear();
 	OnRecentChanged.Trigger(e);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnChangeBackground(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnChangeBackground(PUI::EventParams &e) {
 	const std::string bgPng = GetSysDirectory(DIRECTORY_SYSTEM) + "background.png";
 	const std::string bgJpg = GetSysDirectory(DIRECTORY_SYSTEM) + "background.jpg";
 	if (PFile::Exists(bgPng) || PFile::Exists(bgJpg)) {
@@ -991,38 +991,38 @@ UI::EventReturn GameSettingsScreen::OnChangeBackground(UI::EventParams &e) {
 
 	// Change to a browse or clear button.
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnFullscreenChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnFullscreenChange(PUI::EventParams &e) {
 	System_SendMessage("toggle_fullscreen", g_PConfig.bFullScreen ? "1" : "0");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnDisplayLayoutEditor(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnDisplayLayoutEditor(PUI::EventParams &e) {
 	screenManager()->push(new DisplayLayoutScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
-UI::EventReturn GameSettingsScreen::OnResolutionChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnResolutionChange(PUI::EventParams &e) {
 	if (g_PConfig.iAndroidHwScale == 1) {
 		RecreateActivity();
 	}
 	bloomHackEnable_ = !g_PConfig.bSoftwareRendering && g_PConfig.iInternalResolution != 1;
 	Reporting::UpdateConfig();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnHwScaleChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnHwScaleChange(PUI::EventParams &e) {
 	RecreateActivity();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnDumpNextFrameToLog(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnDumpNextFrameToLog(PUI::EventParams &e) {
 	if (gpu) {
 		gpu->DumpNextFrame();
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void GameSettingsScreen::update() {
@@ -1157,7 +1157,7 @@ void GameSettingsScreen::CallbackRenderingDevice(bool yes) {
 	}
 }
 
-UI::EventReturn GameSettingsScreen::OnRenderingBackend(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnRenderingBackend(PUI::EventParams &e) {
 	I18NCategory *di = GetI18NCategory("Dialog");
 
 	// It only makes sense to show the restart prompt if the backend was actually changed.
@@ -1165,10 +1165,10 @@ UI::EventReturn GameSettingsScreen::OnRenderingBackend(UI::EventParams &e) {
 		screenManager()->push(new PromptScreen(di->T("ChangingGPUBackends", "Changing GPU backends requires PPSSPP to restart. Restart now?"), di->T("Yes"), di->T("No"),
 			std::bind(&GameSettingsScreen::CallbackRenderingBackend, this, std::placeholders::_1)));
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnRenderingDevice(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnRenderingDevice(PUI::EventParams &e) {
 	I18NCategory *di = GetI18NCategory("Dialog");
 
 	// It only makes sense to show the restart prompt if the device was actually changed.
@@ -1177,10 +1177,10 @@ UI::EventReturn GameSettingsScreen::OnRenderingDevice(UI::EventParams &e) {
 		screenManager()->push(new PromptScreen(di->T("ChangingGPUBackends", "Changing GPU backends requires PPSSPP to restart. Restart now?"), di->T("Yes"), di->T("No"),
 			std::bind(&GameSettingsScreen::CallbackRenderingDevice, this, std::placeholders::_1)));
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnChangeNickname(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnChangeNickname(PUI::EventParams &e) {
 #if PPSSPP_PLATFORM(WINDOWS) || defined(USING_QT_UI)
 	const size_t name_len = 256;
 
@@ -1194,10 +1194,10 @@ UI::EventReturn GameSettingsScreen::OnChangeNickname(UI::EventParams &e) {
 	// TODO: The return value is handled in NativeApp::inputbox_completed. This is horrific.
 	System_SendMessage("inputbox", ("nickname:" + g_PConfig.sNickName).c_str());
 #endif
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnChangeproAdhocServerAddress(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnChangeproAdhocServerAddress(PUI::EventParams &e) {
 	I18NCategory *sy = GetI18NCategory("System");
 
 #if defined(__ANDROID__)
@@ -1206,99 +1206,99 @@ UI::EventReturn GameSettingsScreen::OnChangeproAdhocServerAddress(UI::EventParam
 	screenManager()->push(new HostnameSelectScreen(&g_PConfig.proAdhocServer, sy->T("proAdhocServer Address:")));
 #endif
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnChangeMacAddress(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnChangeMacAddress(PUI::EventParams &e) {
 	g_PConfig.sMACAddress = CreateRandMAC();
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnComboKey(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnComboKey(PUI::EventParams &e) {
 	screenManager()->push(new Combo_keyScreen(&g_PConfig.iComboMode));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnLanguage(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnLanguage(PUI::EventParams &e) {
 	I18NCategory *dev = GetI18NCategory("Developer");
 	auto langScreen = new NewLanguageScreen(dev->T("Language"));
 	langScreen->OnChoice.Handle(this, &GameSettingsScreen::OnLanguageChange);
 	if (e.v)
 		langScreen->SetPopupOrigin(e.v);
 	screenManager()->push(langScreen);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnLanguageChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnLanguageChange(PUI::EventParams &e) {
 	screenManager()->RecreateAllViews();
 
 	if (host) {
 		host->UpdateUI();
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnPostProcShader(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnPostProcShader(PUI::EventParams &e) {
 	I18NCategory *gr = GetI18NCategory("Graphics");
 	auto procScreen = new PostProcScreen(gr->T("Postprocessing Shader"));
 	procScreen->OnChoice.Handle(this, &GameSettingsScreen::OnPostProcShaderChange);
 	if (e.v)
 		procScreen->SetPopupOrigin(e.v);
 	screenManager()->push(procScreen);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnPostProcShaderChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnPostProcShaderChange(PUI::EventParams &e) {
 	NativeMessageReceived("gpu_resized", "");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnDeveloperTools(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnDeveloperTools(PUI::EventParams &e) {
 screenManager()->push(new DeveloperToolsScreen());
-return UI::EVENT_DONE;
+return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnRemoteISO(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnRemoteISO(PUI::EventParams &e) {
 	screenManager()->push(new RemoteISOScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnControlMapping(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnControlMapping(PUI::EventParams &e) {
 	screenManager()->push(new ControlMappingScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnTouchControlLayout(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnTouchControlLayout(PUI::EventParams &e) {
 	screenManager()->push(new TouchControlLayoutScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 //when the tilt event type is modified, we need to reset all tilt settings.
 //refer to the ResetTiltEvents() function for a detailed explanation.
-UI::EventReturn GameSettingsScreen::OnTiltTypeChange(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnTiltTypeChange(PUI::EventParams &e) {
 	TiltEventProcessor::ResetTiltEvents();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
-UI::EventReturn GameSettingsScreen::OnTiltCustomize(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnTiltCustomize(PUI::EventParams &e) {
 	screenManager()->push(new TiltAnalogSettingsScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
-UI::EventReturn GameSettingsScreen::OnSavedataManager(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSavedataManager(PUI::EventParams &e) {
 	auto saveData = new SavedataScreen("");
 	screenManager()->push(saveData);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GameSettingsScreen::OnSysInfo(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnSysInfo(PUI::EventParams &e) {
 	screenManager()->push(new SystemInfoScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void DeveloperToolsScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	root_ = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
 	ScrollView *settingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(1.0f));
 	settingsScroll->SetTag("DevToolsSettings");
@@ -1379,7 +1379,7 @@ void GameSettingsScreen::CallbackRestoreDefaults(bool yes) {
 	host->UpdateUI();
 }
 
-UI::EventReturn GameSettingsScreen::OnRestoreDefaultSettings(UI::EventParams &e) {
+PUI::EventReturn GameSettingsScreen::OnRestoreDefaultSettings(PUI::EventParams &e) {
 	I18NCategory *dev = GetI18NCategory("Developer");
 	I18NCategory *di = GetI18NCategory("Dialog");
 	if (g_PConfig.bGameSpecific)
@@ -1395,66 +1395,66 @@ UI::EventReturn GameSettingsScreen::OnRestoreDefaultSettings(UI::EventParams &e)
 			std::bind(&GameSettingsScreen::CallbackRestoreDefaults, this, std::placeholders::_1)));
 	}
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnLoggingChanged(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnLoggingChanged(PUI::EventParams &e) {
 	host->ToggleDebugConsoleVisibility();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnRunCPUTests(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnRunCPUTests(PUI::EventParams &e) {
 #if !PPSSPP_PLATFORM(UWP)
 	RunTests();
 #endif
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnSaveLanguageIni(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnSaveLanguageIni(PUI::EventParams &e) {
 	i18nrepo.SaveIni(g_PConfig.sLanguageIni);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnLoadLanguageIni(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnLoadLanguageIni(PUI::EventParams &e) {
 	i18nrepo.LoadIni(g_PConfig.sLanguageIni);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnOpenTexturesIniFile(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnOpenTexturesIniFile(PUI::EventParams &e) {
 	std::string gameID = g_paramSFO.GetDiscID();
 	std::string generatedFilename;
 	if (TextureReplacer::GenerateIni(gameID, &generatedFilename)) {
 		PFile::openIniFile(generatedFilename);
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnLogConfig(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnLogConfig(PUI::EventParams &e) {
 	screenManager()->push(new LogConfigScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnJitDebugTools(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnJitDebugTools(PUI::EventParams &e) {
 	screenManager()->push(new JitDebugScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnGPUDriverTest(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnGPUDriverTest(PUI::EventParams &e) {
 	screenManager()->push(new GPUDriverTestScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnTouchscreenTest(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnTouchscreenTest(PUI::EventParams &e) {
 	screenManager()->push(new TouchTestScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnJitAffectingSetting(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnJitAffectingSetting(PUI::EventParams &e) {
 	NativeMessageReceived("clear jit", "");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn DeveloperToolsScreen::OnRemoteDebugger(UI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnRemoteDebugger(PUI::EventParams &e) {
 	if (allowDebugger_) {
 		StartWebServer(WebServerFlags::DEBUGGER);
 	} else {
@@ -1462,7 +1462,7 @@ UI::EventReturn DeveloperToolsScreen::OnRemoteDebugger(UI::EventParams &e) {
 	}
 	// Persist the setting.  Maybe should separate?
 	g_PConfig.bRemoteDebuggerOnStartup = allowDebugger_;
-	return UI::EVENT_CONTINUE;
+	return PUI::EVENT_CONTINUE;
 }
 
 void DeveloperToolsScreen::update() {
@@ -1471,8 +1471,8 @@ void DeveloperToolsScreen::update() {
 	canAllowDebugger_ = !WebServerStopping(WebServerFlags::DEBUGGER);
 }
 
-void HostnameSelectScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void HostnameSelectScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	I18NCategory *sy = GetI18NCategory("System");
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *n = GetI18NCategory("Networking");
@@ -1513,34 +1513,34 @@ void HostnameSelectScreen::CreatePopupContents(UI::ViewGroup *parent) {
 }
 
 void HostnameSelectScreen::SendEditKey(int keyCode, int flags) {
-	auto oldView = UI::GetFocusedView();
-	UI::SetFocusedView(addrView_);
+	auto oldView = PUI::GetFocusedView();
+	PUI::SetFocusedView(addrView_);
 	KeyInput fakeKey{ DEVICE_ID_KEYBOARD, keyCode, KEY_DOWN | flags };
 	addrView_->Key(fakeKey);
-	UI::SetFocusedView(oldView);
+	PUI::SetFocusedView(oldView);
 }
 
-UI::EventReturn HostnameSelectScreen::OnNumberClick(UI::EventParams &e) {
+PUI::EventReturn HostnameSelectScreen::OnNumberClick(PUI::EventParams &e) {
 	std::string text = e.v ? e.v->Tag() : "";
 	if (text.length() == 1 && text[0] >= '0' && text[0] <= '9') {
 		SendEditKey(text[0], KEY_CHAR);
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn HostnameSelectScreen::OnPointClick(UI::EventParams &e) {
+PUI::EventReturn HostnameSelectScreen::OnPointClick(PUI::EventParams &e) {
 	SendEditKey('.', KEY_CHAR);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn HostnameSelectScreen::OnDeleteClick(UI::EventParams &e) {
+PUI::EventReturn HostnameSelectScreen::OnDeleteClick(PUI::EventParams &e) {
 	SendEditKey(NKCODE_DEL);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn HostnameSelectScreen::OnDeleteAllClick(UI::EventParams &e) {
+PUI::EventReturn HostnameSelectScreen::OnDeleteAllClick(PUI::EventParams &e) {
 	addrView_->SetText("");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void HostnameSelectScreen::ResolverThread() {
@@ -1595,11 +1595,11 @@ bool HostnameSelectScreen::CanComplete(DialogResult result) {
 			lastResolvedResult_ = toResolveResult_;
 
 			if (lastResolvedResult_) {
-				errorView_->SetVisibility(UI::V_GONE);
+				errorView_->SetVisibility(PUI::V_GONE);
 			} else {
-				errorView_->SetVisibility(UI::V_VISIBLE);
+				errorView_->SetVisibility(PUI::V_VISIBLE);
 			}
-			progressView_->SetVisibility(UI::V_GONE);
+			progressView_->SetVisibility(PUI::V_GONE);
 
 			return true;
 		}
@@ -1612,8 +1612,8 @@ bool HostnameSelectScreen::CanComplete(DialogResult result) {
 	toResolve_ = value;
 	resolverCond_.notify_one();
 
-	progressView_->SetVisibility(UI::V_VISIBLE);
-	errorView_->SetVisibility(UI::V_GONE);
+	progressView_->SetVisibility(PUI::V_VISIBLE);
+	errorView_->SetVisibility(PUI::V_GONE);
 
 	return false;
 }
@@ -1623,23 +1623,23 @@ void HostnameSelectScreen::OnCompleted(DialogResult result) {
 		*value_ = addrView_->GetText();
 }
 
-SettingInfoMessage::SettingInfoMessage(int align, UI::AnchorLayoutParams *lp)
-	: UI::LinearLayout(UI::ORIENT_HORIZONTAL, lp) {
-	using namespace UI;
+SettingInfoMessage::SettingInfoMessage(int align, PUI::AnchorLayoutParams *lp)
+	: PUI::LinearLayout(PUI::ORIENT_HORIZONTAL, lp) {
+	using namespace PUI;
 	SetSpacing(0.0f);
-	Add(new UI::Spacer(10.0f));
-	text_ = Add(new UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
-	Add(new UI::Spacer(10.0f));
+	Add(new PUI::Spacer(10.0f));
+	text_ = Add(new PUI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
+	Add(new PUI::Spacer(10.0f));
 }
 
-void SettingInfoMessage::Show(const std::string &text, UI::View *refView) {
+void SettingInfoMessage::Show(const std::string &text, PUI::View *refView) {
 	if (refView) {
 		Bounds b = refView->GetBounds();
-		const UI::AnchorLayoutParams *lp = GetLayoutParams()->As<UI::AnchorLayoutParams>();
+		const PUI::AnchorLayoutParams *lp = GetLayoutParams()->As<PUI::AnchorLayoutParams>();
 		if (b.y >= cutOffY_) {
-			ReplaceLayoutParams(new UI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
+			ReplaceLayoutParams(new PUI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
 		} else {
-			ReplaceLayoutParams(new UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
+			ReplaceLayoutParams(new PUI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
 		}
 	}
 	text_->SetText(text);
@@ -1663,7 +1663,7 @@ void SettingInfoMessage::Draw(UIContext &dc) {
 	}
 
 	if (alpha >= 0.1f) {
-		UI::Style style = dc.theme->popupTitle;
+		PUI::Style style = dc.theme->popupTitle;
 		style.background.color = colorAlpha(style.background.color, alpha - 0.1f);
 		dc.FillRect(style.background, bounds_);
 	}

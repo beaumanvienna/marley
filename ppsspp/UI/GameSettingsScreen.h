@@ -37,7 +37,7 @@ public:
 	void sendMessage(const char *message, const char *value) override;
 	std::string tag() const override { return "settings"; }
 
-	UI::Event OnRecentChanged;
+	PUI::Event OnRecentChanged;
 
 protected:
 	void CreateViews() override;
@@ -52,69 +52,69 @@ protected:
 private:
 	std::string gameID_;
 	bool lastVertical_;
-	UI::CheckBox *enableReportsCheckbox_;
-	UI::Choice *layoutEditorChoice_;
-	UI::Choice *postProcChoice_;
-	UI::Choice *displayEditor_;
-	UI::Choice *backgroundChoice_ = nullptr;
-	UI::PopupMultiChoice *resolutionChoice_;
-	UI::CheckBox *frameSkipAuto_;
+	PUI::CheckBox *enableReportsCheckbox_;
+	PUI::Choice *layoutEditorChoice_;
+	PUI::Choice *postProcChoice_;
+	PUI::Choice *displayEditor_;
+	PUI::Choice *backgroundChoice_ = nullptr;
+	PUI::PopupMultiChoice *resolutionChoice_;
+	PUI::CheckBox *frameSkipAuto_;
 	SettingInfoMessage *settingInfo_;
 #ifdef _WIN32
-	UI::CheckBox *SavePathInMyDocumentChoice;
-	UI::CheckBox *SavePathInOtherChoice;
+	PUI::CheckBox *SavePathInMyDocumentChoice;
+	PUI::CheckBox *SavePathInOtherChoice;
 	// Used to enable/disable the above two options.
 	bool installed_;
 	bool otherinstalled_;
 #endif
 
 	// Event handlers
-	UI::EventReturn OnControlMapping(UI::EventParams &e);
-	UI::EventReturn OnTouchControlLayout(UI::EventParams &e);
-	UI::EventReturn OnDumpNextFrameToLog(UI::EventParams &e);
-	UI::EventReturn OnTiltTypeChange(UI::EventParams &e);
-	UI::EventReturn OnTiltCustomize(UI::EventParams &e);
-	UI::EventReturn OnComboKey(UI::EventParams &e);
+	PUI::EventReturn OnControlMapping(PUI::EventParams &e);
+	PUI::EventReturn OnTouchControlLayout(PUI::EventParams &e);
+	PUI::EventReturn OnDumpNextFrameToLog(PUI::EventParams &e);
+	PUI::EventReturn OnTiltTypeChange(PUI::EventParams &e);
+	PUI::EventReturn OnTiltCustomize(PUI::EventParams &e);
+	PUI::EventReturn OnComboKey(PUI::EventParams &e);
 
 	// Global settings handlers
-	UI::EventReturn OnLanguage(UI::EventParams &e);
-	UI::EventReturn OnLanguageChange(UI::EventParams &e);
-	UI::EventReturn OnAutoFrameskip(UI::EventParams &e);
-	UI::EventReturn OnPostProcShader(UI::EventParams &e);
-	UI::EventReturn OnPostProcShaderChange(UI::EventParams &e);
-	UI::EventReturn OnDeveloperTools(UI::EventParams &e);
-	UI::EventReturn OnRemoteISO(UI::EventParams &e);
-	UI::EventReturn OnChangeNickname(UI::EventParams &e);
-	UI::EventReturn OnChangeproAdhocServerAddress(UI::EventParams &e);
-	UI::EventReturn OnChangeMacAddress(UI::EventParams &e);
-	UI::EventReturn OnClearRecents(UI::EventParams &e);
-	UI::EventReturn OnChangeBackground(UI::EventParams &e);
-	UI::EventReturn OnFullscreenChange(UI::EventParams &e);
-	UI::EventReturn OnDisplayLayoutEditor(UI::EventParams &e);
-	UI::EventReturn OnResolutionChange(UI::EventParams &e);
-	UI::EventReturn OnHwScaleChange(UI::EventParams &e);
-	UI::EventReturn OnRestoreDefaultSettings(UI::EventParams &e);
-	UI::EventReturn OnRenderingMode(UI::EventParams &e);
-	UI::EventReturn OnRenderingBackend(UI::EventParams &e);
-	UI::EventReturn OnRenderingDevice(UI::EventParams &e);
-	UI::EventReturn OnJitAffectingSetting(UI::EventParams &e);
+	PUI::EventReturn OnLanguage(PUI::EventParams &e);
+	PUI::EventReturn OnLanguageChange(PUI::EventParams &e);
+	PUI::EventReturn OnAutoFrameskip(PUI::EventParams &e);
+	PUI::EventReturn OnPostProcShader(PUI::EventParams &e);
+	PUI::EventReturn OnPostProcShaderChange(PUI::EventParams &e);
+	PUI::EventReturn OnDeveloperTools(PUI::EventParams &e);
+	PUI::EventReturn OnRemoteISO(PUI::EventParams &e);
+	PUI::EventReturn OnChangeNickname(PUI::EventParams &e);
+	PUI::EventReturn OnChangeproAdhocServerAddress(PUI::EventParams &e);
+	PUI::EventReturn OnChangeMacAddress(PUI::EventParams &e);
+	PUI::EventReturn OnClearRecents(PUI::EventParams &e);
+	PUI::EventReturn OnChangeBackground(PUI::EventParams &e);
+	PUI::EventReturn OnFullscreenChange(PUI::EventParams &e);
+	PUI::EventReturn OnDisplayLayoutEditor(PUI::EventParams &e);
+	PUI::EventReturn OnResolutionChange(PUI::EventParams &e);
+	PUI::EventReturn OnHwScaleChange(PUI::EventParams &e);
+	PUI::EventReturn OnRestoreDefaultSettings(PUI::EventParams &e);
+	PUI::EventReturn OnRenderingMode(PUI::EventParams &e);
+	PUI::EventReturn OnRenderingBackend(PUI::EventParams &e);
+	PUI::EventReturn OnRenderingDevice(PUI::EventParams &e);
+	PUI::EventReturn OnJitAffectingSetting(PUI::EventParams &e);
 #if PPSSPP_PLATFORM(ANDROID)
-	UI::EventReturn OnChangeMemStickDir(UI::EventParams &e);
+	PUI::EventReturn OnChangeMemStickDir(PUI::EventParams &e);
 #elif defined(_WIN32) && !PPSSPP_PLATFORM(UWP)
-	UI::EventReturn OnSavePathMydoc(UI::EventParams &e);
-	UI::EventReturn OnSavePathOther(UI::EventParams &e);
+	PUI::EventReturn OnSavePathMydoc(PUI::EventParams &e);
+	PUI::EventReturn OnSavePathOther(PUI::EventParams &e);
 #endif
-	UI::EventReturn OnSoftwareRendering(UI::EventParams &e);
-	UI::EventReturn OnHardwareTransform(UI::EventParams &e);
+	PUI::EventReturn OnSoftwareRendering(PUI::EventParams &e);
+	PUI::EventReturn OnHardwareTransform(PUI::EventParams &e);
 
-	UI::EventReturn OnScreenRotation(UI::EventParams &e);
-	UI::EventReturn OnImmersiveModeChange(UI::EventParams &e);
-	UI::EventReturn OnSustainedPerformanceModeChange(UI::EventParams &e);
+	PUI::EventReturn OnScreenRotation(PUI::EventParams &e);
+	PUI::EventReturn OnImmersiveModeChange(PUI::EventParams &e);
+	PUI::EventReturn OnSustainedPerformanceModeChange(PUI::EventParams &e);
 
-	UI::EventReturn OnAdhocGuides(UI::EventParams &e);
+	PUI::EventReturn OnAdhocGuides(PUI::EventParams &e);
 
-	UI::EventReturn OnSavedataManager(UI::EventParams &e);
-	UI::EventReturn OnSysInfo(UI::EventParams &e);
+	PUI::EventReturn OnSavedataManager(PUI::EventParams &e);
+	PUI::EventReturn OnSysInfo(PUI::EventParams &e);
 
 	// Temporaries to convert setting types.
 	int iAlternateSpeedPercent1_;
@@ -136,19 +136,19 @@ private:
 #endif
 };
 
-class SettingInfoMessage : public UI::LinearLayout {
+class SettingInfoMessage : public PUI::LinearLayout {
 public:
-	SettingInfoMessage(int align, UI::AnchorLayoutParams *lp);
+	SettingInfoMessage(int align, PUI::AnchorLayoutParams *lp);
 
 	void SetBottomCutoff(float y) {
 		cutOffY_ = y;
 	}
-	void Show(const std::string &text, UI::View *refView = nullptr);
+	void Show(const std::string &text, PUI::View *refView = nullptr);
 
 	void Draw(UIContext &dc);
 
 private:
-	UI::TextView *text_ = nullptr;
+	PUI::TextView *text_ = nullptr;
 	double timeShown_ = 0.0;
 	float cutOffY_;
 };
@@ -163,17 +163,17 @@ protected:
 	void CreateViews() override;
 
 private:
-	UI::EventReturn OnRunCPUTests(UI::EventParams &e);
-	UI::EventReturn OnLoggingChanged(UI::EventParams &e);
-	UI::EventReturn OnLoadLanguageIni(UI::EventParams &e);
-	UI::EventReturn OnSaveLanguageIni(UI::EventParams &e);
-	UI::EventReturn OnOpenTexturesIniFile(UI::EventParams &e);
-	UI::EventReturn OnLogConfig(UI::EventParams &e);
-	UI::EventReturn OnJitAffectingSetting(UI::EventParams &e);
-	UI::EventReturn OnJitDebugTools(UI::EventParams &e);
-	UI::EventReturn OnRemoteDebugger(UI::EventParams &e);
-	UI::EventReturn OnGPUDriverTest(UI::EventParams &e);
-	UI::EventReturn OnTouchscreenTest(UI::EventParams &e);
+	PUI::EventReturn OnRunCPUTests(PUI::EventParams &e);
+	PUI::EventReturn OnLoggingChanged(PUI::EventParams &e);
+	PUI::EventReturn OnLoadLanguageIni(PUI::EventParams &e);
+	PUI::EventReturn OnSaveLanguageIni(PUI::EventParams &e);
+	PUI::EventReturn OnOpenTexturesIniFile(PUI::EventParams &e);
+	PUI::EventReturn OnLogConfig(PUI::EventParams &e);
+	PUI::EventReturn OnJitAffectingSetting(PUI::EventParams &e);
+	PUI::EventReturn OnJitDebugTools(PUI::EventParams &e);
+	PUI::EventReturn OnRemoteDebugger(PUI::EventParams &e);
+	PUI::EventReturn OnGPUDriverTest(PUI::EventParams &e);
+	PUI::EventReturn OnTouchscreenTest(PUI::EventParams &e);
 
 	bool allowDebugger_ = false;
 	bool canAllowDebugger_ = true;
@@ -193,7 +193,7 @@ public:
 		resolver_.join();
 	}
 
-	void CreatePopupContents(UI::ViewGroup *parent) override;
+	void CreatePopupContents(PUI::ViewGroup *parent) override;
 
 protected:
 	void OnCompleted(DialogResult result) override;
@@ -202,10 +202,10 @@ protected:
 private:
 	void ResolverThread();
 	void SendEditKey(int keyCode, int flags = 0);
-	UI::EventReturn OnNumberClick(UI::EventParams &e);
-	UI::EventReturn OnPointClick(UI::EventParams &e);
-	UI::EventReturn OnDeleteClick(UI::EventParams &e);
-	UI::EventReturn OnDeleteAllClick(UI::EventParams &e);
+	PUI::EventReturn OnNumberClick(PUI::EventParams &e);
+	PUI::EventReturn OnPointClick(PUI::EventParams &e);
+	PUI::EventReturn OnDeleteClick(PUI::EventParams &e);
+	PUI::EventReturn OnDeleteAllClick(PUI::EventParams &e);
 
 	enum class ResolverState {
 		WAITING,
@@ -216,9 +216,9 @@ private:
 	};
 
 	std::string *value_;
-	UI::TextEdit *addrView_ = nullptr;
-	UI::TextView *errorView_ = nullptr;
-	UI::TextView *progressView_ = nullptr;
+	PUI::TextEdit *addrView_ = nullptr;
+	PUI::TextView *errorView_ = nullptr;
+	PUI::TextView *progressView_ = nullptr;
 
 	std::thread resolver_;
 	ResolverState resolverState_ = ResolverState::WAITING;

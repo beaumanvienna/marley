@@ -60,9 +60,9 @@
 
 namespace testing {
 
-namespace internal {
+namespace Pinternal {
 GTEST_API_ string JoinAsTuple(const Strings& fields);
-}  // namespace internal
+}  // namespace Pinternal
 
 namespace gmock_matchers_test {
 
@@ -138,23 +138,23 @@ using testing::WhenSorted;
 using testing::WhenSortedBy;
 using testing::_;
 using testing::get;
-using testing::internal::DummyMatchResultListener;
-using testing::internal::ElementMatcherPair;
-using testing::internal::ElementMatcherPairs;
-using testing::internal::ExplainMatchFailureTupleTo;
-using testing::internal::FloatingEqMatcher;
-using testing::internal::FormatMatcherDescription;
-using testing::internal::IsReadableTypeName;
-using testing::internal::JoinAsTuple;
-using testing::internal::linked_ptr;
-using testing::internal::MatchMatrix;
-using testing::internal::RE;
-using testing::internal::scoped_ptr;
-using testing::internal::StreamMatchResultListener;
-using testing::internal::Strings;
-using testing::internal::linked_ptr;
-using testing::internal::scoped_ptr;
-using testing::internal::string;
+using testing::Pinternal::DummyMatchResultListener;
+using testing::Pinternal::ElementMatcherPair;
+using testing::Pinternal::ElementMatcherPairs;
+using testing::Pinternal::ExplainMatchFailureTupleTo;
+using testing::Pinternal::FloatingEqMatcher;
+using testing::Pinternal::FormatMatcherDescription;
+using testing::Pinternal::IsReadableTypeName;
+using testing::Pinternal::JoinAsTuple;
+using testing::Pinternal::linked_ptr;
+using testing::Pinternal::MatchMatrix;
+using testing::Pinternal::RE;
+using testing::Pinternal::scoped_ptr;
+using testing::Pinternal::StreamMatchResultListener;
+using testing::Pinternal::Strings;
+using testing::Pinternal::linked_ptr;
+using testing::Pinternal::scoped_ptr;
+using testing::Pinternal::string;
 using testing::make_tuple;
 using testing::tuple;
 
@@ -2700,7 +2700,7 @@ TEST(MatcherAssertionTest, WorksForMonomorphicMatcher) {
 template <typename RawType>
 class FloatingPointTest : public testing::Test {
  protected:
-  typedef testing::internal::FloatingPoint<RawType> Floating;
+  typedef testing::Pinternal::FloatingPoint<RawType> Floating;
   typedef typename Floating::Bits Bits;
 
   FloatingPointTest()
@@ -2729,7 +2729,7 @@ class FloatingPointTest : public testing::Test {
   // A battery of tests for FloatingEqMatcher::Matches.
   // matcher_maker is a pointer to a function which creates a FloatingEqMatcher.
   void TestMatches(
-      testing::internal::FloatingEqMatcher<RawType> (*matcher_maker)(RawType)) {
+      testing::Pinternal::FloatingEqMatcher<RawType> (*matcher_maker)(RawType)) {
     Matcher<RawType> m1 = matcher_maker(0.0);
     EXPECT_TRUE(m1.Matches(-0.0));
     EXPECT_TRUE(m1.Matches(close_to_positive_zero_));
@@ -2817,7 +2817,7 @@ class FloatingPointNearTest : public FloatingPointTest<RawType> {
   // A battery of tests for FloatingEqMatcher::Matches with a fixed epsilon.
   // matcher_maker is a pointer to a function which creates a FloatingEqMatcher.
   void TestNearMatches(
-      testing::internal::FloatingEqMatcher<RawType>
+      testing::Pinternal::FloatingEqMatcher<RawType>
           (*matcher_maker)(RawType, RawType)) {
     Matcher<RawType> m1 = matcher_maker(0.0, 0.0);
     EXPECT_TRUE(m1.Matches(0.0));
@@ -3241,7 +3241,7 @@ TEST(WhenDynamicCastToTest, AmbiguousCast) {
 TEST(WhenDynamicCastToTest, Describe) {
   Matcher<Base*> matcher = WhenDynamicCastTo<Derived*>(Pointee(_));
   const string prefix =
-      "when dynamic_cast to " + internal::GetTypeName<Derived*>() + ", ";
+      "when dynamic_cast to " + Pinternal::GetTypeName<Derived*>() + ", ";
   EXPECT_EQ(prefix + "points to a value that is anything", Describe(matcher));
   EXPECT_EQ(prefix + "does not point to a value that is anything",
             DescribeNegation(matcher));
@@ -5100,7 +5100,7 @@ TEST_P(BipartiteTest, Exhaustive) {
   MatchMatrix graph(nodes, nodes);
   do {
     ElementMatcherPairs matches =
-        internal::FindMaxBipartiteMatching(graph);
+        Pinternal::FindMaxBipartiteMatching(graph);
     EXPECT_EQ(FindBacktrackingMaxBPM(graph).size(), matches.size())
         << "graph: " << graph.DebugString();
     // Check that all elements of matches are in the graph.
@@ -5154,12 +5154,12 @@ TEST_P(BipartiteNonSquareTest, Exhaustive) {
   MatchMatrix graph(nlhs, nrhs);
   do {
     EXPECT_EQ(FindBacktrackingMaxBPM(graph).size(),
-              internal::FindMaxBipartiteMatching(graph).size())
+              Pinternal::FindMaxBipartiteMatching(graph).size())
         << "graph: " << graph.DebugString()
         << "\nbacktracking: "
         << PrintToString(FindBacktrackingMaxBPM(graph))
         << "\nmax flow: "
-        << PrintToString(internal::FindMaxBipartiteMatching(graph));
+        << PrintToString(Pinternal::FindMaxBipartiteMatching(graph));
   } while (graph.NextGraph());
 }
 
@@ -5184,16 +5184,16 @@ TEST_P(BipartiteRandomTest, LargerNets) {
   int iters = GetParam().second;
   MatchMatrix graph(nodes, nodes);
 
-  testing::internal::Int32 seed = GTEST_FLAG(random_seed);
+  testing::Pinternal::Int32 seed = GTEST_FLAG(random_seed);
   if (seed == 0) {
-    seed = static_cast<testing::internal::Int32>(time(NULL));
+    seed = static_cast<testing::Pinternal::Int32>(time(NULL));
   }
 
   for (; iters > 0; --iters, ++seed) {
     srand(static_cast<int>(seed));
     graph.Randomize();
     EXPECT_EQ(FindBacktrackingMaxBPM(graph).size(),
-              internal::FindMaxBipartiteMatching(graph).size())
+              Pinternal::FindMaxBipartiteMatching(graph).size())
         << " graph: " << graph.DebugString()
         << "\nTo reproduce the failure, rerun the test with the flag"
            " --" << GTEST_FLAG_PREFIX_ << "random_seed=" << seed;

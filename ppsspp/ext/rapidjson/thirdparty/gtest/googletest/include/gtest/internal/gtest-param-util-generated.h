@@ -59,18 +59,18 @@ namespace testing {
 // Forward declarations of ValuesIn(), which is implemented in
 // include/gtest/gtest-param-test.h.
 template <typename ForwardIterator>
-internal::ParamGenerator<
-  typename ::testing::internal::IteratorTraits<ForwardIterator>::value_type>
+Pinternal::ParamGenerator<
+  typename ::testing::Pinternal::IteratorTraits<ForwardIterator>::value_type>
 ValuesIn(ForwardIterator begin, ForwardIterator end);
 
 template <typename T, size_t N>
-internal::ParamGenerator<T> ValuesIn(const T (&array)[N]);
+Pinternal::ParamGenerator<T> ValuesIn(const T (&array)[N]);
 
 template <class Container>
-internal::ParamGenerator<typename Container::value_type> ValuesIn(
+Pinternal::ParamGenerator<typename Container::value_type> ValuesIn(
     const Container& container);
 
-namespace internal {
+namespace Pinternal {
 
 // Used in the Values() function to provide polymorphic capabilities.
 template <typename T1>
@@ -5138,7 +5138,7 @@ CartesianProductHolder10(const Generator1& g1, const Generator2& g2,
 
 # endif  // GTEST_HAS_COMBINE
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  //  GTEST_HAS_PARAM_TEST

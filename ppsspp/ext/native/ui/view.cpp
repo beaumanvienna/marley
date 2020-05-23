@@ -16,7 +16,7 @@
 #include "thin3d/thin3d.h"
 #include "base/NativeApp.h"
 
-namespace UI {
+namespace PUI {
 
 static View *focusedView;
 static bool focusMovementEnabled;
@@ -162,12 +162,12 @@ void Event::Trigger(EventParams &e) {
 // Call this from UI thread
 EventReturn Event::Dispatch(EventParams &e) {
 	for (auto iter = handlers_.begin(); iter != handlers_.end(); ++iter) {
-		if ((iter->func)(e) == UI::EVENT_DONE) {
+		if ((iter->func)(e) == PUI::EVENT_DONE) {
 			// Event is handled, stop looping immediately. This event might even have gotten deleted.
-			return UI::EVENT_DONE;
+			return PUI::EVENT_DONE;
 		}
 	}
-	return UI::EVENT_SKIPPED;
+	return PUI::EVENT_SKIPPED;
 }
 
 Event::~Event() {
@@ -237,12 +237,12 @@ void View::PersistData(PersistStatus status, std::string anonId, PersistMap &sto
 
 	const std::string focusedKey = "ViewFocused::" + tag;
 	switch (status) {
-	case UI::PERSIST_SAVE:
+	case PUI::PERSIST_SAVE:
 		if (HasFocus()) {
 			storage[focusedKey].resize(1);
 		}
 		break;
-	case UI::PERSIST_RESTORE:
+	case PUI::PERSIST_RESTORE:
 		if (storage.find(focusedKey) != storage.end()) {
 			SetFocus();
 		}
@@ -302,7 +302,7 @@ void Clickable::DrawBG(UIContext &dc, const Style &style) {
 }
 
 void Clickable::Click() {
-	UI::EventParams e{};
+	PUI::EventParams e{};
 	e.v = this;
 	OnClick.Trigger(e);
 };
@@ -610,7 +610,7 @@ InfoItem::InfoItem(const std::string &text, const std::string &rightText, Layout
 void InfoItem::Draw(UIContext &dc) {
 	Item::Draw(dc);
 
-	UI::Style style = HasFocus() ? dc.theme->itemFocusedStyle : dc.theme->infoStyle;
+	PUI::Style style = HasFocus() ? dc.theme->itemFocusedStyle : dc.theme->infoStyle;
 
 	if (style.background.type == DRAW_SOLID_COLOR) {
 		// For a smoother fade, using the same color with 0 alpha.
@@ -856,7 +856,7 @@ void TextView::Draw(UIContext &dc) {
 	}
 	// In case it's been made focusable.
 	if (HasFocus()) {
-		UI::Style style = dc.theme->itemFocusedStyle;
+		PUI::Style style = dc.theme->itemFocusedStyle;
 		style.background.color &= 0x7fffffff;
 		dc.FillRect(style.background, bounds_);
 	}
@@ -880,7 +880,7 @@ TextEdit::TextEdit(const std::string &text, const std::string &placeholderText, 
 void TextEdit::Draw(UIContext &dc) {
 	dc.PushScissor(bounds_);
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.FillRect(HasFocus() ? UI::Drawable(0x80000000) : UI::Drawable(0x30000000), bounds_);
+	dc.FillRect(HasFocus() ? PUI::Drawable(0x80000000) : PUI::Drawable(0x30000000), bounds_);
 
 	uint32_t textColor = hasTextColor_ ? textColor_ : dc.theme->infoStyle.fgColor;
 	float textX = bounds_.x;
@@ -909,7 +909,7 @@ void TextEdit::Draw(UIContext &dc) {
 			scrollPos_ += caretX;
 		}
 		caretX += textX;
-		dc.FillRect(UI::Drawable(textColor), Bounds(caretX - 1, bounds_.y + 2, 3, bounds_.h - 4));
+		dc.FillRect(PUI::Drawable(textColor), Bounds(caretX - 1, bounds_.y + 2, 3, bounds_.h - 4));
 	}
 	dc.PopScissor();
 }
@@ -1069,7 +1069,7 @@ bool TextEdit::Key(const KeyInput &input) {
 	}
 
 	if (textChanged) {
-		UI::EventParams e{};
+		PUI::EventParams e{};
 		e.v = this;
 		OnTextChange.Trigger(e);
 	}

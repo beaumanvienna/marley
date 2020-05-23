@@ -23,7 +23,7 @@ RAPIDJSON_DIAG_OFF(unreachable-code)
 
 #define BIGINTEGER_LITERAL(s) BigInteger(s, sizeof(s) - 1)
 
-using namespace rapidjson::internal;
+using namespace rapidjson::Pinternal;
 
 TEST(Strtod, CheckApproximationCase) {
     static const int kSignificandSize = 52;

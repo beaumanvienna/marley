@@ -74,7 +74,7 @@
 // Macros for declaring flags.
 #define GMOCK_DECLARE_bool_(name) extern GTEST_API_ bool GMOCK_FLAG(name)
 #define GMOCK_DECLARE_int32_(name) \
-    extern GTEST_API_ ::testing::internal::Int32 GMOCK_FLAG(name)
+    extern GTEST_API_ ::testing::Pinternal::Int32 GMOCK_FLAG(name)
 #define GMOCK_DECLARE_string_(name) \
     extern GTEST_API_ ::std::string GMOCK_FLAG(name)
 
@@ -82,7 +82,7 @@
 #define GMOCK_DEFINE_bool_(name, default_val, doc) \
     GTEST_API_ bool GMOCK_FLAG(name) = (default_val)
 #define GMOCK_DEFINE_int32_(name, default_val, doc) \
-    GTEST_API_ ::testing::internal::Int32 GMOCK_FLAG(name) = (default_val)
+    GTEST_API_ ::testing::Pinternal::Int32 GMOCK_FLAG(name) = (default_val)
 #define GMOCK_DEFINE_string_(name, default_val, doc) \
     GTEST_API_ ::std::string GMOCK_FLAG(name) = (default_val)
 

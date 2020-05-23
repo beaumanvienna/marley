@@ -37,13 +37,13 @@ public:
 	virtual void resized() override;
 
 protected:
-	virtual UI::EventReturn OnReset(UI::EventParams &e);
-	virtual UI::EventReturn OnVisibility(UI::EventParams &e);
+	virtual PUI::EventReturn OnReset(PUI::EventParams &e);
+	virtual PUI::EventReturn OnVisibility(PUI::EventParams &e);
 
 private:
 	DragDropButton *pickedControl_;
 	std::vector<DragDropButton *> controls_;
-	UI::ChoiceStrip *mode_;
+	PUI::ChoiceStrip *mode_;
 	DragDropButton *getPickedControl(const int x, const int y);
 
 	// Touch down state for drag to resize etc

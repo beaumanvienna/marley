@@ -54,7 +54,7 @@
     #include <cstdio>
 #endif
 
-namespace spv {
+namespace Pspv {
 
 Builder::Builder(unsigned int spvVersion, unsigned int magicNumber, SpvBuildLogger* buildLogger) :
     spvVersion(spvVersion),
@@ -116,7 +116,7 @@ void Builder::setLine(int lineNum, const char* filename)
         currentLine = lineNum;
         currentFile = filename;
         if (emitOpLines) {
-            spv::Id strId = getStringId(filename);
+            Pspv::Id strId = getStringId(filename);
             addLine(strId, currentLine, 0);
         }
     }
@@ -345,7 +345,7 @@ Id Builder::makeStructResultType(Id type0, Id type1)
     }
 
     // not found, make it
-    std::vector<spv::Id> members;
+    std::vector<Pspv::Id> members;
     members.push_back(type0);
     members.push_back(type1);
 
@@ -735,7 +735,7 @@ Id Builder::getContainedTypeId(Id typeId) const
 // Returns true if 'typeId' is or contains a scalar type declared with 'typeOp'
 // of width 'width'. The 'width' is only consumed for int and float types.
 // Returns false otherwise.
-bool Builder::containsType(Id typeId, spv::Op typeOp, unsigned int width) const
+bool Builder::containsType(Id typeId, Pspv::Op typeOp, unsigned int width) const
 {
     const Instruction& instr = *module.getInstruction(typeId);
 
@@ -1187,7 +1187,7 @@ void Builder::addMemberName(Id id, int memberNumber, const char* string)
 
 void Builder::addDecoration(Id id, Decoration decoration, int num)
 {
-    if (decoration == spv::DecorationMax)
+    if (decoration == Pspv::DecorationMax)
         return;
 
     Instruction* dec = new Instruction(OpDecorate);
@@ -1201,7 +1201,7 @@ void Builder::addDecoration(Id id, Decoration decoration, int num)
 
 void Builder::addDecoration(Id id, Decoration decoration, const char* s)
 {
-    if (decoration == spv::DecorationMax)
+    if (decoration == Pspv::DecorationMax)
         return;
 
     Instruction* dec = new Instruction(OpDecorateStringGOOGLE);
@@ -1214,7 +1214,7 @@ void Builder::addDecoration(Id id, Decoration decoration, const char* s)
 
 void Builder::addDecorationId(Id id, Decoration decoration, Id idDecoration)
 {
-    if (decoration == spv::DecorationMax)
+    if (decoration == Pspv::DecorationMax)
         return;
 
     Instruction* dec = new Instruction(OpDecorateId);
@@ -1227,7 +1227,7 @@ void Builder::addDecorationId(Id id, Decoration decoration, Id idDecoration)
 
 void Builder::addMemberDecoration(Id id, unsigned int member, Decoration decoration, int num)
 {
-    if (decoration == spv::DecorationMax)
+    if (decoration == Pspv::DecorationMax)
         return;
 
     Instruction* dec = new Instruction(OpMemberDecorate);
@@ -1242,7 +1242,7 @@ void Builder::addMemberDecoration(Id id, unsigned int member, Decoration decorat
 
 void Builder::addMemberDecoration(Id id, unsigned int member, Decoration decoration, const char *s)
 {
-    if (decoration == spv::DecorationMax)
+    if (decoration == Pspv::DecorationMax)
         return;
 
     Instruction* dec = new Instruction(OpMemberDecorateStringGOOGLE);
@@ -1373,26 +1373,26 @@ Id Builder::createUndefined(Id type)
 }
 
 // av/vis/nonprivate are unnecessary and illegal for some storage classes.
-spv::MemoryAccessMask Builder::sanitizeMemoryAccessForStorageClass(spv::MemoryAccessMask memoryAccess, StorageClass sc) const
+Pspv::MemoryAccessMask Builder::sanitizeMemoryAccessForStorageClass(Pspv::MemoryAccessMask memoryAccess, StorageClass sc) const
 {
     switch (sc) {
-    case spv::StorageClassUniform:
-    case spv::StorageClassWorkgroup:
-    case spv::StorageClassStorageBuffer:
-    case spv::StorageClassPhysicalStorageBufferEXT:
+    case Pspv::StorageClassUniform:
+    case Pspv::StorageClassWorkgroup:
+    case Pspv::StorageClassStorageBuffer:
+    case Pspv::StorageClassPhysicalStorageBufferEXT:
         break;
     default:
-        memoryAccess = spv::MemoryAccessMask(memoryAccess & 
-                        ~(spv::MemoryAccessMakePointerAvailableKHRMask |
-                          spv::MemoryAccessMakePointerVisibleKHRMask |
-                          spv::MemoryAccessNonPrivatePointerKHRMask));
+        memoryAccess = Pspv::MemoryAccessMask(memoryAccess & 
+                        ~(Pspv::MemoryAccessMakePointerAvailableKHRMask |
+                          Pspv::MemoryAccessMakePointerVisibleKHRMask |
+                          Pspv::MemoryAccessNonPrivatePointerKHRMask));
         break;
     }
     return memoryAccess;
 }
 
 // Comments in header
-void Builder::createStore(Id rValue, Id lValue, spv::MemoryAccessMask memoryAccess, spv::Scope scope, unsigned int alignment)
+void Builder::createStore(Id rValue, Id lValue, Pspv::MemoryAccessMask memoryAccess, Pspv::Scope scope, unsigned int alignment)
 {
     Instruction* store = new Instruction(OpStore);
     store->addIdOperand(lValue);
@@ -1402,10 +1402,10 @@ void Builder::createStore(Id rValue, Id lValue, spv::MemoryAccessMask memoryAcce
 
     if (memoryAccess != MemoryAccessMaskNone) {
         store->addImmediateOperand(memoryAccess);
-        if (memoryAccess & spv::MemoryAccessAlignedMask) {
+        if (memoryAccess & Pspv::MemoryAccessAlignedMask) {
             store->addImmediateOperand(alignment);
         }
-        if (memoryAccess & spv::MemoryAccessMakePointerAvailableKHRMask) {
+        if (memoryAccess & Pspv::MemoryAccessMakePointerAvailableKHRMask) {
             store->addIdOperand(makeUintConstant(scope));
         }
     }
@@ -1414,7 +1414,7 @@ void Builder::createStore(Id rValue, Id lValue, spv::MemoryAccessMask memoryAcce
 }
 
 // Comments in header
-Id Builder::createLoad(Id lValue, spv::MemoryAccessMask memoryAccess, spv::Scope scope, unsigned int alignment)
+Id Builder::createLoad(Id lValue, Pspv::MemoryAccessMask memoryAccess, Pspv::Scope scope, unsigned int alignment)
 {
     Instruction* load = new Instruction(getUniqueId(), getDerefTypeId(lValue), OpLoad);
     load->addIdOperand(lValue);
@@ -1423,10 +1423,10 @@ Id Builder::createLoad(Id lValue, spv::MemoryAccessMask memoryAccess, spv::Scope
 
     if (memoryAccess != MemoryAccessMaskNone) {
         load->addImmediateOperand(memoryAccess);
-        if (memoryAccess & spv::MemoryAccessAlignedMask) {
+        if (memoryAccess & Pspv::MemoryAccessAlignedMask) {
             load->addImmediateOperand(alignment);
         }
-        if (memoryAccess & spv::MemoryAccessMakePointerVisibleKHRMask) {
+        if (memoryAccess & Pspv::MemoryAccessMakePointerVisibleKHRMask) {
             load->addIdOperand(makeUintConstant(scope));
         }
     }
@@ -1440,7 +1440,7 @@ Id Builder::createLoad(Id lValue, spv::MemoryAccessMask memoryAccess, spv::Scope
 Id Builder::createAccessChain(StorageClass storageClass, Id base, const std::vector<Id>& offsets)
 {
     // Figure out the final resulting type.
-    spv::Id typeId = getTypeId(base);
+    Pspv::Id typeId = getTypeId(base);
     assert(isPointerType(typeId) && offsets.size() > 0);
     typeId = getContainedTypeId(typeId);
     for (int i = 0; i < (int)offsets.size(); ++i) {
@@ -1464,7 +1464,7 @@ Id Builder::createAccessChain(StorageClass storageClass, Id base, const std::vec
 
 Id Builder::createArrayLength(Id base, unsigned int member)
 {
-    spv::Id intType = makeUintType(32);
+    Pspv::Id intType = makeUintType(32);
     Instruction* length = new Instruction(getUniqueId(), intType, OpArrayLength);
     length->addIdOperand(base);
     length->addImmediateOperand(member);
@@ -1475,7 +1475,7 @@ Id Builder::createArrayLength(Id base, unsigned int member)
 
 Id Builder::createCooperativeMatrixLength(Id type)
 {
-    spv::Id intType = makeUintType(32);
+    Pspv::Id intType = makeUintType(32);
 
     // Generate code for spec constants if in spec constant operation
     // generation mode.
@@ -1711,7 +1711,7 @@ Id Builder::createSpecConstantOp(Op opCode, Id typeId, const std::vector<Id>& op
     return op->getResultId();
 }
 
-Id Builder::createFunctionCall(spv::Function* function, const std::vector<spv::Id>& args)
+Id Builder::createFunctionCall(Pspv::Function* function, const std::vector<Pspv::Id>& args)
 {
     Instruction* op = new Instruction(getUniqueId(), function->getReturnType(), OpFunctionCall);
     op->addIdOperand(function->getId());
@@ -1802,7 +1802,7 @@ Id Builder::smearScalar(Decoration precision, Id scalar, Id vectorType)
 
     Instruction* smear = nullptr;
     if (generatingOpCodeForSpecConst) {
-        auto members = std::vector<spv::Id>(numComponents, scalar);
+        auto members = std::vector<Pspv::Id>(numComponents, scalar);
         // Sometime even in spec-constant-op mode, the temporary vector created by
         // promoting a scalar might not be a spec constant. This should depend on
         // the scalar.
@@ -2209,7 +2209,7 @@ Id Builder::createCompositeConstruct(Id typeId, const std::vector<Id>& constitue
         // vector should be created as a spec constant.
         return makeCompositeConstant(typeId, constituents,
                                      std::any_of(constituents.begin(), constituents.end(),
-                                                 [&](spv::Id id) { return isSpecConstant(id); }));
+                                                 [&](Pspv::Id id) { return isSpecConstant(id); }));
     }
 
     Instruction* op = new Instruction(getUniqueId(), typeId, OpCompositeConstruct);
@@ -2635,7 +2635,7 @@ void Builder::accessChainPushSwizzle(std::vector<unsigned>& swizzle, Id preSwizz
 }
 
 // Comments in header
-void Builder::accessChainStore(Id rvalue, spv::MemoryAccessMask memoryAccess, spv::Scope scope, unsigned int alignment)
+void Builder::accessChainStore(Id rvalue, Pspv::MemoryAccessMask memoryAccess, Pspv::Scope scope, unsigned int alignment)
 {
     assert(accessChain.isRValue == false);
 
@@ -2656,14 +2656,14 @@ void Builder::accessChainStore(Id rvalue, spv::MemoryAccessMask memoryAccess, sp
     // take LSB of alignment
     alignment = alignment & ~(alignment & (alignment-1));
     if (getStorageClass(base) == StorageClassPhysicalStorageBufferEXT) {
-        memoryAccess = (spv::MemoryAccessMask)(memoryAccess | spv::MemoryAccessAlignedMask);
+        memoryAccess = (Pspv::MemoryAccessMask)(memoryAccess | Pspv::MemoryAccessAlignedMask);
     }
 
     createStore(source, base, memoryAccess, scope, alignment);
 }
 
 // Comments in header
-Id Builder::accessChainLoad(Decoration precision, Decoration nonUniform, Id resultType, spv::MemoryAccessMask memoryAccess, spv::Scope scope, unsigned int alignment)
+Id Builder::accessChainLoad(Decoration precision, Decoration nonUniform, Id resultType, Pspv::MemoryAccessMask memoryAccess, Pspv::Scope scope, unsigned int alignment)
 {
     Id id;
 
@@ -2717,7 +2717,7 @@ Id Builder::accessChainLoad(Decoration precision, Decoration nonUniform, Id resu
         // take LSB of alignment
         alignment = alignment & ~(alignment & (alignment-1));
         if (getStorageClass(accessChain.base) == StorageClassPhysicalStorageBufferEXT) {
-            memoryAccess = (spv::MemoryAccessMask)(memoryAccess | spv::MemoryAccessAlignedMask);
+            memoryAccess = (Pspv::MemoryAccessMask)(memoryAccess | Pspv::MemoryAccessAlignedMask);
         }
 
         // load through the access chain
@@ -3027,7 +3027,7 @@ void Builder::createConditionalBranch(Id condition, Block* thenBlock, Block* els
 // OpSource
 // [OpSourceContinued]
 // ...
-void Builder::dumpSourceInstructions(const spv::Id fileId, const std::string& text,
+void Builder::dumpSourceInstructions(const Pspv::Id fileId, const std::string& text,
                                      std::vector<unsigned int>& out) const
 {
     const int maxWordCount = 0xFFFF;

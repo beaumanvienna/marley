@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <assert.h>
 
-using namespace spv;
+using namespace Pspv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
@@ -860,7 +860,7 @@ void CompilerHLSL::emit_interface_block_in_struct(const SPIRVariable &var, unord
 		statement(variable_decl(type, name), " : ", binding, ";");
 }
 
-std::string CompilerHLSL::builtin_to_glsl(spv::BuiltIn builtin, spv::StorageClass storage)
+std::string CompilerHLSL::builtin_to_glsl(Pspv::BuiltIn builtin, Pspv::StorageClass storage)
 {
 	switch (builtin)
 	{
@@ -2502,19 +2502,19 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 	uint32_t coord_components = 0;
 	switch (imgtype.image.dim)
 	{
-	case spv::Dim1D:
+	case Pspv::Dim1D:
 		coord_components = 1;
 		break;
-	case spv::Dim2D:
+	case Pspv::Dim2D:
 		coord_components = 2;
 		break;
-	case spv::Dim3D:
+	case Pspv::Dim3D:
 		coord_components = 3;
 		break;
-	case spv::DimCube:
+	case Pspv::DimCube:
 		coord_components = 3;
 		break;
-	case spv::DimBuffer:
+	case Pspv::DimBuffer:
 		coord_components = 1;
 		break;
 	default:
@@ -3626,7 +3626,7 @@ void CompilerHLSL::emit_access_chain(const Instruction &instruction)
 	}
 }
 
-void CompilerHLSL::emit_atomic(const uint32_t *ops, uint32_t length, spv::Op op)
+void CompilerHLSL::emit_atomic(const uint32_t *ops, uint32_t length, Pspv::Op op)
 {
 	const char *atomic_op = nullptr;
 

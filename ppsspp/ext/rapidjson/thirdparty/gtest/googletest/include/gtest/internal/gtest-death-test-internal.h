@@ -42,7 +42,7 @@
 #include <stdio.h>
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 GTEST_DECLARE_string_(internal_run_death_test);
 
@@ -166,12 +166,12 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
         stderr, \
         "\n%s: Caught std::exception-derived exception escaping the " \
         "death test statement. Exception message: %s\n", \
-        ::testing::internal::FormatFileLocation(__FILE__, __LINE__).c_str(), \
+        ::testing::Pinternal::FormatFileLocation(__FILE__, __LINE__).c_str(), \
         gtest_exception.what()); \
     fflush(stderr); \
-    death_test->Abort(::testing::internal::DeathTest::TEST_THREW_EXCEPTION); \
+    death_test->Abort(::testing::Pinternal::DeathTest::TEST_THREW_EXCEPTION); \
   } catch (...) { \
-    death_test->Abort(::testing::internal::DeathTest::TEST_THREW_EXCEPTION); \
+    death_test->Abort(::testing::Pinternal::DeathTest::TEST_THREW_EXCEPTION); \
   }
 
 # else
@@ -184,27 +184,27 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
 // ASSERT_EXIT*, and EXPECT_EXIT*.
 # define GTEST_DEATH_TEST_(statement, predicate, regex, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
-    const ::testing::internal::RE& gtest_regex = (regex); \
-    ::testing::internal::DeathTest* gtest_dt; \
-    if (!::testing::internal::DeathTest::Create(#statement, &gtest_regex, \
+  if (::testing::Pinternal::AlwaysTrue()) { \
+    const ::testing::Pinternal::RE& gtest_regex = (regex); \
+    ::testing::Pinternal::DeathTest* gtest_dt; \
+    if (!::testing::Pinternal::DeathTest::Create(#statement, &gtest_regex, \
         __FILE__, __LINE__, &gtest_dt)) { \
       goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__); \
     } \
     if (gtest_dt != NULL) { \
-      ::testing::internal::scoped_ptr< ::testing::internal::DeathTest> \
+      ::testing::Pinternal::scoped_ptr< ::testing::Pinternal::DeathTest> \
           gtest_dt_ptr(gtest_dt); \
       switch (gtest_dt->AssumeRole()) { \
-        case ::testing::internal::DeathTest::OVERSEE_TEST: \
+        case ::testing::Pinternal::DeathTest::OVERSEE_TEST: \
           if (!gtest_dt->Passed(predicate(gtest_dt->Wait()))) { \
             goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__); \
           } \
           break; \
-        case ::testing::internal::DeathTest::EXECUTE_TEST: { \
-          ::testing::internal::DeathTest::ReturnSentinel \
+        case ::testing::Pinternal::DeathTest::EXECUTE_TEST: { \
+          ::testing::Pinternal::DeathTest::ReturnSentinel \
               gtest_sentinel(gtest_dt); \
           GTEST_EXECUTE_DEATH_TEST_STATEMENT_(statement, gtest_dt); \
-          gtest_dt->Abort(::testing::internal::DeathTest::TEST_DID_NOT_DIE); \
+          gtest_dt->Abort(::testing::Pinternal::DeathTest::TEST_DID_NOT_DIE); \
           break; \
         } \
         default: \
@@ -213,7 +213,7 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
     } \
   } else \
     GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__): \
-      fail(::testing::internal::DeathTest::LastMessage())
+      fail(::testing::Pinternal::DeathTest::LastMessage())
 // The symbol "fail" here expands to something into which a message
 // can be streamed.
 
@@ -223,7 +223,7 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
 // is never printed.
 # define GTEST_EXECUTE_STATEMENT_(statement, regex) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
+  if (::testing::Pinternal::AlwaysTrue()) { \
      GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
   } else \
     ::testing::Message()
@@ -300,12 +300,12 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag();
 //  macro, for compilational compatibility with EXPECT_DEATH/ASSERT_DEATH.
 # define GTEST_UNSUPPORTED_DEATH_TEST_(statement, regex, terminator) \
     GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-    if (::testing::internal::AlwaysTrue()) { \
+    if (::testing::Pinternal::AlwaysTrue()) { \
       GTEST_LOG_(WARNING) \
           << "Death tests are not supported on this platform.\n" \
           << "Statement '" #statement "' cannot be verified."; \
-    } else if (::testing::internal::AlwaysFalse()) { \
-      ::testing::internal::RE::PartialMatch(".*", (regex)); \
+    } else if (::testing::Pinternal::AlwaysFalse()) { \
+      ::testing::Pinternal::RE::PartialMatch(".*", (regex)); \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
       terminator; \
     } else \

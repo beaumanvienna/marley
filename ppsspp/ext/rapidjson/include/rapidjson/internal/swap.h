@@ -23,7 +23,7 @@ RAPIDJSON_DIAG_OFF(c++98-compat)
 #endif
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace internal {
+namespace Pinternal {
 
 //! Custom swap() to avoid dependency on C++ <algorithm> header
 /*! \tparam T Type of the arguments to swap, should be instantiated with primitive C++ types only.
@@ -36,7 +36,7 @@ inline void Swap(T& a, T& b) RAPIDJSON_NOEXCEPT {
         b = tmp;
 }
 
-} // namespace internal
+} // namespace Pinternal
 RAPIDJSON_NAMESPACE_END
 
 #if defined(__clang__)

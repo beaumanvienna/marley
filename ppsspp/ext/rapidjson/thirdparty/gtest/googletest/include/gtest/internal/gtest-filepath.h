@@ -43,7 +43,7 @@
 #include "gtest/internal/gtest-string.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // FilePath - a class for file and directory pathname manipulation which
 // handles platform-specific conventions (like the pathname separator).
@@ -200,7 +200,7 @@ class GTEST_API_ FilePath {
   std::string pathname_;
 };  // class FilePath
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_FILEPATH_H_

@@ -146,7 +146,7 @@ GTEST_DECLARE_string_(stream_result_to);
 // The upper limit for valid stack trace depths.
 const int kMaxStackTraceDepth = 100;
 
-namespace internal {
+namespace Pinternal {
 
 class AssertHelper;
 class DefaultGlobalTestPartResultReporter;
@@ -164,7 +164,7 @@ class UnitTestImpl* GetUnitTestImpl();
 void ReportFailureInUnknownLocation(TestPartResult::Type result_type,
                                     const std::string& message);
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // The friend relationship of some of these classes is cyclic.
 // If we don't forward declare them the compiler might confuse the classes
@@ -271,8 +271,8 @@ class GTEST_API_ AssertionResult {
   template <typename T>
   explicit AssertionResult(
       const T& success,
-      typename internal::EnableIf<
-          !internal::ImplicitlyConvertible<T, AssertionResult>::value>::type*
+      typename Pinternal::EnableIf<
+          !Pinternal::ImplicitlyConvertible<T, AssertionResult>::value>::type*
           /*enabler*/ = NULL)
       : success_(success) {}
 
@@ -332,7 +332,7 @@ class GTEST_API_ AssertionResult {
   // construct is not satisfied with the predicate's outcome.
   // Referenced via a pointer to avoid taking too much stack frame space
   // with test assertions.
-  internal::scoped_ptr< ::std::string> message_;
+  Pinternal::scoped_ptr< ::std::string> message_;
 };
 
 // Makes a successful assertion result.
@@ -374,8 +374,8 @@ class GTEST_API_ Test {
 
   // Defines types for pointers to functions that set up and tear down
   // a test case.
-  typedef internal::SetUpTestCaseFunc SetUpTestCaseFunc;
-  typedef internal::TearDownTestCaseFunc TearDownTestCaseFunc;
+  typedef Pinternal::SetUpTestCaseFunc SetUpTestCaseFunc;
+  typedef Pinternal::TearDownTestCaseFunc TearDownTestCaseFunc;
 
   // The d'tor is virtual as we intend to inherit from Test.
   virtual ~Test();
@@ -452,7 +452,7 @@ class GTEST_API_ Test {
   // internal method to avoid clashing with names used in user TESTs.
   void DeleteSelf_() { delete this; }
 
-  const internal::scoped_ptr< GTEST_FLAG_SAVER_ > gtest_flag_saver_;
+  const Pinternal::scoped_ptr< GTEST_FLAG_SAVER_ > gtest_flag_saver_;
 
   // Often a user misspells SetUp() as Setup() and spends a long time
   // wondering why it is never called by Google Test.  The declaration of
@@ -477,7 +477,7 @@ class GTEST_API_ Test {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(Test);
 };
 
-typedef internal::TimeInMillis TimeInMillis;
+typedef Pinternal::TimeInMillis TimeInMillis;
 
 // A copyable object representing a user specified test property which can be
 // output as a key/value string pair.
@@ -564,11 +564,11 @@ class GTEST_API_ TestResult {
   friend class TestInfo;
   friend class TestCase;
   friend class UnitTest;
-  friend class internal::DefaultGlobalTestPartResultReporter;
-  friend class internal::ExecDeathTest;
-  friend class internal::TestResultAccessor;
-  friend class internal::UnitTestImpl;
-  friend class internal::WindowsDeathTest;
+  friend class Pinternal::DefaultGlobalTestPartResultReporter;
+  friend class Pinternal::ExecDeathTest;
+  friend class Pinternal::TestResultAccessor;
+  friend class Pinternal::UnitTestImpl;
+  friend class Pinternal::WindowsDeathTest;
 
   // Gets the vector of TestPartResults.
   const std::vector<TestPartResult>& test_part_results() const {
@@ -615,7 +615,7 @@ class GTEST_API_ TestResult {
 
   // Protects mutable state of the property vector and of owned
   // properties, whose values may be updated.
-  internal::Mutex test_properites_mutex_;
+  Pinternal::Mutex test_properites_mutex_;
 
   // The vector of TestPartResults
   std::vector<TestPartResult> test_part_results_;
@@ -706,22 +706,22 @@ class GTEST_API_ TestInfo {
 
  private:
 #if GTEST_HAS_DEATH_TEST
-  friend class internal::DefaultDeathTestFactory;
+  friend class Pinternal::DefaultDeathTestFactory;
 #endif  // GTEST_HAS_DEATH_TEST
   friend class Test;
   friend class TestCase;
-  friend class internal::UnitTestImpl;
-  friend class internal::StreamingListenerTest;
-  friend TestInfo* internal::MakeAndRegisterTestInfo(
+  friend class Pinternal::UnitTestImpl;
+  friend class Pinternal::StreamingListenerTest;
+  friend TestInfo* Pinternal::MakeAndRegisterTestInfo(
       const char* test_case_name,
       const char* name,
       const char* type_param,
       const char* value_param,
-      internal::CodeLocation code_location,
-      internal::TypeId fixture_class_id,
+      Pinternal::CodeLocation code_location,
+      Pinternal::TypeId fixture_class_id,
       Test::SetUpTestCaseFunc set_up_tc,
       Test::TearDownTestCaseFunc tear_down_tc,
-      internal::TestFactoryBase* factory);
+      Pinternal::TestFactoryBase* factory);
 
   // Constructs a TestInfo object. The newly constructed instance assumes
   // ownership of the factory object.
@@ -729,9 +729,9 @@ class GTEST_API_ TestInfo {
            const std::string& name,
            const char* a_type_param,   // NULL if not a type-parameterized test
            const char* a_value_param,  // NULL if not a value-parameterized test
-           internal::CodeLocation a_code_location,
-           internal::TypeId fixture_class_id,
-           internal::TestFactoryBase* factory);
+           Pinternal::CodeLocation a_code_location,
+           Pinternal::TypeId fixture_class_id,
+           Pinternal::TestFactoryBase* factory);
 
   // Increments the number of death tests encountered in this test so
   // far.
@@ -752,17 +752,17 @@ class GTEST_API_ TestInfo {
   const std::string name_;               // Test name
   // Name of the parameter type, or NULL if this is not a typed or a
   // type-parameterized test.
-  const internal::scoped_ptr<const ::std::string> type_param_;
+  const Pinternal::scoped_ptr<const ::std::string> type_param_;
   // Text representation of the value parameter, or NULL if this is not a
   // value-parameterized test.
-  const internal::scoped_ptr<const ::std::string> value_param_;
-  internal::CodeLocation location_;
-  const internal::TypeId fixture_class_id_;   // ID of the test fixture class
+  const Pinternal::scoped_ptr<const ::std::string> value_param_;
+  Pinternal::CodeLocation location_;
+  const Pinternal::TypeId fixture_class_id_;   // ID of the test fixture class
   bool should_run_;                 // True iff this test should run
   bool is_disabled_;                // True iff this test is disabled
   bool matches_filter_;             // True if this test matches the
                                     // user-specified filter.
-  internal::TestFactoryBase* const factory_;  // The factory that creates
+  Pinternal::TestFactoryBase* const factory_;  // The factory that creates
                                               // the test object
 
   // This field is mutable and needs to be reset before running the
@@ -850,7 +850,7 @@ class GTEST_API_ TestCase {
 
  private:
   friend class Test;
-  friend class internal::UnitTestImpl;
+  friend class Pinternal::UnitTestImpl;
 
   // Gets the (mutable) vector of TestInfos in this TestCase.
   std::vector<TestInfo*>& test_info_list() { return test_info_list_; }
@@ -922,7 +922,7 @@ class GTEST_API_ TestCase {
   }
 
   // Shuffles the tests in this test case.
-  void ShuffleTests(internal::Random* random);
+  void ShuffleTests(Pinternal::Random* random);
 
   // Restores the test order to before the first shuffle.
   void UnshuffleTests();
@@ -931,7 +931,7 @@ class GTEST_API_ TestCase {
   std::string name_;
   // Name of the parameter type, or NULL if this is not a typed or a
   // type-parameterized test.
-  const internal::scoped_ptr<const ::std::string> type_param_;
+  const Pinternal::scoped_ptr<const ::std::string> type_param_;
   // The vector of TestInfos in their original order.  It owns the
   // elements in the vector.
   std::vector<TestInfo*> test_info_list_;
@@ -1099,10 +1099,10 @@ class GTEST_API_ TestEventListeners {
  private:
   friend class TestCase;
   friend class TestInfo;
-  friend class internal::DefaultGlobalTestPartResultReporter;
-  friend class internal::NoExecDeathTest;
-  friend class internal::TestEventListenersAccessor;
-  friend class internal::UnitTestImpl;
+  friend class Pinternal::DefaultGlobalTestPartResultReporter;
+  friend class Pinternal::NoExecDeathTest;
+  friend class Pinternal::TestEventListenersAccessor;
+  friend class Pinternal::UnitTestImpl;
 
   // Returns repeater that broadcasts the TestEventListener events to all
   // subscribers.
@@ -1128,7 +1128,7 @@ class GTEST_API_ TestEventListeners {
   void SuppressEventForwarding();
 
   // The actual list of listeners.
-  internal::TestEventRepeater* repeater_;
+  Pinternal::TestEventRepeater* repeater_;
   // Listener responsible for the standard result output.
   TestEventListener* default_result_printer_;
   // Listener responsible for the creation of the XML output file.
@@ -1185,7 +1185,7 @@ class GTEST_API_ UnitTest {
   // value-parameterized tests and instantiate and register them.
   //
   // INTERNAL IMPLEMENTATION - DO NOT USE IN A USER PROGRAM.
-  internal::ParameterizedTestCaseRegistry& parameterized_test_registry()
+  Pinternal::ParameterizedTestCaseRegistry& parameterized_test_registry()
       GTEST_LOCK_EXCLUDED_(mutex_);
 #endif  // GTEST_HAS_PARAM_TEST
 
@@ -1284,19 +1284,19 @@ class GTEST_API_ UnitTest {
   TestCase* GetMutableTestCase(int i);
 
   // Accessors for the implementation object.
-  internal::UnitTestImpl* impl() { return impl_; }
-  const internal::UnitTestImpl* impl() const { return impl_; }
+  Pinternal::UnitTestImpl* impl() { return impl_; }
+  const Pinternal::UnitTestImpl* impl() const { return impl_; }
 
   // These classes and funcions are friends as they need to access private
   // members of UnitTest.
   friend class Test;
-  friend class internal::AssertHelper;
-  friend class internal::ScopedTrace;
-  friend class internal::StreamingListenerTest;
-  friend class internal::UnitTestRecordPropertyTestHelper;
+  friend class Pinternal::AssertHelper;
+  friend class Pinternal::ScopedTrace;
+  friend class Pinternal::StreamingListenerTest;
+  friend class Pinternal::UnitTestRecordPropertyTestHelper;
   friend Environment* AddGlobalTestEnvironment(Environment* env);
-  friend internal::UnitTestImpl* internal::GetUnitTestImpl();
-  friend void internal::ReportFailureInUnknownLocation(
+  friend Pinternal::UnitTestImpl* Pinternal::GetUnitTestImpl();
+  friend void Pinternal::ReportFailureInUnknownLocation(
       TestPartResult::Type result_type,
       const std::string& message);
 
@@ -1308,7 +1308,7 @@ class GTEST_API_ UnitTest {
 
   // Pushes a trace defined by SCOPED_TRACE() on to the per-thread
   // Google Test trace stack.
-  void PushGTestTrace(const internal::TraceInfo& trace)
+  void PushGTestTrace(const Pinternal::TraceInfo& trace)
       GTEST_LOCK_EXCLUDED_(mutex_);
 
   // Pops a trace from the per-thread Google Test trace stack.
@@ -1317,13 +1317,13 @@ class GTEST_API_ UnitTest {
 
   // Protects mutable state in *impl_.  This is mutable as some const
   // methods need to lock it too.
-  mutable internal::Mutex mutex_;
+  mutable Pinternal::Mutex mutex_;
 
   // Opaque implementation object.  This field is never changed once
   // the object is constructed.  We don't mark it as const here, as
   // doing so will cause a warning in the constructor of UnitTest.
   // Mutable state in *impl_ is protected by mutex_.
-  internal::UnitTestImpl* impl_;
+  Pinternal::UnitTestImpl* impl_;
 
   // We disallow copying UnitTest.
   GTEST_DISALLOW_COPY_AND_ASSIGN_(UnitTest);
@@ -1770,7 +1770,7 @@ class WithParamInterface {
   static const ParamType* parameter_;
 
   // TestClass must be a subclass of WithParamInterface<T> and Test.
-  template <class TestClass> friend class internal::ParameterizedTestFactory;
+  template <class TestClass> friend class Pinternal::ParameterizedTestFactory;
 };
 
 template <typename T>
@@ -1920,34 +1920,34 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 //   ASSERT_GT(records.size(), 0) << "There is no record left.";
 
 #define EXPECT_EQ(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal:: \
+  EXPECT_PRED_FORMAT2(::testing::Pinternal:: \
                       EqHelper<GTEST_IS_NULL_LITERAL_(val1)>::Compare, \
                       val1, val2)
 #define EXPECT_NE(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperNE, val1, val2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperNE, val1, val2)
 #define EXPECT_LE(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperLE, val1, val2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperLE, val1, val2)
 #define EXPECT_LT(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperLT, val1, val2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperLT, val1, val2)
 #define EXPECT_GE(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperGE, val1, val2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperGE, val1, val2)
 #define EXPECT_GT(val1, val2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperGT, val1, val2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperGT, val1, val2)
 
 #define GTEST_ASSERT_EQ(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal:: \
+  ASSERT_PRED_FORMAT2(::testing::Pinternal:: \
                       EqHelper<GTEST_IS_NULL_LITERAL_(val1)>::Compare, \
                       val1, val2)
 #define GTEST_ASSERT_NE(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperNE, val1, val2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperNE, val1, val2)
 #define GTEST_ASSERT_LE(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperLE, val1, val2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperLE, val1, val2)
 #define GTEST_ASSERT_LT(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperLT, val1, val2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperLT, val1, val2)
 #define GTEST_ASSERT_GE(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperGE, val1, val2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperGE, val1, val2)
 #define GTEST_ASSERT_GT(val1, val2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperGT, val1, val2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperGT, val1, val2)
 
 // Define macro GTEST_DONT_DEFINE_ASSERT_XY to 1 to omit the definition of
 // ASSERT_XY(), which clashes with some users' own code.
@@ -1993,22 +1993,22 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 // These macros evaluate their arguments exactly once.
 
 #define EXPECT_STREQ(s1, s2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperSTREQ, s1, s2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTREQ, s1, s2)
 #define EXPECT_STRNE(s1, s2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperSTRNE, s1, s2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRNE, s1, s2)
 #define EXPECT_STRCASEEQ(s1, s2) \
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperSTRCASEEQ, s1, s2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRCASEEQ, s1, s2)
 #define EXPECT_STRCASENE(s1, s2)\
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperSTRCASENE, s1, s2)
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRCASENE, s1, s2)
 
 #define ASSERT_STREQ(s1, s2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperSTREQ, s1, s2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTREQ, s1, s2)
 #define ASSERT_STRNE(s1, s2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperSTRNE, s1, s2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRNE, s1, s2)
 #define ASSERT_STRCASEEQ(s1, s2) \
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperSTRCASEEQ, s1, s2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRCASEEQ, s1, s2)
 #define ASSERT_STRCASENE(s1, s2)\
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperSTRCASENE, s1, s2)
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperSTRCASENE, s1, s2)
 
 // Macros for comparing floating-point numbers.
 //
@@ -2025,27 +2025,27 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 // interested in the implementation details.
 
 #define EXPECT_FLOAT_EQ(val1, val2)\
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperFloatingPointEQ<float>, \
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperFloatingPointEQ<float>, \
                       val1, val2)
 
 #define EXPECT_DOUBLE_EQ(val1, val2)\
-  EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperFloatingPointEQ<double>, \
+  EXPECT_PRED_FORMAT2(::testing::Pinternal::CmpHelperFloatingPointEQ<double>, \
                       val1, val2)
 
 #define ASSERT_FLOAT_EQ(val1, val2)\
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperFloatingPointEQ<float>, \
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperFloatingPointEQ<float>, \
                       val1, val2)
 
 #define ASSERT_DOUBLE_EQ(val1, val2)\
-  ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperFloatingPointEQ<double>, \
+  ASSERT_PRED_FORMAT2(::testing::Pinternal::CmpHelperFloatingPointEQ<double>, \
                       val1, val2)
 
 #define EXPECT_NEAR(val1, val2, abs_error)\
-  EXPECT_PRED_FORMAT3(::testing::internal::DoubleNearPredFormat, \
+  EXPECT_PRED_FORMAT3(::testing::Pinternal::DoubleNearPredFormat, \
                       val1, val2, abs_error)
 
 #define ASSERT_NEAR(val1, val2, abs_error)\
-  ASSERT_PRED_FORMAT3(::testing::internal::DoubleNearPredFormat, \
+  ASSERT_PRED_FORMAT3(::testing::Pinternal::DoubleNearPredFormat, \
                       val1, val2, abs_error)
 
 // These predicate format functions work on floating-point values, and
@@ -2073,16 +2073,16 @@ GTEST_API_ AssertionResult DoubleLE(const char* expr1, const char* expr2,
 // string representation of the error, if available, as well as the
 // hex result code.
 # define EXPECT_HRESULT_SUCCEEDED(expr) \
-    EXPECT_PRED_FORMAT1(::testing::internal::IsHRESULTSuccess, (expr))
+    EXPECT_PRED_FORMAT1(::testing::Pinternal::IsHRESULTSuccess, (expr))
 
 # define ASSERT_HRESULT_SUCCEEDED(expr) \
-    ASSERT_PRED_FORMAT1(::testing::internal::IsHRESULTSuccess, (expr))
+    ASSERT_PRED_FORMAT1(::testing::Pinternal::IsHRESULTSuccess, (expr))
 
 # define EXPECT_HRESULT_FAILED(expr) \
-    EXPECT_PRED_FORMAT1(::testing::internal::IsHRESULTFailure, (expr))
+    EXPECT_PRED_FORMAT1(::testing::Pinternal::IsHRESULTFailure, (expr))
 
 # define ASSERT_HRESULT_FAILED(expr) \
-    ASSERT_PRED_FORMAT1(::testing::internal::IsHRESULTFailure, (expr))
+    ASSERT_PRED_FORMAT1(::testing::Pinternal::IsHRESULTFailure, (expr))
 
 #endif  // GTEST_OS_WINDOWS
 
@@ -2113,7 +2113,7 @@ GTEST_API_ AssertionResult DoubleLE(const char* expr1, const char* expr2,
 // to appear in the same block - as long as they are on different
 // lines.
 #define SCOPED_TRACE(message) \
-  ::testing::internal::ScopedTrace GTEST_CONCAT_TOKEN_(gtest_trace_, __LINE__)(\
+  ::testing::Pinternal::ScopedTrace GTEST_CONCAT_TOKEN_(gtest_trace_, __LINE__)(\
     __FILE__, __LINE__, ::testing::Message() << (message))
 
 // Compile-time assertion for type equality.
@@ -2148,7 +2148,7 @@ GTEST_API_ AssertionResult DoubleLE(const char* expr1, const char* expr2,
 // to cause a compiler error.
 template <typename T1, typename T2>
 bool StaticAssertTypeEq() {
-  (void)internal::StaticAssertTypeEqHelper<T1, T2>();
+  (void)Pinternal::StaticAssertTypeEqHelper<T1, T2>();
   return true;
 }
 
@@ -2179,7 +2179,7 @@ bool StaticAssertTypeEq() {
 // framework.
 #define GTEST_TEST(test_case_name, test_name)\
   GTEST_TEST_(test_case_name, test_name, \
-              ::testing::Test, ::testing::internal::GetTestTypeId())
+              ::testing::Test, ::testing::Pinternal::GetTestTypeId())
 
 // Define this macro to 1 to omit the definition of TEST(), which
 // is a generic name and clashes with some other libraries.
@@ -2215,7 +2215,7 @@ bool StaticAssertTypeEq() {
 
 #define TEST_F(test_fixture, test_name)\
   GTEST_TEST_(test_fixture, test_name, test_fixture, \
-              ::testing::internal::GetTypeId<test_fixture>())
+              ::testing::Pinternal::GetTypeId<test_fixture>())
 
 }  // namespace testing
 

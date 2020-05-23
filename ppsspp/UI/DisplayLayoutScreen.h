@@ -35,15 +35,15 @@ public:
 	std::string tag() const override { return "display layout screen"; }
 	
 protected:
-	virtual UI::EventReturn OnCenter(UI::EventParams &e);
-	virtual UI::EventReturn OnZoomTypeChange(UI::EventParams &e);
+	virtual PUI::EventReturn OnCenter(PUI::EventParams &e);
+	virtual PUI::EventReturn OnZoomTypeChange(PUI::EventParams &e);
 
 private:
 	DragDropDisplay *picked_;
 	DragDropDisplay *displayRepresentation_;
-	UI::ChoiceStrip *mode_;
-	UI::PopupMultiChoice *zoom_;
-	UI::PopupMultiChoice *rotation_;
+	PUI::ChoiceStrip *mode_;
+	PUI::PopupMultiChoice *zoom_;
+	PUI::PopupMultiChoice *rotation_;
 	bool displayRotEnable_;
 	bool bRotated;
 	bool stickToEdgeX;

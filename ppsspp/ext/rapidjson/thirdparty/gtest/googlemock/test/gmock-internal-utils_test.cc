@@ -65,7 +65,7 @@ class Message;
 }  // namespace proto2
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 namespace {
 
@@ -105,7 +105,7 @@ TEST(ConvertIdentifierNameToWordsTest, WorksWhenNameIsMixture) {
 
 TEST(PointeeOfTest, WorksForSmartPointers) {
   CompileAssertTypesEqual<const char,
-      PointeeOf<internal::linked_ptr<const char> >::type>();
+      PointeeOf<Pinternal::linked_ptr<const char> >::type>();
 #if GTEST_HAS_STD_UNIQUE_PTR_
   CompileAssertTypesEqual<int, PointeeOf<std::unique_ptr<int> >::type>();
 #endif  // GTEST_HAS_STD_UNIQUE_PTR_
@@ -134,7 +134,7 @@ TEST(GetRawPointerTest, WorksForSmartPointers) {
 #endif  // GTEST_HAS_STD_SHARED_PTR_
 
   const char* const raw_p4 = new const char('a');  // NOLINT
-  const internal::linked_ptr<const char> p4(raw_p4);
+  const Pinternal::linked_ptr<const char> p4(raw_p4);
   EXPECT_EQ(raw_p4, GetRawPointer(p4));
 }
 
@@ -431,7 +431,7 @@ TEST(LogTest, NoStackTraceWhenStackFramesToSkipIsNegative) {
   GMOCK_FLAG(verbose) = saved_flag;
 }
 
-struct MockStackTraceGetter : testing::internal::OsStackTraceGetterInterface {
+struct MockStackTraceGetter : testing::Pinternal::OsStackTraceGetterInterface {
   virtual string CurrentStackTrace(int max_depth, int skip_count) {
     return (testing::Message() << max_depth << "::" << skip_count << "\n")
         .GetString();
@@ -695,5 +695,5 @@ TEST(StlContainerViewTest, WorksForDynamicNativeArray) {
 }
 
 }  // namespace
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

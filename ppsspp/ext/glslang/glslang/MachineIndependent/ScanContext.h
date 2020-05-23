@@ -42,7 +42,7 @@
 
 #include "ParseHelper.h"
 
-namespace glslang {
+namespace Pglslang {
 
 class TPpContext;
 class TPpToken;
@@ -90,4 +90,4 @@ protected:
     int keyword;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang

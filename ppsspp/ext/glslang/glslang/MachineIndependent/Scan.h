@@ -38,7 +38,7 @@
 
 #include "Versions.h"
 
-namespace glslang {
+namespace Pglslang {
 
 // Use a global end-of-input character, so no translation is needed across
 // layers of encapsulation.  Characters are all 8 bit, and positive, so there is
@@ -271,6 +271,6 @@ protected:
     bool endOfFileReached;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _GLSLANG_SCAN_INCLUDED_

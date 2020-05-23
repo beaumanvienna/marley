@@ -79,7 +79,7 @@ namespace testing {
 // declare it here as opposed to in gtest.h.
 GTEST_DECLARE_bool_(death_test_use_fork);
 
-namespace internal {
+namespace Pinternal {
 
 // The value of GetTestTypeId() as seen from within the Google Test
 // library.  This is solely for testing GetTestTypeId().
@@ -216,10 +216,10 @@ class GTestFlagSaver {
   bool list_tests_;
   std::string output_;
   bool print_time_;
-  internal::Int32 random_seed_;
-  internal::Int32 repeat_;
+  Pinternal::Int32 random_seed_;
+  Pinternal::Int32 repeat_;
   bool shuffle_;
-  internal::Int32 stack_trace_depth_;
+  Pinternal::Int32 stack_trace_depth_;
   std::string stream_result_to_;
   bool throw_on_failure_;
 } GTEST_ATTRIBUTE_UNUSED_;
@@ -309,7 +309,7 @@ inline E GetElementOr(const std::vector<E>& v, int i, E default_value) {
 // i.e. [begin, end) are shuffled, where 'end' == size() means to
 // shuffle to the end of the vector.
 template <typename E>
-void ShuffleRange(internal::Random* random, int begin, int end,
+void ShuffleRange(Pinternal::Random* random, int begin, int end,
                   std::vector<E>* v) {
   const int size = static_cast<int>(v->size());
   GTEST_CHECK_(0 <= begin && begin <= size)
@@ -330,7 +330,7 @@ void ShuffleRange(internal::Random* random, int begin, int end,
 
 // Performs an in-place shuffle of the vector's elements.
 template <typename E>
-inline void Shuffle(internal::Random* random, std::vector<E>* v) {
+inline void Shuffle(Pinternal::Random* random, std::vector<E>* v) {
   ShuffleRange(random, 0, static_cast<int>(v->size()), v);
 }
 
@@ -667,7 +667,7 @@ class GTEST_API_ UnitTestImpl {
 #if GTEST_HAS_PARAM_TEST
   // Returns ParameterizedTestCaseRegistry object used to keep track of
   // value-parameterized tests and instantiate and register them.
-  internal::ParameterizedTestCaseRegistry& parameterized_test_registry() {
+  Pinternal::ParameterizedTestCaseRegistry& parameterized_test_registry() {
     return parameterized_test_registry_;
   }
 #endif  // GTEST_HAS_PARAM_TEST
@@ -759,7 +759,7 @@ class GTEST_API_ UnitTestImpl {
   }
 
   // Returns a pointer to the current death test factory.
-  internal::DeathTestFactory* death_test_factory() {
+  Pinternal::DeathTestFactory* death_test_factory() {
     return death_test_factory_.get();
   }
 
@@ -789,7 +789,7 @@ class GTEST_API_ UnitTestImpl {
   int random_seed() const { return random_seed_; }
 
   // Gets the random number generator.
-  internal::Random* random() { return &random_; }
+  Pinternal::Random* random() { return &random_; }
 
   // Shuffles all test cases, and the tests within each test case,
   // making sure that death tests are still run first.
@@ -814,7 +814,7 @@ class GTEST_API_ UnitTestImpl {
 
   // The working directory when the first TEST() or TEST_F() was
   // executed.
-  internal::FilePath original_working_dir_;
+  Pinternal::FilePath original_working_dir_;
 
   // The default test part result reporters.
   DefaultGlobalTestPartResultReporter default_global_test_part_result_reporter_;
@@ -825,10 +825,10 @@ class GTEST_API_ UnitTestImpl {
   TestPartResultReporterInterface* global_test_part_result_repoter_;
 
   // Protects read and write access to global_test_part_result_reporter_.
-  internal::Mutex global_test_part_result_reporter_mutex_;
+  Pinternal::Mutex global_test_part_result_reporter_mutex_;
 
   // Points to (but doesn't own) the per-thread test part result reporter.
-  internal::ThreadLocal<TestPartResultReporterInterface*>
+  Pinternal::ThreadLocal<TestPartResultReporterInterface*>
       per_thread_test_part_result_reporter_;
 
   // The vector of environments that need to be set-up/torn-down
@@ -848,7 +848,7 @@ class GTEST_API_ UnitTestImpl {
 #if GTEST_HAS_PARAM_TEST
   // ParameterizedTestRegistry object used to register value-parameterized
   // tests.
-  internal::ParameterizedTestCaseRegistry parameterized_test_registry_;
+  Pinternal::ParameterizedTestCaseRegistry parameterized_test_registry_;
 
   // Indicates whether RegisterParameterizedTests() has been called already.
   bool parameterized_tests_registered_;
@@ -896,7 +896,7 @@ class GTEST_API_ UnitTestImpl {
   int random_seed_;
 
   // Our random number generator.
-  internal::Random random_;
+  Pinternal::Random random_;
 
   // The time of the test program start, in ms from the start of the
   // UNIX epoch.
@@ -908,12 +908,12 @@ class GTEST_API_ UnitTestImpl {
 #if GTEST_HAS_DEATH_TEST
   // The decomposed components of the gtest_internal_run_death_test flag,
   // parsed when RUN_ALL_TESTS is called.
-  internal::scoped_ptr<InternalRunDeathTestFlag> internal_run_death_test_flag_;
-  internal::scoped_ptr<internal::DeathTestFactory> death_test_factory_;
+  Pinternal::scoped_ptr<InternalRunDeathTestFlag> internal_run_death_test_flag_;
+  Pinternal::scoped_ptr<Pinternal::DeathTestFactory> death_test_factory_;
 #endif  // GTEST_HAS_DEATH_TEST
 
   // A per-thread stack of traces created by the SCOPED_TRACE() macro.
-  internal::ThreadLocal<std::vector<TraceInfo> > gtest_trace_stack_;
+  Pinternal::ThreadLocal<std::vector<TraceInfo> > gtest_trace_stack_;
 
   // The value of GTEST_FLAG(catch_exceptions) at the moment RunAllTests()
   // starts.

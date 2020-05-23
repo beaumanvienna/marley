@@ -67,7 +67,7 @@ void ScreenManager::switchToNext() {
 		delete temp.screen;
 	}
 	nextScreen_ = 0;
-	UI::SetFocusedView(0);
+	PUI::SetFocusedView(0);
 }
 
 bool ScreenManager::touch(const TouchInput &touch) {
@@ -215,7 +215,7 @@ void ScreenManager::push(Screen *screen, int layerFlags) {
 	}
 
 	// Release touches and unfocus.
-	UI::SetFocusedView(nullptr);
+	PUI::SetFocusedView(nullptr);
 	TouchInput input;
 	input.flags = TOUCH_RELEASE_ALL;
 	input.timestamp = time_now_d();

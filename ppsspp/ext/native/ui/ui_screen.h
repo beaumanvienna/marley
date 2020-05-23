@@ -31,9 +31,9 @@ public:
 	virtual void TriggerFinish(DialogResult result);
 
 	// Some useful default event handlers
-	UI::EventReturn OnOK(UI::EventParams &e);
-	UI::EventReturn OnCancel(UI::EventParams &e);
-	UI::EventReturn OnBack(UI::EventParams &e);
+	PUI::EventReturn OnOK(PUI::EventParams &e);
+	PUI::EventReturn OnCancel(PUI::EventParams &e);
+	PUI::EventReturn OnBack(PUI::EventParams &e);
 
 protected:
 	virtual void CreateViews() = 0;
@@ -41,7 +41,7 @@ protected:
 
 	virtual void RecreateViews() override { recreateViews_ = true; }
 
-	UI::ViewGroup *root_;
+	PUI::ViewGroup *root_;
 	Vec3 translation_;
 	Vec3 scale_;
 	float alpha_ = 1.0f;
@@ -69,7 +69,7 @@ class PopupScreen : public UIDialogScreen {
 public:
 	PopupScreen(std::string title, std::string button1 = "", std::string button2 = "");
 
-	virtual void CreatePopupContents(UI::ViewGroup *parent) = 0;
+	virtual void CreatePopupContents(PUI::ViewGroup *parent) = 0;
 	virtual void CreateViews() override;
 	virtual bool isTransparent() const override { return true; }
 	virtual bool touch(const TouchInput &touch) override;
@@ -78,11 +78,11 @@ public:
 
 	virtual void TriggerFinish(DialogResult result) override;
 
-	void SetPopupOrigin(const UI::View *view);
+	void SetPopupOrigin(const PUI::View *view);
 
 protected:
 	virtual bool FillVertical() const { return false; }
-	virtual UI::Size PopupWidth() const { return 550; }
+	virtual PUI::Size PopupWidth() const { return 550; }
 	virtual bool ShowButtons() const { return true; }
 	virtual bool CanComplete(DialogResult result) { return true; }
 	virtual void OnCompleted(DialogResult result) {}
@@ -90,8 +90,8 @@ protected:
 	virtual void update() override;
 
 private:
-	UI::ViewGroup *box_;
-	UI::Button *defaultButton_;
+	PUI::ViewGroup *box_;
+	PUI::Button *defaultButton_;
 	std::string title_;
 	std::string button1_;
 	std::string button2_;
@@ -129,17 +129,17 @@ public:
 	}
 	virtual std::string tag() const override { return std::string("listpopup"); }
 
-	UI::Event OnChoice;
+	PUI::Event OnChoice;
 
 protected:
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return showButtons_; }
-	virtual void CreatePopupContents(UI::ViewGroup *parent) override;
-	UI::StringVectorListAdaptor adaptor_;
-	UI::ListView *listView_ = nullptr;
+	virtual void CreatePopupContents(PUI::ViewGroup *parent) override;
+	PUI::StringVectorListAdaptor adaptor_;
+	PUI::ListView *listView_ = nullptr;
 
 private:
-	UI::EventReturn OnListChoice(UI::EventParams &e);
+	PUI::EventReturn OnListChoice(PUI::EventParams &e);
 
 	std::function<void(int)> callback_;
 	bool showButtons_ = false;
@@ -150,12 +150,12 @@ class MessagePopupScreen : public PopupScreen {
 public:
 	MessagePopupScreen(std::string title, std::string message, std::string button1, std::string button2, std::function<void(bool)> callback) 
 		: PopupScreen(title, button1, button2), message_(message), callback_(callback) {}
-	UI::Event OnChoice;
+	PUI::Event OnChoice;
 
 protected:
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return true; }
-	virtual void CreatePopupContents(UI::ViewGroup *parent) override;
+	virtual void CreatePopupContents(PUI::ViewGroup *parent) override;
 
 private:
 	void OnCompleted(DialogResult result) override;
@@ -165,7 +165,7 @@ private:
 
 // TODO: Need a way to translate OK and Cancel
 
-namespace UI {
+namespace PUI {
 
 class SliderPopupScreen : public PopupScreen {
 public:
@@ -187,7 +187,7 @@ private:
 	EventReturn OnSliderChange(EventParams &params);
 	virtual void OnCompleted(DialogResult result) override;
 	Slider *slider_ = nullptr;
-	UI::TextEdit *edit_ = nullptr;
+	PUI::TextEdit *edit_ = nullptr;
 	std::string units_;
 	std::string negativeLabel_;
 	int *value_;
@@ -203,7 +203,7 @@ class SliderFloatPopupScreen : public PopupScreen {
 public:
 	SliderFloatPopupScreen(float *value, float minValue, float maxValue, const std::string &title, float step = 1.0f, const std::string &units = "")
 	: PopupScreen(title, "OK", "Cancel"), units_(units), value_(value), minValue_(minValue), maxValue_(maxValue), step_(step), changing_(false) {}
-	void CreatePopupContents(UI::ViewGroup *parent) override;
+	void CreatePopupContents(PUI::ViewGroup *parent) override;
 
 	Event OnChange;
 
@@ -213,8 +213,8 @@ private:
 	EventReturn OnTextChange(EventParams &params);
 	EventReturn OnSliderChange(EventParams &params);
 	virtual void OnCompleted(DialogResult result) override;
-	UI::SliderFloat *slider_;
-	UI::TextEdit *edit_;
+	PUI::SliderFloat *slider_;
+	PUI::TextEdit *edit_;
 	std::string units_;
 	float sliderValue_;
 	float *value_;
@@ -242,11 +242,11 @@ private:
 };
 
 // Reads and writes value to determine the current selection.
-class PopupMultiChoice : public UI::Choice {
+class PopupMultiChoice : public PUI::Choice {
 public:
 	PopupMultiChoice(int *value, const std::string &text, const char **choices, int minVal, int numChoices,
-		const char *category, ScreenManager *screenManager, UI::LayoutParams *layoutParams = nullptr)
-		: UI::Choice(text, "", false, layoutParams), value_(value), choices_(choices), minVal_(minVal), numChoices_(numChoices), 
+		const char *category, ScreenManager *screenManager, PUI::LayoutParams *layoutParams = nullptr)
+		: PUI::Choice(text, "", false, layoutParams), value_(value), choices_(choices), minVal_(minVal), numChoices_(numChoices), 
 		category_(category), screenManager_(screenManager) {
 		if (*value >= numChoices + minVal)
 			*value = numChoices + minVal - 1;
@@ -263,7 +263,7 @@ public:
 		hidden_.insert(c);
 	}
 
-	UI::Event OnChoice;
+	PUI::Event OnChoice;
 
 protected:
 	int *value_;
@@ -273,7 +273,7 @@ protected:
 	void UpdateText();
 
 private:
-	UI::EventReturn HandleClick(UI::EventParams &e);
+	PUI::EventReturn HandleClick(PUI::EventParams &e);
 
 	void ChoiceCallback(int num);
 	virtual void PostChoiceCallback(int num) {}
@@ -289,8 +289,8 @@ private:
 class PopupMultiChoiceDynamic : public PopupMultiChoice {
 public:
 	PopupMultiChoiceDynamic(std::string *value, const std::string &text, std::vector<std::string> choices,
-		const char *category, ScreenManager *screenManager, UI::LayoutParams *layoutParams = nullptr)
-		: UI::PopupMultiChoice(&valueInt_, text, nullptr, 0, (int)choices.size(), category, screenManager, layoutParams),
+		const char *category, ScreenManager *screenManager, PUI::LayoutParams *layoutParams = nullptr)
+		: PUI::PopupMultiChoice(&valueInt_, text, nullptr, 0, (int)choices.size(), category, screenManager, layoutParams),
 		  valueStr_(value) {
 		choices_ = new const char *[numChoices_];
 		valueInt_ = 0;
@@ -404,7 +404,7 @@ private:
 	bool restoreFocus_;
 };
 
-class ChoiceWithValueDisplay : public UI::Choice {
+class ChoiceWithValueDisplay : public PUI::Choice {
 public:
 	ChoiceWithValueDisplay(int *value, const std::string &text, LayoutParams *layoutParams = 0)
 		: Choice(text, layoutParams), iValue_(value) {}

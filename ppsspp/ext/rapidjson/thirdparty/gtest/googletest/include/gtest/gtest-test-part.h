@@ -150,7 +150,7 @@ class TestPartResultReporterInterface {
   virtual void ReportTestPartResult(const TestPartResult& result) = 0;
 };
 
-namespace internal {
+namespace Pinternal {
 
 // This helper class is used by {ASSERT|EXPECT}_NO_FATAL_FAILURE to check if a
 // statement generates new fatal failures. To do so it registers itself as the
@@ -172,7 +172,7 @@ class GTEST_API_ HasNewFatalFailureHelper
   GTEST_DISALLOW_COPY_AND_ASSIGN_(HasNewFatalFailureHelper);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing
 

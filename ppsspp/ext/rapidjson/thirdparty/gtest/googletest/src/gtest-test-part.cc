@@ -44,12 +44,12 @@
 
 namespace testing {
 
-using internal::GetUnitTestImpl;
+using Pinternal::GetUnitTestImpl;
 
 // Gets the summary of the failure message by omitting the stack trace
 // in it.
 std::string TestPartResult::ExtractSummary(const char* message) {
-  const char* const stack_trace = strstr(message, internal::kStackTraceMarker);
+  const char* const stack_trace = strstr(message, Pinternal::kStackTraceMarker);
   return stack_trace == NULL ? message :
       std::string(message, stack_trace);
 }
@@ -73,7 +73,7 @@ void TestPartResultArray::Append(const TestPartResult& result) {
 const TestPartResult& TestPartResultArray::GetTestPartResult(int index) const {
   if (index < 0 || index >= size()) {
     printf("\nInvalid index (%d) into TestPartResultArray.\n", index);
-    internal::posix::Abort();
+    Pinternal::posix::Abort();
   }
 
   return array_[index];
@@ -84,7 +84,7 @@ int TestPartResultArray::size() const {
   return static_cast<int>(array_.size());
 }
 
-namespace internal {
+namespace Pinternal {
 
 HasNewFatalFailureHelper::HasNewFatalFailureHelper()
     : has_new_fatal_failure_(false),
@@ -105,6 +105,6 @@ void HasNewFatalFailureHelper::ReportTestPartResult(
   original_reporter_->ReportTestPartResult(result);
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing

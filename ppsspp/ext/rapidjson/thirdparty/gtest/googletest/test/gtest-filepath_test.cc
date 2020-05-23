@@ -57,7 +57,7 @@
 #endif  // GTEST_OS_WINDOWS_MOBILE
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 namespace {
 
 #if GTEST_OS_WINDOWS_MOBILE
@@ -658,5 +658,5 @@ TEST(FilePathTest, IsRootDirectory) {
 }
 
 }  // namespace
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

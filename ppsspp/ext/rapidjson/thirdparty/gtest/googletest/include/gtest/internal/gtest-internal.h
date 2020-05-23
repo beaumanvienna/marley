@@ -93,7 +93,7 @@ class UnitTest;                        // A collection of test cases.
 template <typename T>
 ::std::string PrintToString(const T& value);
 
-namespace internal {
+namespace Pinternal {
 
 struct TraceInfo;                      // Information about a trace point.
 class ScopedTrace;                     // Implements scoped trace.
@@ -130,7 +130,7 @@ char (&IsNullLiteralHelper(...))[2];  // NOLINT
 # define GTEST_IS_NULL_LITERAL_(x) false
 #else
 # define GTEST_IS_NULL_LITERAL_(x) \
-    (sizeof(::testing::internal::IsNullLiteralHelper(x)) == 1)
+    (sizeof(::testing::Pinternal::IsNullLiteralHelper(x)) == 1)
 #endif  // GTEST_ELLIPSIS_NEEDS_POD_
 
 // Appends the user-supplied message to the Google-Test-generated message.
@@ -786,7 +786,7 @@ struct RemoveReference<T&> { typedef T type; };  // NOLINT
 // A handy wrapper around RemoveReference that works when the argument
 // T depends on template parameters.
 #define GTEST_REMOVE_REFERENCE_(T) \
-    typename ::testing::internal::RemoveReference<T>::type
+    typename ::testing::Pinternal::RemoveReference<T>::type
 
 // Removes const from a type if it is a const type, otherwise leaves
 // it unchanged.  This is the same as tr1::remove_const, which is not
@@ -817,7 +817,7 @@ struct RemoveConst<T[N]> {
 // A handy wrapper around RemoveConst that works when the argument
 // T depends on template parameters.
 #define GTEST_REMOVE_CONST_(T) \
-    typename ::testing::internal::RemoveConst<T>::type
+    typename ::testing::Pinternal::RemoveConst<T>::type
 
 // Turns const U&, U&, const U, and U all into U.
 #define GTEST_REMOVE_REFERENCE_AND_CONST_(T) \
@@ -834,7 +834,7 @@ struct AddReference<T&> { typedef T& type; };  // NOLINT
 // A handy wrapper around AddReference that works when the argument T
 // depends on template parameters.
 #define GTEST_ADD_REFERENCE_(T) \
-    typename ::testing::internal::AddReference<T>::type
+    typename ::testing::Pinternal::AddReference<T>::type
 
 // Adds a reference to const on top of T as necessary.  For example,
 // it transforms
@@ -962,7 +962,7 @@ inline bool ArrayEq(const T& lhs, const U& rhs) { return lhs == rhs; }
 // This overload is used when k >= 1.
 template <typename T, typename U, size_t N>
 inline bool ArrayEq(const T(&lhs)[N], const U(&rhs)[N]) {
-  return internal::ArrayEq(lhs, N, rhs);
+  return Pinternal::ArrayEq(lhs, N, rhs);
 }
 
 // This helper reduces code bloat.  If we instead put its logic inside
@@ -971,7 +971,7 @@ inline bool ArrayEq(const T(&lhs)[N], const U(&rhs)[N]) {
 template <typename T, typename U>
 bool ArrayEq(const T* lhs, size_t size, const U* rhs) {
   for (size_t i = 0; i != size; i++) {
-    if (!internal::ArrayEq(lhs[i], rhs[i]))
+    if (!Pinternal::ArrayEq(lhs[i], rhs[i]))
       return false;
   }
   return true;
@@ -982,7 +982,7 @@ bool ArrayEq(const T* lhs, size_t size, const U* rhs) {
 template <typename Iter, typename Element>
 Iter ArrayAwareFind(Iter begin, Iter end, const Element& elem) {
   for (Iter it = begin; it != end; ++it) {
-    if (internal::ArrayEq(*it, elem))
+    if (Pinternal::ArrayEq(*it, elem))
       return it;
   }
   return end;
@@ -1002,7 +1002,7 @@ inline void CopyArray(const T& from, U* to) { *to = from; }
 // This overload is used when k >= 1.
 template <typename T, typename U, size_t N>
 inline void CopyArray(const T(&from)[N], U(*to)[N]) {
-  internal::CopyArray(from, N, *to);
+  Pinternal::CopyArray(from, N, *to);
 }
 
 // This helper reduces code bloat.  If we instead put its logic inside
@@ -1011,7 +1011,7 @@ inline void CopyArray(const T(&from)[N], U(*to)[N]) {
 template <typename T, typename U>
 void CopyArray(const T* from, size_t size, U* to) {
   for (size_t i = 0; i != size; i++) {
-    internal::CopyArray(from[i], to + i);
+    Pinternal::CopyArray(from[i], to + i);
   }
 }
 
@@ -1096,11 +1096,11 @@ class NativeArray {
   GTEST_DISALLOW_ASSIGN_(NativeArray);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #define GTEST_MESSAGE_AT_(file, line, message, result_type) \
-  ::testing::internal::AssertHelper(result_type, file, line, message) \
+  ::testing::Pinternal::AssertHelper(result_type, file, line, message) \
     = ::testing::Message()
 
 #define GTEST_MESSAGE_(message, result_type) \
@@ -1119,11 +1119,11 @@ class NativeArray {
 // statement if it returns or throws (or doesn't return or throw in some
 // situations).
 #define GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement) \
-  if (::testing::internal::AlwaysTrue()) { statement; }
+  if (::testing::Pinternal::AlwaysTrue()) { statement; }
 
 #define GTEST_TEST_THROW_(statement, expected_exception, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::ConstCharPtr gtest_msg = "") { \
+  if (::testing::Pinternal::ConstCharPtr gtest_msg = "") { \
     bool gtest_caught_expected = false; \
     try { \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
@@ -1149,7 +1149,7 @@ class NativeArray {
 
 #define GTEST_TEST_NO_THROW_(statement, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
+  if (::testing::Pinternal::AlwaysTrue()) { \
     try { \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
     } \
@@ -1163,7 +1163,7 @@ class NativeArray {
 
 #define GTEST_TEST_ANY_THROW_(statement, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
+  if (::testing::Pinternal::AlwaysTrue()) { \
     bool gtest_caught_any = false; \
     try { \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
@@ -1189,13 +1189,13 @@ class NativeArray {
       ::testing::AssertionResult(expression)) \
     ; \
   else \
-    fail(::testing::internal::GetBoolAssertionFailureMessage(\
+    fail(::testing::Pinternal::GetBoolAssertionFailureMessage(\
         gtest_ar_, text, #actual, #expected).c_str())
 
 #define GTEST_TEST_NO_FATAL_FAILURE_(statement, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
-    ::testing::internal::HasNewFatalFailureHelper gtest_fatal_failure_checker; \
+  if (::testing::Pinternal::AlwaysTrue()) { \
+    ::testing::Pinternal::HasNewFatalFailureHelper gtest_fatal_failure_checker; \
     GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
     if (gtest_fatal_failure_checker.has_new_fatal_failure()) { \
       goto GTEST_CONCAT_TOKEN_(gtest_label_testnofatal_, __LINE__); \
@@ -1224,13 +1224,13 @@ class GTEST_TEST_CLASS_NAME_(test_case_name, test_name) : public parent_class {\
 \
 ::testing::TestInfo* const GTEST_TEST_CLASS_NAME_(test_case_name, test_name)\
   ::test_info_ =\
-    ::testing::internal::MakeAndRegisterTestInfo(\
+    ::testing::Pinternal::MakeAndRegisterTestInfo(\
         #test_case_name, #test_name, NULL, NULL, \
-        ::testing::internal::CodeLocation(__FILE__, __LINE__), \
+        ::testing::Pinternal::CodeLocation(__FILE__, __LINE__), \
         (parent_id), \
         parent_class::SetUpTestCase, \
         parent_class::TearDownTestCase, \
-        new ::testing::internal::TestFactoryImpl<\
+        new ::testing::Pinternal::TestFactoryImpl<\
             GTEST_TEST_CLASS_NAME_(test_case_name, test_name)>);\
 void GTEST_TEST_CLASS_NAME_(test_case_name, test_name)::TestBody()
 

@@ -118,7 +118,7 @@ void PrintBytesInObjectTo(const unsigned char* obj_bytes, size_t count,
 
 }  // namespace internal2
 
-namespace internal {
+namespace Pinternal {
 
 // Depending on the value of a char (or wchar_t), we print it in one
 // of three formats:
@@ -368,6 +368,6 @@ void PrintWideStringTo(const ::std::wstring& s, ostream* os) {
 }
 #endif  // GTEST_HAS_STD_WSTRING
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing

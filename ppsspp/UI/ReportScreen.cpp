@@ -32,7 +32,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Log.h"
 
-using namespace UI;
+using namespace PUI;
 
 class RatingChoice : public LinearLayout {
 public:
@@ -271,8 +271,8 @@ void ReportScreen::CreateViews() {
 	overallDescription_ = leftColumnItems->Add(new TextView("", FLAG_WRAP_TEXT, false, new LinearLayoutParams(Margins(10, 0))));
 	overallDescription_->SetShadow(true);
 
-	UI::Orientation ratingsOrient = leftColumnWidth >= 750.0f ? ORIENT_HORIZONTAL : ORIENT_VERTICAL;
-	UI::LinearLayout *ratingsHolder = new LinearLayout(ratingsOrient, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+	PUI::Orientation ratingsOrient = leftColumnWidth >= 750.0f ? ORIENT_HORIZONTAL : ORIENT_VERTICAL;
+	PUI::LinearLayout *ratingsHolder = new LinearLayout(ratingsOrient, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 	leftColumnItems->Add(ratingsHolder);
 	ratingsHolder->Add(new RatingChoice("Graphics", &graphics_))->SetEnabledPtr(&ratingEnabled_)->OnChoice.Handle(this, &ReportScreen::HandleChoice);
 	ratingsHolder->Add(new RatingChoice("Speed", &speed_))->SetEnabledPtr(&ratingEnabled_)->OnChoice.Handle(this, &ReportScreen::HandleChoice);
@@ -457,7 +457,7 @@ void ReportFinishScreen::ShowSuggestions() {
 	}
 }
 
-UI::EventReturn ReportFinishScreen::HandleViewFeedback(UI::EventParams &e) {
+PUI::EventReturn ReportFinishScreen::HandleViewFeedback(PUI::EventParams &e) {
 	const std::string url = "https://" + Reporting::ServerHost() + "/game/" + Reporting::CurrentGameID();
 	LaunchBrowser(url.c_str());
 	return EVENT_DONE;

@@ -102,7 +102,7 @@ class GenericMemberIterator {
     template <bool, typename, typename> friend class GenericMemberIterator;
 
     typedef GenericMember<Encoding,Allocator> PlainType;
-    typedef typename internal::MaybeAddConst<Const,PlainType>::Type ValueType;
+    typedef typename Pinternal::MaybeAddConst<Const,PlainType>::Type ValueType;
 
 public:
     //! Iterator type itself
@@ -329,7 +329,7 @@ struct GenericStringRef {
 private:
     SizeType NotNullStrLen(const CharType* str) {
         RAPIDJSON_ASSERT(str != 0);
-        return internal::StrLen(str);
+        return Pinternal::StrLen(str);
     }
 
     /// Empty string - used when passing in a NULL pointer
@@ -403,7 +403,7 @@ inline GenericStringRef<CharType> StringRef(const std::basic_string<CharType>& s
 
 ///////////////////////////////////////////////////////////////////////////////
 // GenericValue type traits
-namespace internal {
+namespace Pinternal {
 
 template <typename T, typename Encoding = void, typename Allocator = void>
 struct IsGenericValueImpl : FalseType {};
@@ -415,12 +415,12 @@ template <typename T> struct IsGenericValueImpl<T, typename Void<typename T::Enc
 // helper to match arbitrary GenericValue instantiations, including derived classes
 template <typename T> struct IsGenericValue : IsGenericValueImpl<T>::Type {};
 
-} // namespace internal
+} // namespace Pinternal
 
 ///////////////////////////////////////////////////////////////////////////////
 // TypeHelper
 
-namespace internal {
+namespace Pinternal {
 
 template <typename ValueType, typename T>
 struct TypeHelper {};
@@ -552,7 +552,7 @@ struct TypeHelper<ValueType, typename ValueType::ConstObject> {
     static ObjectType Get(const ValueType& v) { return v.GetObject(); }
 };
 
-} // namespace internal
+} // namespace Pinternal
 
 // Forward declarations
 template <bool, typename> class GenericArray;
@@ -695,13 +695,13 @@ public:
      */
 #ifndef RAPIDJSON_DOXYGEN_RUNNING // hide SFINAE from Doxygen
     template <typename T>
-    explicit GenericValue(T b, RAPIDJSON_ENABLEIF((internal::IsSame<bool, T>))) RAPIDJSON_NOEXCEPT  // See #472
+    explicit GenericValue(T b, RAPIDJSON_ENABLEIF((Pinternal::IsSame<bool, T>))) RAPIDJSON_NOEXCEPT  // See #472
 #else
     explicit GenericValue(bool b) RAPIDJSON_NOEXCEPT
 #endif
         : data_() {
             // safe-guard against failing SFINAE
-            RAPIDJSON_STATIC_ASSERT((internal::IsSame<bool,T>::Value));
+            RAPIDJSON_STATIC_ASSERT((Pinternal::IsSame<bool,T>::Value));
             data_.f.flags = b ? kTrueFlag : kFalseFlag;
     }
 
@@ -867,7 +867,7 @@ public:
             use \ref SetBool() instead.
     */
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::IsPointer<T>), (GenericValue&))
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::IsPointer<T>), (GenericValue&))
     operator=(T value) {
         GenericValue v(value);
         return *this = v;
@@ -982,7 +982,7 @@ public:
     //! Equal-to operator with primitive types
     /*! \tparam T Either \ref Type, \c int, \c unsigned, \c int64_t, \c uint64_t, \c double, \c true, \c false
     */
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>,internal::IsGenericValue<T> >), (bool)) operator==(const T& rhs) const { return *this == GenericValue(rhs); }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>,Pinternal::IsGenericValue<T> >), (bool)) operator==(const T& rhs) const { return *this == GenericValue(rhs); }
 
     //! Not-equal-to operator
     /*! \return !(*this == rhs)
@@ -996,17 +996,17 @@ public:
     //! Not-equal-to operator with arbitrary types
     /*! \return !(*this == rhs)
      */
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool)) operator!=(const T& rhs) const { return !(*this == rhs); }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((Pinternal::IsGenericValue<T>), (bool)) operator!=(const T& rhs) const { return !(*this == rhs); }
 
     //! Equal-to operator with arbitrary types (symmetric version)
     /*! \return (rhs == lhs)
      */
-    template <typename T> friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool)) operator==(const T& lhs, const GenericValue& rhs) { return rhs == lhs; }
+    template <typename T> friend RAPIDJSON_DISABLEIF_RETURN((Pinternal::IsGenericValue<T>), (bool)) operator==(const T& lhs, const GenericValue& rhs) { return rhs == lhs; }
 
     //! Not-Equal-to operator with arbitrary types (symmetric version)
     /*! \return !(rhs == lhs)
      */
-    template <typename T> friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool)) operator!=(const T& lhs, const GenericValue& rhs) { return !(rhs == lhs); }
+    template <typename T> friend RAPIDJSON_DISABLEIF_RETURN((Pinternal::IsGenericValue<T>), (bool)) operator!=(const T& lhs, const GenericValue& rhs) { return !(rhs == lhs); }
     //@}
 
     //!@name Type
@@ -1110,12 +1110,12 @@ public:
         \note Linear time complexity.
     */
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::NotExpr<internal::IsSame<typename internal::RemoveConst<T>::Type, Ch> >),(GenericValue&)) operator[](T* name) {
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::NotExpr<Pinternal::IsSame<typename Pinternal::RemoveConst<T>::Type, Ch> >),(GenericValue&)) operator[](T* name) {
         GenericValue n(StringRef(name));
         return (*this)[n];
     }
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::NotExpr<internal::IsSame<typename internal::RemoveConst<T>::Type, Ch> >),(const GenericValue&)) operator[](T* name) const { return const_cast<GenericValue&>(*this)[name]; }
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::NotExpr<Pinternal::IsSame<typename Pinternal::RemoveConst<T>::Type, Ch> >),(const GenericValue&)) operator[](T* name) const { return const_cast<GenericValue&>(*this)[name]; }
 
     //! Get a value from an object associated with the name.
     /*! \pre IsObject() == true
@@ -1342,7 +1342,7 @@ public:
         \note Amortized Constant time complexity.
     */
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericValue&))
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (GenericValue&))
     AddMember(GenericValue& name, T value, Allocator& allocator) {
         GenericValue v(value);
         return AddMember(name, v, allocator);
@@ -1412,7 +1412,7 @@ public:
         \note Amortized Constant time complexity.
     */
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericValue&))
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (GenericValue&))
     AddMember(StringRefType name, T value, Allocator& allocator) {
         GenericValue n(name);
         return AddMember(n, value, allocator);
@@ -1671,7 +1671,7 @@ public:
         \note Amortized constant time complexity.
     */
     template <typename T>
-    RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericValue&))
+    RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (GenericValue&))
     PushBack(T value, Allocator& allocator) {
         GenericValue v(value);
         return PushBack(v, allocator);
@@ -1837,19 +1837,19 @@ public:
         \tparam T Either \c bool, \c int, \c unsigned, \c int64_t, \c uint64_t, \c double, \c float, \c const \c char*, \c std::basic_string<Ch>
     */
     template <typename T>
-    bool Is() const { return internal::TypeHelper<ValueType, T>::Is(*this); }
+    bool Is() const { return Pinternal::TypeHelper<ValueType, T>::Is(*this); }
 
     template <typename T>
-    T Get() const { return internal::TypeHelper<ValueType, T>::Get(*this); }
+    T Get() const { return Pinternal::TypeHelper<ValueType, T>::Get(*this); }
 
     template <typename T>
-    T Get() { return internal::TypeHelper<ValueType, T>::Get(*this); }
+    T Get() { return Pinternal::TypeHelper<ValueType, T>::Get(*this); }
 
     template<typename T>
-    ValueType& Set(const T& data) { return internal::TypeHelper<ValueType, T>::Set(*this, data); }
+    ValueType& Set(const T& data) { return Pinternal::TypeHelper<ValueType, T>::Set(*this, data); }
 
     template<typename T>
-    ValueType& Set(const T& data, AllocatorType& allocator) { return internal::TypeHelper<ValueType, T>::Set(*this, data, allocator); }
+    ValueType& Set(const T& data, AllocatorType& allocator) { return Pinternal::TypeHelper<ValueType, T>::Set(*this, data, allocator); }
 
     //@}
 
@@ -2202,9 +2202,9 @@ public:
     GenericDocument& Swap(GenericDocument& rhs) RAPIDJSON_NOEXCEPT {
         ValueType::Swap(rhs);
         stack_.Swap(rhs.stack_);
-        internal::Swap(allocator_, rhs.allocator_);
-        internal::Swap(ownAllocator_, rhs.ownAllocator_);
-        internal::Swap(parseResult_, rhs.parseResult_);
+        Pinternal::Swap(allocator_, rhs.allocator_);
+        Pinternal::Swap(ownAllocator_, rhs.ownAllocator_);
+        Pinternal::Swap(parseResult_, rhs.parseResult_);
         return *this;
     }
 
@@ -2494,7 +2494,7 @@ private:
     static const size_t kDefaultStackCapacity = 1024;
     Allocator* allocator_;
     Allocator* ownAllocator_;
-    internal::Stack<StackAllocator> stack_;
+    Pinternal::Stack<StackAllocator> stack_;
     ParseResult parseResult_;
 };
 
@@ -2512,7 +2512,7 @@ public:
     typedef GenericArray<true, ValueT> ConstArray;
     typedef GenericArray<false, ValueT> Array;
     typedef ValueT PlainType;
-    typedef typename internal::MaybeAddConst<Const,PlainType>::Type ValueType;
+    typedef typename Pinternal::MaybeAddConst<Const,PlainType>::Type ValueType;
     typedef ValueType* ValueIterator;  // This may be const or non-const iterator
     typedef const ValueT* ConstValueIterator;
     typedef typename ValueType::AllocatorType AllocatorType;
@@ -2538,7 +2538,7 @@ public:
     GenericArray PushBack(ValueType&& value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
     GenericArray PushBack(StringRefType value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (const GenericArray&)) PushBack(T value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (const GenericArray&)) PushBack(T value, AllocatorType& allocator) const { value_.PushBack(value, allocator); return *this; }
     GenericArray PopBack() const { value_.PopBack(); return *this; }
     ValueIterator Erase(ConstValueIterator pos) const { return value_.Erase(pos); }
     ValueIterator Erase(ConstValueIterator first, ConstValueIterator last) const { return value_.Erase(first, last); }
@@ -2565,7 +2565,7 @@ public:
     typedef GenericObject<true, ValueT> ConstObject;
     typedef GenericObject<false, ValueT> Object;
     typedef ValueT PlainType;
-    typedef typename internal::MaybeAddConst<Const,PlainType>::Type ValueType;
+    typedef typename Pinternal::MaybeAddConst<Const,PlainType>::Type ValueType;
     typedef GenericMemberIterator<Const, typename ValueT::EncodingType, typename ValueT::AllocatorType> MemberIterator;  // This may be const or non-const iterator
     typedef GenericMemberIterator<true, typename ValueT::EncodingType, typename ValueT::AllocatorType> ConstMemberIterator;
     typedef typename ValueType::AllocatorType AllocatorType;
@@ -2606,7 +2606,7 @@ public:
 #if RAPIDJSON_HAS_STDSTRING
     GenericObject AddMember(ValueType& name, std::basic_string<Ch>& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
 #endif
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (ValueType&)) AddMember(ValueType& name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (ValueType&)) AddMember(ValueType& name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
     GenericObject AddMember(ValueType&& name, ValueType&& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     GenericObject AddMember(ValueType&& name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
@@ -2615,7 +2615,7 @@ public:
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
     GenericObject AddMember(StringRefType name, ValueType& value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     GenericObject AddMember(StringRefType name, StringRefType value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
-    template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T> >), (GenericObject)) AddMember(StringRefType name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
+    template <typename T> RAPIDJSON_DISABLEIF_RETURN((Pinternal::OrExpr<Pinternal::IsPointer<T>, Pinternal::IsGenericValue<T> >), (GenericObject)) AddMember(StringRefType name, T value, AllocatorType& allocator) const { value_.AddMember(name, value, allocator); return *this; }
     void RemoveAllMembers() { value_.RemoveAllMembers(); }
     bool RemoveMember(const Ch* name) const { return value_.RemoveMember(name); }
 #if RAPIDJSON_HAS_STDSTRING

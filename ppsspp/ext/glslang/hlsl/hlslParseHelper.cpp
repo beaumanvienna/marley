@@ -51,7 +51,7 @@
 #include <array>
 #include <set>
 
-namespace glslang {
+namespace Pglslang {
 
 HlslParseContext::HlslParseContext(TSymbolTable& symbolTable, TIntermediate& interm, bool parsingBuiltins,
                                    int version, EProfile profile, const SpvVersion& spvVersion, EShLanguage language,
@@ -134,7 +134,7 @@ bool HlslParseContext::parseShaderStrings(TPpContext& ppContext, TInputScanner& 
     if (!grammar.parse()) {
         // Print a message formated such that if you click on the message it will take you right to
         // the line through most UIs.
-        const glslang::TSourceLoc& sourceLoc = input.getSourceLoc();
+        const Pglslang::TSourceLoc& sourceLoc = input.getSourceLoc();
         infoSink.info << sourceLoc.getFilenameStr() << "(" << sourceLoc.line << "): error at column " << sourceLoc.column
                       << ", HLSL parsing failed.\n";
         ++numErrors;
@@ -6094,8 +6094,8 @@ void HlslParseContext::handleSemantic(TSourceLoc loc, TQualifier& qualifier, TBu
 // 'location' has the "c[Subcomponent]" part.
 // 'component' points to the "component" part, or nullptr if not present.
 //
-void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& qualifier, const glslang::TString& location,
-                                        const glslang::TString* component)
+void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& qualifier, const Pglslang::TString& location,
+                                        const Pglslang::TString* component)
 {
     if (location.size() == 0 || location[0] != 'c') {
         error(loc, "expected 'c'", "packoffset", "");
@@ -6134,8 +6134,8 @@ void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& quali
 // 'profile' points to the shader_profile part, or nullptr if not present.
 // 'desc' is the type# part.
 //
-void HlslParseContext::handleRegister(const TSourceLoc& loc, TQualifier& qualifier, const glslang::TString* profile,
-                                      const glslang::TString& desc, int subComponent, const glslang::TString* spaceDesc)
+void HlslParseContext::handleRegister(const TSourceLoc& loc, TQualifier& qualifier, const Pglslang::TString* profile,
+                                      const Pglslang::TString& desc, int subComponent, const Pglslang::TString* spaceDesc)
 {
     if (profile != nullptr)
         warn(loc, "ignoring shader_profile", "register", "");
@@ -10038,4 +10038,4 @@ void HlslParseContext::finish()
     TParseContextBase::finish();
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

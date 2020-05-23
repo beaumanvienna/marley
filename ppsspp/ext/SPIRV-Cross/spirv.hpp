@@ -45,7 +45,7 @@
 #ifndef spirv_HPP
 #define spirv_HPP
 
-namespace spv {
+namespace Pspv {
 
 typedef unsigned int Id;
 
@@ -1210,7 +1210,7 @@ inline MemorySemanticsMask operator|(MemorySemanticsMask a, MemorySemanticsMask 
 inline MemoryAccessMask operator|(MemoryAccessMask a, MemoryAccessMask b) { return MemoryAccessMask(unsigned(a) | unsigned(b)); }
 inline KernelProfilingInfoMask operator|(KernelProfilingInfoMask a, KernelProfilingInfoMask b) { return KernelProfilingInfoMask(unsigned(a) | unsigned(b)); }
 
-}  // end namespace spv
+}  // end namespace Pspv
 
 #endif  // #ifndef spirv_HPP
 

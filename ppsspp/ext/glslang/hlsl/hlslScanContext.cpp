@@ -79,13 +79,13 @@ struct str_hash
 
 // A single global usable by all threads, by all versions, by all languages.
 // After a single process-level initialization, this is read only and thread safe
-std::unordered_map<const char*, glslang::EHlslTokenClass, str_hash, str_eq>* KeywordMap = nullptr;
+std::unordered_map<const char*, Pglslang::EHlslTokenClass, str_hash, str_eq>* KeywordMap = nullptr;
 std::unordered_set<const char*, str_hash, str_eq>* ReservedSet = nullptr;
-std::unordered_map<const char*, glslang::TBuiltInVariable, str_hash, str_eq>* SemanticMap = nullptr;
+std::unordered_map<const char*, Pglslang::TBuiltInVariable, str_hash, str_eq>* SemanticMap = nullptr;
 
 };
 
-namespace glslang {
+namespace Pglslang {
 
 void HlslScanContext::fillInKeywordMap()
 {
@@ -405,7 +405,7 @@ void HlslScanContext::fillInKeywordMap()
     ReservedSet->insert("using");
     ReservedSet->insert("virtual");
 
-    SemanticMap = new std::unordered_map<const char*, glslang::TBuiltInVariable, str_hash, str_eq>;
+    SemanticMap = new std::unordered_map<const char*, Pglslang::TBuiltInVariable, str_hash, str_eq>;
 
     // in DX9, all outputs had to have a semantic associated with them, that was either consumed
     // by the system or was a specific register assignment
@@ -464,13 +464,13 @@ void HlslScanContext::tokenize(HlslToken& token)
     token.tokenClass = tokenClass;
 }
 
-glslang::TBuiltInVariable HlslScanContext::mapSemantic(const char* upperCase)
+Pglslang::TBuiltInVariable HlslScanContext::mapSemantic(const char* upperCase)
 {
     auto it = SemanticMap->find(upperCase);
     if (it != SemanticMap->end())
         return it->second;
     else
-        return glslang::EbvNone;
+        return Pglslang::EbvNone;
 }
 
 //
@@ -900,4 +900,4 @@ EHlslTokenClass HlslScanContext::reservedWord()
     return EHTokNone;
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

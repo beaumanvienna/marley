@@ -44,7 +44,7 @@
 #include "../glslang/MachineIndependent/ParseHelper.h"
 #include "hlslTokens.h"
 
-namespace glslang {
+namespace Pglslang {
 
 class TPpContext;
 class TPpToken;
@@ -58,7 +58,7 @@ struct HlslToken {
     TSourceLoc loc;                // location of token in the source
     EHlslTokenClass tokenClass;    // what kind of token it is
     union {                        // what data the token holds
-        glslang::TString *string;  // for identifiers
+        Pglslang::TString *string;  // for identifiers
         int i;                     // for literals
         unsigned int u;
         bool b;
@@ -81,7 +81,7 @@ public:
     static void deleteKeywordMap();
 
     void tokenize(HlslToken&);
-    glslang::TBuiltInVariable mapSemantic(const char*);
+    Pglslang::TBuiltInVariable mapSemantic(const char*);
 
 protected:
     HlslScanContext(HlslScanContext&);
@@ -104,6 +104,6 @@ protected:
     EHlslTokenClass keyword;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // HLSLSCANCONTEXT_H_

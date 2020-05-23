@@ -40,9 +40,9 @@
 
 #include "ParseHelper.h"
 
-extern int yyparse(glslang::TParseContext*);
+extern int yyparse(Pglslang::TParseContext*);
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Used to output syntax, parsing, and semantic errors.
@@ -635,4 +635,4 @@ void TParseContextBase::finish()
     intermediate.addSymbolLinkageNodes(linkage, getLanguage(), symbolTable);
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

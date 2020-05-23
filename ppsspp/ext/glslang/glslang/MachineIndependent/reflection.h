@@ -48,7 +48,7 @@
 // A reflection database and its interface, consistent with the OpenGL API reflection queries.
 //
 
-namespace glslang {
+namespace Pglslang {
 
 class TIntermediate;
 class TIntermAggregate;
@@ -172,7 +172,7 @@ public:
     void dump();
 
 protected:
-    friend class glslang::TReflectionTraverser;
+    friend class Pglslang::TReflectionTraverser;
 
     void buildCounterIndices(const TIntermediate&);
     void buildUniformStageMask(const TIntermediate& intermediate);
@@ -216,7 +216,7 @@ protected:
     unsigned int localSize[3];
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _REFLECTION_INCLUDED
 

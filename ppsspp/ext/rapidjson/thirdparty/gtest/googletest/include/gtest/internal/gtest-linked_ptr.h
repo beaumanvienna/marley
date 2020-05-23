@@ -74,7 +74,7 @@
 #include "gtest/internal/gtest-port.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Protects copying of all linked_ptr objects.
 GTEST_API_ GTEST_DECLARE_STATIC_MUTEX_(g_linked_ptr_mutex);
@@ -237,7 +237,7 @@ linked_ptr<T> make_linked_ptr(T* ptr) {
   return linked_ptr<T>(ptr);
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_LINKED_PTR_H_

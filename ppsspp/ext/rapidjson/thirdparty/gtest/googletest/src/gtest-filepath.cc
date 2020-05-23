@@ -61,7 +61,7 @@
 #include "gtest/internal/gtest-string.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 #if GTEST_OS_WINDOWS
 // On Windows, '\\' is the standard path separator, but many tools and the
@@ -383,5 +383,5 @@ void FilePath::Normalize() {
   delete[] dest;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

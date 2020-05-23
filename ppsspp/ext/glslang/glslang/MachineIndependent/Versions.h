@@ -60,7 +60,7 @@ typedef enum {
     LAST_ELEMENT_MARKER(EProfileCount),
 } EProfile;
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Map from profile enum to externally readable text name.
@@ -312,6 +312,6 @@ const int Num_AEP_texture_buffer = sizeof(AEP_texture_buffer)/sizeof(AEP_texture
 const char* const AEP_texture_cube_map_array[] = { E_GL_EXT_texture_cube_map_array, E_GL_OES_texture_cube_map_array };
 const int Num_AEP_texture_cube_map_array = sizeof(AEP_texture_cube_map_array)/sizeof(AEP_texture_cube_map_array[0]);
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _VERSIONS_INCLUDED_

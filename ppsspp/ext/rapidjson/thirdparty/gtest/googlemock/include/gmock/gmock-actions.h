@@ -61,7 +61,7 @@ namespace testing {
 // consistency for extension developers.  It also eases ownership
 // management as Action objects can now be copied like plain values.
 
-namespace internal {
+namespace Pinternal {
 
 template <typename F1, typename F2>
 class ActionAdaptor;
@@ -80,7 +80,7 @@ struct BuiltInDefaultValueGetter<T, false> {
   static T Get() {
     Assert(false, __FILE__, __LINE__,
            "Default action undefined for the function return type.");
-    return internal::Invalid<T>();
+    return Pinternal::Invalid<T>();
     // The above statement will never be reached, but is required in
     // order for this function to compile.
   }
@@ -181,7 +181,7 @@ GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(double, 0);
 
 #undef GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // When an unexpected function call is encountered, Google Mock will
 // let it return a default value if the user has specified one for its
@@ -227,7 +227,7 @@ class DefaultValue {
   // Returns true if T has a default return value set by the user or there
   // exists a built-in default value.
   static bool Exists() {
-    return IsSet() || internal::BuiltInDefaultValue<T>::Exists();
+    return IsSet() || Pinternal::BuiltInDefaultValue<T>::Exists();
   }
 
   // Returns the default value for type T if the user has set one;
@@ -235,7 +235,7 @@ class DefaultValue {
   // is true, which ensures that the return value is well-defined.
   static T Get() {
     return producer_ == NULL ?
-        internal::BuiltInDefaultValue<T>::Get() : producer_->Produce();
+        Pinternal::BuiltInDefaultValue<T>::Get() : producer_->Produce();
   }
 
  private:
@@ -290,7 +290,7 @@ class DefaultValue<T&> {
   // Returns true if T has a default return value set by the user or there
   // exists a built-in default value.
   static bool Exists() {
-    return IsSet() || internal::BuiltInDefaultValue<T&>::Exists();
+    return IsSet() || Pinternal::BuiltInDefaultValue<T&>::Exists();
   }
 
   // Returns the default value for type T& if the user has set one;
@@ -298,7 +298,7 @@ class DefaultValue<T&> {
   // otherwise aborts the process.
   static T& Get() {
     return address_ == NULL ?
-        internal::BuiltInDefaultValue<T&>::Get() : *address_;
+        Pinternal::BuiltInDefaultValue<T&>::Get() : *address_;
   }
 
  private:
@@ -326,8 +326,8 @@ T* DefaultValue<T&>::address_ = NULL;
 template <typename F>
 class ActionInterface {
  public:
-  typedef typename internal::Function<F>::Result Result;
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::Result Result;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   ActionInterface() {}
   virtual ~ActionInterface() {}
@@ -354,8 +354,8 @@ class ActionInterface {
 template <typename F>
 class Action {
  public:
-  typedef typename internal::Function<F>::Result Result;
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::Result Result;
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
   // Constructs a null Action.  Needed for storing Action objects in
   // STL containers.
@@ -385,7 +385,7 @@ class Action {
   // cannot change state.  (Think of the difference between a const
   // pointer and a pointer to const.)
   Result Perform(const ArgumentTuple& args) const {
-    internal::Assert(
+    Pinternal::Assert(
         !IsDoDefault(), __FILE__, __LINE__,
         "You are using DoDefault() inside a composite action like "
         "DoAll() or WithArgs().  This is not supported for technical "
@@ -397,9 +397,9 @@ class Action {
 
  private:
   template <typename F1, typename F2>
-  friend class internal::ActionAdaptor;
+  friend class Pinternal::ActionAdaptor;
 
-  internal::linked_ptr<ActionInterface<F> > impl_;
+  Pinternal::linked_ptr<ActionInterface<F> > impl_;
 };
 
 // The PolymorphicAction class template makes it easy to implement a
@@ -437,8 +437,8 @@ class PolymorphicAction {
   template <typename F>
   class MonomorphicImpl : public ActionInterface<F> {
    public:
-    typedef typename internal::Function<F>::Result Result;
-    typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+    typedef typename Pinternal::Function<F>::Result Result;
+    typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
     explicit MonomorphicImpl(const Impl& impl) : impl_(impl) {}
 
@@ -476,15 +476,15 @@ inline PolymorphicAction<Impl> MakePolymorphicAction(const Impl& impl) {
   return PolymorphicAction<Impl>(impl);
 }
 
-namespace internal {
+namespace Pinternal {
 
 // Allows an Action<F2> object to pose as an Action<F1>, as long as F2
 // and F1 are compatible.
 template <typename F1, typename F2>
 class ActionAdaptor : public ActionInterface<F1> {
  public:
-  typedef typename internal::Function<F1>::Result Result;
-  typedef typename internal::Function<F1>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F1>::Result Result;
+  typedef typename Pinternal::Function<F1>::ArgumentTuple ArgumentTuple;
 
   explicit ActionAdaptor(const Action<F2>& from) : impl_(from.impl_) {}
 
@@ -493,7 +493,7 @@ class ActionAdaptor : public ActionInterface<F1> {
   }
 
  private:
-  const internal::linked_ptr<ActionInterface<F2> > impl_;
+  const Pinternal::linked_ptr<ActionInterface<F2> > impl_;
 
   GTEST_DISALLOW_ASSIGN_(ActionAdaptor);
 };
@@ -502,7 +502,7 @@ class ActionAdaptor : public ActionInterface<F1> {
 // on return. Useful for move-only types, but could be used on any type.
 template <typename T>
 struct ByMoveWrapper {
-  explicit ByMoveWrapper(T value) : payload(internal::move(value)) {}
+  explicit ByMoveWrapper(T value) : payload(Pinternal::move(value)) {}
   T payload;
 };
 
@@ -536,7 +536,7 @@ class ReturnAction {
   // Constructs a ReturnAction object from the value to be returned.
   // 'value' is passed by value instead of by const reference in order
   // to allow Return("string literal") to compile.
-  explicit ReturnAction(R value) : value_(new R(internal::move(value))) {}
+  explicit ReturnAction(R value) : value_(new R(Pinternal::move(value))) {}
 
   // This template type conversion operator allows Return(x) to be
   // used in ANY function that returns x's type.
@@ -604,7 +604,7 @@ class ReturnAction {
       GTEST_CHECK_(!performed_)
           << "A ByMove() action should only be performed once.";
       performed_ = true;
-      return internal::move(wrapper_->payload);
+      return Pinternal::move(wrapper_->payload);
     }
 
    private:
@@ -630,7 +630,7 @@ class ReturnNullAction {
 #if GTEST_LANG_CXX11
     return nullptr;
 #else
-    GTEST_COMPILE_ASSERT_(internal::is_pointer<Result>::value,
+    GTEST_COMPILE_ASSERT_(Pinternal::is_pointer<Result>::value,
                           ReturnNull_can_be_used_to_return_a_pointer_only);
     return NULL;
 #endif  // GTEST_LANG_CXX11
@@ -664,7 +664,7 @@ class ReturnRefAction {
     // Asserts that the function return type is a reference.  This
     // catches the user error of using ReturnRef(x) when Return(x)
     // should be used, and generates some helpful error message.
-    GTEST_COMPILE_ASSERT_(internal::is_reference<Result>::value,
+    GTEST_COMPILE_ASSERT_(Pinternal::is_reference<Result>::value,
                           use_Return_instead_of_ReturnRef_to_return_a_value);
     return Action<F>(new Impl<F>(ref_));
   }
@@ -713,7 +713,7 @@ class ReturnRefOfCopyAction {
     // catches the user error of using ReturnRefOfCopy(x) when Return(x)
     // should be used, and generates some helpful error message.
     GTEST_COMPILE_ASSERT_(
-        internal::is_reference<Result>::value,
+        Pinternal::is_reference<Result>::value,
         use_Return_instead_of_ReturnRefOfCopy_to_return_a_value);
     return Action<F>(new Impl<F>(value_));
   }
@@ -837,7 +837,7 @@ class SetArgumentPointeeAction<N, Proto, true> {
   }
 
  private:
-  const internal::linked_ptr<Proto> proto_;
+  const Pinternal::linked_ptr<Proto> proto_;
 
   GTEST_DISALLOW_ASSIGN_(SetArgumentPointeeAction);
 };
@@ -901,7 +901,7 @@ class IgnoreResultAction {
     // in this case. Until MS fixes that bug we put Impl into the class scope
     // and put the typedef both here (for use in assert statement) and
     // in the Impl class. But both definitions must be the same.
-    typedef typename internal::Function<F>::Result Result;
+    typedef typename Pinternal::Function<F>::Result Result;
 
     // Asserts at compile time that F returns void.
     CompileAssertTypesEqual<void, Result>();
@@ -913,8 +913,8 @@ class IgnoreResultAction {
   template <typename F>
   class Impl : public ActionInterface<F> {
    public:
-    typedef typename internal::Function<F>::Result Result;
-    typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
+    typedef typename Pinternal::Function<F>::Result Result;
+    typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
 
     explicit Impl(const A& action) : action_(action) {}
 
@@ -926,7 +926,7 @@ class IgnoreResultAction {
    private:
     // Type OriginalFunction is the same as F except that its return
     // type is IgnoredValue.
-    typedef typename internal::Function<F>::MakeResultIgnoredValue
+    typedef typename Pinternal::Function<F>::MakeResultIgnoredValue
         OriginalFunction;
 
     const Action<OriginalFunction> action_;
@@ -1011,7 +1011,7 @@ class DoBothAction {
   GTEST_DISALLOW_ASSIGN_(DoBothAction);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // An Unused object can be implicitly constructed from ANY value.
 // This is handy when defining actions that ignore some or all of the
@@ -1043,7 +1043,7 @@ class DoBothAction {
 //   ...
 //   EXEPCT_CALL(mock, Foo("abc", _, _)).WillOnce(Invoke(DistanceToOrigin));
 //   EXEPCT_CALL(mock, Bar(5, _, _)).WillOnce(Invoke(DistanceToOrigin));
-typedef internal::IgnoredValue Unused;
+typedef Pinternal::IgnoredValue Unused;
 
 // This constructor allows us to turn an Action<From> object into an
 // Action<To>, as long as To's arguments can be implicitly converted
@@ -1052,38 +1052,38 @@ typedef internal::IgnoredValue Unused;
 template <typename To>
 template <typename From>
 Action<To>::Action(const Action<From>& from)
-    : impl_(new internal::ActionAdaptor<To, From>(from)) {}
+    : impl_(new Pinternal::ActionAdaptor<To, From>(from)) {}
 
 // Creates an action that returns 'value'.  'value' is passed by value
 // instead of const reference - otherwise Return("string literal")
 // will trigger a compiler error about using array as initializer.
 template <typename R>
-internal::ReturnAction<R> Return(R value) {
-  return internal::ReturnAction<R>(internal::move(value));
+Pinternal::ReturnAction<R> Return(R value) {
+  return Pinternal::ReturnAction<R>(Pinternal::move(value));
 }
 
 // Creates an action that returns NULL.
-inline PolymorphicAction<internal::ReturnNullAction> ReturnNull() {
-  return MakePolymorphicAction(internal::ReturnNullAction());
+inline PolymorphicAction<Pinternal::ReturnNullAction> ReturnNull() {
+  return MakePolymorphicAction(Pinternal::ReturnNullAction());
 }
 
 // Creates an action that returns from a void function.
-inline PolymorphicAction<internal::ReturnVoidAction> Return() {
-  return MakePolymorphicAction(internal::ReturnVoidAction());
+inline PolymorphicAction<Pinternal::ReturnVoidAction> Return() {
+  return MakePolymorphicAction(Pinternal::ReturnVoidAction());
 }
 
 // Creates an action that returns the reference to a variable.
 template <typename R>
-inline internal::ReturnRefAction<R> ReturnRef(R& x) {  // NOLINT
-  return internal::ReturnRefAction<R>(x);
+inline Pinternal::ReturnRefAction<R> ReturnRef(R& x) {  // NOLINT
+  return Pinternal::ReturnRefAction<R>(x);
 }
 
 // Creates an action that returns the reference to a copy of the
 // argument.  The copy is created when the action is constructed and
 // lives as long as the action.
 template <typename R>
-inline internal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R& x) {
-  return internal::ReturnRefOfCopyAction<R>(x);
+inline Pinternal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R& x) {
+  return Pinternal::ReturnRefOfCopyAction<R>(x);
 }
 
 // Modifies the parent action (a Return() action) to perform a move of the
@@ -1091,24 +1091,24 @@ inline internal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R& x) {
 // Return(ByMove()) actions can only be executed once and will assert this
 // invariant.
 template <typename R>
-internal::ByMoveWrapper<R> ByMove(R x) {
-  return internal::ByMoveWrapper<R>(internal::move(x));
+Pinternal::ByMoveWrapper<R> ByMove(R x) {
+  return Pinternal::ByMoveWrapper<R>(Pinternal::move(x));
 }
 
 // Creates an action that does the default action for the give mock function.
-inline internal::DoDefaultAction DoDefault() {
-  return internal::DoDefaultAction();
+inline Pinternal::DoDefaultAction DoDefault() {
+  return Pinternal::DoDefaultAction();
 }
 
 // Creates an action that sets the variable pointed by the N-th
 // (0-based) function argument to 'value'.
 template <size_t N, typename T>
 PolymorphicAction<
-  internal::SetArgumentPointeeAction<
-    N, T, internal::IsAProtocolMessage<T>::value> >
+  Pinternal::SetArgumentPointeeAction<
+    N, T, Pinternal::IsAProtocolMessage<T>::value> >
 SetArgPointee(const T& x) {
-  return MakePolymorphicAction(internal::SetArgumentPointeeAction<
-      N, T, internal::IsAProtocolMessage<T>::value>(x));
+  return MakePolymorphicAction(Pinternal::SetArgumentPointeeAction<
+      N, T, Pinternal::IsAProtocolMessage<T>::value>(x));
 }
 
 #if !((GTEST_GCC_VER_ && GTEST_GCC_VER_ < 40000) || GTEST_OS_SYMBIAN)
@@ -1117,17 +1117,17 @@ SetArgPointee(const T& x) {
 // this overload from the templated version and emit a compile error.
 template <size_t N>
 PolymorphicAction<
-  internal::SetArgumentPointeeAction<N, const char*, false> >
+  Pinternal::SetArgumentPointeeAction<N, const char*, false> >
 SetArgPointee(const char* p) {
-  return MakePolymorphicAction(internal::SetArgumentPointeeAction<
+  return MakePolymorphicAction(Pinternal::SetArgumentPointeeAction<
       N, const char*, false>(p));
 }
 
 template <size_t N>
 PolymorphicAction<
-  internal::SetArgumentPointeeAction<N, const wchar_t*, false> >
+  Pinternal::SetArgumentPointeeAction<N, const wchar_t*, false> >
 SetArgPointee(const wchar_t* p) {
-  return MakePolymorphicAction(internal::SetArgumentPointeeAction<
+  return MakePolymorphicAction(Pinternal::SetArgumentPointeeAction<
       N, const wchar_t*, false>(p));
 }
 #endif
@@ -1135,27 +1135,27 @@ SetArgPointee(const wchar_t* p) {
 // The following version is DEPRECATED.
 template <size_t N, typename T>
 PolymorphicAction<
-  internal::SetArgumentPointeeAction<
-    N, T, internal::IsAProtocolMessage<T>::value> >
+  Pinternal::SetArgumentPointeeAction<
+    N, T, Pinternal::IsAProtocolMessage<T>::value> >
 SetArgumentPointee(const T& x) {
-  return MakePolymorphicAction(internal::SetArgumentPointeeAction<
-      N, T, internal::IsAProtocolMessage<T>::value>(x));
+  return MakePolymorphicAction(Pinternal::SetArgumentPointeeAction<
+      N, T, Pinternal::IsAProtocolMessage<T>::value>(x));
 }
 
 // Creates an action that sets a pointer referent to a given value.
 template <typename T1, typename T2>
-PolymorphicAction<internal::AssignAction<T1, T2> > Assign(T1* ptr, T2 val) {
-  return MakePolymorphicAction(internal::AssignAction<T1, T2>(ptr, val));
+PolymorphicAction<Pinternal::AssignAction<T1, T2> > Assign(T1* ptr, T2 val) {
+  return MakePolymorphicAction(Pinternal::AssignAction<T1, T2>(ptr, val));
 }
 
 #if !GTEST_OS_WINDOWS_MOBILE
 
 // Creates an action that sets errno and returns the appropriate error.
 template <typename T>
-PolymorphicAction<internal::SetErrnoAndReturnAction<T> >
+PolymorphicAction<Pinternal::SetErrnoAndReturnAction<T> >
 SetErrnoAndReturn(int errval, T result) {
   return MakePolymorphicAction(
-      internal::SetErrnoAndReturnAction<T>(errval, result));
+      Pinternal::SetErrnoAndReturnAction<T>(errval, result));
 }
 
 #endif  // !GTEST_OS_WINDOWS_MOBILE
@@ -1164,19 +1164,19 @@ SetErrnoAndReturn(int errval, T result) {
 
 // Creates an action that invokes 'function_impl' with no argument.
 template <typename FunctionImpl>
-PolymorphicAction<internal::InvokeWithoutArgsAction<FunctionImpl> >
+PolymorphicAction<Pinternal::InvokeWithoutArgsAction<FunctionImpl> >
 InvokeWithoutArgs(FunctionImpl function_impl) {
   return MakePolymorphicAction(
-      internal::InvokeWithoutArgsAction<FunctionImpl>(function_impl));
+      Pinternal::InvokeWithoutArgsAction<FunctionImpl>(function_impl));
 }
 
 // Creates an action that invokes the given method on the given object
 // with no argument.
 template <class Class, typename MethodPtr>
-PolymorphicAction<internal::InvokeMethodWithoutArgsAction<Class, MethodPtr> >
+PolymorphicAction<Pinternal::InvokeMethodWithoutArgsAction<Class, MethodPtr> >
 InvokeWithoutArgs(Class* obj_ptr, MethodPtr method_ptr) {
   return MakePolymorphicAction(
-      internal::InvokeMethodWithoutArgsAction<Class, MethodPtr>(
+      Pinternal::InvokeMethodWithoutArgsAction<Class, MethodPtr>(
           obj_ptr, method_ptr));
 }
 
@@ -1184,8 +1184,8 @@ InvokeWithoutArgs(Class* obj_ptr, MethodPtr method_ptr) {
 // result.  In other words, it changes the return type of an_action to
 // void.  an_action MUST NOT return void, or the code won't compile.
 template <typename A>
-inline internal::IgnoreResultAction<A> IgnoreResult(const A& an_action) {
-  return internal::IgnoreResultAction<A>(an_action);
+inline Pinternal::IgnoreResultAction<A> IgnoreResult(const A& an_action) {
+  return Pinternal::IgnoreResultAction<A>(an_action);
 }
 
 // Creates a reference wrapper for the given L-value.  If necessary,
@@ -1196,8 +1196,8 @@ inline internal::IgnoreResultAction<A> IgnoreResult(const A& an_action) {
 //
 //   ByRef<const Base>(derived)
 template <typename T>
-inline internal::ReferenceWrapper<T> ByRef(T& l_value) {  // NOLINT
-  return internal::ReferenceWrapper<T>(l_value);
+inline Pinternal::ReferenceWrapper<T> ByRef(T& l_value) {  // NOLINT
+  return Pinternal::ReferenceWrapper<T>(l_value);
 }
 
 }  // namespace testing

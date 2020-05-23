@@ -56,14 +56,14 @@ class TUniformMap;
 //
 class TShHandleBase {
 public:
-    TShHandleBase() { pool = new glslang::TPoolAllocator; }
+    TShHandleBase() { pool = new Pglslang::TPoolAllocator; }
     virtual ~TShHandleBase() { delete pool; }
     virtual TCompiler* getAsCompiler() { return 0; }
     virtual TLinker* getAsLinker() { return 0; }
     virtual TUniformMap* getAsUniformMap() { return 0; }
-    virtual glslang::TPoolAllocator* getPool() const { return pool; }
+    virtual Pglslang::TPoolAllocator* getPool() const { return pool; }
 private:
-    glslang::TPoolAllocator* pool;
+    Pglslang::TPoolAllocator* pool;
 };
 
 //
@@ -109,8 +109,8 @@ protected:
 //
 // Link operations are based on a list of compile results...
 //
-typedef glslang::TVector<TCompiler*> TCompilerList;
-typedef glslang::TVector<TShHandleBase*> THandleList;
+typedef Pglslang::TVector<TCompiler*> TCompilerList;
+typedef Pglslang::TVector<TShHandleBase*> THandleList;
 
 //
 // The base class for the machine dependent linker to derive from

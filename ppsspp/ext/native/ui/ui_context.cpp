@@ -12,7 +12,7 @@
 #include "Common/Log.h"
 
 UIContext::UIContext() {
-	fontStyle_ = new UI::FontStyle();
+	fontStyle_ = new PUI::FontStyle();
 	bounds_ = Bounds(0, 0, dp_xres, dp_yres);
 }
 
@@ -128,7 +128,7 @@ void UIContext::SetFontScale(float scaleX, float scaleY) {
 	fontScaleY_ = scaleY;
 }
 
-void UIContext::SetFontStyle(const UI::FontStyle &fontStyle) {
+void UIContext::SetFontStyle(const PUI::FontStyle &fontStyle) {
 	*fontStyle_ = fontStyle;
 	if (textDrawer_) {
 		textDrawer_->SetFontScale(fontScaleX_, fontScaleY_);
@@ -136,11 +136,11 @@ void UIContext::SetFontStyle(const UI::FontStyle &fontStyle) {
 	}
 }
 
-void UIContext::MeasureText(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align) const {
+void UIContext::MeasureText(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align) const {
 	MeasureTextCount(style, scaleX, scaleY, str, (int)strlen(str), x, y, align);
 }
 
-void UIContext::MeasureTextCount(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align) const {
+void UIContext::MeasureTextCount(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
 		float sizeFactor = (float)style.sizePts / 24.0f;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
@@ -153,7 +153,7 @@ void UIContext::MeasureTextCount(const UI::FontStyle &style, float scaleX, float
 	}
 }
 
-void UIContext::MeasureTextRect(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align) const {
+void UIContext::MeasureTextRect(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
 		float sizeFactor = (float)style.sizePts / 24.0f;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
@@ -199,22 +199,22 @@ void UIContext::DrawTextRect(const char *str, const Bounds &bounds, uint32_t col
 	}
 }
 
-void UIContext::FillRect(const UI::Drawable &drawable, const Bounds &bounds) {
+void UIContext::FillRect(const PUI::Drawable &drawable, const Bounds &bounds) {
 	// Only draw if alpha is non-zero.
 	if ((drawable.color & 0xFF000000) == 0)
 		return;
 
 	switch (drawable.type) {
-	case UI::DRAW_SOLID_COLOR:
+	case PUI::DRAW_SOLID_COLOR:
 		uidrawbuffer_->DrawImageStretch(theme->whiteImage, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case UI::DRAW_4GRID:
+	case PUI::DRAW_4GRID:
 		uidrawbuffer_->DrawImage4Grid(drawable.image, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case UI::DRAW_STRETCH_IMAGE:
+	case PUI::DRAW_STRETCH_IMAGE:
 		uidrawbuffer_->DrawImageStretch(drawable.image, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case UI::DRAW_NOTHING:
+	case PUI::DRAW_NOTHING:
 		break;
 	} 
 }

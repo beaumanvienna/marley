@@ -51,7 +51,7 @@ GTEST_DECLARE_string_(death_test_style);
 
 #if GTEST_HAS_DEATH_TEST
 
-namespace internal {
+namespace Pinternal {
 
 // Returns a Boolean value indicating whether the caller is currently
 // executing in the context of the death test child process.  Tools such as
@@ -60,7 +60,7 @@ namespace internal {
 // implementation of death tests.  User code MUST NOT use it.
 GTEST_API_ bool InDeathTestChild();
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // The following macros are useful for writing death tests.
 
@@ -177,12 +177,12 @@ GTEST_API_ bool InDeathTestChild();
 // explicitly exiting with a nonzero exit code or being killed by a
 // signal, and emitting error output that matches regex.
 # define ASSERT_DEATH(statement, regex) \
-    ASSERT_EXIT(statement, ::testing::internal::ExitedUnsuccessfully, regex)
+    ASSERT_EXIT(statement, ::testing::Pinternal::ExitedUnsuccessfully, regex)
 
 // Like ASSERT_DEATH, but continues on to successive tests in the
 // test case, if any:
 # define EXPECT_DEATH(statement, regex) \
-    EXPECT_EXIT(statement, ::testing::internal::ExitedUnsuccessfully, regex)
+    EXPECT_EXIT(statement, ::testing::Pinternal::ExitedUnsuccessfully, regex)
 
 // Two predicate classes that can be used in {ASSERT,EXPECT}_EXIT*:
 

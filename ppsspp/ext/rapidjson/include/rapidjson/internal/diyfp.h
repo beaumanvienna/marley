@@ -29,7 +29,7 @@
 #endif
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace internal {
+namespace Pinternal {
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
@@ -265,7 +265,7 @@ RAPIDJSON_DIAG_POP
 RAPIDJSON_DIAG_OFF(padded)
 #endif
 
-} // namespace internal
+} // namespace Pinternal
 RAPIDJSON_NAMESPACE_END
 
 #endif // RAPIDJSON_DIYFP_H_

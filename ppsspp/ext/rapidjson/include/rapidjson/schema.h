@@ -74,7 +74,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 
 #if RAPIDJSON_SCHEMA_VERBOSE
 
-namespace internal {
+namespace Pinternal {
 
 inline void PrintInvalidKeyword(const char* keyword) {
     printf("Fail keyword: %s\n", keyword);
@@ -100,7 +100,7 @@ inline void PrintValidatorPointers(unsigned depth, const wchar_t* s, const wchar
     wprintf(L"S: %*ls%ls\nD: %*ls%ls\n\n", depth * 4, L" ", s, depth * 4, L" ", d);
 }
 
-} // namespace internal
+} // namespace Pinternal
 
 #endif // RAPIDJSON_SCHEMA_VERBOSE
 
@@ -108,7 +108,7 @@ inline void PrintValidatorPointers(unsigned depth, const wchar_t* s, const wchar
 // RAPIDJSON_INVALID_KEYWORD_RETURN
 
 #if RAPIDJSON_SCHEMA_VERBOSE
-#define RAPIDJSON_INVALID_KEYWORD_VERBOSE(keyword) internal::PrintInvalidKeyword(keyword)
+#define RAPIDJSON_INVALID_KEYWORD_VERBOSE(keyword) Pinternal::PrintInvalidKeyword(keyword)
 #else
 #define RAPIDJSON_INVALID_KEYWORD_VERBOSE(keyword)
 #endif
@@ -126,7 +126,7 @@ RAPIDJSON_MULTILINEMACRO_END
 template <typename ValueType, typename Allocator>
 class GenericSchemaDocument;
 
-namespace internal {
+namespace Pinternal {
 
 template <typename SchemaDocumentType>
 class Schema;
@@ -848,7 +848,7 @@ public:
 
         if (minLength_ != 0 || maxLength_ != SizeType(~0)) {
             SizeType count;
-            if (internal::CountStringCodePoint<EncodingType>(str, length, &count)) {
+            if (Pinternal::CountStringCodePoint<EncodingType>(str, length, &count)) {
                 if (count < minLength_) {
                     context.error_handler.TooShort(str, length, minLength_);
                     RAPIDJSON_INVALID_KEYWORD_RETURN(GetMinLengthString());
@@ -1071,7 +1071,7 @@ private:
     };
 
 #if RAPIDJSON_SCHEMA_USE_INTERNALREGEX
-        typedef internal::GenericRegex<EncodingType, AllocatorType> RegexType;
+        typedef Pinternal::GenericRegex<EncodingType, AllocatorType> RegexType;
 #elif RAPIDJSON_SCHEMA_USE_STDREGEX
         typedef std::basic_regex<Ch> RegexType;
 #else
@@ -1457,19 +1457,19 @@ struct TokenHelper<Stack, char> {
         if (sizeof(SizeType) == 4) {
             char *buffer = documentStack.template Push<char>(1 + 10); // '/' + uint
             *buffer++ = '/';
-            const char* end = internal::u32toa(index, buffer);
+            const char* end = Pinternal::u32toa(index, buffer);
              documentStack.template Pop<char>(static_cast<size_t>(10 - (end - buffer)));
         }
         else {
             char *buffer = documentStack.template Push<char>(1 + 20); // '/' + uint64
             *buffer++ = '/';
-            const char* end = internal::u64toa(index, buffer);
+            const char* end = Pinternal::u64toa(index, buffer);
             documentStack.template Pop<char>(static_cast<size_t>(20 - (end - buffer)));
         }
     }
 };
 
-} // namespace internal
+} // namespace Pinternal
 
 ///////////////////////////////////////////////////////////////////////////////
 // IGenericRemoteSchemaDocumentProvider
@@ -1489,7 +1489,7 @@ public:
 //! JSON schema document.
 /*!
     A JSON schema document is a compiled version of a JSON schema.
-    It is basically a tree of internal::Schema.
+    It is basically a tree of Pinternal::Schema.
 
     \note This is an immutable class (i.e. its instance cannot be modified after construction).
     \tparam ValueT Type of JSON value (e.g. \c Value ), which also determine the encoding.
@@ -1503,10 +1503,10 @@ public:
     typedef Allocator AllocatorType;
     typedef typename ValueType::EncodingType EncodingType;
     typedef typename EncodingType::Ch Ch;
-    typedef internal::Schema<GenericSchemaDocument> SchemaType;
+    typedef Pinternal::Schema<GenericSchemaDocument> SchemaType;
     typedef GenericPointer<ValueType, Allocator> PointerType;
     typedef GenericValue<EncodingType, Allocator> URIType;
-    friend class internal::Schema<GenericSchemaDocument>;
+    friend class Pinternal::Schema<GenericSchemaDocument>;
     template <typename, typename, typename>
     friend class GenericSchemaValidator;
 
@@ -1729,8 +1729,8 @@ private:
     Allocator *ownAllocator_;
     const SchemaType* root_;                //!< Root schema.
     SchemaType* typeless_;
-    internal::Stack<Allocator> schemaMap_;  // Stores created Pointer -> Schemas
-    internal::Stack<Allocator> schemaRef_;  // Stores Pointer from $ref and schema which holds the $ref
+    Pinternal::Stack<Allocator> schemaMap_;  // Stores created Pointer -> Schemas
+    Pinternal::Stack<Allocator> schemaRef_;  // Stores Pointer from $ref and schema which holds the $ref
     URIType uri_;
 };
 
@@ -1759,9 +1759,9 @@ template <
     typename OutputHandler = BaseReaderHandler<typename SchemaDocumentType::SchemaType::EncodingType>,
     typename StateAllocator = CrtAllocator>
 class GenericSchemaValidator :
-    public internal::ISchemaStateFactory<typename SchemaDocumentType::SchemaType>, 
-    public internal::ISchemaValidator,
-    public internal::IValidationErrorHandler<typename SchemaDocumentType::SchemaType>
+    public Pinternal::ISchemaStateFactory<typename SchemaDocumentType::SchemaType>, 
+    public Pinternal::ISchemaValidator,
+    public Pinternal::IValidationErrorHandler<typename SchemaDocumentType::SchemaType>
 {
 public:
     typedef typename SchemaDocumentType::SchemaType SchemaType;
@@ -2065,7 +2065,7 @@ public:
 RAPIDJSON_MULTILINEMACRO_BEGIN\
     *documentStack_.template Push<Ch>() = '\0';\
     documentStack_.template Pop<Ch>(1);\
-    internal::PrintInvalidDocument(documentStack_.template Bottom<Ch>());\
+    Pinternal::PrintInvalidDocument(documentStack_.template Bottom<Ch>());\
 RAPIDJSON_MULTILINEMACRO_END
 #else
 #define RAPIDJSON_SCHEMA_HANDLE_BEGIN_VERBOSE_()
@@ -2189,7 +2189,7 @@ RAPIDJSON_MULTILINEMACRO_END
 private:
     typedef typename SchemaType::Context Context;
     typedef GenericValue<UTF8<>, StateAllocator> HashCodeArray;
-    typedef internal::Hasher<EncodingType, StateAllocator> HasherType;
+    typedef Pinternal::Hasher<EncodingType, StateAllocator> HasherType;
 
     GenericSchemaValidator( 
         const SchemaDocumentType& schemaDocument,
@@ -2232,7 +2232,7 @@ private:
             PushSchema(root_);
         else {
             if (CurrentContext().inArray)
-                internal::TokenHelper<internal::Stack<StateAllocator>, Ch>::AppendIndexToken(documentStack_, CurrentContext().arrayElementIndex);
+                Pinternal::TokenHelper<Pinternal::Stack<StateAllocator>, Ch>::AppendIndexToken(documentStack_, CurrentContext().arrayElementIndex);
 
             if (!CurrentSchema().BeginValue(CurrentContext()))
                 return false;
@@ -2268,7 +2268,7 @@ private:
 
         *documentStack_.template Push<Ch>() = '\0';
         documentStack_.template Pop<Ch>(1);
-        internal::PrintValidatorPointers(depth_, sb.GetString(), documentStack_.template Bottom<Ch>());
+        Pinternal::PrintValidatorPointers(depth_, sb.GetString(), documentStack_.template Bottom<Ch>());
 #endif
 
         uint64_t h = CurrentContext().arrayUniqueness ? static_cast<HasherType*>(CurrentContext().hasher)->GetHashCode() : 0;
@@ -2399,8 +2399,8 @@ private:
     const SchemaType& root_;
     StateAllocator* stateAllocator_;
     StateAllocator* ownStateAllocator_;
-    internal::Stack<StateAllocator> schemaStack_;    //!< stack to store the current path of schema (BaseSchemaType *)
-    internal::Stack<StateAllocator> documentStack_;  //!< stack to store the current path of validating document (Ch)
+    Pinternal::Stack<StateAllocator> schemaStack_;    //!< stack to store the current path of schema (BaseSchemaType *)
+    Pinternal::Stack<StateAllocator> documentStack_;  //!< stack to store the current path of validating document (Ch)
     OutputHandler* outputHandler_;
     ValueType error_;
     ValueType currentError_;

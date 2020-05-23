@@ -49,7 +49,7 @@
 #include "../glslang/MachineIndependent/localintermediate.h"
 #include "Logger.h"
 
-namespace glslang {
+namespace Pglslang {
 
 struct SpvOptions {
     SpvOptions() : generateDebugInfo(false), disableOptimizer(true),
@@ -67,16 +67,16 @@ struct SpvOptions {
 void SpirvToolsDisassemble(std::ostream& out, const std::vector<unsigned int>& spirv);
 
 // Apply the SPIRV-Tools validator to generated SPIR-V.
-void SpirvToolsValidate(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        spv::SpvBuildLogger*, bool prelegalization);
+void SpirvToolsValidate(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        Pspv::SpvBuildLogger*, bool prelegalization);
 
 // Apply the SPIRV-Tools optimizer to generated SPIR-V, for the purpose of
 // legalizing HLSL SPIR-V.
-void SpirvToolsLegalize(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        spv::SpvBuildLogger*, const SpvOptions*);
+void SpirvToolsLegalize(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        Pspv::SpvBuildLogger*, const SpvOptions*);
 
 #endif
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // GLSLANG_SPV_TOOLS_H

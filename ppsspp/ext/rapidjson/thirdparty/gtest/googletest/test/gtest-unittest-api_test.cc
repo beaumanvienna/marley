@@ -41,7 +41,7 @@
 using ::testing::InitGoogleTest;
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 template <typename T>
 struct LessByName {
@@ -329,13 +329,13 @@ class FinalSuccessChecker : public Environment {
   }
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 int main(int argc, char **argv) {
   InitGoogleTest(&argc, argv);
 
-  AddGlobalTestEnvironment(new testing::internal::FinalSuccessChecker());
+  AddGlobalTestEnvironment(new testing::Pinternal::FinalSuccessChecker());
 
   return RUN_ALL_TESTS();
 }

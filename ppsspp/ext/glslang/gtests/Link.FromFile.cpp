@@ -38,7 +38,7 @@
 
 #include "TestFixture.h"
 
-namespace glslangtest {
+namespace Pglslangtest {
 namespace {
 
 using LinkTest = GlslangTest<
@@ -53,13 +53,13 @@ TEST_P(LinkTest, FromFile)
     result.validationResult = true;
 
     // Compile each input shader file.
-    std::vector<std::unique_ptr<glslang::TShader>> shaders;
+    std::vector<std::unique_ptr<Pglslang::TShader>> shaders;
     for (size_t i = 0; i < fileCount; ++i) {
         std::string contents;
         tryLoadFile(GlobalTestSettings.testRoot + "/" + fileNames[i],
                     "input", &contents);
         shaders.emplace_back(
-                new glslang::TShader(GetShaderStage(GetSuffix(fileNames[i]))));
+                new Pglslang::TShader(GetShaderStage(GetSuffix(fileNames[i]))));
         auto* shader = shaders.back().get();
         compile(shader, contents, "", controls);
         result.shaderResults.push_back(
@@ -67,7 +67,7 @@ TEST_P(LinkTest, FromFile)
     }
 
     // Link all of them.
-    glslang::TProgram program;
+    Pglslang::TProgram program;
     for (const auto& shader : shaders) program.addShader(shader.get());
     program.link(controls);
     result.linkingOutput = program.getInfoLog();
@@ -106,4 +106,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace glslangtest
+}  // namespace Pglslangtest

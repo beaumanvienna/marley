@@ -18,7 +18,7 @@
 #include "spirv_glsl.hpp"
 #include <iomanip>
 
-using namespace spv;
+using namespace Pspv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
@@ -369,7 +369,7 @@ void CompilerReflection::emit_type_member_qualifiers(const SPIRType &type, uint3
 	}
 }
 
-string CompilerReflection::execution_model_to_str(spv::ExecutionModel model)
+string CompilerReflection::execution_model_to_str(Pspv::ExecutionModel model)
 {
 	switch (model)
 	{

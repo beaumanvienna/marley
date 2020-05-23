@@ -77,7 +77,7 @@ TEST(CommandLineFlagsTest, CanBeAccessedInCodeOnceGTestHIsIncluded) {
 #undef GTEST_IMPLEMENTATION_
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 #if GTEST_CAN_STREAM_RESULTS_
 
@@ -193,7 +193,7 @@ class UnitTestRecordPropertyTestHelper : public Test {
   UnitTest unit_test_;
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 using testing::AssertionFailure;
@@ -234,69 +234,69 @@ using testing::TestProperty;
 using testing::TestResult;
 using testing::TimeInMillis;
 using testing::UnitTest;
-using testing::internal::AddReference;
-using testing::internal::AlwaysFalse;
-using testing::internal::AlwaysTrue;
-using testing::internal::AppendUserMessage;
-using testing::internal::ArrayAwareFind;
-using testing::internal::ArrayEq;
-using testing::internal::CodePointToUtf8;
-using testing::internal::CompileAssertTypesEqual;
-using testing::internal::CopyArray;
-using testing::internal::CountIf;
-using testing::internal::EqFailure;
-using testing::internal::FloatingPoint;
-using testing::internal::ForEach;
-using testing::internal::FormatEpochTimeInMillisAsIso8601;
-using testing::internal::FormatTimeInMillisAsSeconds;
-using testing::internal::GTestFlagSaver;
-using testing::internal::GetCurrentOsStackTraceExceptTop;
-using testing::internal::GetElementOr;
-using testing::internal::GetNextRandomSeed;
-using testing::internal::GetRandomSeedFromFlag;
-using testing::internal::GetTestTypeId;
-using testing::internal::GetTimeInMillis;
-using testing::internal::GetTypeId;
-using testing::internal::GetUnitTestImpl;
-using testing::internal::ImplicitlyConvertible;
-using testing::internal::Int32;
-using testing::internal::Int32FromEnvOrDie;
-using testing::internal::IsAProtocolMessage;
-using testing::internal::IsContainer;
-using testing::internal::IsContainerTest;
-using testing::internal::IsNotContainer;
-using testing::internal::NativeArray;
-using testing::internal::ParseInt32Flag;
-using testing::internal::RelationToSourceCopy;
-using testing::internal::RelationToSourceReference;
-using testing::internal::RemoveConst;
-using testing::internal::RemoveReference;
-using testing::internal::ShouldRunTestOnShard;
-using testing::internal::ShouldShard;
-using testing::internal::ShouldUseColor;
-using testing::internal::Shuffle;
-using testing::internal::ShuffleRange;
-using testing::internal::SkipPrefix;
-using testing::internal::StreamableToString;
-using testing::internal::String;
-using testing::internal::TestEventListenersAccessor;
-using testing::internal::TestResultAccessor;
-using testing::internal::UInt32;
-using testing::internal::WideStringToUtf8;
-using testing::internal::edit_distance::CalculateOptimalEdits;
-using testing::internal::edit_distance::CreateUnifiedDiff;
-using testing::internal::edit_distance::EditType;
-using testing::internal::kMaxRandomSeed;
-using testing::internal::kTestTypeIdInGoogleTest;
+using testing::Pinternal::AddReference;
+using testing::Pinternal::AlwaysFalse;
+using testing::Pinternal::AlwaysTrue;
+using testing::Pinternal::AppendUserMessage;
+using testing::Pinternal::ArrayAwareFind;
+using testing::Pinternal::ArrayEq;
+using testing::Pinternal::CodePointToUtf8;
+using testing::Pinternal::CompileAssertTypesEqual;
+using testing::Pinternal::CopyArray;
+using testing::Pinternal::CountIf;
+using testing::Pinternal::EqFailure;
+using testing::Pinternal::FloatingPoint;
+using testing::Pinternal::ForEach;
+using testing::Pinternal::FormatEpochTimeInMillisAsIso8601;
+using testing::Pinternal::FormatTimeInMillisAsSeconds;
+using testing::Pinternal::GTestFlagSaver;
+using testing::Pinternal::GetCurrentOsStackTraceExceptTop;
+using testing::Pinternal::GetElementOr;
+using testing::Pinternal::GetNextRandomSeed;
+using testing::Pinternal::GetRandomSeedFromFlag;
+using testing::Pinternal::GetTestTypeId;
+using testing::Pinternal::GetTimeInMillis;
+using testing::Pinternal::GetTypeId;
+using testing::Pinternal::GetUnitTestImpl;
+using testing::Pinternal::ImplicitlyConvertible;
+using testing::Pinternal::Int32;
+using testing::Pinternal::Int32FromEnvOrDie;
+using testing::Pinternal::IsAProtocolMessage;
+using testing::Pinternal::IsContainer;
+using testing::Pinternal::IsContainerTest;
+using testing::Pinternal::IsNotContainer;
+using testing::Pinternal::NativeArray;
+using testing::Pinternal::ParseInt32Flag;
+using testing::Pinternal::RelationToSourceCopy;
+using testing::Pinternal::RelationToSourceReference;
+using testing::Pinternal::RemoveConst;
+using testing::Pinternal::RemoveReference;
+using testing::Pinternal::ShouldRunTestOnShard;
+using testing::Pinternal::ShouldShard;
+using testing::Pinternal::ShouldUseColor;
+using testing::Pinternal::Shuffle;
+using testing::Pinternal::ShuffleRange;
+using testing::Pinternal::SkipPrefix;
+using testing::Pinternal::StreamableToString;
+using testing::Pinternal::String;
+using testing::Pinternal::TestEventListenersAccessor;
+using testing::Pinternal::TestResultAccessor;
+using testing::Pinternal::UInt32;
+using testing::Pinternal::WideStringToUtf8;
+using testing::Pinternal::edit_distance::CalculateOptimalEdits;
+using testing::Pinternal::edit_distance::CreateUnifiedDiff;
+using testing::Pinternal::edit_distance::EditType;
+using testing::Pinternal::kMaxRandomSeed;
+using testing::Pinternal::kTestTypeIdInGoogleTest;
 using testing::kMaxStackTraceDepth;
 
 #if GTEST_HAS_STREAM_REDIRECTION
-using testing::internal::CaptureStdout;
-using testing::internal::GetCapturedStdout;
+using testing::Pinternal::CaptureStdout;
+using testing::Pinternal::GetCapturedStdout;
 #endif
 
 #if GTEST_IS_THREADSAFE
-using testing::internal::ThreadWithParam;
+using testing::Pinternal::ThreadWithParam;
 #endif
 
 class TestingVector : public std::vector<int> {
@@ -710,24 +710,24 @@ TEST(WideStringToUtf8Test, ConcatenatesCodepointsCorrectly) {
 // Tests the Random class.
 
 TEST(RandomDeathTest, GeneratesCrashesOnInvalidRange) {
-  testing::internal::Random random(42);
+  testing::Pinternal::Random random(42);
   EXPECT_DEATH_IF_SUPPORTED(
       random.Generate(0),
       "Cannot generate a number in the range \\[0, 0\\)");
   EXPECT_DEATH_IF_SUPPORTED(
-      random.Generate(testing::internal::Random::kMaxRange + 1),
+      random.Generate(testing::Pinternal::Random::kMaxRange + 1),
       "Generation of a number in \\[0, 2147483649\\) was requested, "
       "but this can only generate numbers in \\[0, 2147483648\\)");
 }
 
 TEST(RandomTest, GeneratesNumbersWithinRange) {
   const UInt32 kRange = 10000;
-  testing::internal::Random random(12345);
+  testing::Pinternal::Random random(12345);
   for (int i = 0; i < 10; i++) {
     EXPECT_LT(random.Generate(kRange), kRange) << " for iteration " << i;
   }
 
-  testing::internal::Random random2(testing::internal::Random::kMaxRange);
+  testing::Pinternal::Random random2(testing::Pinternal::Random::kMaxRange);
   for (int i = 0; i < 10; i++) {
     EXPECT_LT(random2.Generate(kRange), kRange) << " for iteration " << i;
   }
@@ -739,7 +739,7 @@ TEST(RandomTest, RepeatsWhenReseeded) {
   const UInt32 kRange = 10000;
   UInt32 values[kArraySize];
 
-  testing::internal::Random random(kSeed);
+  testing::Pinternal::Random random(kSeed);
   for (int i = 0; i < kArraySize; i++) {
     values[i] = random.Generate(kRange);
   }
@@ -811,7 +811,7 @@ TEST(ContainerUtilityDeathTest, ShuffleRange) {
   a.push_back(0);
   a.push_back(1);
   a.push_back(2);
-  testing::internal::Random random(1);
+  testing::Pinternal::Random random(1);
 
   EXPECT_DEATH_IF_SUPPORTED(
       ShuffleRange(&random, -1, 1, &a),
@@ -882,7 +882,7 @@ class VectorShuffleTest : public Test {
     return !VectorIsShuffled(vector);
   }
 
-  testing::internal::Random random_;
+  testing::Pinternal::Random random_;
   TestingVector vector_;
 };  // class VectorShuffleTest
 
@@ -994,7 +994,7 @@ TEST_F(VectorShuffleTest, ShufflesRepeatably) {
 TEST(AssertHelperTest, AssertHelperIsSmall) {
   // To avoid breaking clients that use lots of assertions in one
   // function, we cannot grow the size of AssertHelper.
-  EXPECT_LE(sizeof(testing::internal::AssertHelper), sizeof(void*));
+  EXPECT_LE(sizeof(testing::Pinternal::AssertHelper), sizeof(void*));
 }
 
 // Tests String::EndsWithCaseInsensitive().
@@ -1660,7 +1660,7 @@ static void SetEnv(const char* name, const char* value) {
 #if !GTEST_OS_WINDOWS_MOBILE
 // Environment variables are not supported on Windows CE.
 
-using testing::internal::Int32FromGTestEnv;
+using testing::Pinternal::Int32FromGTestEnv;
 
 // Tests Int32FromGTestEnv().
 
@@ -1973,7 +1973,7 @@ void ExpectNonFatalFailureRecordingPropertyWithReservedKeyOutsideOfTestCase(
 // functions correcly.  Creating a separate instance of UnitTest ensures it
 // is in a state similar to the UnitTest's singleton's between tests.
 class UnitTestRecordPropertyTest :
-    public testing::internal::UnitTestRecordPropertyTestHelper {
+    public testing::Pinternal::UnitTestRecordPropertyTestHelper {
  public:
   static void SetUpTestCase() {
     ExpectNonFatalFailureRecordingPropertyWithReservedKeyForCurrentTestCase(
@@ -2685,7 +2685,7 @@ class FloatingPointTest : public Test {
     RawType nan2;
   };
 
-  typedef typename testing::internal::FloatingPoint<RawType> Floating;
+  typedef typename testing::Pinternal::FloatingPoint<RawType> Floating;
   typedef typename Floating::Bits Bits;
 
   virtual void SetUp() {
@@ -3910,7 +3910,7 @@ enum {
   // On Linux, kCaseB and kCaseA have the same value when truncated to
   // int size.  We want to test whether this will confuse the
   // assertions.
-  kCaseB = testing::internal::kMaxBiggestInt,
+  kCaseB = testing::Pinternal::kMaxBiggestInt,
 
 # else
 
@@ -5660,15 +5660,15 @@ class InitGoogleTestTest : public Test {
   static void TestParsingFlags(int argc1, const CharType** argv1,
                                int argc2, const CharType** argv2,
                                const Flags& expected, bool should_print_help) {
-    const bool saved_help_flag = ::testing::internal::g_help_flag;
-    ::testing::internal::g_help_flag = false;
+    const bool saved_help_flag = ::testing::Pinternal::g_help_flag;
+    ::testing::Pinternal::g_help_flag = false;
 
 #if GTEST_HAS_STREAM_REDIRECTION
     CaptureStdout();
 #endif
 
     // Parses the command line.
-    internal::ParseGoogleTestFlagsOnly(&argc1, const_cast<CharType**>(argv1));
+    Pinternal::ParseGoogleTestFlagsOnly(&argc1, const_cast<CharType**>(argv1));
 
 #if GTEST_HAS_STREAM_REDIRECTION
     const std::string captured_stdout = GetCapturedStdout();
@@ -5683,7 +5683,7 @@ class InitGoogleTestTest : public Test {
 
     // ParseGoogleTestFlagsOnly should neither set g_help_flag nor print the
     // help message for the flags it recognizes.
-    EXPECT_EQ(should_print_help, ::testing::internal::g_help_flag);
+    EXPECT_EQ(should_print_help, ::testing::Pinternal::g_help_flag);
 
 #if GTEST_HAS_STREAM_REDIRECTION
     const char* const expected_help_fragment =
@@ -5696,7 +5696,7 @@ class InitGoogleTestTest : public Test {
     }
 #endif  // GTEST_HAS_STREAM_REDIRECTION
 
-    ::testing::internal::g_help_flag = saved_help_flag;
+    ::testing::Pinternal::g_help_flag = saved_help_flag;
   }
 
   // This macro wraps TestParsingFlags s.t. the user doesn't need
@@ -6410,34 +6410,34 @@ class FlagfileTest : public InitGoogleTestTest {
   virtual void SetUp() {
     InitGoogleTestTest::SetUp();
 
-    testdata_path_.Set(internal::FilePath(
-        internal::TempDir() + internal::GetCurrentExecutableName().string() +
+    testdata_path_.Set(Pinternal::FilePath(
+        Pinternal::TempDir() + Pinternal::GetCurrentExecutableName().string() +
         "_flagfile_test"));
-    testing::internal::posix::RmDir(testdata_path_.c_str());
+    testing::Pinternal::posix::RmDir(testdata_path_.c_str());
     EXPECT_TRUE(testdata_path_.CreateFolder());
   }
 
   virtual void TearDown() {
-    testing::internal::posix::RmDir(testdata_path_.c_str());
+    testing::Pinternal::posix::RmDir(testdata_path_.c_str());
     InitGoogleTestTest::TearDown();
   }
 
-  internal::FilePath CreateFlagfile(const char* contents) {
-    internal::FilePath file_path(internal::FilePath::GenerateUniqueFileName(
-        testdata_path_, internal::FilePath("unique"), "txt"));
-    FILE* f = testing::internal::posix::FOpen(file_path.c_str(), "w");
+  Pinternal::FilePath CreateFlagfile(const char* contents) {
+    Pinternal::FilePath file_path(Pinternal::FilePath::GenerateUniqueFileName(
+        testdata_path_, Pinternal::FilePath("unique"), "txt"));
+    FILE* f = testing::Pinternal::posix::FOpen(file_path.c_str(), "w");
     fprintf(f, "%s", contents);
     fclose(f);
     return file_path;
   }
 
  private:
-  internal::FilePath testdata_path_;
+  Pinternal::FilePath testdata_path_;
 };
 
 // Tests an empty flagfile.
 TEST_F(FlagfileTest, Empty) {
-  internal::FilePath flagfile_path(CreateFlagfile(""));
+  Pinternal::FilePath flagfile_path(CreateFlagfile(""));
   std::string flagfile_flag =
       std::string("--" GTEST_FLAG_PREFIX_ "flagfile=") + flagfile_path.c_str();
 
@@ -6457,7 +6457,7 @@ TEST_F(FlagfileTest, Empty) {
 
 // Tests passing a non-empty --gtest_filter flag via --gtest_flagfile.
 TEST_F(FlagfileTest, FilterNonEmpty) {
-  internal::FilePath flagfile_path(CreateFlagfile(
+  Pinternal::FilePath flagfile_path(CreateFlagfile(
       "--"  GTEST_FLAG_PREFIX_  "filter=abc"));
   std::string flagfile_flag =
       std::string("--" GTEST_FLAG_PREFIX_ "flagfile=") + flagfile_path.c_str();
@@ -6478,7 +6478,7 @@ TEST_F(FlagfileTest, FilterNonEmpty) {
 
 // Tests passing several flags via --gtest_flagfile.
 TEST_F(FlagfileTest, SeveralFlags) {
-  internal::FilePath flagfile_path(CreateFlagfile(
+  Pinternal::FilePath flagfile_path(CreateFlagfile(
       "--"  GTEST_FLAG_PREFIX_  "filter=abc\n"
       "--"  GTEST_FLAG_PREFIX_  "break_on_failure\n"
       "--"  GTEST_FLAG_PREFIX_  "list_tests"));

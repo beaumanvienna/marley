@@ -48,7 +48,7 @@ namespace testing {
 template <typename T>
 class Matcher;
 
-namespace internal {
+namespace Pinternal {
 
 // An IgnoredValue object can be implicitly constructed from ANY value.
 // This is used in implementing the IgnoreResult(a) action.
@@ -272,7 +272,7 @@ struct Function<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)>
       A9, A10);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing
 

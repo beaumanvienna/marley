@@ -179,7 +179,7 @@ EMSCRIPTEN_KEEPALIVE
 void* convert_glsl_to_spirv(const char* glsl,
                             int stage_int,
                             bool gen_debug,
-                            glslang::EShTargetLanguageVersion spirv_version,
+                            Pglslang::EShTargetLanguageVersion spirv_version,
                             uint32_t** spirv,
                             size_t* spirv_len)
 {
@@ -200,12 +200,12 @@ void* convert_glsl_to_spirv(const char* glsl,
     }
     EShLanguage stage = static_cast<EShLanguage>(stage_int);
     switch (spirv_version) {
-        case glslang::EShTargetSpv_1_0:
-        case glslang::EShTargetSpv_1_1:
-        case glslang::EShTargetSpv_1_2:
-        case glslang::EShTargetSpv_1_3:
-        case glslang::EShTargetSpv_1_4:
-        case glslang::EShTargetSpv_1_5:
+        case Pglslang::EShTargetSpv_1_0:
+        case Pglslang::EShTargetSpv_1_1:
+        case Pglslang::EShTargetSpv_1_2:
+        case Pglslang::EShTargetSpv_1_3:
+        case Pglslang::EShTargetSpv_1_4:
+        case Pglslang::EShTargetSpv_1_5:
             break;
         default:
             fprintf(stderr, "Invalid SPIR-V version number\n");
@@ -213,22 +213,22 @@ void* convert_glsl_to_spirv(const char* glsl,
     }
 
     if (!initialized) {
-        glslang::InitializeProcess();
+        Pglslang::InitializeProcess();
         initialized = true;
     }
 
-    glslang::TShader shader(stage);
+    Pglslang::TShader shader(stage);
     shader.setStrings(&glsl, 1);
-    shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, 100);
-    shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
-    shader.setEnvTarget(glslang::EShTargetSpv, spirv_version);
+    shader.setEnvInput(Pglslang::EShSourceGlsl, stage, Pglslang::EShClientVulkan, 100);
+    shader.setEnvClient(Pglslang::EShClientVulkan, Pglslang::EShTargetVulkan_1_0);
+    shader.setEnvTarget(Pglslang::EShTargetSpv, spirv_version);
     if (!shader.parse(&DefaultTBuiltInResource, 100, true, EShMsgDefault)) {
         fprintf(stderr, "Parse failed\n");
         fprintf(stderr, "%s\n", shader.getInfoLog());
         return nullptr;
     }
 
-    glslang::TProgram program;
+    Pglslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(EShMsgDefault)) {
         fprintf(stderr, "Link failed\n");
@@ -236,14 +236,14 @@ void* convert_glsl_to_spirv(const char* glsl,
         return nullptr;
     }
 
-    glslang::SpvOptions spvOptions;
+    Pglslang::SpvOptions spvOptions;
     spvOptions.generateDebugInfo = gen_debug;
     spvOptions.optimizeSize = false;
     spvOptions.disassemble = false;
     spvOptions.validate = false;
 
     std::vector<uint32_t>* output = new std::vector<uint32_t>;
-    glslang::GlslangToSpv(*program.getIntermediate(stage), *output, nullptr, &spvOptions);
+    Pglslang::GlslangToSpv(*program.getIntermediate(stage), *output, nullptr, &spvOptions);
 
     *spirv_len = output->size();
     *spirv = output->data();
@@ -277,7 +277,7 @@ void main() { })";
     uint32_t* output;
     size_t output_len;
 
-    void* id = convert_glsl_to_spirv(input, 4, false, glslang::EShTargetSpv_1_0, &output, &output_len);
+    void* id = convert_glsl_to_spirv(input, 4, false, Pglslang::EShTargetSpv_1_0, &output, &output_len);
     assert(output != nullptr);
     assert(output_len != 0);
     destroy_output_buffer(id);

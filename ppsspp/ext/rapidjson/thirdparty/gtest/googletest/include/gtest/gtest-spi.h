@@ -86,7 +86,7 @@ class GTEST_API_ ScopedFakeTestPartResultReporter
   GTEST_DISALLOW_COPY_AND_ASSIGN_(ScopedFakeTestPartResultReporter);
 };
 
-namespace internal {
+namespace Pinternal {
 
 // A helper class for implementing EXPECT_FATAL_FAILURE() and
 // EXPECT_NONFATAL_FAILURE().  Its destructor verifies that the given
@@ -108,7 +108,7 @@ class GTEST_API_ SingleFailureChecker {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(SingleFailureChecker);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 }  // namespace testing
 
@@ -142,7 +142,7 @@ class GTEST_API_ SingleFailureChecker {
       static void Execute() { statement; }\
     };\
     ::testing::TestPartResultArray gtest_failures;\
-    ::testing::internal::SingleFailureChecker gtest_checker(\
+    ::testing::Pinternal::SingleFailureChecker gtest_checker(\
         &gtest_failures, ::testing::TestPartResult::kFatalFailure, (substr));\
     {\
       ::testing::ScopedFakeTestPartResultReporter gtest_reporter(\
@@ -150,7 +150,7 @@ class GTEST_API_ SingleFailureChecker {
           INTERCEPT_ONLY_CURRENT_THREAD, &gtest_failures);\
       GTestExpectFatalFailureHelper::Execute();\
     }\
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 #define EXPECT_FATAL_FAILURE_ON_ALL_THREADS(statement, substr) \
   do { \
@@ -159,7 +159,7 @@ class GTEST_API_ SingleFailureChecker {
       static void Execute() { statement; }\
     };\
     ::testing::TestPartResultArray gtest_failures;\
-    ::testing::internal::SingleFailureChecker gtest_checker(\
+    ::testing::Pinternal::SingleFailureChecker gtest_checker(\
         &gtest_failures, ::testing::TestPartResult::kFatalFailure, (substr));\
     {\
       ::testing::ScopedFakeTestPartResultReporter gtest_reporter(\
@@ -167,7 +167,7 @@ class GTEST_API_ SingleFailureChecker {
           INTERCEPT_ALL_THREADS, &gtest_failures);\
       GTestExpectFatalFailureHelper::Execute();\
     }\
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 // A macro for testing Google Test assertions or code that's expected to
 // generate Google Test non-fatal failures.  It asserts that the given
@@ -197,36 +197,36 @@ class GTEST_API_ SingleFailureChecker {
 // catches that.
 //
 // For the same reason, we have to write
-//   if (::testing::internal::AlwaysTrue()) { statement; }
+//   if (::testing::Pinternal::AlwaysTrue()) { statement; }
 // instead of
 //   GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement)
 // to avoid an MSVC warning on unreachable code.
 #define EXPECT_NONFATAL_FAILURE(statement, substr) \
   do {\
     ::testing::TestPartResultArray gtest_failures;\
-    ::testing::internal::SingleFailureChecker gtest_checker(\
+    ::testing::Pinternal::SingleFailureChecker gtest_checker(\
         &gtest_failures, ::testing::TestPartResult::kNonFatalFailure, \
         (substr));\
     {\
       ::testing::ScopedFakeTestPartResultReporter gtest_reporter(\
           ::testing::ScopedFakeTestPartResultReporter:: \
           INTERCEPT_ONLY_CURRENT_THREAD, &gtest_failures);\
-      if (::testing::internal::AlwaysTrue()) { statement; }\
+      if (::testing::Pinternal::AlwaysTrue()) { statement; }\
     }\
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 #define EXPECT_NONFATAL_FAILURE_ON_ALL_THREADS(statement, substr) \
   do {\
     ::testing::TestPartResultArray gtest_failures;\
-    ::testing::internal::SingleFailureChecker gtest_checker(\
+    ::testing::Pinternal::SingleFailureChecker gtest_checker(\
         &gtest_failures, ::testing::TestPartResult::kNonFatalFailure, \
         (substr));\
     {\
       ::testing::ScopedFakeTestPartResultReporter gtest_reporter(\
           ::testing::ScopedFakeTestPartResultReporter::INTERCEPT_ALL_THREADS, \
           &gtest_failures);\
-      if (::testing::internal::AlwaysTrue()) { statement; }\
+      if (::testing::Pinternal::AlwaysTrue()) { statement; }\
     }\
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 #endif  // GTEST_INCLUDE_GTEST_GTEST_SPI_H_

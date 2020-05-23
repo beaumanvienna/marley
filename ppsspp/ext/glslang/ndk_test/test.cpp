@@ -15,5 +15,5 @@
 #include "SPIRV/GlslangToSpv.h"
 
 void android_main(struct android_app* state) {
-  int version = glslang::GetSpirvGeneratorVersion();
+  int version = Pglslang::GetSpirvGeneratorVersion();
 }

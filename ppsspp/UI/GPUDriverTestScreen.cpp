@@ -77,7 +77,7 @@ GPUDriverTestScreen::~GPUDriverTestScreen() {
 
 void GPUDriverTestScreen::CreateViews() {
 	// Don't bother with views for now.
-	using namespace UI;
+	using namespace PUI;
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *cr = GetI18NCategory("PSPCredits");
 
@@ -94,7 +94,7 @@ void GPUDriverTestScreen::CreateViews() {
 }
 
 void GPUDriverTestScreen::DiscardTest() {
-	using namespace UI;
+	using namespace PUI;
 	using namespace Draw;
 	if (!discardWriteDepthStencil_) {
 		DrawContext *draw = screenManager()->getDrawContext();
@@ -275,7 +275,7 @@ void GPUDriverTestScreen::DiscardTest() {
 
 	float testW = 170.f;
 	float padding = 20.0f;
-	UI::Style style = dc.theme->itemStyle;
+	PUI::Style style = dc.theme->itemStyle;
 
 	float y = 150;
 	for (int j = 0; j < numWriteModes; j++, y += 120.f + padding) {
@@ -295,7 +295,7 @@ void GPUDriverTestScreen::DiscardTest() {
 			// Draw the rectangle with stencil value 0, depth 0.1f and the text with stencil 0xFF, depth 0.9. Then leave 0xFF as the stencil value and draw the rectangles at depth 0.5.
 			draw->SetStencilRef(0x0);
 			dc.SetCurZ(0.1f);
-			dc.FillRect(UI::Drawable(bgColorBAD), bounds);
+			dc.FillRect(PUI::Drawable(bgColorBAD), bounds);
 			// test bounds
 			dc.Flush();
 
@@ -308,14 +308,14 @@ void GPUDriverTestScreen::DiscardTest() {
 			dc.BeginPipeline(testPipeline1[i], samplerNearest_);
 			draw->SetStencilRef(0xff);
 			dc.SetCurZ(0.5f);
-			dc.FillRect(UI::Drawable(textColorOK), bounds);
+			dc.FillRect(PUI::Drawable(textColorOK), bounds);
 			dc.Flush();
 
 			// Draw rectangle that should result in the bg
 			dc.BeginPipeline(testPipeline2[i], samplerNearest_);
 			draw->SetStencilRef(0xff);
 			dc.SetCurZ(0.5f);
-			dc.FillRect(UI::Drawable(bgColorOK), bounds);
+			dc.FillRect(PUI::Drawable(bgColorOK), bounds);
 			dc.Flush();
 		}
 	}

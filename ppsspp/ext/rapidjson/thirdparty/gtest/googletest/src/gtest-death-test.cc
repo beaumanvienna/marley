@@ -85,7 +85,7 @@ static const char kDefaultDeathTestStyle[] = "fast";
 
 GTEST_DEFINE_string_(
     death_test_style,
-    internal::StringFromGTestEnv("death_test_style", kDefaultDeathTestStyle),
+    Pinternal::StringFromGTestEnv("death_test_style", kDefaultDeathTestStyle),
     "Indicates how to run a death test in a forked child process: "
     "\"threadsafe\" (child process re-executes the test binary "
     "from the beginning, running only the specific death test) or "
@@ -94,7 +94,7 @@ GTEST_DEFINE_string_(
 
 GTEST_DEFINE_bool_(
     death_test_use_fork,
-    internal::BoolFromGTestEnv("death_test_use_fork", false),
+    Pinternal::BoolFromGTestEnv("death_test_use_fork", false),
     "Instructs to use fork()/_exit() instead of clone() in death tests. "
     "Ignored and always uses fork() on POSIX systems where clone() is not "
     "implemented. Useful when running under valgrind or similar tools if "
@@ -104,7 +104,7 @@ GTEST_DEFINE_bool_(
     "work in 99% of the cases. Once valgrind is fixed, this flag will "
     "most likely be removed.");
 
-namespace internal {
+namespace Pinternal {
 GTEST_DEFINE_string_(
     internal_run_death_test, "",
     "Indicates the file, line number, temporal index of "
@@ -113,11 +113,11 @@ GTEST_DEFINE_string_(
     "the '|' characters.  This flag is specified if and only if the current "
     "process is a sub-process launched for running a thread-safe "
     "death test.  FOR INTERNAL USE ONLY.");
-}  // namespace internal
+}  // namespace Pinternal
 
 #if GTEST_HAS_DEATH_TEST
 
-namespace internal {
+namespace Pinternal {
 
 // Valid only for fast death tests. Indicates the code is running in the
 // child process of a fast style death test.
@@ -146,7 +146,7 @@ bool InDeathTestChild() {
 #endif
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // ExitedWithCode constructor.
 ExitedWithCode::ExitedWithCode(int exit_code) : exit_code_(exit_code) {
@@ -184,7 +184,7 @@ bool KilledBySignal::operator()(int exit_status) const {
 }
 # endif  // !GTEST_OS_WINDOWS
 
-namespace internal {
+namespace Pinternal {
 
 // Utilities needed for death tests.
 
@@ -282,13 +282,13 @@ void DeathTestAbort(const std::string& message) {
 // fails.
 # define GTEST_DEATH_TEST_CHECK_(expression) \
   do { \
-    if (!::testing::internal::IsTrue(expression)) { \
+    if (!::testing::Pinternal::IsTrue(expression)) { \
       DeathTestAbort( \
           ::std::string("CHECK failed: File ") + __FILE__ +  ", line " \
-          + ::testing::internal::StreamableToString(__LINE__) + ": " \
+          + ::testing::Pinternal::StreamableToString(__LINE__) + ": " \
           + #expression); \
     } \
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 // This macro is similar to GTEST_DEATH_TEST_CHECK_, but it is meant for
 // evaluating any system call that fulfills two conditions: it must return
@@ -306,10 +306,10 @@ void DeathTestAbort(const std::string& message) {
     if (gtest_retval == -1) { \
       DeathTestAbort( \
           ::std::string("CHECK failed: File ") + __FILE__ + ", line " \
-          + ::testing::internal::StreamableToString(__LINE__) + ": " \
+          + ::testing::Pinternal::StreamableToString(__LINE__) + ": " \
           + #expression + " != -1"); \
     } \
-  } while (::testing::internal::AlwaysFalse())
+  } while (::testing::Pinternal::AlwaysFalse())
 
 // Returns the message describing the last system error in errno.
 std::string GetLastErrnoDescription() {
@@ -883,11 +883,11 @@ class ExecDeathTest : public ForkingDeathTest {
       ForkingDeathTest(a_statement, a_regex), file_(file), line_(line) { }
   virtual TestRole AssumeRole();
  private:
-  static ::std::vector<testing::internal::string>
+  static ::std::vector<testing::Pinternal::string>
   GetArgvsForDeathTestChildProcess() {
-    ::std::vector<testing::internal::string> args = GetInjectableArgvs();
+    ::std::vector<testing::Pinternal::string> args = GetInjectableArgvs();
 #  if defined(GTEST_EXTRA_DEATH_TEST_COMMAND_LINE_ARGS_)
-    ::std::vector<testing::internal::string> extra_args =
+    ::std::vector<testing::Pinternal::string> extra_args =
         GTEST_EXTRA_DEATH_TEST_COMMAND_LINE_ARGS_();
     args.insert(args.end(), extra_args.begin(), extra_args.end());
 #  endif  // defined(GTEST_EXTRA_DEATH_TEST_COMMAND_LINE_ARGS_)
@@ -1335,7 +1335,7 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
   return new InternalRunDeathTestFlag(fields[0], line, index, write_fd);
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 #endif  // GTEST_HAS_DEATH_TEST
 

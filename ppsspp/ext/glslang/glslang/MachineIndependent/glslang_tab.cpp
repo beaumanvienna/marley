@@ -85,7 +85,7 @@ Jutta Degener, 1995
 #include "../Public/ShaderLang.h"
 #include "attribute.h"
 
-using namespace glslang;
+using namespace Pglslang;
 
 
 #line 92 "MachineIndependent/glslang_tab.cpp" /* yacc.c:339  */
@@ -115,7 +115,7 @@ using namespace glslang;
 # define YYDEBUG 1
 #endif
 #if YYDEBUG
-extern int yydebug;
+extern int Pyydebug;
 #endif
 
 /* Token type.  */
@@ -542,9 +542,9 @@ union YYSTYPE
 #line 96 "MachineIndependent/glslang.y" /* yacc.c:355  */
 
     struct {
-        glslang::TSourceLoc loc;
+        Pglslang::TSourceLoc loc;
         union {
-            glslang::TString *string;
+            Pglslang::TString *string;
             int i;
             unsigned int u;
             long long i64;
@@ -552,27 +552,27 @@ union YYSTYPE
             bool b;
             double d;
         };
-        glslang::TSymbol* symbol;
+        Pglslang::TSymbol* symbol;
     } lex;
     struct {
-        glslang::TSourceLoc loc;
-        glslang::TOperator op;
+        Pglslang::TSourceLoc loc;
+        Pglslang::TOperator op;
         union {
             TIntermNode* intermNode;
-            glslang::TIntermNodePair nodePair;
-            glslang::TIntermTyped* intermTypedNode;
-            glslang::TAttributes* attributes;
+            Pglslang::TIntermNodePair nodePair;
+            Pglslang::TIntermTyped* intermTypedNode;
+            Pglslang::TAttributes* attributes;
         };
         union {
-            glslang::TPublicType type;
-            glslang::TFunction* function;
-            glslang::TParameter param;
-            glslang::TTypeLoc typeLine;
-            glslang::TTypeList* typeList;
-            glslang::TArraySizes* arraySizes;
-            glslang::TIdentifierList* identifierList;
+            Pglslang::TPublicType type;
+            Pglslang::TFunction* function;
+            Pglslang::TParameter param;
+            Pglslang::TTypeLoc typeLine;
+            Pglslang::TTypeList* typeList;
+            Pglslang::TArraySizes* arraySizes;
+            Pglslang::TIdentifierList* identifierList;
         };
-        glslang::TArraySizes* typeParameters;
+        Pglslang::TArraySizes* typeParameters;
     } interm;
 
 #line 579 "MachineIndependent/glslang_tab.cpp" /* yacc.c:355  */
@@ -585,7 +585,7 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int yyparse (glslang::TParseContext* pParseContext);
+int yyparse (Pglslang::TParseContext* pParseContext);
 
 #endif /* !YY_YY_MACHINEINDEPENDENT_GLSLANG_TAB_CPP_H_INCLUDED  */
 
@@ -3530,7 +3530,7 @@ while (0)
 
 # define YYDPRINTF(Args)                        \
 do {                                            \
-  if (yydebug)                                  \
+  if (Pyydebug)                                  \
     YYFPRINTF Args;                             \
 } while (0)
 
@@ -3542,7 +3542,7 @@ do {                                            \
 
 # define YY_SYMBOL_PRINT(Title, Type, Value, Location)                    \
 do {                                                                      \
-  if (yydebug)                                                            \
+  if (Pyydebug)                                                            \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
@@ -3557,7 +3557,7 @@ do {                                                                      \
 `----------------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, glslang::TParseContext* pParseContext)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, Pglslang::TParseContext* pParseContext)
 {
   FILE *yyo = yyoutput;
   YYUSE (yyo);
@@ -3577,7 +3577,7 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
 `--------------------------------*/
 
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, glslang::TParseContext* pParseContext)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, Pglslang::TParseContext* pParseContext)
 {
   YYFPRINTF (yyoutput, "%s %s (",
              yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
@@ -3605,7 +3605,7 @@ yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
 
 # define YY_STACK_PRINT(Bottom, Top)                            \
 do {                                                            \
-  if (yydebug)                                                  \
+  if (Pyydebug)                                                  \
     yy_stack_print ((Bottom), (Top));                           \
 } while (0)
 
@@ -3615,7 +3615,7 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, glslang::TParseContext* pParseContext)
+yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, Pglslang::TParseContext* pParseContext)
 {
   unsigned long int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -3636,13 +3636,13 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, glslang::TPars
 
 # define YY_REDUCE_PRINT(Rule)          \
 do {                                    \
-  if (yydebug)                          \
+  if (Pyydebug)                          \
     yy_reduce_print (yyssp, yyvsp, Rule, pParseContext); \
 } while (0)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
-int yydebug;
+int Pyydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
 # define YY_SYMBOL_PRINT(Title, Type, Value, Location)
@@ -3895,7 +3895,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 `-----------------------------------------------*/
 
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, glslang::TParseContext* pParseContext)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, Pglslang::TParseContext* pParseContext)
 {
   YYUSE (yyvaluep);
   YYUSE (pParseContext);
@@ -3916,7 +3916,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, glslang::TParseCon
 `----------*/
 
 int
-yyparse (glslang::TParseContext* pParseContext)
+yyparse (Pglslang::TParseContext* pParseContext)
 {
 /* The lookahead symbol.  */
 int yychar;

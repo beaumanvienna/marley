@@ -38,7 +38,7 @@
 
 #include "TestFixture.h"
 
-namespace glslangtest {
+namespace Pglslangtest {
 namespace {
 
 using LinkTestVulkan = GlslangTest<
@@ -53,13 +53,13 @@ TEST_P(LinkTestVulkan, FromFile)
 
     // Compile each input shader file.
     bool success = true;
-    std::vector<std::unique_ptr<glslang::TShader>> shaders;
+    std::vector<std::unique_ptr<Pglslang::TShader>> shaders;
     for (size_t i = 0; i < fileCount; ++i) {
         std::string contents;
         tryLoadFile(GlobalTestSettings.testRoot + "/" + fileNames[i],
                     "input", &contents);
         shaders.emplace_back(
-                new glslang::TShader(GetShaderStage(GetSuffix(fileNames[i]))));
+                new Pglslang::TShader(GetShaderStage(GetSuffix(fileNames[i]))));
         auto* shader = shaders.back().get();
         shader->setAutoMapLocations(true);
         success &= compile(shader, contents, "", controls);
@@ -68,22 +68,22 @@ TEST_P(LinkTestVulkan, FromFile)
     }
 
     // Link all of them.
-    glslang::TProgram program;
+    Pglslang::TProgram program;
     for (const auto& shader : shaders) program.addShader(shader.get());
     success &= program.link(controls);
     result.linkingOutput = program.getInfoLog();
     result.linkingError = program.getInfoDebugLog();
 
     if (success && (controls & EShMsgSpvRules)) {
-        spv::SpvBuildLogger logger;
+        Pspv::SpvBuildLogger logger;
         std::vector<uint32_t> spirv_binary;
         options().disableOptimizer = true;
-        glslang::GlslangToSpv(*program.getIntermediate(shaders.front()->getStage()),
+        Pglslang::GlslangToSpv(*program.getIntermediate(shaders.front()->getStage()),
                                 spirv_binary, &logger, &options());
 
         std::ostringstream disassembly_stream;
-        spv::Parameterize();
-        spv::Disassemble(disassembly_stream, spirv_binary);
+        Pspv::Parameterize();
+        Pspv::Disassemble(disassembly_stream, spirv_binary);
         result.spirvWarningsErrors = logger.getAllMessages();
         result.spirv = disassembly_stream.str();
         result.validationResult = !options().validate || logger.getAllMessages().empty();
@@ -113,4 +113,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace glslangtest
+}  // namespace Pglslangtest

@@ -35,7 +35,7 @@
 #include "StandAlone/ResourceLimits.h"
 #include "TestFixture.h"
 
-namespace glslangtest {
+namespace Pglslangtest {
 namespace {
 
 struct TestCaseSpec {
@@ -65,18 +65,18 @@ TEST_P(ConfigTest, FromFile)
         char* configChars = new char[len + 1];
         memcpy(configChars, configContents.data(), len);
         configChars[len] = 0;
-        glslang::DecodeResourceLimits(&resources, configChars);
+        Pglslang::DecodeResourceLimits(&resources, configChars);
         delete[] configChars;
     }
 
     // Compile the shader.
-    glslang::TShader shader(GetShaderStage(GetSuffix(testCase.input)));
+    Pglslang::TShader shader(GetShaderStage(GetSuffix(testCase.input)));
     compile(&shader, shaderContents, "", testCase.controls, &resources);
     result.shaderResults.push_back(
         {testCase.input, shader.getInfoLog(), shader.getInfoDebugLog()});
 
     // Link the shader.
-    glslang::TProgram program;
+    Pglslang::TProgram program;
     program.addShader(&shader);
     program.link(testCase.controls);
     result.linkingOutput = program.getInfoLog();
@@ -105,4 +105,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace glslangtest
+}  // namespace Pglslangtest

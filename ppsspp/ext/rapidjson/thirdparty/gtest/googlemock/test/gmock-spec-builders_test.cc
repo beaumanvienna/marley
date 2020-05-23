@@ -46,7 +46,7 @@
 #include "gtest/internal/gtest-port.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Helper class for testing the Expectation class template.
 class ExpectationTester {
@@ -57,7 +57,7 @@ class ExpectationTester {
   }
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 namespace {
@@ -91,18 +91,18 @@ using testing::Ne;
 using testing::Return;
 using testing::Sequence;
 using testing::SetArgPointee;
-using testing::internal::ExpectationTester;
-using testing::internal::FormatFileLocation;
-using testing::internal::kErrorVerbosity;
-using testing::internal::kInfoVerbosity;
-using testing::internal::kWarningVerbosity;
-using testing::internal::linked_ptr;
-using testing::internal::string;
+using testing::Pinternal::ExpectationTester;
+using testing::Pinternal::FormatFileLocation;
+using testing::Pinternal::kErrorVerbosity;
+using testing::Pinternal::kInfoVerbosity;
+using testing::Pinternal::kWarningVerbosity;
+using testing::Pinternal::linked_ptr;
+using testing::Pinternal::string;
 
 #if GTEST_HAS_STREAM_REDIRECTION
 using testing::HasSubstr;
-using testing::internal::CaptureStdout;
-using testing::internal::GetCapturedStdout;
+using testing::Pinternal::CaptureStdout;
+using testing::Pinternal::GetCapturedStdout;
 #endif
 
 class Incomplete;
@@ -2638,7 +2638,7 @@ int main(int argc, char **argv) {
   // Ensures that the tests pass no matter what value of
   // --gmock_catch_leaked_mocks and --gmock_verbose the user specifies.
   testing::GMOCK_FLAG(catch_leaked_mocks) = true;
-  testing::GMOCK_FLAG(verbose) = testing::internal::kWarningVerbosity;
+  testing::GMOCK_FLAG(verbose) = testing::Pinternal::kWarningVerbosity;
 
   return RUN_ALL_TESTS();
 }

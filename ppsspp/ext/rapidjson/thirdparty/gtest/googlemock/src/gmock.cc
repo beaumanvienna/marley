@@ -41,14 +41,14 @@ GMOCK_DEFINE_bool_(catch_leaked_mocks, true,
                    "true iff Google Mock should report leaked mock objects "
                    "as failures.");
 
-GMOCK_DEFINE_string_(verbose, internal::kWarningVerbosity,
+GMOCK_DEFINE_string_(verbose, Pinternal::kWarningVerbosity,
                      "Controls how verbose Google Mock's output is."
                      "  Valid values:\n"
                      "  info    - prints all messages.\n"
                      "  warning - prints warnings and errors.\n"
                      "  error   - prints errors only.");
 
-namespace internal {
+namespace Pinternal {
 
 // Parses a string as a command line flag.  The string should have the
 // format "--gmock_flag=value".  When def_optional is true, the
@@ -120,7 +120,7 @@ static bool ParseGoogleMockStringFlag(const char* str, const char* flag,
   return true;
 }
 
-// The internal implementation of InitGoogleMock().
+// The Pinternal implementation of InitGoogleMock().
 //
 // The type parameter CharType can be instantiated to either char or
 // wchar_t.
@@ -157,7 +157,7 @@ void InitGoogleMockImpl(int* argc, CharType** argv) {
   }
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // Initializes Google Mock.  This must be called before running the
 // tests.  In particular, it parses a command line for the flags that
@@ -171,13 +171,13 @@ void InitGoogleMockImpl(int* argc, CharType** argv) {
 // also initializes Google Test and parses its flags, if that hasn't
 // been done.
 GTEST_API_ void InitGoogleMock(int* argc, char** argv) {
-  internal::InitGoogleMockImpl(argc, argv);
+  Pinternal::InitGoogleMockImpl(argc, argv);
 }
 
 // This overloaded version can be used in Windows programs compiled in
 // UNICODE mode.
 GTEST_API_ void InitGoogleMock(int* argc, wchar_t** argv) {
-  internal::InitGoogleMockImpl(argc, argv);
+  Pinternal::InitGoogleMockImpl(argc, argv);
 }
 
 }  // namespace testing

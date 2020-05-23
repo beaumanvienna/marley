@@ -91,7 +91,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #pragma warning(disable : 4127)
 #endif
 
-namespace glslang {
+namespace Pglslang {
 
 class TPpToken {
 public:
@@ -697,6 +697,6 @@ protected:
     std::istringstream strtodStream;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif  // PPCONTEXT_H

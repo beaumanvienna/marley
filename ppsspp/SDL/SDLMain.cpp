@@ -356,7 +356,7 @@ int ppsspp_main(int argc, char *argv[]) {
 		}
 	}
 
-	glslang::InitializeProcess();
+	Pglslang::InitializeProcess();
 
 #if PPSSPP_PLATFORM(RPI)
 	bcm_host_init();
@@ -935,7 +935,7 @@ int ppsspp_main(int argc, char *argv[]) {
 	bcm_host_deinit();
 #endif
 
-	glslang::FinalizeProcess();
+	Pglslang::FinalizeProcess();
 	ILOG("Leaving main");
 	return 0;
 }

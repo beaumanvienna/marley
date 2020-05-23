@@ -36,7 +36,7 @@
 
 #include "TestFixture.h"
 
-namespace glslangtest {
+namespace Pglslangtest {
 namespace {
 
 struct RemapTestArgs {
@@ -85,34 +85,34 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::ValuesIn(std::vector<RemapTestArgs>{
             // GLSL remapper tests
             // testname                                   entry   language      remapper_options
-            { "remap.basic.none.frag",                    "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.basic.everything.frag",              "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.basic.dcefunc.frag",                 "main", Source::GLSL, spv::spirvbin_t::DCE_FUNCS },
-            { "remap.basic.strip.frag",                   "main", Source::GLSL, spv::spirvbin_t::STRIP },
-            { "remap.specconst.comp",                     "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.switch.none.frag",                   "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.switch.everything.frag",             "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.literal64.none.spv",                 "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.literal64.everything.spv",           "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.if.none.frag",                       "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.if.everything.frag",                 "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.similar_1a.none.frag",               "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.similar_1b.none.frag",               "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.similar_1a.everything.frag",         "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.similar_1b.everything.frag",         "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.uniformarray.none.frag",             "main", Source::GLSL, spv::spirvbin_t::NONE },
-            { "remap.uniformarray.everything.frag",       "main", Source::GLSL, spv::spirvbin_t::DO_EVERYTHING },
+            { "remap.basic.none.frag",                    "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.basic.everything.frag",              "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.basic.dcefunc.frag",                 "main", Source::GLSL, Pspv::spirvbin_t::DCE_FUNCS },
+            { "remap.basic.strip.frag",                   "main", Source::GLSL, Pspv::spirvbin_t::STRIP },
+            { "remap.specconst.comp",                     "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.switch.none.frag",                   "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.switch.everything.frag",             "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.literal64.none.spv",                 "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.literal64.everything.spv",           "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.if.none.frag",                       "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.if.everything.frag",                 "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.similar_1a.none.frag",               "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.similar_1b.none.frag",               "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.similar_1a.everything.frag",         "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.similar_1b.everything.frag",         "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.uniformarray.none.frag",             "main", Source::GLSL, Pspv::spirvbin_t::NONE },
+            { "remap.uniformarray.everything.frag",       "main", Source::GLSL, Pspv::spirvbin_t::DO_EVERYTHING },
 
             // HLSL remapper tests
-            { "remap.hlsl.sample.basic.strip.frag",       "main", Source::HLSL, spv::spirvbin_t::STRIP },
-            { "remap.hlsl.sample.basic.everything.frag",  "main", Source::HLSL, spv::spirvbin_t::DO_EVERYTHING },
-            { "remap.hlsl.sample.basic.none.frag",        "main", Source::HLSL, spv::spirvbin_t::NONE },
-            { "remap.hlsl.templatetypes.none.frag",       "main", Source::HLSL, spv::spirvbin_t::NONE },
-            { "remap.hlsl.templatetypes.everything.frag", "main", Source::HLSL, spv::spirvbin_t::DO_EVERYTHING },
+            { "remap.hlsl.sample.basic.strip.frag",       "main", Source::HLSL, Pspv::spirvbin_t::STRIP },
+            { "remap.hlsl.sample.basic.everything.frag",  "main", Source::HLSL, Pspv::spirvbin_t::DO_EVERYTHING },
+            { "remap.hlsl.sample.basic.none.frag",        "main", Source::HLSL, Pspv::spirvbin_t::NONE },
+            { "remap.hlsl.templatetypes.none.frag",       "main", Source::HLSL, Pspv::spirvbin_t::NONE },
+            { "remap.hlsl.templatetypes.everything.frag", "main", Source::HLSL, Pspv::spirvbin_t::DO_EVERYTHING },
             }),
     FileNameAsCustomTestSuffix
 );
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace glslangtest
+}  // namespace Pglslangtest

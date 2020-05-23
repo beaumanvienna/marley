@@ -24,15 +24,15 @@
 #include "ui/viewgroup.h"
 #include "UI/MiscScreens.h"
 
-class GameBrowser : public UI::LinearLayout {
+class GameBrowser : public PUI::LinearLayout {
 public:
-	GameBrowser(std::string path, bool allowBrowsing, bool *gridStyle_, std::string lastText, std::string lastLink, int flags = 0, UI::LayoutParams *layoutParams = 0);
+	GameBrowser(std::string path, bool allowBrowsing, bool *gridStyle_, std::string lastText, std::string lastLink, int flags = 0, PUI::LayoutParams *layoutParams = 0);
 
-	UI::Event OnChoice;
-	UI::Event OnHoldChoice;
-	UI::Event OnHighlight;
+	PUI::Event OnChoice;
+	PUI::Event OnHoldChoice;
+	PUI::Event OnHighlight;
 
-	UI::Choice *HomebrewStoreButton() { return homebrewStoreButton_; }
+	PUI::Choice *HomebrewStoreButton() { return homebrewStoreButton_; }
 
 	void FocusGame(const std::string &gamePath);
 	void SetPath(const std::string &path);
@@ -48,23 +48,23 @@ private:
 	const std::vector<std::string> GetPinnedPaths();
 	const std::string GetBaseName(const std::string &path);
 
-	UI::EventReturn GameButtonClick(UI::EventParams &e);
-	UI::EventReturn GameButtonHoldClick(UI::EventParams &e);
-	UI::EventReturn GameButtonHighlight(UI::EventParams &e);
-	UI::EventReturn NavigateClick(UI::EventParams &e);
-	UI::EventReturn LayoutChange(UI::EventParams &e);
-	UI::EventReturn LastClick(UI::EventParams &e);
-	UI::EventReturn HomeClick(UI::EventParams &e);
-	UI::EventReturn PinToggleClick(UI::EventParams &e);
+	PUI::EventReturn GameButtonClick(PUI::EventParams &e);
+	PUI::EventReturn GameButtonHoldClick(PUI::EventParams &e);
+	PUI::EventReturn GameButtonHighlight(PUI::EventParams &e);
+	PUI::EventReturn NavigateClick(PUI::EventParams &e);
+	PUI::EventReturn LayoutChange(PUI::EventParams &e);
+	PUI::EventReturn LastClick(PUI::EventParams &e);
+	PUI::EventReturn HomeClick(PUI::EventParams &e);
+	PUI::EventReturn PinToggleClick(PUI::EventParams &e);
 
-	UI::ViewGroup *gameList_;
+	PUI::ViewGroup *gameList_;
 	PathBrowser path_;
 	bool *gridStyle_;
 	bool allowBrowsing_;
 	std::string lastText_;
 	std::string lastLink_;
 	int flags_;
-	UI::Choice *homebrewStoreButton_;
+	PUI::Choice *homebrewStoreButton_;
 	std::string focusGamePath_;
 };
 
@@ -90,25 +90,25 @@ protected:
 	bool UseVerticalLayout() const;
 	bool DrawBackgroundFor(UIContext &dc, const std::string &gamePath, float progress);
 
-	UI::EventReturn OnGameSelected(UI::EventParams &e);
-	UI::EventReturn OnGameSelectedInstant(UI::EventParams &e);
-	UI::EventReturn OnGameHighlight(UI::EventParams &e);
+	PUI::EventReturn OnGameSelected(PUI::EventParams &e);
+	PUI::EventReturn OnGameSelectedInstant(PUI::EventParams &e);
+	PUI::EventReturn OnGameHighlight(PUI::EventParams &e);
 	// Event handlers
-	UI::EventReturn OnLoadFile(UI::EventParams &e);
-	UI::EventReturn OnGameSettings(UI::EventParams &e);
-	UI::EventReturn OnRecentChange(UI::EventParams &e);
-	UI::EventReturn OnCredits(UI::EventParams &e);
-	UI::EventReturn OnSupport(UI::EventParams &e);
-	UI::EventReturn OnPPSSPPOrg(UI::EventParams &e);
-	UI::EventReturn OnForums(UI::EventParams &e);
-	UI::EventReturn OnExit(UI::EventParams &e);
-	UI::EventReturn OnDownloadUpgrade(UI::EventParams &e);
-	UI::EventReturn OnDismissUpgrade(UI::EventParams &e);
-	UI::EventReturn OnHomebrewStore(UI::EventParams &e);
-	UI::EventReturn OnAllowStorage(UI::EventParams &e);
+	PUI::EventReturn OnLoadFile(PUI::EventParams &e);
+	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
+	PUI::EventReturn OnRecentChange(PUI::EventParams &e);
+	PUI::EventReturn OnCredits(PUI::EventParams &e);
+	PUI::EventReturn OnSupport(PUI::EventParams &e);
+	PUI::EventReturn OnPPSSPPOrg(PUI::EventParams &e);
+	PUI::EventReturn OnForums(PUI::EventParams &e);
+	PUI::EventReturn OnExit(PUI::EventParams &e);
+	PUI::EventReturn OnDownloadUpgrade(PUI::EventParams &e);
+	PUI::EventReturn OnDismissUpgrade(PUI::EventParams &e);
+	PUI::EventReturn OnHomebrewStore(PUI::EventParams &e);
+	PUI::EventReturn OnAllowStorage(PUI::EventParams &e);
 
-	UI::LinearLayout *upgradeBar_;
-	UI::TabHolder *tabHolder_;
+	PUI::LinearLayout *upgradeBar_;
+	PUI::TabHolder *tabHolder_;
 
 	std::string restoreFocusGamePath_;
 	std::vector<GameBrowser *> gameBrowsers_;
@@ -135,9 +135,9 @@ protected:
 	//virtual void sendMessage(const char *message, const char *value);
 
 private:
-	UI::EventReturn OnGameSelected(UI::EventParams &e);
-	UI::EventReturn OnGameSelectedInstant(UI::EventParams &e);
+	PUI::EventReturn OnGameSelected(PUI::EventParams &e);
+	PUI::EventReturn OnGameSelectedInstant(PUI::EventParams &e);
 
-	UI::EventReturn OnCancel(UI::EventParams &e);
-	UI::EventReturn OnGameSettings(UI::EventParams &e);
+	PUI::EventReturn OnCancel(PUI::EventParams &e);
+	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
 };

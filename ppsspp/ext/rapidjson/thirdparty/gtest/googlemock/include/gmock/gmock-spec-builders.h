@@ -87,7 +87,7 @@ class ExpectationSet;
 
 // Anything inside the 'internal' namespace IS INTERNAL IMPLEMENTATION
 // and MUST NOT BE USED IN USER CODE!!!
-namespace internal {
+namespace Pinternal {
 
 // Implements a mock function.
 template <typename F> class FunctionMocker;
@@ -218,7 +218,7 @@ class GTEST_API_ UntypedFunctionMockerBase {
  protected:
   typedef std::vector<const void*> UntypedOnCallSpecs;
 
-  typedef std::vector<internal::linked_ptr<ExpectationBase> >
+  typedef std::vector<Pinternal::linked_ptr<ExpectationBase> >
   UntypedExpectations;
 
   // Returns an Expectation object that references and co-owns exp,
@@ -365,7 +365,7 @@ enum CallReaction {
   kDefault = kWarn  // By default, warn about uninteresting calls.
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // Utilities for manipulating mock objects.
 class GTEST_API_ Mock {
@@ -375,27 +375,27 @@ class GTEST_API_ Mock {
   // Tells Google Mock to ignore mock_obj when checking for leaked
   // mock objects.
   static void AllowLeak(const void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Verifies and clears all expectations on the given mock object.
   // If the expectations aren't satisfied, generates one or more
   // Google Test non-fatal failures and returns false.
   static bool VerifyAndClearExpectations(void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Verifies all expectations on the given mock object and clears its
   // default actions and expectations.  Returns true iff the
   // verification was successful.
   static bool VerifyAndClear(void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
  private:
-  friend class internal::UntypedFunctionMockerBase;
+  friend class Pinternal::UntypedFunctionMockerBase;
 
   // Needed for a function mocker to register itself (so that we know
   // how to clear a mock object).
   template <typename F>
-  friend class internal::FunctionMockerBase;
+  friend class Pinternal::FunctionMockerBase;
 
   template <typename M>
   friend class NiceMock;
@@ -409,58 +409,58 @@ class GTEST_API_ Mock {
   // Tells Google Mock to allow uninteresting calls on the given mock
   // object.
   static void AllowUninterestingCalls(const void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Tells Google Mock to warn the user about uninteresting calls on
   // the given mock object.
   static void WarnUninterestingCalls(const void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Tells Google Mock to fail uninteresting calls on the given mock
   // object.
   static void FailUninterestingCalls(const void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Tells Google Mock the given mock object is being destroyed and
   // its entry in the call-reaction table should be removed.
   static void UnregisterCallReaction(const void* mock_obj)
-      GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Returns the reaction Google Mock will have on uninteresting calls
   // made on the given mock object.
-  static internal::CallReaction GetReactionOnUninterestingCalls(
+  static Pinternal::CallReaction GetReactionOnUninterestingCalls(
       const void* mock_obj)
-          GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+          GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Verifies that all expectations on the given mock object have been
   // satisfied.  Reports one or more Google Test non-fatal failures
   // and returns false if not.
   static bool VerifyAndClearExpectationsLocked(void* mock_obj)
-      GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex);
+      GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex);
 
   // Clears all ON_CALL()s set on the given mock object.
   static void ClearDefaultActionsLocked(void* mock_obj)
-      GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex);
+      GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex);
 
   // Registers a mock object and a mock method it owns.
   static void Register(
       const void* mock_obj,
-      internal::UntypedFunctionMockerBase* mocker)
-          GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+      Pinternal::UntypedFunctionMockerBase* mocker)
+          GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Tells Google Mock where in the source code mock_obj is used in an
   // ON_CALL or EXPECT_CALL.  In case mock_obj is leaked, this
   // information helps the user identify which object it is.
   static void RegisterUseByOnCallOrExpectCall(
       const void* mock_obj, const char* file, int line)
-          GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex);
+          GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex);
 
   // Unregisters a mock method; removes the owning mock object from
   // the registry when the last mock method associated with it has
   // been unregistered.  This is called only in the destructor of
   // FunctionMockerBase.
-  static void UnregisterLocked(internal::UntypedFunctionMockerBase* mocker)
-      GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex);
+  static void UnregisterLocked(Pinternal::UntypedFunctionMockerBase* mocker)
+      GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex);
 };  // class Mock
 
 // An abstract handle of an expectation.  Useful in the .After()
@@ -500,7 +500,7 @@ class GTEST_API_ Expectation {
   // method on the ExpectationBase objects they reference.  Therefore
   // Expectation must receive a *non-const* reference to the
   // ExpectationBase object.
-  Expectation(internal::ExpectationBase& exp);  // NOLINT
+  Expectation(Pinternal::ExpectationBase& exp);  // NOLINT
 
   // The compiler-generated copy ctor and operator= work exactly as
   // intended, so we don't need to define our own.
@@ -515,14 +515,14 @@ class GTEST_API_ Expectation {
  private:
   friend class ExpectationSet;
   friend class Sequence;
-  friend class ::testing::internal::ExpectationBase;
-  friend class ::testing::internal::UntypedFunctionMockerBase;
+  friend class ::testing::Pinternal::ExpectationBase;
+  friend class ::testing::Pinternal::UntypedFunctionMockerBase;
 
   template <typename F>
-  friend class ::testing::internal::FunctionMockerBase;
+  friend class ::testing::Pinternal::FunctionMockerBase;
 
   template <typename F>
-  friend class ::testing::internal::TypedExpectation;
+  friend class ::testing::Pinternal::TypedExpectation;
 
   // This comparator is needed for putting Expectation objects into a set.
   class Less {
@@ -535,16 +535,16 @@ class GTEST_API_ Expectation {
   typedef ::std::set<Expectation, Less> Set;
 
   Expectation(
-      const internal::linked_ptr<internal::ExpectationBase>& expectation_base);
+      const Pinternal::linked_ptr<Pinternal::ExpectationBase>& expectation_base);
 
   // Returns the expectation this object references.
-  const internal::linked_ptr<internal::ExpectationBase>&
+  const Pinternal::linked_ptr<Pinternal::ExpectationBase>&
   expectation_base() const {
     return expectation_base_;
   }
 
   // A linked_ptr that co-owns the expectation this handle references.
-  internal::linked_ptr<internal::ExpectationBase> expectation_base_;
+  Pinternal::linked_ptr<Pinternal::ExpectationBase> expectation_base_;
 };
 
 // A set of expectation handles.  Useful in the .After() clause of
@@ -574,7 +574,7 @@ class ExpectationSet {
   // This single-argument ctor must not be explicit, in order to support the
   //   ExpectationSet es = EXPECT_CALL(...);
   // syntax.
-  ExpectationSet(internal::ExpectationBase& exp) {  // NOLINT
+  ExpectationSet(Pinternal::ExpectationBase& exp) {  // NOLINT
     *this += Expectation(exp);
   }
 
@@ -630,7 +630,7 @@ class GTEST_API_ Sequence {
   // because Sequence objects are copyable and we want the copies to
   // be aliases.  The linked_ptr allows the copies to co-own and share
   // the same Expectation object.
-  internal::linked_ptr<Expectation> last_expectation_;
+  Pinternal::linked_ptr<Expectation> last_expectation_;
 };  // class Sequence
 
 // An object of this type causes all EXPECT_CALL() statements
@@ -833,7 +833,7 @@ class GTEST_API_ ExpectationBase {
       GTEST_LOCK_EXCLUDED_(mutex_);
 
   friend class ::testing::Sequence;
-  friend class ::testing::internal::ExpectationTester;
+  friend class ::testing::Pinternal::ExpectationTester;
 
   template <typename Function>
   friend class TypedExpectation;
@@ -1122,7 +1122,7 @@ class TypedExpectation : public ExpectationBase {
         extra_matcher_.DescribeTo(os);
         *os << "\n           Actual: don't match";
 
-        internal::PrintIfNotEmpty(listener.str(), os);
+        Pinternal::PrintIfNotEmpty(listener.str(), os);
         *os << "\n";
       }
     } else if (!AllPrerequisitesAreSatisfied()) {
@@ -1238,51 +1238,51 @@ class TypedExpectation : public ExpectationBase {
 // ::testing::internal and import it into ::testing.
 
 // Logs a message including file and line number information.
-GTEST_API_ void LogWithLocation(testing::internal::LogSeverity severity,
+GTEST_API_ void LogWithLocation(testing::Pinternal::LogSeverity severity,
                                 const char* file, int line,
                                 const string& message);
 
 template <typename F>
 class MockSpec {
  public:
-  typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
-  typedef typename internal::Function<F>::ArgumentMatcherTuple
+  typedef typename Pinternal::Function<F>::ArgumentTuple ArgumentTuple;
+  typedef typename Pinternal::Function<F>::ArgumentMatcherTuple
       ArgumentMatcherTuple;
 
   // Constructs a MockSpec object, given the function mocker object
   // that the spec is associated with.
-  explicit MockSpec(internal::FunctionMockerBase<F>* function_mocker)
+  explicit MockSpec(Pinternal::FunctionMockerBase<F>* function_mocker)
       : function_mocker_(function_mocker) {}
 
   // Adds a new default action spec to the function mocker and returns
   // the newly created spec.
-  internal::OnCallSpec<F>& InternalDefaultActionSetAt(
+  Pinternal::OnCallSpec<F>& InternalDefaultActionSetAt(
       const char* file, int line, const char* obj, const char* call) {
-    LogWithLocation(internal::kInfo, file, line,
+    LogWithLocation(Pinternal::kInfo, file, line,
         string("ON_CALL(") + obj + ", " + call + ") invoked");
     return function_mocker_->AddNewOnCallSpec(file, line, matchers_);
   }
 
   // Adds a new expectation spec to the function mocker and returns
   // the newly created spec.
-  internal::TypedExpectation<F>& InternalExpectedAt(
+  Pinternal::TypedExpectation<F>& InternalExpectedAt(
       const char* file, int line, const char* obj, const char* call) {
     const string source_text(string("EXPECT_CALL(") + obj + ", " + call + ")");
-    LogWithLocation(internal::kInfo, file, line, source_text + " invoked");
+    LogWithLocation(Pinternal::kInfo, file, line, source_text + " invoked");
     return function_mocker_->AddNewExpectation(
         file, line, source_text, matchers_);
   }
 
  private:
   template <typename Function>
-  friend class internal::FunctionMocker;
+  friend class Pinternal::FunctionMocker;
 
   void SetMatchers(const ArgumentMatcherTuple& matchers) {
     matchers_ = matchers;
   }
 
   // The function mocker that owns this spec.
-  internal::FunctionMockerBase<F>* const function_mocker_;
+  Pinternal::FunctionMockerBase<F>* const function_mocker_;
   // The argument matchers specified in the spec.
   ArgumentMatcherTuple matchers_;
 
@@ -1303,13 +1303,13 @@ class ReferenceOrValueWrapper {
  public:
   // Constructs a wrapper from the given value/reference.
   explicit ReferenceOrValueWrapper(T value)
-      : value_(::testing::internal::move(value)) {
+      : value_(::testing::Pinternal::move(value)) {
   }
 
   // Unwraps and returns the underlying value/reference, exactly as
   // originally passed. The behavior of calling this more than once on
   // the same object is unspecified.
-  T Unwrap() { return ::testing::internal::move(value_); }
+  T Unwrap() { return ::testing::Pinternal::move(value_); }
 
   // Provides nondestructive access to the underlying value/reference.
   // Always returns a const reference (more precisely,
@@ -1407,7 +1407,7 @@ class ActionResultHolder : public UntypedActionResultHolderBase {
   typedef ReferenceOrValueWrapper<T> Wrapper;
 
   explicit ActionResultHolder(Wrapper result)
-      : result_(::testing::internal::move(result)) {
+      : result_(::testing::Pinternal::move(result)) {
   }
 
   Wrapper result_;
@@ -1636,7 +1636,7 @@ class FunctionMockerBase : public UntypedFunctionMockerBase {
     const OnCallSpec<F>* const spec = FindOnCallSpec(args);
 
     if (spec == NULL) {
-      *os << (internal::type_equals<Result, void>::value ?
+      *os << (Pinternal::type_equals<Result, void>::value ?
               "returning directly.\n" :
               "returning default value.\n");
     } else {
@@ -1805,7 +1805,7 @@ void ReportUninterestingCall(CallReaction reaction, const string& msg);
 // meant to be defined in the ::testing namespace.  The following line
 // is just a trick for working around a bug in MSVC 8.0, which cannot
 // handle it if we define MockSpec in ::testing.
-using internal::MockSpec;
+using Pinternal::MockSpec;
 
 // Const(x) is a convenient function for obtaining a const reference
 // to x.  This is useful for setting expectations on an overloaded
@@ -1826,7 +1826,7 @@ template <typename T>
 inline const T& Const(const T& x) { return x; }
 
 // Constructs an Expectation object that references and co-owns exp.
-inline Expectation::Expectation(internal::ExpectationBase& exp)  // NOLINT
+inline Expectation::Expectation(Pinternal::ExpectationBase& exp)  // NOLINT
     : expectation_base_(exp.GetHandle().expectation_base()) {}
 
 }  // namespace testing

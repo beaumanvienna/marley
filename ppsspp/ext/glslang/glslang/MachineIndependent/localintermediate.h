@@ -51,7 +51,7 @@
 
 class TInfoSink;
 
-namespace glslang {
+namespace Pglslang {
 
 struct TMatrixSelector {
     int coord1;  // stay agnostic about column/row; this is parse order
@@ -996,6 +996,6 @@ private:
     void operator=(TIntermediate&); // prevent assignments
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _LOCAL_INTERMEDIATE_INCLUDED_

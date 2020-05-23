@@ -44,29 +44,29 @@
 #include "UI/OnScreenDisplay.h"
 #include "UI/GameInfoCache.h"
 
-AsyncImageFileView::AsyncImageFileView(const std::string &filename, UI::ImageSizeMode sizeMode, PrioritizedWorkQueue *wq, UI::LayoutParams *layoutParams)
-	: UI::Clickable(layoutParams), canFocus_(true), filename_(filename), color_(0xFFFFFFFF), sizeMode_(sizeMode), textureFailed_(false), fixedSizeW_(0.0f), fixedSizeH_(0.0f) {}
+AsyncImageFileView::AsyncImageFileView(const std::string &filename, PUI::ImageSizeMode sizeMode, PrioritizedWorkQueue *wq, PUI::LayoutParams *layoutParams)
+	: PUI::Clickable(layoutParams), canFocus_(true), filename_(filename), color_(0xFFFFFFFF), sizeMode_(sizeMode), textureFailed_(false), fixedSizeW_(0.0f), fixedSizeH_(0.0f) {}
 
 AsyncImageFileView::~AsyncImageFileView() {}
 
-static float DesiredSize(float sz, float contentSize, UI::MeasureSpec spec) {
+static float DesiredSize(float sz, float contentSize, PUI::MeasureSpec spec) {
 	float measured;
-	UI::MeasureBySpec(sz, contentSize, spec, &measured);
+	PUI::MeasureBySpec(sz, contentSize, spec, &measured);
 	return measured;
 }
 
-void AsyncImageFileView::GetContentDimensionsBySpec(const UIContext &dc, UI::MeasureSpec horiz, UI::MeasureSpec vert, float &w, float &h) const {
+void AsyncImageFileView::GetContentDimensionsBySpec(const UIContext &dc, PUI::MeasureSpec horiz, PUI::MeasureSpec vert, float &w, float &h) const {
 	if (texture_ && texture_->GetTexture()) {
 		float texw = (float)texture_->Width();
 		float texh = (float)texture_->Height();
 		float desiredW = DesiredSize(layoutParams_->width, w, horiz);
 		float desiredH = DesiredSize(layoutParams_->height, h, vert);
 		switch (sizeMode_) {
-		case UI::IS_FIXED:
+		case PUI::IS_FIXED:
 			w = fixedSizeW_;
 			h = fixedSizeH_;
 			break;
-		case UI::IS_KEEP_ASPECT:
+		case PUI::IS_KEEP_ASPECT:
 			w = texw;
 			h = texh;
 			if (desiredW != w || desiredH != h) {
@@ -86,7 +86,7 @@ void AsyncImageFileView::GetContentDimensionsBySpec(const UIContext &dc, UI::Mea
 				}
 			}
 			break;
-		case UI::IS_DEFAULT:
+		case PUI::IS_DEFAULT:
 		default:
 			w = texw;
 			h = texh;
@@ -142,10 +142,10 @@ void AsyncImageFileView::Draw(UIContext &dc) {
 	} else {
 		if (!filename_.empty()) {
 			// draw a black rectangle to represent the missing screenshot.
-			dc.FillRect(UI::Drawable(0xFF000000), GetBounds());
+			dc.FillRect(PUI::Drawable(0xFF000000), GetBounds());
 		} else {
 			// draw a dark gray rectangle to represent no save state.
-			dc.FillRect(UI::Drawable(0x50202020), GetBounds());
+			dc.FillRect(PUI::Drawable(0x50202020), GetBounds());
 		}
 		if (!text_.empty()) {
 			dc.DrawText(text_.c_str(), bounds_.centerX(), bounds_.centerY(), 0xFFFFFFFF, ALIGN_CENTER | FLAG_DYNAMIC_ASCII);
@@ -168,14 +168,14 @@ public:
 
 protected:
 	bool FillVertical() const override { return false; }
-	UI::Size PopupWidth() const override { return 500; }
+	PUI::Size PopupWidth() const override { return 500; }
 	bool ShowButtons() const override { return true; }
 
-	void CreatePopupContents(UI::ViewGroup *parent) override {
-		UI::LinearLayout *content = new UI::LinearLayout(UI::ORIENT_VERTICAL);
+	void CreatePopupContents(PUI::ViewGroup *parent) override {
+		PUI::LinearLayout *content = new PUI::LinearLayout(PUI::ORIENT_VERTICAL);
 		parent->Add(content);
-		UI::Margins contentMargins(10, 0);
-		content->Add(new AsyncImageFileView(filename_, UI::IS_KEEP_ASPECT, nullptr, new UI::LinearLayoutParams(480, 272, contentMargins)))->SetCanBeFocused(false);
+		PUI::Margins contentMargins(10, 0);
+		content->Add(new AsyncImageFileView(filename_, PUI::IS_KEEP_ASPECT, nullptr, new PUI::LinearLayoutParams(480, 272, contentMargins)))->SetCanBeFocused(false);
 	}
 
 private:
@@ -183,9 +183,9 @@ private:
 	int slot_;
 };
 
-class SaveSlotView : public UI::LinearLayout {
+class SaveSlotView : public PUI::LinearLayout {
 public:
-	SaveSlotView(const std::string &gamePath, int slot, UI::LayoutParams *layoutParams = nullptr);
+	SaveSlotView(const std::string &gamePath, int slot, PUI::LayoutParams *layoutParams = nullptr);
 
 	void GetContentDimensions(const UIContext &dc, float &w, float &h) const override {
 		w = 500; h = 90;
@@ -205,31 +205,31 @@ public:
 		return SaveState::GetSlotDateAsString(gamePath_, slot_);
 	}
 
-	UI::Event OnStateLoaded;
-	UI::Event OnStateSaved;
-	UI::Event OnScreenshotClicked;
+	PUI::Event OnStateLoaded;
+	PUI::Event OnStateSaved;
+	PUI::Event OnScreenshotClicked;
 
 private:
-	UI::EventReturn OnScreenshotClick(UI::EventParams &e);
-	UI::EventReturn OnSaveState(UI::EventParams &e);
-	UI::EventReturn OnLoadState(UI::EventParams &e);
+	PUI::EventReturn OnScreenshotClick(PUI::EventParams &e);
+	PUI::EventReturn OnSaveState(PUI::EventParams &e);
+	PUI::EventReturn OnLoadState(PUI::EventParams &e);
 
-	UI::Button *saveStateButton_ = nullptr;
-	UI::Button *loadStateButton_ = nullptr;
+	PUI::Button *saveStateButton_ = nullptr;
+	PUI::Button *loadStateButton_ = nullptr;
 
 	int slot_;
 	std::string gamePath_;
 	std::string screenshotFilename_;
 };
 
-SaveSlotView::SaveSlotView(const std::string &gameFilename, int slot, UI::LayoutParams *layoutParams) : UI::LinearLayout(UI::ORIENT_HORIZONTAL, layoutParams), slot_(slot), gamePath_(gameFilename) {
-	using namespace UI;
+SaveSlotView::SaveSlotView(const std::string &gameFilename, int slot, PUI::LayoutParams *layoutParams) : PUI::LinearLayout(PUI::ORIENT_HORIZONTAL, layoutParams), slot_(slot), gamePath_(gameFilename) {
+	using namespace PUI;
 
 	screenshotFilename_ = SaveState::GenerateSaveSlotFilename(gamePath_, slot, SaveState::SCREENSHOT_EXTENSION);
 	PrioritizedWorkQueue *wq = g_gameInfoCache->WorkQueue();
 	Add(new Spacer(5));
 
-	AsyncImageFileView *fv = Add(new AsyncImageFileView(screenshotFilename_, IS_DEFAULT, wq, new UI::LayoutParams(82 * 2, 47 * 2)));
+	AsyncImageFileView *fv = Add(new AsyncImageFileView(screenshotFilename_, IS_DEFAULT, wq, new PUI::LayoutParams(82 * 2, 47 * 2)));
 	fv->SetOverlayText(PStringFromFormat("%d", slot_ + 1));
 
 	I18NCategory *pa = GetI18NCategory("Pause");
@@ -264,10 +264,10 @@ SaveSlotView::SaveSlotView(const std::string &gameFilename, int slot, UI::Layout
 
 void SaveSlotView::Draw(UIContext &dc) {
 	if (g_PConfig.iCurrentStateSlot == slot_) {
-		dc.FillRect(UI::Drawable(0x70000000), GetBounds().Expand(3));
-		dc.FillRect(UI::Drawable(0x70FFFFFF), GetBounds().Expand(3));
+		dc.FillRect(PUI::Drawable(0x70000000), GetBounds().Expand(3));
+		dc.FillRect(PUI::Drawable(0x70FFFFFF), GetBounds().Expand(3));
 	}
-	UI::LinearLayout::Draw(dc);
+	PUI::LinearLayout::Draw(dc);
 }
 
 static void AfterSaveStateAction(SaveState::Status status, const std::string &message, void *) {
@@ -276,29 +276,29 @@ static void AfterSaveStateAction(SaveState::Status status, const std::string &me
 	}
 }
 
-UI::EventReturn SaveSlotView::OnLoadState(UI::EventParams &e) {
+PUI::EventReturn SaveSlotView::OnLoadState(PUI::EventParams &e) {
 	g_PConfig.iCurrentStateSlot = slot_;
 	SaveState::LoadSlot(gamePath_, slot_, &AfterSaveStateAction);
-	UI::EventParams e2{};
+	PUI::EventParams e2{};
 	e2.v = this;
 	OnStateLoaded.Trigger(e2);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn SaveSlotView::OnSaveState(UI::EventParams &e) {
+PUI::EventReturn SaveSlotView::OnSaveState(PUI::EventParams &e) {
 	g_PConfig.iCurrentStateSlot = slot_;
 	SaveState::SaveSlot(gamePath_, slot_, &AfterSaveStateAction);
-	UI::EventParams e2{};
+	PUI::EventParams e2{};
 	e2.v = this;
 	OnStateSaved.Trigger(e2);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn SaveSlotView::OnScreenshotClick(UI::EventParams &e) {
-	UI::EventParams e2{};
+PUI::EventReturn SaveSlotView::OnScreenshotClick(PUI::EventParams &e) {
+	PUI::EventParams e2{};
 	e2.v = this;
 	OnScreenshotClicked.Trigger(e2);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void GamePauseScreen::update() {
@@ -318,7 +318,7 @@ GamePauseScreen::~GamePauseScreen() {
 void GamePauseScreen::CreateViews() {
 	static const int NUM_SAVESLOTS = 5;
 
-	using namespace UI;
+	using namespace PUI;
 	Margins scrollMargins(0, 20, 0, 0);
 	Margins actionMenuMargins(0, 20, 15, 0);
 	I18NCategory *gr = GetI18NCategory("Graphics");
@@ -343,7 +343,7 @@ void GamePauseScreen::CreateViews() {
 	leftColumnItems->Add(new Spacer(0.0));
 
 	if (g_PConfig.iRewindFlipFrequency > 0) {
-		UI::Choice *rewindButton = leftColumnItems->Add(new Choice(pa->T("Rewind")));
+		PUI::Choice *rewindButton = leftColumnItems->Add(new Choice(pa->T("Rewind")));
 		rewindButton->SetEnabled(SaveState::CanRewind());
 		rewindButton->OnClick.Handle(this, &GamePauseScreen::OnRewind);
 	}
@@ -389,14 +389,14 @@ void GamePauseScreen::CreateViews() {
 	}
 }
 
-UI::EventReturn GamePauseScreen::OnGameSettings(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnGameSettings(PUI::EventParams &e) {
 	screenManager()->push(new GameSettingsScreen(gamePath_));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnState(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnState(PUI::EventParams &e) {
 	TriggerFinish(DR_CANCEL);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void GamePauseScreen::dialogFinished(const Screen *dialog, DialogResult dr) {
@@ -414,7 +414,7 @@ void GamePauseScreen::dialogFinished(const Screen *dialog, DialogResult dr) {
 	}
 }
 
-UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnScreenshotClicked(PUI::EventParams &e) {
 	SaveSlotView *v = static_cast<SaveSlotView *>(e.v);
 	int slot = v->GetSlot();
 	g_PConfig.iCurrentStateSlot = v->GetSlot();
@@ -425,38 +425,38 @@ UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
 		Screen *screen = new ScreenshotViewScreen(fn, title, v->GetSlot(), pa);
 		screenManager()->push(screen);
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnExitToMenu(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnExitToMenu(PUI::EventParams &e) {
 	if (g_PConfig.bPauseMenuExitsEmulator) {
 		System_SendMessage("finish", "");
 	} else {
 		TriggerFinish(DR_OK);
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnReportFeedback(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnReportFeedback(PUI::EventParams &e) {
 	screenManager()->push(new ReportScreen(gamePath_));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnRewind(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnRewind(PUI::EventParams &e) {
 	SaveState::Rewind(&AfterSaveStateAction);
 
 	TriggerFinish(DR_CANCEL);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnCwCheat(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnCwCheat(PUI::EventParams &e) {
 	screenManager()->push(new CwCheatScreen(gamePath_));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnSwitchUMD(UI::EventParams &e) {
+PUI::EventReturn GamePauseScreen::OnSwitchUMD(PUI::EventParams &e) {
 	screenManager()->push(new UmdReplaceScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void GamePauseScreen::CallbackDeleteConfig(bool yes)
@@ -470,7 +470,7 @@ void GamePauseScreen::CallbackDeleteConfig(bool yes)
 	}
 }
 
-UI::EventReturn GamePauseScreen::OnCreateConfig(UI::EventParams &e)
+PUI::EventReturn GamePauseScreen::OnCreateConfig(PUI::EventParams &e)
 {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, 0);
 	std::string gameId = g_paramSFO.GetDiscID();
@@ -482,10 +482,10 @@ UI::EventReturn GamePauseScreen::OnCreateConfig(UI::EventParams &e)
 	}
 
 	screenManager()->topScreen()->RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn GamePauseScreen::OnDeleteConfig(UI::EventParams &e)
+PUI::EventReturn GamePauseScreen::OnDeleteConfig(PUI::EventParams &e)
 {
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *ga = GetI18NCategory("Game");
@@ -493,5 +493,5 @@ UI::EventReturn GamePauseScreen::OnDeleteConfig(UI::EventParams &e)
 		new PromptScreen(di->T("DeleteConfirmGameConfig", "Do you really want to delete the settings for this game?"), ga->T("ConfirmDelete"), di->T("Cancel"),
 		std::bind(&GamePauseScreen::CallbackDeleteConfig, this, std::placeholders::_1)));
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }

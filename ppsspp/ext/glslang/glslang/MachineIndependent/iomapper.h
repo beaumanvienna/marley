@@ -48,7 +48,7 @@
 
 class TInfoSink;
 
-namespace glslang {
+namespace Pglslang {
 
 class TIntermediate;
 struct TVarEntryInfo {
@@ -90,7 +90,7 @@ struct TVarEntryInfo {
 };
 
 // Base class for shared TIoMapResolver services, used by several derivations.
-struct TDefaultIoResolverBase : public glslang::TIoMapResolver {
+struct TDefaultIoResolverBase : public Pglslang::TIoMapResolver {
 public:
     TDefaultIoResolverBase(const TIntermediate& intermediate);
     typedef std::vector<int> TSlotSet;
@@ -109,7 +109,7 @@ public:
     void reserverStorageSlot(TVarEntryInfo& /*ent*/, TInfoSink& /*infoSink*/) override {}
     int getBaseBinding(TResourceType res, unsigned int set) const;
     const std::vector<std::string>& getResourceSetBinding() const;
-    virtual TResourceType getResourceType(const glslang::TType& type) = 0;
+    virtual TResourceType getResourceType(const Pglslang::TType& type) = 0;
     bool doAutoBindingMapping() const;
     bool doAutoLocationMapping() const;
     TSlotSet::iterator findSlot(int set, int slot);
@@ -144,44 +144,44 @@ protected:
         return descriptorSetBase != -1 ? descriptorSetBase : base;
     }
 
-    static int getLayoutSet(const glslang::TType& type) {
+    static int getLayoutSet(const Pglslang::TType& type) {
         if (type.getQualifier().hasSet())
             return type.getQualifier().layoutSet;
         else
             return 0;
     }
 
-    static bool isSamplerType(const glslang::TType& type) {
-        return type.getBasicType() == glslang::EbtSampler && type.getSampler().isPureSampler();
+    static bool isSamplerType(const Pglslang::TType& type) {
+        return type.getBasicType() == Pglslang::EbtSampler && type.getSampler().isPureSampler();
     }
 
-    static bool isTextureType(const glslang::TType& type) {
-        return (type.getBasicType() == glslang::EbtSampler &&
+    static bool isTextureType(const Pglslang::TType& type) {
+        return (type.getBasicType() == Pglslang::EbtSampler &&
                 (type.getSampler().isTexture() || type.getSampler().isSubpass()));
     }
 
-    static bool isUboType(const glslang::TType& type) {
+    static bool isUboType(const Pglslang::TType& type) {
         return type.getQualifier().storage == EvqUniform;
     }
 
-    static bool isImageType(const glslang::TType& type) {
-        return type.getBasicType() == glslang::EbtSampler && type.getSampler().isImage();
+    static bool isImageType(const Pglslang::TType& type) {
+        return type.getBasicType() == Pglslang::EbtSampler && type.getSampler().isImage();
     }
 
-    static bool isSsboType(const glslang::TType& type) {
+    static bool isSsboType(const Pglslang::TType& type) {
         return type.getQualifier().storage == EvqBuffer;
     }
 
     // Return true if this is a SRV (shader resource view) type:
-    static bool isSrvType(const glslang::TType& type) {
+    static bool isSrvType(const Pglslang::TType& type) {
         return isTextureType(type) || type.getQualifier().storage == EvqBuffer;
     }
 
     // Return true if this is a UAV (unordered access view) type:
-    static bool isUavType(const glslang::TType& type) {
+    static bool isUavType(const Pglslang::TType& type) {
         if (type.getQualifier().isReadOnly())
             return false;
-        return (type.getBasicType() == glslang::EbtSampler && type.getSampler().isImage()) ||
+        return (type.getBasicType() == Pglslang::EbtSampler && type.getSampler().isImage()) ||
                 (type.getQualifier().storage == EvqBuffer);
     }
 };
@@ -193,7 +193,7 @@ public:
     typedef std::map<int, TVarSlotMap> TSlotMap; // <resourceKey, TVarSlotMap>
     TDefaultGlslIoResolver(const TIntermediate& intermediate);
     bool validateBinding(EShLanguage /*stage*/, TVarEntryInfo& /*ent*/) override { return true; }
-    TResourceType getResourceType(const glslang::TType& type) override;
+    TResourceType getResourceType(const Pglslang::TType& type) override;
     int resolveInOutLocation(EShLanguage stage, TVarEntryInfo& ent) override;
     int resolveUniformLocation(EShLanguage /*stage*/, TVarEntryInfo& ent) override;
     int resolveBinding(EShLanguage /*stage*/, TVarEntryInfo& ent) override;
@@ -293,7 +293,7 @@ public:
     bool hadError = false;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _IOMAPPER_INCLUDED
 

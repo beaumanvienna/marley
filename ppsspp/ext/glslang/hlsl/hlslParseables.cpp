@@ -87,7 +87,7 @@ bool IsTextureType(const char argOrder)
 
 // Reject certain combinations that are illegal sample methods.  For example,
 // 3D arrays.
-bool IsIllegalSample(const glslang::TString& name, const char* argOrder, int dim0)
+bool IsIllegalSample(const Pglslang::TString& name, const char* argOrder, int dim0)
 {
     const bool isArrayed = IsArrayed(*argOrder);
     const bool isMS      = IsTextureMS(*argOrder);
@@ -152,7 +152,7 @@ bool IsIllegalSample(const glslang::TString& name, const char* argOrder, int dim
 }
 
 // Return the number of the coordinate arg, if any
-int CoordinateArgPos(const glslang::TString& name, bool isTexture)
+int CoordinateArgPos(const Pglslang::TString& name, bool isTexture)
 {
     if (!isTexture || (name == "GetDimensions"))
         return -1;  // has none
@@ -163,19 +163,19 @@ int CoordinateArgPos(const glslang::TString& name, bool isTexture)
 }
 
 // Some texture methods use an addition coordinate dimension for the mip
-bool HasMipInCoord(const glslang::TString& name, bool isMS, bool isBuffer, bool isImage)
+bool HasMipInCoord(const Pglslang::TString& name, bool isMS, bool isBuffer, bool isImage)
 {
     return name == "Load" && !isMS && !isBuffer && !isImage;
 }
 
 // LOD calculations don't pass the array level in the coordinate.
-bool NoArrayCoord(const glslang::TString& name)
+bool NoArrayCoord(const Pglslang::TString& name)
 {
     return name == "CalculateLevelOfDetail" || name == "CalculateLevelOfDetailUnclamped";
 }
 
 // Handle IO params marked with > or <
-const char* IoParam(glslang::TString& s, const char* nthArgOrder)
+const char* IoParam(Pglslang::TString& s, const char* nthArgOrder)
 {
     if (*nthArgOrder == '>') {           // output params
         ++nthArgOrder;
@@ -223,7 +223,7 @@ int FixedVecSize(const char* arg)
 //    argType: F = float, D = double, I = int, U = uint, B = bool, S = sampler
 //    dim0 = vector dimension, or matrix 1st dimension
 //    dim1 = matrix 2nd dimension
-glslang::TString& AppendTypeName(glslang::TString& s, const char* argOrder, const char* argType, int dim0, int dim1)
+Pglslang::TString& AppendTypeName(Pglslang::TString& s, const char* argOrder, const char* argType, int dim0, int dim1)
 {
     const bool isTranspose = (argOrder[0] == '^');
     const bool isTexture   = IsTextureType(argOrder[0]);
@@ -447,7 +447,7 @@ inline void FindVectorMatrixBounds(const char* argOrder, int fixedVecSize, int& 
 
 } // end anonymous namespace
 
-namespace glslang {
+namespace Pglslang {
 
 TBuiltInParseablesHlsl::TBuiltInParseablesHlsl()
 {
@@ -1321,4 +1321,4 @@ void TBuiltInParseablesHlsl::identifyBuiltIns(int /*version*/, EProfile /*profil
 {
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

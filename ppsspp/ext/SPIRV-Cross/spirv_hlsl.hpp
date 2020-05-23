@@ -141,7 +141,7 @@ private:
 	void emit_specialization_constants_and_structs();
 	void emit_composite_constants();
 	void emit_fixup() override;
-	std::string builtin_to_glsl(spv::BuiltIn builtin, spv::StorageClass storage) override;
+	std::string builtin_to_glsl(Pspv::BuiltIn builtin, Pspv::StorageClass storage) override;
 	std::string layout_for_member(const SPIRType &type, uint32_t index) override;
 	std::string to_interpolation_qualifiers(const Bitset &flags) override;
 	std::string bitcast_glsl_op(const SPIRType &result_type, const SPIRType &argument_type) override;
@@ -156,7 +156,7 @@ private:
 	std::string read_access_chain(const SPIRAccessChain &chain);
 	void write_access_chain(const SPIRAccessChain &chain, uint32_t value);
 	void emit_store(const Instruction &instruction);
-	void emit_atomic(const uint32_t *ops, uint32_t length, spv::Op op);
+	void emit_atomic(const uint32_t *ops, uint32_t length, Pspv::Op op);
 	void emit_subgroup_op(const Instruction &i) override;
 	void emit_block_hints(const SPIRBlock &block) override;
 
@@ -213,7 +213,7 @@ private:
 	uint32_t type_to_consumed_locations(const SPIRType &type) const;
 
 	void emit_io_block(const SPIRVariable &var);
-	std::string to_semantic(uint32_t location, spv::ExecutionModel em, spv::StorageClass sc);
+	std::string to_semantic(uint32_t location, Pspv::ExecutionModel em, Pspv::StorageClass sc);
 
 	uint32_t num_workgroups_builtin = 0;
 

@@ -65,7 +65,7 @@
 // there wasn't exactly one entry point.
 //
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // The traverser: mostly pass through, except
@@ -1199,6 +1199,6 @@ void TReflection::dump()
     // printf("\n");
 }
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // GLSLANG_WEB

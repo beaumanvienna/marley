@@ -47,7 +47,7 @@
 #include "gtest/gtest.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Converts an identifier name to a space-separated list of lower-case
 // words.  Each maximum substring of the form [A-Za-z][a-z]*|\d+ is
@@ -83,8 +83,8 @@ inline Element* GetRawPointer(Element* p) { return p; }
 // This comparator allows linked_ptr to be stored in sets.
 template <typename T>
 struct LinkedPtrLessThan {
-  bool operator()(const ::testing::internal::linked_ptr<T>& lhs,
-                  const ::testing::internal::linked_ptr<T>& rhs) const {
+  bool operator()(const ::testing::Pinternal::linked_ptr<T>& lhs,
+                  const ::testing::Pinternal::linked_ptr<T>& rhs) const {
     return lhs.get() < rhs.get();
   }
 };
@@ -166,8 +166,8 @@ GMOCK_DECLARE_KIND_(long double, kFloatingPoint);
 
 // Evaluates to the kind of 'type'.
 #define GMOCK_KIND_OF_(type) \
-  static_cast< ::testing::internal::TypeKind>( \
-      ::testing::internal::KindOf<type>::value)
+  static_cast< ::testing::Pinternal::TypeKind>( \
+      ::testing::Pinternal::KindOf<type>::value)
 
 // Evaluates to true iff integer type T is signed.
 #define GMOCK_IS_SIGNED_(T) (static_cast<T>(-1) < 0)
@@ -422,7 +422,7 @@ template <typename Element, size_t N>
 class StlContainerView<Element[N]> {
  public:
   typedef GTEST_REMOVE_CONST_(Element) RawElement;
-  typedef internal::NativeArray<RawElement> type;
+  typedef Pinternal::NativeArray<RawElement> type;
   // NativeArray<T> can represent a native array either by value or by
   // reference (selected by a constructor argument), so 'const type'
   // can be used to reference a const native array.  We cannot
@@ -468,8 +468,8 @@ template <typename ElementPointer, typename Size>
 class StlContainerView< ::testing::tuple<ElementPointer, Size> > {
  public:
   typedef GTEST_REMOVE_CONST_(
-      typename internal::PointeeOf<ElementPointer>::type) RawElement;
-  typedef internal::NativeArray<RawElement> type;
+      typename Pinternal::PointeeOf<ElementPointer>::type) RawElement;
+  typedef Pinternal::NativeArray<RawElement> type;
   typedef const type const_reference;
 
   static const_reference ConstReference(
@@ -504,7 +504,7 @@ struct RemoveConstFromKey<std::pair<const K, V> > {
 template <bool kValue>
 struct BooleanConstant {};
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_

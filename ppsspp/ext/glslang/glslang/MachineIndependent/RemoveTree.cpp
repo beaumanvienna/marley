@@ -37,7 +37,7 @@
 #include "../Include/intermediate.h"
 #include "RemoveTree.h"
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Code to recursively delete the intermediate tree.
@@ -115,4 +115,4 @@ void RemoveAllTreeNodes(TIntermNode* root)
     root->traverse(&it);
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

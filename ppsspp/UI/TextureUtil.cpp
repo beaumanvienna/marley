@@ -223,7 +223,7 @@ void GameIconView::GetContentDimensions(const UIContext &dc, float &w, float &h)
 }
 
 void GameIconView::Draw(UIContext &dc) {
-	using namespace UI;
+	using namespace PUI;
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, GAMEINFO_WANTBG | GAMEINFO_WANTSIZE);
 
 	if (!info->icon.texture) {

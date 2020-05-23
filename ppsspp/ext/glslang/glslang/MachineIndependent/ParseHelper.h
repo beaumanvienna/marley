@@ -55,7 +55,7 @@
 #include "Scan.h"
 #include "attribute.h"
 
-namespace glslang {
+namespace Pglslang {
 
 struct TPragma {
     TPragma(bool o, bool d) : optimize(o), debug(d) { }
@@ -360,7 +360,7 @@ public:
     void atomicUintCheck(const TSourceLoc&, const TType&, const TString& identifier);
     void accStructNVCheck(const TSourceLoc & loc, const TType & type, const TString & identifier);
     void transparentOpaqueCheck(const TSourceLoc&, const TType&, const TString& identifier);
-    void memberQualifierCheck(glslang::TPublicType&);
+    void memberQualifierCheck(Pglslang::TPublicType&);
     void globalQualifierFixCheck(const TSourceLoc&, TQualifier&);
     void globalQualifierTypeCheck(const TSourceLoc&, const TQualifier&, const TPublicType&);
     bool structQualifierErrorCheck(const TSourceLoc&, const TPublicType& pType);
@@ -520,6 +520,6 @@ protected:
 #endif
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _PARSER_HELPER_INCLUDED_

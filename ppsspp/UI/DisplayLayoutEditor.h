@@ -20,10 +20,10 @@
 #include "ui/view.h"
 #include "ui/viewgroup.h"
 
-class MultiTouchDisplay : public UI::View {
+class MultiTouchDisplay : public PUI::View {
 public:
-	MultiTouchDisplay(int img, float scale, UI::LayoutParams *layoutParams)
-		: UI::View(layoutParams), pointerDownMask_(0), scale_(scale), img_(img), angle_(0.0f), flipImageH_(false) {
+	MultiTouchDisplay(int img, float scale, PUI::LayoutParams *layoutParams)
+		: PUI::View(layoutParams), pointerDownMask_(0), scale_(scale), img_(img), angle_(0.0f), flipImageH_(false) {
 	}
 	virtual void Touch(const TouchInput &input) override;
 	virtual void Draw(UIContext &dc) override;
@@ -44,7 +44,7 @@ private:
 
 class PSPDisplay : public MultiTouchDisplay {
 public:
-	PSPDisplay(int img, float scale, UI::LayoutParams *layoutParams)
+	PSPDisplay(int img, float scale, PUI::LayoutParams *layoutParams)
 		: MultiTouchDisplay(img, scale, layoutParams) {
 	}
 };

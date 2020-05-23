@@ -50,7 +50,7 @@ public:
 
 protected:
 	void CreateViews() override;
-	UI::EventReturn OnDevTools(UI::EventParams &params);
+	PUI::EventReturn OnDevTools(PUI::EventParams &params);
 
 private:
 	void bootGame(const std::string &filename);
@@ -69,7 +69,7 @@ private:
 	void autoLoad();
 	void checkPowerDown();
 
-	UI::Event OnDevMenu;
+	PUI::Event OnDevMenu;
 
 	bool bootPending_;
 	std::string gamePath_;
@@ -98,8 +98,8 @@ private:
 	AsyncImageFileView *saveStatePreview_;
 	int saveStateSlot_;
 
-	UI::CallbackColorTween *loadingViewColor_ = nullptr;
-	UI::VisibilityTween *loadingViewVisible_ = nullptr;
-	UI::Spinner *loadingSpinner_ = nullptr;
-	UI::TextView *loadingTextView_ = nullptr;
+	PUI::CallbackColorTween *loadingViewColor_ = nullptr;
+	PUI::VisibilityTween *loadingViewVisible_ = nullptr;
+	PUI::Spinner *loadingSpinner_ = nullptr;
+	PUI::TextView *loadingTextView_ = nullptr;
 };

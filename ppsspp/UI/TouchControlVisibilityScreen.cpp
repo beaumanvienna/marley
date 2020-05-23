@@ -22,25 +22,25 @@
 
 static const int leftColumnWidth = 140;
 
-class CheckBoxChoice : public UI::Choice {
+class CheckBoxChoice : public PUI::Choice {
 public:
-	CheckBoxChoice(const std::string &text, UI::CheckBox *checkbox, UI::LayoutParams *lp)
+	CheckBoxChoice(const std::string &text, PUI::CheckBox *checkbox, PUI::LayoutParams *lp)
 		: Choice(text, lp), checkbox_(checkbox) {
 		OnClick.Handle(this, &CheckBoxChoice::HandleClick);
 	}
-	CheckBoxChoice(ImageID imgID, UI::CheckBox *checkbox, UI::LayoutParams *lp)
+	CheckBoxChoice(ImageID imgID, PUI::CheckBox *checkbox, PUI::LayoutParams *lp)
 		: Choice(imgID, lp), checkbox_(checkbox) {
 		OnClick.Handle(this, &CheckBoxChoice::HandleClick);
 	}
 
 private:
-	UI::EventReturn HandleClick(UI::EventParams &e);
+	PUI::EventReturn HandleClick(PUI::EventParams &e);
 
-	UI::CheckBox *checkbox_;
+	PUI::CheckBox *checkbox_;
 };
 
 void TouchControlVisibilityScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *co = GetI18NCategory("Controls");
@@ -65,7 +65,7 @@ void TouchControlVisibilityScreen::CreateViews() {
 
 	const int cellSize = 380;
 
-	UI::GridLayoutSettings gridsettings(cellSize, 64, 5);
+	PUI::GridLayoutSettings gridsettings(cellSize, 64, 5);
 	gridsettings.fillCells = true;
 	GridLayout *grid = vert->Add(new GridLayout(gridsettings, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 
@@ -117,17 +117,17 @@ void TouchControlVisibilityScreen::onFinish(DialogResult result) {
 	g_PConfig.Save("TouchControlVisibilityScreen::onFinish");
 }
 
-UI::EventReturn TouchControlVisibilityScreen::OnToggleAll(UI::EventParams &e) {
+PUI::EventReturn TouchControlVisibilityScreen::OnToggleAll(PUI::EventParams &e) {
 	for (auto toggle : toggles_) {
 		*toggle.show = nextToggleAll_;
 	}
 	nextToggleAll_ = !nextToggleAll_;
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CheckBoxChoice::HandleClick(UI::EventParams &e) {
+PUI::EventReturn CheckBoxChoice::HandleClick(PUI::EventParams &e) {
 	checkbox_->Toggle();
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };

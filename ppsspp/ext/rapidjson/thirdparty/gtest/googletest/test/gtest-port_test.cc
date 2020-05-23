@@ -59,7 +59,7 @@ using std::make_pair;
 using std::pair;
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 TEST(IsXDigitTest, WorksForNarrowAscii) {
   EXPECT_TRUE(IsXDigit('0'));
@@ -118,12 +118,12 @@ class Derived : public Base {
 
 TEST(ImplicitCastTest, ConvertsPointers) {
   Derived derived(0);
-  EXPECT_TRUE(&derived == ::testing::internal::ImplicitCast_<Base*>(&derived));
+  EXPECT_TRUE(&derived == ::testing::Pinternal::ImplicitCast_<Base*>(&derived));
 }
 
 TEST(ImplicitCastTest, CanUseInheritance) {
   Derived derived(1);
-  Base base = ::testing::internal::ImplicitCast_<Base>(derived);
+  Base base = ::testing::Pinternal::ImplicitCast_<Base>(derived);
   EXPECT_EQ(derived.member(), base.member());
 }
 
@@ -142,7 +142,7 @@ class Castable {
 TEST(ImplicitCastTest, CanUseNonConstCastOperator) {
   bool converted = false;
   Castable castable(&converted);
-  Base base = ::testing::internal::ImplicitCast_<Base>(castable);
+  Base base = ::testing::Pinternal::ImplicitCast_<Base>(castable);
   EXPECT_TRUE(converted);
 }
 
@@ -161,7 +161,7 @@ class ConstCastable {
 TEST(ImplicitCastTest, CanUseConstCastOperatorOnConstValues) {
   bool converted = false;
   const ConstCastable const_castable(&converted);
-  Base base = ::testing::internal::ImplicitCast_<Base>(const_castable);
+  Base base = ::testing::Pinternal::ImplicitCast_<Base>(const_castable);
   EXPECT_TRUE(converted);
 }
 
@@ -187,14 +187,14 @@ TEST(ImplicitCastTest, CanSelectBetweenConstAndNonConstCasrAppropriately) {
   bool converted = false;
   bool const_converted = false;
   ConstAndNonConstCastable castable(&converted, &const_converted);
-  Base base = ::testing::internal::ImplicitCast_<Base>(castable);
+  Base base = ::testing::Pinternal::ImplicitCast_<Base>(castable);
   EXPECT_TRUE(converted);
   EXPECT_FALSE(const_converted);
 
   converted = false;
   const_converted = false;
   const ConstAndNonConstCastable const_castable(&converted, &const_converted);
-  base = ::testing::internal::ImplicitCast_<Base>(const_castable);
+  base = ::testing::Pinternal::ImplicitCast_<Base>(const_castable);
   EXPECT_FALSE(converted);
   EXPECT_TRUE(const_converted);
 }
@@ -206,7 +206,7 @@ class To {
 
 TEST(ImplicitCastTest, CanUseImplicitConstructor) {
   bool converted = false;
-  To to = ::testing::internal::ImplicitCast_<To>(&converted);
+  To to = ::testing::Pinternal::ImplicitCast_<To>(&converted);
   (void)to;
   EXPECT_TRUE(converted);
 }
@@ -232,7 +232,7 @@ TEST(IteratorTraitsTest, WorksForPointerToConst) {
 // Tests that the element_type typedef is available in scoped_ptr and refers
 // to the parameter type.
 TEST(ScopedPtrTest, DefinesElementType) {
-  StaticAssertTypeEq<int, ::testing::internal::scoped_ptr<int>::element_type>();
+  StaticAssertTypeEq<int, ::testing::Pinternal::scoped_ptr<int>::element_type>();
 }
 
 // TODO(vladl@google.com): Implement THE REST of scoped_ptr tests.
@@ -306,7 +306,7 @@ TEST(FormatCompilerIndependentFileLocationTest, FormatsUknownFileAndLine) {
 
 #if GTEST_OS_LINUX || GTEST_OS_MAC || GTEST_OS_QNX
 void* ThreadFunc(void* data) {
-  internal::Mutex* mutex = static_cast<internal::Mutex*>(data);
+  Pinternal::Mutex* mutex = static_cast<Pinternal::Mutex*>(data);
   mutex->Lock();
   mutex->Unlock();
   return NULL;
@@ -316,9 +316,9 @@ TEST(GetThreadCountTest, ReturnsCorrectValue) {
   const size_t starting_count = GetThreadCount();
   pthread_t       thread_id;
 
-  internal::Mutex mutex;
+  Pinternal::Mutex mutex;
   {
-    internal::MutexLock lock(&mutex);
+    Pinternal::MutexLock lock(&mutex);
     pthread_attr_t  attr;
     ASSERT_EQ(0, pthread_attr_init(&attr));
     ASSERT_EQ(0, pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE));
@@ -1300,5 +1300,5 @@ TEST(WindowsTypesTest, CRITICAL_SECTIONIs_RTL_CRITICAL_SECTION) {
 }
 #endif  // GTEST_OS_WINDOWS
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

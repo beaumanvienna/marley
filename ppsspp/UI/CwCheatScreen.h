@@ -34,31 +34,31 @@ public:
 	void processFileOff(std::string deactivatedCheat);
 	const char * name;
 	std::string activatedCheat, deactivatedCheat;
-	UI::EventReturn OnAddCheat(UI::EventParams &params);
-	UI::EventReturn OnImportCheat(UI::EventParams &params);
-	UI::EventReturn OnEditCheatFile(UI::EventParams &params);
-	UI::EventReturn OnEnableAll(UI::EventParams &params);
+	PUI::EventReturn OnAddCheat(PUI::EventParams &params);
+	PUI::EventReturn OnImportCheat(PUI::EventParams &params);
+	PUI::EventReturn OnEditCheatFile(PUI::EventParams &params);
+	PUI::EventReturn OnEnableAll(PUI::EventParams &params);
 
 	void onFinish(DialogResult result) override;
 protected:
 	void CreateViews() override;
 
 private:
-	UI::EventReturn OnCheckBox(UI::EventParams &params);
+	PUI::EventReturn OnCheckBox(PUI::EventParams &params);
 	std::vector<std::string> formattedList_;
 };
 
 // TODO: Instead just hook the OnClick event on a regular checkbox.
-class CheatCheckBox : public UI::ClickableItem, public CwCheatScreen {
+class CheatCheckBox : public PUI::ClickableItem, public CwCheatScreen {
 public:
-	CheatCheckBox(bool *toggle, const std::string &text, const std::string &smallText = "", UI::LayoutParams *layoutParams = 0)
-		: UI::ClickableItem(layoutParams), toggle_(toggle), text_(text) {
+	CheatCheckBox(bool *toggle, const std::string &text, const std::string &smallText = "", PUI::LayoutParams *layoutParams = 0)
+		: PUI::ClickableItem(layoutParams), toggle_(toggle), text_(text) {
 			OnClick.Handle(this, &CheatCheckBox::OnClicked);
 	}
 
 	virtual void Draw(UIContext &dc);
 
-	UI::EventReturn OnClicked(UI::EventParams &e) {
+	PUI::EventReturn OnClicked(PUI::EventParams &e) {
 		bool temp = false;
 		if (toggle_) {
 			*toggle_ = !(*toggle_);
@@ -71,7 +71,7 @@ public:
 			deactivatedCheat = text_;
 			processFileOff(deactivatedCheat);
 		}
-		return UI::EVENT_DONE;
+		return PUI::EVENT_DONE;
 	}
 
 private:

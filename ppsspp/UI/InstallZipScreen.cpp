@@ -29,7 +29,7 @@
 #include "UI/MainScreen.h"
 
 void InstallZipScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	FileInfo fileInfo;
 	bool success = getFileInfo(zipPath_.c_str(), &fileInfo);
@@ -97,18 +97,18 @@ bool InstallZipScreen::key(const KeyInput &key) {
 	return false;
 }
 
-UI::EventReturn InstallZipScreen::OnInstall(UI::EventParams &params) {
+PUI::EventReturn InstallZipScreen::OnInstall(PUI::EventParams &params) {
 	if (g_GameManager.InstallGameOnThread(zipPath_, zipPath_, deleteZipFile_)) {
 		installStarted_ = true;
 		installChoice_->SetEnabled(false);
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void InstallZipScreen::update() {
 	I18NCategory *iz = GetI18NCategory("InstallZip");
 
-	using namespace UI;
+	using namespace PUI;
 	if (g_GameManager.GetState() != GameManagerState::IDLE) {
 		if (progressBar_) {
 			progressBar_->SetVisibility(V_VISIBLE);

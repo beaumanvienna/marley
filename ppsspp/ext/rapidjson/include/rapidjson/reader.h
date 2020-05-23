@@ -196,7 +196,7 @@ template<typename Encoding = UTF8<>, typename Derived = void>
 struct BaseReaderHandler {
     typedef typename Encoding::Ch Ch;
 
-    typedef typename internal::SelectIf<internal::IsSame<Derived, void>, BaseReaderHandler, Derived>::Type Override;
+    typedef typename Pinternal::SelectIf<Pinternal::IsSame<Derived, void>, BaseReaderHandler, Derived>::Type Override;
 
     bool Default() { return true; }
     bool Null() { return static_cast<Override&>(*this).Default(); }
@@ -219,7 +219,7 @@ struct BaseReaderHandler {
 ///////////////////////////////////////////////////////////////////////////////
 // StreamLocalCopy
 
-namespace internal {
+namespace Pinternal {
 
 template<typename Stream, int = StreamTraits<Stream>::copyOptimization>
 class StreamLocalCopy;
@@ -251,7 +251,7 @@ private:
     StreamLocalCopy& operator=(const StreamLocalCopy&) /* = delete */;
 };
 
-} // namespace internal
+} // namespace Pinternal
 
 ///////////////////////////////////////////////////////////////////////////////
 // SkipWhitespace
@@ -262,7 +262,7 @@ private:
 */
 template<typename InputStream>
 void SkipWhitespace(InputStream& is) {
-    internal::StreamLocalCopy<InputStream> copy(is);
+    Pinternal::StreamLocalCopy<InputStream> copy(is);
     InputStream& s(copy.s);
 
     typename InputStream::Ch c;
@@ -927,7 +927,7 @@ private:
     public:
         typedef CharType Ch;
 
-        StackStream(internal::Stack<StackAllocator>& stack) : stack_(stack), length_(0) {}
+        StackStream(Pinternal::Stack<StackAllocator>& stack) : stack_(stack), length_(0) {}
         RAPIDJSON_FORCEINLINE void Put(Ch c) {
             *stack_.template Push<Ch>() = c;
             ++length_;
@@ -948,14 +948,14 @@ private:
         StackStream(const StackStream&);
         StackStream& operator=(const StackStream&);
 
-        internal::Stack<StackAllocator>& stack_;
+        Pinternal::Stack<StackAllocator>& stack_;
         SizeType length_;
     };
 
     // Parse string and generate String event. Different code paths for kParseInsituFlag.
     template<unsigned parseFlags, typename InputStream, typename Handler>
     void ParseString(InputStream& is, Handler& handler, bool isKey = false) {
-        internal::StreamLocalCopy<InputStream> copy(is);
+        Pinternal::StreamLocalCopy<InputStream> copy(is);
         InputStream& s(copy.s);
 
         RAPIDJSON_ASSERT(s.Peek() == '\"');
@@ -1452,7 +1452,7 @@ private:
 
     template<unsigned parseFlags, typename InputStream, typename Handler>
     void ParseNumber(InputStream& is, Handler& handler) {
-        internal::StreamLocalCopy<InputStream> copy(is);
+        Pinternal::StreamLocalCopy<InputStream> copy(is);
         NumberStream<InputStream,
             ((parseFlags & kParseNumbersAsStringsFlag) != 0) ?
                 ((parseFlags & kParseInsituFlag) == 0) :
@@ -1696,14 +1696,14 @@ private:
            if (useDouble) {
                int p = exp + expFrac;
                if (parseFlags & kParseFullPrecisionFlag)
-                   d = internal::StrtodFullPrecision(d, p, decimal, length, decimalPosition, exp);
+                   d = Pinternal::StrtodFullPrecision(d, p, decimal, length, decimalPosition, exp);
                else
-                   d = internal::StrtodNormalPrecision(d, p);
+                   d = Pinternal::StrtodNormalPrecision(d, p);
 
                // Use > max, instead of == inf, to fix bogus warning -Wfloat-equal
                if (d > (std::numeric_limits<double>::max)()) {
                    // Overflow
-                   // TODO: internal::StrtodX should report overflow (or underflow)
+                   // TODO: Pinternal::StrtodX should report overflow (or underflow)
                    RAPIDJSON_PARSE_ERROR(kParseErrorNumberTooBig, startOffset);
                }
 
@@ -2208,7 +2208,7 @@ private:
     }
 
     static const size_t kDefaultStackCapacity = 256;    //!< Default stack capacity in bytes for storing a single decoded string.
-    internal::Stack<StackAllocator> stack_;  //!< A stack for storing decoded string temporarily during non-destructive parsing.
+    Pinternal::Stack<StackAllocator> stack_;  //!< A stack for storing decoded string temporarily during non-destructive parsing.
     ParseResult parseResult_;
     IterativeParsingState state_;
 }; // class GenericReader

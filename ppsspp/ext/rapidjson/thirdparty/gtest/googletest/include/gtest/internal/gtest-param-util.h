@@ -73,7 +73,7 @@ struct PrintToStringParamName {
   }
 };
 
-namespace internal {
+namespace Pinternal {
 
 // INTERNAL IMPLEMENTATION - DO NOT USE IN USER CODE.
 //
@@ -723,7 +723,7 @@ class ParameterizedTestCaseRegistry {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(ParameterizedTestCaseRegistry);
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  //  GTEST_HAS_PARAM_TEST

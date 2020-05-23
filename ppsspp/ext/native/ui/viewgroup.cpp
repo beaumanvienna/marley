@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace UI {
+namespace PUI {
 
 const float ITEM_HEIGHT = 64.f;
 
@@ -134,7 +134,7 @@ void ViewGroup::DeviceRestored(Draw::DrawContext *draw) {
 void ViewGroup::Draw(UIContext &dc) {
 	if (hasDropShadow_) {
 		// Darken things behind.
-		dc.FillRect(UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
+		dc.FillRect(PUI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
 		float dropsize = 30.0f;
 		dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
 			bounds_.x - dropsize, bounds_.y,

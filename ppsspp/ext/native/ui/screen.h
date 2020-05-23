@@ -21,7 +21,7 @@
 #include "base/NativeApp.h"
 #include "input/input_state.h"
 
-namespace UI {
+namespace PUI {
 	class View;
 }
 
@@ -160,7 +160,7 @@ private:
 	struct Layer {
 		Screen *screen;
 		int flags;  // From LAYER_ enum above
-		UI::View *focusedView;  // TODO: save focus here. Going for quick solution now to reset focus.
+		PUI::View *focusedView;  // TODO: save focus here. Going for quick solution now to reset focus.
 	};
 
 	// Dialog stack. These are shown "on top" of base screens and the Android back button works as expected.

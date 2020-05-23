@@ -24,28 +24,28 @@ void UIScreen::DoRecreateViews() {
 	std::lock_guard<std::recursive_mutex> guard(screenManager()->inputLock_);
 
 	if (recreateViews_) {
-		UI::PersistMap persisted;
+		PUI::PersistMap persisted;
 		bool persisting = root_ != nullptr;
 		if (persisting) {
-			root_->PersistData(UI::PERSIST_SAVE, "root", persisted);
+			root_->PersistData(PUI::PERSIST_SAVE, "root", persisted);
 		}
 
 		delete root_;
 		root_ = nullptr;
 		CreateViews();
-		UI::View *defaultView = root_ ? root_->GetDefaultFocusView() : nullptr;
-		if (defaultView && defaultView->GetVisibility() == UI::V_VISIBLE) {
+		PUI::View *defaultView = root_ ? root_->GetDefaultFocusView() : nullptr;
+		if (defaultView && defaultView->GetVisibility() == PUI::V_VISIBLE) {
 			defaultView->SetFocus();
 		}
 		recreateViews_ = false;
 
 		if (persisting && root_ != nullptr) {
-			root_->PersistData(UI::PERSIST_RESTORE, "root", persisted);
+			root_->PersistData(PUI::PERSIST_RESTORE, "root", persisted);
 
 			// Update layout and refocus so things scroll into view.
 			// This is for resizing down, when focused on something now offscreen.
-			UI::LayoutViewHierarchy(*screenManager()->getUIContext(), root_);
-			UI::View *focused = UI::GetFocusedView();
+			PUI::LayoutViewHierarchy(*screenManager()->getUIContext(), root_);
+			PUI::View *focused = PUI::GetFocusedView();
 			if (focused) {
 				root_->SubviewFocused(focused);
 			}
@@ -106,7 +106,7 @@ void UIScreen::render() {
 
 	if (root_) {
 		UIContext *uiContext = screenManager()->getUIContext();
-		UI::LayoutViewHierarchy(*uiContext, root_);
+		PUI::LayoutViewHierarchy(*uiContext, root_);
 
 		uiContext->PushTransform({translation_, scale_, alpha_});
 
@@ -135,14 +135,14 @@ bool UIScreen::touch(const TouchInput &touch) {
 	if (root_) {
 		if (ClickDebug && (touch.flags & TOUCH_DOWN)) {
 			ILOG("Touch down!");
-			std::vector<UI::View *> views;
+			std::vector<PUI::View *> views;
 			root_->Query(touch.x, touch.y, views);
 			for (auto view : views) {
 				ILOG("%s", view->Describe().c_str());
 			}
 		}
 
-		UI::TouchEvent(touch, root_);
+		PUI::TouchEvent(touch, root_);
 		return true;
 	}
 	return false;
@@ -150,7 +150,7 @@ bool UIScreen::touch(const TouchInput &touch) {
 
 bool UIScreen::key(const KeyInput &key) {
 	if (root_) {
-		return UI::KeyEvent(key, root_);
+		return PUI::KeyEvent(key, root_);
 	}
 	return false;
 }
@@ -161,7 +161,7 @@ void UIScreen::TriggerFinish(DialogResult result) {
 
 bool UIDialogScreen::key(const KeyInput &key) {
 	bool retval = UIScreen::key(key);
-	if (!retval && (key.flags & KEY_DOWN) && UI::IsEscapeKey(key)) {
+	if (!retval && (key.flags & KEY_DOWN) && PUI::IsEscapeKey(key)) {
 		if (finished_) {
 			ELOG("Screen already finished");
 		} else {
@@ -210,25 +210,25 @@ bool UIScreen::axis(const AxisInput &axis) {
 	if (released & PAD_BUTTON_DOWN) key(KeyInput(DEVICE_ID_KEYBOARD, NKCODE_DPAD_DOWN, KEY_UP));
 	hatDown_ = flags;
 	if (root_) {
-		UI::AxisEvent(axis, root_);
+		PUI::AxisEvent(axis, root_);
 		return true;
 	}
 	return (pressed & (PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT | PAD_BUTTON_UP | PAD_BUTTON_DOWN)) != 0;
 }
 
-UI::EventReturn UIScreen::OnBack(UI::EventParams &e) {
+PUI::EventReturn UIScreen::OnBack(PUI::EventParams &e) {
 	TriggerFinish(DR_BACK);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn UIScreen::OnOK(UI::EventParams &e) {
+PUI::EventReturn UIScreen::OnOK(PUI::EventParams &e) {
 	TriggerFinish(DR_OK);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn UIScreen::OnCancel(UI::EventParams &e) {
+PUI::EventReturn UIScreen::OnCancel(PUI::EventParams &e) {
 	TriggerFinish(DR_CANCEL);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 PopupScreen::PopupScreen(std::string title, std::string button1, std::string button2)
@@ -256,7 +256,7 @@ bool PopupScreen::touch(const TouchInput &touch) {
 bool PopupScreen::key(const KeyInput &key) {
 	if (key.flags & KEY_DOWN) {
 		if (key.keyCode == NKCODE_ENTER && defaultButton_) {
-			UI::EventParams e{};
+			PUI::EventParams e{};
 			defaultButton_->OnClick.Trigger(e);
 			return true;
 		}
@@ -311,7 +311,7 @@ void PopupScreen::update() {
 	}
 }
 
-void PopupScreen::SetPopupOrigin(const UI::View *view) {
+void PopupScreen::SetPopupOrigin(const PUI::View *view) {
 	hasPopupOrigin_ = true;
 	popupOrigin_ = view->GetBounds().Center();
 }
@@ -330,7 +330,7 @@ void PopupScreen::resized() {
 }
 
 void PopupScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	UIContext &dc = *screenManager()->getUIContext();
 
 	AnchorLayout *anchor = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
@@ -377,14 +377,14 @@ void PopupScreen::CreateViews() {
 	}
 }
 
-void MessagePopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void MessagePopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	UIContext &dc = *screenManager()->getUIContext();
 
 	std::vector<std::string> messageLines;
 	SplitString(message_, '\n', messageLines);
 	for (const auto& lineOfText : messageLines)
-		parent->Add(new UI::TextView(lineOfText, ALIGN_LEFT | ALIGN_VCENTER, false))->SetTextColor(dc.theme->popupStyle.fgColor);
+		parent->Add(new PUI::TextView(lineOfText, ALIGN_LEFT | ALIGN_VCENTER, false))->SetTextColor(dc.theme->popupStyle.fgColor);
 }
 
 void MessagePopupScreen::OnCompleted(DialogResult result) {
@@ -397,24 +397,24 @@ void MessagePopupScreen::OnCompleted(DialogResult result) {
 	}
 }
 
-void ListPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void ListPopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 
 	listView_ = parent->Add(new ListView(&adaptor_, hidden_)); //, new LinearLayoutParams(1.0)));
 	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - 140);
 	listView_->OnChoice.Handle(this, &ListPopupScreen::OnListChoice);
 }
 
-UI::EventReturn ListPopupScreen::OnListChoice(UI::EventParams &e) {
+PUI::EventReturn ListPopupScreen::OnListChoice(PUI::EventParams &e) {
 	adaptor_.SetSelected(e.a);
 	if (callback_)
 		callback_(adaptor_.GetSelected());
 	TriggerFinish(DR_OK);
 	OnChoice.Dispatch(e);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-namespace UI {
+namespace PUI {
 
 std::string ChopTitle(const std::string &title) {
 	size_t pos = title.find('\n');
@@ -424,7 +424,7 @@ std::string ChopTitle(const std::string &title) {
 	return title;
 }
 
-UI::EventReturn PopupMultiChoice::HandleClick(UI::EventParams &e) {
+PUI::EventReturn PopupMultiChoice::HandleClick(PUI::EventParams &e) {
 	restoreFocus_ = HasFocus();
 
 	I18NCategory *category = category_ ? GetI18NCategory(category_) : nullptr;
@@ -440,7 +440,7 @@ UI::EventReturn PopupMultiChoice::HandleClick(UI::EventParams &e) {
 	if (e.v)
 		popupScreen->SetPopupOrigin(e.v);
 	screenManager_->push(popupScreen);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void PopupMultiChoice::Update() {
@@ -464,7 +464,7 @@ void PopupMultiChoice::ChoiceCallback(int num) {
 		*value_ = num + minVal_;
 		UpdateText();
 
-		UI::EventParams e{};
+		PUI::EventParams e{};
 		e.v = this;
 		e.a = num;
 		OnChoice.Trigger(e);
@@ -658,19 +658,19 @@ EventReturn SliderPopupScreen::OnTextChange(EventParams &params) {
 	return EVENT_DONE;
 }
 
-void SliderPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void SliderPopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	UIContext &dc = *screenManager()->getUIContext();
 
 	sliderValue_ = *value_;
 	if (disabled_ && sliderValue_ < 0)
 		sliderValue_ = 0;
-	LinearLayout *vert = parent->Add(new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(UI::Margins(10, 10))));
-	slider_ = new Slider(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(UI::Margins(10, 10)));
+	LinearLayout *vert = parent->Add(new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(PUI::Margins(10, 10))));
+	slider_ = new Slider(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(PUI::Margins(10, 10)));
 	slider_->OnChange.Handle(this, &SliderPopupScreen::OnSliderChange);
 	vert->Add(slider_);
 
-	LinearLayout *lin = vert->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(UI::Margins(10, 10))));
+	LinearLayout *lin = vert->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(PUI::Margins(10, 10))));
 	lin->Add(new Button(" - "))->OnClick.Handle(this, &SliderPopupScreen::OnDecrease);
 	lin->Add(new Button(" + "))->OnClick.Handle(this, &SliderPopupScreen::OnIncrease);
 
@@ -691,20 +691,20 @@ void SliderPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
 		vert->Add(new CheckBox(&disabled_, negativeLabel_));
 
 	if (IsFocusMovementEnabled())
-		UI::SetFocusedView(slider_);
+		PUI::SetFocusedView(slider_);
 }
 
-void SliderFloatPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void SliderFloatPopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	UIContext &dc = *screenManager()->getUIContext();
 
 	sliderValue_ = *value_;
-	LinearLayout *vert = parent->Add(new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(UI::Margins(10, 10))));
-	slider_ = new SliderFloat(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(UI::Margins(10, 10)));
+	LinearLayout *vert = parent->Add(new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(PUI::Margins(10, 10))));
+	slider_ = new SliderFloat(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(PUI::Margins(10, 10)));
 	slider_->OnChange.Handle(this, &SliderFloatPopupScreen::OnSliderChange);
 	vert->Add(slider_);
 
-	LinearLayout *lin = vert->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(UI::Margins(10, 10))));
+	LinearLayout *lin = vert->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(PUI::Margins(10, 10))));
 	lin->Add(new Button(" - "))->OnClick.Handle(this, &SliderFloatPopupScreen::OnDecrease);
 	lin->Add(new Button(" + "))->OnClick.Handle(this, &SliderFloatPopupScreen::OnIncrease);
 
@@ -720,9 +720,9 @@ void SliderFloatPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
 	if (!units_.empty())
 		lin->Add(new TextView(units_, new LinearLayoutParams(10.0f)))->SetTextColor(dc.theme->popupStyle.fgColor);
 
-	// slider_ = parent->Add(new SliderFloat(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(UI::Margins(10, 5))));
+	// slider_ = parent->Add(new SliderFloat(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(PUI::Margins(10, 5))));
 	if (IsFocusMovementEnabled())
-		UI::SetFocusedView(slider_);
+		PUI::SetFocusedView(slider_);
 }
 
 EventReturn SliderFloatPopupScreen::OnDecrease(EventParams &params) {
@@ -833,19 +833,19 @@ EventReturn PopupTextInputChoice::HandleChange(EventParams &e) {
 	return EVENT_DONE;
 }
 
-void TextEditPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void TextEditPopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	UIContext &dc = *screenManager()->getUIContext();
 
 	textEditValue_ = *value_;
-	LinearLayout *lin = parent->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams((UI::Size)300, WRAP_CONTENT)));
+	LinearLayout *lin = parent->Add(new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams((PUI::Size)300, WRAP_CONTENT)));
 	edit_ = new TextEdit(textEditValue_, placeholder_, new LinearLayoutParams(1.0f));
 	edit_->SetMaxLen(maxLen_);
 	edit_->SetTextColor(dc.theme->popupStyle.fgColor);
 	lin->Add(edit_);
 
 	if (IsFocusMovementEnabled())
-		UI::SetFocusedView(edit_);
+		PUI::SetFocusedView(edit_);
 }
 
 void TextEditPopupScreen::OnCompleted(DialogResult result) {
@@ -886,4 +886,4 @@ void ChoiceWithValueDisplay::Draw(UIContext &dc) {
 	dc.DrawText(valueText.str().c_str(), bounds_.x2() - paddingX, bounds_.centerY(), style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
 }
 
-}  // namespace UI
+}  // namespace PUI

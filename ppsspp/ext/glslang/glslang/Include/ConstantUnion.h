@@ -41,7 +41,7 @@
 #include "../Include/Common.h"
 #include "../Include/BaseTypes.h"
 
-namespace glslang {
+namespace Pglslang {
 
 class TConstUnion {
 public:
@@ -969,6 +969,6 @@ protected:
     TConstUnionVector* unionArray;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _CONSTANT_UNION_INCLUDED_

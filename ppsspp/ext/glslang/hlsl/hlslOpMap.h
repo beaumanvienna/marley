@@ -38,7 +38,7 @@
 
 #include "hlslScanContext.h"
 
-namespace glslang {
+namespace Pglslang {
 
     enum PrecedenceLevel {
         PlBad,
@@ -64,6 +64,6 @@ namespace glslang {
         static PrecedenceLevel precedenceLevel(TOperator);
     };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // HLSLOPMAP_H_

@@ -38,14 +38,14 @@ public:
 protected:
 	virtual void CreateViews() override;
 private:
-	UI::EventReturn OnDefaultMapping(UI::EventParams &params);
-	UI::EventReturn OnClearMapping(UI::EventParams &params);
-	UI::EventReturn OnAutoConfigure(UI::EventParams &params);
-	UI::EventReturn OnTestAnalogs(UI::EventParams &params);
+	PUI::EventReturn OnDefaultMapping(PUI::EventParams &params);
+	PUI::EventReturn OnClearMapping(PUI::EventParams &params);
+	PUI::EventReturn OnAutoConfigure(PUI::EventParams &params);
+	PUI::EventReturn OnTestAnalogs(PUI::EventParams &params);
 
 	virtual void dialogFinished(const Screen *dialog, DialogResult result) override;
 
-	UI::ScrollView *rightScroll_;
+	PUI::ScrollView *rightScroll_;
 	std::vector<ControlMapper *> mappers_;
 };
 
@@ -60,7 +60,7 @@ public:
 	virtual bool axis(const AxisInput &axis) override;
 
 protected:
-	void CreatePopupContents(UI::ViewGroup *parent) override;
+	void CreatePopupContents(PUI::ViewGroup *parent) override;
 
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return true; }
@@ -83,7 +83,7 @@ public:
 	virtual bool axis(const AxisInput &axis) override;
 
 protected:
-	void CreatePopupContents(UI::ViewGroup *parent) override;
+	void CreatePopupContents(PUI::ViewGroup *parent) override;
 
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return true; }
@@ -105,8 +105,8 @@ public:
 protected:
 	virtual void CreateViews() override;
 
-	UI::TextView *lastKeyEvent_ = nullptr;
-	UI::TextView *lastLastKeyEvent_ = nullptr;
+	PUI::TextView *lastKeyEvent_ = nullptr;
+	PUI::TextView *lastLastKeyEvent_ = nullptr;
 };
 
 class TouchTestScreen : public UIDialogScreenWithBackground {
@@ -132,5 +132,5 @@ protected:
 	TrackedTouch touches_[MAX_TOUCH_POINTS]{};
 
 	virtual void CreateViews() override;
-	UI::EventReturn OnImmersiveModeChange(UI::EventParams &e);
+	PUI::EventReturn OnImmersiveModeChange(PUI::EventParams &e);
 };

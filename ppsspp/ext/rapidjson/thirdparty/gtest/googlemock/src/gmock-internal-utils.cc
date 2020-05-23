@@ -45,7 +45,7 @@
 #include "gtest/gtest.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Converts an identifier name to a space-separated list of lower-case
 // words.  Each maximum substring of the form [A-Za-z][a-z]*|\d+ is
@@ -164,11 +164,11 @@ GTEST_API_ void Log(LogSeverity severity,
       std::cout << "\n";
     }
     std::cout << "Stack trace:\n"
-         << ::testing::internal::GetCurrentOsStackTraceExceptTop(
+         << ::testing::Pinternal::GetCurrentOsStackTraceExceptTop(
              ::testing::UnitTest::GetInstance(), actual_to_skip);
   }
   std::cout << ::std::flush;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing

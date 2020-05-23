@@ -41,7 +41,7 @@
 #include "hlslOpMap.h"
 #include "hlslTokenStream.h"
 
-namespace glslang {
+namespace Pglslang {
 
     class TFunctionDeclarator;
 
@@ -137,6 +137,6 @@ namespace glslang {
         TIntermNode* unitNode;
     };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // HLSLGRAMMAR_H_

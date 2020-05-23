@@ -59,7 +59,7 @@
 #include <unordered_map>
 #include <map>
 
-namespace spv {
+namespace Pspv {
 
 typedef enum {
     Spv_1_0 = (1 << 16),
@@ -79,17 +79,17 @@ public:
 
     unsigned int getSpvVersion() const { return spvVersion; }
 
-    void setSource(spv::SourceLanguage lang, int version)
+    void setSource(Pspv::SourceLanguage lang, int version)
     {
         source = lang;
         sourceVersion = version;
     }
-    spv::Id getStringId(const std::string& str)
+    Pspv::Id getStringId(const std::string& str)
     {
         auto sItr = stringIds.find(str);
         if (sItr != stringIds.end())
             return sItr->second;
-        spv::Id strId = getUniqueId();
+        Pspv::Id strId = getUniqueId();
         Instruction* fileString = new Instruction(strId, NoType, OpString);
         const char* file_c_str = str.c_str();
         fileString->addStringOperand(file_c_str);
@@ -122,17 +122,17 @@ public:
     }
     void addInclude(const std::string& name, const std::string& text)
     {
-        spv::Id incId = getStringId(name);
+        Pspv::Id incId = getStringId(name);
         includeFiles[incId] = &text;
     }
     Id import(const char*);
-    void setMemoryModel(spv::AddressingModel addr, spv::MemoryModel mem)
+    void setMemoryModel(Pspv::AddressingModel addr, Pspv::MemoryModel mem)
     {
         addressModel = addr;
         memoryModel = mem;
     }
 
-    void addCapability(spv::Capability cap) { capabilities.insert(cap); }
+    void addCapability(Pspv::Capability cap) { capabilities.insert(cap); }
 
     // To get a new <id> for anything needing a new one.
     Id getUniqueId() { return ++uniqueId; }
@@ -333,10 +333,10 @@ public:
     Id createUndefined(Id type);
 
     // Store into an Id and return the l-value
-    void createStore(Id rValue, Id lValue, spv::MemoryAccessMask memoryAccess = spv::MemoryAccessMaskNone, spv::Scope scope = spv::ScopeMax, unsigned int alignment = 0);
+    void createStore(Id rValue, Id lValue, Pspv::MemoryAccessMask memoryAccess = Pspv::MemoryAccessMaskNone, Pspv::Scope scope = Pspv::ScopeMax, unsigned int alignment = 0);
 
     // Load from an Id and return it
-    Id createLoad(Id lValue, spv::MemoryAccessMask memoryAccess = spv::MemoryAccessMaskNone, spv::Scope scope = spv::ScopeMax, unsigned int alignment = 0);
+    Id createLoad(Id lValue, Pspv::MemoryAccessMask memoryAccess = Pspv::MemoryAccessMaskNone, Pspv::Scope scope = Pspv::ScopeMax, unsigned int alignment = 0);
 
     // Create an OpAccessChain instruction
     Id createAccessChain(StorageClass, Id base, const std::vector<Id>& offsets);
@@ -367,8 +367,8 @@ public:
     Id createTriOp(Op, Id typeId, Id operand1, Id operand2, Id operand3);
     Id createOp(Op, Id typeId, const std::vector<Id>& operands);
     Id createOp(Op, Id typeId, const std::vector<IdImmediate>& operands);
-    Id createFunctionCall(spv::Function*, const std::vector<spv::Id>&);
-    Id createSpecConstantOp(Op, Id typeId, const std::vector<spv::Id>& operands, const std::vector<unsigned>& literals);
+    Id createFunctionCall(Pspv::Function*, const std::vector<Pspv::Id>&);
+    Id createSpecConstantOp(Op, Id typeId, const std::vector<Pspv::Id>& operands, const std::vector<unsigned>& literals);
 
     // Take an rvalue (source) and a set of channels to extract from it to
     // make a new rvalue, which is returned.
@@ -671,10 +671,10 @@ public:
     }
 
     // use accessChain and swizzle to store value
-    void accessChainStore(Id rvalue, spv::MemoryAccessMask memoryAccess = spv::MemoryAccessMaskNone, spv::Scope scope = spv::ScopeMax, unsigned int alignment = 0);
+    void accessChainStore(Id rvalue, Pspv::MemoryAccessMask memoryAccess = Pspv::MemoryAccessMaskNone, Pspv::Scope scope = Pspv::ScopeMax, unsigned int alignment = 0);
 
     // use accessChain and swizzle to load an r-value
-    Id accessChainLoad(Decoration precision, Decoration nonUniform, Id ResultType, spv::MemoryAccessMask memoryAccess = spv::MemoryAccessMaskNone, spv::Scope scope = spv::ScopeMax, unsigned int alignment = 0);
+    Id accessChainLoad(Decoration precision, Decoration nonUniform, Id ResultType, Pspv::MemoryAccessMask memoryAccess = Pspv::MemoryAccessMaskNone, Pspv::Scope scope = Pspv::ScopeMax, unsigned int alignment = 0);
 
     // get the direct pointer for an l-value
     Id accessChainGetLValue();
@@ -696,7 +696,7 @@ public:
     // Hook to visit each instruction in a block in a function
     void postProcess(Instruction&);
     // Hook to visit each non-32-bit sized float/int operation in a block.
-    void postProcessType(const Instruction&, spv::Id typeId);
+    void postProcessType(const Instruction&, Pspv::Id typeId);
 #endif
 
     void dump(std::vector<unsigned int>&) const;
@@ -726,15 +726,15 @@ public:
     void createAndSetNoPredecessorBlock(const char*);
     void createSelectionMerge(Block* mergeBlock, unsigned int control);
     void dumpSourceInstructions(std::vector<unsigned int>&) const;
-    void dumpSourceInstructions(const spv::Id fileId, const std::string& text, std::vector<unsigned int>&) const;
+    void dumpSourceInstructions(const Pspv::Id fileId, const std::string& text, std::vector<unsigned int>&) const;
     void dumpInstructions(std::vector<unsigned int>&, const std::vector<std::unique_ptr<Instruction> >&) const;
     void dumpModuleProcesses(std::vector<unsigned int>&) const;
-    spv::MemoryAccessMask sanitizeMemoryAccessForStorageClass(spv::MemoryAccessMask memoryAccess, StorageClass sc) const;
+    Pspv::MemoryAccessMask sanitizeMemoryAccessForStorageClass(Pspv::MemoryAccessMask memoryAccess, StorageClass sc) const;
 
     unsigned int spvVersion;     // the version of SPIR-V to emit in the header
     SourceLanguage source;
     int sourceVersion;
-    spv::Id sourceFileStringId;
+    Pspv::Id sourceFileStringId;
     std::string sourceText;
     int currentLine;
     const char* currentFile;
@@ -744,7 +744,7 @@ public:
     std::vector<const char*> moduleProcesses;
     AddressingModel addressModel;
     MemoryModel memoryModel;
-    std::set<spv::Capability> capabilities;
+    std::set<Pspv::Capability> capabilities;
     int builderNumber;
     Module module;
     Block* buildPoint;
@@ -776,10 +776,10 @@ public:
     std::stack<LoopBlocks> loops;
 
     // map from strings to their string ids
-    std::unordered_map<std::string, spv::Id> stringIds;
+    std::unordered_map<std::string, Pspv::Id> stringIds;
 
     // map from include file name ids to their contents
-    std::map<spv::Id, const std::string*> includeFiles;
+    std::map<Pspv::Id, const std::string*> includeFiles;
 
     // The stream for outputting warnings and errors.
     SpvBuildLogger* logger;

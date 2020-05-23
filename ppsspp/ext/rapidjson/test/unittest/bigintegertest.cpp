@@ -16,7 +16,7 @@
 
 #include "rapidjson/internal/biginteger.h"
 
-using namespace rapidjson::internal;
+using namespace rapidjson::Pinternal;
 
 #define BIGINTEGER_LITERAL(s) BigInteger(s, sizeof(s) - 1)
 

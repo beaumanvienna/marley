@@ -65,7 +65,7 @@
 #include <cstring>
 #include <vector>
 
-namespace glslang {
+namespace Pglslang {
 
 // If we are using guard blocks, we must track each individual
 // allocation.  If we aren't using guard blocks, these
@@ -311,6 +311,6 @@ protected:
     TPoolAllocator& allocator;
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _POOLALLOC_INCLUDED_

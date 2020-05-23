@@ -19,7 +19,7 @@
 
 #include "MiscScreens.h"
 
-namespace UI {
+namespace PUI {
 	class CheckBox;
 }
 
@@ -35,7 +35,7 @@ public:
 	void onFinish(DialogResult result) override;
 
 protected:
-	UI::EventReturn OnToggleAll(UI::EventParams &e);
+	PUI::EventReturn OnToggleAll(PUI::EventParams &e);
 
 private:
 	std::vector<TouchButtonToggle> toggles_;

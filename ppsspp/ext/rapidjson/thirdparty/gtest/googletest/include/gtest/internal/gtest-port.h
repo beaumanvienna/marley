@@ -1000,7 +1000,7 @@ using GTEST_TUPLE_NAMESPACE_::tuple_size;
 using GTEST_TUPLE_NAMESPACE_::tuple_element;
 #endif  // defined(GTEST_TUPLE_NAMESPACE_)
 
-namespace internal {
+namespace Pinternal {
 
 // A secret type that Google Test users don't know about.  It has no
 // definition on purpose.  Therefore it's impossible to create a
@@ -1030,7 +1030,7 @@ template <bool>
 };
 
 # define GTEST_COMPILE_ASSERT_(expr, msg) \
-  typedef ::testing::internal::CompileAssert<(static_cast<bool>(expr))> \
+  typedef ::testing::Pinternal::CompileAssert<(static_cast<bool>(expr))> \
       msg[static_cast<bool>(expr) ? 1 : -1] GTEST_ATTRIBUTE_UNUSED_
 #endif  // !GTEST_LANG_CXX11
 
@@ -1269,7 +1269,7 @@ class GTEST_API_ GTestLog {
 #if !defined(GTEST_LOG_)
 
 # define GTEST_LOG_(severity) \
-    ::testing::internal::GTestLog(::testing::internal::GTEST_##severity, \
+    ::testing::Pinternal::GTestLog(::testing::Pinternal::GTEST_##severity, \
                                   __FILE__, __LINE__).GetStream()
 
 inline void LogToStderr() {}
@@ -1294,7 +1294,7 @@ inline void FlushInfoLog() { fflush(NULL); }
 //    whether it is built in the debug mode or not.
 # define GTEST_CHECK_(condition) \
     GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-    if (::testing::internal::IsTrue(condition)) \
+    if (::testing::Pinternal::IsTrue(condition)) \
       ; \
     else \
       GTEST_LOG_(FATAL) << "Condition " #condition " failed. "
@@ -1373,7 +1373,7 @@ inline To DownCast_(From* f) {  // so we only accept pointers
   if (false) {
   GTEST_INTENTIONAL_CONST_COND_POP_()
     const To to = NULL;
-    ::testing::internal::ImplicitCast_<From*>(to);
+    ::testing::Pinternal::ImplicitCast_<From*>(to);
   }
 
 #if GTEST_HAS_RTTI
@@ -1428,12 +1428,12 @@ GTEST_API_ size_t GetFileSize(FILE* file);
 GTEST_API_ std::string ReadEntireFile(FILE* file);
 
 // All command line arguments.
-GTEST_API_ const ::std::vector<testing::internal::string>& GetArgvs();
+GTEST_API_ const ::std::vector<testing::Pinternal::string>& GetArgvs();
 
 #if GTEST_HAS_DEATH_TEST
 
-const ::std::vector<testing::internal::string>& GetInjectableArgvs();
-void SetInjectableArgvs(const ::std::vector<testing::internal::string>*
+const ::std::vector<testing::Pinternal::string>& GetInjectableArgvs();
+void SetInjectableArgvs(const ::std::vector<testing::Pinternal::string>*
                              new_argvs);
 
 
@@ -1699,10 +1699,10 @@ class GTEST_API_ Mutex {
 };
 
 # define GTEST_DECLARE_STATIC_MUTEX_(mutex) \
-    extern ::testing::internal::Mutex mutex
+    extern ::testing::Pinternal::Mutex mutex
 
 # define GTEST_DEFINE_STATIC_MUTEX_(mutex) \
-    ::testing::internal::Mutex mutex(::testing::internal::Mutex::kStaticMutex)
+    ::testing::Pinternal::Mutex mutex(::testing::Pinternal::Mutex::kStaticMutex)
 
 // We cannot name this class MutexLock because the ctor declaration would
 // conflict with a macro named MutexLock, which is defined on some
@@ -1966,11 +1966,11 @@ class MutexBase {
 
 // Forward-declares a static mutex.
 #  define GTEST_DECLARE_STATIC_MUTEX_(mutex) \
-     extern ::testing::internal::MutexBase mutex
+     extern ::testing::Pinternal::MutexBase mutex
 
 // Defines and statically (i.e. at link time) initializes a static mutex.
 #  define GTEST_DEFINE_STATIC_MUTEX_(mutex) \
-     ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false, pthread_t() }
+     ::testing::Pinternal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false, pthread_t() }
 
 // The Mutex class can only be used for mutexes created at runtime. It
 // shares its API with MutexBase otherwise.
@@ -2142,9 +2142,9 @@ class Mutex {
 };
 
 # define GTEST_DECLARE_STATIC_MUTEX_(mutex) \
-  extern ::testing::internal::Mutex mutex
+  extern ::testing::Pinternal::Mutex mutex
 
-# define GTEST_DEFINE_STATIC_MUTEX_(mutex) ::testing::internal::Mutex mutex
+# define GTEST_DEFINE_STATIC_MUTEX_(mutex) ::testing::Pinternal::Mutex mutex
 
 // We cannot name this class MutexLock because the ctor declaration would
 // conflict with a macro named MutexLock, which is defined on some
@@ -2509,12 +2509,12 @@ typedef TypeWithSize<8>::Int TimeInMillis;  // Represents time in milliseconds.
 #endif  // !defined(GTEST_USE_OWN_FLAGFILE_FLAG_)
 
 #if !defined(GTEST_DECLARE_bool_)
-# define GTEST_FLAG_SAVER_ ::testing::internal::GTestFlagSaver
+# define GTEST_FLAG_SAVER_ ::testing::Pinternal::GTestFlagSaver
 
 // Macros for declaring flags.
 # define GTEST_DECLARE_bool_(name) GTEST_API_ extern bool GTEST_FLAG(name)
 # define GTEST_DECLARE_int32_(name) \
-    GTEST_API_ extern ::testing::internal::Int32 GTEST_FLAG(name)
+    GTEST_API_ extern ::testing::Pinternal::Int32 GTEST_FLAG(name)
 #define GTEST_DECLARE_string_(name) \
     GTEST_API_ extern ::std::string GTEST_FLAG(name)
 
@@ -2522,7 +2522,7 @@ typedef TypeWithSize<8>::Int TimeInMillis;  // Represents time in milliseconds.
 #define GTEST_DEFINE_bool_(name, default_val, doc) \
     GTEST_API_ bool GTEST_FLAG(name) = (default_val)
 #define GTEST_DEFINE_int32_(name, default_val, doc) \
-    GTEST_API_ ::testing::internal::Int32 GTEST_FLAG(name) = (default_val)
+    GTEST_API_ ::testing::Pinternal::Int32 GTEST_FLAG(name) = (default_val)
 #define GTEST_DEFINE_string_(name, default_val, doc) \
     GTEST_API_ ::std::string GTEST_FLAG(name) = (default_val)
 
@@ -2548,7 +2548,7 @@ bool BoolFromGTestEnv(const char* flag, bool default_val);
 GTEST_API_ Int32 Int32FromGTestEnv(const char* flag, Int32 default_val);
 std::string StringFromGTestEnv(const char* flag, const char* default_val);
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_

@@ -58,7 +58,7 @@
 //    c. implicit dead bindings are left un-bound.
 //
 
-namespace glslang {
+namespace Pglslang {
 
 class TVarGatherTraverser : public TLiveTraverser {
 public:
@@ -552,7 +552,7 @@ uint32_t TDefaultIoResolverBase::PcomputeTypeLocationSize(const TType& type, ESh
 }
 
 //TDefaultGlslIoResolver
-TResourceType TDefaultGlslIoResolver::getResourceType(const glslang::TType& type) {
+TResourceType TDefaultGlslIoResolver::getResourceType(const Pglslang::TType& type) {
     if (isImageType(type)) {
         return EResImage;
     }
@@ -910,7 +910,7 @@ void TDefaultGlslIoResolver::reserverResourceSlot(TVarEntryInfo& ent, TInfoSink&
 //TDefaultGlslIoResolver end
 
 /*
- * Basic implementation of glslang::TIoMapResolver that replaces the
+ * Basic implementation of Pglslang::TIoMapResolver that replaces the
  * previous offset behavior.
  * It does the same, uses the offsets for the corresponding uniform
  * types. Also respects the EOptionAutoMapBindings flag and binds
@@ -924,7 +924,7 @@ struct TDefaultIoResolver : public TDefaultIoResolverBase {
 
     bool validateBinding(EShLanguage /*stage*/, TVarEntryInfo& /*ent*/) override { return true; }
 
-    TResourceType getResourceType(const glslang::TType& type) override {
+    TResourceType getResourceType(const Pglslang::TType& type) override {
         if (isImageType(type)) {
             return EResImage;
         }
@@ -1012,7 +1012,7 @@ struct TDefaultHlslIoResolver : public TDefaultIoResolverBase {
 
     bool validateBinding(EShLanguage /*stage*/, TVarEntryInfo& /*ent*/) override { return true; }
 
-    TResourceType getResourceType(const glslang::TType& type) override {
+    TResourceType getResourceType(const Pglslang::TType& type) override {
         if (isUavType(type)) {
             return EResUav;
         }
@@ -1262,6 +1262,6 @@ bool TGlslIoMapper::doMap(TIoMapResolver* resolver, TInfoSink& infoSink) {
     }
 }
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // GLSLANG_WEB

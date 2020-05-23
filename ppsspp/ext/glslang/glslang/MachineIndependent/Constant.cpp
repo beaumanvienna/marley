@@ -44,7 +44,7 @@
 
 namespace {
 
-using namespace glslang;
+using namespace Pglslang;
 
 typedef union {
     double d;
@@ -80,7 +80,7 @@ const double pi = 3.1415926535897932384626433832795;
 } // end anonymous namespace
 
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // The fold functions see if an operation on a constant can be done in place,
@@ -1425,4 +1425,4 @@ TIntermTyped* TIntermediate::foldSwizzle(TIntermTyped* node, TSwizzleSelectors<T
     return result;
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

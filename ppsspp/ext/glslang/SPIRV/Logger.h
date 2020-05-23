@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-namespace spv {
+namespace Pspv {
 
 // A class for holding all SPIR-V build status messages, including
 // missing/TBD functionalities, warnings, and errors.

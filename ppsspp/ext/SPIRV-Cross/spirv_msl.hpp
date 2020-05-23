@@ -48,7 +48,7 @@ struct MSLVertexAttr
 	uint32_t msl_stride = 0;
 	bool per_instance = false;
 	MSLVertexFormat format = MSL_VERTEX_FORMAT_OTHER;
-	spv::BuiltIn builtin = spv::BuiltInMax;
+	Pspv::BuiltIn builtin = Pspv::BuiltInMax;
 };
 
 // Matches the binding index of a MSL resource for a binding within a descriptor set.
@@ -61,7 +61,7 @@ struct MSLVertexAttr
 // [[buffer(N)]], [[texture(N)]] or [[sampler(N)]] depending on the resource types used.
 struct MSLResourceBinding
 {
-	spv::ExecutionModel stage = spv::ExecutionModelMax;
+	Pspv::ExecutionModel stage = Pspv::ExecutionModelMax;
 	uint32_t desc_set = 0;
 	uint32_t binding = 0;
 	uint32_t msl_buffer = 0;
@@ -243,9 +243,9 @@ public:
 	// rasterization if vertex shader requires rasterization to be disabled.
 	bool get_is_rasterization_disabled() const
 	{
-		return is_rasterization_disabled && (get_entry_point().model == spv::ExecutionModelVertex ||
-		                                     get_entry_point().model == spv::ExecutionModelTessellationControl ||
-		                                     get_entry_point().model == spv::ExecutionModelTessellationEvaluation);
+		return is_rasterization_disabled && (get_entry_point().model == Pspv::ExecutionModelVertex ||
+		                                     get_entry_point().model == Pspv::ExecutionModelTessellationControl ||
+		                                     get_entry_point().model == Pspv::ExecutionModelTessellationEvaluation);
 	}
 
 	// Provide feedback to calling API to allow it to pass an auxiliary
@@ -312,7 +312,7 @@ public:
 	// Constexpr samplers are always assumed to be emitted.
 	// No specific MSLResourceBinding remapping is required for constexpr samplers as long as they are remapped
 	// by remap_constexpr_sampler(_by_binding).
-	bool is_msl_resource_binding_used(spv::ExecutionModel model, uint32_t set, uint32_t binding);
+	bool is_msl_resource_binding_used(Pspv::ExecutionModel model, uint32_t set, uint32_t binding);
 
 	// Compiles the SPIR-V code into Metal Shading Language.
 	std::string compile() override;
@@ -392,7 +392,7 @@ protected:
 	std::string type_to_glsl(const SPIRType &type, uint32_t id = 0) override;
 	std::string image_type_glsl(const SPIRType &type, uint32_t id = 0) override;
 	std::string sampler_type(const SPIRType &type);
-	std::string builtin_to_glsl(spv::BuiltIn builtin, spv::StorageClass storage) override;
+	std::string builtin_to_glsl(Pspv::BuiltIn builtin, Pspv::StorageClass storage) override;
 	size_t get_declared_struct_member_size(const SPIRType &struct_type, uint32_t index) const override;
 	std::string to_func_call_arg(uint32_t id) override;
 	std::string to_name(uint32_t id, bool allow_alias = true) const override;
@@ -427,28 +427,28 @@ protected:
 	void extract_global_variables_from_function(uint32_t func_id, std::set<uint32_t> &added_arg_ids,
 	                                            std::unordered_set<uint32_t> &global_var_ids,
 	                                            std::unordered_set<uint32_t> &processed_func_ids);
-	uint32_t add_interface_block(spv::StorageClass storage, bool patch = false);
-	uint32_t add_interface_block_pointer(uint32_t ib_var_id, spv::StorageClass storage);
+	uint32_t add_interface_block(Pspv::StorageClass storage, bool patch = false);
+	uint32_t add_interface_block_pointer(uint32_t ib_var_id, Pspv::StorageClass storage);
 
-	void add_variable_to_interface_block(spv::StorageClass storage, const std::string &ib_var_ref, SPIRType &ib_type,
+	void add_variable_to_interface_block(Pspv::StorageClass storage, const std::string &ib_var_ref, SPIRType &ib_type,
 	                                     SPIRVariable &var, bool strip_array);
-	void add_composite_variable_to_interface_block(spv::StorageClass storage, const std::string &ib_var_ref,
+	void add_composite_variable_to_interface_block(Pspv::StorageClass storage, const std::string &ib_var_ref,
 	                                               SPIRType &ib_type, SPIRVariable &var, bool strip_array);
-	void add_plain_variable_to_interface_block(spv::StorageClass storage, const std::string &ib_var_ref,
+	void add_plain_variable_to_interface_block(Pspv::StorageClass storage, const std::string &ib_var_ref,
 	                                           SPIRType &ib_type, SPIRVariable &var, bool strip_array);
-	void add_plain_member_variable_to_interface_block(spv::StorageClass storage, const std::string &ib_var_ref,
+	void add_plain_member_variable_to_interface_block(Pspv::StorageClass storage, const std::string &ib_var_ref,
 	                                                  SPIRType &ib_type, SPIRVariable &var, uint32_t index,
 	                                                  bool strip_array);
-	void add_composite_member_variable_to_interface_block(spv::StorageClass storage, const std::string &ib_var_ref,
+	void add_composite_member_variable_to_interface_block(Pspv::StorageClass storage, const std::string &ib_var_ref,
 	                                                      SPIRType &ib_type, SPIRVariable &var, uint32_t index,
 	                                                      bool strip_array);
 	uint32_t get_accumulated_member_location(const SPIRVariable &var, uint32_t mbr_idx, bool strip_array);
 	void add_tess_level_input_to_interface_block(const std::string &ib_var_ref, SPIRType &ib_type, SPIRVariable &var);
 
-	void fix_up_interface_member_indices(spv::StorageClass storage, uint32_t ib_type_id);
+	void fix_up_interface_member_indices(Pspv::StorageClass storage, uint32_t ib_type_id);
 
-	void mark_location_as_used_by_shader(uint32_t location, spv::StorageClass storage);
-	uint32_t ensure_correct_builtin_type(uint32_t type_id, spv::BuiltIn builtin);
+	void mark_location_as_used_by_shader(uint32_t location, Pspv::StorageClass storage);
+	uint32_t ensure_correct_builtin_type(uint32_t type_id, Pspv::BuiltIn builtin);
 	uint32_t ensure_correct_attribute_type(uint32_t type_id, uint32_t location);
 
 	void emit_custom_functions();
@@ -470,9 +470,9 @@ protected:
 	std::string to_sampler_expression(uint32_t id);
 	std::string to_swizzle_expression(uint32_t id);
 	std::string to_buffer_size_expression(uint32_t id);
-	std::string builtin_qualifier(spv::BuiltIn builtin);
-	std::string builtin_type_decl(spv::BuiltIn builtin, uint32_t id = 0);
-	std::string built_in_func_arg(spv::BuiltIn builtin, bool prefix_comma);
+	std::string builtin_qualifier(Pspv::BuiltIn builtin);
+	std::string builtin_type_decl(Pspv::BuiltIn builtin, uint32_t id = 0);
+	std::string built_in_func_arg(Pspv::BuiltIn builtin, bool prefix_comma);
 	std::string member_attribute_qualifier(const SPIRType &type, uint32_t index);
 	std::string argument_decl(const SPIRFunction::Parameter &arg);
 	std::string round_fp_tex_coords(std::string tex_coords, bool coord_is_fp);
@@ -523,7 +523,7 @@ protected:
 	bool emit_tessellation_access_chain(const uint32_t *ops, uint32_t length);
 	bool is_out_of_bounds_tessellation_level(uint32_t id_lhs);
 
-	void mark_implicit_builtin(spv::StorageClass storage, spv::BuiltIn builtin, uint32_t id);
+	void mark_implicit_builtin(Pspv::StorageClass storage, Pspv::BuiltIn builtin, uint32_t id);
 
 	Options msl_options;
 	std::set<SPVFuncImpl> spv_function_implementations;
@@ -545,7 +545,7 @@ protected:
 
 	struct StageSetBinding
 	{
-		spv::ExecutionModel model;
+		Pspv::ExecutionModel model;
 		uint32_t desc_set;
 		uint32_t binding;
 		bool operator==(const StageSetBinding &other) const;
@@ -589,7 +589,7 @@ protected:
 	std::string output_buffer_var_name = "spvOut";
 	std::string patch_output_buffer_var_name = "spvPatchOut";
 	std::string tess_factor_buffer_var_name = "spvTessLevel";
-	spv::Op previous_instruction_opcode = spv::OpNop;
+	Pspv::Op previous_instruction_opcode = Pspv::OpNop;
 
 	// Must be ordered since declaration is in a specific order.
 	std::map<uint32_t, MSLConstexprSampler> constexpr_samplers_by_id;
@@ -617,8 +617,8 @@ protected:
 		{
 		}
 
-		bool handle(spv::Op opcode, const uint32_t *args, uint32_t length) override;
-		CompilerMSL::SPVFuncImpl get_spv_func_impl(spv::Op opcode, const uint32_t *args);
+		bool handle(Pspv::Op opcode, const uint32_t *args, uint32_t length) override;
+		CompilerMSL::SPVFuncImpl get_spv_func_impl(Pspv::Op opcode, const uint32_t *args);
 		void check_resource_write(uint32_t var_id);
 
 		CompilerMSL &compiler;
@@ -637,7 +637,7 @@ protected:
 		{
 		}
 
-		bool handle(spv::Op opcode, const uint32_t *args, uint32_t) override;
+		bool handle(Pspv::Op opcode, const uint32_t *args, uint32_t) override;
 
 		CompilerMSL &compiler;
 	};

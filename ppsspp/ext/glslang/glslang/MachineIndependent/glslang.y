@@ -95,9 +95,9 @@ using namespace glslang;
 
 %union {
     struct {
-        glslang::TSourceLoc loc;
+        Pglslang::TSourceLoc loc;
         union {
-            glslang::TString *string;
+            Pglslang::TString *string;
             int i;
             unsigned int u;
             long long i64;
@@ -105,27 +105,27 @@ using namespace glslang;
             bool b;
             double d;
         };
-        glslang::TSymbol* symbol;
+        Pglslang::TSymbol* symbol;
     } lex;
     struct {
-        glslang::TSourceLoc loc;
-        glslang::TOperator op;
+        Pglslang::TSourceLoc loc;
+        Pglslang::TOperator op;
         union {
             TIntermNode* intermNode;
-            glslang::TIntermNodePair nodePair;
-            glslang::TIntermTyped* intermTypedNode;
-            glslang::TAttributes* attributes;
+            Pglslang::TIntermNodePair nodePair;
+            Pglslang::TIntermTyped* intermTypedNode;
+            Pglslang::TAttributes* attributes;
         };
         union {
-            glslang::TPublicType type;
-            glslang::TFunction* function;
-            glslang::TParameter param;
-            glslang::TTypeLoc typeLine;
-            glslang::TTypeList* typeList;
-            glslang::TArraySizes* arraySizes;
-            glslang::TIdentifierList* identifierList;
+            Pglslang::TPublicType type;
+            Pglslang::TFunction* function;
+            Pglslang::TParameter param;
+            Pglslang::TTypeLoc typeLine;
+            Pglslang::TTypeList* typeList;
+            Pglslang::TArraySizes* arraySizes;
+            Pglslang::TIdentifierList* identifierList;
         };
-        glslang::TArraySizes* typeParameters;
+        Pglslang::TArraySizes* typeParameters;
     } interm;
 }
 
@@ -145,7 +145,7 @@ extern int yylex(YYSTYPE*, TParseContext&);
 
 %}
 
-%parse-param {glslang::TParseContext* pParseContext}
+%parse-param {Pglslang::TParseContext* pParseContext}
 %lex-param {parseContext}
 %pure-parser  // enable thread safety
 %expect 1     // One shift reduce conflict because of if | else

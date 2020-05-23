@@ -40,7 +40,7 @@
 #include "../Include/intermediate.h"
 #include "ParseHelper.h"
 
-namespace glslang {
+namespace Pglslang {
 
 // extract integers out of attribute arguments stored in attribute aggregate
 bool TAttributeArgs::getInt(int& value, int argNum) const 
@@ -341,6 +341,6 @@ void TParseContext::handleLoopAttributes(const TAttributes& attributes, TIntermN
     }
 }
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // GLSLANG_WEB

@@ -51,10 +51,10 @@ std::string ResolveUrl(std::string baseUrl, std::string url) {
 	}
 }
 
-class HttpImageFileView : public UI::View {
+class HttpImageFileView : public PUI::View {
 public:
-	HttpImageFileView(http::Downloader *downloader, const std::string &path, UI::ImageSizeMode sizeMode = UI::IS_DEFAULT, UI::LayoutParams *layoutParams = 0)
-		: UI::View(layoutParams), path_(path), sizeMode_(sizeMode), downloader_(downloader) {}
+	HttpImageFileView(http::Downloader *downloader, const std::string &path, PUI::ImageSizeMode sizeMode = PUI::IS_DEFAULT, PUI::LayoutParams *layoutParams = 0)
+		: PUI::View(layoutParams), path_(path), sizeMode_(sizeMode), downloader_(downloader) {}
 
 	~HttpImageFileView() {
 		if (download_)
@@ -79,7 +79,7 @@ private:
 	bool canFocus_ = false;
 	std::string path_;
 	uint32_t color_ = 0xFFFFFFFF;
-	UI::ImageSizeMode sizeMode_;
+	PUI::ImageSizeMode sizeMode_;
 	http::Downloader *downloader_;
 	std::shared_ptr<http::Download> download_;
 
@@ -92,11 +92,11 @@ private:
 
 void HttpImageFileView::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
 	switch (sizeMode_) {
-	case UI::IS_FIXED:
+	case PUI::IS_FIXED:
 		w = fixedSizeW_;
 		h = fixedSizeH_;
 		break;
-	case UI::IS_DEFAULT:
+	case PUI::IS_DEFAULT:
 	default:
 		if (texture_) {
 			float texw = (float)texture_->Width();
@@ -177,17 +177,17 @@ void HttpImageFileView::Draw(UIContext &dc) {
 		dc.RebindTexture();
 	} else {
 		// draw a black rectangle to represent the missing image.
-		dc.FillRect(UI::Drawable(0x7F000000), GetBounds());
+		dc.FillRect(PUI::Drawable(0x7F000000), GetBounds());
 	}
 }
 
 
 
 // This is the entry in a list. Does not have install buttons and so on.
-class ProductItemView : public UI::StickyChoice {
+class ProductItemView : public PUI::StickyChoice {
 public:
-	ProductItemView(const StoreEntry &entry, UI::LayoutParams *layoutParams = 0)
-		: UI::StickyChoice(entry.name, "", layoutParams), entry_(entry) {}
+	ProductItemView(const StoreEntry &entry, PUI::LayoutParams *layoutParams = 0)
+		: PUI::StickyChoice(entry.name, "", layoutParams), entry_(entry) {}
 
 	void GetContentDimensions(const UIContext &dc, float &w, float &h) const override {
 		w = 300;
@@ -201,37 +201,37 @@ private:
 };
 
 // This is a "details" view of a game. Lets you install it.
-class ProductView : public UI::LinearLayout {
+class ProductView : public PUI::LinearLayout {
 public:
 	ProductView(const StoreEntry &entry)
-		: LinearLayout(UI::ORIENT_VERTICAL), entry_(entry) {
+		: LinearLayout(PUI::ORIENT_VERTICAL), entry_(entry) {
 		CreateViews();
 	}
 
 	void Update() override;
 
-	UI::Event OnClickLaunch;
+	PUI::Event OnClickLaunch;
 
 private:
 	void CreateViews();
-	UI::EventReturn OnInstall(UI::EventParams &e);
-	UI::EventReturn OnCancel(UI::EventParams &e);
-	UI::EventReturn OnUninstall(UI::EventParams &e);
-	UI::EventReturn OnLaunchClick(UI::EventParams &e);
+	PUI::EventReturn OnInstall(PUI::EventParams &e);
+	PUI::EventReturn OnCancel(PUI::EventParams &e);
+	PUI::EventReturn OnUninstall(PUI::EventParams &e);
+	PUI::EventReturn OnLaunchClick(PUI::EventParams &e);
 
 	bool IsGameInstalled() {
 		return g_GameManager.IsGameInstalled(entry_.file);
 	}
 
 	StoreEntry entry_;
-	UI::Button *installButton_ = nullptr;
-	UI::Button *launchButton_ = nullptr;
-	UI::Button *cancelButton_ = nullptr;
+	PUI::Button *installButton_ = nullptr;
+	PUI::Button *launchButton_ = nullptr;
+	PUI::Button *cancelButton_ = nullptr;
 	bool wasInstalled_ = false;
 };
 
 void ProductView::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	Clear();
 
 	if (!entry_.iconURL.empty()) {
@@ -277,13 +277,13 @@ void ProductView::Update() {
 		installButton_->SetEnabled(g_GameManager.GetState() == GameManagerState::IDLE);
 	}
 	if (cancelButton_ && g_GameManager.GetState() != GameManagerState::DOWNLOADING)
-		cancelButton_->SetVisibility(UI::V_GONE);
+		cancelButton_->SetVisibility(PUI::V_GONE);
 	if (launchButton_)
 		launchButton_->SetEnabled(g_GameManager.GetState() == GameManagerState::IDLE);
 	View::Update();
 }
 
-UI::EventReturn ProductView::OnInstall(UI::EventParams &e) {
+PUI::EventReturn ProductView::OnInstall(PUI::EventParams &e) {
 	std::string fileUrl;
 	if (entry_.downloadURL.empty()) {
 		// Construct the URL, easy to predict from our server
@@ -299,28 +299,28 @@ UI::EventReturn ProductView::OnInstall(UI::EventParams &e) {
 		installButton_->SetEnabled(false);
 	}
 	if (cancelButton_) {
-		cancelButton_->SetVisibility(UI::V_VISIBLE);
+		cancelButton_->SetVisibility(PUI::V_VISIBLE);
 	}
 	INFO_LOG(SYSTEM, "Triggering install of '%s'", fileUrl.c_str());
 	g_GameManager.DownloadAndInstall(fileUrl);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ProductView::OnCancel(UI::EventParams &e) {
+PUI::EventReturn ProductView::OnCancel(PUI::EventParams &e) {
 	g_GameManager.CancelDownload();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ProductView::OnUninstall(UI::EventParams &e) {
+PUI::EventReturn ProductView::OnUninstall(PUI::EventParams &e) {
 	g_GameManager.Uninstall(entry_.file);
 	CreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ProductView::OnLaunchClick(UI::EventParams &e) {
+PUI::EventReturn ProductView::OnLaunchClick(PUI::EventParams &e) {
 	if (g_GameManager.GetState() != GameManagerState::IDLE) {
 		// Button should have been disabled. Just a safety check.
-		return UI::EVENT_DONE;
+		return PUI::EVENT_DONE;
 	}
 
 	std::string pspGame = GetSysDirectory(DIRECTORY_GAME);
@@ -328,12 +328,12 @@ UI::EventReturn ProductView::OnLaunchClick(UI::EventParams &e) {
 #ifdef _WIN32
 	path = ReplaceAll(path, "\\", "/");
 #endif
-	UI::EventParams e2{};
+	PUI::EventParams e2{};
 	e2.v = e.v;
 	e2.s = path;
 	// Insta-update - here we know we are already on the right thread.
 	OnClickLaunch.Trigger(e2);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 StoreScreen::StoreScreen() {
@@ -427,7 +427,7 @@ void StoreScreen::ParseListing(std::string json) {
 }
 
 void StoreScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	root_ = new LinearLayout(ORIENT_VERTICAL);
 	
@@ -439,7 +439,7 @@ void StoreScreen::CreateViews() {
 	topBar->Add(new Button(di->T("Back")))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 	titleText_ = new TextView("PPSSPP Homebrew Store");
 	topBar->Add(titleText_);
-	UI::Drawable solid(0xFFbd9939);
+	PUI::Drawable solid(0xFFbd9939);
 	topBar->SetBG(solid);
 
 	LinearLayout *content;
@@ -503,10 +503,10 @@ ProductItemView *StoreScreen::GetSelectedItem() {
 	return nullptr;
 }
 
-UI::EventReturn StoreScreen::OnGameSelected(UI::EventParams &e) {
+PUI::EventReturn StoreScreen::OnGameSelected(PUI::EventParams &e) {
 	ProductItemView *item = static_cast<ProductItemView *>(e.v);
 	if (!item)
-		return UI::EVENT_DONE;
+		return PUI::EVENT_DONE;
 
 	productPanel_->Clear();
 	ProductView *productView = new ProductView(item->GetEntry());
@@ -517,13 +517,13 @@ UI::EventReturn StoreScreen::OnGameSelected(UI::EventParams &e) {
 	if (previousItem && previousItem != item)
 		previousItem->Release();
 	lastSelectedName_ = item->GetEntry().name;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn StoreScreen::OnGameLaunch(UI::EventParams &e) {
+PUI::EventReturn StoreScreen::OnGameLaunch(PUI::EventParams &e) {
 	std::string path = e.s;
 	screenManager()->switchScreen(new EmuScreen(path));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void StoreScreen::SetFilter(const StoreFilter &filter) {
@@ -531,9 +531,9 @@ void StoreScreen::SetFilter(const StoreFilter &filter) {
 	RecreateViews();
 }
 
-UI::EventReturn StoreScreen::OnRetry(UI::EventParams &e) {
+PUI::EventReturn StoreScreen::OnRetry(PUI::EventParams &e) {
 	SetFilter(filter_);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 std::string StoreScreen::GetStoreJsonURL(std::string storePath) const {

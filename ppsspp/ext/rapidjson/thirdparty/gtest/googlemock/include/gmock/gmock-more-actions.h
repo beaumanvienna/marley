@@ -41,7 +41,7 @@
 #include "gmock/gmock-generated-actions.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Implements the Invoke(f) action.  The template argument
 // FunctionImpl is the implementation type of f, which can be either a
@@ -104,26 +104,26 @@ inline OutputIterator CopyElements(InputIterator first,
   return output;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // Various overloads for Invoke().
 
 // Creates an action that invokes 'function_impl' with the mock
 // function's arguments.
 template <typename FunctionImpl>
-PolymorphicAction<internal::InvokeAction<FunctionImpl> > Invoke(
+PolymorphicAction<Pinternal::InvokeAction<FunctionImpl> > Invoke(
     FunctionImpl function_impl) {
   return MakePolymorphicAction(
-      internal::InvokeAction<FunctionImpl>(function_impl));
+      Pinternal::InvokeAction<FunctionImpl>(function_impl));
 }
 
 // Creates an action that invokes the given method on the given object
 // with the mock function's arguments.
 template <class Class, typename MethodPtr>
-PolymorphicAction<internal::InvokeMethodAction<Class, MethodPtr> > Invoke(
+PolymorphicAction<Pinternal::InvokeMethodAction<Class, MethodPtr> > Invoke(
     Class* obj_ptr, MethodPtr method_ptr) {
   return MakePolymorphicAction(
-      internal::InvokeMethodAction<Class, MethodPtr>(obj_ptr, method_ptr));
+      Pinternal::InvokeMethodAction<Class, MethodPtr>(obj_ptr, method_ptr));
 }
 
 // WithoutArgs(inner_action) can be used in a mock function with a
@@ -131,9 +131,9 @@ PolymorphicAction<internal::InvokeMethodAction<Class, MethodPtr> > Invoke(
 // argument.  In other words, it adapts an action accepting no
 // argument to one that accepts (and ignores) arguments.
 template <typename InnerAction>
-inline internal::WithArgsAction<InnerAction>
+inline Pinternal::WithArgsAction<InnerAction>
 WithoutArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction>(action);
+  return Pinternal::WithArgsAction<InnerAction>(action);
 }
 
 // WithArg<k>(an_action) creates an action that passes the k-th
@@ -142,9 +142,9 @@ WithoutArgs(const InnerAction& action) {
 // multiple arguments.  For convenience, we also provide
 // WithArgs<k>(an_action) (defined below) as a synonym.
 template <int k, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k>
+inline Pinternal::WithArgsAction<InnerAction, k>
 WithArg(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k>(action);
+  return Pinternal::WithArgsAction<InnerAction, k>(action);
 }
 
 // The ACTION*() macros trigger warning C4100 (unreferenced formal
@@ -189,7 +189,7 @@ ACTION_TEMPLATE(SetArgReferee,
   // Ensures that argument #k is a reference.  If you get a compiler
   // error on the next line, you are using SetArgReferee<k>(value) in
   // a mock function whose k-th (0-based) argument is not a reference.
-  GTEST_COMPILE_ASSERT_(internal::is_reference<argk_type>::value,
+  GTEST_COMPILE_ASSERT_(Pinternal::is_reference<argk_type>::value,
                         SetArgReferee_must_be_used_with_a_reference_argument);
   ::testing::get<k>(args) = value;
 }
@@ -204,7 +204,7 @@ ACTION_TEMPLATE(SetArrayArgument,
                 AND_2_VALUE_PARAMS(first, last)) {
   // Visual Studio deprecates ::std::copy, so we use our own copy in that case.
 #ifdef _MSC_VER
-  internal::CopyElements(first, last, ::testing::get<k>(args));
+  Pinternal::CopyElements(first, last, ::testing::get<k>(args));
 #else
   ::std::copy(first, last, ::testing::get<k>(args));
 #endif

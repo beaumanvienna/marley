@@ -148,10 +148,10 @@
 
 namespace testing {
 
-using internal::CountIf;
-using internal::ForEach;
-using internal::GetElementOr;
-using internal::Shuffle;
+using Pinternal::CountIf;
+using Pinternal::ForEach;
+using Pinternal::GetElementOr;
+using Pinternal::Shuffle;
 
 // Constants.
 
@@ -177,7 +177,7 @@ static const char kTestTotalShards[] = "GTEST_TOTAL_SHARDS";
 // The environment variable name for the test shard status file.
 static const char kTestShardStatusFile[] = "GTEST_SHARD_STATUS_FILE";
 
-namespace internal {
+namespace Pinternal {
 
 // The text used in failure messages to indicate the start of the
 // stack trace.
@@ -187,7 +187,7 @@ const char kStackTraceMarker[] = "\nStack trace:\n";
 // specified on the command line.
 bool g_help_flag = false;
 
-}  // namespace internal
+}  // namespace Pinternal
 
 static const char* GetDefaultFilter() {
 #ifdef GTEST_TEST_FILTER_ENV_VAR_
@@ -201,23 +201,23 @@ static const char* GetDefaultFilter() {
 
 GTEST_DEFINE_bool_(
     also_run_disabled_tests,
-    internal::BoolFromGTestEnv("also_run_disabled_tests", false),
+    Pinternal::BoolFromGTestEnv("also_run_disabled_tests", false),
     "Run disabled tests too, in addition to the tests normally being run.");
 
 GTEST_DEFINE_bool_(
     break_on_failure,
-    internal::BoolFromGTestEnv("break_on_failure", false),
+    Pinternal::BoolFromGTestEnv("break_on_failure", false),
     "True iff a failed assertion should be a debugger break-point.");
 
 GTEST_DEFINE_bool_(
     catch_exceptions,
-    internal::BoolFromGTestEnv("catch_exceptions", true),
+    Pinternal::BoolFromGTestEnv("catch_exceptions", true),
     "True iff " GTEST_NAME_
     " should catch exceptions and treat them as test failures.");
 
 GTEST_DEFINE_string_(
     color,
-    internal::StringFromGTestEnv("color", "auto"),
+    Pinternal::StringFromGTestEnv("color", "auto"),
     "Whether to use colors in the output.  Valid values: yes, no, "
     "and auto.  'auto' means to use colors if the output is "
     "being sent to a terminal and the TERM environment variable "
@@ -225,7 +225,7 @@ GTEST_DEFINE_string_(
 
 GTEST_DEFINE_string_(
     filter,
-    internal::StringFromGTestEnv("filter", GetDefaultFilter()),
+    Pinternal::StringFromGTestEnv("filter", GetDefaultFilter()),
     "A colon-separated list of glob (not regex) patterns "
     "for filtering the tests to run, optionally followed by a "
     "'-' and a : separated list of negative patterns (tests to "
@@ -237,7 +237,7 @@ GTEST_DEFINE_bool_(list_tests, false,
 
 GTEST_DEFINE_string_(
     output,
-    internal::StringFromGTestEnv("output", ""),
+    Pinternal::StringFromGTestEnv("output", ""),
     "A format (currently must be \"xml\"), optionally followed "
     "by a colon and an output file name or directory. A directory "
     "is indicated by a trailing pathname separator. "
@@ -249,19 +249,19 @@ GTEST_DEFINE_string_(
 
 GTEST_DEFINE_bool_(
     print_time,
-    internal::BoolFromGTestEnv("print_time", true),
+    Pinternal::BoolFromGTestEnv("print_time", true),
     "True iff " GTEST_NAME_
     " should display elapsed time in text output.");
 
 GTEST_DEFINE_int32_(
     random_seed,
-    internal::Int32FromGTestEnv("random_seed", 0),
+    Pinternal::Int32FromGTestEnv("random_seed", 0),
     "Random number seed to use when shuffling test orders.  Must be in range "
     "[1, 99999], or 0 to use a seed based on the current time.");
 
 GTEST_DEFINE_int32_(
     repeat,
-    internal::Int32FromGTestEnv("repeat", 1),
+    Pinternal::Int32FromGTestEnv("repeat", 1),
     "How many times to repeat each test.  Specify a negative number "
     "for repeating forever.  Useful for shaking out flaky tests.");
 
@@ -272,26 +272,26 @@ GTEST_DEFINE_bool_(
 
 GTEST_DEFINE_bool_(
     shuffle,
-    internal::BoolFromGTestEnv("shuffle", false),
+    Pinternal::BoolFromGTestEnv("shuffle", false),
     "True iff " GTEST_NAME_
     " should randomize tests' order on every run.");
 
 GTEST_DEFINE_int32_(
     stack_trace_depth,
-    internal::Int32FromGTestEnv("stack_trace_depth", kMaxStackTraceDepth),
+    Pinternal::Int32FromGTestEnv("stack_trace_depth", kMaxStackTraceDepth),
     "The maximum number of stack frames to print when an "
     "assertion fails.  The valid range is 0 through 100, inclusive.");
 
 GTEST_DEFINE_string_(
     stream_result_to,
-    internal::StringFromGTestEnv("stream_result_to", ""),
+    Pinternal::StringFromGTestEnv("stream_result_to", ""),
     "This flag specifies the host name and the port number on which to stream "
     "test results. Example: \"localhost:555\". The flag is effective only on "
     "Linux.");
 
 GTEST_DEFINE_bool_(
     throw_on_failure,
-    internal::BoolFromGTestEnv("throw_on_failure", false),
+    Pinternal::BoolFromGTestEnv("throw_on_failure", false),
     "When this flag is specified, a failed assertion will throw an exception "
     "if exceptions are enabled or exit the program with a non-zero code "
     "otherwise.");
@@ -299,7 +299,7 @@ GTEST_DEFINE_bool_(
 #if GTEST_USE_OWN_FLAGFILE_FLAG_
 GTEST_DEFINE_string_(
     flagfile,
-    internal::StringFromGTestEnv("flagfile", ""),
+    Pinternal::StringFromGTestEnv("flagfile", ""),
     "This flag specifies the flagfile to read command-line flags from.");
 #endif  // GTEST_USE_OWN_FLAGFILE_FLAG_
 
@@ -384,9 +384,9 @@ void AssertHelper::operator=(const Message& message) const {
 GTEST_API_ GTEST_DEFINE_STATIC_MUTEX_(g_linked_ptr_mutex);
 
 // A copy of all command line arguments.  Set by InitGoogleTest().
-::std::vector<testing::internal::string> g_argvs;
+::std::vector<testing::Pinternal::string> g_argvs;
 
-const ::std::vector<testing::internal::string>& GetArgvs() {
+const ::std::vector<testing::Pinternal::string>& GetArgvs() {
 #if defined(GTEST_CUSTOM_GET_ARGVS_)
   return GTEST_CUSTOM_GET_ARGVS_();
 #else  // defined(GTEST_CUSTOM_GET_ARGVS_)
@@ -430,26 +430,26 @@ std::string UnitTestOptions::GetAbsolutePathToOutputFile() {
 
   const char* const colon = strchr(gtest_output_flag, ':');
   if (colon == NULL)
-    return internal::FilePath::ConcatPaths(
-        internal::FilePath(
+    return Pinternal::FilePath::ConcatPaths(
+        Pinternal::FilePath(
             UnitTest::GetInstance()->original_working_dir()),
-        internal::FilePath(kDefaultOutputFile)).string();
+        Pinternal::FilePath(kDefaultOutputFile)).string();
 
-  internal::FilePath output_name(colon + 1);
+  Pinternal::FilePath output_name(colon + 1);
   if (!output_name.IsAbsolutePath())
     // TODO(wan@google.com): on Windows \some\path is not an absolute
     // path (as its meaning depends on the current drive), yet the
     // following logic for turning it into an absolute path is wrong.
     // Fix it.
-    output_name = internal::FilePath::ConcatPaths(
-        internal::FilePath(UnitTest::GetInstance()->original_working_dir()),
-        internal::FilePath(colon + 1));
+    output_name = Pinternal::FilePath::ConcatPaths(
+        Pinternal::FilePath(UnitTest::GetInstance()->original_working_dir()),
+        Pinternal::FilePath(colon + 1));
 
   if (!output_name.IsDirectory())
     return output_name.string();
 
-  internal::FilePath result(internal::FilePath::GenerateUniqueFileName(
-      output_name, internal::GetCurrentExecutableName(),
+  Pinternal::FilePath result(Pinternal::FilePath::GenerateUniqueFileName(
+      output_name, Pinternal::GetCurrentExecutableName(),
       GetOutputFormat().c_str()));
   return result.string();
 }
@@ -578,7 +578,7 @@ ScopedFakeTestPartResultReporter::ScopedFakeTestPartResultReporter(
 }
 
 void ScopedFakeTestPartResultReporter::Init() {
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   if (intercept_mode_ == INTERCEPT_ALL_THREADS) {
     old_reporter_ = impl->GetGlobalTestPartResultReporter();
     impl->SetGlobalTestPartResultReporter(this);
@@ -591,7 +591,7 @@ void ScopedFakeTestPartResultReporter::Init() {
 // The d'tor restores the test part result reporter used by Google Test
 // before.
 ScopedFakeTestPartResultReporter::~ScopedFakeTestPartResultReporter() {
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   if (intercept_mode_ == INTERCEPT_ALL_THREADS) {
     impl->SetGlobalTestPartResultReporter(old_reporter_);
   } else {
@@ -703,14 +703,14 @@ void DefaultPerThreadTestPartResultReporter::ReportTestPartResult(
 // Returns the global test part result reporter.
 TestPartResultReporterInterface*
 UnitTestImpl::GetGlobalTestPartResultReporter() {
-  internal::MutexLock lock(&global_test_part_result_reporter_mutex_);
+  Pinternal::MutexLock lock(&global_test_part_result_reporter_mutex_);
   return global_test_part_result_repoter_;
 }
 
 // Sets the global test part result reporter.
 void UnitTestImpl::SetGlobalTestPartResultReporter(
     TestPartResultReporterInterface* reporter) {
-  internal::MutexLock lock(&global_test_part_result_reporter_mutex_);
+  Pinternal::MutexLock lock(&global_test_part_result_reporter_mutex_);
   global_test_part_result_repoter_ = reporter;
 }
 
@@ -923,7 +923,7 @@ void SplitString(const ::std::string& str, char delimiter,
                  ::std::vector< ::std::string>* dest) {
   ::std::vector< ::std::string> parsed;
   ::std::string::size_type pos = 0;
-  while (::testing::internal::AlwaysTrue()) {
+  while (::testing::Pinternal::AlwaysTrue()) {
     const ::std::string::size_type colon = str.find(delimiter, pos);
     if (colon == ::std::string::npos) {
       parsed.push_back(str.substr(pos));
@@ -952,17 +952,17 @@ Message::Message() : ss_(new ::std::stringstream) {
 // These two overloads allow streaming a wide C string to a Message
 // using the UTF-8 encoding.
 Message& Message::operator <<(const wchar_t* wide_c_str) {
-  return *this << internal::String::ShowWideCString(wide_c_str);
+  return *this << Pinternal::String::ShowWideCString(wide_c_str);
 }
 Message& Message::operator <<(wchar_t* wide_c_str) {
-  return *this << internal::String::ShowWideCString(wide_c_str);
+  return *this << Pinternal::String::ShowWideCString(wide_c_str);
 }
 
 #if GTEST_HAS_STD_WSTRING
 // Converts the given wide string to a narrow string using the UTF-8
 // encoding, and streams the result to this Message object.
 Message& Message::operator <<(const ::std::wstring& wstr) {
-  internal::StreamWideCharsToMessage(wstr.c_str(), wstr.length(), this);
+  Pinternal::StreamWideCharsToMessage(wstr.c_str(), wstr.length(), this);
   return *this;
 }
 #endif  // GTEST_HAS_STD_WSTRING
@@ -971,7 +971,7 @@ Message& Message::operator <<(const ::std::wstring& wstr) {
 // Converts the given wide string to a narrow string using the UTF-8
 // encoding, and streams the result to this Message object.
 Message& Message::operator <<(const ::wstring& wstr) {
-  internal::StreamWideCharsToMessage(wstr.c_str(), wstr.length(), this);
+  Pinternal::StreamWideCharsToMessage(wstr.c_str(), wstr.length(), this);
   return *this;
 }
 #endif  // GTEST_HAS_GLOBAL_WSTRING
@@ -979,7 +979,7 @@ Message& Message::operator <<(const ::wstring& wstr) {
 // Gets the text streamed to this object so far as an std::string.
 // Each '\0' character in the buffer is replaced with "\\0".
 std::string Message::GetString() const {
-  return internal::StringStreamToString(ss_.get());
+  return Pinternal::StringStreamToString(ss_.get());
 }
 
 // AssertionResult constructors.
@@ -1420,14 +1420,14 @@ AssertionResult FloatingPointLE(const char* expr1,
 // otherwise.  In particular, it fails if either val1 or val2 is NaN.
 AssertionResult FloatLE(const char* expr1, const char* expr2,
                         float val1, float val2) {
-  return internal::FloatingPointLE<float>(expr1, expr2, val1, val2);
+  return Pinternal::FloatingPointLE<float>(expr1, expr2, val1, val2);
 }
 
 // Asserts that val1 is less than, or almost equal to, val2.  Fails
 // otherwise.  In particular, it fails if either val1 or val2 is NaN.
 AssertionResult DoubleLE(const char* expr1, const char* expr2,
                          double val1, double val2) {
-  return internal::FloatingPointLE<double>(expr1, expr2, val1, val2);
+  return Pinternal::FloatingPointLE<double>(expr1, expr2, val1, val2);
 }
 
 namespace internal {
@@ -1848,7 +1848,7 @@ std::string WideStringToUtf8(const wchar_t* str, int num_chars) {
 std::string String::ShowWideCString(const wchar_t * wide_c_str) {
   if (wide_c_str == NULL)  return "(null)";
 
-  return internal::WideStringToUtf8(wide_c_str, -1);
+  return Pinternal::WideStringToUtf8(wide_c_str, -1);
 }
 
 // Compares two wide C strings.  Returns true iff they have the same
@@ -2028,7 +2028,7 @@ TestResult::~TestResult() {
 // aborts the program.
 const TestPartResult& TestResult::GetTestPartResult(int i) const {
   if (i < 0 || i >= total_part_count())
-    internal::posix::Abort();
+    Pinternal::posix::Abort();
   return test_part_results_.at(i);
 }
 
@@ -2037,7 +2037,7 @@ const TestPartResult& TestResult::GetTestPartResult(int i) const {
 // program.
 const TestProperty& TestResult::GetTestProperty(int i) const {
   if (i < 0 || i >= test_property_count())
-    internal::posix::Abort();
+    Pinternal::posix::Abort();
   return test_properties_.at(i);
 }
 
@@ -2059,10 +2059,10 @@ void TestResult::RecordProperty(const std::string& xml_element,
   if (!ValidateTestProperty(xml_element, test_property)) {
     return;
   }
-  internal::MutexLock lock(&test_properites_mutex_);
+  Pinternal::MutexLock lock(&test_properites_mutex_);
   const std::vector<TestProperty>::iterator property_with_matching_key =
       std::find_if(test_properties_.begin(), test_properties_.end(),
-                   internal::TestPropertyKeyIs(test_property.key()));
+                   Pinternal::TestPropertyKeyIs(test_property.key()));
   if (property_with_matching_key == test_properties_.end()) {
     test_properties_.push_back(test_property);
     return;
@@ -2267,24 +2267,24 @@ void ReportFailureInUnknownLocation(TestPartResult::Type result_type,
 // yes, it returns true; otherwise it generates a Google Test failure and
 // returns false.
 bool Test::HasSameFixtureClass() {
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   const TestCase* const test_case = impl->current_test_case();
 
   // Info about the first test in the current test case.
   const TestInfo* const first_test_info = test_case->test_info_list()[0];
-  const internal::TypeId first_fixture_id = first_test_info->fixture_class_id_;
+  const Pinternal::TypeId first_fixture_id = first_test_info->fixture_class_id_;
   const char* const first_test_name = first_test_info->name();
 
   // Info about the current test.
   const TestInfo* const this_test_info = impl->current_test_info();
-  const internal::TypeId this_fixture_id = this_test_info->fixture_class_id_;
+  const Pinternal::TypeId this_fixture_id = this_test_info->fixture_class_id_;
   const char* const this_test_name = this_test_info->name();
 
   if (this_fixture_id != first_fixture_id) {
     // Is the first test defined using TEST?
-    const bool first_is_TEST = first_fixture_id == internal::GetTestTypeId();
+    const bool first_is_TEST = first_fixture_id == Pinternal::GetTestTypeId();
     // Is this test defined using TEST?
-    const bool this_is_TEST = this_fixture_id == internal::GetTestTypeId();
+    const bool this_is_TEST = this_fixture_id == Pinternal::GetTestTypeId();
 
     if (first_is_TEST || this_is_TEST) {
       // Both TEST and TEST_F appear in same test case, which is incorrect.
@@ -2385,14 +2385,14 @@ Result HandleSehExceptionsInMethodIfSupported(
 #if GTEST_HAS_SEH
   __try {
     return (object->*method)();
-  } __except (internal::UnitTestOptions::GTestShouldProcessSEH(  // NOLINT
+  } __except (Pinternal::UnitTestOptions::GTestShouldProcessSEH(  // NOLINT
       GetExceptionCode())) {
     // We create the exception message on the heap because VC++ prohibits
     // creation of objects with destructors on stack in functions using __try
     // (see error C2712).
     std::string* exception_message = FormatSehExceptionMessage(
         GetExceptionCode(), location);
-    internal::ReportFailureInUnknownLocation(TestPartResult::kFatalFailure,
+    Pinternal::ReportFailureInUnknownLocation(TestPartResult::kFatalFailure,
                                              *exception_message);
     delete exception_message;
     return static_cast<Result>(0);
@@ -2432,21 +2432,21 @@ Result HandleExceptionsInMethodIfSupported(
   // throw statement in the code under test.  For this reason, we perform
   // the check early, sacrificing the ability to affect Google Test's
   // exception handling in the method where the exception is thrown.
-  if (internal::GetUnitTestImpl()->catch_exceptions()) {
+  if (Pinternal::GetUnitTestImpl()->catch_exceptions()) {
 #if GTEST_HAS_EXCEPTIONS
     try {
       return HandleSehExceptionsInMethodIfSupported(object, method, location);
-    } catch (const internal::GoogleTestFailureException&) {  // NOLINT
+    } catch (const Pinternal::GoogleTestFailureException&) {  // NOLINT
       // This exception type can only be thrown by a failed Google
       // Test assertion with the intention of letting another testing
       // framework catch it.  Therefore we just re-throw it.
       throw;
     } catch (const std::exception& e) {  // NOLINT
-      internal::ReportFailureInUnknownLocation(
+      Pinternal::ReportFailureInUnknownLocation(
           TestPartResult::kFatalFailure,
           FormatCxxExceptionMessage(e.what(), location));
     } catch (...) {  // NOLINT
-      internal::ReportFailureInUnknownLocation(
+      Pinternal::ReportFailureInUnknownLocation(
           TestPartResult::kFatalFailure,
           FormatCxxExceptionMessage(NULL, location));
     }
@@ -2465,13 +2465,13 @@ Result HandleExceptionsInMethodIfSupported(
 void Test::Run() {
   if (!HasSameFixtureClass()) return;
 
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   impl->os_stack_trace_getter()->UponLeavingGTest();
-  internal::HandleExceptionsInMethodIfSupported(this, &Test::SetUp, "SetUp()");
+  Pinternal::HandleExceptionsInMethodIfSupported(this, &Test::SetUp, "SetUp()");
   // We will run the test only if SetUp() was successful.
   if (!HasFatalFailure()) {
     impl->os_stack_trace_getter()->UponLeavingGTest();
-    internal::HandleExceptionsInMethodIfSupported(
+    Pinternal::HandleExceptionsInMethodIfSupported(
         this, &Test::TestBody, "the test body");
   }
 
@@ -2479,18 +2479,18 @@ void Test::Run() {
   // always call TearDown(), even if SetUp() or the test body has
   // failed.
   impl->os_stack_trace_getter()->UponLeavingGTest();
-  internal::HandleExceptionsInMethodIfSupported(
+  Pinternal::HandleExceptionsInMethodIfSupported(
       this, &Test::TearDown, "TearDown()");
 }
 
 // Returns true iff the current test has a fatal failure.
 bool Test::HasFatalFailure() {
-  return internal::GetUnitTestImpl()->current_test_result()->HasFatalFailure();
+  return Pinternal::GetUnitTestImpl()->current_test_result()->HasFatalFailure();
 }
 
 // Returns true iff the current test has a non-fatal failure.
 bool Test::HasNonfatalFailure() {
-  return internal::GetUnitTestImpl()->current_test_result()->
+  return Pinternal::GetUnitTestImpl()->current_test_result()->
       HasNonfatalFailure();
 }
 
@@ -2502,9 +2502,9 @@ TestInfo::TestInfo(const std::string& a_test_case_name,
                    const std::string& a_name,
                    const char* a_type_param,
                    const char* a_value_param,
-                   internal::CodeLocation a_code_location,
-                   internal::TypeId fixture_class_id,
-                   internal::TestFactoryBase* factory)
+                   Pinternal::CodeLocation a_code_location,
+                   Pinternal::TypeId fixture_class_id,
+                   Pinternal::TestFactoryBase* factory)
     : test_case_name_(a_test_case_name),
       name_(a_name),
       type_param_(a_type_param ? new std::string(a_type_param) : NULL),
@@ -2631,7 +2631,7 @@ void TestInfo::Run() {
   if (!should_run_) return;
 
   // Tells UnitTest where to store test result.
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   impl->set_current_test_info(this);
 
   TestEventListener* repeater = UnitTest::GetInstance()->listeners().repeater();
@@ -2639,13 +2639,13 @@ void TestInfo::Run() {
   // Notifies the unit test event listeners that a test is about to start.
   repeater->OnTestStart(*this);
 
-  const TimeInMillis start = internal::GetTimeInMillis();
+  const TimeInMillis start = Pinternal::GetTimeInMillis();
 
   impl->os_stack_trace_getter()->UponLeavingGTest();
 
   // Creates the test object.
-  Test* const test = internal::HandleExceptionsInMethodIfSupported(
-      factory_, &internal::TestFactoryBase::CreateTest,
+  Test* const test = Pinternal::HandleExceptionsInMethodIfSupported(
+      factory_, &Pinternal::TestFactoryBase::CreateTest,
       "the test fixture's constructor");
 
   // Runs the test only if the test object was created and its
@@ -2658,10 +2658,10 @@ void TestInfo::Run() {
 
   // Deletes the test object.
   impl->os_stack_trace_getter()->UponLeavingGTest();
-  internal::HandleExceptionsInMethodIfSupported(
+  Pinternal::HandleExceptionsInMethodIfSupported(
       test, &Test::DeleteSelf_, "the test fixture's destructor");
 
-  result_.set_elapsed_time(internal::GetTimeInMillis() - start);
+  result_.set_elapsed_time(Pinternal::GetTimeInMillis() - start);
 
   // Notifies the unit test event listener that a test has just finished.
   repeater->OnTestEnd(*this);
@@ -2731,7 +2731,7 @@ TestCase::TestCase(const char* a_name, const char* a_type_param,
 // Destructor of TestCase.
 TestCase::~TestCase() {
   // Deletes every Test in the collection.
-  ForEach(test_info_list_, internal::Delete<TestInfo>);
+  ForEach(test_info_list_, Pinternal::Delete<TestInfo>);
 }
 
 // Returns the i-th test among all the tests. i can range from 0 to
@@ -2759,24 +2759,24 @@ void TestCase::AddTestInfo(TestInfo * test_info) {
 void TestCase::Run() {
   if (!should_run_) return;
 
-  internal::UnitTestImpl* const impl = internal::GetUnitTestImpl();
+  Pinternal::UnitTestImpl* const impl = Pinternal::GetUnitTestImpl();
   impl->set_current_test_case(this);
 
   TestEventListener* repeater = UnitTest::GetInstance()->listeners().repeater();
 
   repeater->OnTestCaseStart(*this);
   impl->os_stack_trace_getter()->UponLeavingGTest();
-  internal::HandleExceptionsInMethodIfSupported(
+  Pinternal::HandleExceptionsInMethodIfSupported(
       this, &TestCase::RunSetUpTestCase, "SetUpTestCase()");
 
-  const internal::TimeInMillis start = internal::GetTimeInMillis();
+  const Pinternal::TimeInMillis start = Pinternal::GetTimeInMillis();
   for (int i = 0; i < total_test_count(); i++) {
     GetMutableTestInfo(i)->Run();
   }
-  elapsed_time_ = internal::GetTimeInMillis() - start;
+  elapsed_time_ = Pinternal::GetTimeInMillis() - start;
 
   impl->os_stack_trace_getter()->UponLeavingGTest();
-  internal::HandleExceptionsInMethodIfSupported(
+  Pinternal::HandleExceptionsInMethodIfSupported(
       this, &TestCase::RunTearDownTestCase, "TearDownTestCase()");
 
   repeater->OnTestCaseEnd(*this);
@@ -2790,7 +2790,7 @@ void TestCase::ClearResult() {
 }
 
 // Shuffles the tests in this test case.
-void TestCase::ShuffleTests(internal::Random* random) {
+void TestCase::ShuffleTests(Pinternal::Random* random) {
   Shuffle(random, &test_indices_);
 }
 
@@ -2809,7 +2809,7 @@ void TestCase::UnshuffleTests() {
 static std::string FormatCountableNoun(int count,
                                        const char * singular_form,
                                        const char * plural_form) {
-  return internal::StreamableToString(count) + " " +
+  return Pinternal::StreamableToString(count) + " " +
       (count == 1 ? singular_form : plural_form);
 }
 
@@ -2850,7 +2850,7 @@ namespace internal {
 static std::string PrintTestPartResultToString(
     const TestPartResult& test_part_result) {
   return (Message()
-          << internal::FormatFileLocation(test_part_result.file_name(),
+          << Pinternal::FormatFileLocation(test_part_result.file_name(),
                                           test_part_result.line_number())
           << " " << TestPartResultTypeToString(test_part_result.type())
           << test_part_result.message()).GetString();
@@ -3067,12 +3067,12 @@ void PrettyUnitTestResultPrinter::OnTestIterationStart(
                   "Note: %s filter = %s\n", GTEST_NAME_, filter);
   }
 
-  if (internal::ShouldShard(kTestTotalShards, kTestShardIndex, false)) {
+  if (Pinternal::ShouldShard(kTestTotalShards, kTestShardIndex, false)) {
     const Int32 shard_index = Int32FromEnvOrDie(kTestShardIndex, -1);
     ColoredPrintf(COLOR_YELLOW,
                   "Note: This is test shard %d of %s.\n",
                   static_cast<int>(shard_index) + 1,
-                  internal::posix::GetEnv(kTestTotalShards));
+                  Pinternal::posix::GetEnv(kTestTotalShards));
   }
 
   if (GTEST_FLAG(shuffle)) {
@@ -3138,7 +3138,7 @@ void PrettyUnitTestResultPrinter::OnTestEnd(const TestInfo& test_info) {
     PrintFullTestCommentIfPresent(test_info);
 
   if (GTEST_FLAG(print_time)) {
-    printf(" (%s ms)\n", internal::StreamableToString(
+    printf(" (%s ms)\n", Pinternal::StreamableToString(
            test_info.result()->elapsed_time()).c_str());
   } else {
     printf("\n");
@@ -3154,7 +3154,7 @@ void PrettyUnitTestResultPrinter::OnTestCaseEnd(const TestCase& test_case) {
   ColoredPrintf(COLOR_GREEN, "[----------] ");
   printf("%s from %s (%s ms total)\n\n",
          counts.c_str(), test_case.name(),
-         internal::StreamableToString(test_case.elapsed_time()).c_str());
+         Pinternal::StreamableToString(test_case.elapsed_time()).c_str());
   fflush(stdout);
 }
 
@@ -3198,7 +3198,7 @@ void PrettyUnitTestResultPrinter::OnTestIterationEnd(const UnitTest& unit_test,
          FormatTestCaseCount(unit_test.test_case_to_run_count()).c_str());
   if (GTEST_FLAG(print_time)) {
     printf(" (%s ms total)",
-           internal::StreamableToString(unit_test.elapsed_time()).c_str());
+           Pinternal::StreamableToString(unit_test.elapsed_time()).c_str());
   }
   printf("\n");
   ColoredPrintf(COLOR_GREEN,  "[  PASSED  ] ");
@@ -3653,7 +3653,7 @@ void XmlUnitTestResultPrinter::OutputXmlTestInfo(::std::ostream* stream,
       if (++failures == 1) {
         *stream << ">\n";
       }
-      const string location = internal::FormatCompilerIndependentFileLocation(
+      const string location = Pinternal::FormatCompilerIndependentFileLocation(
           part.file_name(), part.line_number());
       const string summary = location + "\n" + part.summary();
       *stream << "      <failure message=\""
@@ -3888,7 +3888,7 @@ class ScopedPrematureExitFile {
 // class TestEventListeners
 
 TestEventListeners::TestEventListeners()
-    : repeater_(new internal::TestEventRepeater()),
+    : repeater_(new Pinternal::TestEventRepeater()),
       default_result_printer_(NULL),
       default_xml_generator_(NULL) {
 }
@@ -4042,12 +4042,12 @@ int UnitTest::test_to_run_count() const { return impl()->test_to_run_count(); }
 
 // Gets the time of the test program start, in ms from the start of the
 // UNIX epoch.
-internal::TimeInMillis UnitTest::start_timestamp() const {
+Pinternal::TimeInMillis UnitTest::start_timestamp() const {
     return impl()->start_timestamp();
 }
 
 // Gets the elapsed time, in milliseconds.
-internal::TimeInMillis UnitTest::elapsed_time() const {
+Pinternal::TimeInMillis UnitTest::elapsed_time() const {
   return impl()->elapsed_time();
 }
 
@@ -4114,20 +4114,20 @@ void UnitTest::AddTestPartResult(
   Message msg;
   msg << message;
 
-  internal::MutexLock lock(&mutex_);
+  Pinternal::MutexLock lock(&mutex_);
   if (impl_->gtest_trace_stack().size() > 0) {
     msg << "\n" << GTEST_NAME_ << " trace:";
 
     for (int i = static_cast<int>(impl_->gtest_trace_stack().size());
          i > 0; --i) {
-      const internal::TraceInfo& trace = impl_->gtest_trace_stack()[i - 1];
-      msg << "\n" << internal::FormatFileLocation(trace.file, trace.line)
+      const Pinternal::TraceInfo& trace = impl_->gtest_trace_stack()[i - 1];
+      msg << "\n" << Pinternal::FormatFileLocation(trace.file, trace.line)
           << " " << trace.message;
     }
   }
 
   if (os_stack_trace.c_str() != NULL && !os_stack_trace.empty()) {
-    msg << internal::kStackTraceMarker << os_stack_trace;
+    msg << Pinternal::kStackTraceMarker << os_stack_trace;
   }
 
   const TestPartResult result =
@@ -4157,7 +4157,7 @@ void UnitTest::AddTestPartResult(
 #endif  // GTEST_OS_WINDOWS
     } else if (GTEST_FLAG(throw_on_failure)) {
 #if GTEST_HAS_EXCEPTIONS
-      throw internal::GoogleTestFailureException(result);
+      throw Pinternal::GoogleTestFailureException(result);
 #else
       // We cannot call abort() as it generates a pop-up in debug mode
       // that cannot be suppressed in VC 7.1 or below.
@@ -4184,7 +4184,7 @@ void UnitTest::RecordProperty(const std::string& key,
 // from the main thread.
 int UnitTest::Run() {
   const bool in_death_test_child_process =
-      internal::GTEST_FLAG(internal_run_death_test).length() > 0;
+      Pinternal::GTEST_FLAG(internal_run_death_test).length() > 0;
 
   // Google Test implements this protocol for catching that a test
   // program exits before returning control to Google Test:
@@ -4207,9 +4207,9 @@ int UnitTest::Run() {
   // premature-exit file will be left undeleted, causing a test runner
   // that understands the premature-exit-file protocol to report the
   // test as having failed.
-  const internal::ScopedPrematureExitFile premature_exit_file(
+  const Pinternal::ScopedPrematureExitFile premature_exit_file(
       in_death_test_child_process ?
-      NULL : internal::posix::GetEnv("TEST_PREMATURE_EXIT_FILE"));
+      NULL : Pinternal::posix::GetEnv("TEST_PREMATURE_EXIT_FILE"));
 
   // Captures the value of GTEST_FLAG(catch_exceptions).  This value will be
   // used for the duration of the program.
@@ -4254,9 +4254,9 @@ int UnitTest::Run() {
   }
 #endif  // GTEST_HAS_SEH
 
-  return internal::HandleExceptionsInMethodIfSupported(
+  return Pinternal::HandleExceptionsInMethodIfSupported(
       impl(),
-      &internal::UnitTestImpl::RunAllTests,
+      &Pinternal::UnitTestImpl::RunAllTests,
       "auxiliary test code (environments or event listeners)") ? 0 : 1;
 }
 
@@ -4270,7 +4270,7 @@ const char* UnitTest::original_working_dir() const {
 // or NULL if no test is running.
 const TestCase* UnitTest::current_test_case() const
     GTEST_LOCK_EXCLUDED_(mutex_) {
-  internal::MutexLock lock(&mutex_);
+  Pinternal::MutexLock lock(&mutex_);
   return impl_->current_test_case();
 }
 
@@ -4278,7 +4278,7 @@ const TestCase* UnitTest::current_test_case() const
 // or NULL if no test is running.
 const TestInfo* UnitTest::current_test_info() const
     GTEST_LOCK_EXCLUDED_(mutex_) {
-  internal::MutexLock lock(&mutex_);
+  Pinternal::MutexLock lock(&mutex_);
   return impl_->current_test_info();
 }
 
@@ -4288,7 +4288,7 @@ int UnitTest::random_seed() const { return impl_->random_seed(); }
 #if GTEST_HAS_PARAM_TEST
 // Returns ParameterizedTestCaseRegistry object used to keep track of
 // value-parameterized tests and instantiate and register them.
-internal::ParameterizedTestCaseRegistry&
+Pinternal::ParameterizedTestCaseRegistry&
     UnitTest::parameterized_test_registry()
         GTEST_LOCK_EXCLUDED_(mutex_) {
   return impl_->parameterized_test_registry();
@@ -4297,7 +4297,7 @@ internal::ParameterizedTestCaseRegistry&
 
 // Creates an empty UnitTest.
 UnitTest::UnitTest() {
-  impl_ = new internal::UnitTestImpl(this);
+  impl_ = new Pinternal::UnitTestImpl(this);
 }
 
 // Destructor of UnitTest.
@@ -4307,16 +4307,16 @@ UnitTest::~UnitTest() {
 
 // Pushes a trace defined by SCOPED_TRACE() on to the per-thread
 // Google Test trace stack.
-void UnitTest::PushGTestTrace(const internal::TraceInfo& trace)
+void UnitTest::PushGTestTrace(const Pinternal::TraceInfo& trace)
     GTEST_LOCK_EXCLUDED_(mutex_) {
-  internal::MutexLock lock(&mutex_);
+  Pinternal::MutexLock lock(&mutex_);
   impl_->gtest_trace_stack().push_back(trace);
 }
 
 // Pops a trace from the per-thread Google Test trace stack.
 void UnitTest::PopGTestTrace()
     GTEST_LOCK_EXCLUDED_(mutex_) {
-  internal::MutexLock lock(&mutex_);
+  Pinternal::MutexLock lock(&mutex_);
   impl_->gtest_trace_stack().pop_back();
 }
 
@@ -4356,10 +4356,10 @@ UnitTestImpl::UnitTestImpl(UnitTest* parent)
 
 UnitTestImpl::~UnitTestImpl() {
   // Deletes every TestCase.
-  ForEach(test_cases_, internal::Delete<TestCase>);
+  ForEach(test_cases_, Pinternal::Delete<TestCase>);
 
   // Deletes every Environment.
-  ForEach(environments_, internal::Delete<Environment>);
+  ForEach(environments_, Pinternal::Delete<Environment>);
 
   delete os_stack_trace_getter_;
 }
@@ -4516,7 +4516,7 @@ TestCase* UnitTestImpl::GetTestCase(const char* test_case_name,
       new TestCase(test_case_name, type_param, set_up_tc, tear_down_tc);
 
   // Is this a death test case?
-  if (internal::UnitTestOptions::MatchesFilter(test_case_name,
+  if (Pinternal::UnitTestOptions::MatchesFilter(test_case_name,
                                                kDeathTestCaseFilter)) {
     // Yes.  Inserts the test case after the last death test case
     // defined so far.  This only works when the test cases haven't
@@ -4568,7 +4568,7 @@ bool UnitTestImpl::RunAllTests() {
   // Even if sharding is not on, test runners may want to use the
   // GTEST_SHARD_STATUS_FILE to query whether the test supports the sharding
   // protocol.
-  internal::WriteToShardStatusFileIfNeeded();
+  Pinternal::WriteToShardStatusFileIfNeeded();
 
   // True iff we are in a subprocess for running a thread-safe-style
   // death test.
@@ -4809,14 +4809,14 @@ int UnitTestImpl::FilterTests(ReactionToSharding shard_tests) {
       // A test is disabled if test case name or test name matches
       // kDisableTestFilter.
       const bool is_disabled =
-          internal::UnitTestOptions::MatchesFilter(test_case_name,
+          Pinternal::UnitTestOptions::MatchesFilter(test_case_name,
                                                    kDisableTestFilter) ||
-          internal::UnitTestOptions::MatchesFilter(test_name,
+          Pinternal::UnitTestOptions::MatchesFilter(test_name,
                                                    kDisableTestFilter);
       test_info->is_disabled_ = is_disabled;
 
       const bool matches_filter =
-          internal::UnitTestOptions::FilterMatchesTest(test_case_name,
+          Pinternal::UnitTestOptions::FilterMatchesTest(test_case_name,
                                                        test_name);
       test_info->matches_filter_ = matches_filter;
 
@@ -5281,9 +5281,9 @@ void ParseGoogleTestFlagsOnlyImpl(int* argc, CharType** argv) {
     const std::string arg_string = StreamableToString(argv[i]);
     const char* const arg = arg_string.c_str();
 
-    using internal::ParseBoolFlag;
-    using internal::ParseInt32Flag;
-    using internal::ParseStringFlag;
+    using Pinternal::ParseBoolFlag;
+    using Pinternal::ParseInt32Flag;
+    using Pinternal::ParseStringFlag;
 
     bool remove_flag = false;
     if (ParseGoogleTestFlag(arg)) {
@@ -5371,7 +5371,7 @@ void InitGoogleTest(int* argc, char** argv) {
 #if defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
   GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_(argc, argv);
 #else  // defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
-  internal::InitGoogleTestImpl(argc, argv);
+  Pinternal::InitGoogleTestImpl(argc, argv);
 #endif  // defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
 }
 
@@ -5381,7 +5381,7 @@ void InitGoogleTest(int* argc, wchar_t** argv) {
 #if defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
   GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_(argc, argv);
 #else  // defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
-  internal::InitGoogleTestImpl(argc, argv);
+  Pinternal::InitGoogleTestImpl(argc, argv);
 #endif  // defined(GTEST_CUSTOM_INIT_GOOGLE_TEST_FUNCTION_)
 }
 

@@ -33,10 +33,10 @@ protected:
 	void update() override;
 	void CreateViews() override;
 
-	UI::EventReturn HandleStartServer(UI::EventParams &e);
-	UI::EventReturn HandleStopServer(UI::EventParams &e);
-	UI::EventReturn HandleBrowse(UI::EventParams &e);
-	UI::EventReturn HandleSettings(UI::EventParams &e);
+	PUI::EventReturn HandleStartServer(PUI::EventParams &e);
+	PUI::EventReturn HandleStopServer(PUI::EventParams &e);
+	PUI::EventReturn HandleBrowse(PUI::EventParams &e);
+	PUI::EventReturn HandleSettings(PUI::EventParams &e);
 
 	bool serverRunning_;
 	bool serverStopping_;
@@ -64,7 +64,7 @@ protected:
 	void ExecuteScan();
 	void ExecuteLoad();
 
-	UI::TextView *statusView_;
+	PUI::TextView *statusView_;
 
 	ScanStatus status_;
 	double nextRetry_;
@@ -89,14 +89,14 @@ class RemoteISOSettingsScreen : public UIDialogScreenWithBackground {
 public:
 	RemoteISOSettingsScreen();
 
-	UI::EventReturn OnClickRemoteISOSubdir(UI::EventParams &e);
-	UI::EventReturn OnClickRemoteServer(UI::EventParams &e);
+	PUI::EventReturn OnClickRemoteISOSubdir(PUI::EventParams &e);
+	PUI::EventReturn OnClickRemoteServer(PUI::EventParams &e);
 protected:
 
 	void update() override;
 	void CreateViews() override;
 
-	UI::EventReturn OnChangeRemoteISOSubdir(UI::EventParams &e);
+	PUI::EventReturn OnChangeRemoteISOSubdir(PUI::EventParams &e);
 
 	bool serverRunning_ = false;
 };

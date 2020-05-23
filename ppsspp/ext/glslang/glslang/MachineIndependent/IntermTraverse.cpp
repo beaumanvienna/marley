@@ -37,7 +37,7 @@
 
 #include "../Include/intermediate.h"
 
-namespace glslang {
+namespace Pglslang {
 
 //
 // Traverse the intermediate representation tree, and
@@ -299,4 +299,4 @@ void TIntermSwitch::traverse(TIntermTraverser* it)
         it->visitSwitch(EvPostVisit, this);
 }
 
-} // end namespace glslang
+} // end namespace Pglslang

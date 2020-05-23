@@ -41,7 +41,7 @@
 #include <cstdlib>
 #include <exception>
 
-namespace spv {
+namespace Pspv {
 
 // MSVC defines __cplusplus as an older value, even when it supports almost all of 11.
 // We handle that here by making our own symbol.
@@ -78,7 +78,7 @@ public:
 #include <cstdio>
 #include <cstdint>
 
-namespace spv {
+namespace Pspv {
 class spirvbin_t : public spirvbin_base_t
 {
 public:
@@ -106,13 +106,13 @@ public:
 #include "spirv.hpp"
 #include "spvIR.h"
 
-namespace spv {
+namespace Pspv {
 
 // class to hold SPIR-V binary data for remapping, DCE, and debug stripping
 class spirvbin_t : public spirvbin_base_t
 {
 public:
-   spirvbin_t(int verbose = 0) : entryPoint(spv::NoResult), largestNewId(0), verbose(verbose), errorLatch(false)
+   spirvbin_t(int verbose = 0) : entryPoint(Pspv::NoResult), largestNewId(0), verbose(verbose), errorLatch(false)
    { }
 
    virtual ~spirvbin_t() { }
@@ -134,63 +134,63 @@ protected:
 
 private:
    // Local to global, or global to local ID map
-   typedef std::unordered_map<spv::Id, spv::Id> idmap_t;
-   typedef std::unordered_set<spv::Id>          idset_t;
-   typedef std::unordered_map<spv::Id, int>     blockmap_t;
+   typedef std::unordered_map<Pspv::Id, Pspv::Id> idmap_t;
+   typedef std::unordered_set<Pspv::Id>          idset_t;
+   typedef std::unordered_map<Pspv::Id, int>     blockmap_t;
 
    void remap(std::uint32_t opts = DO_EVERYTHING);
 
    // Map of names to IDs
-   typedef std::unordered_map<std::string, spv::Id> namemap_t;
+   typedef std::unordered_map<std::string, Pspv::Id> namemap_t;
 
    typedef std::uint32_t spirword_t;
 
    typedef std::pair<unsigned, unsigned> range_t;
-   typedef std::function<void(spv::Id&)>                idfn_t;
-   typedef std::function<bool(spv::Op, unsigned start)> instfn_t;
+   typedef std::function<void(Pspv::Id&)>                idfn_t;
+   typedef std::function<bool(Pspv::Op, unsigned start)> instfn_t;
 
    // Special Values for ID map:
-   static const spv::Id unmapped;     // unchanged from default value
-   static const spv::Id unused;       // unused ID
+   static const Pspv::Id unmapped;     // unchanged from default value
+   static const Pspv::Id unused;       // unused ID
    static const int     header_size;  // SPIR header = 5 words
 
    class id_iterator_t;
 
    // For mapping type entries between different shaders
    typedef std::vector<spirword_t>        typeentry_t;
-   typedef std::map<spv::Id, typeentry_t> globaltypes_t;
+   typedef std::map<Pspv::Id, typeentry_t> globaltypes_t;
 
    // A set that preserves position order, and a reverse map
    typedef std::set<int>                    posmap_t;
-   typedef std::unordered_map<spv::Id, int> posmap_rev_t;
+   typedef std::unordered_map<Pspv::Id, int> posmap_rev_t;
 
    // Maps and ID to the size of its base type, if known.
-   typedef std::unordered_map<spv::Id, unsigned> typesize_map_t;
+   typedef std::unordered_map<Pspv::Id, unsigned> typesize_map_t;
 
    // handle error
    void error(const std::string& txt) const { errorLatch = true; errorHandler(txt); }
 
-   bool     isConstOp(spv::Op opCode)      const;
-   bool     isTypeOp(spv::Op opCode)       const;
-   bool     isStripOp(spv::Op opCode)      const;
-   bool     isFlowCtrl(spv::Op opCode)     const;
-   range_t  literalRange(spv::Op opCode)   const;
-   range_t  typeRange(spv::Op opCode)      const;
-   range_t  constRange(spv::Op opCode)     const;
-   unsigned typeSizeInWords(spv::Id id)    const;
-   unsigned idTypeSizeInWords(spv::Id id)  const;
+   bool     isConstOp(Pspv::Op opCode)      const;
+   bool     isTypeOp(Pspv::Op opCode)       const;
+   bool     isStripOp(Pspv::Op opCode)      const;
+   bool     isFlowCtrl(Pspv::Op opCode)     const;
+   range_t  literalRange(Pspv::Op opCode)   const;
+   range_t  typeRange(Pspv::Op opCode)      const;
+   range_t  constRange(Pspv::Op opCode)     const;
+   unsigned typeSizeInWords(Pspv::Id id)    const;
+   unsigned idTypeSizeInWords(Pspv::Id id)  const;
 
-   spv::Id&        asId(unsigned word)                { return spv[word]; }
-   const spv::Id&  asId(unsigned word)          const { return spv[word]; }
-   spv::Op         asOpCode(unsigned word)      const { return opOpCode(spv[word]); }
+   Pspv::Id&        asId(unsigned word)                { return spv[word]; }
+   const Pspv::Id&  asId(unsigned word)          const { return spv[word]; }
+   Pspv::Op         asOpCode(unsigned word)      const { return opOpCode(spv[word]); }
    std::uint32_t   asOpCodeHash(unsigned word);
-   spv::Decoration asDecoration(unsigned word)  const { return spv::Decoration(spv[word]); }
+   Pspv::Decoration asDecoration(unsigned word)  const { return Pspv::Decoration(spv[word]); }
    unsigned        asWordCount(unsigned word)   const { return opWordCount(spv[word]); }
-   spv::Id         asTypeConstId(unsigned word) const { return asId(word + (isTypeOp(asOpCode(word)) ? 1 : 2)); }
-   unsigned        idPos(spv::Id id)            const;
+   Pspv::Id         asTypeConstId(unsigned word) const { return asId(word + (isTypeOp(asOpCode(word)) ? 1 : 2)); }
+   unsigned        idPos(Pspv::Id id)            const;
 
-   static unsigned opWordCount(spirword_t data) { return data >> spv::WordCountShift; }
-   static spv::Op  opOpCode(spirword_t data)    { return spv::Op(data & spv::OpCodeMask); }
+   static unsigned opWordCount(spirword_t data) { return data >> Pspv::WordCountShift; }
+   static Pspv::Op  opOpCode(spirword_t data)    { return Pspv::Op(data & Pspv::OpCodeMask); }
 
    // Header access & set methods
    spirword_t  magic()    const       { return spv[0]; } // return magic number
@@ -201,29 +201,29 @@ private:
    spirword_t  schemaNum() const      { return spv[4]; } // schema number from header
 
    // Mapping fns: get
-   spv::Id     localId(spv::Id id) const { return idMapL[id]; }
+   Pspv::Id     localId(Pspv::Id id) const { return idMapL[id]; }
 
    // Mapping fns: set
-   inline spv::Id   localId(spv::Id id, spv::Id newId);
-   void             countIds(spv::Id id);
+   inline Pspv::Id   localId(Pspv::Id id, Pspv::Id newId);
+   void             countIds(Pspv::Id id);
 
    // Return next unused new local ID.
    // NOTE: boost::dynamic_bitset would be more efficient due to find_next(),
    // which std::vector<bool> doens't have.
-   inline spv::Id   nextUnusedId(spv::Id id);
+   inline Pspv::Id   nextUnusedId(Pspv::Id id);
 
    void buildLocalMaps();
    std::string literalString(unsigned word) const; // Return literal as a std::string
    int literalStringWords(const std::string& str) const { return (int(str.size())+4)/4; }
 
-   bool isNewIdMapped(spv::Id newId)   const { return isMapped(newId);            }
-   bool isOldIdUnmapped(spv::Id oldId) const { return localId(oldId) == unmapped; }
-   bool isOldIdUnused(spv::Id oldId)   const { return localId(oldId) == unused;   }
-   bool isOldIdMapped(spv::Id oldId)   const { return !isOldIdUnused(oldId) && !isOldIdUnmapped(oldId); }
-   bool isFunction(spv::Id oldId)      const { return fnPos.find(oldId) != fnPos.end(); }
+   bool isNewIdMapped(Pspv::Id newId)   const { return isMapped(newId);            }
+   bool isOldIdUnmapped(Pspv::Id oldId) const { return localId(oldId) == unmapped; }
+   bool isOldIdUnused(Pspv::Id oldId)   const { return localId(oldId) == unused;   }
+   bool isOldIdMapped(Pspv::Id oldId)   const { return !isOldIdUnused(oldId) && !isOldIdUnmapped(oldId); }
+   bool isFunction(Pspv::Id oldId)      const { return fnPos.find(oldId) != fnPos.end(); }
 
-   // bool    matchType(const globaltypes_t& globalTypes, spv::Id lt, spv::Id gt) const;
-   // spv::Id findType(const globaltypes_t& globalTypes, spv::Id lt) const;
+   // bool    matchType(const globaltypes_t& globalTypes, Pspv::Id lt, Pspv::Id gt) const;
+   // Pspv::Id findType(const globaltypes_t& globalTypes, Pspv::Id lt) const;
    std::uint32_t hashType(unsigned typeStart) const;
 
    spirvbin_t& process(instfn_t, idfn_t, unsigned begin = 0, unsigned end = 0);
@@ -257,9 +257,9 @@ private:
    std::vector<bits_t> mapped; // which new IDs have been mapped
    static const int mBits = sizeof(bits_t) * 4;
 
-   bool isMapped(spv::Id id) const  { return id < maxMappedId() && ((mapped[id/mBits] & (1LL<<(id%mBits))) != 0); }
-   void setMapped(spv::Id id) { resizeMapped(id); mapped[id/mBits] |= (1LL<<(id%mBits)); }
-   void resizeMapped(spv::Id id) { if (id >= maxMappedId()) mapped.resize(id/mBits+1, 0); }
+   bool isMapped(Pspv::Id id) const  { return id < maxMappedId() && ((mapped[id/mBits] & (1LL<<(id%mBits))) != 0); }
+   void setMapped(Pspv::Id id) { resizeMapped(id); mapped[id/mBits] |= (1LL<<(id%mBits)); }
+   void resizeMapped(Pspv::Id id) { if (id >= maxMappedId()) mapped.resize(id/mBits+1, 0); }
    size_t maxMappedId() const { return mapped.size() * mBits; }
 
    // Add a strip range for a given instruction starting at 'start'
@@ -268,19 +268,19 @@ private:
 
    // Function start and end.  use unordered_map because we'll have
    // many fewer functions than IDs.
-   std::unordered_map<spv::Id, range_t> fnPos;
+   std::unordered_map<Pspv::Id, range_t> fnPos;
 
    // Which functions are called, anywhere in the module, with a call count
-   std::unordered_map<spv::Id, int> fnCalls;
+   std::unordered_map<Pspv::Id, int> fnCalls;
 
    posmap_t       typeConstPos;  // word positions that define types & consts (ordered)
    posmap_rev_t   idPosR;        // reverse map from IDs to positions
    typesize_map_t idTypeSizeMap; // maps each ID to its type size, if known.
 
-   std::vector<spv::Id>  idMapL;   // ID {M}ap from {L}ocal to {G}lobal IDs
+   std::vector<Pspv::Id>  idMapL;   // ID {M}ap from {L}ocal to {G}lobal IDs
 
-   spv::Id entryPoint;      // module entry point
-   spv::Id largestNewId;    // biggest new ID we have mapped anything to
+   Pspv::Id entryPoint;      // module entry point
+   Pspv::Id largestNewId;    // biggest new ID we have mapped anything to
 
    // Sections of the binary to strip, given as [begin,end)
    std::vector<range_t> stripRange;

@@ -43,7 +43,7 @@ static u32 GetButtonColor() {
 class DragDropButton : public MultiTouchButton {
 public:
 	DragDropButton(ConfigTouchPos &pos, int bgImg, int img)
-	: MultiTouchButton(bgImg, bgImg, img, pos.scale, new UI::AnchorLayoutParams(fromFullscreenCoord(pos.x), pos.y * local_dp_yres, UI::NONE, UI::NONE, true)),
+	: MultiTouchButton(bgImg, bgImg, img, pos.scale, new PUI::AnchorLayoutParams(fromFullscreenCoord(pos.x), pos.y * local_dp_yres, PUI::NONE, PUI::NONE, true)),
 		x_(pos.x), y_(pos.y), theScale_(pos.scale) {
 		scale_ = theScale_;
 	}
@@ -91,7 +91,7 @@ class PSPActionButtons : public DragDropButton {
 public:
 	PSPActionButtons(ConfigTouchPos &pos, float &spacing)
 	: DragDropButton(pos, -1, -1), spacing_(spacing) {
-		using namespace UI;
+		using namespace PUI;
 		roundId_ = g_PConfig.iTouchButtonStyle ? I_ROUND_LINE : I_ROUND;
 
 		circleId_ = I_CIRCLE;
@@ -220,7 +220,7 @@ TouchControlLayoutScreen::TouchControlLayoutScreen() {
 bool TouchControlLayoutScreen::touch(const TouchInput &touch) {
 	UIScreen::touch(touch);
 
-	using namespace UI;
+	using namespace PUI;
 
 	int mode = mode_->GetSelection();
 
@@ -247,7 +247,7 @@ bool TouchControlLayoutScreen::touch(const TouchInput &touch) {
 			if (touch.y > minTouchY && touch.y < maxTouchY) {
 				newY = touch.y;
 			}
-			pickedControl_->ReplaceLayoutParams(new UI::AnchorLayoutParams(newX, newY, NONE, NONE, true));
+			pickedControl_->ReplaceLayoutParams(new PUI::AnchorLayoutParams(newX, newY, NONE, NONE, true));
 		} else if (mode == 1) {
 			// Resize. Vertical = scaling, horizontal = spacing;
 			// Up should be bigger so let's negate in that direction
@@ -289,18 +289,18 @@ void TouchControlLayoutScreen::onFinish(DialogResult reason) {
 	g_PConfig.Save("TouchControlLayoutScreen::onFinish");
 }
 
-UI::EventReturn TouchControlLayoutScreen::OnVisibility(UI::EventParams &e) {
+PUI::EventReturn TouchControlLayoutScreen::OnVisibility(PUI::EventParams &e) {
 	screenManager()->push(new TouchControlVisibilityScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn TouchControlLayoutScreen::OnReset(UI::EventParams &e) {
+PUI::EventReturn TouchControlLayoutScreen::OnReset(PUI::EventParams &e) {
 	ILOG("Resetting touch control layout");
 	g_PConfig.ResetControlLayout();
 	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 	InitPadLayout(bounds.w, bounds.h);
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
 void TouchControlLayoutScreen::dialogFinished(const Screen *dialog, DialogResult result) {
@@ -315,7 +315,7 @@ void TouchControlLayoutScreen::CreateViews() {
 	local_dp_xres = bounds.w;
 	local_dp_yres = bounds.h;
 
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *co = GetI18NCategory("Controls");
 	I18NCategory *di = GetI18NCategory("Dialog");

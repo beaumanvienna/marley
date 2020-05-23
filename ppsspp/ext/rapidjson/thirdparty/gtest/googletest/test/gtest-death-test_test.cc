@@ -35,8 +35,8 @@
 #include "gtest/gtest.h"
 #include "gtest/internal/gtest-filepath.h"
 
-using testing::internal::AlwaysFalse;
-using testing::internal::AlwaysTrue;
+using testing::Pinternal::AlwaysFalse;
+using testing::Pinternal::AlwaysTrue;
 
 #if GTEST_HAS_DEATH_TEST
 
@@ -66,19 +66,19 @@ using testing::internal::AlwaysTrue;
 # include "src/gtest-internal-inl.h"
 # undef GTEST_IMPLEMENTATION_
 
-namespace posix = ::testing::internal::posix;
+namespace posix = ::testing::Pinternal::posix;
 
 using testing::Message;
-using testing::internal::DeathTest;
-using testing::internal::DeathTestFactory;
-using testing::internal::FilePath;
-using testing::internal::GetLastErrnoDescription;
-using testing::internal::GetUnitTestImpl;
-using testing::internal::InDeathTestChild;
-using testing::internal::ParseNaturalNumber;
+using testing::Pinternal::DeathTest;
+using testing::Pinternal::DeathTestFactory;
+using testing::Pinternal::FilePath;
+using testing::Pinternal::GetLastErrnoDescription;
+using testing::Pinternal::GetUnitTestImpl;
+using testing::Pinternal::InDeathTestChild;
+using testing::Pinternal::ParseNaturalNumber;
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // A helper class whose objects replace the death test factory for a
 // single UnitTest object during their lifetimes.
@@ -103,7 +103,7 @@ class ReplaceDeathTestFactory {
   DeathTestFactory* old_factory_;
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 void DieWithMessage(const ::std::string& message) {
@@ -500,7 +500,7 @@ TEST_F(TestForDeathTest, AcceptsAnythingConvertibleToRE) {
   static const char regex_c_str[] = "GlobalFunction";
   EXPECT_DEATH(GlobalFunction(), regex_c_str);
 
-  const testing::internal::RE regex(regex_c_str);
+  const testing::Pinternal::RE regex(regex_c_str);
   EXPECT_DEATH(GlobalFunction(), regex);
 
 # if GTEST_HAS_GLOBAL_STRING
@@ -881,7 +881,7 @@ class MockDeathTestFactory : public DeathTestFactory {
  public:
   MockDeathTestFactory();
   virtual bool Create(const char* statement,
-                      const ::testing::internal::RE* regex,
+                      const ::testing::Pinternal::RE* regex,
                       const char* file, int line, DeathTest** test);
 
   // Sets the parameters for subsequent calls to Create.
@@ -997,7 +997,7 @@ void MockDeathTestFactory::SetParameters(bool create,
 // MockDeathTest object with parameters taken from the last call
 // to SetParameters (if create_ is true).  Always returns true.
 bool MockDeathTestFactory::Create(const char* /*statement*/,
-                                  const ::testing::internal::RE* /*regex*/,
+                                  const ::testing::Pinternal::RE* /*regex*/,
                                   const char* /*file*/,
                                   int /*line*/,
                                   DeathTest** test) {
@@ -1015,12 +1015,12 @@ bool MockDeathTestFactory::Create(const char* /*statement*/,
 // of the test case.
 class MacroLogicDeathTest : public testing::Test {
  protected:
-  static testing::internal::ReplaceDeathTestFactory* replacer_;
+  static testing::Pinternal::ReplaceDeathTestFactory* replacer_;
   static MockDeathTestFactory* factory_;
 
   static void SetUpTestCase() {
     factory_ = new MockDeathTestFactory;
-    replacer_ = new testing::internal::ReplaceDeathTestFactory(factory_);
+    replacer_ = new testing::Pinternal::ReplaceDeathTestFactory(factory_);
   }
 
   static void TearDownTestCase() {
@@ -1041,7 +1041,7 @@ class MacroLogicDeathTest : public testing::Test {
   }
 };
 
-testing::internal::ReplaceDeathTestFactory* MacroLogicDeathTest::replacer_
+testing::Pinternal::ReplaceDeathTestFactory* MacroLogicDeathTest::replacer_
     = NULL;
 MockDeathTestFactory* MacroLogicDeathTest::factory_ = NULL;
 
@@ -1163,7 +1163,7 @@ TEST(AutoHandleTest, AutoHandleWorks) {
   ASSERT_NE(INVALID_HANDLE_VALUE, handle);
 
   // Tests that the AutoHandle is correctly initialized with a handle.
-  testing::internal::AutoHandle auto_handle(handle);
+  testing::Pinternal::AutoHandle auto_handle(handle);
   EXPECT_EQ(handle, auto_handle.Get());
 
   // Tests that Reset assigns INVALID_HANDLE_VALUE.
@@ -1179,7 +1179,7 @@ TEST(AutoHandleTest, AutoHandleWorks) {
   EXPECT_EQ(handle, auto_handle.Get());
 
   // Tests that AutoHandle contains INVALID_HANDLE_VALUE by default.
-  testing::internal::AutoHandle auto_handle2;
+  testing::Pinternal::AutoHandle auto_handle2;
   EXPECT_EQ(INVALID_HANDLE_VALUE, auto_handle2.Get());
 }
 # endif  // GTEST_OS_WINDOWS
@@ -1325,8 +1325,8 @@ TEST(InDeathTestChildDeathTest, ReportsDeathTestCorrectlyInThreadSafeStyle) {
 
 #else  // !GTEST_HAS_DEATH_TEST follows
 
-using testing::internal::CaptureStderr;
-using testing::internal::GetCapturedStderr;
+using testing::Pinternal::CaptureStderr;
+using testing::Pinternal::GetCapturedStderr;
 
 // Tests that EXPECT_DEATH_IF_SUPPORTED/ASSERT_DEATH_IF_SUPPORTED are still
 // defined but do not trigger failures when death tests are not available on

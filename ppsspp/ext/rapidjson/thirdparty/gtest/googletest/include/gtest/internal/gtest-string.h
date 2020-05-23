@@ -52,7 +52,7 @@
 #include "gtest/internal/gtest-port.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // String - an abstract class holding static string utilities.
 class GTEST_API_ String {
@@ -161,7 +161,7 @@ class GTEST_API_ String {
 // character in the buffer is replaced with "\\0".
 GTEST_API_ std::string StringStreamToString(::std::stringstream* stream);
 
-}  // namespace internal
+}  // namespace Pinternal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_STRING_H_

@@ -32,7 +32,7 @@
 #include "ui/viewgroup.h"
 
 void Combo_keyScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	I18NCategory *co = GetI18NCategory("Controls");
 	root_ = new LinearLayout(ORIENT_VERTICAL);
 	root_->Add(new ItemHeader(co->T("Combo Key Setting")));
@@ -61,7 +61,7 @@ void Combo_keyScreen::CreateViews() {
 	
 	const int cellSize = 400;
 
-	UI::GridLayoutSettings gridsettings(cellSize, 64, 5);
+	PUI::GridLayoutSettings gridsettings(cellSize, 64, 5);
 	gridsettings.fillCells = true;
 	GridLayout *grid = rightScroll_->Add(new GridLayout(gridsettings, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 
@@ -172,14 +172,14 @@ void Combo_keyScreen::onFinish(DialogResult result) {
 	g_PConfig.Save("Combo_keyScreen::onFInish");
 }
 
-UI::EventReturn Combo_keyScreen::ChoiceEventHandler::onChoiceClick(UI::EventParams &e){
+PUI::EventReturn Combo_keyScreen::ChoiceEventHandler::onChoiceClick(PUI::EventParams &e){
 	checkbox_->Toggle();
 
 
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 };
 
-UI::EventReturn Combo_keyScreen::onCombo(UI::EventParams &e) {
+PUI::EventReturn Combo_keyScreen::onCombo(PUI::EventParams &e) {
 	switch (*mode){
 	case 0:g_PConfig.iCombokey0 = arrayToInt(array);
 		break;
@@ -193,7 +193,7 @@ UI::EventReturn Combo_keyScreen::onCombo(UI::EventParams &e) {
 	}
 	*mode = comboselect->GetSelection();
 	CreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 

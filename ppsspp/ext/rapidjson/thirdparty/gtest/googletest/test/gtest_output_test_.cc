@@ -53,11 +53,11 @@
 using testing::ScopedFakeTestPartResultReporter;
 using testing::TestPartResultArray;
 
-using testing::internal::Notification;
-using testing::internal::ThreadWithParam;
+using testing::Pinternal::Notification;
+using testing::Pinternal::ThreadWithParam;
 #endif
 
-namespace posix = ::testing::internal::posix;
+namespace posix = ::testing::Pinternal::posix;
 
 // Tests catching fatal failures.
 
@@ -514,7 +514,7 @@ class DeathTestAndMultiThreadsTest : public testing::Test {
 
  private:
   SpawnThreadNotifications notifications_;
-  testing::internal::scoped_ptr<ThreadWithParam<SpawnThreadNotifications*> >
+  testing::Pinternal::scoped_ptr<ThreadWithParam<SpawnThreadNotifications*> >
       thread_;
 };
 
@@ -1037,7 +1037,7 @@ int main(int argc, char **argv) {
                  std::string("internal_skip_environment_and_ad_hoc_tests")) > 0;
 
 #if GTEST_HAS_DEATH_TEST
-  if (testing::internal::GTEST_FLAG(internal_run_death_test) != "") {
+  if (testing::Pinternal::GTEST_FLAG(internal_run_death_test) != "") {
     // Skip the usual output capturing if we're running as the child
     // process of an threadsafe-style death test.
 # if GTEST_OS_WINDOWS

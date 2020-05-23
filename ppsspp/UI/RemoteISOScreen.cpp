@@ -29,7 +29,7 @@
 #include "Core/WebServer.h"
 #include "UI/RemoteISOScreen.h"
 
-using namespace UI;
+using namespace PUI;
 
 static const char *REPORT_HOSTNAME = "report.ppsspp.org";
 static const int REPORT_PORT = 80;
@@ -291,7 +291,7 @@ void RemoteISOScreen::CreateViews() {
 	rightColumn->Add(rightColumnItems);
 }
 
-UI::EventReturn RemoteISOScreen::HandleStartServer(UI::EventParams &e) {
+PUI::EventReturn RemoteISOScreen::HandleStartServer(PUI::EventParams &e) {
 	if (!StartWebServer(WebServerFlags::DISCS)) {
 		return EVENT_SKIPPED;
 	}
@@ -299,7 +299,7 @@ UI::EventReturn RemoteISOScreen::HandleStartServer(UI::EventParams &e) {
 	return EVENT_DONE;
 }
 
-UI::EventReturn RemoteISOScreen::HandleStopServer(UI::EventParams &e) {
+PUI::EventReturn RemoteISOScreen::HandleStopServer(PUI::EventParams &e) {
 	if (!StopWebServer(WebServerFlags::DISCS)) {
 		return EVENT_SKIPPED;
 	}
@@ -310,12 +310,12 @@ UI::EventReturn RemoteISOScreen::HandleStopServer(UI::EventParams &e) {
 	return EVENT_DONE;
 }
 
-UI::EventReturn RemoteISOScreen::HandleBrowse(UI::EventParams &e) {
+PUI::EventReturn RemoteISOScreen::HandleBrowse(PUI::EventParams &e) {
 	screenManager()->push(new RemoteISOConnectScreen());
 	return EVENT_DONE;
 }
 
-UI::EventReturn RemoteISOScreen::HandleSettings(UI::EventParams &e) {
+PUI::EventReturn RemoteISOScreen::HandleSettings(PUI::EventParams &e) {
 	screenManager()->push(new RemoteISOSettingsScreen());
 	return EVENT_DONE;
 }
@@ -443,7 +443,7 @@ void RemoteISOConnectScreen::ExecuteLoad() {
 
 class RemoteGameBrowser : public GameBrowser {
 public:
-	RemoteGameBrowser(const std::vector<std::string> &games, bool allowBrowsing, bool *gridStyle_, std::string lastText, std::string lastLink, int flags = 0, UI::LayoutParams *layoutParams = 0)
+	RemoteGameBrowser(const std::vector<std::string> &games, bool allowBrowsing, bool *gridStyle_, std::string lastText, std::string lastLink, int flags = 0, PUI::LayoutParams *layoutParams = 0)
 	: GameBrowser("!REMOTE", allowBrowsing, gridStyle_, lastText, lastLink, flags, layoutParams) {
 		games_ = games;
 		Refresh();
@@ -577,17 +577,17 @@ void RemoteISOSettingsScreen::CreateViews() {
 	AddStandardBack(root_);
 }
 
-UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteServer(UI::EventParams &e) {
+PUI::EventReturn RemoteISOSettingsScreen::OnClickRemoteServer(PUI::EventParams &e) {
 	System_SendMessage("inputbox", ("remoteiso_server:" + g_PConfig.sLastRemoteISOServer).c_str());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteISOSubdir(UI::EventParams &e) {
+PUI::EventReturn RemoteISOSettingsScreen::OnClickRemoteISOSubdir(PUI::EventParams &e) {
 	System_SendMessage("inputbox", ("remoteiso_subdir:" + g_PConfig.sRemoteISOSubdir).c_str());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn RemoteISOSettingsScreen::OnChangeRemoteISOSubdir(UI::EventParams &e) {
+PUI::EventReturn RemoteISOSettingsScreen::OnChangeRemoteISOSubdir(PUI::EventParams &e) {
 	//Conform to HTTP standards
 	ReplaceAll(g_PConfig.sRemoteISOSubdir, " ", "%20");
 	ReplaceAll(g_PConfig.sRemoteISOSubdir, "\\", "/");
@@ -595,5 +595,5 @@ UI::EventReturn RemoteISOSettingsScreen::OnChangeRemoteISOSubdir(UI::EventParams
 	if (g_PConfig.sRemoteISOSubdir[0] != '/')
 		g_PConfig.sRemoteISOSubdir = "/" + g_PConfig.sRemoteISOSubdir;
 	
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }

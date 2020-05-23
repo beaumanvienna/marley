@@ -49,14 +49,14 @@
 #endif
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // Protects the mock object registry (in class Mock), all function
 // mockers, and all expectations.
 GTEST_API_ GTEST_DEFINE_STATIC_MUTEX_(g_gmock_mutex);
 
 // Logs a message including file and line number information.
-GTEST_API_ void LogWithLocation(testing::internal::LogSeverity severity,
+GTEST_API_ void LogWithLocation(testing::Pinternal::LogSeverity severity,
                                 const char* file, int line,
                                 const string& message) {
   ::std::ostringstream s;
@@ -509,13 +509,13 @@ bool UntypedFunctionMockerBase::VerifyAndClearExpectationsLocked()
   return expectations_met;
 }
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // Class Mock.
 
 namespace {
 
-typedef std::set<internal::UntypedFunctionMockerBase*> FunctionMockers;
+typedef std::set<Pinternal::UntypedFunctionMockerBase*> FunctionMockers;
 
 // The current state of a mock object.  Such information is needed for
 // detecting leaked mock objects and explicitly verifying a mock's
@@ -564,7 +564,7 @@ class MockObjectRegistry {
       // This can help the user identify the leaked object.
       std::cout << "\n";
       const MockObjectState& state = it->second;
-      std::cout << internal::FormatFileLocation(state.first_used_file,
+      std::cout << Pinternal::FormatFileLocation(state.first_used_file,
                                                 state.first_used_line);
       std::cout << " ERROR: this mock object";
       if (state.first_used_test != "") {
@@ -600,14 +600,14 @@ MockObjectRegistry g_mock_object_registry;
 
 // Maps a mock object to the reaction Google Mock should have when an
 // uninteresting method is called.  Protected by g_gmock_mutex.
-std::map<const void*, internal::CallReaction> g_uninteresting_call_reaction;
+std::map<const void*, Pinternal::CallReaction> g_uninteresting_call_reaction;
 
 // Sets the reaction Google Mock should have when an uninteresting
 // method of the given mock object is called.
 void SetReactionOnUninterestingCalls(const void* mock_obj,
-                                     internal::CallReaction reaction)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+                                     Pinternal::CallReaction reaction)
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   g_uninteresting_call_reaction[mock_obj] = reaction;
 }
 
@@ -616,47 +616,47 @@ void SetReactionOnUninterestingCalls(const void* mock_obj,
 // Tells Google Mock to allow uninteresting calls on the given mock
 // object.
 void Mock::AllowUninterestingCalls(const void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  SetReactionOnUninterestingCalls(mock_obj, internal::kAllow);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  SetReactionOnUninterestingCalls(mock_obj, Pinternal::kAllow);
 }
 
 // Tells Google Mock to warn the user about uninteresting calls on the
 // given mock object.
 void Mock::WarnUninterestingCalls(const void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  SetReactionOnUninterestingCalls(mock_obj, internal::kWarn);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  SetReactionOnUninterestingCalls(mock_obj, Pinternal::kWarn);
 }
 
 // Tells Google Mock to fail uninteresting calls on the given mock
 // object.
 void Mock::FailUninterestingCalls(const void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  SetReactionOnUninterestingCalls(mock_obj, internal::kFail);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  SetReactionOnUninterestingCalls(mock_obj, Pinternal::kFail);
 }
 
 // Tells Google Mock the given mock object is being destroyed and its
 // entry in the call-reaction table should be removed.
 void Mock::UnregisterCallReaction(const void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   g_uninteresting_call_reaction.erase(mock_obj);
 }
 
 // Returns the reaction Google Mock will have on uninteresting calls
 // made on the given mock object.
-internal::CallReaction Mock::GetReactionOnUninterestingCalls(
+Pinternal::CallReaction Mock::GetReactionOnUninterestingCalls(
     const void* mock_obj)
-        GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+        GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   return (g_uninteresting_call_reaction.count(mock_obj) == 0) ?
-      internal::kDefault : g_uninteresting_call_reaction[mock_obj];
+      Pinternal::kDefault : g_uninteresting_call_reaction[mock_obj];
 }
 
 // Tells Google Mock to ignore mock_obj when checking for leaked mock
 // objects.
 void Mock::AllowLeak(const void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   g_mock_object_registry.states()[mock_obj].leakable = true;
 }
 
@@ -664,8 +664,8 @@ void Mock::AllowLeak(const void* mock_obj)
 // the expectations aren't satisfied, generates one or more Google
 // Test non-fatal failures and returns false.
 bool Mock::VerifyAndClearExpectations(void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   return VerifyAndClearExpectationsLocked(mock_obj);
 }
 
@@ -673,8 +673,8 @@ bool Mock::VerifyAndClearExpectations(void* mock_obj)
 // default actions and expectations.  Returns true iff the
 // verification was successful.
 bool Mock::VerifyAndClear(void* mock_obj)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   ClearDefaultActionsLocked(mock_obj);
   return VerifyAndClearExpectationsLocked(mock_obj);
 }
@@ -683,8 +683,8 @@ bool Mock::VerifyAndClear(void* mock_obj)
 // the expectations aren't satisfied, generates one or more Google
 // Test non-fatal failures and returns false.
 bool Mock::VerifyAndClearExpectationsLocked(void* mock_obj)
-    GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex) {
-  internal::g_gmock_mutex.AssertHeld();
+    GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex) {
+  Pinternal::g_gmock_mutex.AssertHeld();
   if (g_mock_object_registry.states().count(mock_obj) == 0) {
     // No EXPECT_CALL() was set on the given mock object.
     return true;
@@ -709,9 +709,9 @@ bool Mock::VerifyAndClearExpectationsLocked(void* mock_obj)
 
 // Registers a mock object and a mock method it owns.
 void Mock::Register(const void* mock_obj,
-                    internal::UntypedFunctionMockerBase* mocker)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+                    Pinternal::UntypedFunctionMockerBase* mocker)
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   g_mock_object_registry.states()[mock_obj].function_mockers.insert(mocker);
 }
 
@@ -720,8 +720,8 @@ void Mock::Register(const void* mock_obj,
 // information helps the user identify which object it is.
 void Mock::RegisterUseByOnCallOrExpectCall(const void* mock_obj,
                                            const char* file, int line)
-    GTEST_LOCK_EXCLUDED_(internal::g_gmock_mutex) {
-  internal::MutexLock l(&internal::g_gmock_mutex);
+    GTEST_LOCK_EXCLUDED_(Pinternal::g_gmock_mutex) {
+  Pinternal::MutexLock l(&Pinternal::g_gmock_mutex);
   MockObjectState& state = g_mock_object_registry.states()[mock_obj];
   if (state.first_used_file == NULL) {
     state.first_used_file = file;
@@ -742,9 +742,9 @@ void Mock::RegisterUseByOnCallOrExpectCall(const void* mock_obj,
 // registry when the last mock method associated with it has been
 // unregistered.  This is called only in the destructor of
 // FunctionMockerBase.
-void Mock::UnregisterLocked(internal::UntypedFunctionMockerBase* mocker)
-    GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex) {
-  internal::g_gmock_mutex.AssertHeld();
+void Mock::UnregisterLocked(Pinternal::UntypedFunctionMockerBase* mocker)
+    GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex) {
+  Pinternal::g_gmock_mutex.AssertHeld();
   for (MockObjectRegistry::StateMap::iterator it =
            g_mock_object_registry.states().begin();
        it != g_mock_object_registry.states().end(); ++it) {
@@ -761,8 +761,8 @@ void Mock::UnregisterLocked(internal::UntypedFunctionMockerBase* mocker)
 
 // Clears all ON_CALL()s set on the given mock object.
 void Mock::ClearDefaultActionsLocked(void* mock_obj)
-    GTEST_EXCLUSIVE_LOCK_REQUIRED_(internal::g_gmock_mutex) {
-  internal::g_gmock_mutex.AssertHeld();
+    GTEST_EXCLUSIVE_LOCK_REQUIRED_(Pinternal::g_gmock_mutex) {
+  Pinternal::g_gmock_mutex.AssertHeld();
 
   if (g_mock_object_registry.states().count(mock_obj) == 0) {
     // No ON_CALL() was set on the given mock object.
@@ -785,7 +785,7 @@ void Mock::ClearDefaultActionsLocked(void* mock_obj)
 Expectation::Expectation() {}
 
 Expectation::Expectation(
-    const internal::linked_ptr<internal::ExpectationBase>& an_expectation_base)
+    const Pinternal::linked_ptr<Pinternal::ExpectationBase>& an_expectation_base)
     : expectation_base_(an_expectation_base) {}
 
 Expectation::~Expectation() {}
@@ -803,8 +803,8 @@ void Sequence::AddExpectation(const Expectation& expectation) const {
 
 // Creates the implicit sequence if there isn't one.
 InSequence::InSequence() {
-  if (internal::g_gmock_implicit_sequence.get() == NULL) {
-    internal::g_gmock_implicit_sequence.set(new Sequence);
+  if (Pinternal::g_gmock_implicit_sequence.get() == NULL) {
+    Pinternal::g_gmock_implicit_sequence.set(new Sequence);
     sequence_created_ = true;
   } else {
     sequence_created_ = false;
@@ -815,8 +815,8 @@ InSequence::InSequence() {
 // of this object.
 InSequence::~InSequence() {
   if (sequence_created_) {
-    delete internal::g_gmock_implicit_sequence.get();
-    internal::g_gmock_implicit_sequence.set(NULL);
+    delete Pinternal::g_gmock_implicit_sequence.get();
+    Pinternal::g_gmock_implicit_sequence.set(NULL);
   }
 }
 

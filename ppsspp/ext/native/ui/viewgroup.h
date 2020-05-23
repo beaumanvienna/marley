@@ -10,7 +10,7 @@
 #include "input/gesture_detector.h"
 #include "ui/view.h"
 
-namespace UI {
+namespace PUI {
 
 class AnchorTranslateTween;
 

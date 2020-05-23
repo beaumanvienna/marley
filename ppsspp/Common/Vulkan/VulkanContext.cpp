@@ -1167,7 +1167,7 @@ bool GLSLtoSPV(const VkShaderStageFlagBits shader_type,
 	const char *pshader,
 	std::vector<unsigned int> &spirv, std::string *errorMessage) {
 
-	glslang::TProgram program;
+	Pglslang::TProgram program;
 	const char *shaderStrings[1];
 	EProfile profile = ECoreProfile;
 	int defaultVersion = 450;
@@ -1178,7 +1178,7 @@ bool GLSLtoSPV(const VkShaderStageFlagBits shader_type,
 	EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
 	EShLanguage stage = FindLanguage(shader_type);
-	glslang::TShader shader(stage);
+	Pglslang::TShader shader(stage);
 
 	shaderStrings[0] = pshader;
 	shader.setStrings(shaderStrings, 1);
@@ -1207,20 +1207,20 @@ bool GLSLtoSPV(const VkShaderStageFlagBits shader_type,
 	}
 
 	// Can't fail, parsing worked, "linking" worked.
-	glslang::SpvOptions options;
+	Pglslang::SpvOptions options;
 	options.disableOptimizer = false;
 	options.optimizeSize = false;
 	options.generateDebugInfo = false;
-	glslang::GlslangToSpv(*program.getIntermediate(stage), spirv, &options);
+	Pglslang::GlslangToSpv(*program.getIntermediate(stage), spirv, &options);
 	return true;
 }
 
 void init_glslang() {
-	glslang::InitializeProcess();
+	Pglslang::InitializeProcess();
 }
 
 void finalize_glslang() {
-	glslang::FinalizeProcess();
+	Pglslang::FinalizeProcess();
 }
 
 const char *VulkanResultToString(VkResult res) {

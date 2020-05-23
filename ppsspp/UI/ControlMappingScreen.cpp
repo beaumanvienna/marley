@@ -39,20 +39,20 @@
 #include "UI/ControlMappingScreen.h"
 #include "UI/GameSettingsScreen.h"
 
-class ControlMapper : public UI::LinearLayout {
+class ControlMapper : public PUI::LinearLayout {
 public:
-	ControlMapper(ControlMappingScreen *ctrlScreen, int pspKey, std::string keyName, ScreenManager *scrm, UI::LinearLayoutParams *layoutParams = 0);
+	ControlMapper(ControlMappingScreen *ctrlScreen, int pspKey, std::string keyName, ScreenManager *scrm, PUI::LinearLayoutParams *layoutParams = 0);
 
 	void Update() override;
 	int GetPspKey() const { return pspKey_; }
 private:
 	void Refresh();
 
-	UI::EventReturn OnAdd(UI::EventParams &params);
-	UI::EventReturn OnAddMouse(UI::EventParams &params);
-	UI::EventReturn OnDelete(UI::EventParams &params);
-	UI::EventReturn OnReplace(UI::EventParams &params);
-	UI::EventReturn OnReplaceAll(UI::EventParams &params);
+	PUI::EventReturn OnAdd(PUI::EventParams &params);
+	PUI::EventReturn OnAddMouse(PUI::EventParams &params);
+	PUI::EventReturn OnDelete(PUI::EventParams &params);
+	PUI::EventReturn OnReplace(PUI::EventParams &params);
+	PUI::EventReturn OnReplaceAll(PUI::EventParams &params);
 
 	void MappedCallback(KeyDef key);
 
@@ -72,8 +72,8 @@ private:
 	bool refresh_;
 };
 
-ControlMapper::ControlMapper(ControlMappingScreen *ctrlScreen, int pspKey, std::string keyName, ScreenManager *scrm, UI::LinearLayoutParams *layoutParams)
-	: UI::LinearLayout(UI::ORIENT_VERTICAL, layoutParams), ctrlScreen_(ctrlScreen), action_(NONE), pspKey_(pspKey), keyName_(keyName), scrm_(scrm), refresh_(false) {
+ControlMapper::ControlMapper(ControlMappingScreen *ctrlScreen, int pspKey, std::string keyName, ScreenManager *scrm, PUI::LinearLayoutParams *layoutParams)
+	: PUI::LinearLayout(PUI::ORIENT_VERTICAL, layoutParams), ctrlScreen_(ctrlScreen), action_(NONE), pspKey_(pspKey), keyName_(keyName), scrm_(scrm), refresh_(false) {
 	Refresh();
 }
 
@@ -86,7 +86,7 @@ void ControlMapper::Update() {
 }
 
 void ControlMapper::Refresh() {
-	bool hasFocus = UI::GetFocusedView() == this;
+	bool hasFocus = PUI::GetFocusedView() == this;
 	Clear();
 	I18NCategory *mc = GetI18NCategory("MappableControls");
 
@@ -100,7 +100,7 @@ void ControlMapper::Refresh() {
 	keyImages["L"] = I_L;
 	keyImages["R"] = I_R;
 
-	using namespace UI;
+	using namespace PUI;
 
 	float itemH = 45;
 
@@ -183,45 +183,45 @@ void ControlMapper::MappedCallback(KeyDef kdf) {
 	// After this, we do not exist any more. So the refresh_ = true is probably irrelevant.
 }
 
-UI::EventReturn ControlMapper::OnReplace(UI::EventParams &params) {
+PUI::EventReturn ControlMapper::OnReplace(PUI::EventParams &params) {
 	actionIndex_ = atoi(params.v->Tag().c_str());
 	action_ = REPLACEONE;
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 	scrm_->push(new KeyMappingNewKeyDialog(pspKey_, true, std::bind(&ControlMapper::MappedCallback, this, std::placeholders::_1), km));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMapper::OnReplaceAll(UI::EventParams &params) {
+PUI::EventReturn ControlMapper::OnReplaceAll(PUI::EventParams &params) {
 	action_ = REPLACEALL;
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 	scrm_->push(new KeyMappingNewKeyDialog(pspKey_, true, std::bind(&ControlMapper::MappedCallback, this, std::placeholders::_1), km));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMapper::OnAdd(UI::EventParams &params) {
+PUI::EventReturn ControlMapper::OnAdd(PUI::EventParams &params) {
 	action_ = ADD;
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 	scrm_->push(new KeyMappingNewKeyDialog(pspKey_, true, std::bind(&ControlMapper::MappedCallback, this, std::placeholders::_1), km));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
-UI::EventReturn ControlMapper::OnAddMouse(UI::EventParams &params) {
+PUI::EventReturn ControlMapper::OnAddMouse(PUI::EventParams &params) {
 	action_ = ADD;
 	g_PConfig.bMapMouse = true;
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 	scrm_->push(new KeyMappingNewMouseKeyDialog(pspKey_, true, std::bind(&ControlMapper::MappedCallback, this, std::placeholders::_1), km));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMapper::OnDelete(UI::EventParams &params) {
+PUI::EventReturn ControlMapper::OnDelete(PUI::EventParams &params) {
 	int index = atoi(params.v->Tag().c_str());
 	KeyMap::g_controllerMap[pspKey_].erase(KeyMap::g_controllerMap[pspKey_].begin() + index);
 	KeyMap::g_controllerMapGeneration++;
 	refresh_ = true;
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void ControlMappingScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	mappers_.clear();
 
 	I18NCategory *km = GetI18NCategory("KeyMapping");
@@ -257,19 +257,19 @@ void ControlMappingScreen::CreateViews() {
 	}
 }
 
-UI::EventReturn ControlMappingScreen::OnClearMapping(UI::EventParams &params) {
+PUI::EventReturn ControlMappingScreen::OnClearMapping(PUI::EventParams &params) {
 	KeyMap::g_controllerMap.clear();
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMappingScreen::OnDefaultMapping(UI::EventParams &params) {
+PUI::EventReturn ControlMappingScreen::OnDefaultMapping(PUI::EventParams &params) {
 	KeyMap::RestoreDefault();
 	RecreateViews();
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMappingScreen::OnAutoConfigure(UI::EventParams &params) {
+PUI::EventReturn ControlMappingScreen::OnAutoConfigure(PUI::EventParams &params) {
 	std::vector<std::string> items;
 	const auto seenPads = KeyMap::GetSeenPads();
 	for (auto s = seenPads.begin(), end = seenPads.end(); s != end; ++s) {
@@ -280,12 +280,12 @@ UI::EventReturn ControlMappingScreen::OnAutoConfigure(UI::EventParams &params) {
 	if (params.v)
 		autoConfList->SetPopupOrigin(params.v);
 	screenManager()->push(autoConfList);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn ControlMappingScreen::OnTestAnalogs(UI::EventParams &params) {
+PUI::EventReturn ControlMappingScreen::OnTestAnalogs(PUI::EventParams &params) {
 	screenManager()->push(new AnalogTestScreen());
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void ControlMappingScreen::dialogFinished(const Screen *dialog, DialogResult result) {
@@ -303,8 +303,8 @@ void ControlMappingScreen::KeyMapped(int pspkey) {  // Notification to let us re
 	}
 }
 
-void KeyMappingNewKeyDialog::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void KeyMappingNewKeyDialog::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 	I18NCategory *mc = GetI18NCategory("MappableControls");
@@ -331,8 +331,8 @@ bool KeyMappingNewKeyDialog::key(const KeyInput &key) {
 	return true;
 }
 
-void KeyMappingNewMouseKeyDialog::CreatePopupContents(UI::ViewGroup *parent) {
-	using namespace UI;
+void KeyMappingNewMouseKeyDialog::CreatePopupContents(PUI::ViewGroup *parent) {
+	using namespace PUI;
 
 	I18NCategory *km = GetI18NCategory("KeyMapping");
 
@@ -428,10 +428,10 @@ bool KeyMappingNewMouseKeyDialog::axis(const AxisInput &axis) {
 	return true;
 }
 
-class JoystickHistoryView : public UI::InertView {
+class JoystickHistoryView : public PUI::InertView {
 public:
-	JoystickHistoryView(int xAxis, int xDevice, int xDir, int yAxis, int yDevice, int yDir, UI::LayoutParams *layoutParams = nullptr)
-		: UI::InertView(layoutParams),
+	JoystickHistoryView(int xAxis, int xDevice, int xDir, int yAxis, int yDevice, int yDir, PUI::LayoutParams *layoutParams = nullptr)
+		: PUI::InertView(layoutParams),
 			xAxis_(xAxis), xDir_(xDir),
 			yAxis_(yAxis), yDir_(yDir) {}
 	void Draw(UIContext &dc) override;
@@ -501,7 +501,7 @@ void JoystickHistoryView::Update() {
 
 bool AnalogTestScreen::key(const KeyInput &key) {
 	bool retval = true;
-	if (UI::IsEscapeKey(key)) {
+	if (PUI::IsEscapeKey(key)) {
 		TriggerFinish(DR_BACK);
 		return true;
 	}
@@ -542,7 +542,7 @@ bool AnalogTestScreen::axis(const AxisInput &axis) {
 }
 
 void AnalogTestScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *di = GetI18NCategory("Dialog");
 
@@ -625,7 +625,7 @@ bool TouchTestScreen::touch(const TouchInput &touch) {
 }
 
 void TouchTestScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *gr = GetI18NCategory("Graphics");
@@ -687,10 +687,10 @@ void TouchTestScreen::render() {
 
 void RecreateActivity();
 
-UI::EventReturn TouchTestScreen::OnImmersiveModeChange(UI::EventParams &e) {
+PUI::EventReturn TouchTestScreen::OnImmersiveModeChange(PUI::EventParams &e) {
 	System_SendMessage("immersive", "");
 	if (g_PConfig.iAndroidHwScale != 0) {
 		RecreateActivity();
 	}
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }

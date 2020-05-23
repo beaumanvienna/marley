@@ -33,18 +33,18 @@ class DevMenu : public PopupScreen {
 public:
 	DevMenu(I18NCategory *i18n) : PopupScreen(i18n->T("Dev Tools")) {}
 
-	void CreatePopupContents(UI::ViewGroup *parent) override;
+	void CreatePopupContents(PUI::ViewGroup *parent) override;
 	void dialogFinished(const Screen *dialog, DialogResult result) override;
 
 protected:
-	UI::EventReturn OnLogView(UI::EventParams &e);
-	UI::EventReturn OnLogConfig(UI::EventParams &e);
-	UI::EventReturn OnJitCompare(UI::EventParams &e);
-	UI::EventReturn OnShaderView(UI::EventParams &e);
-	UI::EventReturn OnFreezeFrame(UI::EventParams &e);
-	UI::EventReturn OnDumpFrame(UI::EventParams &e);
-	UI::EventReturn OnDeveloperTools(UI::EventParams &e);
-	UI::EventReturn OnToggleAudioDebug(UI::EventParams &e);
+	PUI::EventReturn OnLogView(PUI::EventParams &e);
+	PUI::EventReturn OnLogConfig(PUI::EventParams &e);
+	PUI::EventReturn OnJitCompare(PUI::EventParams &e);
+	PUI::EventReturn OnShaderView(PUI::EventParams &e);
+	PUI::EventReturn OnFreezeFrame(PUI::EventParams &e);
+	PUI::EventReturn OnDumpFrame(PUI::EventParams &e);
+	PUI::EventReturn OnDeveloperTools(PUI::EventParams &e);
+	PUI::EventReturn OnToggleAudioDebug(PUI::EventParams &e);
 };
 
 class JitDebugScreen : public UIDialogScreenWithBackground {
@@ -53,8 +53,8 @@ public:
 	virtual void CreateViews() override;
 
 private:
-	UI::EventReturn OnEnableAll(UI::EventParams &e);
-	UI::EventReturn OnDisableAll(UI::EventParams &e);
+	PUI::EventReturn OnEnableAll(PUI::EventParams &e);
+	PUI::EventReturn OnDisableAll(PUI::EventParams &e);
 };
 
 class LogConfigScreen : public UIDialogScreenWithBackground {
@@ -63,11 +63,11 @@ public:
 	virtual void CreateViews() override;
 
 private:
-	UI::EventReturn OnToggleAll(UI::EventParams &e);
-	UI::EventReturn OnEnableAll(UI::EventParams &e);
-	UI::EventReturn OnDisableAll(UI::EventParams &e);
-	UI::EventReturn OnLogLevel(UI::EventParams &e);
-	UI::EventReturn OnLogLevelChange(UI::EventParams &e);
+	PUI::EventReturn OnToggleAll(PUI::EventParams &e);
+	PUI::EventReturn OnEnableAll(PUI::EventParams &e);
+	PUI::EventReturn OnDisableAll(PUI::EventParams &e);
+	PUI::EventReturn OnLogLevel(PUI::EventParams &e);
+	PUI::EventReturn OnLogLevelChange(PUI::EventParams &e);
 };
 
 class LogScreen : public UIDialogScreenWithBackground {
@@ -78,10 +78,10 @@ public:
 
 private:
 	void UpdateLog();
-	UI::EventReturn OnSubmit(UI::EventParams &e);
-	UI::TextEdit *cmdLine_;
-	UI::LinearLayout *vert_;
-	UI::ScrollView *scroll_;
+	PUI::EventReturn OnSubmit(PUI::EventParams &e);
+	PUI::TextEdit *cmdLine_;
+	PUI::LinearLayout *vert_;
+	PUI::ScrollView *scroll_;
 	bool toBottom_;
 };
 
@@ -108,21 +108,21 @@ public:
 
 	virtual bool key(const KeyInput &key) override;
 
-	UI::Event OnChoice;
+	PUI::Event OnChoice;
 
 protected:
-	virtual void CreatePopupContents(UI::ViewGroup *parent) override;
+	virtual void CreatePopupContents(PUI::ViewGroup *parent) override;
 	virtual void OnCompleted(DialogResult result) override;
-	UI::EventReturn OnDigitButton(UI::EventParams &e);
-	UI::EventReturn OnBackspace(UI::EventParams &e);
+	PUI::EventReturn OnDigitButton(PUI::EventParams &e);
+	PUI::EventReturn OnBackspace(PUI::EventParams &e);
 
 private:
 	void AddDigit(int n);
 	void BackspaceDigit();
 	void UpdatePreviewDigits();
 
-	UI::TextView *addrView_;
-	UI::Button *buttons_[16];
+	PUI::TextView *addrView_;
+	PUI::Button *buttons_[16];
 	unsigned int addr_;
 };
 
@@ -133,27 +133,27 @@ public:
 
 private:
 	void UpdateDisasm();
-	UI::EventReturn OnRandomBlock(UI::EventParams &e);
-	UI::EventReturn OnRandomFPUBlock(UI::EventParams &e);
-	UI::EventReturn OnRandomVFPUBlock(UI::EventParams &e);
+	PUI::EventReturn OnRandomBlock(PUI::EventParams &e);
+	PUI::EventReturn OnRandomFPUBlock(PUI::EventParams &e);
+	PUI::EventReturn OnRandomVFPUBlock(PUI::EventParams &e);
 	void OnRandomBlock(int flag);
 
-	UI::EventReturn OnCurrentBlock(UI::EventParams &e);
-	UI::EventReturn OnSelectBlock(UI::EventParams &e);
-	UI::EventReturn OnPrevBlock(UI::EventParams &e);
-	UI::EventReturn OnNextBlock(UI::EventParams &e);
-	UI::EventReturn OnBlockAddress(UI::EventParams &e);
-	UI::EventReturn OnAddressChange(UI::EventParams &e);
-	UI::EventReturn OnShowStats(UI::EventParams &e);
+	PUI::EventReturn OnCurrentBlock(PUI::EventParams &e);
+	PUI::EventReturn OnSelectBlock(PUI::EventParams &e);
+	PUI::EventReturn OnPrevBlock(PUI::EventParams &e);
+	PUI::EventReturn OnNextBlock(PUI::EventParams &e);
+	PUI::EventReturn OnBlockAddress(PUI::EventParams &e);
+	PUI::EventReturn OnAddressChange(PUI::EventParams &e);
+	PUI::EventReturn OnShowStats(PUI::EventParams &e);
 
 	int currentBlock_;
 
-	UI::TextView *blockName_;
-	UI::TextEdit *blockAddr_;
-	UI::TextView *blockStats_;
+	PUI::TextView *blockName_;
+	PUI::TextEdit *blockAddr_;
+	PUI::TextView *blockStats_;
 
-	UI::LinearLayout *leftDisasm_;
-	UI::LinearLayout *rightDisasm_;
+	PUI::LinearLayout *leftDisasm_;
+	PUI::LinearLayout *rightDisasm_;
 };
 
 class ShaderListScreen : public UIDialogScreenWithBackground {
@@ -162,11 +162,11 @@ public:
 	void CreateViews() override;
 
 private:
-	int ListShaders(DebugShaderType shaderType, UI::LinearLayout *view);
+	int ListShaders(DebugShaderType shaderType, PUI::LinearLayout *view);
 
-	UI::EventReturn OnShaderClick(UI::EventParams &e);
+	PUI::EventReturn OnShaderClick(PUI::EventParams &e);
 
-	UI::TabHolder *tabs_;
+	PUI::TabHolder *tabs_;
 };
 
 class ShaderViewScreen : public UIDialogScreenWithBackground {

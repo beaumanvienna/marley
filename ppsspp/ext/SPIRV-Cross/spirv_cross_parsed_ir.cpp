@@ -19,7 +19,7 @@
 #include <assert.h>
 
 using namespace std;
-using namespace spv;
+using namespace Pspv;
 
 namespace SPIRV_CROSS_NAMESPACE
 {

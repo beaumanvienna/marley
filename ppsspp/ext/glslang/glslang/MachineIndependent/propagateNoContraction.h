@@ -41,7 +41,7 @@
 
 #include "../Include/intermediate.h"
 
-namespace glslang {
+namespace Pglslang {
 
 // Propagates the 'precise' qualifier for objects (objects marked with
 // 'noContraction' qualifier) from the shader source specified 'precise'
@@ -51,5 +51,5 @@ namespace glslang {
 // and arithmetic operation nodes, but has different meaning. For object nodes,
 // 'noContraction' means the object is 'precise'; and for arithmetic operation
 // nodes, it means the operation should not be contracted.
-void PropagateNoContraction(const glslang::TIntermediate& intermediate);
+void PropagateNoContraction(const Pglslang::TIntermediate& intermediate);
 };

@@ -114,7 +114,7 @@
 
 // The new UI framework, for initialization
 
-static UI::Theme ui_theme;
+static PUI::Theme ui_theme;
 
 #if defined(ARM) && defined(__ANDROID__)
 #include "../../android/jni/ArmEmitterTest.h"
@@ -727,9 +727,9 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	restarting = false;
 }
 
-static UI::Style MakeStyle(uint32_t fg, uint32_t bg) {
-	UI::Style s;
-	s.background = UI::Drawable(bg);
+static PUI::Style MakeStyle(uint32_t fg, uint32_t bg) {
+	PUI::Style s;
+	s.background = PUI::Drawable(bg);
 	s.fgColor = fg;
 
 	return s;
@@ -737,13 +737,13 @@ static UI::Style MakeStyle(uint32_t fg, uint32_t bg) {
 
 static void UIThemeInit() {
 #if defined(USING_WIN_UI) || PPSSPP_PLATFORM(UWP) || defined(USING_QT_UI)
-	ui_theme.uiFont = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 22);
-	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 15);
-	ui_theme.uiFontSmaller = UI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 12);
+	ui_theme.uiFont = PUI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 22);
+	ui_theme.uiFontSmall = PUI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 15);
+	ui_theme.uiFontSmaller = PUI::FontStyle(UBUNTU24, g_PConfig.sFont.c_str(), 12);
 #else
-	ui_theme.uiFont = UI::FontStyle(UBUNTU24, "", 20);
-	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, "", 14);
-	ui_theme.uiFontSmaller = UI::FontStyle(UBUNTU24, "", 11);
+	ui_theme.uiFont = PUI::FontStyle(UBUNTU24, "", 20);
+	ui_theme.uiFontSmall = PUI::FontStyle(UBUNTU24, "", 14);
+	ui_theme.uiFontSmaller = PUI::FontStyle(UBUNTU24, "", 11);
 #endif
 
 	ui_theme.checkOn = I_CHECKEDBOX;
@@ -945,7 +945,7 @@ void RenderOverlays(UIContext *dc, void *userdata) {
 		for (size_t i = 0; i < progress.size(); i++) {
 			float barWidth = 10 + (dc->GetBounds().w - 10) * progress[i];
 			Bounds bounds(0, h * i, barWidth, h);
-			UI::Drawable solid(colors[i & 3]);
+			PUI::Drawable solid(colors[i & 3]);
 			dc->FillRect(solid, bounds);
 		}
 		dc->Flush();

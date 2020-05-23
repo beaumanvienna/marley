@@ -58,7 +58,7 @@ protected:
 	void DrawBackground(UIContext &dc) override;
 	void sendMessage(const char *message, const char *value) override;
 
-	void AddStandardBack(UI::ViewGroup *parent);
+	void AddStandardBack(PUI::ViewGroup *parent);
 };
 
 class UIDialogScreenWithGameBackground : public UIDialogScreenWithBackground {
@@ -81,8 +81,8 @@ public:
 	void TriggerFinish(DialogResult result) override;
 
 private:
-	UI::EventReturn OnYes(UI::EventParams &e);
-	UI::EventReturn OnNo(UI::EventParams &e);
+	PUI::EventReturn OnYes(PUI::EventParams &e);
+	PUI::EventReturn OnNo(PUI::EventParams &e);
 
 	std::string message_;
 	std::string yesButtonText_;
@@ -138,15 +138,15 @@ public:
 	void CreateViews() override;
 
 private:
-	UI::EventReturn OnOK(UI::EventParams &e);
+	PUI::EventReturn OnOK(PUI::EventParams &e);
 
-	UI::EventReturn OnSupport(UI::EventParams &e);
-	UI::EventReturn OnPPSSPPOrg(UI::EventParams &e);
-	UI::EventReturn OnPrivacy(UI::EventParams &e);
-	UI::EventReturn OnForums(UI::EventParams &e);
-	UI::EventReturn OnDiscord(UI::EventParams &e);
-	UI::EventReturn OnShare(UI::EventParams &e);
-	UI::EventReturn OnTwitter(UI::EventParams &e);
+	PUI::EventReturn OnSupport(PUI::EventParams &e);
+	PUI::EventReturn OnPPSSPPOrg(PUI::EventParams &e);
+	PUI::EventReturn OnPrivacy(PUI::EventParams &e);
+	PUI::EventReturn OnForums(PUI::EventParams &e);
+	PUI::EventReturn OnDiscord(PUI::EventParams &e);
+	PUI::EventReturn OnShare(PUI::EventParams &e);
+	PUI::EventReturn OnTwitter(PUI::EventParams &e);
 
 	int frames_;
 };

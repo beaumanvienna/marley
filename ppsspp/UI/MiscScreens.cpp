@@ -185,12 +185,12 @@ void HandleCommonMessages(const char *message, const char *value, ScreenManager 
 	} else if (!strcmp(message, "language screen") && isActiveScreen) {
 		I18NCategory *dev = GetI18NCategory("Developer");
 		auto langScreen = new NewLanguageScreen(dev->T("Language"));
-		langScreen->OnChoice.Add([](UI::EventParams &) {
+		langScreen->OnChoice.Add([](PUI::EventParams &) {
 			NativeMessageReceived("recreateviews", "");
 			if (host) {
 				host->UpdateUI();
 			}
-			return UI::EVENT_DONE;
+			return PUI::EVENT_DONE;
 		});
 		manager->push(langScreen);
 	} else if (!strcmp(message, "window minimized")) {
@@ -245,8 +245,8 @@ void UIDialogScreenWithBackground::DrawBackground(UIContext &dc) {
 	dc.Flush();
 }
 
-void UIDialogScreenWithBackground::AddStandardBack(UI::ViewGroup *parent) {
-	using namespace UI;
+void UIDialogScreenWithBackground::AddStandardBack(PUI::ViewGroup *parent) {
+	using namespace PUI;
 	I18NCategory *di = GetI18NCategory("Dialog");
 	parent->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(150, 64, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 }
@@ -266,7 +266,7 @@ void PromptScreen::CreateViews() {
 	// Information in the top left.
 	// Back button to the bottom left.
 	// Scrolling action menu to the right.
-	using namespace UI;
+	using namespace PUI;
 
 	Margins actionMenuMargins(0, 100, 15, 0);
 
@@ -287,14 +287,14 @@ void PromptScreen::CreateViews() {
 		rightColumnItems->Add(new Choice(noButtonText_))->OnClick.Handle(this, &PromptScreen::OnNo);
 }
 
-UI::EventReturn PromptScreen::OnYes(UI::EventParams &e) {
+PUI::EventReturn PromptScreen::OnYes(PUI::EventParams &e) {
 	TriggerFinish(DR_OK);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn PromptScreen::OnNo(UI::EventParams &e) {
+PUI::EventReturn PromptScreen::OnNo(PUI::EventParams &e) {
 	TriggerFinish(DR_CANCEL);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void PromptScreen::TriggerFinish(DialogResult result) {
@@ -313,7 +313,7 @@ PostProcScreen::PostProcScreen(const std::string &title) : ListPopupScreen(title
 			selected = i;
 		items.push_back(ps->T(shaders_[i].section.c_str(), shaders_[i].name.c_str()));
 	}
-	adaptor_ = UI::StringVectorListAdaptor(items, selected);
+	adaptor_ = PUI::StringVectorListAdaptor(items, selected);
 }
 
 void PostProcScreen::OnCompleted(DialogResult result) {
@@ -376,7 +376,7 @@ NewLanguageScreen::NewLanguageScreen(const std::string &title) : ListPopupScreen
 		counter++;
 	}
 
-	adaptor_ = UI::StringVectorListAdaptor(listing, selected);
+	adaptor_ = PUI::StringVectorListAdaptor(listing, selected);
 }
 
 void NewLanguageScreen::OnCompleted(DialogResult result) {
@@ -517,7 +517,7 @@ void LogoScreen::render() {
 }
 
 void CreditsScreen::CreateViews() {
-	using namespace UI;
+	using namespace PUI;
 	I18NCategory *di = GetI18NCategory("Dialog");
 	I18NCategory *cr = GetI18NCategory("PSPCredits");
 
@@ -550,53 +550,53 @@ void CreditsScreen::CreateViews() {
 	}
 }
 
-UI::EventReturn CreditsScreen::OnSupport(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnSupport(PUI::EventParams &e) {
 #ifdef __ANDROID__
 	LaunchBrowser("market://details?id=org.ppsspp.ppssppgold");
 #else
 	LaunchBrowser("https://central.ppsspp.org/buygold");
 #endif
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnTwitter(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnTwitter(PUI::EventParams &e) {
 #ifdef __ANDROID__
 	System_SendMessage("showTwitter", "PPSSPP_emu");
 #else
 	LaunchBrowser("https://twitter.com/#!/PPSSPP_emu");
 #endif
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnPPSSPPOrg(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnPPSSPPOrg(PUI::EventParams &e) {
 	LaunchBrowser("https://www.ppsspp.org");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnPrivacy(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnPrivacy(PUI::EventParams &e) {
 	LaunchBrowser("https://www.ppsspp.org/privacy.html");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnForums(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnForums(PUI::EventParams &e) {
 	LaunchBrowser("https://forums.ppsspp.org");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnDiscord(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnDiscord(PUI::EventParams &e) {
 	LaunchBrowser("https://discord.gg/5NJB6dD");
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnShare(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnShare(PUI::EventParams &e) {
 	I18NCategory *cr = GetI18NCategory("PSPCredits");
 	System_SendMessage("sharetext", cr->T("CheckOutPPSSPP", "Check out PPSSPP, the awesome PSP emulator: http://www.ppsspp.org/"));
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
-UI::EventReturn CreditsScreen::OnOK(UI::EventParams &e) {
+PUI::EventReturn CreditsScreen::OnOK(PUI::EventParams &e) {
 	TriggerFinish(DR_OK);
-	return UI::EVENT_DONE;
+	return PUI::EVENT_DONE;
 }
 
 void CreditsScreen::update() {

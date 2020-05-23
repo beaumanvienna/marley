@@ -151,8 +151,8 @@ template <typename T>
 class TypeWithoutFormatter<T, kProtobuf> {
  public:
   static void PrintValue(const T& value, ::std::ostream* os) {
-    const ::testing::internal::string short_str = value.ShortDebugString();
-    const ::testing::internal::string pretty_str =
+    const ::testing::Pinternal::string short_str = value.ShortDebugString();
+    const ::testing::Pinternal::string pretty_str =
         short_str.length() <= kProtobufOneLinerMaxLength ?
         short_str : ("\n" + value.DebugString());
     *os << ("<" + pretty_str + ">");
@@ -170,7 +170,7 @@ class TypeWithoutFormatter<T, kConvertibleToInteger> {
   // T is not an enum, printing it as an integer is the best we can do
   // given that it has no user-defined printer.
   static void PrintValue(const T& value, ::std::ostream* os) {
-    const internal::BiggestInt kBigInt = value;
+    const Pinternal::BiggestInt kBigInt = value;
     *os << kBigInt;
   }
 };
@@ -203,8 +203,8 @@ template <typename Char, typename CharTraits, typename T>
 ::std::basic_ostream<Char, CharTraits>& operator<<(
     ::std::basic_ostream<Char, CharTraits>& os, const T& x) {
   TypeWithoutFormatter<T,
-      (internal::IsAProtocolMessage<T>::value ? kProtobuf :
-       internal::ImplicitlyConvertible<const T&, internal::BiggestInt>::value ?
+      (Pinternal::IsAProtocolMessage<T>::value ? kProtobuf :
+       Pinternal::ImplicitlyConvertible<const T&, Pinternal::BiggestInt>::value ?
        kConvertibleToInteger : kOtherType)>::PrintValue(x, &os);
   return os;
 }
@@ -252,7 +252,7 @@ void DefaultPrintNonContainerTo(const T& value, ::std::ostream* os) {
 }  // namespace testing_internal
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // FormatForComparison<ToPrint, OtherOperand>::Format(value) formats a
 // value of type ToPrint that is an operand of a comparison assertion
@@ -385,7 +385,7 @@ void DefaultPrintTo(IsContainer /* dummy */,
     *os << ' ';
     // We cannot call PrintTo(*it, os) here as PrintTo() doesn't
     // handle *it being a native array.
-    internal::UniversalPrint(*it, os);
+    Pinternal::UniversalPrint(*it, os);
   }
 
   if (count > 0) {
@@ -425,7 +425,7 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
       // (e.g. 3.4.5) cannot compile the cast when p is a function
       // pointer.  Casting to UInt64 first solves the problem.
       *os << reinterpret_cast<const void*>(
-          reinterpret_cast<internal::UInt64>(p));
+          reinterpret_cast<Pinternal::UInt64>(p));
     }
   }
 }
@@ -979,7 +979,7 @@ Strings UniversalTersePrintTupleFieldsToStrings(const Tuple& value) {
 template <typename T>
 ::std::string PrintToString(const T& value) {
   ::std::stringstream ss;
-  internal::UniversalTersePrinter<T>::Print(value, &ss);
+  Pinternal::UniversalTersePrinter<T>::Print(value, &ss);
   return ss.str();
 }
 

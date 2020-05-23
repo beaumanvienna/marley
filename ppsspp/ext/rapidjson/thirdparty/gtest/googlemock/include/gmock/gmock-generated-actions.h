@@ -42,7 +42,7 @@
 #include "gmock/internal/gmock-port.h"
 
 namespace testing {
-namespace internal {
+namespace Pinternal {
 
 // InvokeHelper<F> knows how to unpack an N-tuple and invoke an N-ary
 // function or method with the unpacked values, where F is a function
@@ -611,7 +611,7 @@ class ActionHelper {
   }
 };
 
-}  // namespace internal
+}  // namespace Pinternal
 
 // Various overloads for Invoke().
 
@@ -621,84 +621,84 @@ class ActionHelper {
 // different argument lists.  C++ doesn't support default arguments for
 // function templates, so we have to overload it.
 template <int k1, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1>
+inline Pinternal::WithArgsAction<InnerAction, k1>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1>(action);
 }
 
 template <int k1, int k2, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1, k2>(action);
 }
 
 template <int k1, int k2, int k3, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3>(action);
 }
 
 template <int k1, int k2, int k3, int k4, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, int k6, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6>(action);
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, int k6, int k7,
     typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6,
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6,
       k7>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8,
     typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7,
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7,
       k8>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8,
     int k9, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8, k9>
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8, k9>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
       k9>(action);
 }
 
 template <int k1, int k2, int k3, int k4, int k5, int k6, int k7, int k8,
     int k9, int k10, typename InnerAction>
-inline internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
+inline Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
     k9, k10>
 WithArgs(const InnerAction& action) {
-  return internal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
+  return Pinternal::WithArgsAction<InnerAction, k1, k2, k3, k4, k5, k6, k7, k8,
       k9, k10>(action);
 }
 
 // Creates an action that does actions a1, a2, ..., sequentially in
 // each invocation.
 template <typename Action1, typename Action2>
-inline internal::DoBothAction<Action1, Action2>
+inline Pinternal::DoBothAction<Action1, Action2>
 DoAll(Action1 a1, Action2 a2) {
-  return internal::DoBothAction<Action1, Action2>(a1, a2);
+  return Pinternal::DoBothAction<Action1, Action2>(a1, a2);
 }
 
 template <typename Action1, typename Action2, typename Action3>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
     Action3> >
 DoAll(Action1 a1, Action2 a2, Action3 a3) {
   return DoAll(a1, DoAll(a2, a3));
@@ -706,16 +706,16 @@ DoAll(Action1 a1, Action2 a2, Action3 a3) {
 
 template <typename Action1, typename Action2, typename Action3,
     typename Action4>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, Action4> > >
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Action4> > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4) {
   return DoAll(a1, DoAll(a2, a3, a4));
 }
 
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
     Action5> > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5) {
   return DoAll(a1, DoAll(a2, a3, a4, a5));
@@ -723,18 +723,18 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5) {
 
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5, typename Action6>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
-    internal::DoBothAction<Action5, Action6> > > > >
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
+    Pinternal::DoBothAction<Action5, Action6> > > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6) {
   return DoAll(a1, DoAll(a2, a3, a4, a5, a6));
 }
 
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5, typename Action6, typename Action7>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
-    internal::DoBothAction<Action5, internal::DoBothAction<Action6,
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
+    Pinternal::DoBothAction<Action5, Pinternal::DoBothAction<Action6,
     Action7> > > > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     Action7 a7) {
@@ -744,10 +744,10 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5, typename Action6, typename Action7,
     typename Action8>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
-    internal::DoBothAction<Action5, internal::DoBothAction<Action6,
-    internal::DoBothAction<Action7, Action8> > > > > > >
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
+    Pinternal::DoBothAction<Action5, Pinternal::DoBothAction<Action6,
+    Pinternal::DoBothAction<Action7, Action8> > > > > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     Action7 a7, Action8 a8) {
   return DoAll(a1, DoAll(a2, a3, a4, a5, a6, a7, a8));
@@ -756,10 +756,10 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5, typename Action6, typename Action7,
     typename Action8, typename Action9>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
-    internal::DoBothAction<Action5, internal::DoBothAction<Action6,
-    internal::DoBothAction<Action7, internal::DoBothAction<Action8,
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
+    Pinternal::DoBothAction<Action5, Pinternal::DoBothAction<Action6,
+    Pinternal::DoBothAction<Action7, Pinternal::DoBothAction<Action8,
     Action9> > > > > > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     Action7 a7, Action8 a8, Action9 a9) {
@@ -769,11 +769,11 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
 template <typename Action1, typename Action2, typename Action3,
     typename Action4, typename Action5, typename Action6, typename Action7,
     typename Action8, typename Action9, typename Action10>
-inline internal::DoBothAction<Action1, internal::DoBothAction<Action2,
-    internal::DoBothAction<Action3, internal::DoBothAction<Action4,
-    internal::DoBothAction<Action5, internal::DoBothAction<Action6,
-    internal::DoBothAction<Action7, internal::DoBothAction<Action8,
-    internal::DoBothAction<Action9, Action10> > > > > > > > >
+inline Pinternal::DoBothAction<Action1, Pinternal::DoBothAction<Action2,
+    Pinternal::DoBothAction<Action3, Pinternal::DoBothAction<Action4,
+    Pinternal::DoBothAction<Action5, Pinternal::DoBothAction<Action6,
+    Pinternal::DoBothAction<Action7, Pinternal::DoBothAction<Action8,
+    Pinternal::DoBothAction<Action9, Action10> > > > > > > > >
 DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     Action7 a7, Action8 a8, Action9 a9, Action10 a10) {
   return DoAll(a1, DoAll(a2, a3, a4, a5, a6, a7, a8, a9, a10));
@@ -1252,12 +1252,12 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       explicit gmock_Impl GMOCK_INTERNAL_INIT_##value_params {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1298,7 +1298,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       GMOCK_ACTION_CLASS_(name, value_params)<\
           GMOCK_INTERNAL_LIST_##template_params\
           GMOCK_INTERNAL_LIST_TYPE_##value_params>::gmock_Impl<F>::\
@@ -1313,12 +1313,12 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl() {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1346,7 +1346,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##Action::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
 
@@ -1359,12 +1359,12 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       explicit gmock_Impl(p0##_type gmock_p0) : p0(gmock_p0) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1396,7 +1396,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP<p0##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
 
@@ -1410,13 +1410,13 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1) : p0(gmock_p0), \
           p1(gmock_p1) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1451,7 +1451,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP2<p0##_type, p1##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
 
@@ -1465,13 +1465,13 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, \
           p2##_type gmock_p2) : p0(gmock_p0), p1(gmock_p1), p2(gmock_p2) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1508,7 +1508,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP3<p0##_type, p1##_type, \
           p2##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
@@ -1525,14 +1525,14 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3) : p0(gmock_p0), p1(gmock_p1), p2(gmock_p2), \
           p3(gmock_p3) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1575,7 +1575,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP4<p0##_type, p1##_type, p2##_type, \
           p3##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
@@ -1593,14 +1593,14 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4) : p0(gmock_p0), \
           p1(gmock_p1), p2(gmock_p2), p3(gmock_p3), p4(gmock_p4) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1645,7 +1645,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP5<p0##_type, p1##_type, p2##_type, p3##_type, \
           p4##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
@@ -1663,15 +1663,15 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4, \
           p5##_type gmock_p5) : p0(gmock_p0), p1(gmock_p1), p2(gmock_p2), \
           p3(gmock_p3), p4(gmock_p4), p5(gmock_p5) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1718,7 +1718,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP6<p0##_type, p1##_type, p2##_type, p3##_type, p4##_type, \
           p5##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
@@ -1738,15 +1738,15 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4, p5##_type gmock_p5, \
           p6##_type gmock_p6) : p0(gmock_p0), p1(gmock_p1), p2(gmock_p2), \
           p3(gmock_p3), p4(gmock_p4), p5(gmock_p5), p6(gmock_p6) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1799,7 +1799,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP7<p0##_type, p1##_type, p2##_type, p3##_type, p4##_type, \
           p5##_type, p6##_type>::gmock_Impl<F>::gmock_PerformImpl(\
           GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
@@ -1820,8 +1820,8 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4, p5##_type gmock_p5, \
@@ -1829,7 +1829,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
           p1(gmock_p1), p2(gmock_p2), p3(gmock_p3), p4(gmock_p4), \
           p5(gmock_p5), p6(gmock_p6), p7(gmock_p7) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1885,7 +1885,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP8<p0##_type, p1##_type, p2##_type, p3##_type, p4##_type, \
           p5##_type, p6##_type, \
           p7##_type>::gmock_Impl<F>::gmock_PerformImpl(\
@@ -1907,8 +1907,8 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4, p5##_type gmock_p5, \
@@ -1917,7 +1917,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
           p3(gmock_p3), p4(gmock_p4), p5(gmock_p5), p6(gmock_p6), \
           p7(gmock_p7), p8(gmock_p8) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -1976,7 +1976,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP9<p0##_type, p1##_type, p2##_type, p3##_type, p4##_type, \
           p5##_type, p6##_type, p7##_type, \
           p8##_type>::gmock_Impl<F>::gmock_PerformImpl(\
@@ -1999,8 +1999,8 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
     class gmock_Impl : public ::testing::ActionInterface<F> {\
      public:\
       typedef F function_type;\
-      typedef typename ::testing::internal::Function<F>::Result return_type;\
-      typedef typename ::testing::internal::Function<F>::ArgumentTuple\
+      typedef typename ::testing::Pinternal::Function<F>::Result return_type;\
+      typedef typename ::testing::Pinternal::Function<F>::ArgumentTuple\
           args_type;\
       gmock_Impl(p0##_type gmock_p0, p1##_type gmock_p1, p2##_type gmock_p2, \
           p3##_type gmock_p3, p4##_type gmock_p4, p5##_type gmock_p5, \
@@ -2009,7 +2009,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
           p3(gmock_p3), p4(gmock_p4), p5(gmock_p5), p6(gmock_p6), \
           p7(gmock_p7), p8(gmock_p8), p9(gmock_p9) {}\
       virtual return_type Perform(const args_type& args) {\
-        return ::testing::internal::ActionHelper<return_type, gmock_Impl>::\
+        return ::testing::Pinternal::ActionHelper<return_type, gmock_Impl>::\
             Perform(this, args);\
       }\
       template <typename arg0_type, typename arg1_type, typename arg2_type, \
@@ -2072,7 +2072,7 @@ DoAll(Action1 a1, Action2 a2, Action3 a3, Action4 a4, Action5 a5, Action6 a6,
       typename arg3_type, typename arg4_type, typename arg5_type, \
       typename arg6_type, typename arg7_type, typename arg8_type, \
       typename arg9_type>\
-  typename ::testing::internal::Function<F>::Result\
+  typename ::testing::Pinternal::Function<F>::Result\
       name##ActionP10<p0##_type, p1##_type, p2##_type, p3##_type, p4##_type, \
           p5##_type, p6##_type, p7##_type, p8##_type, \
           p9##_type>::gmock_Impl<F>::gmock_PerformImpl(\
@@ -2196,99 +2196,99 @@ R InvokeArgumentAdl(AdlTag, F f, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6,
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_0_VALUE_PARAMS()) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args));
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_1_VALUE_PARAMS(p0)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_2_VALUE_PARAMS(p0, p1)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_3_VALUE_PARAMS(p0, p1, p2)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_4_VALUE_PARAMS(p0, p1, p2, p3)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_5_VALUE_PARAMS(p0, p1, p2, p3, p4)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_6_VALUE_PARAMS(p0, p1, p2, p3, p4, p5)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4, p5);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_7_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4, p5, p6);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_8_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_9_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8);
 }
 
 ACTION_TEMPLATE(InvokeArgument,
                 HAS_1_TEMPLATE_PARAMS(int, k),
                 AND_10_VALUE_PARAMS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)) {
-  using internal::invoke_argument::InvokeArgumentAdl;
+  using Pinternal::invoke_argument::InvokeArgumentAdl;
   return InvokeArgumentAdl<return_type>(
-      internal::invoke_argument::AdlTag(),
+      Pinternal::invoke_argument::AdlTag(),
       ::testing::get<k>(args), p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
 }
 

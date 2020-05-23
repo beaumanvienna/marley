@@ -62,12 +62,12 @@ static EShLanguage GetLanguage(const Draw::ShaderStage stage) {
 void ShaderTranslationInit() {
 	// TODO: We have TLS issues on UWP
 #if !PPSSPP_PLATFORM(UWP)
-	glslang::InitializeProcess();
+	Pglslang::InitializeProcess();
 #endif
 }
 void ShaderTranslationShutdown() {
 #if !PPSSPP_PLATFORM(UWP)
-	glslang::FinalizeProcess();
+	Pglslang::FinalizeProcess();
 #endif
 }
 
@@ -204,7 +204,7 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 	return false;
 #endif
 
-	glslang::TProgram program;
+	Pglslang::TProgram program;
 	const char *shaderStrings[1];
 
 	TBuiltInResource Resources;
@@ -214,7 +214,7 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 	EShMessages messages = EShMessages::EShMsgDefault;
 
 	EShLanguage shaderStage = GetLanguage(stage);
-	glslang::TShader shader(shaderStage);
+	Pglslang::TShader shader(shaderStage);
 
 	std::string preprocessed = Preprocess(src, srcLang, stage);
 
@@ -245,15 +245,15 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 
 	std::vector<unsigned int> spirv;
 	// Can't fail, parsing worked, "linking" worked.
-	glslang::SpvOptions options;
+	Pglslang::SpvOptions options;
 	options.disableOptimizer = false;
 	options.optimizeSize = false;
 	options.generateDebugInfo = false;
-	glslang::GlslangToSpv(*program.getIntermediate(shaderStage), spirv, &options);
+	Pglslang::GlslangToSpv(*program.getIntermediate(shaderStage), spirv, &options);
 
 	// For whatever reason, with our config, the above outputs an invalid SPIR-V version, 0.
 	// Patch it up so spirv-cross accepts it.
-	spirv[1] = glslang::EShTargetSpv_1_0;
+	spirv[1] = Pglslang::EShTargetSpv_1_0;
 
 
 	// Alright, step 1 done. Now let's take this SPIR-V shader and output in our desired format.
@@ -279,8 +279,8 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 
 		int i = 0;
 		for (auto &resource : resources.sampled_images) {
-			// int location = hlsl.get_decoration(resource.id, spv::DecorationLocation);
-			hlsl.set_decoration(resource.id, spv::DecorationLocation, i);
+			// int location = hlsl.get_decoration(resource.id, Pspv::DecorationLocation);
+			hlsl.set_decoration(resource.id, Pspv::DecorationLocation, i);
 			i++;
 		}
 		spirv_cross::CompilerHLSL::Options options{};
@@ -301,13 +301,13 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 		// Get all sampled images in the shader.
 		for (auto &resource : resources.sampled_images) {
-			unsigned set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
-			unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
+			unsigned set = glsl.get_decoration(resource.id, Pspv::DecorationDescriptorSet);
+			unsigned binding = glsl.get_decoration(resource.id, Pspv::DecorationBinding);
 			printf("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 			// Modify the decoration to prepare it for GLSL.
-			glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
+			glsl.unset_decoration(resource.id, Pspv::DecorationDescriptorSet);
 			// Some arbitrary remapping if we want.
-			glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+			glsl.set_decoration(resource.id, Pspv::DecorationBinding, set * 16 + binding);
 		}
 		// Set some options.
 		spirv_cross::CompilerGLSL::Options options;

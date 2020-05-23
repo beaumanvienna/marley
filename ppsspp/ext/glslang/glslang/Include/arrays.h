@@ -43,7 +43,7 @@
 
 #include <algorithm>
 
-namespace glslang {
+namespace Pglslang {
 
 // This is used to mean there is no size yet (unsized), it is waiting to get a size from somewhere else.
 const int UnsizedArraySize = 0;
@@ -336,6 +336,6 @@ protected:
     bool variablyIndexed;  // true if array is indexed with a non compile-time constant
 };
 
-} // end namespace glslang
+} // end namespace Pglslang
 
 #endif // _ARRAYS_INCLUDED_

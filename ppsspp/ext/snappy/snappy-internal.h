@@ -34,7 +34,7 @@
 #include "snappy-stubs-internal.h"
 
 namespace snappy {
-namespace internal {
+namespace Pinternal {
 
 class WorkingMemory {
  public:
@@ -144,7 +144,7 @@ static inline int FindMatchLength(const char* s1,
 }
 #endif
 
-}  // end namespace internal
+}  // end namespace Pinternal
 }  // end namespace snappy
 
 #endif  // UTIL_SNAPPY_SNAPPY_INTERNAL_H_
