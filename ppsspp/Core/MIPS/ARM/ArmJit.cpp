@@ -357,7 +357,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 		}
 
 		// Safety check, in case we get a bunch of really large jit ops without a lot of branching.
-		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS)
+		if (GetSpaceLeft() < 0x800 || js.numInstructions >= PJitBlockCache::MAX_BLOCK_INSTRUCTIONS)
 		{
 			FlushAll();
 			WriteExit(GetCompilerPC(), js.nextExit++);
@@ -792,7 +792,7 @@ bool ArmJit::CheckMemoryBreakpoint(int instructionOffset) {
 void ArmJit::Comp_DoNothing(MIPSOpcode op) { }
 
 MIPSOpcode ArmJit::GetOriginalOp(MIPSOpcode op) {
-	JitBlockCache *bc = GetBlockCache();
+	PJitBlockCache *bc = GetBlockCache();
 	int block_num = bc->GetBlockNumberFromEmuHackOp(op, true);
 	if (block_num >= 0) {
 		return bc->GetOriginalFirstOp(block_num);

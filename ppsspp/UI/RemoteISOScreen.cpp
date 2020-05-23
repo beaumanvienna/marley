@@ -73,7 +73,7 @@ static bool FindServer(std::string &resultHost, int &resultPort) {
 			std::string listing;
 			std::vector<std::string> items;
 			result.TakeAll(&listing);
-			SplitString(listing, '\n', items);
+			PSplitString(listing, '\n', items);
 
 			bool supported = false;
 			for (const std::string &item : items) {
@@ -195,7 +195,7 @@ static bool LoadGameList(const std::string &host, int port, std::vector<std::str
 
 	if (parseText) {
 		// Plain text format - easy.
-		SplitString(listing, '\n', items);
+		PSplitString(listing, '\n', items);
 		subdir.clear();
 	} else if (parseHtml) {
 		// Try to extract from an automatic webserver directory listing...

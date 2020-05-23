@@ -1299,7 +1299,7 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
   int line = -1;
   int index = -1;
   ::std::vector< ::std::string> fields;
-  SplitString(GTEST_FLAG(internal_run_death_test).c_str(), '|', &fields);
+  PSplitString(GTEST_FLAG(internal_run_death_test).c_str(), '|', &fields);
   int write_fd = -1;
 
 # if GTEST_OS_WINDOWS

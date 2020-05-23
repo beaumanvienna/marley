@@ -23,7 +23,7 @@ void Compatibility::Load(const std::string &gameID) {
 	Clear();
 
 	{
-		IniFile compat;
+		PIniFile compat;
 		// This loads from assets.
 		if (compat.LoadFromVFS("compat.ini")) {
 			CheckSettings(compat, gameID);
@@ -31,7 +31,7 @@ void Compatibility::Load(const std::string &gameID) {
 	}
 
 	{
-		IniFile compat2;
+		PIniFile compat2;
 		// This one is user-editable. Need to load it after the system one.
 		std::string path = GetSysDirectory(DIRECTORY_SYSTEM) + "compat.ini";
 		if (compat2.Load(path)) {
@@ -44,7 +44,7 @@ void Compatibility::Clear() {
 	memset(&flags_, 0, sizeof(flags_));
 }
 
-void Compatibility::CheckSettings(IniFile &iniFile, const std::string &gameID) {
+void Compatibility::CheckSettings(PIniFile &iniFile, const std::string &gameID) {
 	CheckSetting(iniFile, gameID, "VertexDepthRounding", &flags_.VertexDepthRounding);
 	CheckSetting(iniFile, gameID, "PixelDepthRounding", &flags_.PixelDepthRounding);
 	CheckSetting(iniFile, gameID, "DepthRangeHack", &flags_.DepthRangeHack);
@@ -69,6 +69,6 @@ void Compatibility::CheckSettings(IniFile &iniFile, const std::string &gameID) {
 	CheckSetting(iniFile, gameID, "MoreAccurateVMMUL", &flags_.MoreAccurateVMMUL);
 }
 
-void Compatibility::CheckSetting(IniFile &iniFile, const std::string &gameID, const char *option, bool *flag) {
+void Compatibility::CheckSetting(PIniFile &iniFile, const std::string &gameID, const char *option, bool *flag) {
 	iniFile.Get(option, gameID.c_str(), flag, *flag);
 }

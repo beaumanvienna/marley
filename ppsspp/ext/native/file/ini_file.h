@@ -1,4 +1,4 @@
-// IniFile
+// PIniFile
 // Taken from Dolphin but relicensed by me, Henrik Rydgard, under the MIT
 // license as I wrote the whole thing originally and it has barely changed.
 
@@ -10,12 +10,12 @@
 
 #include "base/stringutil.h"
 
-class IniFile
+class PIniFile
 {
 public:
 	class Section
 	{
-		friend class IniFile;
+		friend class PIniFile;
 
 	public:
 		Section() {}
@@ -96,7 +96,7 @@ public:
 			for(size_t i = 0; i < temp.size(); i++)
 			{
 				std::vector<std::string> key_val;
-				SplitString(temp[i],'_',key_val);
+				PSplitString(temp[i],'_',key_val);
 				if(key_val.size() < 2)
 					continue;
 				U mapKey;

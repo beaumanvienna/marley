@@ -167,7 +167,7 @@ private:
 	PUI::EventReturn OnLoggingChanged(PUI::EventParams &e);
 	PUI::EventReturn OnLoadLanguageIni(PUI::EventParams &e);
 	PUI::EventReturn OnSaveLanguageIni(PUI::EventParams &e);
-	PUI::EventReturn OnOpenTexturesIniFile(PUI::EventParams &e);
+	PUI::EventReturn OnOpenTexturesPIniFile(PUI::EventParams &e);
 	PUI::EventReturn OnLogConfig(PUI::EventParams &e);
 	PUI::EventReturn OnJitAffectingSetting(PUI::EventParams &e);
 	PUI::EventReturn OnJitDebugTools(PUI::EventParams &e);

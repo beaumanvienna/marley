@@ -403,7 +403,7 @@ public:
 	std::string upgradeVersion;
 	std::string dismissedVersion;
 
-	void Load(const char *iniFileName = nullptr, const char *controllerIniFilename = nullptr);
+	void Load(const char *iniFileName = nullptr, const char *controllerPIniFilename = nullptr);
 	void Save(const char *saveReason);
 	void RestoreDefaults();
 
@@ -446,7 +446,7 @@ private:
 	std::string gameId_;
 	std::string gameIdTitle_;
 	std::string iniFilename_;
-	std::string controllerIniFilename_;
+	std::string controllerPIniFilename_;
 	std::vector<std::string> searchPath_;
 	std::string defaultPath_;
 	std::string createdPath_;

@@ -322,7 +322,7 @@ bool GameManager::DetectTexturePackDest(struct zip *z, int iniIndex, std::string
 		return false;
 	}
 
-	IniFile ini;
+	PIniFile ini;
 	std::stringstream sstream(buffer);
 	ini.Load(sstream);
 

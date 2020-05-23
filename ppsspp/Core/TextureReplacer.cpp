@@ -82,7 +82,7 @@ bool TextureReplacer::LoadIni() {
 	reduceHash_ = false;
 
 	if (PFile::Exists(basePath_ + INI_FILENAME)) {
-		IniFile ini;
+		PIniFile ini;
 		ini.LoadFromVFS(basePath_ + INI_FILENAME);
 
 		if (!LoadIniValues(ini)) {
@@ -94,7 +94,7 @@ bool TextureReplacer::LoadIni() {
 		if (ini.GetOrCreateSection("games")->Get(gameID_.c_str(), &overrideFilename, "")) {
 			if (!overrideFilename.empty() && overrideFilename != INI_FILENAME) {
 				INFO_LOG(G3D, "Loading extra texture ini: %s", overrideFilename.c_str());
-				IniFile overrideIni;
+				PIniFile overrideIni;
 				overrideIni.LoadFromVFS(basePath_ + overrideFilename);
 
 				if (!LoadIniValues(overrideIni, true)) {
@@ -108,7 +108,7 @@ bool TextureReplacer::LoadIni() {
 	return true;
 }
 
-bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
+bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 	auto options = ini.GetOrCreateSection("options");
 	std::string hash;
 	options->Get("hash", &hash, "");
@@ -185,9 +185,9 @@ bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
 
 void TextureReplacer::ParseHashRange(const std::string &key, const std::string &value) {
 	std::vector<std::string> keyParts;
-	SplitString(key, ',', keyParts);
+	PSplitString(key, ',', keyParts);
 	std::vector<std::string> valueParts;
-	SplitString(value, ',', valueParts);
+	PSplitString(value, ',', valueParts);
 
 	if (keyParts.size() != 3 || valueParts.size() != 2) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, expecting addr,w,h = w,h", key.c_str(), value.c_str());

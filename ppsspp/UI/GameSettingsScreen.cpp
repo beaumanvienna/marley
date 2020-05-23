@@ -1071,7 +1071,7 @@ void GameSettingsScreen::sendMessage(const char *message, const char *value) {
 
 	if (!strcmp(message, "inputbox_completed")) {
 		std::vector<std::string> inputboxValue;
-		SplitString(value, ':', inputboxValue);
+		PSplitString(value, ':', inputboxValue);
 
 #if PPSSPP_PLATFORM(ANDROID)
 		if (inputboxValue.size() >= 2 && inputboxValue[0] == sy->T("Memory Stick Folder")) {
@@ -1362,7 +1362,7 @@ void DeveloperToolsScreen::CreateViews() {
 
 #if !defined(MOBILE_DEVICE)
 	Choice *createTextureIni = list->Add(new Choice(dev->T("Create/Open textures.ini file for current game")));
-	createTextureIni->OnClick.Handle(this, &DeveloperToolsScreen::OnOpenTexturesIniFile);
+	createTextureIni->OnClick.Handle(this, &DeveloperToolsScreen::OnOpenTexturesPIniFile);
 	if (!PSP_IsInited()) {
 		createTextureIni->SetEnabled(false);
 	}
@@ -1420,11 +1420,11 @@ PUI::EventReturn DeveloperToolsScreen::OnLoadLanguageIni(PUI::EventParams &e) {
 	return PUI::EVENT_DONE;
 }
 
-PUI::EventReturn DeveloperToolsScreen::OnOpenTexturesIniFile(PUI::EventParams &e) {
+PUI::EventReturn DeveloperToolsScreen::OnOpenTexturesPIniFile(PUI::EventParams &e) {
 	std::string gameID = g_paramSFO.GetDiscID();
 	std::string generatedFilename;
 	if (TextureReplacer::GenerateIni(gameID, &generatedFilename)) {
-		PFile::openIniFile(generatedFilename);
+		PFile::openPIniFile(generatedFilename);
 	}
 	return PUI::EVENT_DONE;
 }

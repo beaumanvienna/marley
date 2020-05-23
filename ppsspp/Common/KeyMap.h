@@ -86,7 +86,7 @@ typedef std::map<int, std::vector<KeyDef>> KeyMapping;
 //
 // Then have KeyMap transform those into psp buttons.
 
-class IniFile;
+class PIniFile;
 
 namespace KeyMap {
 	extern KeyMapping g_controllerMap;
@@ -127,8 +127,8 @@ namespace KeyMap {
 	bool AxisFromPspButton(int btn, int *deviceId, int *axisId, int *direction);
 	std::string NamePspButtonFromAxis(int deviceId, int axisId, int direction);
 
-	void LoadFromIni(IniFile &iniFile);
-	void SaveToIni(IniFile &iniFile);
+	void LoadFromIni(PIniFile &iniFile);
+	void SaveToIni(PIniFile &iniFile);
 
 	void SetDefaultKeyMap(DefaultMaps dmap, bool replace);
 

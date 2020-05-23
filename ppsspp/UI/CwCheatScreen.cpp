@@ -174,7 +174,7 @@ PUI::EventReturn CwCheatScreen::OnEditCheatFile(PUI::EventParams &params) {
 #if PPSSPP_PLATFORM(UWP)
 	LaunchBrowser(activeCheatFile.c_str());
 #else
-	PFile::openIniFile(activeCheatFile);
+	PFile::openPIniFile(activeCheatFile);
 #endif
 	return PUI::EVENT_DONE;
 }

@@ -22,7 +22,7 @@
 #include "Core/MIPS/MIPS.h"
 
 struct JitBlock;
-class JitBlockCache;
+class PJitBlockCache;
 
 namespace MIPSComp {
 

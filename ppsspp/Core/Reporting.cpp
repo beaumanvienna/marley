@@ -446,7 +446,7 @@ namespace Reporting
 				if (result.empty() || result[0] == '0')
 					serverWorking = false;
 				else if (result[0] != '1')
-					SplitString(result, '\n', lastCompatResult);
+					PSplitString(result, '\n', lastCompatResult);
 			}
 			break;
 

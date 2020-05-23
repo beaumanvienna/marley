@@ -201,7 +201,7 @@ struct ConfigSetting {
 		return type_ != TYPE_TERMINATOR;
 	}
 
-	bool Get(IniFile::Section *section) {
+	bool Get(PIniFile::Section *section) {
 		switch (type_) {
 		case TYPE_BOOL:
 			if (cb_.b) {
@@ -254,7 +254,7 @@ struct ConfigSetting {
 		}
 	}
 
-	void Set(IniFile::Section *section) {
+	void Set(PIniFile::Section *section) {
 		if (!save_)
 			return;
 
@@ -350,7 +350,7 @@ const char *DefaultLangRegion() {
 		defaultLangRegion = langRegion;
 	} else if (langRegion.length() >= 3) {
 		// Don't give up.  Let's try a fuzzy match - so nl_BE can match nl_NL.
-		IniFile mapping;
+		PIniFile mapping;
 		mapping.LoadFromVFS("langregion.ini");
 		std::vector<std::string> keys;
 		mapping.GetKeys("LangRegionNames", keys);
@@ -580,7 +580,7 @@ int Config::NextValidBackend() {
 	std::vector<std::string> split;
 	std::set<GPUBackend> failed;
 
-	SplitString(sFailedGPUBackends, ',', split);
+	PSplitString(sFailedGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (!str.empty() && str != "ALL") {
 			failed.insert(GPUBackendFromString(str));
@@ -588,7 +588,7 @@ int Config::NextValidBackend() {
 	}
 
 	// Count these as "failed" too so we don't pick them.
-	SplitString(sDisabledGPUBackends, ',', split);
+	PSplitString(sDisabledGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (!str.empty()) {
 			failed.insert(GPUBackendFromString(str));
@@ -635,7 +635,7 @@ int Config::NextValidBackend() {
 bool Config::IsBackendEnabled(GPUBackend backend, bool validate) {
 	std::vector<std::string> split;
 
-	SplitString(sDisabledGPUBackends, ',', split);
+	PSplitString(sDisabledGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (str.empty())
 			continue;
@@ -1032,9 +1032,9 @@ static ConfigSectionSettings sections[] = {
 	{"Theme", themeSettings},
 };
 
-static void IterateSettings(IniFile &iniFile, std::function<void(IniFile::Section *section, ConfigSetting *setting)> func) {
+static void IterateSettings(PIniFile &iniFile, std::function<void(PIniFile::Section *section, ConfigSetting *setting)> func) {
 	for (size_t i = 0; i < ARRAY_SIZE(sections); ++i) {
-		IniFile::Section *section = iniFile.GetOrCreateSection(sections[i].section);
+		PIniFile::Section *section = iniFile.GetOrCreateSection(sections[i].section);
 		for (auto setting = sections[i].settings; setting->HasMore(); ++setting) {
 			func(section, setting);
 		}
@@ -1046,7 +1046,7 @@ Config::~Config() { }
 
 std::map<std::string, std::pair<std::string, int>> GetLangValuesMapping() {
 	std::map<std::string, std::pair<std::string, int>> langValuesMapping;
-	IniFile mapping;
+	PIniFile mapping;
 	mapping.LoadFromVFS("langregion.ini");
 	std::vector<std::string> keys;
 	mapping.GetKeys("LangRegionNames", keys);
@@ -1066,8 +1066,8 @@ std::map<std::string, std::pair<std::string, int>> GetLangValuesMapping() {
 	langCodeMapping["CHINESE_TRADITIONAL"] = PSP_SYSTEMPARAM_LANGUAGE_CHINESE_TRADITIONAL;
 	langCodeMapping["CHINESE_SIMPLIFIED"] = PSP_SYSTEMPARAM_LANGUAGE_CHINESE_SIMPLIFIED;
 
-	IniFile::Section *langRegionNames = mapping.GetOrCreateSection("LangRegionNames");
-	IniFile::Section *systemLanguage = mapping.GetOrCreateSection("SystemLanguage");
+	PIniFile::Section *langRegionNames = mapping.GetOrCreateSection("LangRegionNames");
+	PIniFile::Section *systemLanguage = mapping.GetOrCreateSection("SystemLanguage");
 
 	for (size_t i = 0; i < keys.size(); i++) {
 		std::string langName;
@@ -1082,25 +1082,25 @@ std::map<std::string, std::pair<std::string, int>> GetLangValuesMapping() {
 	return langValuesMapping;
 }
 
-void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
-	const bool useIniFilename = iniFileName != nullptr && strlen(iniFileName) > 0;
-	iniFilename_ = FindConfigFile(useIniFilename ? iniFileName : "ppsspp.ini");
+void Config::Load(const char *iniFileName, const char *controllerPIniFilename) {
+	const bool usePIniFilename = iniFileName != nullptr && strlen(iniFileName) > 0;
+	iniFilename_ = FindConfigFile(usePIniFilename ? iniFileName : "ppsspp.ini");
 
-	const bool useControllerIniFilename = controllerIniFilename != nullptr && strlen(controllerIniFilename) > 0;
-	controllerIniFilename_ = FindConfigFile(useControllerIniFilename ? controllerIniFilename : "controls.ini");
+	const bool useControllerPIniFilename = controllerPIniFilename != nullptr && strlen(controllerPIniFilename) > 0;
+	controllerPIniFilename_ = FindConfigFile(useControllerPIniFilename ? controllerPIniFilename : "controls.ini");
 
 	INFO_LOG(LOADER, "Loading config: %s", iniFilename_.c_str());
 	bSaveSettings = true;
 
 	bShowFrameProfiler = true;
 
-	IniFile iniFile;
+	PIniFile iniFile;
 	if (!iniFile.Load(iniFilename_)) {
 		ERROR_LOG(LOADER, "Failed to read '%s'. Setting config to default.", iniFilename_.c_str());
 		// Continue anyway to initialize the config.
 	}
 
-	IterateSettings(iniFile, [](IniFile::Section *section, ConfigSetting *setting) {
+	IterateSettings(iniFile, [](PIniFile::Section *section, ConfigSetting *setting) {
 		setting->Get(section);
 	});
 
@@ -1108,7 +1108,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	if (!PFile::Exists(currentDirectory))
 		currentDirectory = "";
 
-	IniFile::Section *log = iniFile.GetOrCreateSection(logSectionName);
+	PIniFile::Section *log = iniFile.GetOrCreateSection(logSectionName);
 
 	bool debugDefaults = false;
 #ifdef _DEBUG
@@ -1116,7 +1116,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 #endif
 	LogManager::GetInstance()->LoadConfig(log, debugDefaults);
 
-	IniFile::Section *recent = iniFile.GetOrCreateSection("Recent");
+	PIniFile::Section *recent = iniFile.GetOrCreateSection("Recent");
 	recent->Get("MaxRecent", &iMaxRecent, 30);
 
 	// Fix issue from switching from uint (hex in .ini) to int (dec)
@@ -1155,7 +1155,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	}
 
 	// Check for an old dpad setting
-	IniFile::Section *control = iniFile.GetOrCreateSection("Control");
+	PIniFile::Section *control = iniFile.GetOrCreateSection("Control");
 	float f;
 	control->Get("DPadRadius", &f, 0.0f);
 	if (f > 0.0f) {
@@ -1184,7 +1184,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 		dl->SetHidden(true);
 	}
 
-	INFO_LOG(LOADER, "Loading controller config: %s", controllerIniFilename_.c_str());
+	INFO_LOG(LOADER, "Loading controller config: %s", controllerPIniFilename_.c_str());
 	bSaveSettings = true;
 
 	LoadStandardControllerIni();
@@ -1222,7 +1222,7 @@ void Config::Save(const char *saveReason) {
 		saveGameConfig(gameId_, gameIdTitle_);
 
 		CleanRecent();
-		IniFile iniFile;
+		PIniFile iniFile;
 		if (!iniFile.Load(iniFilename_.c_str())) {
 			ERROR_LOG(LOADER, "Error saving config - can't read ini '%s'", iniFilename_.c_str());
 		}
@@ -1230,13 +1230,13 @@ void Config::Save(const char *saveReason) {
 		// Need to do this somewhere...
 		bFirstRun = false;
 
-		IterateSettings(iniFile, [&](IniFile::Section *section, ConfigSetting *setting) {
+		IterateSettings(iniFile, [&](PIniFile::Section *section, ConfigSetting *setting) {
 			if (!bGameSpecific || !setting->perGame_) {
 				setting->Set(section);
 			}
 		});
 
-		IniFile::Section *recent = iniFile.GetOrCreateSection("Recent");
+		PIniFile::Section *recent = iniFile.GetOrCreateSection("Recent");
 		recent->Set("MaxRecent", iMaxRecent);
 
 		for (int i = 0; i < iMaxRecent; i++) {
@@ -1249,7 +1249,7 @@ void Config::Save(const char *saveReason) {
 			}
 		}
 
-		IniFile::Section *pinnedPaths = iniFile.GetOrCreateSection("PinnedPaths");
+		PIniFile::Section *pinnedPaths = iniFile.GetOrCreateSection("PinnedPaths");
 		pinnedPaths->Clear();
 		for (size_t i = 0; i < vPinnedPaths.size(); ++i) {
 			char keyName[64];
@@ -1257,10 +1257,10 @@ void Config::Save(const char *saveReason) {
 			pinnedPaths->Set(keyName, vPinnedPaths[i]);
 		}
 
-		IniFile::Section *control = iniFile.GetOrCreateSection("Control");
+		PIniFile::Section *control = iniFile.GetOrCreateSection("Control");
 		control->Delete("DPadRadius");
 
-		IniFile::Section *log = iniFile.GetOrCreateSection(logSectionName);
+		PIniFile::Section *log = iniFile.GetOrCreateSection(logSectionName);
 		if (LogManager::GetInstance())
 			LogManager::GetInstance()->SaveConfig(log);
 
@@ -1273,16 +1273,16 @@ void Config::Save(const char *saveReason) {
 
 		if (!bGameSpecific) //otherwise we already did this in saveGameConfig()
 		{
-			IniFile controllerIniFile;
-			if (!controllerIniFile.Load(controllerIniFilename_.c_str())) {
-				ERROR_LOG(LOADER, "Error saving config - can't read ini '%s'", controllerIniFilename_.c_str());
+			PIniFile controllerPIniFile;
+			if (!controllerPIniFile.Load(controllerPIniFilename_.c_str())) {
+				ERROR_LOG(LOADER, "Error saving config - can't read ini '%s'", controllerPIniFilename_.c_str());
 			}
-			KeyMap::SaveToIni(controllerIniFile);
-			if (!controllerIniFile.Save(controllerIniFilename_.c_str())) {
-				ERROR_LOG(LOADER, "Error saving config - can't write ini '%s'", controllerIniFilename_.c_str());
+			KeyMap::SaveToIni(controllerPIniFile);
+			if (!controllerPIniFile.Save(controllerPIniFilename_.c_str())) {
+				ERROR_LOG(LOADER, "Error saving config - can't write ini '%s'", controllerPIniFilename_.c_str());
 				return;
 			}
-			INFO_LOG(LOADER, "Controller config saved: %s", controllerIniFilename_.c_str());
+			INFO_LOG(LOADER, "Controller config saved: %s", controllerPIniFilename_.c_str());
 		}
 	} else {
 		INFO_LOG(LOADER, "Not saving config");
@@ -1428,7 +1428,7 @@ const std::string Config::FindConfigFile(const std::string &baseFilename) {
 	const std::string filename = defaultPath_.empty() ? baseFilename : defaultPath_ + baseFilename;
 	if (!PFile::Exists(filename)) {
 		std::string path;
-		SplitPath(filename, &path, NULL, NULL);
+		PSplitPath(filename, &path, NULL, NULL);
 		if (createdPath_ != path) {
 			PFile::CreateFullPath(path);
 			createdPath_ = path;
@@ -1451,8 +1451,8 @@ void Config::RestoreDefaults() {
 }
 
 bool Config::hasGameConfig(const std::string &pGameId) {
-	std::string fullIniFilePath = getGameConfigFile(pGameId);
-	return PFile::Exists(fullIniFilePath);
+	std::string fullPIniFilePath = getGameConfigFile(pGameId);
+	return PFile::Exists(fullPIniFilePath);
 }
 
 void Config::changeGameSpecific(const std::string &pGameId, const std::string &title) {
@@ -1463,21 +1463,21 @@ void Config::changeGameSpecific(const std::string &pGameId, const std::string &t
 }
 
 bool Config::createGameConfig(const std::string &pGameId) {
-	std::string fullIniFilePath = getGameConfigFile(pGameId);
+	std::string fullPIniFilePath = getGameConfigFile(pGameId);
 
 	if (hasGameConfig(pGameId)) {
 		return false;
 	}
 
-	PFile::CreateEmptyFile(fullIniFilePath);
+	PFile::CreateEmptyFile(fullPIniFilePath);
 
 	return true;
 }
 
 bool Config::deleteGameConfig(const std::string& pGameId) {
-	std::string fullIniFilePath = getGameConfigFile(pGameId);
+	std::string fullPIniFilePath = getGameConfigFile(pGameId);
 
-	PFile::Delete(fullIniFilePath);
+	PFile::Delete(fullPIniFilePath);
 	return true;
 }
 
@@ -1493,21 +1493,21 @@ bool Config::saveGameConfig(const std::string &pGameId, const std::string &title
 		return false;
 	}
 
-	std::string fullIniFilePath = getGameConfigFile(pGameId);
+	std::string fullPIniFilePath = getGameConfigFile(pGameId);
 
-	IniFile iniFile;
+	PIniFile iniFile;
 
-	IniFile::Section *top = iniFile.GetOrCreateSection("");
+	PIniFile::Section *top = iniFile.GetOrCreateSection("");
 	top->AddComment(PStringFromFormat("Game config for %s - %s", pGameId.c_str(), title.c_str()));
 
-	IterateSettings(iniFile, [](IniFile::Section *section, ConfigSetting *setting) {
+	IterateSettings(iniFile, [](PIniFile::Section *section, ConfigSetting *setting) {
 		if (setting->perGame_) {
 			setting->Set(section);
 		}
 	});
 
 	KeyMap::SaveToIni(iniFile);
-	iniFile.Save(fullIniFilePath);
+	iniFile.Save(fullPIniFilePath);
 
 	return true;
 }
@@ -1521,10 +1521,10 @@ bool Config::loadGameConfig(const std::string &pGameId, const std::string &title
 	}
 
 	changeGameSpecific(pGameId, title);
-	IniFile iniFile;
+	PIniFile iniFile;
 	iniFile.Load(iniFileNameFull);
 
-	IterateSettings(iniFile, [](IniFile::Section *section, ConfigSetting *setting) {
+	IterateSettings(iniFile, [](PIniFile::Section *section, ConfigSetting *setting) {
 		if (setting->perGame_) {
 			setting->Get(section);
 		}
@@ -1538,11 +1538,11 @@ void Config::unloadGameConfig() {
 	if (bGameSpecific){
 		changeGameSpecific();
 
-		IniFile iniFile;
+		PIniFile iniFile;
 		iniFile.Load(iniFilename_);
 
 		// Reload game specific settings back to standard.
-		IterateSettings(iniFile, [](IniFile::Section *section, ConfigSetting *setting) {
+		IterateSettings(iniFile, [](PIniFile::Section *section, ConfigSetting *setting) {
 			if (setting->perGame_) {
 				setting->Get(section);
 			}
@@ -1553,13 +1553,13 @@ void Config::unloadGameConfig() {
 }
 
 void Config::LoadStandardControllerIni() {
-	IniFile controllerIniFile;
-	if (!controllerIniFile.Load(controllerIniFilename_)) {
-		ERROR_LOG(LOADER, "Failed to read %s. Setting controller config to default.", controllerIniFilename_.c_str());
+	PIniFile controllerPIniFile;
+	if (!controllerPIniFile.Load(controllerPIniFilename_)) {
+		ERROR_LOG(LOADER, "Failed to read %s. Setting controller config to default.", controllerPIniFilename_.c_str());
 		KeyMap::RestoreDefault();
 	} else {
 		// Continue anyway to initialize the config. It will just restore the defaults.
-		KeyMap::LoadFromIni(controllerIniFile);
+		KeyMap::LoadFromIni(controllerPIniFile);
 	}
 }
 

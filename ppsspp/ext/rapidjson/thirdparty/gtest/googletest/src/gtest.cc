@@ -919,7 +919,7 @@ static void StreamWideCharsToMessage(const wchar_t* wstr, size_t length,
 
 #endif  // GTEST_HAS_STD_WSTRING || GTEST_HAS_GLOBAL_WSTRING
 
-void SplitString(const ::std::string& str, char delimiter,
+void PSplitString(const ::std::string& str, char delimiter,
                  ::std::vector< ::std::string>* dest) {
   ::std::vector< ::std::string> parsed;
   ::std::string::size_type pos = 0;
@@ -5262,7 +5262,7 @@ void LoadFlagsFromFile(const std::string& path) {
   std::string contents(ReadEntireFile(flagfile));
   posix::FClose(flagfile);
   std::vector<std::string> lines;
-  SplitString(contents, '\n', &lines);
+  PSplitString(contents, '\n', &lines);
   for (size_t i = 0; i < lines.size(); ++i) {
     if (lines[i].empty())
       continue;

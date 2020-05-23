@@ -249,7 +249,7 @@ SaveSlotView::SaveSlotView(const std::string &gameFilename, int slot, PUI::Layou
 
 		std::string dateStr = SaveState::GetSlotDateAsString(gamePath_, slot_);
 		std::vector<std::string> dateStrs;
-		SplitString(dateStr, ' ', dateStrs);
+		PSplitString(dateStr, ' ', dateStrs);
 		if (!dateStrs.empty() && !dateStrs[0].empty()) {
 			LinearLayout *strs = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 			Add(strs);

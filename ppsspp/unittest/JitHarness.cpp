@@ -170,7 +170,7 @@ bool TestJit() {
 		jit_speed = ExecCPUTest();
 
 		// Disassemble
-		JitBlockCache *cache = MIPSComp::jit->GetBlockCache();
+		PJitBlockCache *cache = MIPSComp::jit->GetBlockCache();
 		JitBlock *block = cache->GetBlock(0);  // Should only be one block.
 #if defined(ARM)
 		std::vector<std::string> lines = DisassembleArm2(block->normalEntry, block->codeSize);

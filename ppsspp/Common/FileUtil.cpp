@@ -763,7 +763,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 #endif
 }
 
-void openIniFile(const std::string& fileName) {
+void openPIniFile(const std::string& fileName) {
 #if defined(_WIN32)
 #if PPSSPP_PLATFORM(UWP)
 	// Do nothing.

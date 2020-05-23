@@ -69,7 +69,7 @@ struct CompatFlags {
 	bool MoreAccurateVMMUL;
 };
 
-class IniFile;
+class PIniFile;
 
 class Compatibility {
 public:
@@ -84,8 +84,8 @@ public:
 
 private:
 	void Clear();
-	void CheckSettings(IniFile &iniFile, const std::string &gameID);
-	void CheckSetting(IniFile &iniFile, const std::string &gameID, const char *option, bool *flag);
+	void CheckSettings(PIniFile &iniFile, const std::string &gameID);
+	void CheckSetting(PIniFile &iniFile, const std::string &gameID, const char *option, bool *flag);
 
 	CompatFlags flags_{};
 };

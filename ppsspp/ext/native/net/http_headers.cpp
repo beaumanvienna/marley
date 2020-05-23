@@ -28,10 +28,10 @@ bool RequestHeader::GetParamValue(const char *param_name, std::string *value) co
     return false;
   std::string p(params);
   std::vector<std::string> v;
-	SplitString(p, '&', v);
+	PSplitString(p, '&', v);
   for (size_t i = 0; i < v.size(); i++) {
     std::vector<std::string> parts;
-		SplitString(v[i], '=', parts);
+		PSplitString(v[i], '=', parts);
     ILOG("Param: %s Value: %s", parts[0].c_str(), parts[1].c_str());
     if (parts[0] == param_name) {
       *value = parts[1];

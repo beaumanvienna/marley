@@ -607,7 +607,7 @@ void SystemInfoScreen::CreateViews() {
 
 	cpuExtensions->Add(new ItemHeader(si->T("CPU Extensions")));
 	std::vector<std::string> exts;
-	SplitString(cpu_info.Summarize(), ',', exts);
+	PSplitString(cpu_info.Summarize(), ',', exts);
 	for (size_t i = 2; i < exts.size(); i++) {
 		cpuExtensions->Add(new TextView(exts[i], new LayoutParams(FILL_PARENT, WRAP_CONTENT)))->SetFocusable(true);
 	}
@@ -629,14 +629,14 @@ void SystemInfoScreen::CreateViews() {
 			gpuExtensions->Add(new ItemHeader(si->T("OpenGL ES 2.0 Extensions")));
 		}
 		exts.clear();
-		SplitString(g_all_gl_extensions, ' ', exts);
+		PSplitString(g_all_gl_extensions, ' ', exts);
 		std::sort(exts.begin(), exts.end());
 		for (auto &extension : exts) {
 			gpuExtensions->Add(new TextView(extension, new LayoutParams(FILL_PARENT, WRAP_CONTENT)))->SetFocusable(true);
 		}
 
 		exts.clear();
-		SplitString(g_all_egl_extensions, ' ', exts);
+		PSplitString(g_all_egl_extensions, ' ', exts);
 		std::sort(exts.begin(), exts.end());
 
 		// If there aren't any EGL extensions, no need to show the tab.
@@ -809,7 +809,7 @@ void JitCompareScreen::UpdateDisasm() {
 
 	I18NCategory *dev = GetI18NCategory("Developer");
 
-	JitBlockCacheDebugInterface *blockCacheDebug = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCacheDebug = MIPSComp::jit->GetBlockCacheDebugInterface();
 
 	char temp[256];
 	snprintf(temp, sizeof(temp), "%i/%i", currentBlock_, blockCacheDebug->GetNumBlocks());
@@ -856,7 +856,7 @@ PUI::EventReturn JitCompareScreen::OnAddressChange(PUI::EventParams &e) {
 	if (!MIPSComp::jit) {
 		return PUI::EVENT_DONE;
 	}
-	JitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
 	if (!blockCache)
 		return PUI::EVENT_DONE;
 	u32 addr;
@@ -876,7 +876,7 @@ PUI::EventReturn JitCompareScreen::OnShowStats(PUI::EventParams &e) {
 		return PUI::EVENT_DONE;
 	}
 
-	JitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
 	BlockCacheStats bcStats;
 	blockCache->ComputeStats(bcStats);
 	NOTICE_LOG(JIT, "Num blocks: %i", bcStats.numBlocks);
@@ -923,7 +923,7 @@ PUI::EventReturn JitCompareScreen::OnBlockAddress(PUI::EventParams &e) {
 		return PUI::EVENT_DONE;
 	}
 
-	JitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
 	if (!blockCache)
 		return PUI::EVENT_DONE;
 
@@ -941,7 +941,7 @@ PUI::EventReturn JitCompareScreen::OnRandomBlock(PUI::EventParams &e) {
 		return PUI::EVENT_DONE;
 	}
 
-	JitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
 	if (!blockCache)
 		return PUI::EVENT_DONE;
 
@@ -967,7 +967,7 @@ void JitCompareScreen::OnRandomBlock(int flag) {
 	if (!MIPSComp::jit) {
 		return;
 	}
-	JitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
+	PJitBlockCacheDebugInterface *blockCache = MIPSComp::jit->GetBlockCacheDebugInterface();
 	if (!blockCache)
 		return;
 
@@ -1002,7 +1002,7 @@ PUI::EventReturn JitCompareScreen::OnCurrentBlock(PUI::EventParams &e) {
 	if (!MIPSComp::jit) {
 		return PUI::EVENT_DONE;
 	}
-	JitBlockCache *blockCache = MIPSComp::jit->GetBlockCache();
+	PJitBlockCache *blockCache = MIPSComp::jit->GetBlockCache();
 	if (!blockCache)
 		return PUI::EVENT_DONE;
 	std::vector<int> blockNum;
@@ -1087,7 +1087,7 @@ void ShaderViewScreen::CreateViews() {
 	scroll->Add(lineLayout);
 
 	std::vector<std::string> lines;
-	SplitString(gpu->DebugGetShaderString(id_, type_, SHADER_STRING_SOURCE_CODE), '\n', lines);
+	PSplitString(gpu->DebugGetShaderString(id_, type_, SHADER_STRING_SOURCE_CODE), '\n', lines);
 
 	for (auto line : lines) {
 		lineLayout->Add(new TextView(line, FLAG_DYNAMIC_ASCII, true));

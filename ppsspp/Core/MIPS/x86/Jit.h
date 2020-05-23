@@ -157,8 +157,8 @@ public:
 	void ApplyRoundingMode(bool force = false);
 	void UpdateRoundingMode(u32 fcr31 = -1);
 
-	JitBlockCache *GetBlockCache() override { return &blocks; }
-	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
+	PJitBlockCache *GetBlockCache() override { return &blocks; }
+	PJitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
 
 	MIPSOpcode GetOriginalOp(MIPSOpcode op) override;
 
@@ -299,7 +299,7 @@ private:
 	void SaveFlags();
 	void LoadFlags();
 
-	JitBlockCache blocks;
+	PJitBlockCache blocks;
 	JitOptions jo;
 	JitState js;
 

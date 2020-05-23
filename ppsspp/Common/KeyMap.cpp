@@ -905,13 +905,13 @@ void RestoreDefault() {
 }
 
 // TODO: Make the ini format nicer.
-void LoadFromIni(IniFile &file) {
+void LoadFromIni(PIniFile &file) {
 	RestoreDefault();
 	if (!file.HasSection("ControlMapping")) {
 		return;
 	}
 
-	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::string value;
 		controls->Get(psp_button_names[i].name, &value, "");
@@ -922,11 +922,11 @@ void LoadFromIni(IniFile &file) {
 			continue;
 
 		std::vector<std::string> mappings;
-		SplitString(value, ',', mappings);
+		PSplitString(value, ',', mappings);
 
 		for (size_t j = 0; j < mappings.size(); j++) {
 			std::vector<std::string> parts;
-			SplitString(mappings[j], '-', parts);
+			PSplitString(mappings[j], '-', parts);
 			int deviceId = atoi(parts[0].c_str());
 			int keyCode = atoi(parts[1].c_str());
 
@@ -937,8 +937,8 @@ void LoadFromIni(IniFile &file) {
 	UpdateNativeMenuKeys();
 }
 
-void SaveToIni(IniFile &file) {
-	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+void SaveToIni(PIniFile &file) {
+	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::vector<KeyDef> keys;

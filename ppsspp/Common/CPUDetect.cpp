@@ -110,7 +110,7 @@ static std::vector<int> ParseCPUList(const std::string &filename) {
 
 	if (readFileToString(true, filename.c_str(), data)) {
 		std::vector<std::string> ranges;
-		SplitString(data, ',', ranges);
+		PSplitString(data, ',', ranges);
 		for (auto range : ranges) {
 			int low = 0, high = 0;
 			int parts = sscanf(range.c_str(), "%d-%d", &low, &high);

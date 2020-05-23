@@ -100,20 +100,20 @@ struct JitBlockDebugInfo {
 	std::vector<std::string> targetDisasm;
 };
 
-class JitBlockCacheDebugInterface {
+class PJitBlockCacheDebugInterface {
 public:
 	virtual int GetNumBlocks() const = 0;
 	virtual int GetBlockNumberFromStartAddress(u32 em_address, bool realBlocksOnly = true) const = 0;
 	virtual JitBlockDebugInfo GetBlockDebugInfo(int blockNum) const = 0;
 	virtual void ComputeStats(BlockCacheStats &bcStats) const = 0;
 
-	virtual ~JitBlockCacheDebugInterface() {}
+	virtual ~PJitBlockCacheDebugInterface() {}
 };
 
-class JitBlockCache : public JitBlockCacheDebugInterface {
+class PJitBlockCache : public PJitBlockCacheDebugInterface {
 public:
-	JitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
-	~JitBlockCache();
+	PJitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
+	~PJitBlockCache();
 
 	int AllocateBlock(u32 em_address);
 	// When a proxy block is invalidated, the block located at the rootAddress is invalidated too.

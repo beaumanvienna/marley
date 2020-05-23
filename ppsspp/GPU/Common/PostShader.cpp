@@ -56,7 +56,7 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 		}
 
 		for (size_t f = 0; f < fileInfo.size(); f++) {
-			IniFile ini;
+			PIniFile ini;
 			bool success = false;
 			std::string name = fileInfo[f].fullName;
 			std::string path = directories[d];
@@ -75,7 +75,7 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 
 			// Alright, let's loop through the sections and see if any is a shader.
 			for (size_t i = 0; i < ini.Sections().size(); i++) {
-				IniFile::Section &section = ini.Sections()[i];
+				PIniFile::Section &section = ini.Sections()[i];
 				if (section.Exists("Fragment") && section.Exists("Vertex")) {
 					// Valid shader!
 					ShaderInfo info;

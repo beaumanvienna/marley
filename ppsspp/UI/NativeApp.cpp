@@ -1052,7 +1052,7 @@ void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 		KeyMap::NotifyPadConnected(value);
 	}
 	if (msg == "inputbox_completed") {
-		SplitString(value, ':', inputboxValue);
+		PSplitString(value, ':', inputboxValue);
 		std::string setString = inputboxValue.size() > 1 ? inputboxValue[1] : "";
 		if (inputboxValue[0] == "IP")
 			g_PConfig.proAdhocServer = setString;

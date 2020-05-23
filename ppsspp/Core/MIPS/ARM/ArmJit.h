@@ -167,8 +167,8 @@ public:
 
 	int Replace_fabsf() override;
 
-	JitBlockCache *GetBlockCache() override { return &blocks; }
-	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
+	PJitBlockCache *GetBlockCache() override { return &blocks; }
+	PJitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
 
 	std::vector<u32> SaveAndClearEmuHackOps() override { return blocks.SaveAndClearEmuHackOps(); }
 	void RestoreSavedEmuHackOps(std::vector<u32> saved) override { blocks.RestoreSavedEmuHackOps(saved); }
@@ -288,7 +288,7 @@ private:
 	void SetCCAndR0ForSafeAddress(MIPSGPReg rs, s16 offset, ArmGen::ARMReg tempReg, bool reverse = false);
 	void Comp_ITypeMemLR(MIPSOpcode op, bool load);
 
-	JitBlockCache blocks;
+	PJitBlockCache blocks;
 	JitOptions jo;
 	JitState js;
 
