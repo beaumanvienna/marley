@@ -365,9 +365,9 @@ int ppsspp_main(int argc, char *argv[]) {
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 
 	if (VulkanMayBeAvailable()) {
-		printf("DEBUG: Vulkan might be available.\n");
+		//printf("DEBUG: Vulkan might be available.\n");
 	} else {
-		printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
+		//printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
 	}
 
 	int set_xres = -1;

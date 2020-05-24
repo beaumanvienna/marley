@@ -255,20 +255,20 @@ bool VulkanMayBeAvailable() {
 	std::string name = System_GetProperty(SYSPROP_NAME);
 	for (const char *blacklisted_name : device_name_blacklist) {
 		if (!strcmp(name.c_str(), blacklisted_name)) {
-			ILOG("VulkanMayBeAvailable: Device blacklisted ('%s')", name.c_str());
+			//ILOG("VulkanMayBeAvailable: Device blacklisted ('%s')", name.c_str());
 			g_vulkanAvailabilityChecked = true;
 			g_vulkanMayBeAvailable = false;
 			return false;
 		}
 	}
-	ILOG("VulkanMayBeAvailable: Device allowed ('%s')", name.c_str());
+	//ILOG("VulkanMayBeAvailable: Device allowed ('%s')", name.c_str());
 
 #ifndef _WIN32
 	void *lib = nullptr;
 	for (int i = 0; i < ARRAY_SIZE(so_names); i++) {
 		lib = dlopen(so_names[i], RTLD_NOW | RTLD_LOCAL);
 		if (lib) {
-			ILOG("VulkanMayBeAvailable: Library loaded ('%s')", so_names[i]);
+			//ILOG("VulkanMayBeAvailable: Library loaded ('%s')", so_names[i]);
 			break;
 		}
 	}
@@ -315,7 +315,7 @@ bool VulkanMayBeAvailable() {
 #endif
 
 	if (!localEnumerateInstanceExtensionProperties || !localCreateInstance || !localEnumerate || !localDestroyInstance || !localGetPhysicalDeviceProperties) {
-		WLOG("VulkanMayBeAvailable: Function pointer missing, bailing");
+		//WLOG("VulkanMayBeAvailable: Function pointer missing, bailing");
 		goto bail;
 	}
 
