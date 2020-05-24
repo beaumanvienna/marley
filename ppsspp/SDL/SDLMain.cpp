@@ -731,6 +731,7 @@ int ppsspp_main(int argc, char *argv[]) {
 				}
 // This behavior doesn't feel right on a macbook with a touchpad.
 #if !PPSSPP_PLATFORM(MAC)
+/*
 			case SDL_FINGERMOTION:
 				{
 					SDL_GetWindowSize(window, &w, &h);
@@ -793,7 +794,9 @@ int ppsspp_main(int argc, char *argv[]) {
 					SDL_PushEvent(&touchEvent);
 					break;
 				}
+*/
 #endif
+/*
 			case SDL_MOUSEBUTTONDOWN:
 				switch (event.button.button) {
 				case SDL_BUTTON_LEFT:
@@ -868,6 +871,7 @@ int ppsspp_main(int argc, char *argv[]) {
 					break;
 				}
 				break;
+                */
 			default:
 				if (joystick) {
 					joystick->ProcessInput(event);
