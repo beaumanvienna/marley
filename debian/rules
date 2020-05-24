@@ -4,7 +4,7 @@
 	dh $@
 
 override_dh_auto_configure: 
-	chmod 644 pictures/* resources/*
+	chmod -R 644 pictures/* resources/* ppsspp/assets/*
 	sed -i 's/AC_DEFINE(\[PICTURES]\,\["pictures\/"])/AC_DEFINE(\[PICTURES]\,\["\/usr\/games\/Marley\/pictures\/"])/g' configure.ac
 	sed -i 's/AC_DEFINE(\[RESOURCES]\,\["resources\/"])/AC_DEFINE(\[RESOURCES]\,\["\/usr\/games\/Marley\/resources\/"])/g' configure.ac
 	aclocal 
