@@ -108,6 +108,9 @@ static const DefMappingStruct defaultAzertyKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
+    {VIRTKEY_SAVE_STATE, NKCODE_F5},
+    {VIRTKEY_LOAD_STATE, NKCODE_F7},
+    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
@@ -138,6 +141,9 @@ static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
+    {VIRTKEY_SAVE_STATE, NKCODE_F5},
+    {VIRTKEY_LOAD_STATE, NKCODE_F7},
+    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct default360KeyMap[] = {
@@ -351,16 +357,23 @@ void UpdateNativeMenuKeys() {
 	SetTabLeftRightKeys(tabLeft, tabRight);
 }
 
-static void SetDefaultKeyMap(int deviceId, const DefMappingStruct *array, size_t count, bool replace) {
-	for (size_t i = 0; i < count; i++) {
+static void SetDefaultKeyMap(int deviceId, const DefMappingStruct *array, size_t count, bool replace) 
+{
+	for (size_t i = 0; i < count; i++) 
+    {
 		if (array[i].direction == 0)
+        {
 			SetKeyMapping(array[i].pspKey, KeyDef(deviceId, array[i].key), replace);
+        }
 		else
+        {
 			SetAxisMapping(array[i].pspKey, deviceId, array[i].key, array[i].direction, replace);
+        }
 	}
 }
 
-void SetDefaultKeyMap(DefaultMaps dmap, bool replace) {
+void SetDefaultKeyMap(DefaultMaps dmap, bool replace) 
+{
 	switch (dmap) {
 	case DEFAULT_MAPPING_KEYBOARD:
 		{
@@ -740,7 +753,8 @@ std::string GetAxisName(int axisId) {
 	return FindName(axisId, axis_names, ARRAY_SIZE(axis_names));
 }
 
-std::string GetPspButtonName(int btn) {
+std::string GetPspButtonName(int btn) 
+{
 	return FindName(btn, psp_button_names, ARRAY_SIZE(psp_button_names));
 }
 
@@ -851,7 +865,8 @@ void RemoveButtonMapping(int btn) {
 	}
 }
 
-void SetKeyMapping(int btn, KeyDef key, bool replace) {
+void SetKeyMapping(int btn, KeyDef key, bool replace) 
+{
 	if (key.keyCode < 0)
 		return;
 	if (replace) {

@@ -573,6 +573,15 @@ bool restoreGUI(void)
     bool ok = true;
     string str;
     
+    if (SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN))
+    {
+        setFullscreen();
+    }
+    else
+    {
+        setWindowed();
+    }
+    
     str = "marley ";
     str += PACKAGE_VERSION;
     SDL_SetWindowTitle(gWindow, str.c_str());    

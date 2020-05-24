@@ -303,7 +303,8 @@ void ControlMappingScreen::KeyMapped(int pspkey) {  // Notification to let us re
 	}
 }
 
-void KeyMappingNewKeyDialog::CreatePopupContents(PUI::ViewGroup *parent) {
+void KeyMappingNewKeyDialog::CreatePopupContents(PUI::ViewGroup *parent) 
+{
 	using namespace PUI;
 
 	I18NCategory *km = GetI18NCategory("KeyMapping");

@@ -98,6 +98,8 @@
 #include "UI/DiscordIntegration.h"
 #include "UI/GPUDriverTestScreen.h"
 
+#include "../../include/emu.h"
+
 #if !defined(MOBILE_DEVICE)
 #include "Common/KeyMap.h"
 #endif
@@ -320,9 +322,13 @@ static void PostLoadConfig() {
 		g_PConfig.currentDirectory = g_PConfig.internalDataDirectory;
 #else
 		if (getenv("HOME") != nullptr)
+        {
 			g_PConfig.currentDirectory = getenv("HOME");
+        }
 		else
+        {
 			g_PConfig.currentDirectory = "./";
+        }
 #endif
 	}
 #endif
@@ -482,13 +488,23 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	g_PConfig.memStickDirectory = user_data_path;
 	g_PConfig.flash0Directory = std::string(external_dir) + "/flash0/";
 #elif !defined(_WIN32)
-	std::string config;
-	if (getenv("XDG_CONFIG_HOME") != NULL)
+	std::string config,slash;
+    #warning "JC: modified"
+    slash = gBaseDir.substr(gBaseDir.length()-1,1);
+    if (slash == "/")
+    {
+        config = gBaseDir.substr(0,gBaseDir.length()-1);
+    }
+    else
+    {
+        config = gBaseDir;
+    }
+	/*if (getenv("XDG_CONFIG_HOME") != NULL)
 		config = getenv("XDG_CONFIG_HOME");
 	else if (getenv("HOME") != NULL)
 		config = getenv("HOME") + std::string("/.config");
 	else // Just in case
-		config = "./config";
+		config = "./config";*/
 
 	g_PConfig.memStickDirectory = config + "/ppsspp/";
 	g_PConfig.flash0Directory = PFile::GetExeDirectory() + "/assets/flash0/";

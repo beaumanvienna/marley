@@ -422,7 +422,7 @@ struct ConfigSectionSettings {
 static ConfigSetting generalSettings[] = {
 	ConfigSetting("FirstRun", &g_PConfig.bFirstRun, true),
 	ConfigSetting("RunCount", &g_PConfig.iRunCount, 0),
-	ConfigSetting("Enable Logging", &g_PConfig.bEnableLogging, true),
+	ConfigSetting("Enable Logging", &g_PConfig.bEnableLogging, false),
 	ConfigSetting("AutoRun", &g_PConfig.bAutoRun, true),
 	ConfigSetting("Browse", &g_PConfig.bBrowse, false),
 	ConfigSetting("IgnoreBadMemAccess", &g_PConfig.bIgnoreBadMemAccess, true, true),
@@ -1178,11 +1178,11 @@ void Config::Load(const char *iniFileName, const char *controllerPIniFilename) {
 	// Sometimes the download may not be finished when the main screen shows (if the user dismisses the
 	// splash screen quickly), but then we'll just show the notification next time instead, we store the
 	// upgrade number in the ini.
-	if (iRunCount % 10 == 0 && bCheckForNewVersion) {
+	/*if (iRunCount % 10 == 0 && bCheckForNewVersion) {
 		std::shared_ptr<http::Download> dl = g_DownloadManager.StartDownloadWithCallback(
 			"http://www.ppsspp.org/version.json", "", &DownloadCompletedCallback);
 		dl->SetHidden(true);
-	}
+	}*/
 
 	INFO_LOG(LOADER, "Loading controller config: %s", controllerPIniFilename_.c_str());
 	bSaveSettings = true;
