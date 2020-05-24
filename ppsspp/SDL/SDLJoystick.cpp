@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include "../../include/controller.h"
 
 using namespace std;
 
@@ -14,9 +15,12 @@ static int SDLJoystickEventHandlerWrapper(void* userdata, SDL_Event* event)
 	return 0;
 }
 
-SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) {
+SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) 
+{
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
-	if (init_SDL) {
+    #warning "JC: modified"
+	/*if (init_SDL) 
+    {
 		SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 	}
 
@@ -25,7 +29,7 @@ SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) {
 
 	size_t size;
 	u8 *mappingData = VFSReadFile(dbPath, &size);
-	if (mappingData) {
+    if (mappingData) {
 		SDL_RWops *rw = SDL_RWFromConstMem(mappingData, size);
 		// 1 to free the rw after use
 		if (SDL_GameControllerAddMappingsFromRW(rw, 1) == -1) {
@@ -36,21 +40,34 @@ SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) {
 		cout << "gamecontrollerdb.txt missing" << endl;
 	}
 	cout << "SUCCESS!" << endl;
+    */
 	setUpControllers();
 }
 
-void SDLJoystick::setUpControllers() {
-	int numjoys = SDL_NumJoysticks();
+void SDLJoystick::setUpControllers() 
+{
+	/*int numjoys = SDL_NumJoysticks();
 	for (int i = 0; i < numjoys; i++) {
 		setUpController(i);
 	}
 	if (controllers.size() > 0) {
 		cout << "pad 1 has been assigned to control pad: " << SDL_GameControllerName(controllers.front()) << endl;
-	}
+	}*/
+    int slot = 0;
+    for (int i = 0; i < MAX_GAMEPADS; i++)
+    {
+        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
+        {
+            setUpController(slot);
+            slot++;
+        }
+    }
 }
 
-void SDLJoystick::setUpController(int deviceIndex) {
-	if (!SDL_IsGameController(deviceIndex)) {
+void SDLJoystick::setUpController(int deviceIndex) 
+{
+    printf("jc void SDLJoystick::setUpController(int deviceIndex), deviceIndex: %i  \n",deviceIndex);
+	/*if (!SDL_IsGameController(deviceIndex)) {
 		cout << "Control pad device " << deviceIndex << " not supported by SDL game controller database, attempting to create default mapping..." << endl;
 		int cbGUID = 33;
 		char pszGUID[cbGUID];
@@ -66,39 +83,54 @@ void SDLJoystick::setUpController(int deviceIndex) {
 		SDL_JoystickClose(joystick);
 	}
 	SDL_GameController *controller = SDL_GameControllerOpen(deviceIndex);
-	if (controller) {
-		if (SDL_GameControllerGetAttached(controller)) {
+    */
+    int devIndex = gDesignatedControllers[deviceIndex].index[0];
+    SDL_GameController *controller = gDesignatedControllers[deviceIndex].gameCtrl[0];
+	if (controller) 
+    {
+		if (SDL_GameControllerGetAttached(controller)) 
+        {
 			controllers.push_back(controller);
-			controllerDeviceMap[SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))] = deviceIndex;
+			controllerDeviceMap[SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))] = devIndex;
 			cout << "found control pad: " << SDL_GameControllerName(controller) << ", loading mapping: ";
 			auto mapping = SDL_GameControllerMapping(controller);
-			if (mapping == NULL) {
+			if (mapping == NULL) 
+            {
 				//cout << "FAILED" << endl;
 				cout << "Could not find mapping in SDL2 controller database" << endl;
-			} else {
+			} 
+            else 
+            {
 				cout << "SUCCESS, mapping is:" << endl << mapping << endl;
 			}
-		} else {
+		} 
+        else 
+        {
 			SDL_GameControllerClose(controller);
 		}
 	}
 }
 
-SDLJoystick::~SDLJoystick() {
-	if (registeredAsEventHandler) {
+SDLJoystick::~SDLJoystick() 
+{
+	if (registeredAsEventHandler) 
+    {
 		SDL_DelEventWatch(SDLJoystickEventHandlerWrapper, this);
 	}
-	for (auto & controller : controllers) {
+	/*for (auto & controller : controllers) 
+    {
 		SDL_GameControllerClose(controller);
-	}
+	}*/
 }
 
-void SDLJoystick::registerEventHandler() {
+void SDLJoystick::registerEventHandler() 
+{
 	SDL_AddEventWatch(SDLJoystickEventHandlerWrapper, this);
 	registeredAsEventHandler = true;
 }
 
-keycode_t SDLJoystick::getKeycodeForButton(SDL_GameControllerButton button) {
+keycode_t SDLJoystick::getKeycodeForButton(SDL_GameControllerButton button) 
+{
 	switch (button) {
 	case SDL_CONTROLLER_BUTTON_DPAD_UP:
 		return NKCODE_DPAD_UP;
