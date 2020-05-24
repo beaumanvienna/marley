@@ -66,7 +66,6 @@ void SDLJoystick::setUpControllers()
 
 void SDLJoystick::setUpController(int deviceIndex) 
 {
-    printf("jc void SDLJoystick::setUpController(int deviceIndex), deviceIndex: %i  \n",deviceIndex);
 	/*if (!SDL_IsGameController(deviceIndex)) {
 		cout << "Control pad device " << deviceIndex << " not supported by SDL game controller database, attempting to create default mapping..." << endl;
 		int cbGUID = 33;

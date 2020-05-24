@@ -7,6 +7,7 @@
 #include "base/display.h"
 #include "gfx_es2/gpu_features.h"
 #include "thin3d/thin3d_create.h"
+#include "../../include/gui.h"
 
 #if defined(USING_EGL)
 #include "EGL/egl.h"
@@ -327,8 +328,9 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SetGLCoreContext(true);
 #endif
-
-		window = SDL_CreateWindow("PPSSPP", x,y, pixel_xres, pixel_yres, mode);
+        #warning "JC: modified"
+        window = gWindow;
+		//window = SDL_CreateWindow("PPSSPP", x,y, pixel_xres, pixel_yres, mode);
 		if (!window) {
 			// Definitely don't shutdown here: we'll keep trying more GL versions.
 			fprintf(stderr, "SDL_CreateWindow failed for GL %d.%d: %s\n", ver.major, ver.minor, SDL_GetError());

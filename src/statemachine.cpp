@@ -450,7 +450,8 @@ bool statemachine(int cmd)
                                 argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
                                 ppsspp_main(argc,argv);
-                                
+                                printf("back in marley after ppsspp\n");
+                                gIgnore = true;
                                 restoreSDL();
                             }
 #endif

@@ -40,6 +40,7 @@ protected:
 private:
 	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
 	PUI::EventReturn OnExitToMenu(PUI::EventParams &e);
+    PUI::EventReturn OnExitToMarley(PUI::EventParams &e);
 	PUI::EventReturn OnReportFeedback(PUI::EventParams &e);
 
 	PUI::EventReturn OnRewind(PUI::EventParams &e);

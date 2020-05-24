@@ -55,7 +55,7 @@ SDLJoystick *joystick = NULL;
 #include "Common/GraphicsContext.h"
 #include "SDLGLGraphicsContext.h"
 #include "SDLVulkanGraphicsContext.h"
-
+#include "../../include/gui.h"
 
 GlobalUIState lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
@@ -435,8 +435,16 @@ int ppsspp_main(int argc, char *argv[]) {
 		fprintf(stderr, "Could not get display mode: %s\n", SDL_GetError());
 		return 1;
 	}
-	g_DesktopWidth = displayMode.w;
-	g_DesktopHeight = displayMode.h;
+    #warning "JC: modfied"
+    //g_DesktopWidth = displayMode.w;
+	//g_DesktopHeight = displayMode.h;
+    int width,height;
+    SDL_GetWindowSize(gWindow,&width,&height);
+	g_DesktopWidth  = width;
+    displayMode.w   = width;
+	g_DesktopHeight = height;
+    displayMode.h   = height;
+	
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -446,7 +454,8 @@ int ppsspp_main(int argc, char *argv[]) {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	// Force fullscreen if the resolution is too low to run windowed.
-	if (g_DesktopWidth < 480 * 2 && g_DesktopHeight < 272 * 2) {
+	if (g_DesktopWidth < 480 * 2 && g_DesktopHeight < 272 * 2) 
+    {
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
@@ -459,7 +468,10 @@ int ppsspp_main(int argc, char *argv[]) {
 	mode |= SDL_WINDOW_RESIZABLE;
 #endif
 
-	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+    pixel_xres = g_DesktopWidth;
+	pixel_yres = g_DesktopHeight;
+    g_PConfig.bFullScreen = false;
+	/*if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
 		pixel_xres = g_DesktopWidth;
 		pixel_yres = g_DesktopHeight;
 		g_PConfig.bFullScreen = true;
@@ -471,7 +483,7 @@ int ppsspp_main(int argc, char *argv[]) {
 			std::swap(pixel_xres, pixel_yres);
 		}
 		g_PConfig.bFullScreen = false;
-	}
+	}*/
 
 	set_dpi = 1.0f / set_dpi;
 
@@ -511,7 +523,7 @@ int ppsspp_main(int argc, char *argv[]) {
 
 	NativeInit(remain_argc, (const char **)remain_argv, path, "/tmp", nullptr);
 
-	// Use the setting from the config when initing the window.
+	// Use the setting from the config when creating the window.
 	if (g_PConfig.bFullScreen)
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
@@ -650,10 +662,13 @@ int ppsspp_main(int argc, char *argv[]) {
 					g_PConfig.bFullScreen = fullscreen;
 
 					// Hide/Show cursor correctly toggling fullscreen
-					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) {
+					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) 
+                    {
 						SDL_ShowCursor(SDL_DISABLE);
-					} else if (lastUIState != UISTATE_INGAME || !fullscreen) {
-						SDL_ShowCursor(SDL_ENABLE);
+					} 
+                    else if (lastUIState != UISTATE_INGAME || !fullscreen) 
+                    {
+						//SDL_ShowCursor(SDL_ENABLE);
 					}
 					break;
 				}
@@ -872,9 +887,13 @@ int ppsspp_main(int argc, char *argv[]) {
 		if (lastUIState != GetUIState()) {
 			lastUIState = GetUIState();
 			if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !g_PConfig.bShowTouchControls)
+            {
 				SDL_ShowCursor(SDL_DISABLE);
+            }
 			if (lastUIState != UISTATE_INGAME || !g_PConfig.bFullScreen)
-				SDL_ShowCursor(SDL_ENABLE);
+            {
+				//SDL_ShowCursor(SDL_ENABLE);
+            }
 		}
 #endif
 
