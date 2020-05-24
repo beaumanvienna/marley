@@ -18,13 +18,10 @@ Files: dolphin/*
 Copyright: refer to dolphin/copyright
 
 Files: mupen64plus/*
-Copyright: refer to 
-mupen64plus/Packages/mupen64plus-audio-sdl/LICENSES
-mupen64plus/Packages/mupen64plus-ui-console/LICENSES
-mupen64plus/Packages/mupen64plus-core/LICENSES
-mupen64plus/Packages/mupen64plus-input-sdl/LICENSES
-mupen64plus/Packages/mupen64plus-rsp-hle/LICENSES
-mupen64plus/Packages/mupen64plus-video-glide64mk2/LICENSES
+Copyright: refer to mupen64plus/Packages/*/LICENSES
+
+Files: ppsspp/*
+Copyright: refer to ppsspp/copyright
 
 
 Playstation is a trademark of Sony Interactive Entertainment Inc. 

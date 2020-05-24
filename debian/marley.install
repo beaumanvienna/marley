@@ -31,5 +31,8 @@
 ./pictures/Xbox-360-S-Controller.png usr/games/Marley/pictures
 ./pictures/Wiimote.png usr/games/Marley/pictures
 
+#assets for ppsspp
+./ppsspp/assets usr/games/Marley
+
 
 

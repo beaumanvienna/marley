@@ -301,6 +301,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		int major;
 		int minor;
 	};
+
 	GLVersionPair attemptVersions[] = {
 #ifdef USING_GLES2
 		{3, 2}, {3, 1}, {3, 0}, {2, 0},
@@ -315,7 +316,8 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 	mode |= SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
 
 	SDL_GLContext glContext = nullptr;
-	for (size_t i = 0; i < ARRAY_SIZE(attemptVersions); ++i) {
+	for (size_t i = 0; i < ARRAY_SIZE(attemptVersions); ++i) 
+    {
 		const auto &ver = attemptVersions[i];
 		// Make sure to request a somewhat modern GL context at least - the
 		// latest supported by MacOS X (really, really sad...)
@@ -349,7 +351,8 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		SDL_DestroyWindow(window);
 	}
 
-	if (glContext == nullptr) {
+	if (glContext == nullptr) 
+    {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);

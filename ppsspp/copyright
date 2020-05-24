@@ -1,0 +1,478 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://github.com/hrydgard/ppsspp
+Upstream-Name: PPSSPP
+Upstream-Contact: Henrik Rydgård <hrydgard+ppsspp@gmail.com>
+                  https://github.com/hrydgard/ppsspp/graphs/contributors
+                  http://forums.ppsspp.org/
+Files-Excluded:
+ android/libs/com.bda.controller.jar
+ assets/ppge_atlas.zim
+ assets/Roboto-Condensed.ttf
+ assets/ui_atlas_lowmem.zim
+ assets/ui_atlas.zim
+ Core/Util/ppge_atlas.cpp
+ Core/Util/ppge_atlas.h
+ dx9sdk
+ ext/native/android/libs/com.bda.controller.jar
+ ext/native/ext/glew
+ ext/native/ext/libpng17
+ ext/native/ext/libzip
+ ext/snappy
+ ext/zlib
+ pspautotests
+ UI/ui_atlas.cpp
+ UI/ui_atlas.h
+ Tools/SaveTool/kernelcall.prx
+ Windows/ppsspp.rc
+ .gitattributes
+ .gitignore
+ .gitmodules
+ .travis.sh
+ .travis.yml
+ .ycm_extra_conf.py
+
+
+Files: *
+Copyright: 2012-2015 Henrik Rydgård / PPSSPP Project
+License: GPL-2+
+Comment: Some parts of the PSPSDK were used in this emulator (defines,
+ constants, headers) and they were licensed under a modified BSD-3-clause
+ license by adresd, Marcus R. Brown, James Forshaw, John Kelley,
+ Jesper Svennevid, see LICENSE.TXT
+
+Files: assets/unix-icons/convert-to-png.sh
+Copyright: 2014 Sergio Benjamim
+License: GPL-2+
+
+Files: CMakeTests/FindFFMPEG.cmake
+Copyright: 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
+License: BSD-3-clause
+
+Files: CMakeTests/FindLibZip.cmake
+Copyright: 2008-2010 Pelican Mapping
+License: LGPL-2.1+
+
+Files: CMakeTests/FindSDL2.cmake
+Copyright: 2003-2009 Kitware, Inc.
+License: BSD-3-clause-Kitware
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+ .
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+ .
+ * Neither the names of Kitware, Inc., the Insight Software Consortium,
+   nor the names of their contributors may be used to endorse or promote
+   products derived from this software without specific prior written
+   permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: CMakeTests/FindSnappy.cmake
+Copyright: The Apache Software Foundation (ASF)
+License: Apache-2.0
+
+Files: Common/Crypto/*
+Copyright: 2006-2009 Paul Bakker (polarssl_maintainer at polarssl.org)
+License: GPL-2+
+
+Files: Common/Crypto/sha256.*
+Copyright: 2001-2003 Christophe Devine
+License: GPL-2+
+
+Files: Common/*
+       Core/MIPS/x86/Asm.*
+Copyright: 2003-2015 Dolphin Emulator Project
+License: GPL-2+
+
+Files: Common/BitSet.h
+Copyright: ???
+License: public-domain
+ These files have been put in the public domain by their author
+
+Files: Common/ColorConv.*
+       Common/ColorConvNEON.*
+       Common/KeyMap.*
+       Common/MipsEmitter.*
+       Common/Swap.h
+       Common/ThreadSafeList.h
+Copyright: 2003-2015 PPSSPP Project
+License: GPL-2+
+
+Files: Core/MIPS/JitCommon/JitBlockCache.*
+       Core/CoreTiming.*
+       Core/MemMap.*
+       Core/MemMapFunctions.cpp
+       Core/MemMapHelpers.h
+Copyright: 2012 PPSSPP Project
+           2003-2012 Dolphin Emulator Project
+License: GPL-2+
+
+Files: ext/armips/*
+Copyright: 2009-2014 Kingcom
+License: Expat
+
+Files: ext/armips/ext/tinyformat/*
+Copyright: 2011 Chris Foster [chris42f (at) gmail (d0t) com]
+License: BSL-1.0
+
+Files: ext/libkirk/AES.*
+Copyright: Vincent Rijmen <vincent.rijmen@esat.kuleuven.ac.be>
+           Antoon Bosselaers <antoon.bosselaers@esat.kuleuven.ac.be>
+           Paulo Barreto <paulo.barreto@terra.com.br>
+License: public-domain
+ This code is hereby placed in the public domain.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
+ OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: ext/libkirk/amctrl.*
+Copyright: 2013 tpu
+License: GPL-3+
+Comment: https://github.com/Hykem/psxtract/blob/master/Linux/libkirk/amctrl.c
+
+Files: ext/libkirk/ec.c
+       ext/libkirk/bn.c
+Copyright: 2007, 2008, 2010 Segher Boessenkool <segher@kernel.crashing.org>
+License: GPL-2+
+
+Files: ext/libkirk/kirk_engine.*
+Copyright: Draan, coyotebean, Davee, hitchhikr, kgsws, liquidzigong,
+ Mathieulh, Proxima, SilverSpring
+License: GPL-3+
+
+Files: ext/native/*
+Copyright: 2012 Henrik Rydgard <hrydgard@gmail.com>
+License: Expat
+
+Files: ext/native/data/compression.cpp
+Copyright: 2007 Timo Bingmann <tb@panthema.net>
+License: BSL-1.0
+Comment: Taken from http://panthema.net/2007/0328-ZLibString.html
+
+Files: ext/native/ext/cityhash/*
+Copyright: 2011 Google, Inc.
+License: Expat
+
+Files: ext/native/ext/jpge/*
+Copyright: Rich Geldreich <richgel99@gmail.com>
+License: public-domain
+ This is https://code.google.com/p/jpeg-compressor/ , public domain code.
+
+Files: ext/native/ext/rg_etc1/*
+Copyright: 2013, 2014 Rich Geldreich <richgel99@gmail.com>
+License: Zlib
+
+Files: ext/native/ext/sha1/*
+Copyright: 2002-2011 Dominik Reichl <dominik.reichl@t-online.de>
+License: public-domain
+ 100% free public domain implementation of the SHA-1 algorithm, http://www.dominik-reichl.de/
+
+Files: ext/sfmt19937/*
+Copyright: 2013 Mutsuo Saito, Makoto Matsumoto and Hiroshima University.
+           2012 Mutsuo Saito, Makoto Matsumoto, Hiroshima University and The University of Tokyo.
+           2006, 2007 Mutsuo Saito, Makoto Matsumoto and Hiroshima University.
+License: BSD-3-clause
+
+Files: ext/udis86/*
+Copyright: 2002-2012 Vivek Thampi <vivek.mt@gmail.com>
+License: BSD-2-clause
+
+Files: ext/xbrz/*
+Copyright: 2012-2015 Zenju (zenju AT gmx DOT de)
+License: GPL-3 with special exception
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License version 3 as
+ published by the Free Software Foundation.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ Additionally and as a special exception, the author gives permission
+ to link the code of this program with the MAME library (or with modified
+ versions of MAME that use the same license as MAME), and distribute
+ linked combinations including the two. You must obey the GNU General
+ Public License in all respects for all of the code used other than MAME.
+ If you modify this file, you may extend this exception to your version
+ of the file, but you are not obligated to do so. If you do not wish to
+ do so, delete this exception statement from your version.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 3 can be found in the file
+ `/usr/share/common-licenses/GPL-3'.
+
+Files: ext/disarm.cpp
+Copyright: 2000 Gareth McCaughan
+License: permissive
+ This file may be distributed and used freely provided:
+ 1. You do not distribute any version that lacks this
+    copyright notice (exactly as it appears here, extending
+    from the start to the end of the C-language comment
+    containing these words)); and,
+ 2. If you distribute any modified version, its source
+    contains a clear description of the ways in which
+    it differs from the original version, and a clear
+    indication that the changes are not mine.
+ There is no restriction on your permission to use and
+ distribute object code or executable code derived from
+ this.
+
+Files: ext/xxhash.*
+Copyright: 2012-2014 Yann Collet
+License: BSD-2-clause
+
+Files: ios/iCade/*
+Copyright: 2011 Stuart Carnie
+License: Expat
+
+Files: ios/*
+Copyright: 2013 rock88
+License: Expat
+
+Files: ios/ViewController.mm
+Copyright: 2013 rock88
+           2013 xSacha
+License: Expat
+
+Files: SDL/SDLMain.h
+       SDL/SDLMain.mm
+Copyright: Darrell Walisser <dwaliss1@purdue.edu>
+           Max Horn <max@quendi.de>
+License: public-domain
+ Feel free to customize this file to suit your needs
+
+Files: Tools/SaveTool/*
+Copyright: 2005 Jim Paris <jim@jtan.com>
+           2005 psp123
+License: BSD-3-clause
+
+Files: ext/native/ext/libpng/*
+Copyright: 1998-2015 Glenn Randers-Pehrson
+           1996, 1997 Andreas Dilger
+           1995, 1996 Guy Eric Schalnat, Group 42, Inc.
+License: Zlib
+
+Files: ffmpeg/*
+Copyright: 2000-2015 The FFmpeg developers
+License: GPL-2+ and LGPL-2.1+
+Comment: The FFmpeg developers are listed in the ffmpeg/MAINTAINERS file
+
+Files: debian/*
+Copyright: 2014, 2015 Sergio Benjamim (sergio-br2) <sergio_br2@yahoo.com.br>
+License: GPL-2+
+
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 USA.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.
+
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 3 can be found in the file
+ `/usr/share/common-licenses/GPL-3'.
+
+
+License: LGPL-2.1+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1335  USA
+ .
+ On Debian systems, the full text of the GNU Lesser General Public
+ License version 2.1 can be found in the file
+ `/usr/share/common-licenses/LGPL-2.1'.
+
+
+License: Apache-2.0
+ Licensed under the Apache License, Version 2.0 (the "License"); you may
+ not use this file except in compliance with the License. You may obtain
+ a copy of the License at
+ .
+ http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ the License for the specific language governing permissions and
+ limitations under the License.
+ .
+ On Debian systems, the full text of the Apache License version 2.0
+ can be found in the file `/usr/share/common-licenses/Apache-2.0'.
+
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without modification, 
+ are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice, 
+    this list of conditions and the following disclaimer in the documentation 
+    and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ .
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+
+
+License: BSL-1.0
+ Permission is hereby granted, free of charge, to any person or organization
+ obtaining a copy of the software and accompanying documentation covered by
+ this license (the "Software") to use, reproduce, display, distribute,
+ execute, and transmit the Software, and to prepare derivative works of the
+ Software, and to permit third-parties to whom the Software is furnished to
+ do so, all subject to the following:
+ .
+ The copyright notices in the Software and this entire statement, including
+ the above license grant, this restriction and the following disclaimer,
+ must be included in all copies of the Software, in whole or in part, and
+ all derivative works of the Software, unless such copies or derivative
+ works are solely in the form of machine-executable object code generated by
+ a source language processor.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+
+License: Zlib
+ This software is provided 'as-is', without any express or implied
+ warranty. In no event will the authors be held liable for any damages
+ arising from the use of this software.
+ .
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+ .
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgement in the product documentation would be
+    appreciated but is not required.
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.

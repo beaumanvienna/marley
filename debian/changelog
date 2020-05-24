@@ -1,3 +1,10 @@
+marley (0.0.7) bionic; urgency=medium
+
+  * PPSSPP added (PSP support)
+  * this is an unstable version 
+   
+ -- JC Lache <jc.lache@web.de>  Sun, 24 MAY 2020 14:30:00 -0800
+
 marley (0.0.6.2) bionic; urgency=medium
 
   * Mupen64plus added (N64 support)

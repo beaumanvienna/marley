@@ -64,8 +64,9 @@ static bool g_ToggleFullScreenNextFrame = false;
 static int g_ToggleFullScreenType;
 static int g_QuitRequested = 0;
 
-static int g_DesktopWidth = 0;
+static int g_DesktopWidth  = 0;
 static int g_DesktopHeight = 0;
+
 
 int getDisplayNumber(void) {
 	int displayNumber = 0;
@@ -347,8 +348,18 @@ static void EmuThreadJoin() {
 #ifdef _WIN32
 #undef main
 #endif
+void gpu_features_reset(void);
 int ppsspp_main(int argc, char *argv[]) {
 //int main(int argc, char *argv[]) {
+
+    SDL_GL_ResetAttributes();
+    GlobalUIState lastUIState = UISTATE_MENU;
+    g_ToggleFullScreenNextFrame = false;
+    g_QuitRequested = 0;
+    g_DesktopWidth  = 0;
+    g_DesktopHeight = 0;
+    gpu_features_reset();
+
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "--version")) {
 			printf("%s\n", PPSSPP_GIT_VERSION);
@@ -364,11 +375,11 @@ int ppsspp_main(int argc, char *argv[]) {
 	putenv((char*)"SDL_VIDEO_CENTERED=1");
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 
-	if (VulkanMayBeAvailable()) {
+	/*if (VulkanMayBeAvailable()) {
 		//printf("DEBUG: Vulkan might be available.\n");
 	} else {
 		//printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
-	}
+	}*/
 
 	int set_xres = -1;
 	int set_yres = -1;
@@ -377,6 +388,7 @@ int ppsspp_main(int argc, char *argv[]) {
 	bool set_ipad = false;
 	float set_dpi = 1.0f;
 	float set_scale = 1.0f;
+
 
 	// Produce a new set of arguments with the ones we skip.
 	int remain_argc = 1;
@@ -544,13 +556,16 @@ int ppsspp_main(int argc, char *argv[]) {
 	SDL_Window *window = nullptr;
 
 	std::string error_message;
-	if (g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL) {
+	if (g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL) 
+    {
 		SDLGLGraphicsContext *ctx = new SDLGLGraphicsContext();
 		if (ctx->Init(window, x, y, mode, &error_message) != 0) {
 			printf("GL init error '%s'\n", error_message.c_str());
 		}
 		graphicsContext = ctx;
-	} else if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) {
+	} 
+    else if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) 
+    {
 		SDLVulkanGraphicsContext *ctx = new SDLVulkanGraphicsContext();
 		if (!ctx->Init(window, x, y, mode, &error_message)) {
 			printf("Vulkan init error '%s' - falling back to GL\n", error_message.c_str());
@@ -560,7 +575,9 @@ int ppsspp_main(int argc, char *argv[]) {
 			SDLGLGraphicsContext *glctx = new SDLGLGraphicsContext();
 			glctx->Init(window, x, y, mode, &error_message);
 			graphicsContext = glctx;
-		} else {
+		} 
+        else 
+        {
 			graphicsContext = ctx;
 		}
 	}
