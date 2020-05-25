@@ -3,7 +3,7 @@ Upstream-Name: marley
 Upstream-Contact: JC <jc.lache@web.de>
 Source: https://github.com/beaumanvienna/marley
 
-Files: include/* src/*
+Files: include/* src/* debian/* AUTHORS ChangeLog Makefile.am NEWS README 
 Copyright: 2020 JC <jc.lache@web.de>
 License: GPL-2+, see /usr/share/common-licenses 
  This program is free software; you can redistribute it
@@ -15,6 +15,14 @@ License: GPL-2+, see /usr/share/common-licenses
  Nintendo of America Inc. The marley team is not affiliated
  with or endorsed by these companies in any way. This emulator
  bundle should only be used to play games one legally own.
+
+Files: configure.ac pictures/* resources/marley.6 resources/marley.desktop
+Copyright: 2020 JC <jc.lache@web.de>
+License: GPL-2+,
+
+Files: resources/gamecontrollerdb.txt
+Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
+License: Zlib
 
 Files: resources/*.ttf
 Copyright: Stepan Roh <src@users.sourceforge.net> Ubuntu package fonts-dejavu-core
