@@ -6,6 +6,15 @@ Source: https://github.com/beaumanvienna/marley
 Files: include/* src/*
 Copyright: 2020 JC <jc.lache@web.de>
 License: GPL-2+, see /usr/share/common-licenses 
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
+ version. Playstation is a trademark of Sony Interactive 
+ Entertainment Inc. Gamecube and Wii are trademarks of 
+ Nintendo of America Inc. The marley team is not affiliated
+ with or endorsed by these companies in any way. This emulator
+ bundle should only be used to play games one legally own.
 
 Files: resources/*.ttf
 Copyright: Stepan Roh <src@users.sourceforge.net> Ubuntu package fonts-dejavu-core
@@ -24,9 +33,6 @@ Files: ppsspp/*
 Copyright: refer to ppsspp/copyright
 
 
-Playstation is a trademark of Sony Interactive Entertainment Inc. 
-Gamecube and Wii are trademarks of Nintendo of America Inc.
-The marley team is not affiliated with or endorsed by these companies in any way.
-This emulator bundle should only be used to play games one legally own.
+
 
 
