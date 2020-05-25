@@ -2,7 +2,7 @@ Format: 3.0 (native)
 Source: marley
 Binary: marley
 Architecture: amd64
-Version: 0.0.7.4
+Version: 0.0.7.5
 Maintainer: JC <jc.lache@web.de>
 Homepage: https://launchpad.net/~beauman
 Standards-Version: 4.1.4
@@ -17,7 +17,7 @@ Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath,
                libreadline-dev, libsfml-dev (>= 2.1), libsoil-dev, libswscale-dev, libudev-dev, 
                libusb-1.0-0-dev (>= 1.0.19), libwxbase3.0-dev (>= 3.0.1), libwxgtk3.0-dev (>= 3.0.1), libxext-dev, \
                libxrandr-dev, portaudio19-dev, qtbase5-private-dev, libsamplerate0-dev, libfreetype6-dev, libglu1-mesa-dev, nasm, \
-               libboost-filesystem-dev, libboost-system-dev, libswresample-dev, libglew-dev, libsnappy-dev
+               libboost-filesystem-dev, libboost-system-dev, libswresample-dev, libglew-dev, libsnappy-dev, libavutil-dev
                
 Package-List: 
  marley deb games extra

@@ -58,7 +58,8 @@ Build-Depends: debhelper,
         libboost-system-dev,
         libswresample-dev,
         libglew-dev,
-        libsnappy-dev
+        libsnappy-dev,
+        libavutil-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
