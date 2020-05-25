@@ -1,3 +1,12 @@
+marley (0.0.8) bionic; urgency=medium
+
+  * Bug fixes
+  * this is a fairly stable version 
+  * support for Wii, Gamecube, N64, PSP, PS1,
+    NES, SNES, MD (Sega Genesis)
+   
+ -- JC Lache <jc.lache@web.de>  Sun, 25 MAY 2020 08:00:00 -0800
+ 
 marley (0.0.7.5) bionic; urgency=medium
 
   * PPSSPP added (PSP support)

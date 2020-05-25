@@ -22,7 +22,7 @@ License: GPL-2+
 
 Files: resources/gamecontrollerdb.txt
 Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
-License: Zlib
+License: Zlib, see /usr/share/common-licenses
 
 Files: resources/*.ttf
 Copyright: Stepan Roh <src@users.sourceforge.net> Ubuntu package fonts-dejavu-core

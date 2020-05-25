@@ -237,7 +237,7 @@ m64p_error EVidExt_ListFullscreenModes(m64p_2d_size *SizeArray, int *NumSizes)
 }
 
 m64p_error EVidExt_SetVideoMode(int Width, int Height, int BitsPerPixel, m64p_video_mode ScreenMode, m64p_video_flags Flags)
-{
+{  
     const SDL_VideoInfo *videoInfo;
     int videoFlags = 0;
 

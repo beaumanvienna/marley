@@ -1204,7 +1204,7 @@ static const COKE CKeys[_CK_COUNT]	=
 	CKEYDEF( "take_snapshot", 	 "Take screen snapshot", 0, MK_CK(F9) ),
 	CKEYDEF( "take_scaled_snapshot", "Take scaled(and filtered) screen snapshot", 0, MK_CK_SHIFT(F9) ),
 
-	CKEYDEF( "toggle_fs", "Toggle fullscreen mode", 0, MK_CK_ALT(RETURN) ),
+	CKEYDEF( "toggle_fs", "Toggle fullscreen mode", 0, MK_CK(F) ),
 	CKEYDEF( "fast_forward", "Fast-forward", 0, 	   MK_CK(GRAVE) ),
         CKEYDEF( "slow_forward", "Slow-forward", 0, 	   MK_CK(BACKSLASH) ),
 

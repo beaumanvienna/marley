@@ -1429,7 +1429,7 @@ static int GameLoop(void *arg)
 	return(1);
 }   
 
-
+extern std::string gBaseDir;
 std::string GetBaseDirectory(void)
 {
 #ifdef WIN32
@@ -1457,14 +1457,15 @@ std::string GetBaseDirectory(void)
   return path;
  }
 #else
- char *ol;
  #warning "JC: modified"
+ return gBaseDir + "mednafen";
  /*
+ char *ol;
  ol = getenv("MEDNAFEN_HOME");
  if(ol != NULL && ol[0] != 0)
  {
   return std::string(ol);
- }*/
+ }
  std::string homedir, slash;
  if ((homedir = getenv("HOME")) != "") 
  {
@@ -1480,7 +1481,6 @@ std::string GetBaseDirectory(void)
     return homedir;
  }
 
-/*
  #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
  {
   struct passwd *psw;
@@ -1491,8 +1491,9 @@ std::string GetBaseDirectory(void)
    return std::string(psw->pw_dir) + PSS + ".marley/mednafen";
  }
  #endif
- */
+
  return "";
+ */
 #endif
 }
 
@@ -2116,6 +2117,7 @@ __attribute__((force_align_arg_pointer))	// Not sure what's going on to cause th
 #warning "JC: modified"
 int mednafen_main(int argc, char *argv[])
 {
+    DrBaseDirectory = "";
     MDFNSystems.clear();
     NeoDriverSettings.clear(); 
     SignalSafeExitWanted=false;

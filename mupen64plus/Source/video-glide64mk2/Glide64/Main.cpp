@@ -48,6 +48,7 @@
 #include "CRC.h"
 #include "FBtoScreen.h"
 #include "DepthBufferRender.h"
+#include <SDL.h>
 
 extern "C" m64p_error EVidExt_Init(void);
 extern "C" m64p_error EVidExt_Quit(void);
@@ -91,6 +92,7 @@ extern "C" m64p_error EConfigExternalGetParameter(m64p_handle, const char *, con
 
 void resetVariables(void);
 extern std::string gBaseDir;
+int init2(void);
 
 #if defined(__GNUC__)
 #include <sys/time.h>
@@ -1134,11 +1136,7 @@ void DisplayLoadProgress(const wchar_t *format, ...)
 
 int InitGfx ()
 {
-#ifdef TEXTURE_FILTER
-  wchar_t romname[256];
-  wchar_t foldername[PATH_MAX + 64];
-  wchar_t cachename[PATH_MAX + 64];
-#endif
+
   if (fullscreen)
     ReleaseGfx ();
 
@@ -1227,7 +1225,17 @@ int InitGfx ()
       }
       res_data = settings.res_data | 0x80000000;
   }
-
+  return init2();
+}
+int init2(void)
+{
+#ifdef TEXTURE_FILTER
+  wchar_t romname[256];
+  wchar_t foldername[PATH_MAX + 64];
+  wchar_t cachename[PATH_MAX + 64];
+#endif
+  wxUint32 res_data = settings.res_data;
+  const char *extensions = grGetString (GR_EXTENSION);
   gfx_context = 0;
 
   // Select the window
@@ -1491,7 +1499,10 @@ void ReleaseGfx ()
   resetVariables();
 }
 
-// new API code begins here!
+// new API code begins here
+
+void setWidthHeight(int window_w, int window_h);
+extern SDL_Window* gWindow;
 
 #ifdef __cplusplus
 extern "C" {
@@ -1701,10 +1712,19 @@ change the screen to window mode and vice vesa.
 input:    none
 output:   none
 *******************************************************************/
-//#warning ChangeWindow unimplemented
+
 void GChangeWindow (void)
 {
-  VLOG ("ChangeWindow()\n");
+    int window_w, window_h;
+    EVidExt_ToggleFullScreen();
+    
+    SDL_GetWindowSize(gWindow, &window_w, &window_h);
+    setWidthHeight(window_w,window_h);
+    settings.scr_res_x = window_w;
+    settings.scr_res_y = window_h;
+    ChangeSize();
+    
+    init2();
 }
 
 /******************************************************************
@@ -2220,6 +2240,7 @@ void GUpdateScreen (void)
 
 static void DrawWholeFrameBufferToScreen()
 {
+    
   static wxUint32 toScreenCI = 0;
   if (rdp.ci_width < 200)
     return;

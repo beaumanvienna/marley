@@ -22,6 +22,9 @@
 #include <SDL_config.h>
 #include <SDL_surface.h>
 
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 750
+
 #ifndef USE_GLES
 
 #ifndef SDL_VIDEO_OPENGL
@@ -36,6 +39,7 @@
 
 #endif // !USE_GLES
 extern SDL_Window* gWindow;
+
 typedef struct SDL_VideoInfo
 {
     Uint32 hw_available:1;
@@ -197,20 +201,32 @@ SDL_WM_ToggleFullScreen(SDL_Surface * surface)
 {
     int window_w;
     int window_h;
+    
 
     if (!SDL_PublicSurface) {
         SDL_SetError("SDL_SetVideoMode() hasn't been called");
         return 0;
     }
+    
+    Uint32 window_flags = SDL_GetWindowFlags(SDL_VideoWindow);
 
     /* Do the physical mode switch */
-    if (SDL_GetWindowFlags(SDL_VideoWindow) & SDL_WINDOW_FULLSCREEN) {
-        if (SDL_SetWindowFullscreen(SDL_VideoWindow, 0) < 0) {
+    if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) 
+    {
+        window_flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+        if (SDL_SetWindowFullscreen(SDL_VideoWindow, window_flags) < 0) 
+        {
             return 0;
         }
+        SDL_SetWindowSize(SDL_VideoWindow,WINDOW_WIDTH,WINDOW_HEIGHT);
+        SDL_SetWindowPosition(SDL_VideoWindow,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
         SDL_PublicSurface->flags &= ~SDL_FULLSCREEN;
-    } else {
-        if (SDL_SetWindowFullscreen(SDL_VideoWindow, 1) < 0) {
+    } 
+    else 
+    {
+        window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        if (SDL_SetWindowFullscreen(SDL_VideoWindow, window_flags) < 0) 
+        {
             return 0;
         }
         SDL_PublicSurface->flags |= SDL_FULLSCREEN;
@@ -222,8 +238,7 @@ SDL_WM_ToggleFullScreen(SDL_Surface * surface)
     SDL_VideoViewport.y = 0;
     SDL_VideoViewport.w = window_w;
     SDL_VideoViewport.h = window_h;
-
-    /* We're done! */
+    
     return 1;
 }
 

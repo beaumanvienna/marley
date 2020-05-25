@@ -203,7 +203,17 @@ static int texbuf_i;
 unsigned short frameBuffer[2048*2048*2]; // Support 2048x2048 screen resolution at 32 bits (RGBA) per pixel
 unsigned short depthBuffer[2048*2048];   // Support 2048x2048 screen resolution at 16 bits (depth) per pixel
 
-//#define VOODOO1
+void setWidthHeight(int window_w, int window_h)
+{
+    screen_width  = savedHeighto = savedHeight = pBufferHeight = window_w;
+    screen_height = savedWidtho  = savedWidth  = pBufferWidth  = window_h;
+    
+    if(CoreVideo_SetVideoMode(window_w, window_h, 0, M64VIDEO_WINDOWED, (m64p_video_flags) 0) != M64ERR_SUCCESS)
+    {
+        printf("(EE) Error setting videomode %dx%d\n", window_w, window_h);
+    }
+
+}
 
 void resetVariablesOGLglitchmain()
 {
@@ -978,7 +988,8 @@ FX_ENTRY void FX_CALL grTextureBufferExt( GrChipID_t  		tmu,
     if (height > screen_height) 
     {
       glViewport( 0, viewport_offset + screen_height - height, width, height);
-    } else
+    } 
+    else
     {
       glViewport( 0, viewport_offset, width, height);
     }
@@ -986,7 +997,10 @@ FX_ENTRY void FX_CALL grTextureBufferExt( GrChipID_t  		tmu,
     glScissor(0, viewport_offset, width, height);
 
 
-  } else {
+  } 
+  else 
+  {
+    
     if (!render_to_texture) //initialization
     {
       if(!fbs_init)

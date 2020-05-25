@@ -284,21 +284,25 @@ static float parseFloat(const char *str) {
 	} else {
 		return val;
 	}
-}
+} 
 
 void ToggleFullScreenIfFlagSet(SDL_Window *window) {
 	if (g_ToggleFullScreenNextFrame) {
 		g_ToggleFullScreenNextFrame = false;
 
 		Uint32 window_flags = SDL_GetWindowFlags(window);
-		if (g_ToggleFullScreenType == -1) {
-			window_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
-		} else if (g_ToggleFullScreenType == 1) {
-			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-		} else {
-			window_flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
-		}
-		SDL_SetWindowFullscreen(window, window_flags);
+        if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+        {
+            window_flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+            SDL_SetWindowFullscreen(gWindow, window_flags);
+            SDL_SetWindowSize(gWindow,WINDOW_WIDTH,WINDOW_HEIGHT);
+            SDL_SetWindowPosition(gWindow,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
+        }
+        else
+        {
+            window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+            SDL_SetWindowFullscreen(gWindow, window_flags);
+        }		
 	}
 }
 

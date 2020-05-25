@@ -46,7 +46,7 @@
 #include "hqxx-common.h"
 #include "2xSaI.h"
 #endif
-
+bool firstRun;
 class SDL_to_MDFN_Surface_Wrapper : public MDFN_Surface
 {
  public:
@@ -588,7 +588,7 @@ static void GenerateWindowedDestRect(void)
 
 static bool GenerateFullscreenDestRect(void)
 {
-    
+   printf("jc bool GenerateFullscreenDestRect(void)\n");
    #warning "JC: modified"
    int w,h;
    SDL_GetWindowSize(gWindow,&w,&h);
@@ -774,6 +774,27 @@ static ModeInfo SetMode(const ModeInfo& mode)
 
 void Video_Sync(MDFNGI *gi)
 {
+ if (firstRun)
+ {
+     firstRun=false;
+ }
+ else
+ {
+     Uint32 window_flags = SDL_GetWindowFlags(window);
+     if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+     {
+         window_flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+         SDL_SetWindowFullscreen(gWindow, window_flags);
+         SDL_SetWindowSize(gWindow,WINDOW_WIDTH,WINDOW_HEIGHT);
+         SDL_SetWindowPosition(gWindow,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
+     }
+     else
+     {
+         window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+         SDL_SetWindowFullscreen(gWindow, window_flags);
+     }
+ }
+
  MDFNI_printf(_("Initializing video...\n"));
  MDFN_AutoIndent aindv(1);
 
@@ -862,7 +883,8 @@ void Video_Sync(MDFNGI *gi)
  video_settings.shader_params.goat_fprog = MDFN_GetSettingB(snp + "shader.goat.fprog");
  //
  #warning "JC: modified"
- video_settings.fullscreen = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN);
+ video_settings.fullscreen = 0;
+ //video_settings.fullscreen = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN);
  //video_settings.fullscreen = MDFN_GetSettingB("video.fs");
  
  video_settings.fs_display = MDFN_GetSettingI("video.fs.display");
@@ -1315,6 +1337,8 @@ void Video_Sync(MDFNGI *gi)
 
 void Video_Init(void)
 {
+    printf("jc void Video_Init(void)\n");
+ firstRun=true;
  winpos_x = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.x");
  winpos_y = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.y");
  winpos_applied = false;
