@@ -123,7 +123,8 @@ Depends: ${shlibs:Depends},
         libfreetype6,
         libglu1-mesa,
         libswresample2,
-        libglew2.0
+        libglew2.0,
+        libsnappy1v5
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
  This package is a bundle of console emulators plus a launcher front-end.
