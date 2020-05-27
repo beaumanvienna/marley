@@ -51,6 +51,9 @@ int gControllerButton[STATE_CONF_MAX];
 int xCount,yCount,xValue,yValue;
 int gHat[4],gHatValue[4];
 int hatIterator;
+int gAxis[4];
+bool gAxisValue[4];
+int axisIterator;
 int secondRun;
 int secondRunHat;
 int secondRunValue;
@@ -168,7 +171,7 @@ bool statemachine(int cmd)
                         {
                             if (gGamesFound)
                             {
-                                gState=STATE_LAUNCH;;
+                                gState=STATE_LAUNCH;
                             }
                             else
                             {
@@ -275,15 +278,18 @@ bool statemachine(int cmd)
                      case STATE_CONF1:
                         for (int i=0;i<STATE_CONF_MAX;i++)
                         {
-                            gControllerButton[i]=SDL_CONTROLLER_BUTTON_INVALID;
+                            gControllerButton[i]=STATE_CONF_SKIP_ITEM;
                         }
                         
                         for (int i = 0; i < 4;i++)
                         {
                             gHat[i] = -1;
                             gHatValue[i] = -1;
+                            gAxis[i] = -1;
+                            gAxisValue[i] = false;
                         }
                         hatIterator = 0;
+                        axisIterator = 0;
                         secondRun = -1;
                         secondRunHat = -1;
                         secondRunValue = -1;
@@ -519,11 +525,12 @@ bool statemachine(int cmd)
 }
 
 
-bool statemachineConf(int cmd)
+void statemachineConf(int cmd)
 {
-    if ( (gControllerConf) && (confState <= STATE_CONF_BUTTON_DPAD_RIGHT) )
+    if ((cmd==STATE_CONF_SKIP_ITEM) && (confState > STATE_CONF_BUTTON_RIGHTSHOULDER)) statemachineConfAxis(STATE_CONF_SKIP_ITEM,false);
+    if ( (gControllerConf) && (confState <= STATE_CONF_BUTTON_RIGHTSHOULDER) )
     {
-        if (gActiveController == gControllerConfNum)
+        if ((gActiveController == gControllerConfNum) || (cmd==STATE_CONF_SKIP_ITEM))
         {
             switch (confState)
             {
@@ -623,18 +630,16 @@ bool statemachineConf(int cmd)
     }
 }
 
-bool statemachineConfAxis(int cmd)
+void statemachineConfAxis(int cmd, bool negative)
 {
     if ( (gControllerConf) && (confState >= STATE_CONF_AXIS_LEFTSTICK_X) )
     {
-        if (gActiveController == gControllerConfNum)
+        if ((gActiveController == gControllerConfNum)  || (cmd==STATE_CONF_SKIP_ITEM))
         {
-                
             switch (confState)
             {
                 case STATE_CONF_AXIS_LEFTSTICK_X:
                 case STATE_CONF_AXIS_LEFTSTICK_Y:
-                        
                     if (checkAxis(cmd))
                     {
                         printf("***** x axis: %i, y axis: %i\n",xValue,yValue);
@@ -649,7 +654,17 @@ bool statemachineConfAxis(int cmd)
                     break;
                 case STATE_CONF_AXIS_RIGHTSTICK_X:
                 case STATE_CONF_AXIS_RIGHTSTICK_Y:
-                    if ( (cmd != gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) &&\
+                    if (cmd == STATE_CONF_SKIP_ITEM)
+                    {
+                        xCount=0;
+                        yCount=0;
+                        xValue=-1;
+                        yValue=-1;
+                        
+                        confState = STATE_CONF_AXIS_LEFTTRIGGER;
+                        gConfText = "press left rear shoulder";
+                    }
+                    else if ( (cmd != gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) &&\
                             (cmd != gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]))
                     {
                         
@@ -667,7 +682,15 @@ bool statemachineConfAxis(int cmd)
                     }
                     break;
                 case STATE_CONF_AXIS_LEFTTRIGGER:
-                    if ( (cmd != gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) &&\
+                    if (cmd == STATE_CONF_SKIP_ITEM)
+                    {
+                        xCount=0;
+                        xValue=-1;
+                          
+                        confState = STATE_CONF_AXIS_RIGHTTRIGGER;
+                        gConfText = "press right rear shoulder";
+                    }
+                    else if ( (cmd != gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) &&\
                             (cmd != gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]))
                     {
                         if (checkTrigger(cmd))
@@ -683,7 +706,15 @@ bool statemachineConfAxis(int cmd)
                     
                     break;
                 case STATE_CONF_AXIS_RIGHTTRIGGER:
-                    if (cmd != gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) 
+                    if (cmd == STATE_CONF_SKIP_ITEM)
+                    {
+                        xCount=0;
+                        xValue=-1;
+                          
+                        gConfText = "configuration done";
+                        setMapping();
+                    }
+                    else if (cmd != gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) 
                     {
                         if (checkTrigger(cmd))
                         {
@@ -691,8 +722,6 @@ bool statemachineConfAxis(int cmd)
                             xCount=0;
                             xValue=-1;
                             gConfText = "configuration done";
-                            gControllerConf = 0;
-                            gControllerConfNum = -1;
                             setMapping();
                         }
                     }
@@ -702,11 +731,40 @@ bool statemachineConfAxis(int cmd)
                     break;
             }
         }
+    } else if ( (gControllerConf) && (confState <= STATE_CONF_BUTTON_DPAD_RIGHT) )
+    {
+        if ((gActiveController == gControllerConfNum)  || (cmd==STATE_CONF_SKIP_ITEM))
+        {
+            gAxis[axisIterator] = cmd;
+            gAxisValue[axisIterator] = negative;
+            switch (confState)
+            {
+                case STATE_CONF_BUTTON_DPAD_UP:
+                    gConfText = "press dpad down";
+                    break;
+                case STATE_CONF_BUTTON_DPAD_DOWN:
+                    gConfText = "press dpad left";
+                    break;
+                case STATE_CONF_BUTTON_DPAD_LEFT:
+                    gConfText = "press dpad right";
+                    break;
+                case STATE_CONF_BUTTON_DPAD_RIGHT:
+                    gConfText = "press button A (lower)";
+                    break;
+                default:
+                    (void) 0;
+                    break;
+            }
+            confState++;
+            axisIterator++;
+        }
     }
 }
 
 bool checkAxis(int cmd)
 {
+    if (cmd==STATE_CONF_SKIP_ITEM) return true;
+    
     bool ok = false;
     
     if ( (xCount > 20) && (yCount>20) )
@@ -746,6 +804,7 @@ bool checkAxis(int cmd)
 
 bool checkTrigger(int cmd)
 {
+    if (cmd==STATE_CONF_SKIP_ITEM) return true;
     bool ok = false;
     
     if ( (xCount > 20)  )
@@ -769,7 +828,7 @@ bool checkTrigger(int cmd)
 }
 
 
-bool statemachineConfHat(int hat, int value)
+void statemachineConfHat(int hat, int value)
 {    
     printf("ConfHat hat: %i, value: %i\n",hat,value);
     

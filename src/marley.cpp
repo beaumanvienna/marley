@@ -313,7 +313,14 @@ int main( int argc, char* argv[] )
                                     break;
                                 case SDLK_RETURN:
                                     gActiveController=-1;
-                                    statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    if (gControllerConf)
+                                    {
+                                        statemachineConf(STATE_CONF_SKIP_ITEM);
+                                    }
+                                    else
+                                    {
+                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                    }
                                     break;
                                 default:
                                     printf("key not recognized \n");
@@ -412,13 +419,13 @@ int main( int argc, char* argv[] )
                             {
                                 if (event.jdevice.which == gDesignatedControllers[0].instance[0])
                                 {
-                                    gActiveController=0;  
-                                    statemachineConfAxis(event.jaxis.axis);
+                                    gActiveController=0; 
+                                    statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
                                 }
                                 else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
                                 {
                                     gActiveController=1;  
-                                    statemachineConfAxis(event.jaxis.axis);
+                                    statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
                                 }
                             }
                         }
@@ -729,32 +736,20 @@ void removeDuplicatesInDB(void)
         while ( getline (internalDB,line))
         {
             guidStr = line.substr(0,line.find(","));
-            
-            try
+            found = false;
+            for (int i = 0;i < guidVec.size();i++)
             {
-                guid = stoi(guidStr);
-            }
-            catch(...)
-            {
-                guid=0;
-            }
-            if (guid)
-            {
-                found = false;
-                for (int i = 0;i < guidVec.size();i++)
+                if (guidVec[i]==guidStr)
                 {
-                    if (guidVec[i]==guidStr)
-                    {
-                        entryVec[i]=line;
-                        found=true;
-                        break;
-                    }
+                    entryVec[i]=line;
+                    found=true;
+                    break;
                 }
-                if (!found)
-                {
-                    guidVec.push_back(guidStr);
-                    entryVec.push_back(line);
-                }
+            }
+            if (!found)
+            {
+                guidVec.push_back(guidStr);
+                entryVec.push_back(line);
             }
         }
         
@@ -771,9 +766,9 @@ bool addControllerToInternalDB(string entry)
 {
     bool ok = false;
     string filename = gBaseDir;
-        
+
     filename += "internaldb.txt";
-    
+
     std::ofstream db;
     db.open (filename.c_str(), std::ofstream::app);    
     if (db.fail())

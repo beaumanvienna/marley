@@ -475,107 +475,193 @@ bool restoreController(void)
 
 void setMapping(void)
 {
-    
-/*
+
     char guidStr[1024];
     SDL_JoystickGUID guid;
     string name, entry;
     SDL_Joystick *joy;
     
-    name = gDesignatedControllers[gActiveController].name;
-    joy = gDesignatedControllers[gActiveController].joy;
+    name = gDesignatedControllers[gControllerConfNum].name[0];
+    if (name.length() > 80) name = "marley controller";
+    joy = gDesignatedControllers[gControllerConfNum].joy[0];
     guid = SDL_JoystickGetGUID(joy);
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
-    //printf("\n\n");
-    //printf("%s,%s,",guidStr,name.c_str());
     entry = guidStr;
-    entry = entry + "," + name + ",";
+    entry = entry + "," + name;
     
-    //printf("a:b%i,b:b%i,back:b%i,",gControllerButton[STATE_CONF_BUTTON_A],gControllerButton[STATE_CONF_BUTTON_B],\
-        gControllerButton[STATE_CONF_BUTTON_BACK]);
-    entry += "a:b";
-    entry += to_string(gControllerButton[STATE_CONF_BUTTON_A]);
-    entry += ",b:b";
-    entry += to_string(gControllerButton[STATE_CONF_BUTTON_B]);
-    entry += ",back:b";
-    entry += to_string(gControllerButton[STATE_CONF_BUTTON_BACK]);
-    entry += ",";
-    
-    if (gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN] != -1)
+    if (gControllerButton[STATE_CONF_BUTTON_A] != STATE_CONF_SKIP_ITEM)
     {
-        //printf("dpdown:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
-        entry = entry + "dpdown:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]) + ",";
+        entry += ",a:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_A]);
     }
-    else
+    if (gControllerButton[STATE_CONF_BUTTON_B] != STATE_CONF_SKIP_ITEM)
     {
-        //printf("dpdown:h%i.%i,",gHat[1],gHatValue[1]);
-        entry = entry + "dpdown:h" + to_string(gHat[1]) + "." + to_string(gHatValue[1]) + ",";
+        entry += ",b:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_B]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_BACK] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",back:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_BACK]);
     }
     
-    if (gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT] != -1)
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN] != STATE_CONF_SKIP_ITEM)
     {
-        //printf("dpleft:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
-        entry = entry + "dpleft:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]) + ",";
+        entry = entry + ",dpdown:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_DOWN]);
     }
-    else
+    else if ((gHat[1] != -1) && (gHatValue[1] != -1))
     {
-        //printf("dpleft:h%i.%i,",gHat[2],gHatValue[2]);
-        entry = entry + "dpleft:h" + to_string(gHat[2]) + "." + to_string(gHatValue[2]) + ",";
+        entry = entry + ",dpdown:h" + to_string(gHat[1]) + "." + to_string(gHatValue[1]);
     }
-    
-    if ( gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT] != -1)
+    else if (gAxis[1] != -1)
     {
-        //printf("dpright:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
-        entry = entry + "dpright:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]) + ",";
+        if (gAxisValue[1])
+        {
+            entry = entry + ",dpdown:-a" + to_string(gAxis[1]);
+        }
+        else
+        {
+            entry = entry + ",dpdown:+a" + to_string(gAxis[1]);
+        }
     }
-    else
+
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT] != STATE_CONF_SKIP_ITEM)
     {
-        //printf("dpright:h%i.%i,",gHat[3],gHatValue[3]);
-        entry = entry + "dpright:h" + to_string(gHat[3]) + "." + to_string(gHatValue[3]) + ",";
+        entry = entry + ",dpleft:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_LEFT]);
     }
-    
-    if (gControllerButton[STATE_CONF_BUTTON_DPAD_UP] != -1)
+    else if ((gHat[2] != -1) && (gHatValue[2] != -1))
     {
-        //printf("dpup:b%i,",gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
-        entry = entry + "dpup:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_UP]) + ",";
+        entry = entry + ",dpleft:h" + to_string(gHat[2]) + "." + to_string(gHatValue[2]);
     }
-    else
+    else if (gAxis[2] != -1)
     {
-        //printf("dpup:h%i.%i,",gHat[0],gHatValue[0]);
-        entry = entry + "dpup:h" + to_string(gHat[0]) + "." + to_string(gHatValue[0]) + ",";
+        if (gAxisValue[2])
+        {
+            entry = entry + ",dpleft:-a" + to_string(gAxis[2]);
+        }
+        else
+        {
+            entry = entry + ",dpleft:+a" + to_string(gAxis[2]);
+        }
     }
     
-    //printf("guide:b%i,leftshoulder:b%i,leftstick:b%i,",gControllerButton[STATE_CONF_BUTTON_GUIDE],\
-        gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER],gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
-    entry = entry + "guide:b" + to_string(gControllerButton[STATE_CONF_BUTTON_GUIDE]) +\
-            ",leftshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER]) +\
-            ",leftstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]) + ",";
+    if ( gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT] != STATE_CONF_SKIP_ITEM)
+    {
+        entry = entry + ",dpright:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_RIGHT]);
+    }
+    else if ((gHat[3] != -1) && (gHatValue[3] != -1))
+    {
+        entry = entry + ",dpright:h" + to_string(gHat[3]) + "." + to_string(gHatValue[3]);
+    }
+    else if (gAxis[3] != -1)
+    {
+        if (gAxisValue[3])
+        {
+            entry = entry + ",dpright:-a" + to_string(gAxis[3]);
+        }
+        else
+        {
+            entry = entry + ",dpright:+a" + to_string(gAxis[3]);
+        }
+    }
     
-    //printf("lefttrigger:a%i,leftx:a%i,lefty:a%i,",gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER],\
-        gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X],gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
-    entry = entry + "lefttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) +\
-            ",leftx:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) +\
-            ",lefty:a" + to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]) + ",";
+    if (gControllerButton[STATE_CONF_BUTTON_DPAD_UP] != STATE_CONF_SKIP_ITEM)
+    {
+        entry = entry + ",dpup:b" + to_string(gControllerButton[STATE_CONF_BUTTON_DPAD_UP]);
+    }
+    else if ((gHat[0] != -1) && (gHatValue[0] != -1))
+    {
+        entry = entry + ",dpup:h" + to_string(gHat[0]) + "." + to_string(gHatValue[0]);
+    }
+    else if (gAxis[0] != -1)
+    {
+        if (gAxisValue[0])
+        {
+            entry = entry + ",dpup:-a" + to_string(gAxis[0]);
+        }
+        else
+        {
+            entry = entry + ",dpup:+a" + to_string(gAxis[0]);
+        }
+    }
     
-    //printf("rightshoulder:b%i,rightstick:b%i,",\
-        gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER],gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]);
-    entry = entry + "rightshoulder:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER]) +\
-            ",rightstick:b" + to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]) + ",";
+    if (gControllerButton[STATE_CONF_BUTTON_GUIDE] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",guide:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_GUIDE]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",leftshoulder:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSHOULDER]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_LEFTSTICK] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",leftstick:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_LEFTSTICK]);
+    }
     
-    //printf("righttrigger:a%i,rightx:a%i,righty:a%i,",gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER],\
-        gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X],gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]);
-    entry = entry + "righttrigger:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER]) +\
-        ",rightx:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) +\
-        ",righty:a" + to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]) + ",";
+    if (gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",lefttrigger:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]);
+    }
+    if (gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",leftx:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_LEFTSTICK] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",lefty:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
+    }
     
-    //printf("start:b%i,x:b%i,y:b%i,platform:Linux,",gControllerButton[STATE_CONF_BUTTON_START],\
-        gControllerButton[STATE_CONF_BUTTON_X],gControllerButton[STATE_CONF_BUTTON_Y]);
-    entry = entry + "start:b" + to_string(gControllerButton[STATE_CONF_BUTTON_START]) +\
-        ",x:b" + to_string(gControllerButton[STATE_CONF_BUTTON_X]) +\
-        ",y:b" + to_string(gControllerButton[STATE_CONF_BUTTON_Y]) + ",platform:Linux,";
     
-    //printf("\n\n");
+    if (gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",rightshoulder:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSHOULDER]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",rightstick:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTSTICK]);
+    }
+    if (gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",righttrigger:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]);
+    }
+    if (gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",rightx:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]);
+    }
+    if (gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",righty:a";
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
+    }
+    
+    
+    if (gControllerButton[STATE_CONF_BUTTON_START] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",start:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_START]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_X] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",x:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_X]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_Y] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",y:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_Y]);
+    }
+    entry +=  ",platform:Linux,";
     
     if (addControllerToInternalDB(entry)) 
     {
@@ -590,16 +676,29 @@ void setMapping(void)
     {
         printf( "Warning: Unable to open internaldb.txt\n");
     }
-*/
+    gControllerConf = 0;
+    gControllerConfNum = -1;
 }
 
+//this function should only be called on a new controller instance
 int checkType(string name, string nameDB)
 {
     int ctrlTex = TEX_GENERIC_CTRL;
+    
+    int str_pos;
+    int str_pos2;
+    
+    //check if SNES
+    str_pos  =   name.find("snes");
+    str_pos2 = nameDB.find("snes");
+    if ( (str_pos>=0) || ((str_pos2>=0)) )
+    {
+        ctrlTex = TEX_SNES;
+    } 
 
     //check if PS3
-    int str_pos  =   name.find("sony playstation(r)3");
-    int str_pos2 = nameDB.find("ps3");
+    str_pos  =   name.find("sony playstation(r)3");
+    str_pos2 = nameDB.find("ps3");
     if ( (str_pos>=0) || ((str_pos2>=0)) )
     {
         ctrlTex = TEX_PS3;

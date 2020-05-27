@@ -38,7 +38,11 @@ using namespace std;
     
     typedef enum
     {
-        STATE_CONF_BUTTON_A=0,
+        STATE_CONF_BUTTON_DPAD_UP=0,
+        STATE_CONF_BUTTON_DPAD_DOWN,
+        STATE_CONF_BUTTON_DPAD_LEFT,
+        STATE_CONF_BUTTON_DPAD_RIGHT,
+        STATE_CONF_BUTTON_A,
         STATE_CONF_BUTTON_B,
         STATE_CONF_BUTTON_X,
         STATE_CONF_BUTTON_Y,
@@ -49,23 +53,20 @@ using namespace std;
         STATE_CONF_BUTTON_RIGHTSTICK,
         STATE_CONF_BUTTON_LEFTSHOULDER,
         STATE_CONF_BUTTON_RIGHTSHOULDER,
-        STATE_CONF_BUTTON_DPAD_UP,
-        STATE_CONF_BUTTON_DPAD_DOWN,
-        STATE_CONF_BUTTON_DPAD_LEFT,
-        STATE_CONF_BUTTON_DPAD_RIGHT,
         STATE_CONF_AXIS_LEFTSTICK_X,
         STATE_CONF_AXIS_LEFTSTICK_Y,
         STATE_CONF_AXIS_RIGHTSTICK_X,
         STATE_CONF_AXIS_RIGHTSTICK_Y,
         STATE_CONF_AXIS_LEFTTRIGGER,
         STATE_CONF_AXIS_RIGHTTRIGGER,
+        STATE_CONF_SKIP_ITEM,
         STATE_CONF_MAX
     } configStates;
 
     bool statemachine(int cmd);
-    bool statemachineConf(int cmd);
-    bool statemachineConfAxis(int cmd);
-    bool statemachineConfHat(int hat, int value);
+    void statemachineConf(int cmd);
+    void statemachineConfAxis(int cmd, bool negative);
+    void statemachineConfHat(int hat, int value);
     void resetStatemachine(void);
     
      // statemachine
@@ -84,6 +85,8 @@ using namespace std;
     extern string gTextForFirmwareFolder;
     extern int gControllerButton[STATE_CONF_MAX];
     extern int gHat[4],gHatValue[4];
+    extern int gAxis[4];
+    extern bool gAxisValue[4];
     
     extern bool gControllerConf;
     extern int gControllerConfNum;

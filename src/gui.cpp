@@ -195,6 +195,13 @@ bool loadMedia()
         ok = false;
     }
     
+    //SNES controller
+    gTextures[TEX_SNES] = loadTextureFromFile(PICTURES "SNES-controller.png");
+    if (!gTextures[TEX_SNES])
+    {
+        ok = false;
+    }
+    
     
     return ok;
 }
@@ -613,7 +620,6 @@ bool renderScreen(void)
         
         if (gSetupIsRunning)
         {
-            
             destination = { 50+xOffset, 140+yOffset, 720, 200 };
             SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
             SDL_RenderFillRect(gRenderer, &destination);
