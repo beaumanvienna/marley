@@ -35,10 +35,10 @@
 #include "api/m64p_types.h"
 #include "files.h"
 
-/* definitions for system directories to search when looking for shared data files */
+// definitions for system directories to search when looking for shared data files
 #if defined(SHAREDIR)
-  #define XSTR(S) STR(S) /* this wacky preprocessor thing is necessary to generate a quote-enclosed */
-  #define STR(S) #S      /* copy of the SHAREDIR macro, which is defined by the makefile via gcc -DSHAREDIR="..." */
+  #define XSTR(S) STR(S) // this wacky preprocessor thing is necessary to generate a quote-enclosed
+  #define STR(S) #S      // copy of the SHAREDIR macro, which is defined by the makefile via gcc -DSHAREDIR="..."
   static const int   datasearchdirs = 4;
   static const char *datasearchpath[4] = { XSTR(SHAREDIR), "/usr/local/share/mupen64plus",  "/usr/share/mupen64plus", "./" };
   #undef STR
@@ -55,29 +55,28 @@ static int get_xdg_dir(char *destpath, const char *envvar, const char *subdir)
 {
     
     struct stat fileinfo;
-    const char *envpath = getenv(envvar);
-    char *glideIni = getenv(envvar);
-    
+    const char *envpath  = getenv(envvar);
+    char glideIni[PATH_MAX];
     
     if (globalBaseDirectory) return 0;
     
     globalBaseDirectory=getenv(envvar);
 
-    /* error if this environment variable doesn't return a good string */
+    // error if this environment variable doesn't return a good string
     if (envpath == NULL || strlen(envpath) < 1)
         return 1;
 
-    /* error if path returned by the environemnt variable isn't a valid path to a directory */
+    // error if path returned by the environemnt variable isn't a valid path to a directory
     if (stat(envpath, &fileinfo) != 0 || !S_ISDIR(fileinfo.st_mode))
         return 2;
 
-    /* append the given sub-directory to the path given by the environment variable */
+    // append the given sub-directory to the path given by the environment variable
     strcpy(destpath, envpath);
     if (destpath[strlen(destpath)-1] != '/')
         strcat(destpath, "/");
     strcat(destpath, subdir);
 
-    /* try to create the resulting directory tree, or return successfully if it already exists */
+    // try to create the resulting directory tree, or return successfully if it already exists
     if (osal_mkdirp(destpath, 0700) != 0)
     {
         DebugMessage(M64MSG_ERROR, "Couldn't create directory: %s", destpath);
@@ -86,15 +85,20 @@ static int get_xdg_dir(char *destpath, const char *envvar, const char *subdir)
     else
     {
         FILE * fp;
+        strcpy(glideIni, envpath);
         if (glideIni[strlen(glideIni)-1] != '/') strcat(glideIni, "/");
         strcat(glideIni, ".marley/mupen64plus/Glide64mk2.ini");
-        printf("creating %s\n",glideIni);
-        fp = fopen (glideIni,"w");
-        outputGlideIni(fp);
-        fclose (fp);
+        // if glideIni not exists, create it
+        if (stat(glideIni, &fileinfo) != 0)
+        {
+            printf("creating %s\n",glideIni);
+            fp = fopen (glideIni,"w");
+            outputGlideIni(fp);
+            fclose (fp);
+        }
     }
 
-    /* Success */
+    // Success
     return 0;
 }
 
@@ -102,28 +106,28 @@ static int search_dir_file(char *destpath, const char *path, const char *filenam
 {
     struct stat fileinfo;
 
-    /* sanity check to start */
+    // sanity check to start
     if (destpath == NULL || path == NULL || filename == NULL)
         return 1;
 
-    /* build the full filepath */
+    // build the full filepath
     strcpy(destpath, path);
-    /* if the path is empty, don't add / between it and the file name */
+    // if the path is empty, don't add / between it and the file name
     if (destpath[0] != '\0' && destpath[strlen(destpath)-1] != '/')
         strcat(destpath, "/");
     strcat(destpath, filename);
 
-    /* test for a valid file */
+    // test for a valid file
     if (stat(destpath, &fileinfo) != 0)
         return 2;
     if (!S_ISREG(fileinfo.st_mode))
         return 3;
 
-    /* success - file exists and is a regular file */
+    // success - file exists and is a regular file
     return 0;
 }
 
-/* global functions */
+// global functions
 
 int osal_mkdirp(const char *dirpath, int mode)
 {
@@ -170,20 +174,20 @@ const char * osal_get_shared_filepath(const char *filename, const char *firstsea
     static char retpath[PATH_MAX];
     int i;
 
-    /* if caller gave us any directories to search, then look there first */
+    // if caller gave us any directories to search, then look there first
     if (firstsearch != NULL && search_dir_file(retpath, firstsearch, filename) == 0)
         return retpath;
     if (secondsearch != NULL && search_dir_file(retpath, secondsearch, filename) == 0)
         return retpath;
 
-    /* otherwise check our standard paths */
+    // otherwise check our standard paths
     for (i = 0; i < datasearchdirs; i++)
     {
         if (search_dir_file(retpath, datasearchpath[i], filename) == 0)
             return retpath;
     }
 
-    /* we couldn't find the file */
+    // we couldn't find the file
     return NULL;
 }
 
@@ -193,17 +197,13 @@ const char * osal_get_user_configpath(void)
     int rval;
     
     #warning "JC: modified"
-    /*
-    // first, try the XDG_CONFIG_HOME environment variable
-    rval = get_xdg_dir(retpath, "XDG_CONFIG_HOME", "mupen64plus/");
-    if (rval == 0)
-        return retpath;
-    */
 
     // then try the HOME environment variable
     rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
     if (rval == 0)
+    {
         return retpath;
+    }
 
     // otherwise we are in trouble
     if (rval < 3)
@@ -214,42 +214,41 @@ const char * osal_get_user_configpath(void)
 const char * osal_get_user_datapath(void)
 {
     static char retpath[PATH_MAX];
-    int rval;
-    
+    struct stat fileinfo;
+    const char *envpath = getenv("HOME");
+    printf("jc const char * osal_get_user_datapath(void)\n");
     #warning "JC: modified"
-    // first, try the XDG_DATA_HOME environment variable
-    /*rval = get_xdg_dir(retpath, "XDG_DATA_HOME", "mupen64plus/");
-    if (rval == 0)
-        return retpath;*/
+    
+    // error if this environment variable doesn't return a good string
+    if (envpath == NULL || strlen(envpath) < 1)
+        return NULL;
 
-    /* then try the HOME environment variable */
-    rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
-    if (rval == 0)
-        return retpath;
+    // error if path returned by the environemnt variable isn't a valid path to a directory
+    if (stat(envpath, &fileinfo) != 0 || !S_ISDIR(fileinfo.st_mode))
+        return NULL;
 
-    /* otherwise we are in trouble */
-    if (rval < 3)
-        DebugMessage(M64MSG_ERROR, "Failed to get data directory; $HOME is undefined or invalid.");
-    return NULL;
+    // append the given sub-directory to the path given by the environment variable
+    strcpy(retpath, envpath);
+    if (retpath[strlen(retpath)-1] != '/')
+        strcat(retpath, "/");
+    strcat(retpath, ".marley/mupen64plus/");
+
+    return retpath;
 }
 
 const char * osal_get_user_cachepath(void)
 {
     static char retpath[PATH_MAX];
     int rval;
-    
-    /*
-    // first, try the XDG_CACHE_HOME environment variable 
-    rval = get_xdg_dir(retpath, "XDG_CACHE_HOME", "mupen64plus/");
-    if (rval == 0)
-        return retpath;*/
 
-    /* then try the HOME environment variable */
+    // then try the HOME environment variable
     rval = get_xdg_dir(retpath, "HOME", ".marley/mupen64plus/");
     if (rval == 0)
+    {
         return retpath;
+    }
 
-    /* otherwise we are in trouble */
+    // otherwise we are in trouble
     if (rval < 3)
         DebugMessage(M64MSG_ERROR, "Failed to get cache directory; $HOME is undefined or invalid.");
     return NULL;
