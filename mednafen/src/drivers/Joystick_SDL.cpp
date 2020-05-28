@@ -87,7 +87,7 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
    // Don't use SDL's GUID, as it's just equivalent to part of the joystick name on many platforms.
    // 
    #warning "JC: modified"
-   // at this point, all sdl controller look the same and will get the same ID "bad food beef babe"
+   // all sdl game controller look the same and get the ID "bad food beef babe"
    //  0xbaadf00d00000000beefbabe00000000
    // (actual mapping is done in marley)
    unsigned long long l[2] = {0x0DF0ADBA, 0xBEBAEFBE};
@@ -110,7 +110,8 @@ Joystick_SDL::Joystick_SDL(unsigned index) : sdl_joy(NULL)
   
   num_axes = sdl_num_axes;
   num_rel_axes = sdl_num_balls * 2;
-  num_buttons = sdl_num_buttons + (sdl_num_hats * 4);
+  //num_buttons = sdl_num_buttons + (sdl_num_hats * 4);
+  num_buttons = SDL_CONTROLLER_BUTTON_MAX;
 
   axis_state.resize(num_axes);
   rel_axis_state.resize(num_rel_axes);
@@ -156,8 +157,8 @@ void Joystick_SDL::UpdateInternal(void)
  }
 
  #warning "JC: modified"
- unsigned int n= sdl_num_buttons + 4*sdl_num_hats;
- for(unsigned i = 0; i < n; i++)
+ //unsigned int n= sdl_num_buttons + 4*sdl_num_hats + 2*sdl_num_axes;
+ for(unsigned i = 0; i < SDL_CONTROLLER_BUTTON_MAX; i++)
  {
   button_state[i] = SDL_GameControllerGetButton(sdl_game_controller, (SDL_GameControllerButton)i);
  }
