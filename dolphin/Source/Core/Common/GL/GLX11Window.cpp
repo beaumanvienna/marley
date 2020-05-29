@@ -28,6 +28,11 @@ void GLX11Window::UpdateDimensions()
   //jc XWindowAttributes attribs;
   //jc XGetWindowAttributes(m_display, m_parent_window, &attribs);
   //jc XResizeWindow(m_display, m_window, attribs.width, attribs.height);
+  
+  //if GLX11Window::UpdateDimensions() is called to soon after toggling fullscreen mode, 
+  //it reports the old screen dimension, hence the 100ms delay
+  SDL_Delay(100);
+  
   SDL_GetWindowSize(gWindow,&m_width,&m_height);
 }
 

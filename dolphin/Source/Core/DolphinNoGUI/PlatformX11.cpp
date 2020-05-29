@@ -213,6 +213,21 @@ void PlatformX11::ProcessEvents()
         
         if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F9)
             Core::SaveScreenShot();
+        
+        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_f)
+        {
+            Uint32 flags = SDL_GetWindowFlags(gWindow);
+            if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+            {
+                flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+            }
+            else
+            {
+                flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+            }
+            SDL_SetWindowFullscreen(gWindow,flags);
+            if (g_renderer) g_renderer->ResizeSurface();
+        }
 
     }
     /*

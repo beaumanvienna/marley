@@ -225,7 +225,6 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     }
     else if (tmp == "GLX_MESA_swap_control")
     {
-        printf("jc found extension GLX_MESA_swap_control\n");
       glXSwapIntervalMESAPtr =
           reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(GetFuncAddress("glXSwapIntervalMESA"));
     }
@@ -367,7 +366,7 @@ void GLContextGLX::Update()
     #ifdef JC_DEBUGGING
     printf("jc GLContextGLX::Update()\n");
     #endif
-  //jc m_render_window->UpdateDimensions();
+  m_render_window->UpdateDimensions();
   m_backbuffer_width = m_render_window->GetWidth();
   m_backbuffer_height = m_render_window->GetHeight();
 }
