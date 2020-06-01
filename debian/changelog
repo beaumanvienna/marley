@@ -1,3 +1,15 @@
+marley (0.0.9) bionic; urgency=medium
+
+  * This is a stable version, however, the Wiimote is still flakey
+    when being switched on or off. PPSSPP has issue with cutscenes,
+    but works great otherwise.
+  * support for Wii, Gamecube, N64, PSP, PS1,
+    NES, SNES, MD (Sega Genesis)
+  * New gamepad type NES pad added and setup revised
+  * Bug fixes: PPSSPP assets folder location fixed
+   
+ -- JC Lache <jc.lache@web.de>  Sun, 31 MAY 2020 18:40:00 -0800
+
 marley (0.0.8) bionic; urgency=medium
 
   * Bug fixes

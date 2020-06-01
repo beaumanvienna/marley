@@ -11,6 +11,8 @@
 
 #include "Common/Log.h"
 
+#define PPSSPP_ASSETS "ppsspp/assets/"
+
 UIContext::UIContext() {
 	fontStyle_ = new PUI::FontStyle();
 	bounds_ = Bounds(0, 0, dp_xres, dp_yres);
@@ -35,7 +37,7 @@ void UIContext::Init(Draw::DrawContext *thin3d, Draw::Pipeline *uipipe, Draw::Pi
 
 void UIContext::BeginFrame() {
 	if (!uitexture_) {
-		uitexture_ = CreateTextureFromFile(draw_, "ui_atlas.zim", ImageFileType::ZIM, false);
+		uitexture_ = CreateTextureFromFile(draw_,PPSSPP_ASSETS "ui_atlas.zim", ImageFileType::ZIM, false);
 		if (!uitexture_) {
 			PanicAlert("Failed to load ui_atlas.zim.\n\nPlace it in the directory \"assets\" under your PPSSPP directory.");
 			FLOG("Failed to load ui_atlas.zim");

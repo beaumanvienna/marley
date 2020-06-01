@@ -1,4 +1,4 @@
-AC_INIT([marley], 0.0.8)
+AC_INIT([marley], 0.0.9)
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE
 AM_EXTRA_RECURSIVE_TARGETS([mednafen_marley])
