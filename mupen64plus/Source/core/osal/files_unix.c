@@ -216,7 +216,7 @@ const char * osal_get_user_datapath(void)
     static char retpath[PATH_MAX];
     struct stat fileinfo;
     const char *envpath = getenv("HOME");
-    printf("jc const char * osal_get_user_datapath(void)\n");
+    
     #warning "JC: modified"
     
     // error if this environment variable doesn't return a good string
