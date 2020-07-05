@@ -17,6 +17,9 @@
 
 """C++ keywords and helper utilities for determining keywords."""
 
+__author__ = 'nnorwitz@google.com (Neal Norwitz)'
+
+
 try:
     # Python 3.x
     import builtins

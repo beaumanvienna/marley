@@ -381,22 +381,22 @@ bool PCMipsInstruction::Load(const char* Name, const char* Params, int RamPos)
 	NoCheckError = false;
 	this->RamPos = RamPos;
 
-	const MipsArchDefinition& arch = mipsArchs[MARCH_PS2];
-	for (int z = 0; MipsOpcodes[z].name != NULL; z++)
+	const MipsArchDefinition& arch = PmipsArchs[MARCH_PS2];
+	for (int z = 0; PMipsOpcodes[z].name != NULL; z++)
 	{
-		if ((MipsOpcodes[z].archs & arch.supportSets) == 0)
+		if ((PMipsOpcodes[z].archs & arch.supportSets) == 0)
 			continue;
-		if ((MipsOpcodes[z].archs & arch.excludeMask) != 0)
-			continue;
-
-		if ((MipsOpcodes[z].flags & MO_64BIT) && !(arch.flags & MO_64BIT))
-			continue;
-		if ((MipsOpcodes[z].flags & MO_FPU) && !(arch.flags & MO_FPU))
+		if ((PMipsOpcodes[z].archs & arch.excludeMask) != 0)
 			continue;
 
-		if (parseOpcode(MipsOpcodes[z],Name))
+		if ((PMipsOpcodes[z].flags & MO_64BIT) && !(arch.flags & MO_64BIT))
+			continue;
+		if ((PMipsOpcodes[z].flags & MO_FPU) && !(arch.flags & MO_FPU))
+			continue;
+
+		if (parseOpcode(PMipsOpcodes[z],Name))
 		{
-			if (LoadEncoding(MipsOpcodes[z],Params))
+			if (LoadEncoding(PMipsOpcodes[z],Params))
 			{
 				Loaded = true;
 				return true;

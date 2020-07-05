@@ -34,6 +34,7 @@
 // utilities for defining matchers.
 
 #include "gmock/gmock-matchers.h"
+#include "gmock/gmock-generated-matchers.h"
 
 #include <string.h>
 #include <iostream>
@@ -218,6 +219,8 @@ class MaxBipartiteMatchState {
   // right_[left_[i]] = i.
   ::std::vector<size_t> left_;
   ::std::vector<size_t> right_;
+
+  GTEST_DISALLOW_ASSIGN_(MaxBipartiteMatchState);
 };
 
 const size_t MaxBipartiteMatchState::kUnused;

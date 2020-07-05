@@ -416,20 +416,19 @@ internal::CartesianProductHolder<Generator...> Combine(const Generator&... g) {
       : public test_suite_name {                                               \
    public:                                                                     \
     GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)() {}                    \
-    void TestBody() override;                                                  \
+    virtual void TestBody();                                                   \
                                                                                \
    private:                                                                    \
     static int AddToRegistry() {                                               \
       ::testing::UnitTest::GetInstance()                                       \
           ->parameterized_test_registry()                                      \
           .GetTestSuitePatternHolder<test_suite_name>(                         \
-              GTEST_STRINGIFY_(test_suite_name),                               \
+              #test_suite_name,                                                \
               ::testing::internal::CodeLocation(__FILE__, __LINE__))           \
           ->AddTestPattern(                                                    \
               GTEST_STRINGIFY_(test_suite_name), GTEST_STRINGIFY_(test_name),  \
               new ::testing::internal::TestMetaFactory<GTEST_TEST_CLASS_NAME_( \
-                  test_suite_name, test_name)>(),                              \
-              ::testing::internal::CodeLocation(__FILE__, __LINE__));          \
+                  test_suite_name, test_name)>());                             \
       return 0;                                                                \
     }                                                                          \
     static int gtest_registering_dummy_ GTEST_ATTRIBUTE_UNUSED_;               \
@@ -484,20 +483,12 @@ internal::CartesianProductHolder<Generator...> Combine(const Generator&... g) {
           ::testing::UnitTest::GetInstance()                                  \
               ->parameterized_test_registry()                                 \
               .GetTestSuitePatternHolder<test_suite_name>(                    \
-                  GTEST_STRINGIFY_(test_suite_name),                          \
+                  #test_suite_name,                                           \
                   ::testing::internal::CodeLocation(__FILE__, __LINE__))      \
               ->AddTestSuiteInstantiation(                                    \
-                  GTEST_STRINGIFY_(prefix),                                   \
-                  &gtest_##prefix##test_suite_name##_EvalGenerator_,          \
+                  #prefix, &gtest_##prefix##test_suite_name##_EvalGenerator_, \
                   &gtest_##prefix##test_suite_name##_EvalGenerateName_,       \
                   __FILE__, __LINE__)
-
-
-// Allow Marking a Parameterized test class as not needing to be instantiated.
-#define GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(T)                   \
-  namespace gtest_do_not_use_outside_namespace_scope {}                   \
-  static const ::testing::internal::MarkAsIgnored gtest_allow_ignore_##T( \
-      GTEST_STRINGIFY_(T))
 
 // Legacy API is deprecated but still available
 #ifndef GTEST_REMOVE_LEGACY_TEST_CASEAPI_

@@ -80,7 +80,7 @@ struct MipsArchDefinition
 	int flags;
 };
 
-extern const MipsArchDefinition mipsArchs[];
+extern const MipsArchDefinition PmipsArchs[];
 
 typedef struct {
 	const char* name;
@@ -90,4 +90,4 @@ typedef struct {
 	int flags;
 } tMipsOpcode;
 
-extern const tMipsOpcode MipsOpcodes[];
+extern const tMipsOpcode PMipsOpcodes[];

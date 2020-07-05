@@ -8,11 +8,10 @@
     "type": "git",
     "url": "https://github.com/google/googletest.git"
   },
-  "version": "1.10.0",
+  "version": "1.8.1",
   "frameworks": "arduino",
   "platforms": [
-        "espressif32",
-        "espressif8266"
+        "espressif32"
   ],
   "export": {
         "include": [
@@ -23,14 +22,30 @@
         ],
         "exclude": [
             "ci",
+            "googlemock/build-aux",
             "googlemock/cmake",
+            "googlemock/make",
+            "googlemock/msvc",
             "googlemock/scripts",
+            "googlemock/src/gmock-all.cc",
+            "googlemock/src/gmock_main.cc",
             "googlemock/test",
             "googlemock/CMakeLists.txt",
+            "googlemock/Makefile.am",
+            "googlemock/configure.ac",
             "googletest/cmake",
+            "googletest/codegear",
+            "googletest/m4",
+            "googletest/make",
+            "googletest/msvc",
             "googletest/scripts",
+            "googletest/src/gtest-all.cc",
+            "googletest/src/gtest_main.cc",
             "googletest/test",
-            "googletest/CMakeLists.txt"
+            "googletest/xcode",
+            "googletest/CMakeLists.txt",
+            "googletest/Makefile.am",
+            "googletest/configure.ac"
           ]
   },
   "build": {
@@ -39,24 +54,6 @@
             "-Igooglemock",
             "-Igoogletest/include",
             "-Igoogletest"
-        ],
-        "srcFilter": [
-          "+<*>",
-          "-<.git/>",
-          "-<googlemock>",
-          "-<googlemock/test/>",
-          "-<googlemock/src>",
-          "+<googlemock/src/gmock-all.cc>",
-          "+<googletest/src/gtest-all.cc>",
-          "+<googlemock/src/gmock_main.cc>",
-          "-<googletest>",
-          "-<googletest/codegear/>",
-          "-<googletest/samples>",
-          "-<googletest/test/>",
-          "-<googletest/xcode>",
-          "-<googletest/src>",
-          "+<googletest/src/gtest-all.cc>",
-          "+<googletest/src/gtest_main.cc>"
         ]
   }
 }

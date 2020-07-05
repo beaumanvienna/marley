@@ -47,7 +47,6 @@
 #endif
 
 #include <string.h>
-#include <cstdint>
 #include <string>
 
 #include "gtest/internal/gtest-port.h"
@@ -153,7 +152,7 @@ class GTEST_API_ String {
   static std::string FormatHexInt(int value);
 
   // Formats an int value as "%X".
-  static std::string FormatHexUInt32(uint32_t value);
+  static std::string FormatHexUInt32(UInt32 value);
 
   // Formats a byte as "%02X".
   static std::string FormatByte(unsigned char value);

@@ -42,7 +42,6 @@
 #include <string.h>  // For memmove.
 
 #include <algorithm>
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -84,11 +83,9 @@ const char kAlsoRunDisabledTestsFlag[] = "also_run_disabled_tests";
 const char kBreakOnFailureFlag[] = "break_on_failure";
 const char kCatchExceptionsFlag[] = "catch_exceptions";
 const char kColorFlag[] = "color";
-const char kFailFast[] = "fail_fast";
 const char kFilterFlag[] = "filter";
 const char kListTestsFlag[] = "list_tests";
 const char kOutputFlag[] = "output";
-const char kBriefFlag[] = "brief";
 const char kPrintTimeFlag[] = "print_time";
 const char kPrintUTF8Flag[] = "print_utf8";
 const char kRandomSeedFlag[] = "random_seed";
@@ -126,11 +123,11 @@ GTEST_API_ std::string FormatEpochTimeInMillisAsIso8601(TimeInMillis ms);
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
 GTEST_API_ bool ParseInt32Flag(
-    const char* str, const char* flag, int32_t* value);
+    const char* str, const char* flag, Int32* value);
 
 // Returns a random seed in range [1, kMaxRandomSeed] based on the
 // given --gtest_random_seed flag value.
-inline int GetRandomSeedFromFlag(int32_t random_seed_flag) {
+inline int GetRandomSeedFromFlag(Int32 random_seed_flag) {
   const unsigned int raw_seed = (random_seed_flag == 0) ?
       static_cast<unsigned int>(GetTimeInMillis()) :
       static_cast<unsigned int>(random_seed_flag);
@@ -166,12 +163,10 @@ class GTestFlagSaver {
     color_ = GTEST_FLAG(color);
     death_test_style_ = GTEST_FLAG(death_test_style);
     death_test_use_fork_ = GTEST_FLAG(death_test_use_fork);
-    fail_fast_ = GTEST_FLAG(fail_fast);
     filter_ = GTEST_FLAG(filter);
     internal_run_death_test_ = GTEST_FLAG(internal_run_death_test);
     list_tests_ = GTEST_FLAG(list_tests);
     output_ = GTEST_FLAG(output);
-    brief_ = GTEST_FLAG(brief);
     print_time_ = GTEST_FLAG(print_time);
     print_utf8_ = GTEST_FLAG(print_utf8);
     random_seed_ = GTEST_FLAG(random_seed);
@@ -191,11 +186,9 @@ class GTestFlagSaver {
     GTEST_FLAG(death_test_style) = death_test_style_;
     GTEST_FLAG(death_test_use_fork) = death_test_use_fork_;
     GTEST_FLAG(filter) = filter_;
-    GTEST_FLAG(fail_fast) = fail_fast_;
     GTEST_FLAG(internal_run_death_test) = internal_run_death_test_;
     GTEST_FLAG(list_tests) = list_tests_;
     GTEST_FLAG(output) = output_;
-    GTEST_FLAG(brief) = brief_;
     GTEST_FLAG(print_time) = print_time_;
     GTEST_FLAG(print_utf8) = print_utf8_;
     GTEST_FLAG(random_seed) = random_seed_;
@@ -214,18 +207,16 @@ class GTestFlagSaver {
   std::string color_;
   std::string death_test_style_;
   bool death_test_use_fork_;
-  bool fail_fast_;
   std::string filter_;
   std::string internal_run_death_test_;
   bool list_tests_;
   std::string output_;
-  bool brief_;
   bool print_time_;
   bool print_utf8_;
-  int32_t random_seed_;
-  int32_t repeat_;
+  internal::Int32 random_seed_;
+  internal::Int32 repeat_;
   bool shuffle_;
-  int32_t stack_trace_depth_;
+  internal::Int32 stack_trace_depth_;
   std::string stream_result_to_;
   bool throw_on_failure_;
 } GTEST_ATTRIBUTE_UNUSED_;
@@ -236,7 +227,7 @@ class GTestFlagSaver {
 // If the code_point is not a valid Unicode code point
 // (i.e. outside of Unicode range U+0 to U+10FFFF) it will be converted
 // to "(Invalid Unicode 0xXXXXXXXX)".
-GTEST_API_ std::string CodePointToUtf8(uint32_t code_point);
+GTEST_API_ std::string CodePointToUtf8(UInt32 code_point);
 
 // Converts a wide string to a narrow string in UTF-8 encoding.
 // The wide string is assumed to have the following encoding:
@@ -269,10 +260,10 @@ GTEST_API_ bool ShouldShard(const char* total_shards_str,
                             const char* shard_index_str,
                             bool in_subprocess_for_death_test);
 
-// Parses the environment variable var as a 32-bit integer. If it is unset,
-// returns default_val. If it is not a 32-bit integer, prints an error and
+// Parses the environment variable var as an Int32. If it is unset,
+// returns default_val. If it is not an Int32, prints an error and
 // and aborts.
-GTEST_API_ int32_t Int32FromEnvOrDie(const char* env_var, int32_t default_val);
+GTEST_API_ Int32 Int32FromEnvOrDie(const char* env_var, Int32 default_val);
 
 // Given the total number of shards, the shard index, and the test id,
 // returns true if and only if the test should be run on this shard. The test id
@@ -332,7 +323,7 @@ void ShuffleRange(internal::Random* random, int begin, int end,
     const int last_in_range = begin + range_width - 1;
     const int selected =
         begin +
-        static_cast<int>(random->Generate(static_cast<uint32_t>(range_width)));
+        static_cast<int>(random->Generate(static_cast<UInt32>(range_width)));
     std::swap((*v)[static_cast<size_t>(selected)],
               (*v)[static_cast<size_t>(last_in_range)]);
   }
@@ -706,17 +697,6 @@ class GTEST_API_ UnitTestImpl {
     return parameterized_test_registry_;
   }
 
-  std::set<std::string>* ignored_parameterized_test_suites() {
-    return &ignored_parameterized_test_suites_;
-  }
-
-  // Returns TypeParameterizedTestSuiteRegistry object used to keep track of
-  // type-parameterized tests and instantiations of them.
-  internal::TypeParameterizedTestSuiteRegistry&
-  type_parameterized_test_registry() {
-    return type_parameterized_test_registry_;
-  }
-
   // Sets the TestSuite object for the test that's currently running.
   void set_current_test_suite(TestSuite* a_current_test_suite) {
     current_test_suite_ = a_current_test_suite;
@@ -893,12 +873,6 @@ class GTEST_API_ UnitTestImpl {
   // ParameterizedTestRegistry object used to register value-parameterized
   // tests.
   internal::ParameterizedTestSuiteRegistry parameterized_test_registry_;
-  internal::TypeParameterizedTestSuiteRegistry
-      type_parameterized_test_registry_;
-
-  // The set holding the name of parameterized
-  // test suites that may go uninstantiated.
-  std::set<std::string> ignored_parameterized_test_suites_;
 
   // Indicates whether RegisterParameterizedTests() has been called already.
   bool parameterized_tests_registered_;
@@ -1025,9 +999,20 @@ bool ParseNaturalNumber(const ::std::string& str, Integer* number) {
   char* end;
   // BiggestConvertible is the largest integer type that system-provided
   // string-to-number conversion routines can return.
-  using BiggestConvertible = unsigned long long;  // NOLINT
 
-  const BiggestConvertible parsed = strtoull(str.c_str(), &end, 10);  // NOLINT
+# if GTEST_OS_WINDOWS && !defined(__GNUC__)
+
+  // MSVC and C++ Builder define __int64 instead of the standard long long.
+  typedef unsigned __int64 BiggestConvertible;
+  const BiggestConvertible parsed = _strtoui64(str.c_str(), &end, 10);
+
+# else
+
+  typedef unsigned long long BiggestConvertible;  // NOLINT
+  const BiggestConvertible parsed = strtoull(str.c_str(), &end, 10);
+
+# endif  // GTEST_OS_WINDOWS && !defined(__GNUC__)
+
   const bool parse_success = *end == '\0' && errno == 0;
 
   GTEST_CHECK_(sizeof(Integer) <= sizeof(parsed));

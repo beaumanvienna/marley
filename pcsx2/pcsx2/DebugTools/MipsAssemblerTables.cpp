@@ -36,7 +36,7 @@
 // because it's shared between multiple projects, and manually removing the opcodes every
 // time is error prone and makes it harder to maintain. They aren't accessible, so they
 // cause no harm besides appearing here.
-const tMipsOpcode MipsOpcodes[] = {
+const tMipsOpcode PMipsOpcodes[] = {
 //     31---------26---------------------------------------------------0
 //     |  opcode   |                                                   |
 //     ------6----------------------------------------------------------
@@ -442,7 +442,7 @@ const tMipsOpcode MipsOpcodes[] = {
 };
 
 
-const MipsArchDefinition mipsArchs[] = {
+const MipsArchDefinition PmipsArchs[] = {
 	// MARCH_PSX
 	{ "PSX",		MA_MIPS1,							MA_EXPSX,	0 },
 	// MARCH_N64

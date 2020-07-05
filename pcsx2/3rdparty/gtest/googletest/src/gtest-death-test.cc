@@ -1284,13 +1284,8 @@ static int ExecDeathTestChildMain(void* child_arg) {
 // correct answer.
 static void StackLowerThanAddress(const void* ptr,
                                   bool* result) GTEST_NO_INLINE_;
-// Make sure sanitizers do not tamper with the stack here.
-// Ideally, we want to use `__builtin_frame_address` instead of a local variable
-// address with sanitizer disabled, but it does not work when the
-// compiler optimizes the stack frame out, which happens on PowerPC targets.
 // HWAddressSanitizer add a random tag to the MSB of the local variable address,
 // making comparison result unpredictable.
-GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
 static void StackLowerThanAddress(const void* ptr, bool* result) {
   int dummy;
@@ -1369,7 +1364,7 @@ static pid_t ExecDeathTestSpawnChild(char* const* argv, int close_fd) {
 
   if (!use_fork) {
     static const bool stack_grows_down = StackGrowsDown();
-    const auto stack_size = static_cast<size_t>(getpagesize() * 2);
+    const auto stack_size = static_cast<size_t>(getpagesize());
     // MMAP_ANONYMOUS is not defined on Mac, so we use MAP_ANON instead.
     void* const stack = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE,
                              MAP_ANON | MAP_PRIVATE, -1, 0);

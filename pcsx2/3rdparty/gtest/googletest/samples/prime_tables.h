@@ -66,11 +66,11 @@ class OnTheFlyPrimeTable : public PrimeTable {
   }
 
   int GetNextPrime(int p) const override {
-    if (p < 0) return -1;
-
-    for (int n = p + 1;; n++) {
+    for (int n = p + 1; n > 0; n++) {
       if (IsPrime(n)) return n;
     }
+
+    return -1;
   }
 };
 

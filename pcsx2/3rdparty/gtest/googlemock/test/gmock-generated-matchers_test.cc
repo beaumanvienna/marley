@@ -39,10 +39,8 @@
 # pragma warning(disable:4100)
 #endif
 
-#include "gmock/gmock-matchers.h"
+#include "gmock/gmock-generated-matchers.h"
 
-#include <array>
-#include <iterator>
 #include <list>
 #include <map>
 #include <memory>
@@ -53,8 +51,8 @@
 #include <vector>
 
 #include "gmock/gmock.h"
-#include "gtest/gtest-spi.h"
 #include "gtest/gtest.h"
+#include "gtest/gtest-spi.h"
 
 namespace {
 
@@ -197,7 +195,7 @@ TEST(ElementsAreTest, ExplainsNonTrivialMatch) {
       ElementsAre(GreaterThan(1), 0, GreaterThan(2));
 
   const int a[] = { 10, 0, 100 };
-  vector<int> test_vector(std::begin(a), std::end(a));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
   EXPECT_EQ("whose element #0 matches, which is 9 more than 1,\n"
             "and whose element #2 matches, which is 98 more than 2",
             Explain(m, test_vector));
@@ -282,7 +280,7 @@ TEST(ElementsAreTest, MatchesThreeElementsMixedMatchers) {
 
 TEST(ElementsAreTest, MatchesTenElementVector) {
   const int a[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  vector<int> test_vector(std::begin(a), std::end(a));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
 
   EXPECT_THAT(test_vector,
               // The element list can contain values and/or matchers
@@ -319,10 +317,13 @@ TEST(ElementsAreTest, DoesNotMatchWrongOrder) {
 }
 
 TEST(ElementsAreTest, WorksForNestedContainer) {
-  constexpr std::array<const char*, 2> strings = {{"Hi", "world"}};
+  const char* strings[] = {
+    "Hi",
+    "world"
+  };
 
   vector<list<char> > nested;
-  for (size_t i = 0; i < strings.size(); i++) {
+  for (size_t i = 0; i < GTEST_ARRAY_SIZE_(strings); i++) {
     nested.push_back(list<char>(strings[i], strings[i] + strlen(strings[i])));
   }
 
@@ -334,7 +335,7 @@ TEST(ElementsAreTest, WorksForNestedContainer) {
 
 TEST(ElementsAreTest, WorksWithByRefElementMatchers) {
   int a[] = { 0, 1, 2 };
-  vector<int> v(std::begin(a), std::end(a));
+  vector<int> v(a, a + GTEST_ARRAY_SIZE_(a));
 
   EXPECT_THAT(v, ElementsAre(Ref(v[0]), Ref(v[1]), Ref(v[2])));
   EXPECT_THAT(v, Not(ElementsAre(Ref(v[0]), Ref(v[1]), Ref(a[2]))));
@@ -342,7 +343,7 @@ TEST(ElementsAreTest, WorksWithByRefElementMatchers) {
 
 TEST(ElementsAreTest, WorksWithContainerPointerUsingPointee) {
   int a[] = { 0, 1, 2 };
-  vector<int> v(std::begin(a), std::end(a));
+  vector<int> v(a, a + GTEST_ARRAY_SIZE_(a));
 
   EXPECT_THAT(&v, Pointee(ElementsAre(0, 1, _)));
   EXPECT_THAT(&v, Not(Pointee(ElementsAre(0, _, 3))));
@@ -392,6 +393,13 @@ TEST(ElementsAreTest, AcceptsStringLiteral) {
   EXPECT_THAT(array, Not(ElementsAre("hi", "one", "too")));
 }
 
+#ifndef _MSC_VER
+
+// The following test passes a value of type const char[] to a
+// function template that expects const T&.  Some versions of MSVC
+// generates a compiler error C2665 for that.  We believe it's a bug
+// in MSVC.  Therefore this test is #if-ed out for MSVC.
+
 // Declared here with the size unknown.  Defined AFTER the following test.
 extern const char kHi[];
 
@@ -407,6 +415,8 @@ TEST(ElementsAreTest, AcceptsArrayWithUnknownSize) {
 }
 
 const char kHi[] = "hi";
+
+#endif  // _MSC_VER
 
 TEST(ElementsAreTest, MakesCopyOfArguments) {
   int x = 1;
@@ -430,7 +440,7 @@ TEST(ElementsAreTest, MakesCopyOfArguments) {
 TEST(ElementsAreArrayTest, CanBeCreatedWithValueArray) {
   const int a[] = { 1, 2, 3 };
 
-  vector<int> test_vector(std::begin(a), std::end(a));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
   EXPECT_THAT(test_vector, ElementsAreArray(a));
 
   test_vector[2] = 0;
@@ -438,20 +448,20 @@ TEST(ElementsAreArrayTest, CanBeCreatedWithValueArray) {
 }
 
 TEST(ElementsAreArrayTest, CanBeCreatedWithArraySize) {
-  std::array<const char*, 3> a = {{"one", "two", "three"}};
+  const char* a[] = { "one", "two", "three" };
 
-  vector<std::string> test_vector(std::begin(a), std::end(a));
-  EXPECT_THAT(test_vector, ElementsAreArray(a.data(), a.size()));
+  vector<std::string> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
+  EXPECT_THAT(test_vector, ElementsAreArray(a, GTEST_ARRAY_SIZE_(a)));
 
-  const char** p = a.data();
+  const char** p = a;
   test_vector[0] = "1";
-  EXPECT_THAT(test_vector, Not(ElementsAreArray(p, a.size())));
+  EXPECT_THAT(test_vector, Not(ElementsAreArray(p, GTEST_ARRAY_SIZE_(a))));
 }
 
 TEST(ElementsAreArrayTest, CanBeCreatedWithoutArraySize) {
   const char* a[] = { "one", "two", "three" };
 
-  vector<std::string> test_vector(std::begin(a), std::end(a));
+  vector<std::string> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
   EXPECT_THAT(test_vector, ElementsAreArray(a));
 
   test_vector[0] = "1";
@@ -474,8 +484,8 @@ TEST(ElementsAreArrayTest, CanBeCreatedWithMatcherArray) {
 
 TEST(ElementsAreArrayTest, CanBeCreatedWithVector) {
   const int a[] = { 1, 2, 3 };
-  vector<int> test_vector(std::begin(a), std::end(a));
-  const vector<int> expected(std::begin(a), std::end(a));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
+  const vector<int> expected(a, a + GTEST_ARRAY_SIZE_(a));
   EXPECT_THAT(test_vector, ElementsAreArray(expected));
   test_vector.push_back(4);
   EXPECT_THAT(test_vector, Not(ElementsAreArray(expected)));
@@ -520,9 +530,9 @@ TEST(ElementsAreArrayTest,
 TEST(ElementsAreArrayTest, CanBeCreatedWithMatcherVector) {
   const int a[] = { 1, 2, 3 };
   const Matcher<int> kMatchers[] = { Eq(1), Eq(2), Eq(3) };
-  vector<int> test_vector(std::begin(a), std::end(a));
-  const vector<Matcher<int>> expected(std::begin(kMatchers),
-                                      std::end(kMatchers));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
+  const vector<Matcher<int> > expected(
+      kMatchers, kMatchers + GTEST_ARRAY_SIZE_(kMatchers));
   EXPECT_THAT(test_vector, ElementsAreArray(expected));
   test_vector.push_back(4);
   EXPECT_THAT(test_vector, Not(ElementsAreArray(expected)));
@@ -530,11 +540,11 @@ TEST(ElementsAreArrayTest, CanBeCreatedWithMatcherVector) {
 
 TEST(ElementsAreArrayTest, CanBeCreatedWithIteratorRange) {
   const int a[] = { 1, 2, 3 };
-  const vector<int> test_vector(std::begin(a), std::end(a));
-  const vector<int> expected(std::begin(a), std::end(a));
+  const vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
+  const vector<int> expected(a, a + GTEST_ARRAY_SIZE_(a));
   EXPECT_THAT(test_vector, ElementsAreArray(expected.begin(), expected.end()));
   // Pointers are iterators, too.
-  EXPECT_THAT(test_vector, ElementsAreArray(std::begin(a), std::end(a)));
+  EXPECT_THAT(test_vector, ElementsAreArray(a, a + GTEST_ARRAY_SIZE_(a)));
   // The empty range of NULL pointers should also be okay.
   int* const null_int = nullptr;
   EXPECT_THAT(test_vector, Not(ElementsAreArray(null_int, null_int)));
@@ -554,8 +564,8 @@ TEST(ElementsAreArrayTest, WorksWithNativeArray) {
 
 TEST(ElementsAreArrayTest, SourceLifeSpan) {
   const int a[] = { 1, 2, 3 };
-  vector<int> test_vector(std::begin(a), std::end(a));
-  vector<int> expect(std::begin(a), std::end(a));
+  vector<int> test_vector(a, a + GTEST_ARRAY_SIZE_(a));
+  vector<int> expect(a, a + GTEST_ARRAY_SIZE_(a));
   ElementsAreArrayMatcher<int> matcher_maker =
       ElementsAreArray(expect.begin(), expect.end());
   EXPECT_THAT(test_vector, matcher_maker);
@@ -764,15 +774,8 @@ MATCHER_P2(ReferencesAnyOf, variable1, variable2, "") {
 
 TEST(MatcherPnMacroTest, WorksWhenExplicitlyInstantiatedWithReferences) {
   UncopyableFoo foo1('1'), foo2('2'), foo3('3');
-  const Matcher<const UncopyableFoo&> const_m =
+  const Matcher<const UncopyableFoo&> m =
       ReferencesAnyOf<const UncopyableFoo&, const UncopyableFoo&>(foo1, foo2);
-
-  EXPECT_TRUE(const_m.Matches(foo1));
-  EXPECT_TRUE(const_m.Matches(foo2));
-  EXPECT_FALSE(const_m.Matches(foo3));
-
-  const Matcher<UncopyableFoo&> m =
-      ReferencesAnyOf<UncopyableFoo&, UncopyableFoo&>(foo1, foo2);
 
   EXPECT_TRUE(m.Matches(foo1));
   EXPECT_TRUE(m.Matches(foo2));
