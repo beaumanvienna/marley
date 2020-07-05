@@ -186,7 +186,7 @@ static bool parseFloat(const char *str, int len, u64 &result)
 	return foundDecimal;
 }
 
-ExpressionOpcodeType getExpressionOpcode(const char* str, int& ReturnLen, ExpressionOpcodeType LastOpcode)
+ExpressionOpcodeType PgetExpressionOpcode(const char* str, int& ReturnLen, ExpressionOpcodeType LastOpcode)
 {
 	int longestlen = 0;
 	ExpressionOpcodeType result = EXOP_NONE;
@@ -211,7 +211,7 @@ ExpressionOpcodeType getExpressionOpcode(const char* str, int& ReturnLen, Expres
 	return result;
 }
 
-bool isAlphaNum(char c)
+bool PisAlphaNum(char c)
 {
 	return ((c >= '0' && c <= '9') ||
 		(c >= 'A' && c <= 'Z') ||
@@ -243,7 +243,7 @@ bool initPostfixExpression(const char* infix, IExpressionFunctions* funcs, Postf
 
 		if (first >= '0' && first <= '9')
 		{
-			while (isAlphaNum(infix[infixPos]))
+			while (PisAlphaNum(infix[infixPos]))
 			{
 				subStr[subPos++] = infix[infixPos++];
 			}
@@ -263,7 +263,7 @@ bool initPostfixExpression(const char* infix, IExpressionFunctions* funcs, Postf
 			lastOpcode = EXOP_NUMBER;
 		} else if ((first >= 'a' && first <= 'z') || first == '@')
 		{
-			while (isAlphaNum(infix[infixPos]))
+			while (PisAlphaNum(infix[infixPos]))
 			{
 				subStr[subPos++] = infix[infixPos++];
 			}
@@ -288,7 +288,7 @@ bool initPostfixExpression(const char* infix, IExpressionFunctions* funcs, Postf
 			return false;
 		} else {
 			int len;
-			ExpressionOpcodeType type = getExpressionOpcode(&infix[infixPos],len,lastOpcode);
+			ExpressionOpcodeType type = PgetExpressionOpcode(&infix[infixPos],len,lastOpcode);
 			if (type == EXOP_NONE)
 			{
 				sprintf(expressionError,"Invalid operator at \"%s\"",&infix[infixPos]);
@@ -597,7 +597,7 @@ bool parseExpression(char* exp, IExpressionFunctions* funcs, u64& dest)
 	return parsePostfixExpression(postfix,funcs,dest);
 }
 
-const char* getExpressionError()
+const char* PgetExpressionError()
 {
 	if (expressionError[0] == 0) strcpy(expressionError,"Invalid expression");
 	return expressionError;

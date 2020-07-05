@@ -22,7 +22,7 @@ class BreakpointWindow : public wxDialog
 {
 public:
 	BreakpointWindow( wxWindow* parent, DebugInterface* _cpu );
-	void loadFromMemcheck(MemCheck& memcheck);
+	void loadFromMemcheck(PMemCheck& memcheck);
 	void loadFromBreakpoint(BreakPoint& breakpoint);
 	void initBreakpoint(u32 _address);
 	void addBreakpoint();

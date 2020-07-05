@@ -417,7 +417,30 @@ bool statemachine(int cmd)
                                 [](unsigned char c){ return std::tolower(c); });
                             std::transform(str.begin(), str.end(), str.begin(),
                                 [](unsigned char c){ return std::tolower(c); });
+
+#ifdef PCSX2
+                            
+                            if ((ext == "iso") && (str.find("ps2") != string::npos))
+                            {
                                 
+                                
+                                str = "pcsx2";
+                                n = str.length(); 
+                                strcpy(arg1, str.c_str()); 
+                                
+                                n = gGame[gCurrentGame].length(); 
+                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
+                                
+                                argv[0] = arg1;
+                                argv[1] = arg2;
+                                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                                pcsx2_main(argc,argv);
+                                
+                                restoreSDL();
+                            }
+#endif
+
+
 #ifdef MUPEN64PLUS
                             
                             if (ext == "z64")

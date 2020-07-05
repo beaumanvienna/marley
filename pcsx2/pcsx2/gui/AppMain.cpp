@@ -64,7 +64,19 @@
 #include <wx/osx/private.h>		// needed to implement the app!
 #endif
 
-wxIMPLEMENT_APP(Pcsx2App);
+//wxIMPLEMENT_APP(Pcsx2App);
+
+wxIMPLEMENT_APP_NO_MAIN(Pcsx2App);
+
+
+int pcsx2_main(int argc, char* argv[])
+{
+    wxEntryStart(argc,argv);
+    wxTheApp->CallOnInit();
+    wxTheApp->OnRun();
+
+    return 0;
+}
 
 std::unique_ptr<AppConfig> g_Conf;
 
@@ -1125,7 +1137,7 @@ protected:
 
 		CoreThread.ResetQuick();
 		symbolMap.Clear();
-		CBreakPoints::SetSkipFirst(0);
+		PCBreakPoints::SetSkipFirst(0);
 
 		CDVDsys_SetFile(CDVD_SourceType::Iso, g_Conf->CurrentIso );
 		if( m_UseCDVDsrc )

@@ -22,7 +22,7 @@
 #include "../R5900.h"
 #include "../R5900OpcodeTables.h"
 
-static std::vector<MIPSAnalyst::AnalyzedFunction> functions;
+static std::vector<PMIPSAnalyst::AnalyzedFunction> functions;
 
 #define MIPS_MAKE_J(addr)   (0x08000000 | ((addr)>>2))
 #define MIPS_MAKE_JAL(addr) (0x0C000000 | ((addr)>>2))
@@ -37,7 +37,7 @@ static std::vector<MIPSAnalyst::AnalyzedFunction> functions;
 #define _RS   ((op>>21) & 0x1F)
 #define _RT   ((op>>16) & 0x1F)
 
-namespace MIPSAnalyst
+namespace PMIPSAnalyst
 {
 	u32 GetJumpTarget(u32 addr)
 	{

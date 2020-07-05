@@ -94,7 +94,7 @@ private:
 	} pixelPositions;
 
 	DebugInterface* cpu;
-	DisassemblyManager manager;
+	PDisassemblyManager manager;
 	u32 windowStart;
 	u32 curAddress;
 	u32 selectRangeStart;

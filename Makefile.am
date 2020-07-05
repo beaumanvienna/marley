@@ -1,7 +1,14 @@
-SUBDIRS = mupen64plus
+SUBDIRS = pcsx2
+SUBDIRS += mupen64plus
 SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
+
+pcsx2/build/pcsx2/libPCSX2.a: pcsx2
+
+pcsx2:
+	$(info   ++++++++++++++++ pcsx2 ++++++++++++++++)
+	$(MAKE) -C pcsx2 all
 
 mupen64plus/Source/mupen.a: mupen64plus
 
@@ -49,11 +56,12 @@ dolphin:
 	$(MAKE) -C dolphin all
 
 AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
-AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s
+AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
 
 bin_PROGRAMS 	= marley		
 marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
 
+#mednafen
 marley_LDADD 	= mednafen/src/libmednafen_marley.a
 marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
@@ -195,4 +203,30 @@ marley_LDADD 	+= -lXrandr
 marley_LDADD 	+= -lpulse 
 marley_LDADD 	+= -lsndio 
 
-
+#pcsx2
+marley_LDADD 	+= pcsx2/build/pcsx2/libPCSX2.a
+marley_LDADD 	+= pcsx2/build/pcsx2/libPCSX2.a
+marley_LDADD 	+= pcsx2/build/common/src/x86emitter/libx86emitter.a
+marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities.a
+marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
+marley_LDADD 	+= -lwx_baseu-3.0 
+marley_LDADD 	+= -lwx_gtk2u_core-3.0 
+marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
+marley_LDADD 	+= -lglib-2.0
+marley_LDADD 	+= -lgobject-2.0
+marley_LDADD 	+= -latk-1.0
+marley_LDADD 	+= -lgio-2.0
+marley_LDADD 	+= -lgthread-2.0
+marley_LDADD 	+= -lgmodule-2.0
+marley_LDADD 	+= -lgdk_pixbuf-2.0
+marley_LDADD 	+= -lcairo
+marley_LDADD 	+= -lpango-1.0
+marley_LDADD 	+= -lpangocairo-1.0
+marley_LDADD 	+= -lpangoft2-1.0
+marley_LDADD 	+= -lpangoxft-1.0
+marley_LDADD 	+= -lgdk-x11-2.0
+marley_LDADD 	+= -lgtk-x11-2.0
+marley_LDADD 	+= -laio
+marley_LDADD 	+= -lwx_baseu-3.0
+marley_LDADD 	+= -lwx_gtk2u_core-3.0 
+marley_LDADD 	+= -lwx_gtk2u_adv-3.0 

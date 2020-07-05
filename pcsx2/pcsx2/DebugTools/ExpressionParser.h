@@ -40,4 +40,4 @@ public:
 bool initPostfixExpression(const char* infix, IExpressionFunctions* funcs, PostfixExpression& dest);
 bool parsePostfixExpression(PostfixExpression& exp, IExpressionFunctions* funcs, u64& dest);
 bool parseExpression(const char* exp, IExpressionFunctions* funcs, u64& dest);
-const char* getExpressionError();
+const char* PgetExpressionError();

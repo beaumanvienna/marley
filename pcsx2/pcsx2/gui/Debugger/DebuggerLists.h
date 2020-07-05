@@ -90,7 +90,7 @@ private:
 	void showMenu(const wxPoint& pos);
 
 	std::vector<BreakPoint> displayedBreakPoints_;
-	std::vector<MemCheck> displayedMemChecks_;
+	std::vector<PMemCheck> displayedMemChecks_;
 	DebugInterface* cpu;
 	CtrlDisassemblyView* disasm;
 };

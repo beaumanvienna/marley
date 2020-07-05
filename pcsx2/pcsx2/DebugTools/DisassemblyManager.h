@@ -26,7 +26,7 @@ enum DisassemblyLineType { DISTYPE_OPCODE, DISTYPE_MACRO, DISTYPE_DATA, DISTYPE_
 struct DisassemblyLineInfo
 {
 	DisassemblyLineType type;
-	MIPSAnalyst::MipsOpcodeInfo info;
+	PMIPSAnalyst::MipsOpcodeInfo info;
 	std::string name;
 	std::string params;
 	u32 totalSize;
@@ -62,10 +62,10 @@ public:
 	virtual void getBranchLines(u32 start, u32 size, std::vector<BranchLine>& dest) { };
 };
 
-class DisassemblyFunction: public DisassemblyEntry
+class PDisassemblyFunction: public DisassemblyEntry
 {
 public:
-	DisassemblyFunction(DebugInterface* _cpu, u32 _address, u32 _size);
+	PDisassemblyFunction(DebugInterface* _cpu, u32 _address, u32 _size);
 	virtual void recheck();
 	virtual int getNumLines();
 	virtual int getLineNum(u32 address, bool findStart);
@@ -88,11 +88,11 @@ private:
 	std::vector<u32> lineAddresses;
 };
 
-class DisassemblyOpcode: public DisassemblyEntry
+class PDisassemblyOpcode: public DisassemblyEntry
 {
 public:
-	DisassemblyOpcode(DebugInterface* _cpu, u32 _address, int _num): cpu(_cpu), address(_address), num(_num) { };
-	virtual ~DisassemblyOpcode() { };
+	PDisassemblyOpcode(DebugInterface* _cpu, u32 _address, int _num): cpu(_cpu), address(_address), num(_num) { };
+	virtual ~PDisassemblyOpcode() { };
 	virtual void recheck() { };
 	virtual int getNumLines() { return num; };
 	virtual int getLineNum(u32 address, bool findStart) { return (address-this->address)/4; };
@@ -107,12 +107,12 @@ private:
 };
 
 
-class DisassemblyMacro: public DisassemblyEntry
+class PDisassemblyMacro: public DisassemblyEntry
 {
 public:
-	DisassemblyMacro(DebugInterface* _cpu, u32 _address):
+	PDisassemblyMacro(DebugInterface* _cpu, u32 _address):
 		cpu(_cpu), type(MACRO_LI), name(), immediate(0), address(_address), numOpcodes(0), rt(0), dataSize(0) { };
-	virtual ~DisassemblyMacro() { };
+	virtual ~PDisassemblyMacro() { };
 
 	void setMacroLi(u32 _immediate, u8 _rt);
 	void setMacroMemory(std::string _name, u32 _immediate, u8 _rt, int _dataSize);
@@ -137,11 +137,11 @@ private:
 };
 
 
-class DisassemblyData: public DisassemblyEntry
+class PDisassemblyData: public DisassemblyEntry
 {
 public:
-	DisassemblyData(DebugInterface* _cpu, u32 _address, u32 _size, DataType _type);
-	virtual ~DisassemblyData() { };
+	PDisassemblyData(DebugInterface* _cpu, u32 _address, u32 _size, DataType _type);
+	virtual ~PDisassemblyData() { };
 
 	virtual void recheck();
 	virtual int getNumLines() { return (int)lines.size(); };
@@ -190,7 +190,7 @@ private:
 
 class DebugInterface;
 
-class DisassemblyManager
+class PDisassemblyManager
 {
 public:
 	void clear();
@@ -213,4 +213,4 @@ private:
 	static int maxParamChars;
 };
 
-bool isInInterval(u32 start, u32 size, u32 value);
+bool PisInInterval(u32 start, u32 size, u32 value);

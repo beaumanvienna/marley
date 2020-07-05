@@ -336,7 +336,7 @@ void DisassemblyDialog::onBreakRunClicked(wxCommandEvent& evt)
 	if (r5900Debug.isCpuPaused())
 	{
 		// If the current PC is on a breakpoint, the user doesn't want to do nothing.
-		CBreakPoints::SetSkipFirst(r5900Debug.getPC());
+		PCBreakPoints::SetSkipFirst(r5900Debug.getPC());
 		r5900Debug.resumeCpu();
 	} else {
 		r5900Debug.pauseCpu();
@@ -391,10 +391,10 @@ void DisassemblyDialog::stepOver()
 	CtrlDisassemblyView* disassembly = currentCpu->getDisassembly();
 
 	// If the current PC is on a breakpoint, the user doesn't want to do nothing.
-	CBreakPoints::SetSkipFirst(r5900Debug.getPC());
+	PCBreakPoints::SetSkipFirst(r5900Debug.getPC());
 	u32 currentPc = r5900Debug.getPC();
 
-	MIPSAnalyst::MipsOpcodeInfo info = MIPSAnalyst::GetOpcodeInfo(&r5900Debug,r5900Debug.getPC());
+	PMIPSAnalyst::MipsOpcodeInfo info = PMIPSAnalyst::GetOpcodeInfo(&r5900Debug,r5900Debug.getPC());
 	u32 breakpointAddress = currentPc+disassembly->getInstructionSizeAt(currentPc);
 	if (info.isBranch)
 	{
@@ -421,7 +421,7 @@ void DisassemblyDialog::stepOver()
 		disassembly->scrollStepping(breakpointAddress);
 	}
 
-	CBreakPoints::AddBreakPoint(breakpointAddress,true);
+	PCBreakPoints::AddBreakPoint(breakpointAddress,true);
 	r5900Debug.resumeCpu();
 }
 
@@ -438,10 +438,10 @@ void DisassemblyDialog::stepInto()
 	CtrlDisassemblyView* disassembly = currentCpu->getDisassembly();
 
 	// If the current PC is on a breakpoint, the user doesn't want to do nothing.
-	CBreakPoints::SetSkipFirst(r5900Debug.getPC());
+	PCBreakPoints::SetSkipFirst(r5900Debug.getPC());
 	u32 currentPc = r5900Debug.getPC();
 
-	MIPSAnalyst::MipsOpcodeInfo info = MIPSAnalyst::GetOpcodeInfo(&r5900Debug,r5900Debug.getPC());
+	PMIPSAnalyst::MipsOpcodeInfo info = PMIPSAnalyst::GetOpcodeInfo(&r5900Debug,r5900Debug.getPC());
 	u32 breakpointAddress = currentPc+disassembly->getInstructionSizeAt(currentPc);
 	if (info.isBranch)
 	{
@@ -462,7 +462,7 @@ void DisassemblyDialog::stepInto()
 	if (info.isSyscall)
 		breakpointAddress = info.branchTarget;
 
-	CBreakPoints::AddBreakPoint(breakpointAddress,true);
+	PCBreakPoints::AddBreakPoint(breakpointAddress,true);
 	r5900Debug.resumeCpu();
 }
 
@@ -471,13 +471,13 @@ void DisassemblyDialog::stepOut()
 	if (!r5900Debug.isAlive() || !r5900Debug.isCpuPaused() || currentCpu == NULL)
 		return;
 	// If the current PC is on a breakpoint, the user doesn't want to do nothing.
-	CBreakPoints::SetSkipFirst(r5900Debug.getPC());
+	PCBreakPoints::SetSkipFirst(r5900Debug.getPC());
 
 	u32 addr = currentCpu->getStepOutAddress();
 	if (addr == (u32)-1)
 		return;
 
-	CBreakPoints::AddBreakPoint(addr,true);
+	PCBreakPoints::AddBreakPoint(addr,true);
 	r5900Debug.resumeCpu();
 }
 
@@ -528,7 +528,7 @@ void DisassemblyDialog::onDebuggerEvent(wxCommandEvent& evt)
 		// todo: breakpoints for iop
 		if (currentCpu != eeTab)
 			return;
-		CBreakPoints::AddBreakPoint(evt.GetInt(),true);
+		PCBreakPoints::AddBreakPoint(evt.GetInt(),true);
 		currentCpu->getCpu()->resumeCpu();
 	} else if (type == debEVT_GOTOINDISASM)
 	{
@@ -630,27 +630,27 @@ void DisassemblyDialog::setDebugMode(bool debugMode, bool switchPC)
 
 		if (debugMode)
 		{
-				if (!CBreakPoints::GetBreakpointTriggered())
+				if (!PCBreakPoints::GetBreakpointTriggered())
 				{
 					wxBusyInfo wait("Please wait, Reading ELF functions");
 					populate();
 				}
-			CBreakPoints::ClearTemporaryBreakPoints();
+			PCBreakPoints::ClearTemporaryBreakPoints();
 			breakRunButton->SetLabel(L"Run");
 
 			stepOverButton->Enable(true);
 			stepIntoButton->Enable(true);
 			stepOutButton->Enable(currentCpu == eeTab);
 
-			if (switchPC || CBreakPoints::GetBreakpointTriggered())
+			if (switchPC || PCBreakPoints::GetBreakpointTriggered())
 				gotoPc();
 			
-			if (CBreakPoints::GetBreakpointTriggered())
+			if (PCBreakPoints::GetBreakpointTriggered())
 			{
 				if (currentCpu != NULL)
 					currentCpu->getDisassembly()->SetFocus();
-				CBreakPoints::SetBreakpointTriggered(false);
-				CBreakPoints::SetSkipFirst(0);
+				PCBreakPoints::SetBreakpointTriggered(false);
+				PCBreakPoints::SetSkipFirst(0);
 			}
 
 			if (currentCpu != NULL)

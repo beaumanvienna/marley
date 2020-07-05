@@ -766,11 +766,11 @@ inline bool isBranchOrJump(u32 addr)
 int isBreakpointNeeded(u32 addr)
 {
 	int bpFlags = 0;
-	if (CBreakPoints::IsAddressBreakPoint(addr))
+	if (PCBreakPoints::IsAddressBreakPoint(addr))
 		bpFlags += 1;
 
 	// there may be a breakpoint in the delay slot
-	if (isBranchOrJump(addr) && CBreakPoints::IsAddressBreakPoint(addr+4))
+	if (isBranchOrJump(addr) && PCBreakPoints::IsAddressBreakPoint(addr+4))
 		bpFlags += 2;
 
 	return bpFlags;
@@ -778,7 +778,7 @@ int isBreakpointNeeded(u32 addr)
 
 int isMemcheckNeeded(u32 pc)
 {
-	if (CBreakPoints::GetNumMemchecks() == 0)
+	if (PCBreakPoints::GetNumMemchecks() == 0)
 		return 0;
 	
 	u32 addr = pc;

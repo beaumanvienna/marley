@@ -182,7 +182,7 @@ bool MipsAssembleOpcode(const char* line, DebugInterface* cpu, u32 address, u32&
 	char name[64],args[256];
 	SplitLine(line,name,args);
 
-	CMipsInstruction opcode(cpu);
+	PCMipsInstruction opcode(cpu);
 	if (cpu == NULL || !opcode.Load(name,args,(int)address))
 	{
 		errorText = opcode.getErrorMessage();
@@ -367,7 +367,7 @@ bool MipsCheckImmediate(const char* Source, DebugInterface* cpu, int& dest, int&
 	return true;
 }
 
-CMipsInstruction::CMipsInstruction(DebugInterface* cpu) :
+PCMipsInstruction::PCMipsInstruction(DebugInterface* cpu) :
 	Opcode(), NoCheckError(false), Loaded(false), RamPos(0),
 	registers(), immediateType(MIPS_NOIMMEDIATE), immediate(),
 	vfpuSize(0), encoding(0), error()
@@ -375,7 +375,7 @@ CMipsInstruction::CMipsInstruction(DebugInterface* cpu) :
 	this->cpu = cpu;
 }
 
-bool CMipsInstruction::Load(const char* Name, const char* Params, int RamPos)
+bool PCMipsInstruction::Load(const char* Name, const char* Params, int RamPos)
 {
 	bool paramfail = false;
 	NoCheckError = false;
@@ -418,7 +418,7 @@ bool CMipsInstruction::Load(const char* Name, const char* Params, int RamPos)
 }
 
 
-bool CMipsInstruction::parseOpcode(const tMipsOpcode& SourceOpcode, const char* Line)
+bool PCMipsInstruction::parseOpcode(const tMipsOpcode& SourceOpcode, const char* Line)
 {
 	vfpuSize = -1;
 
@@ -460,7 +460,7 @@ bool CMipsInstruction::parseOpcode(const tMipsOpcode& SourceOpcode, const char* 
 	return (*Line == 0);
 }
 
-bool CMipsInstruction::LoadEncoding(const tMipsOpcode& SourceOpcode, const char* Line)
+bool PCMipsInstruction::LoadEncoding(const tMipsOpcode& SourceOpcode, const char* Line)
 {
 	int RetLen;
 
@@ -587,7 +587,7 @@ bool CMipsInstruction::LoadEncoding(const tMipsOpcode& SourceOpcode, const char*
 	return true;
 }
 
-void CMipsInstruction::setOmittedRegisters()
+void PCMipsInstruction::setOmittedRegisters()
 {
 	// copy over omitted registers
 	if (Opcode.flags & MO_RSD)
@@ -603,7 +603,7 @@ void CMipsInstruction::setOmittedRegisters()
 		registers.frd = registers.frs;
 }
 
-int getImmediateBits(MipsImmediateType type)
+int PgetImmediateBits(MipsImmediateType type)
 {
 	switch (type)
 	{
@@ -620,7 +620,7 @@ int getImmediateBits(MipsImmediateType type)
 	}
 }
 
-bool CMipsInstruction::Validate()
+bool PCMipsInstruction::Validate()
 {
 	if (RamPos % 4)
 	{
@@ -657,7 +657,7 @@ bool CMipsInstruction::Validate()
 			immediate.value = num >> 2;
 		}
 		
-		int immediateBits = getImmediateBits(immediateType);
+		int immediateBits = PgetImmediateBits(immediateType);
 		unsigned int mask = (0xFFFFFFFF << (32-immediateBits)) >> (32-immediateBits);
 		int digits = (immediateBits+3) / 4;
 
@@ -673,7 +673,7 @@ bool CMipsInstruction::Validate()
 	return true;
 }
 
-void CMipsInstruction::encodeNormal()
+void PCMipsInstruction::encodeNormal()
 {
 	encoding = Opcode.destencoding;
 
@@ -704,7 +704,7 @@ void CMipsInstruction::encodeNormal()
 	}
 }
 
-void CMipsInstruction::Encode()
+void PCMipsInstruction::Encode()
 {
 	encodeNormal();
 }

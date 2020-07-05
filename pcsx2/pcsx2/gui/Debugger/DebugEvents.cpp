@@ -38,7 +38,7 @@ bool parseExpression(const char* exp, DebugInterface* cpu, u64& dest)
 
 void displayExpressionError(wxWindow* parent)
 {
-	wxMessageBox(wxString(getExpressionError(),wxConvUTF8),L"Invalid expression",wxICON_ERROR);
+	wxMessageBox(wxString(PgetExpressionError(),wxConvUTF8),L"Invalid expression",wxICON_ERROR);
 }
 
 bool executeExpressionWindow(wxWindow* parent, DebugInterface* cpu, u64& dest, const wxString& defaultValue)

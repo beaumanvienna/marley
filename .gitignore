@@ -46,3 +46,5 @@ mupen64plus/Source/ui-console/mupen64plus.a
 ppsspp/build/
 assets
 save
+GSdx_opengl_debug_hw.txt
+pcsx2/build/

@@ -53,9 +53,9 @@ enum DataType {
 	DATATYPE_NONE, DATATYPE_BYTE, DATATYPE_HALFWORD, DATATYPE_WORD, DATATYPE_ASCII
 };
 
-class SymbolMap {
+class PSymbolMap {
 public:
-	SymbolMap() {}
+	PSymbolMap() {}
 	void Clear();
 	void SortSymbols();
 
@@ -148,5 +148,5 @@ private:
 	mutable std::recursive_mutex m_lock;
 };
 
-extern SymbolMap symbolMap;
+extern PSymbolMap symbolMap;
 

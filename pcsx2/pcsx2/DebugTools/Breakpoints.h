@@ -79,9 +79,9 @@ enum MemCheckResult
 	MEMCHECK_BOTH = 0x03,
 };
 
-struct MemCheck
+struct PMemCheck
 {
-	MemCheck();
+	PMemCheck();
 	u32 start;
 	u32 end;
 
@@ -100,7 +100,7 @@ struct MemCheck
 
 	void Log(u32 addr, bool write, int size, u32 pc);
 
-	bool operator == (const MemCheck &other) const {
+	bool operator == (const PMemCheck &other) const {
 		return start == other.start && end == other.end;
 	}
 };
@@ -108,7 +108,7 @@ struct MemCheck
 // BreakPoints cannot overlap, only one is allowed per address.
 // MemChecks can overlap, as long as their ends are different.
 // WARNING: MemChecks are not used in the interpreter or HLE currently.
-class CBreakPoints
+class PCBreakPoints
 {
 public:
 	static const size_t INVALID_BREAKPOINT = -1;
@@ -137,9 +137,9 @@ public:
 	static u32 CheckSkipFirst(u32 pc);
 
 	// Includes uncached addresses.
-	static const std::vector<MemCheck> GetMemCheckRanges();
+	static const std::vector<PMemCheck> GetMemCheckRanges();
 
-	static const std::vector<MemCheck> GetMemChecks();
+	static const std::vector<PMemCheck> GetMemChecks();
 	static const std::vector<BreakPoint> GetBreakpoints();
 	static size_t GetNumMemchecks() { return memChecks_.size(); }
 
@@ -158,8 +158,8 @@ private:
 	static u64 breakSkipFirstTicks_;
 	static bool breakpointTriggered_;
 
-	static std::vector<MemCheck> memChecks_;
-	static std::vector<MemCheck *> cleanupMemChecks_;
+	static std::vector<PMemCheck> memChecks_;
+	static std::vector<PMemCheck *> cleanupMemChecks_;
 };
 
 

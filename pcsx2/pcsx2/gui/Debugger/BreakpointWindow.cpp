@@ -157,7 +157,7 @@ void BreakpointWindow::setDefaultValues()
 	editCondition->SetLabel(wxString(condition,wxConvUTF8));	
 }
 
-void BreakpointWindow::loadFromMemcheck(MemCheck& memcheck)
+void BreakpointWindow::loadFromMemcheck(PMemCheck& memcheck)
 {
 	memory = true;
 
@@ -325,10 +325,10 @@ void BreakpointWindow::addBreakpoint()
 		else if (enabled) result = MEMCHECK_BREAK;
 		else result = MEMCHECK_IGNORE;
 
-		CBreakPoints::AddMemCheck(address, address + size, (MemCheckCondition)cond, result);
+		PCBreakPoints::AddMemCheck(address, address + size, (MemCheckCondition)cond, result);
 	} else {
 		// add breakpoint
-		CBreakPoints::AddBreakPoint(address,false);
+		PCBreakPoints::AddBreakPoint(address,false);
 
 		if (condition[0] != 0)
 		{
@@ -336,12 +336,12 @@ void BreakpointWindow::addBreakpoint()
 			cond.debug = cpu;
 			strcpy(cond.expressionString,condition);
 			cond.expression = compiledCondition;
-			CBreakPoints::ChangeBreakPointAddCond(address,cond);
+			PCBreakPoints::ChangeBreakPointAddCond(address,cond);
 		}
 
 		if (!enabled)
 		{
-			CBreakPoints::ChangeBreakPoint(address,false);
+			PCBreakPoints::ChangeBreakPoint(address,false);
 		}
 	}
 }

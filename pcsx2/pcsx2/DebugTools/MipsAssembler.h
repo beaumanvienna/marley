@@ -61,10 +61,10 @@ struct MipsOpcodeRegisters {
 };
 
 
-class CMipsInstruction
+class PCMipsInstruction
 {
 public:
-	CMipsInstruction(DebugInterface* cpu);
+	PCMipsInstruction(DebugInterface* cpu);
 	bool Load(const char* Name, const char* Params, int RamPos);
 	virtual bool Validate();
 	virtual void Encode();

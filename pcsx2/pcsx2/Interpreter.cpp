@@ -49,17 +49,17 @@ static void debugI()
 void intBreakpoint(bool memcheck)
 {
 	u32 pc = cpuRegs.pc;
- 	if (CBreakPoints::CheckSkipFirst(pc) != 0)
+ 	if (PCBreakPoints::CheckSkipFirst(pc) != 0)
 		return;
 
 	if (!memcheck)
 	{
-		auto cond = CBreakPoints::GetBreakPointCondition(pc);
+		auto cond = PCBreakPoints::GetBreakPointCondition(pc);
 		if (cond && !cond->Evaluate())
 			return;
 	}
 
-	CBreakPoints::SetBreakpointTriggered(true);
+	PCBreakPoints::SetBreakpointTriggered(true);
 	GetCoreThread().PauseSelfDebug();
 	throw Exception::ExitCpuExecute();
 }
@@ -76,7 +76,7 @@ void intMemcheck(u32 op, u32 bits, bool store)
 	start = standardizeBreakpointAddress(start);
 	u32 end = start + bits/8;
 	
-	auto checks = CBreakPoints::GetMemChecks();
+	auto checks = PCBreakPoints::GetMemChecks();
 	for (size_t i = 0; i < checks.size(); i++)
 	{
 		auto& check = checks[i];

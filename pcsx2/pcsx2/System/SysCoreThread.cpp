@@ -234,7 +234,7 @@ void SysCoreThread::GameStartingInThread()
 {
 	GetMTGS().SendGameCRC(ElfCRC);
 
-	MIPSAnalyst::ScanForFunctions(ElfTextRange.first,ElfTextRange.first+ElfTextRange.second,true);
+	PMIPSAnalyst::ScanForFunctions(ElfTextRange.first,ElfTextRange.first+ElfTextRange.second,true);
 	symbolMap.UpdateActiveSymbols();
 	sApp.PostAppMethod(&Pcsx2App::resetDebugger);
 

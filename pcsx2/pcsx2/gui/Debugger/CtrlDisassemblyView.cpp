@@ -416,7 +416,7 @@ void CtrlDisassemblyView::drawArguments(wxDC& dc, const DisassemblyLineInfo &lin
 		return;
 
 	// Don't highlight the selected lines.
-	if (isInInterval(selectRangeStart, selectRangeEnd - selectRangeStart, line.info.opcodeAddress))
+	if (PisInInterval(selectRangeStart, selectRangeEnd - selectRangeStart, line.info.opcodeAddress))
 	{
 		dc.DrawText(wxString(line.params.c_str(),wxConvUTF8),x,y);
 		return;
@@ -496,7 +496,7 @@ void CtrlDisassemblyView::render(wxDC& dc)
 		wxColor backgroundColor = wxColor(getBackgroundColor(address));
 		wxColor textColor = wxColor(0xFF000000);
 		
-		if (isInInterval(address,line.totalSize,cpu->getPC()))
+		if (PisInInterval(address,line.totalSize,cpu->getPC()))
 		{
 			backgroundColor = scaleColor(backgroundColor,1.05f);
 		}
@@ -525,7 +525,7 @@ void CtrlDisassemblyView::render(wxDC& dc)
 		
 		// display address/symbol
 		bool enabled;
-		if (CBreakPoints::IsAddressBreakPoint(address,&enabled))
+		if (PCBreakPoints::IsAddressBreakPoint(address,&enabled))
 		{
 			if (enabled)
 				textColor = 0x0000FF;
@@ -542,7 +542,7 @@ void CtrlDisassemblyView::render(wxDC& dc)
 		dc.DrawText(wxString(addressText,wxConvUTF8),pixelPositions.addressStart,rowY1+2);
 		drawArguments(dc, line, pixelPositions.argumentsStart, rowY1 + 2, textColor, currentArguments);
 		
-		if (isInInterval(address,line.totalSize,cpu->getPC()))
+		if (PisInInterval(address,line.totalSize,cpu->getPC()))
 			dc.DrawText(L"\u25A0",pixelPositions.opcodeStart-(charWidth+1),rowY1);
 
 		dc.SetFont(boldFont);
@@ -933,26 +933,26 @@ void CtrlDisassemblyView::scrollbarEvent(wxScrollWinEvent& evt)
 void CtrlDisassemblyView::toggleBreakpoint(bool toggleEnabled)
 {
 	bool enabled;
-	if (CBreakPoints::IsAddressBreakPoint(curAddress,&enabled))
+	if (PCBreakPoints::IsAddressBreakPoint(curAddress,&enabled))
 	{
 		if (!enabled)
 		{
 			// enable disabled breakpoints
-			CBreakPoints::ChangeBreakPoint(curAddress,true);
-		} else if (!toggleEnabled && CBreakPoints::GetBreakPointCondition(curAddress) != NULL)
+			PCBreakPoints::ChangeBreakPoint(curAddress,true);
+		} else if (!toggleEnabled && PCBreakPoints::GetBreakPointCondition(curAddress) != NULL)
 		{
 			// don't just delete a breakpoint with a custom condition
-			CBreakPoints::RemoveBreakPoint(curAddress);
+			PCBreakPoints::RemoveBreakPoint(curAddress);
 		} else if (toggleEnabled)
 		{
 			// disable breakpoint
-			CBreakPoints::ChangeBreakPoint(curAddress,false);
+			PCBreakPoints::ChangeBreakPoint(curAddress,false);
 		} else {
 			// otherwise just remove breakpoint
-			CBreakPoints::RemoveBreakPoint(curAddress);
+			PCBreakPoints::RemoveBreakPoint(curAddress);
 		}
 	} else {
-		CBreakPoints::AddBreakPoint(curAddress);
+		PCBreakPoints::AddBreakPoint(curAddress);
 	}
 }
 
@@ -971,7 +971,7 @@ void CtrlDisassemblyView::updateStatusBarText()
 			if (!cpu->isValidAddress(line.info.dataAddress))
 			{
 				sprintf(text,"Invalid address %08X",line.info.dataAddress);
-			} else if (line.info.lrType == MIPSAnalyst::LOADSTORE_NORMAL && line.info.dataAddress % line.info.dataSize)
+			} else if (line.info.lrType == PMIPSAnalyst::LOADSTORE_NORMAL && line.info.dataAddress % line.info.dataSize)
 			{
 				sprintf(text,"Unaligned address %08X",line.info.dataAddress);
 			} else {
@@ -986,7 +986,7 @@ void CtrlDisassemblyView::updateStatusBarText()
 				case 4:
 					{
 						u32 data;
-						if (line.info.lrType != MIPSAnalyst::LOADSTORE_NORMAL)
+						if (line.info.lrType != PMIPSAnalyst::LOADSTORE_NORMAL)
 						{
 							u32 address = line.info.dataAddress;
 							data = cpu->read32(address & ~3) >> (address & 3) * 8;
@@ -1007,7 +1007,7 @@ void CtrlDisassemblyView::updateStatusBarText()
 				case 8:
 					{
 						u64 data;
-						if (line.info.lrType != MIPSAnalyst::LOADSTORE_NORMAL)
+						if (line.info.lrType != PMIPSAnalyst::LOADSTORE_NORMAL)
 						{
 							u32 address = line.info.dataAddress;
 							data = cpu->read64(address & ~7) >> (address & 7) * 8;
@@ -1156,7 +1156,7 @@ std::string CtrlDisassemblyView::disassembleRange(u32 start, u32 size)
 	std::set<u32> branchAddresses;
 	for (u32 i = 0; i < size; i += 4)
 	{
-		MIPSAnalyst::MipsOpcodeInfo info = MIPSAnalyst::GetOpcodeInfo(cpu,start+i);
+		PMIPSAnalyst::MipsOpcodeInfo info = PMIPSAnalyst::GetOpcodeInfo(cpu,start+i);
 
 		if (info.isBranch && symbolMap.GetLabelString(info.branchTarget).empty())
 		{
@@ -1266,9 +1266,9 @@ void CtrlDisassemblyView::editBreakpoint()
 	BreakpointWindow win(this,cpu);
 
 	bool exists = false;
-	if (CBreakPoints::IsAddressBreakPoint(curAddress))
+	if (PCBreakPoints::IsAddressBreakPoint(curAddress))
 	{
-		auto breakpoints = CBreakPoints::GetBreakpoints();
+		auto breakpoints = PCBreakPoints::GetBreakpoints();
 		for (size_t i = 0; i < breakpoints.size(); i++)
 		{
 			if (breakpoints[i].addr == curAddress)
@@ -1286,7 +1286,7 @@ void CtrlDisassemblyView::editBreakpoint()
 	if (win.ShowModal() == wxID_OK)
 	{
 		if (exists)
-			CBreakPoints::RemoveBreakPoint(curAddress);
+			PCBreakPoints::RemoveBreakPoint(curAddress);
 		win.addBreakpoint();	
 		postEvent(debEVT_UPDATE,0);
 	}

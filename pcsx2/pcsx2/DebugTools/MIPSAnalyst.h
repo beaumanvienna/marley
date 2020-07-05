@@ -26,7 +26,7 @@ class DebugInterface;
 #define MIPS_GET_RT(op) ((op>>16) & 0x1F)
 #define MIPS_GET_RD(op) ((op>>11) & 0x1F)
 
-namespace MIPSAnalyst
+namespace PMIPSAnalyst
 {
 	struct AnalyzedFunction {
 		u32 start;

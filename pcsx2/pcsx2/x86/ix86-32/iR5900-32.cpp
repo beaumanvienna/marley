@@ -1141,21 +1141,21 @@ int cop2flags(u32 code)
 void dynarecCheckBreakpoint()
 {
 	u32 pc = cpuRegs.pc;
- 	if (CBreakPoints::CheckSkipFirst(pc) != 0)
+ 	if (PCBreakPoints::CheckSkipFirst(pc) != 0)
 		return;
 
 	int bpFlags = isBreakpointNeeded(pc);
 	bool hit = false;
 	//check breakpoint at current pc
 	if (bpFlags & 1) {
-		auto cond = CBreakPoints::GetBreakPointCondition(pc);
+		auto cond = PCBreakPoints::GetBreakPointCondition(pc);
 		if (cond == NULL || cond->Evaluate()) {
 			hit = true;
 		}
 	}
 	//check breakpoint in delay slot
 	if (bpFlags & 2) {
-		auto cond = CBreakPoints::GetBreakPointCondition(pc + 4);
+		auto cond = PCBreakPoints::GetBreakPointCondition(pc + 4);
 		if (cond == NULL || cond->Evaluate())
 			hit = true;
 	}
@@ -1163,7 +1163,7 @@ void dynarecCheckBreakpoint()
 	if (!hit)
 		return;
 
-	CBreakPoints::SetBreakpointTriggered(true);
+	PCBreakPoints::SetBreakpointTriggered(true);
 	GetCoreThread().PauseSelfDebug();
 	recExitExecution();
 }
@@ -1171,10 +1171,10 @@ void dynarecCheckBreakpoint()
 void dynarecMemcheck()
 {
 	u32 pc = cpuRegs.pc;
- 	if (CBreakPoints::CheckSkipFirst(pc) != 0)
+ 	if (PCBreakPoints::CheckSkipFirst(pc) != 0)
 		return;
 
-	CBreakPoints::SetBreakpointTriggered(true);
+	PCBreakPoints::SetBreakpointTriggered(true);
 	GetCoreThread().PauseSelfDebug();
 	recExitExecution();
 }
@@ -1206,7 +1206,7 @@ void recMemcheck(u32 op, u32 bits, bool store)
 	// ecx = access address
 	// edx = access address+size
 
-	auto checks = CBreakPoints::GetMemChecks();
+	auto checks = PCBreakPoints::GetMemChecks();
 	for (size_t i = 0; i < checks.size(); i++)
 	{
 		if (checks[i].result == 0)
