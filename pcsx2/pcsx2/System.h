@@ -41,41 +41,35 @@ class RecompiledCodeReserve;
 
 namespace HostMemoryMap
 {
-	static const u32 Size = 0x28000000;
-
-	// The actual addresses may not be equivalent to Base + Offset in the event that allocation at Base failed
-	// Each of these offsets has a debugger-accessible equivalent variable without the Offset suffix that will hold the actual address (not here because we don't want code using it)
-
 	// PS2 main memory, SPR, and ROMs
-	static const u32 EEmemOffset   = 0x00000000;
+	extern __pagealigned EEVM_MemoryAllocMess EEmem;
 
 	// IOP main memory and ROMs
-	static const u32 IOPmemOffset  = 0x04000000;
+	extern __pagealigned u8 IOPmem[(sizeof(IopVM_MemoryAllocMess) + __pagesize - 1) & -__pagesize];
 
 	// VU0 and VU1 memory.
-	static const u32 VUmemOffset   = 0x08000000;
+	extern __pagealigned u8 VUmem[_64kb];
 
 	// EE recompiler code cache area (64mb)
-	static const u32 EErecOffset   = 0x10000000;
+	extern __pagealigned u8 EErec[_64mb];
 
 	// IOP recompiler code cache area (16 or 32mb)
-	static const u32 IOPrecOffset  = 0x14000000;
+	extern __pagealigned u8 IOPrec[_32mb];
 
 	// newVif0 recompiler code cache area (16mb)
-	static const u32 VIF0recOffset = 0x16000000;
+	extern __pagealigned u8 VIF0rec[_8mb];
 
 	// newVif1 recompiler code cache area (32mb)
-	static const u32 VIF1recOffset = 0x18000000;
+	extern __pagealigned u8 VIF1rec[_8mb];
 
 	// microVU1 recompiler code cache area (32 or 64mb)
-	static const u32 mVU0recOffset = 0x1C000000;
+	extern __pagealigned u8 mVU0rec[_64mb];
 
 	// microVU0 recompiler code cache area (64mb)
-	static const u32 mVU1recOffset = 0x20000000;
+	extern __pagealigned u8 mVU1rec[_64mb];
 
 	// Bump allocator for any other small allocations
-	// size: Difference between it and HostMemoryMap::Size, so nothing should allocate higher than it!
-	static const u32 bumpAllocatorOffset = 0x24000000;
+	extern __pagealigned u8 bumpAllocator[_64mb];
 }
 
 // --------------------------------------------------------------------------------------
@@ -85,18 +79,16 @@ namespace HostMemoryMap
 class SysMainMemory
 {
 protected:
-	const VirtualMemoryManagerPtr m_mainMemory;
-	VirtualMemoryBumpAllocator    m_bumpAllocator;
-	eeMemoryReserve               m_ee;
-	iopMemoryReserve              m_iop;
-	vuMemoryReserve               m_vu;
+	VirtualMemoryBumpAllocator m_bumpAllocator;
+	eeMemoryReserve            m_ee;
+	iopMemoryReserve           m_iop;
+	vuMemoryReserve            m_vu;
 
 public:
 	SysMainMemory();
 	virtual ~SysMainMemory();
 
-	const VirtualMemoryManagerPtr& MainMemory()    { return m_mainMemory; }
-	VirtualMemoryBumpAllocator&    BumpAllocator() { return m_bumpAllocator; }
+	VirtualMemoryBumpAllocator& BumpAllocator() { return m_bumpAllocator; }
 
 	virtual void ReserveAll();
 	virtual void CommitAll();
@@ -175,13 +167,12 @@ extern SysMainMemory& GetVmMemory();
 // This should be available on Windows, via Microsoft or Intel compilers (I'm pretty sure Intel
 // supports native SEH model).  GNUC in Windows, or any compiler in a non-windows platform, will
 // need to use setjmp/longjmp instead to exit recompiled code.
-// In addition, we don't currently set up SEH properly on Windows x64 so disable it there too
 //
 
 //#define PCSX2_SEH		0		// use this to force disable SEH on win32, to test setjmp functionality.
 
 #ifndef PCSX2_SEH
-#	if defined(_WIN32) && !defined(__GNUC__) && !defined(_WIN64)
+#	if defined(_WIN32) && !defined(__GNUC__)
 #		define PCSX2_SEH	1
 #	else
 #		define PCSX2_SEH	0

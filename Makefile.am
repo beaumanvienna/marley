@@ -64,7 +64,7 @@ marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine
 #mednafen
 marley_LDADD 	= mednafen/src/libmednafen_marley.a
 marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf 
-marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lpthread -lsndfile -lz
+marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lsndfile -lz
 
 #ppsspp
 marley_LDADD 	+= ppsspp/build/lib/libglslang.a

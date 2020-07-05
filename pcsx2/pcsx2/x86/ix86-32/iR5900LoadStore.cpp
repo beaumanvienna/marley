@@ -172,9 +172,9 @@ void recLoad32( u32 bits, bool sign )
 		if (sign)
 			xCDQ();
 
-		xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eax);
+		xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eaxd);
 		if (sign)
-			xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edx);
+			xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edxd);
 		else
 			xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], 0);
 	}
@@ -269,20 +269,20 @@ void recLWL()
 		return;
 
 	// mask off bytes loaded
-	xMOV(ecx, calleeSavedReg1d);
-	xMOV(edx, 0xffffff);
-	xSHR(edx, cl);
-	xAND(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], edx);
+	xMOV(ecxd, calleeSavedReg1d);
+	xMOV(edxd, 0xffffff);
+	xSHR(edxd, cl);
+	xAND(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], edxd);
 
 	// OR in bytes loaded
-	xNEG(ecx);
-	xADD(ecx, 24);
-	xSHL(eax, cl);
-	xOR(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eax);
+	xNEG(ecxd);
+	xADD(ecxd, 24);
+	xSHL(eaxd, cl);
+	xOR(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eaxd);
 
 	// eax will always have the sign bit
 	xCDQ();
-	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edx);
+	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edxd);
 #else
 	iFlushCall(FLUSH_INTERPRETER);
 	_deleteEEreg(_Rs_, 1);
@@ -317,22 +317,22 @@ void recLWR()
 		return;
 
 	// mask off bytes loaded
-	xMOV(ecx, 24);
-	xSUB(ecx, calleeSavedReg1d);
-	xMOV(edx, 0xffffff00);
-	xSHL(edx, cl);
-	xAND(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], edx);
+	xMOV(ecxd, 24);
+	xSUB(ecxd, calleeSavedReg1d);
+	xMOV(edxd, 0xffffff00);
+	xSHL(edxd, cl);
+	xAND(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], edxd);
 
 	// OR in bytes loaded
-	xMOV(ecx, calleeSavedReg1d);
-	xSHR(eax, cl);
-	xOR(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eax);
+	xMOV(ecxd, calleeSavedReg1d);
+	xSHR(eaxd, cl);
+	xOR(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eaxd);
 
-	xCMP(ecx, 0);
+	xCMP(ecxd, 0);
 	xForwardJump8 nosignextend(Jcc_NotEqual);
 	// if ((addr & 3) == 0)
 	xCDQ();
-	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edx);
+	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edxd);
 	nosignextend.SetTarget();
 #else
 	iFlushCall(FLUSH_INTERPRETER);
@@ -364,19 +364,19 @@ void recSWL()
 	vtlb_DynGenRead32(32, false);
 
 	// mask read -> arg2
-	xMOV(ecx, calleeSavedReg1d);
+	xMOV(ecxd, calleeSavedReg1d);
 	xMOV(arg2regd, 0xffffff00);
 	xSHL(arg2regd, cl);
-	xAND(arg2regd, eax);
+	xAND(arg2regd, eaxd);
 
 	if (_Rt_)
 	{
 		// mask write and OR -> edx
-		xNEG(ecx);
-		xADD(ecx, 24);
-		_eeMoveGPRtoR(eax, _Rt_);
-		xSHR(eax, cl);
-		xOR(arg2regd, eax);
+		xNEG(ecxd);
+		xADD(ecxd, 24);
+		_eeMoveGPRtoR(eaxd, _Rt_);
+		xSHR(eaxd, cl);
+		xOR(arg2regd, eaxd);
 	}
 
 	_eeMoveGPRtoR(arg1regd, _Rs_);
@@ -414,19 +414,19 @@ void recSWR()
 	vtlb_DynGenRead32(32, false);
 
 	// mask read -> edx
-	xMOV(ecx, 24);
-	xSUB(ecx, calleeSavedReg1d);
+	xMOV(ecxd, 24);
+	xSUB(ecxd, calleeSavedReg1d);
 	xMOV(arg2regd, 0xffffff);
 	xSHR(arg2regd, cl);
-	xAND(arg2regd, eax);
+	xAND(arg2regd, eaxd);
 
 	if (_Rt_)
 	{
 		// mask write and OR -> edx
-		xMOV(ecx, calleeSavedReg1d);
-		_eeMoveGPRtoR(eax, _Rt_);
-		xSHL(eax, cl);
-		xOR(arg2regd, eax);
+		xMOV(ecxd, calleeSavedReg1d);
+		_eeMoveGPRtoR(eaxd, _Rt_);
+		xSHL(eaxd, cl);
+		xOR(arg2regd, eaxd);
 	}
 
 	_eeMoveGPRtoR(arg1regd, _Rs_);
@@ -521,7 +521,7 @@ void recLWC1()
 		vtlb_DynGenRead32(32, false);
 	}
 
-	xMOV(ptr32[&fpuRegs.fpr[_Rt_].UL], eax);
+	xMOV(ptr32[&fpuRegs.fpr[_Rt_].UL], eaxd);
 
 	EE::Profiler.EmitOp(eeOpcode::LWC1);
 #endif

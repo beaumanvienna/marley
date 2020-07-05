@@ -189,11 +189,11 @@ void _flushConstRegs()
 		if (g_cpuConstRegs[i].SL[j] != 0) continue;
 
 		if (eaxval != 0) {
-			xXOR(eax, eax);
+			xXOR(eaxd, eaxd);
 			eaxval = 0;
 		}
 
-		xMOV(ptr[&cpuRegs.GPR.r[i].SL[j]], eax);
+		xMOV(ptr[&cpuRegs.GPR.r[i].SL[j]], eaxd);
 		done[j] |= 1<<i;
 		zero_cnt++;
 	}
@@ -205,15 +205,15 @@ void _flushConstRegs()
 		if (g_cpuConstRegs[i].SL[j] != -1) continue;
 
 		if (eaxval > 0) {
-			xXOR(eax, eax);
+			xXOR(eaxd, eaxd);
 			eaxval = 0;
 		}
 		if (eaxval == 0) {
-			xNOT(eax);
+			xNOT(eaxd);
 			eaxval = -1;
 		}
 
-		xMOV(ptr[&cpuRegs.GPR.r[i].SL[j]], eax);
+		xMOV(ptr[&cpuRegs.GPR.r[i].SL[j]], eaxd);
 		done[j + 2] |= 1<<i;
 		minusone_cnt++;
 	}
@@ -240,11 +240,21 @@ void _flushConstRegs()
 	}
 }
 
+int _allocX86reg(xRegisterEmpty x86reg, int type, int reg, int mode)
+{
+	return _allocX86reg(xRegister32(x86reg), type, reg, mode);
+}
+
+int _allocX86reg(xRegister64 x86reg, int type, int reg, int mode)
+{
+	return _allocX86reg(xRegister32(x86reg.Id), type, reg, mode);
+}
+
 int _allocX86reg(xRegister32 x86reg, int type, int reg, int mode)
 {
 	uint i;
 	pxAssertDev( reg >= 0 && reg < 32, "Register index out of bounds." );
-	pxAssertDev( x86reg != esp && x86reg != ebp, "Allocation of ESP/EBP is not allowed!" );
+	pxAssertDev( x86reg != espd && x86reg != ebpd, "Allocation of ESP/EBP is not allowed!" );
 
 	// don't alloc EAX and ESP,EBP if MODE_NOFRAME
 	int oldmode = mode;
@@ -476,5 +486,5 @@ void _signExtendSFtoM(uptr mem)
 	xLAHF();
 	xSAR(ax, 15);
 	xCWDE();
-	xMOV(ptr[(void*)(mem)], eax);
+	xMOV(ptr[(void*)(mem)], eaxd);
 }

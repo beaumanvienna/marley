@@ -13,8 +13,9 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "EmuCmp.h"
 #include "PrecompiledHeader.h"
-#include "../common/include/Utilities/Assertions.h"
+#include "Assertions.h"
 #include "R5900.h"
 #include "VU.h"
 #include "DebugTools/Debug.h"
@@ -24,8 +25,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #endif
-
-#include "EmuCmp.h"
 
 using namespace EmuCmp;
 
@@ -109,12 +108,10 @@ done:
 }
 
 void EmuCmp::shutdown() {
-#ifdef __POSIX__
 	if (comms) {
 		fclose(comms);
 		comms = nullptr;
 	}
-#endif
 	mode = Config::Mode::Off;
 }
 
@@ -203,7 +200,8 @@ static void CompareBuffer(void *buffer, int startOffset, int length, const char 
 		send(local, length);
 	} else if (mode == Config::Mode::Client) {
 		const int maxStackBuffer = _64kb;
-		u8 *srv = length > maxStackBuffer ? (u8*)malloc(length) : (u8*)alloca(length);
+		u8 srv_[std::min(length, maxStackBuffer)];
+		u8 *srv = length > maxStackBuffer ? (u8*)malloc(length) : srv_;
 		receive(srv, length);
 
 		if (0 != memcmp(srv, local, length)) {
@@ -231,7 +229,7 @@ static void CompareBuffer(void *buffer, int startOffset, int length, const char 
 
 #define COMPARE(reg) Compare(servCPU.reg, cpuRegs.reg, #reg, found, pc)
 
-void __fastcall EmuCmp::cmpR5900(u32 pc) {
+void EmuCmp::cmpR5900(u32 pc) {
 	static u32 lastPC = 0;
 	// Example use of CompareBuffer to find bad memory around 0x70001000
 	// CompareBuffer(eeMem->Scratch, 0x1000, 0x500, "Scratch", lastPC);
@@ -282,7 +280,7 @@ void __fastcall EmuCmp::cmpR5900(u32 pc) {
 	lastPC = pc;
 }
 
-void __fastcall EmuCmp::cmpVU(u32 idx, u32 pc) {
+void EmuCmp::cmpVU(u32 idx, u32 pc) {
 	if (!pxAssert(idx == 0 || idx == 1)) { return; }
 	static u32 lastPC[2] = {0};
 	VURegs& regs = vuRegs[idx];
@@ -330,7 +328,8 @@ void EmuCmp::detail::cmpMem(void *mem, int length, const char *description) {
 		send(mem, length);
 	} else {
 		const int maxStackBuffer = _64kb;
-		u8 *srv = length > maxStackBuffer ? (u8*)malloc(length) : (u8*)alloca(length);
+		u8 srv_[std::min(length, maxStackBuffer)];
+		u8 *srv = length > maxStackBuffer ? (u8*)malloc(length) : srv_;
 
 		if (0 != memcmp(srv, mem, length)) {
 			char err[1024];

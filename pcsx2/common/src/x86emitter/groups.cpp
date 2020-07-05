@@ -156,7 +156,7 @@ void xImpl_Group2::operator()(const xIndirect64orLess &sibdest, u8 imm) const
         // special encoding of 1's
         xOpWrite(sibdest.GetPrefix16(), sibdest.Is8BitOp() ? x86_Opcode_NB2_Eb1 : x86_Opcode_NB2_Ev1, InstType, sibdest);
     } else {
-        xOpWrite(sibdest.GetPrefix16(), sibdest.Is8BitOp() ? x86_Opcode_NB2_Eb_Ib : x86_Opcode_NB2_Ev_Ib, InstType, sibdest, 1);
+        xOpWrite(sibdest.GetPrefix16(), sibdest.Is8BitOp() ? x86_Opcode_NB2_Eb_Ib : x86_Opcode_NB2_Ev_Ib, InstType, sibdest,1);
         xWrite8(imm);
     }
 }

@@ -150,13 +150,14 @@ void closeAll()
     double amplitude1L = 0;
     double amplitude0R = 0;
     double amplitude1R = 0;
-
+int pcsx2_main(int argc, char* argv[]);
 int main( int argc, char* argv[] )
 {
     int k,l,m,id;
     string cmd;
     bool ignoreESC=false;
-
+    
+    pcsx2_main(argc,argv);
     
     gFullscreen=false;
     

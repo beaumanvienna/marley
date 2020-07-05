@@ -782,7 +782,9 @@ void vtlb_Term()
 	//nothing to do for now
 }
 
-constexpr size_t VMAP_SIZE = sizeof(VTLBVirtual) * VTLB_VMAP_ITEMS;
+// We need this to be near recompiled code
+static __pagealigned VTLBVirtual vtlbdata_vmap[VTLB_VMAP_ITEMS];
+static_assert(sizeof(vtlbdata_vmap) % __pagesize == 0, "We decommit this when we're not using it");
 
 // Reserves the vtlb core allocation used by various emulation components!
 // [TODO] basemem - request allocating memory at the specified virtual location, which can allow
@@ -790,15 +792,17 @@ constexpr size_t VMAP_SIZE = sizeof(VTLBVirtual) * VTLB_VMAP_ITEMS;
 //    default is used.
 void vtlb_Core_Alloc()
 {
-	// Can't return regions to the bump allocator
-	static VTLBVirtual* vmap = nullptr;
-	if (!vmap)
-		vmap = (VTLBVirtual*)GetVmMemory().BumpAllocator().Alloc(VMAP_SIZE);
+	static bool hasRun = false; // Memory starts out committed
 	if (!vtlbdata.vmap)
 	{
-		bool okay = HostSys::MmapCommitPtr(vmap, VMAP_SIZE, PageProtectionMode().Read().Write());
+		bool okay = true;
+		if (hasRun) {
+			okay = HostSys::MmapCommitPtr(vtlbdata_vmap, sizeof(vtlbdata_vmap), PageProtectionMode().Read().Write());
+		} else {
+			hasRun = true;
+		}
 		if (okay) {
-			vtlbdata.vmap = vmap;
+			vtlbdata.vmap = vtlbdata_vmap;
 		} else {
 			throw Exception::OutOfMemory( L"VTLB Virtual Address Translation LUT" )
 				.SetDiagMsg(pxsFmt("(%u megs)", VTLB_VMAP_ITEMS * sizeof(*vtlbdata.vmap) / _1mb)
@@ -826,7 +830,7 @@ void vtlb_Alloc_Ppmap()
 void vtlb_Core_Free()
 {
 	if (vtlbdata.vmap) {
-		HostSys::MmapResetPtr(vtlbdata.vmap, VMAP_SIZE);
+		HostSys::MmapResetPtr(vtlbdata_vmap, sizeof(vtlbdata_vmap));
 		vtlbdata.vmap = nullptr;
 	}
 	safe_aligned_free( vtlbdata.ppmap );
@@ -841,20 +845,21 @@ static wxString GetHostVmErrorMsg()
 // --------------------------------------------------------------------------------------
 //  VtlbMemoryReserve  (implementations)
 // --------------------------------------------------------------------------------------
-VtlbMemoryReserve::VtlbMemoryReserve( const wxString& name, size_t size )
-	: m_reserve( name, size )
+VtlbMemoryReserve::VtlbMemoryReserve( const wxString& name )
+	: m_reserve( name, 0 )
 {
 	m_reserve.SetPageAccessOnCommit( PageAccess_ReadWrite() );
 }
 
-void VtlbMemoryReserve::Reserve( VirtualMemoryManagerPtr allocator, sptr offset )
+void VtlbMemoryReserve::Assign(void *ptr, size_t size)
 {
-	if (!m_reserve.Reserve( std::move(allocator), offset ))
-	{
-		throw Exception::OutOfMemory( m_reserve.GetName() )
-			.SetDiagMsg(L"Vtlb memory could not be reserved.")
-			.SetUserMsg(GetHostVmErrorMsg());
+	if (!IsSizeOK(size)) {
+		char str[256];
+		sprintf(str, "0x%lx bytes not enough for %s", size, WX_STR(m_reserve.GetName()));
+		pxAssertMsg(0, str);
 	}
+	m_reserve.Assign( ptr, size );
+	DidAssign(ptr);
 }
 
 void VtlbMemoryReserve::Commit()
