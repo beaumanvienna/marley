@@ -2,10 +2,14 @@
 SUBDIRS = build
 
 all: build
-	$(info   *************** ppsspp all ***************)
+	$(info   *************** ppsspp all end ***************)
 build:
 	$(info   *************** ppsspp build ***************)
-	$(MAKE) -C $@
+	$(MAKE) -C $@ -j8
+
+clean:
+	$(info   *************** ppsspp clean ***************)
+	$(MAKE) -C build $@
 
 check: build
 	$(info   *************** ppsspp check ***************)

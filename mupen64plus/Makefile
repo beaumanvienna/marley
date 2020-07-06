@@ -2,16 +2,16 @@
 SUBDIRS = Source
 
 all: Source
-	$(info   *************** mupen top level all end ***************)
+	$(info   *************** mupen all end ***************)
 Source:
-	$(info   *************** mupen top level Source end ***************)
-	$(MAKE) -C $@
+	$(info   *************** mupen Source ***************)
+	$(MAKE) -C $@ -j8
 
 clean:
-	$(info   *************** mupen top level clean ***************)
+	$(info   *************** mupen clean ***************)
 	$(MAKE) -C Source $@
 
 check: Source
-	$(info   *************** mupen top level check ***************)
+	$(info   *************** mupen check ***************)
 
 .PHONY: all Source

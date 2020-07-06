@@ -2,12 +2,16 @@
 SUBDIRS = build
 
 all: build
-	$(info   *************** dolhpin all ***************)
+	$(info   *************** dolhpin all end ***************)
 build:
 	$(info   *************** dolhpin build ***************)
-	$(MAKE) -C $@
+	$(MAKE) -C $@ -j8
 
 check: build
 	$(info   *************** dolhpin check ***************)
+
+clean:
+	$(info   *************** dolhpin clean ***************)
+	$(MAKE) -C build $@
 
 .PHONY: all build

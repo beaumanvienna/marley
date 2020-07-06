@@ -4,6 +4,22 @@ SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
 
+if DEBUG
+AM_CFLAGS = -g3 -O0
+AM_CPPFLAGS = -g3 -O0 -ggdb 
+AM_LDFLAGS = -g3 -O0 -ggdb 
+else
+AM_CFLAGS = -O2
+AM_CPPFLAGS = -O2
+AM_LDFLAGS = -g3 -O0 -ggdb 
+endif
+
+AM_CPPFLAGS		+= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
+AM_LDFLAGS		+= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
+
+bin_PROGRAMS 	= marley		
+marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
+
 pcsx2/build/pcsx2/libPCSX2.a: pcsx2
 
 pcsx2:
@@ -45,7 +61,11 @@ dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a: dolphin
 dolphin/build/Source/Core/Common/libcommon.a: dolphin
 dolphin/build/Source/Core/../../Externals/enet/libenet.a: dolphin
 dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
+if DEBUG
+dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a: dolphin
+else
 dolphin/build/Source/Core/../../Externals/fmt/libfmt.a: dolphin
+endif
 dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
 dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
 dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
@@ -55,11 +75,6 @@ dolphin:
 	$(info   ++++++++++++++++ dolphin ++++++++++++++++)
 	$(MAKE) -C dolphin all
 
-AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
-AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
-
-bin_PROGRAMS 	= marley		
-marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
 
 #mednafen
 marley_LDADD 	= mednafen/src/libmednafen_marley.a
@@ -158,7 +173,11 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a
 marley_LDADD 	+= dolphin/build/Source/Core/Common/libcommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/enet/libenet.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
+if DEBUG
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a
+else
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmt.a
+endif
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
