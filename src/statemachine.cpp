@@ -404,9 +404,12 @@ bool statemachine(int cmd)
                         if (gGame[gCurrentGame] != "")
                         {
                             int argc;
-                            char arg1[64]; 
+                            char arg1[1024]; 
                             char arg2[1024];
-                            char *argv[2]; 
+                            char arg3[1024]; 
+                            char arg4[1024]; 
+                            char arg5[1024]; 
+                            char *argv[5]; 
                             int n;
                             string str, ext;
                             
@@ -428,12 +431,29 @@ bool statemachine(int cmd)
                                 n = str.length(); 
                                 strcpy(arg1, str.c_str()); 
                                 
-                                n = gGame[gCurrentGame].length(); 
-                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
+                                str = "--nogui";
+                                n = str.length(); 
+                                strcpy(arg2, str.c_str()); 
                                 
+                                str = "--fullboot";
+                                n = str.length(); 
+                                strcpy(arg3, str.c_str()); 
+                                
+                                str = "--fullscreen";
+                                n = str.length(); 
+                                strcpy(arg4, str.c_str()); 
+                                
+                                str = gGame[gCurrentGame];
+                                n = str.length(); 
+                                strcpy(arg5, str.c_str()); 
+                                
+                                argc = 5;
                                 argv[0] = arg1;
                                 argv[1] = arg2;
-                                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                                argv[2] = arg3;
+                                argv[3] = arg4;
+                                argv[4] = arg5;
+                                
                                 pcsx2_main(argc,argv);
                                 
                                 restoreSDL();
