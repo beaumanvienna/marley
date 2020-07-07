@@ -3,6 +3,7 @@ SUBDIRS += mupen64plus
 SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
+SUBDIRS += tests
 
 pcsx2/build/pcsx2/libPCSX2.a: pcsx2
 

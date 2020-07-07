@@ -38,11 +38,11 @@ LINKER_OBJECTS += -lpthread
 LINKER_OBJECTS += -lz
 
 all: 
-	$(info   *************** pcsx2 all ***************)
+	$(info   *************** tests pcsx2 all ***************)
 	gcc -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
 
 
 clean:
-	$(info   *************** pcsx2 clean ***************)
-	rm -f *.o PCSX2
+	$(info   *************** tests pcsx2 clean ***************)
+	rm -f *.o PCSX2 GSdx_opengl_debug_hw.txt
 
