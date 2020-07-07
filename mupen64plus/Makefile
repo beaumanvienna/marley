@@ -5,7 +5,7 @@ all: Source
 	$(info   *************** mupen all end ***************)
 Source:
 	$(info   *************** mupen Source ***************)
-	$(MAKE) -C $@ -j8
+	$(MAKE) -C $@
 
 clean:
 	$(info   *************** mupen clean ***************)
