@@ -33,6 +33,11 @@ static const __aligned16 u32 SSEXYZWMask[4][4] =
 //static __pagealigned u8 nVifUpkExec[__pagesize*4];
 static RecompiledCodeReserve* nVifUpkExec = NULL;
 
+void initNewVif_unpack()
+{
+    nVifUpkExec = NULL;
+}
+
 // Merges xmm vectors without modifying source reg
 void mergeVectors(xRegisterSSE dest, xRegisterSSE src, xRegisterSSE temp, int xyzw) {
 	if (x86caps.hasStreamingSIMD4Extensions  || (xyzw==15)

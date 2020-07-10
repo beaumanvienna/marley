@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     str = "pcsx2";
     n = str.length(); 
     strcpy(arg1, str.c_str()); 
-#define TEST1
+//#define TEST1
 #ifdef TEST1
     pcsx2_argc = 1;
     pcsx2_argv[0] = arg1;
@@ -41,10 +41,6 @@ int main(int argc, char* argv[])
     str = "--fullscreen";
     n = str.length(); 
     strcpy(arg4, str.c_str()); 
-    
-    str = argv[1];
-    n = str.length(); 
-    strcpy(arg5, str.c_str()); 
 
     pcsx2_argv[0] = arg1;
     pcsx2_argv[1] = arg2;
@@ -53,17 +49,23 @@ int main(int argc, char* argv[])
     
     if (argc > 1)
     {
+        str = argv[1];
+        n = str.length(); 
+        strcpy(arg5, str.c_str());
+
         pcsx2_argv[4] = arg5;
         pcsx2_argc = 5;
     }
     else
     {
-        pcsx2_argc = 4;
+        pcsx2_argc = 1;
     }
 #endif
-    
+    printf("jc 1st run\n");
     pcsx2_main(pcsx2_argc,pcsx2_argv);
+    printf("jc 2nd run\n");
     pcsx2_main(pcsx2_argc,pcsx2_argv);
+    printf("jc exit\n");
     
     return 0;
 }

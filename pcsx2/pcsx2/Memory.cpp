@@ -53,6 +53,11 @@ BIOS
 
 int MemMode = 0;		// 0 is Kernel Mode, 1 is Supervisor Mode, 2 is User Mode
 
+void initMemory()
+{
+    MemMode = 0;
+}
+
 void memSetKernelMode() {
 	//Do something here
 	MemMode = 0;

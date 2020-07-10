@@ -62,6 +62,12 @@ u8 psxvblankgate = 0;
 // which ensures they stay 100% in sync with the EE's hblank counters.
 #define PSXHBLANK 0x2001
 
+void initIopCounters()
+{
+    psxhblankgate = 0;
+    psxvblankgate = 0;
+}
+
 static void psxRcntReset(int index)
 {
 	psxCounters[index].count = 0;

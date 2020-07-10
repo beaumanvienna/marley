@@ -47,6 +47,14 @@ _x86regs x86regs[iREGCNT_GPR], s_saveX86regs[iREGCNT_GPR];
 
 static int s_xmmchecknext = 0;
 
+void iCoreInit()
+{
+    g_x86AllocCounter = 0;
+    g_xmmAllocCounter = 0;
+    g_pCurInstInfo = NULL;
+    g_recWriteback = 0;    
+}
+
 // Clear current register mapping structure
 // Clear allocation counter
 void _initXMMregs() {

@@ -67,6 +67,15 @@ const int kMaxArgs = 16;
 uptr g_argPtrs[kMaxArgs];
 #define DEBUG_LAUNCHARG 0 // show lots of helpful console messages as the launch arguments are passed to the game
 
+void initR5900()
+{
+    Cpu = NULL;
+    eeEventTestIsActive = false;
+    g_eeloadMain = 0;
+    g_eeloadExec = 0; 
+    g_osdsys_str = 0;
+}
+
 extern SysMainMemory& GetVmMemory();
 
 void cpuReset()

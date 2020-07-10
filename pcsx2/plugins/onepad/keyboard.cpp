@@ -45,7 +45,7 @@ char *KeysymToChar(int keysym)
 
 /// g_key_status.press but with proper handling for analog buttons
 static void PressButton(u32 pad, u32 button) {
-    printf("jc pad = 0x%x, button = 0x%x\n",pad,button);
+    
     // Analog controls.
     if (IsAnalogKey(button)) {
         switch (button) {
@@ -77,7 +77,7 @@ static void PressButton(u32 pad, u32 button) {
 // Mouse buttons use discriminator 1
 
 void UpdateKeyboardInput() {
-    printf("jc void UpdateKeyboardInput()\n");
+    
     for (int pad = 0; pad < GAMEPAD_NUMBER; pad++) {
         const auto& map = g_conf.keysym_map[pad];
         // If we loop over all keys press/release based on current state,

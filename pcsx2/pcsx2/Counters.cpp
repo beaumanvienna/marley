@@ -53,6 +53,12 @@ SyncCounter vsyncCounter;
 u32 nextsCounter;	// records the cpuRegs.cycle value of the last call to rcntUpdate()
 s32 nextCounter;	// delta from nextsCounter, in cycles, until the next rcntUpdate()
 
+void initCounters()
+{
+    gates = 0;
+    g_FrameCount = 0;
+}
+
 // Forward declarations needed because C/C++ both are wimpy single-pass compilers.
 
 static void rcntStartGate(bool mode, u32 sCycle);

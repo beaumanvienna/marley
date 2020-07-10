@@ -50,6 +50,15 @@ bool iopEventTestIsActive = false;
 
 __aligned16 psxRegisters psxRegs;
 
+void initR3000A()
+{
+    g_iopNextEventCycle = 0;
+    iopBreak = 0;
+    iopCycleEE = -1;
+    iopEventAction = false;
+    iopEventTestIsActive = false;
+}
+
 void psxReset()
 {
 	memzero(psxRegs);

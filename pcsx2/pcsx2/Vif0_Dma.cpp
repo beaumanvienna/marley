@@ -21,6 +21,11 @@
 
 u32 g_vif0Cycles = 0;
 
+void initVif0_Dma()
+{
+    g_vif0Cycles = 0;
+}
+
 // Run VU0 until finish, don't add cycles to EE
 // because its vif stalling not the EE core...
 __fi void vif0FLUSH()

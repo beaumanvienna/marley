@@ -21,6 +21,13 @@
 u32 s_iLastCOP0Cycle = 0;
 u32 s_iLastPERFCycle[2] = { 0, 0 };
 
+void initCOP0()
+{
+    s_iLastCOP0Cycle = 0;
+    s_iLastPERFCycle[0] = 0;
+    s_iLastPERFCycle[1] = 0;
+}
+
 // Updates the CPU's mode of operation (either, Kernel, Supervisor, or User modes).
 // Currently the different modes are not implemented.
 // Given this function is called so much, it's commented out for now. (rama)

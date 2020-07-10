@@ -25,6 +25,14 @@ IopVM_MemoryAllocMess* iopMem = NULL;
 
 __pagealigned u8 iopHw[Ps2MemSize::IopHardware];
 
+
+void initIopMem()
+{
+    psxMemWLUT = NULL;
+    psxMemRLUT = NULL;
+    iopMem = NULL;
+}
+
 // --------------------------------------------------------------------------------------
 //  iopMemoryReserve
 // --------------------------------------------------------------------------------------

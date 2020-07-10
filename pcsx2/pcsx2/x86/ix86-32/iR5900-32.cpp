@@ -643,8 +643,52 @@ static void recShutdown()
 	Perf::dump();
 }
 
+void initEE()
+{
+    eeRecIsReset=false;
+    eeRecNeedsReset=false;
+    eeCpuExecuting = false;
+    g_resetEeScalingStats = false;
+    g_patchesNeedRedo = 0;
+    maxrecmem = 0;
+    s_nBlockCycles = 0; 
+    g_cpuConstRegs[32] = {0};
+    g_cpuHasConstReg = 0;
+    g_cpuFlushedConstReg = 0;
+    recMem = NULL;
+    recRAMCopy = NULL;
+    recLutReserve_RAM = NULL;
+    m_ConfiguredCacheReserve = 64;
+    recConstBuf = NULL;
+    recRAM = NULL;
+    recROM = NULL;
+    recROM1 = NULL;
+    recPtr = NULL;
+    recConstBufPtr = NULL;
+    s_pInstCache = NULL;
+    s_nInstCacheSize = 0;
+    s_pCurBlock = NULL;
+    s_pCurBlockEx = NULL;
+    s_nEndBlock = 0;
+    s_saveHasConstReg = 0; 
+    s_saveFlushedConstReg = 0;
+    s_psaveInstInfo = NULL;
+    s_savenBlockCycles = 0;
+    
+    DispatcherEvent		= NULL;
+    DispatcherReg		= NULL;
+    JITCompile			= NULL;
+    JITCompileInBlock	= NULL;
+    EnterRecompiledCode	= NULL;
+    ExitRecompiledCode	= NULL;
+    DispatchBlockDiscard = NULL;
+    DispatchPageReset    = NULL;
+}
+
 static void recResetEE()
 {
+    
+    
 	if (eeCpuExecuting)
 	{
 		eeRecNeedsReset = true;

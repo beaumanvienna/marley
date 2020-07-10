@@ -315,6 +315,7 @@ bool AppCorePlugins::Shutdown()
 	if (_parent::Shutdown())
 	{
 		PostPluginStatus( CorePlugins_Shutdown );
+        
 		return true;
 	}
 	return false;
@@ -531,6 +532,11 @@ public:
 		CorePlugins.Shutdown();
 	}
 };
+
+void ClosePlugins()
+{
+    CorePlugins.Unload();
+}
 
 void UnloadPlugins()
 {

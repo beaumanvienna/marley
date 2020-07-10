@@ -688,8 +688,6 @@ static const LegacyApi_OptMethod* const s_MethMessOpt[] =
 	s_MethMessOpt_DEV9
 };
 
-SysCorePlugins *g_plugins = NULL;
-
 // ---------------------------------------------------------------------------------
 //       Plugin-related Exception Implementations
 // ---------------------------------------------------------------------------------

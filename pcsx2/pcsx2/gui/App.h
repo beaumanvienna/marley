@@ -554,6 +554,7 @@ public:
 	void LogicalVsync();
 	
 	SysMainMemory& GetVmReserve();
+    void ReleaseVmReserve();
 	
 	GSFrame&			GetGsFrame() const;
 	MainEmuFrame&		GetMainFrame() const;
@@ -794,6 +795,7 @@ extern int  EnumeratePluginsInFolder( const wxDirName& searchPath, wxArrayString
 extern void LoadPluginsPassive();
 extern void LoadPluginsImmediate();
 extern void UnloadPlugins();
+extern void ClosePlugins();
 extern void ShutdownPlugins();
 
 extern bool SysHasValidState();

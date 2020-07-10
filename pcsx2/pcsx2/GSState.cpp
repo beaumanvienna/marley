@@ -27,6 +27,12 @@ int g_SaveGSStream = 0; // save GS stream; 1 - prepare, 2 - save
 int g_nLeftGSFrames = 0; // when saving, number of frames left
 static std::unique_ptr<memSavingState> g_fGSSave;
 
+void initGSState()
+{
+    g_SaveGSStream = 0; 
+    g_nLeftGSFrames = 0; 
+}
+
 // fixme - need to take this concept and make it MTGS friendly.
 #ifdef _STGS_GSSTATE_CODE
 void GSGIFTRANSFER1(u32 *pMem, u32 addr) {

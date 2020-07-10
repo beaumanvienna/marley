@@ -27,6 +27,13 @@
 GS_VideoMode gsVideoMode = GS_VideoMode::Uninitialized;
 bool gsIsInterlaced = false;
 
+void initR5900Op()
+{
+    gsVideoMode = GS_VideoMode::Uninitialized;
+    gsIsInterlaced = false;
+
+}
+
 static __fi bool _add64_Overflow( s64 x, s64 y, s64 &ret )
 {
 	const s64 result = x + y;

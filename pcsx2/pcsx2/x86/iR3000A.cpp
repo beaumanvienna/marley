@@ -653,11 +653,30 @@ static void recAlloc()
 
 	_DynGen_Dispatchers();
 }
-
+void initIOP()
+{
+    g_psxMaxRecMem = 0;
+    recMem = NULL;
+    recRAM = NULL;
+    recROM = NULL;
+    recROM1 = NULL;
+    recPtr = NULL;
+    s_pInstCache = NULL;
+    s_nInstCacheSize = 0;
+    s_pCurBlock = NULL;
+    s_pCurBlockEx = NULL;
+    s_nEndBlock = 0; 
+    s_saveHasConstReg = 0;
+    s_saveFlushedConstReg = 0;
+    s_psaveInstInfo = NULL;
+    s_psxBlockCycles = 0; 
+    s_savenBlockCycles = 0;
+    psxdump = 0;
+}
 void recResetIOP()
 {
 	DevCon.WriteLn( "iR3000A Recompiler reset." );
-
+    
 	Perf::iop.reset();
 
 	recAlloc();

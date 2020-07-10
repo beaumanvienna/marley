@@ -64,17 +64,54 @@
 #include <wx/osx/private.h>		// needed to implement the app!
 #endif
 
-//wxIMPLEMENT_APP(Pcsx2App);
-
 wxIMPLEMENT_APP_NO_MAIN(Pcsx2App);
 
+void initEE();
+void initIOP();
+void iCoreInit();
+void initCOP0();
+void initCounters();
+void initGSState();
+void initHW();
+void initIopCounters();
+void initIopMem();
+void initMemory();
+void initR3000A();
+void initR5900();
+void initR5900Op();
+void initVif0_Dma();
+void initVif1_Dma();
+void initNewVif_unpack();
 
-int pcsx2_main(int argc, char* argv[])
+int pcsx2_main(int argc_local, char* argv_local[])
 {
-    wxEntryStart(argc,argv);
+    
+    initEE();
+    initIOP();
+    iCoreInit();
+    initCOP0();
+    initCounters();
+    initGSState();
+    initHW();
+    initIopCounters();
+    initIopMem();
+    initMemory();
+    initR3000A();
+    initR5900();
+    initR5900Op();
+    initVif0_Dma();
+    initVif1_Dma();
+    initNewVif_unpack();
+
+    wxEntryStart(argc_local,argv_local);
     wxTheApp->CallOnInit();
     wxTheApp->OnRun();
+    ClosePlugins();
+    wxTheApp->OnExit();
+    delete wxTheApp;
 
+    if (g_Conf) g_Conf.reset();
+    
     return 0;
 }
 
@@ -947,6 +984,11 @@ SysMainMemory& Pcsx2App::GetVmReserve()
 {
 	if (!m_VmReserve) m_VmReserve = std::unique_ptr<SysMainMemory>(new SysMainMemory());
 	return *m_VmReserve;
+}
+
+void Pcsx2App::ReleaseVmReserve()
+{
+    if (m_VmReserve) m_VmReserve.reset();
 }
 
 void Pcsx2App::OpenGsPanel()
