@@ -96,23 +96,6 @@ void JoystickInfo::Rumble(unsigned type, unsigned pad)
 
 JoystickInfo::~JoystickInfo()
 {
-    // Haptic must be closed before the joystick
-    if (m_haptic != nullptr) {
-        for (const auto &eid : m_effects_id) {
-            if (eid >= 0)
-                SDL_HapticDestroyEffect(m_haptic, eid);
-        }
-
-        SDL_HapticClose(m_haptic);
-    }
-
-    if (m_controller != nullptr) {
-#if SDL_MINOR_VERSION >= 4
-        // Version before 2.0.4 are bugged, JoystickClose crashes randomly
-        // Note: GameControllerClose calls JoystickClose)
-        SDL_GameControllerClose(m_controller);
-#endif
-    }
 }
 
 JoystickInfo::JoystickInfo(int id)

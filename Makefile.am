@@ -5,19 +5,55 @@ SUBDIRS += dolphin
 SUBDIRS += ppsspp
 SUBDIRS += tests
 
-pcsx2/build/pcsx2/libPCSX2.a: pcsx2
+#marley
+AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
+AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
+
+bin_PROGRAMS 	= marley		
+marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
+
+#pcsx2
+COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so 
+COPY_FILES += pcsx2/build/plugins/libcdvdGigaherz.so 
+COPY_FILES += pcsx2/build/plugins/libLilyPad-0.11.0.so
+COPY_FILES += pcsx2/build/plugins/libonepad.so
+COPY_FILES += pcsx2/build/plugins/libonepad-legacy.so 
+COPY_FILES += pcsx2/build/plugins/libUSBnull-0.7.0.so 
+COPY_FILES += pcsx2/build/plugins/libspu2x-2.0.0.so
+COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so 
+COPY_FILES += pcsx2/build/plugins/libGSdx.so 
+COPY_FILES += pcsx2/build/plugins/libdev9ghzdrk-0.4.so 
+COPY_FILES += pcsx2/build/plugins/libdev9null-0.5.0.so 
+
+pcsx2/build/pcsx2/libPCSX2.a: pcsx2 $(COPY_FILES)
+
+pcsx2/build/plugins/libCDVDnull.so: 		pcsx2/build/plugins/CDVDnull/libCDVDnull.so
+pcsx2/build/plugins/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/libcdvdGigaherz.so
+pcsx2/build/plugins/libLilyPad-0.11.0.so: 	pcsx2/build/plugins/LilyPad/libLilyPad-0.11.0.so
+pcsx2/build/plugins/libonepad.so: 			pcsx2/build/plugins/onepad/libonepad.so
+pcsx2/build/plugins/libonepad-legacy.so: 	pcsx2/build/plugins/onepad_legacy/libonepad-legacy.so
+pcsx2/build/plugins/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
+pcsx2/build/plugins/libspu2x-2.0.0.so: 		pcsx2/build/plugins/spu2-x/src/libspu2x-2.0.0.so
+pcsx2/build/plugins/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.so
+pcsx2/build/plugins/libGSdx.so: 			pcsx2/build/plugins/GSdx/libGSdx.so 
+pcsx2/build/plugins/libdev9ghzdrk-0.4.so: 	pcsx2/build/plugins/dev9ghzdrk/libdev9ghzdrk-0.4.so
+pcsx2/build/plugins/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
+
+pcsx2/build/plugins/%:
+	cp -f $< $@
 
 pcsx2:
 	$(info   ++++++++++++++++ pcsx2 ++++++++++++++++)
 	$(MAKE) -C pcsx2 all
 
+#mupen64plus
 mupen64plus/Source/mupen.a: mupen64plus
 
 mupen64plus:
 	$(info   ++++++++++++++++ mupen64plus ++++++++++++++++)
 	$(MAKE) -C mupen64plus all
 
-
+#dolphin
 dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a: dolphin
 dolphin/build/Source/Core/Core/libcore.a: dolphin
 dolphin/build/Source/Core/UICommon/libuicommon.a: dolphin
@@ -55,12 +91,6 @@ dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolp
 dolphin:
 	$(info   ++++++++++++++++ dolphin ++++++++++++++++)
 	$(MAKE) -C dolphin all
-
-AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
-AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
-
-bin_PROGRAMS 	= marley		
-marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
 
 #mednafen
 marley_LDADD 	= mednafen/src/libmednafen_marley.a
