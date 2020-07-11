@@ -435,8 +435,10 @@ static const LegacyApi_ReqMethod s_MethMessReq_PAD[] =
 	// fixme - Following functions are new as of some revison post-0.9.6, and
 	// are for multitap support only.  They should either be optional or offer
 	// NOP fallbacks, to allow older plugins to retain functionality.
+#ifndef BUILTIN_PAD_PLUGIN
 	{	"PADsetSlot",		(vMeth**)&PADsetSlot,	(vMeth*)PAD_setSlot },
 	{	"PADqueryMtap",		(vMeth**)&PADqueryMtap,	(vMeth*)PAD_queryMtap },
+#endif
 	{ NULL },
 };
 
@@ -835,7 +837,6 @@ void* StaticLibrary::GetSymbol(const wxString &name)
 	RETURN_SYMBOL(p##keyEvent) \
 	RETURN_SYMBOL(p##setSettingsDir) \
 	RETURN_SYMBOL(p##setLogDir) \
-	RETURN_SYMBOL(p##freeze) \
 	RETURN_SYMBOL(p##test) \
 	RETURN_SYMBOL(p##configure) \
 	RETURN_SYMBOL(p##about)
@@ -1116,10 +1117,10 @@ void SysCorePlugins::Load( const wxString (&folders)[PluginId_Count] )
 
 	CDVDapi_Plugin.newDiskCB( cdvdNewDiskCB );
 
-	// Hack for PAD's stupid parameter passed on Init
+#ifndef BUILTIN_PAD_PLUGIN
 	PADinit = (_PADinit)m_info[PluginId_PAD]->CommonBindings.Init;
 	m_info[PluginId_PAD]->CommonBindings.Init = _hack_PADinit;
-
+#endif
 	Console.WriteLn( Color_StrongBlue, "Plugins loaded successfully.\n" );
 
 	// HACK!  Manually bind the Internal MemoryCard plugin for now, until

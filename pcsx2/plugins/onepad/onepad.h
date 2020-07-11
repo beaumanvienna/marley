@@ -118,7 +118,7 @@ enum gamePadValues {
 extern FILE *padLog;
 extern void initLogging();
 
-#define PAD_LOG __Log
+#define PAD_LOG __LogOP
 //#define PAD_LOG __LogToConsole
 
 extern keyEvent event;
@@ -128,7 +128,7 @@ s32 _PADopen(void *pDsp);
 void _PADclose();
 void PADsetMode(int pad, int mode);
 
-void __Log(const char *fmt, ...);
+void __LogOP(const char *fmt, ...);
 void __LogToConsole(const char *fmt, ...);
 void LoadConfig();
 void SaveConfig();

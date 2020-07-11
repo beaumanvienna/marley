@@ -1,9 +1,11 @@
 #standalone pcsx2 test version
+COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2
 
 LINKER_OBJECTS = ../../pcsx2/build/pcsx2/libPCSX2.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/x86emitter/libx86emitter.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
+LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += -lwx_baseu-3.0
 LINKER_OBJECTS += -lwx_gtk2u_core-3.0
 LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
@@ -34,10 +36,13 @@ LINKER_OBJECTS += -lm
 LINKER_OBJECTS += -lpthread
 LINKER_OBJECTS += -lz
 
+LINKER_OBJECTS += -lSDL2
+LINKER_OBJECTS += -lX11 
+
 all: 
 	$(info   *************** tests make pcsx2 ***************)
 	$(MAKE) -C ../../pcsx2/build $@ -j8
-	gcc -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
+	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
 
 
 clean:

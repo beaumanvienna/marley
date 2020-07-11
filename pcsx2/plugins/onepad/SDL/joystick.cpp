@@ -21,25 +21,25 @@
 
 #include "joystick.h"
 #include "resources.h"
+#include "../../../../include/controller.h"
 #include <signal.h> // sigaction
 
 //////////////////////////
 // Joystick definitions //
 //////////////////////////
 
-// opens handles to all possible joysticks
+// opens all joysticks
 void JoystickInfo::EnumerateJoysticks(std::vector<std::unique_ptr<GamePad>> &vjoysticks)
 {
     uint32_t flag = SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER;
 
     if ((SDL_WasInit(0) & flag) != flag) {
-        // Tell SDL to catch event even if the windows isn't focussed
+        // Tell SDL to catch event even if the window is not focussed
         SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
         if (SDL_Init(flag) < 0)
             return;
 
-        // WTF! Give me back the control of my system
         struct sigaction action = {};
         action.sa_handler = SIG_DFL;
         sigaction(SIGINT, &action, nullptr);
@@ -50,30 +50,22 @@ void JoystickInfo::EnumerateJoysticks(std::vector<std::unique_ptr<GamePad>> &vjo
         SDL_EventState(SDL_CONTROLLERDEVICEADDED, SDL_ENABLE);
         SDL_EventState(SDL_CONTROLLERDEVICEREMOVED, SDL_ENABLE);
 
-        { // Support as much Joystick as possible
-            GBytes *bytes = g_resource_lookup_data(onepad_res_get_resource(), "/onepad/res/game_controller_db.txt", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
-
-            size_t size = 0;
-            // SDL forget to add const for SDL_RWFromMem API...
-            void *data = const_cast<void *>(g_bytes_get_data(bytes, &size));
-
-            SDL_GameControllerAddMappingsFromRW(SDL_RWFromMem(data, size), 1);
-
-            g_bytes_unref(bytes);
-
-            // Add user mapping too
-            for (auto const &map : g_conf.sdl2_mapping)
-                SDL_GameControllerAddMapping(map.c_str());
-        }
     }
 
     vjoysticks.clear();
-
-    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-        vjoysticks.push_back(std::unique_ptr<GamePad>(new JoystickInfo(i)));
-        // Something goes wrong in the init, let's drop it
-        if (!vjoysticks.back()->IsProperlyInitialized())
-            vjoysticks.pop_back();
+    int slot = 0;
+    for (int i = 0; i < MAX_GAMEPADS; i++)
+    {
+        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
+        {
+            vjoysticks.push_back(std::unique_ptr<GamePad>(new JoystickInfo(slot)));
+            // If something goes wrong in the init, let's drop it
+            if (!vjoysticks.back()->IsProperlyInitialized())
+            {
+                vjoysticks.pop_back();
+            }
+            slot++;
+        }
     }
 }
 
@@ -98,7 +90,7 @@ JoystickInfo::~JoystickInfo()
 {
 }
 
-JoystickInfo::JoystickInfo(int id)
+JoystickInfo::JoystickInfo(int slot)
     : GamePad()
     , m_controller(nullptr)
     , m_haptic(nullptr)
@@ -132,22 +124,20 @@ JoystickInfo::JoystickInfo(int id)
     m_pad_to_sdl[PAD_R_DOWN] = SDL_CONTROLLER_AXIS_RIGHTY;
     m_pad_to_sdl[PAD_R_LEFT] = SDL_CONTROLLER_AXIS_RIGHTX;
 
-    if (SDL_IsGameController(id)) {
-        m_controller = SDL_GameControllerOpen(id);
-        joy = SDL_GameControllerGetJoystick(m_controller);
-    } else {
-        joy = SDL_JoystickOpen(id);
-    }
+    
+    m_controller = gDesignatedControllers[slot].gameCtrl[0];
+    joy = SDL_GameControllerGetJoystick(m_controller);
+
 
     if (joy == nullptr) {
-        fprintf(stderr, "onepad:failed to open joystick %d\n", id);
+        fprintf(stderr, "onepad:failed to open joystick %d\n", slot);
         return;
     }
 
     // Collect Device Information
     char guid[64];
     SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joy), guid, 64);
-    const char *devname = SDL_JoystickNameForIndex(id);
+    const char *devname = SDL_JoystickNameForIndex(slot);
 
     if (m_controller == nullptr) {
         fprintf(stderr, "onepad: Joystick (%s,GUID:%s) isn't yet supported by the SDL2 game controller API\n"
@@ -156,9 +146,9 @@ JoystickInfo::JoystickInfo(int id)
                         "Please report it to us (https://github.com/PCSX2/pcsx2/issues) so we can add your joystick to our internal database.",
                 devname, guid);
 
-#if SDL_MINOR_VERSION >= 4 // Version before 2.0.4 are bugged, JoystickClose crashes randomly
-        SDL_JoystickClose(joy);
-#endif
+        #if SDL_MINOR_VERSION >= 4 // Version before 2.0.4 are bugged, JoystickClose crashes randomly
+            SDL_JoystickClose(joy);
+        #endif
 
         return;
     }
@@ -262,7 +252,7 @@ int JoystickInfo::GetInput(gamePadValues input)
         return (value > m_deadzone) ? value / 128 : 0;
     }
 
-    // Remain buttons
+    // Map buttons
     int value = SDL_GameControllerGetButton(m_controller, (SDL_GameControllerButton)m_pad_to_sdl[input]);
     return value ? 0xFF : 0; // Max pressure
 }

@@ -15,9 +15,6 @@ marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine
 #pcsx2
 COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so 
 COPY_FILES += pcsx2/build/plugins/libcdvdGigaherz.so 
-COPY_FILES += pcsx2/build/plugins/libLilyPad-0.11.0.so
-COPY_FILES += pcsx2/build/plugins/libonepad.so
-COPY_FILES += pcsx2/build/plugins/libonepad-legacy.so 
 COPY_FILES += pcsx2/build/plugins/libUSBnull-0.7.0.so 
 COPY_FILES += pcsx2/build/plugins/libspu2x-2.0.0.so
 COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so 
@@ -29,9 +26,6 @@ pcsx2/build/pcsx2/libPCSX2.a: pcsx2 $(COPY_FILES)
 
 pcsx2/build/plugins/libCDVDnull.so: 		pcsx2/build/plugins/CDVDnull/libCDVDnull.so
 pcsx2/build/plugins/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/libcdvdGigaherz.so
-pcsx2/build/plugins/libLilyPad-0.11.0.so: 	pcsx2/build/plugins/LilyPad/libLilyPad-0.11.0.so
-pcsx2/build/plugins/libonepad.so: 			pcsx2/build/plugins/onepad/libonepad.so
-pcsx2/build/plugins/libonepad-legacy.so: 	pcsx2/build/plugins/onepad_legacy/libonepad-legacy.so
 pcsx2/build/plugins/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
 pcsx2/build/plugins/libspu2x-2.0.0.so: 		pcsx2/build/plugins/spu2-x/src/libspu2x-2.0.0.so
 pcsx2/build/plugins/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.so
@@ -240,6 +234,7 @@ marley_LDADD 	+= pcsx2/build/pcsx2/libPCSX2.a
 marley_LDADD 	+= pcsx2/build/common/src/x86emitter/libx86emitter.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
+marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= -lwx_baseu-3.0 
 marley_LDADD 	+= -lwx_gtk2u_core-3.0 
 marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
