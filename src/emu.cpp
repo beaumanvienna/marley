@@ -48,21 +48,23 @@
 using namespace std;
 
 bool gPSX_firmware;
-string gPathToFirnwarePSX;
+bool gPSXX_firmware;
+string gPathToFirmwarePSX;
+string gPathToFirmwarePSXX;
 string gPathToGames;
 string gBaseDir;
-vector<string> gSupportedEmulators = {"ps1","md (sega genesis)","snes","nes","gamecube","wii","n64","psp"}; 
+vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","snes","nes","gamecube","wii","n64"}; 
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc"};
 bool gGamesFound;
 
 bool checkFirmwarePSX(void)
 {
-    if (gPathToFirnwarePSX!="")
+    if (gPathToFirmwarePSX!="")
     {
         int count = 0;
-        string jp = gPathToFirnwarePSX + "scph5500.bin";
-        string na = gPathToFirnwarePSX + "scph5501.bin";
-        string eu = gPathToFirnwarePSX + "scph5502.bin";
+        string jp = gPathToFirmwarePSX + "scph5500.bin";
+        string na = gPathToFirmwarePSX + "scph5501.bin";
+        string eu = gPathToFirmwarePSX + "scph5502.bin";
     
         ifstream jpF (jp.c_str());
         ifstream naF (na.c_str());
@@ -131,7 +133,7 @@ bool initEMU(void)
     printSupportedEmus();
     
     //check for PSX firmware
-    if (gPathToFirnwarePSX == "")
+    if (gPathToFirmwarePSX == "")
     {
         printf("No valid firmware path for PSX found in marley.cfg\n");
     }
@@ -149,6 +151,17 @@ bool initEMU(void)
     {
         printf("%s\n",gGame[i].c_str());
     }
+    const char *homedir = getenv("HOME");
+    gPathToFirmwarePSXX = homedir;
+    
+    string slash;
+    slash = gPathToFirmwarePSXX.substr(gPathToFirmwarePSXX.length()-1,1);
+    if (slash != "/")
+    {
+        gPathToFirmwarePSXX += "/";
+    }
+    
+    gPathToFirmwarePSXX += "Gaming/BIOS/PS2/PS2.rom0";
 }
 
 bool exists(const char *fileName)

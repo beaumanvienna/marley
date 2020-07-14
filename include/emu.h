@@ -31,7 +31,7 @@ using namespace std;
 
     extern bool gPSX_firmware;
     extern string gBaseDir;
-    extern string gPathToFirnwarePSX;
+    extern string gPathToFirmwarePSX;
     extern string gPathToGames;
     extern bool gGamesFound;
     

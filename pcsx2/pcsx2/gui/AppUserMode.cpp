@@ -297,7 +297,7 @@ void Pcsx2App::EstablishAppUserMode()
 		return;
 	}
 
-	DoFirstTimeWizard();
+	//DoFirstTimeWizard();
 
 	// Save user's new settings
 	App_SaveInstallSettings( conf_install.get() );

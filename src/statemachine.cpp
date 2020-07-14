@@ -404,12 +404,22 @@ bool statemachine(int cmd)
                         if (gGame[gCurrentGame] != "")
                         {
                             int argc;
+                            char *argv[11]; 
+                            
                             char arg1[1024]; 
                             char arg2[1024];
                             char arg3[1024]; 
                             char arg4[1024]; 
                             char arg5[1024]; 
-                            char *argv[5]; 
+                            char arg6[1024]; 
+                            char arg7[1024]; 
+                            char arg8[1024]; 
+                            char arg9[1024]; 
+                            char arg10[1024]; 
+                            char arg11[1024]; 
+                            
+                            
+                            
                             int n;
                             string str, ext;
                             
@@ -427,32 +437,59 @@ bool statemachine(int cmd)
                             {
                                 
                                 
-                                str = "pcsx2";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                str = "--nogui";
+                                str = "--gs=/usr/games/Marley/PCSX2/libGSdx.so";
                                 n = str.length(); 
                                 strcpy(arg2, str.c_str()); 
                                 
-                                str = "--fullboot";
+                                str = "--spu2=/usr/games/Marley/PCSX2/libspu2x-2.0.0.so";
                                 n = str.length(); 
                                 strcpy(arg3, str.c_str()); 
                                 
-                                str = "--fullscreen";
+                                str = "--cdvd=/usr/games/Marley/PCSX2/libCDVDnull.so";
                                 n = str.length(); 
                                 strcpy(arg4, str.c_str()); 
+
+                                str = "--usb=/usr/games/Marley/PCSX2/libUSBnull-0.7.0.so";
+                                n = str.length(); 
+                                strcpy(arg5, str.c_str()); 
+
+                                str = "--fw=/usr/games/Marley/PCSX2/libFWnull-0.7.0.so";
+                                n = str.length(); 
+                                strcpy(arg6, str.c_str()); 
+
+                                str = "--dev9=/usr/games/Marley/PCSX2/libdev9null-0.5.0.so";
+                                n = str.length(); 
+                                strcpy(arg7, str.c_str()); 
+                                
+                                str = "--nogui";
+                                n = str.length(); 
+                                strcpy(arg8, str.c_str()); 
+                                
+                                str = "--fullboot";
+                                n = str.length(); 
+                                strcpy(arg9, str.c_str()); 
+
+                                str = "--fullscreen";
+                                n = str.length(); 
+                                strcpy(arg10, str.c_str()); 
                                 
                                 str = gGame[gCurrentGame];
                                 n = str.length(); 
-                                strcpy(arg5, str.c_str()); 
-                                
-                                argc = 5;
+                                strcpy(arg11, str.c_str()); 
+
                                 argv[0] = arg1;
                                 argv[1] = arg2;
                                 argv[2] = arg3;
                                 argv[3] = arg4;
                                 argv[4] = arg5;
+                                argv[5] = arg6;
+                                argv[6] = arg7;
+                                argv[7] = arg8;
+                                argv[8] = arg9;
+                                argv[9] = arg10;
+                                argv[10] = arg11;
+                                
+                                argc = 11;
                                 
                                 pcsx2_main(argc,argv);
                                 

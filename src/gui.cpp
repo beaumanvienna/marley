@@ -153,7 +153,7 @@ bool loadMedia()
         ok = false;
     }  
     
-    //no PSX firnware
+    //no PSX firmware
     gTextures[TEX_ICON_NO_FW_PSX] = loadTextureFromFile(PICTURES "firmware_PSX.png");
     if (!gTextures[TEX_ICON_NO_FW_PSX])
     {
@@ -481,7 +481,7 @@ bool renderIcons(void)
                 SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
-            if ( (gPathToFirnwarePSX.length()) || (gTextInputForFirmwareFolder))
+            if ( (gPathToFirmwarePSX.length()) || (gTextInputForFirmwareFolder))
             {
                 string text;
                 if (gTextInputForFirmwareFolder)
@@ -490,7 +490,7 @@ bool renderIcons(void)
                 }
                 else
                 {
-                    text = gPathToFirnwarePSX;
+                    text = gPathToFirmwarePSX;
                 }
                 if (text.length()>30)
                 {

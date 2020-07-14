@@ -544,7 +544,7 @@ bool setPathToFirmware(string str)
         {
             filename += "/";
         }
-        gPathToFirnwarePSX = filename;
+        gPathToFirmwarePSX = filename;
         ok = true;
     }
     return ok;    
@@ -579,7 +579,7 @@ bool loadConfig(ifstream* configFile)
     int pos;
     DIR* dir;
     
-    gPathToFirnwarePSX="";
+    gPathToFirmwarePSX="";
     gPathToGames="";
     
     while ( getline (configFile[0],line))

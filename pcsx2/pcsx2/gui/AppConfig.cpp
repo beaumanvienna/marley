@@ -152,12 +152,8 @@ namespace PathDefs
 	{
 		switch( mode )
 		{
-#ifdef XDG_STD
 			// Move all user data file into central configuration directory (XDG_CONFIG_DIR)
 			case DocsFolder_User:	return GetUserLocalDataDir();
-#else
-			case DocsFolder_User:	return (wxDirName)Path::Combine( wxStandardPaths::Get().GetDocumentsDir(), pxGetAppName() );
-#endif
 			case DocsFolder_Custom: return CustomDocumentsFolder;
 
 			jNO_DEFAULT
@@ -191,7 +187,7 @@ namespace PathDefs
 
 	wxDirName GetBios()
 	{
-		return GetDocuments() + Base::Bios();;
+		return GetDocuments() + Base::Bios();
 	}
 
 	wxDirName GetCheats()
@@ -567,7 +563,7 @@ void App_LoadSaveInstallSettings( IniInterface& ini )
 
 	ini.EnumEntry( L"DocumentsFolderMode",	DocsFolderMode,	DocsFolderModeNames, (InstallationMode == InstallMode_Registered) ? DocsFolder_User : DocsFolder_Custom);
 
-	ini.Entry( L"CustomDocumentsFolder",	CustomDocumentsFolder,		PathDefs::AppRoot() );
+	ini.Entry( L"CustomDocumentsFolder",	CustomDocumentsFolder,		(wxDirName)(wxFileName("/usr/games/Marley/PCSX2") ));
 
 	ini.Entry( L"UseDefaultSettingsFolder", UseDefaultSettingsFolder,	true );
 	ini.Entry( L"SettingsFolder",			SettingsFolder,				PathDefs::GetSettings() );
@@ -575,7 +571,7 @@ void App_LoadSaveInstallSettings( IniInterface& ini )
 	// "Install_Dir" conforms to the NSIS standard install directory key name.
 	// Attempt to load plugins based on the Install Folder.
 
-	ini.Entry( L"Install_Dir",				InstallFolder,				(wxDirName)(wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath()) );
+	ini.Entry( L"Install_Dir",				InstallFolder,				(wxDirName)(wxFileName("/usr/games/Marley/PCSX2") ));
 	SetFullBaseDir( InstallFolder );
 
 	//ini.Entry( L"PluginsFolder",			PluginsFolder,				InstallFolder + PathDefs::Base::Plugins() );
@@ -682,8 +678,8 @@ AppConfig::ConsoleLogOptions::ConsoleLogOptions()
 	, DisplaySize( wxSize( 680, 560 ) )
 	, Theme(L"Default")
 {
-	Visible		= true;
-	AutoDock	= true;
+	Visible		= false;
+	AutoDock	= false;
 	FontSize	= 8;
 }
 
@@ -698,16 +694,18 @@ void AppConfig::ConsoleLogOptions::LoadSave( IniInterface& ini, const wxChar* lo
 	IniEntry( FontSize );
 	IniEntry( Theme );
 }
-
+extern std::string gPathToFirmwarePSXX;
 void AppConfig::FolderOptions::ApplyDefaults()
 {
+    UseDefaultBios = false;
+    g_Conf->BaseFilenames.Bios = (wxFileName)gPathToFirmwarePSXX;
 	if( UseDefaultBios )		Bios		  = PathDefs::GetBios();
 	if( UseDefaultSnapshots )	Snapshots	  = PathDefs::GetSnapshots();
 	if( UseDefaultSavestates )	Savestates	  = PathDefs::GetSavestates();
 	if( UseDefaultMemoryCards )	MemoryCards	  = PathDefs::GetMemoryCards();
 	if( UseDefaultLogs )		Logs		  = PathDefs::GetLogs();
 	if( UseDefaultLangs )		Langs		  = PathDefs::GetLangs();
-	if( UseDefaultPluginsFolder)PluginsFolder = PathDefs::GetPlugins();
+	if( UseDefaultPluginsFolder)PluginsFolder = "/usr/games/Marley/PCSX2/";
 	if( UseDefaultCheats )      Cheats		  = PathDefs::GetCheats();
 	if( UseDefaultCheatsWS )    CheatsWS	  = PathDefs::GetCheatsWS();
 }
