@@ -3,7 +3,7 @@ Source: marley
 Binary: marley
 Architecture: amd64
 Version: 0.1.0
-Maintainer: JC <jc.lache@web.de>
+Maintainer: JC <beaumanvienna@gmail.com>
 Homepage: https://launchpad.net/~beauman
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath, libsdl2-ttf-dev, \

@@ -1,7 +1,7 @@
 Source: marley
 Section: games
 Priority: optional
-Maintainer: JC <jc.lache@web.de>
+Maintainer: JC <beaumanvienna@gmail.com>
 Build-Depends: debhelper, 
 		cmake,
 		chrpath,
