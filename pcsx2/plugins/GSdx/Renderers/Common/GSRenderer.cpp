@@ -567,9 +567,9 @@ void GSRenderer::KeyEvent(GSKeyEventData* e)
 		int step = m_shift_key ? -1 : 1;
 
 #if defined(__unix__)
-#define VK_F5 XK_F5
+#define VK_F1 XK_F1
 #define VK_F6 XK_F6
-#define VK_F7 XK_F7
+#define VK_F3 XK_F3
 #define VK_DELETE XK_Delete
 #define VK_INSERT XK_Insert
 #define VK_PRIOR XK_Prior
@@ -579,7 +579,7 @@ void GSRenderer::KeyEvent(GSKeyEventData* e)
 
 		switch(e->key)
 		{
-		case VK_F5:
+		case VK_F1:
 			m_interlace = (m_interlace + s_interlace_nb + step) % s_interlace_nb;
 			theApp.SetConfig("interlace", m_interlace);
 			printf("GSdx: Set deinterlace mode to %d (%s).\n", m_interlace, theApp.m_gs_interlace.at(m_interlace).name.c_str());
@@ -588,7 +588,7 @@ void GSRenderer::KeyEvent(GSKeyEventData* e)
 			if( m_wnd->IsManaged() )
 				m_aspectratio = (m_aspectratio + s_aspect_ratio_nb + step) % s_aspect_ratio_nb;
 			return;
-		case VK_F7:
+		case VK_F3:
 			m_shader = (m_shader + s_post_shader_nb + step) % s_post_shader_nb;
 			theApp.SetConfig("TVShader", m_shader);
 			printf("GSdx: Set shader to: %d.\n", m_shader);

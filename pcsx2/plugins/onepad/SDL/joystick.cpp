@@ -123,6 +123,7 @@ JoystickInfo::JoystickInfo(int slot)
     m_pad_to_sdl[PAD_R_RIGHT] = SDL_CONTROLLER_AXIS_RIGHTX;
     m_pad_to_sdl[PAD_R_DOWN] = SDL_CONTROLLER_AXIS_RIGHTY;
     m_pad_to_sdl[PAD_R_LEFT] = SDL_CONTROLLER_AXIS_RIGHTX;
+    m_pad_to_sdl[PAD_GUIDE] = SDL_CONTROLLER_BUTTON_GUIDE;
 
     
     m_controller = gDesignatedControllers[slot].gameCtrl[0];

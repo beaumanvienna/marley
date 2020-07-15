@@ -22,6 +22,7 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
+string gPathToFirmwarePSXX;
 
 bool setBaseDir(void)
 {
@@ -42,6 +43,9 @@ bool setBaseDir(void)
         {
             filename += "/";
         }
+                
+        gPathToFirmwarePSXX = filename;
+        gPathToFirmwarePSXX += "Gaming/BIOS/PS2/PS2.rom0";
         
         filename = filename + ".marley/";
         

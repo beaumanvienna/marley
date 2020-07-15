@@ -98,7 +98,8 @@ enum gamePadValues {
     PAD_R_UP,     // Right joystick (Up) ↑
     PAD_R_RIGHT,  // Right joystick (Right) →
     PAD_R_DOWN,   // Right joystick (Down) ↓
-    PAD_R_LEFT    // Right joystick (Left) ←
+    PAD_R_LEFT,   // Right joystick (Left) ←
+    PAD_GUIDE     // Guide button
 };
 
 #if defined(__unix__) || defined(__APPLE__)

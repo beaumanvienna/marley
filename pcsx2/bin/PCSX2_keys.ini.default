@@ -8,8 +8,8 @@
 # IMPORTANT: GSdx has fixed shortcuts. Make sure your shortcuts don't conflict.
 # Also, they will affect GSdx also when alt/ctrl/shift are pressed, so it's
 # best to completely avoid them at this file. GSdx uses:
-# F5      - Deinterlace modes
-# F7      - Internal "TV-like" shaders
+# F1      - Deinterlace modes
+# F3      - Internal "TV-like" shaders
 # PAGE_UP - FXAA antialiasing (HW and SW)
 # DELETE  - Software Antialiasing (AA1)
 # HOME    - FX shader
@@ -33,8 +33,8 @@
 # KP_DIVIDE WINDOWS_LEFT WINDOWS_RIGHT WINDOWS_MENU COMMAND
 
 # save state: freeze is save state, defrost is load state.
-States_FreezeCurrentSlot          = F1
-States_DefrostCurrentSlot         = F3
+States_FreezeCurrentSlot          = F5
+States_DefrostCurrentSlot         = F7
 States_DefrostCurrentSlotBackup   = Shift-F3
 States_CycleSlotForward           = F2
 States_CycleSlotBackward          = Shift-F2

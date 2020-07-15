@@ -607,6 +607,18 @@ namespace Implementations
 #endif
 }
 
+
+void shutdownExternal()
+{
+    if (CoreThread.HasPendingStateChangeRequest())
+        return;
+
+    if (CoreThread.IsPaused())
+        Implementations::Sys_Resume();
+    else
+        Implementations::Sys_Suspend();    
+}
+
 // --------------------------------------------------------------------------------------
 //  CommandDeclarations table
 // --------------------------------------------------------------------------------------
@@ -918,8 +930,8 @@ void Pcsx2App::InitDefaultGlobalAccelerators()
 	// Why do we even have those here? all of them seem to be overridden
 	// by GSPanel::m_Accels ( GSPanel::InitDefaultAccelerators() )
 
-	GlobalAccels->Map( AAC( WXK_F1 ),			"States_FreezeCurrentSlot" );
-	GlobalAccels->Map( AAC( WXK_F3 ),			"States_DefrostCurrentSlot" );
+	GlobalAccels->Map( AAC( WXK_F5 ),			"States_FreezeCurrentSlot" );
+	GlobalAccels->Map( AAC( WXK_F7 ),			"States_DefrostCurrentSlot" );
 	GlobalAccels->Map( AAC( WXK_F2 ),			"States_CycleSlotForward" );
 	GlobalAccels->Map( AAC( WXK_F2 ).Shift(),	"States_CycleSlotBackward" );
 
