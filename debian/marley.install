@@ -35,5 +35,18 @@
 #assets for ppsspp
 ./ppsspp/assets usr/games/Marley
 
+#assets for pcsx2
+./pcsx2/build/plugins/libcdvdGigaherz.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libCDVDnull.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libdev9ghzdrk-0.4.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libdev9null-0.5.0.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libFWnull-0.7.0.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libGSdx.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libspu2x-2.0.0.so usr/games/Marley/PCSX2
+./pcsx2/build/plugins/libUSBnull-0.7.0.so usr/games/Marley/PCSX2
+
+
+              
+
 
 

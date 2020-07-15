@@ -1,4 +1,4 @@
-marley : many awesome retro linux emulators, yeah!
+Marley : Many Awesome Retro Linux Emulators, Yeah!
 
 https://launchpad.net/~beauman/+archive/ubuntu/marley
 https://github.com/beaumanvienna/marley
@@ -6,8 +6,6 @@ https://github.com/beaumanvienna/marley
 #*** Installation for Ubuntu 18.04 ***
 #=====================================
 
-
-# update SDL to 2.0.12 (optional)
 sudo add-apt-repository ppa:beauman/marley
 sudo apt update
 sudo apt upgrade
@@ -22,19 +20,25 @@ sudo apt install marley
 #clone & and check out revision
 git clone https://github.com/beaumanvienna/marley
 cd marley
-#change to the version you like to work with, e.g. master
+#change to the version you like to work with (currently only 'master')
 git checkout master
 
-#Install build dependencies specified in debian/control (search for 'Build-Depends'), e.g. 
-#Build-Depends: debhelper, 
-#		cmake,
-#		chrpath,
-#		libsdl2-dev,
-#        libsdl2-image-dev
-#
-# and install with aptitude:
+#Install build dependencies specified in debian/control (search for 'Build-Depends'):
 
-sudo apt install debhelper cmake chrpath libsdl2-dev libsdl2-image-dev
+sudo apt install debhelper cmake chrpath libsdl2-dev libsdl2-image-dev \
+debhelper libsdl2-dev libsdl2-image-dev cmake chrpath libsdl2-ttf-dev, \
+autotools-dev dh-autoreconf libasound2-dev libgl1-mesa-dev \
+libjack-dev liblzo2-dev libmpcdec-dev libsamplerate0-dev libsndio-dev, \
+libsndfile1-dev libtrio-dev libvorbisidec-dev x11proto-core-dev zlib1g-dev \
+dpkg-dev pkg-config lsb-release libao-dev \
+libavcodec-dev libavformat-dev libbluetooth-dev libcurl4-gnutls-dev \
+libegl1-mesa-dev libenet-dev libevdev-dev libgtk2.0-dev \
+libminiupnpc-dev libopenal-dev libmbedtls-dev libpulse-dev \
+libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
+libusb-1.0-0-dev libwxbase3.0-dev libwxgtk3.0-dev libxext-dev, \
+libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
+libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
+libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all
 
 #Configure and make
 aclocal 
@@ -43,24 +47,10 @@ automake --add-missing --foreign
 ./configure
 make
 
-#install package dependencies 
-
-#Install package dependencies specified in debian/control (search for 'Depends', ignore stuff in curly brackets), e.g. 
-#Depends: ${shlibs:Depends}, 
-#        ${misc:Depends}, 
-#        libsdl2-2.0-0, 
-#        libsdl2-image-2.0-0
-#
-# and install with aptitude:
-    
-sudo apt install libsdl2-2.0-0 libsdl2-image-2.0-0
-
-#install to /usr/bin (the Debian package uses /usr/games)
-sudo make install
-make clean
-make distclean
-
-#if marley was also installed via the Ubuntu package manager check which version is used with 'which marley'
+sudo mkdir -p /usr/games/Marley/PCSX2
+sudo cp pcsx2/build/plugins/libcdvdGigaherz.so pcsx2/build/plugins/libCDVDnull.so pcsx2/build/plugins/libdev9ghzdrk-0.4.so \
+pcsx2/build/plugins/libdev9null-0.5.0.so pcsx2/build/plugins/libFWnull-0.7.0.so pcsx2/build/plugins/libGSdx.so \
+pcsx2/build/plugins/libspu2x-2.0.0.so pcsx2/build/plugins/libUSBnull-0.7.0.so /usr/games/Marley/PCSX2/
 
 #start it
-marley
+./marley

@@ -1,6 +1,94 @@
+marley (0.1.0) bionic; urgency=medium
+
+  * PCSX2 added
+  * PCSX2 is fully integrated as static library,
+    however, it is not using Marley's main window yet.
+  * Default settings and hotkeys for PCSX2 are fine.
+  * Bios file management for PCSX2 not yet implemented.
+  * This is a test version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, MD (Sega Genesis)
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Tue, 14 JUN 2020 18:00:00 -0800
+
+marley (0.0.9) bionic; urgency=medium
+
+  * This is a stable version, however, the Wiimote is still flakey
+    when being switched on or off. PPSSPP has issue with cutscenes,
+    but works great otherwise.
+  * support for Wii, Gamecube, N64, PSP, PS1,
+    NES, SNES, MD (Sega Genesis)
+  * New gamepad type NES pad added and setup revised
+  * Bug fixes: PPSSPP assets folder location fixed
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 31 MAY 2020 18:40:00 -0800
+
+marley (0.0.8) bionic; urgency=medium
+
+  * Bug fixes
+  * this is a fairly stable version 
+  * support for Wii, Gamecube, N64, PSP, PS1,
+    NES, SNES, MD (Sega Genesis)
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 25 MAY 2020 08:00:00 -0800
+ 
+marley (0.0.7.5) bionic; urgency=medium
+
+  * PPSSPP added (PSP support)
+  * this is an unstable version 
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 24 MAY 2020 18:00:00 -0800
+
+marley (0.0.6.2) bionic; urgency=medium
+
+  * Mupen64plus added (N64 support)
+  * this is an unstable version 
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 17 MAY 2020 21:30:00 -0800
+
+marley (0.0.5.2) bionic; urgency=medium
+
+  * Dolphin added (Wii, Gamecube, Wiimote support)
+  * this is an unstable version 
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 09 MAY 2020 14:15:00 -0800
+
+marley (0.0.4) bionic; urgency=medium
+
+  * setup added 
+  * this is a stable version 
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 19 APR 2020 20:30:00 -0800
+
+marley (0.0.3.2) bionic; urgency=medium
+
+  * mednafen added 
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 15 APR 2020 08:21:00 -0800
+ 
+marley (0.0.3.1) bionic; urgency=medium
+
+  * dependency changed to libsdl2-ttf-2.0-0
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 11 APR 2020 22:21:00 -0800
+ 
+marley (0.0.3) bionic; urgency=medium
+
+  * added db for gamepads, amplitude bars for analog 
+    sticks, Icons for interaction plus statemachine, 
+    .marley config file, desktopp application icon
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 11 APR 2020 18:26:04 -0800
+ 
+marley (0.0.2) bionic; urgency=medium
+
+  * Initial upload with basic gamepad testing
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 04 APR 2020 12:52:04 -0800
+
+
 * Sat Apr 11 18:21:26 PDT 2020 added db for gamepads, amplitude bars for analog sticks, Icons for interaction plus statemachine, .marley config file, desktopp application icon
 * Sat Apr  4 11:20:49 PDT 2020 project created with version 0.0.1 and uplaoded to https://launchpad.net/~beauman/+archive/ubuntu/marley
-    Please also refer to debian/changelog
 * Sat Apr  Sat Apr  4 22:50:00 PDT 2020 changed to 0.0.2
     Hotplug feature added: Marley supports two controllers at a time, which can be unplugged and plugged in any order. Once a controller is designated
     as controller1 or controller2, it will stay this way, even if the other is off. If a new controller is plug the lower free available slot will be used.

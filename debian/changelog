@@ -1,3 +1,16 @@
+marley (0.1.0) bionic; urgency=medium
+
+  * PCSX2 added
+  * PCSX2 is fully integrated as static library,
+    however, it is not using Marley's main window yet.
+  * Default settings and hotkeys for PCSX2 are fine.
+  * Bios file management for PCSX2 not yet implemented.
+  * This is a test version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, MD (Sega Genesis)
+   
+ -- JC Lache <beaumanvienna@gmail.com>  Tue, 14 JUN 2020 18:00:00 -0800
+
 marley (0.0.9) bionic; urgency=medium
 
   * This is a stable version, however, the Wiimote is still flakey
@@ -8,7 +21,7 @@ marley (0.0.9) bionic; urgency=medium
   * New gamepad type NES pad added and setup revised
   * Bug fixes: PPSSPP assets folder location fixed
    
- -- JC Lache <jc.lache@web.de>  Sun, 31 MAY 2020 18:40:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 31 MAY 2020 18:40:00 -0800
 
 marley (0.0.8) bionic; urgency=medium
 
@@ -17,47 +30,47 @@ marley (0.0.8) bionic; urgency=medium
   * support for Wii, Gamecube, N64, PSP, PS1,
     NES, SNES, MD (Sega Genesis)
    
- -- JC Lache <jc.lache@web.de>  Sun, 25 MAY 2020 08:00:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 25 MAY 2020 08:00:00 -0800
  
 marley (0.0.7.5) bionic; urgency=medium
 
   * PPSSPP added (PSP support)
   * this is an unstable version 
    
- -- JC Lache <jc.lache@web.de>  Sun, 24 MAY 2020 18:00:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 24 MAY 2020 18:00:00 -0800
 
 marley (0.0.6.2) bionic; urgency=medium
 
   * Mupen64plus added (N64 support)
   * this is an unstable version 
    
- -- JC Lache <jc.lache@web.de>  Sun, 17 MAY 2020 21:30:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 17 MAY 2020 21:30:00 -0800
 
 marley (0.0.5.2) bionic; urgency=medium
 
   * Dolphin added (Wii, Gamecube, Wiimote support)
   * this is an unstable version 
    
- -- JC Lache <jc.lache@web.de>  Sat, 09 MAY 2020 14:15:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 09 MAY 2020 14:15:00 -0800
 
 marley (0.0.4) bionic; urgency=medium
 
   * setup added 
   * this is a stable version 
    
- -- JC Lache <jc.lache@web.de>  Sun, 19 APR 2020 20:30:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sun, 19 APR 2020 20:30:00 -0800
 
 marley (0.0.3.2) bionic; urgency=medium
 
   * mednafen added 
    
- -- JC Lache <jc.lache@we.de>  Sat, 15 APR 2020 08:21:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 15 APR 2020 08:21:00 -0800
  
 marley (0.0.3.1) bionic; urgency=medium
 
   * dependency changed to libsdl2-ttf-2.0-0
    
- -- JC Lache <jc.lache@we.de>  Sat, 11 APR 2020 22:21:00 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 11 APR 2020 22:21:00 -0800
  
 marley (0.0.3) bionic; urgency=medium
 
@@ -65,13 +78,13 @@ marley (0.0.3) bionic; urgency=medium
     sticks, Icons for interaction plus statemachine, 
     .marley config file, desktopp application icon
    
- -- JC Lache <jc.lache@we.de>  Sat, 11 APR 2020 18:26:04 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 11 APR 2020 18:26:04 -0800
  
 marley (0.0.2) bionic; urgency=medium
 
   * Initial upload with basic gamepad testing
    
- -- JC Lache <jc.lache@we.de>  Sat, 04 APR 2020 12:52:04 -0800
+ -- JC Lache <beaumanvienna@gmail.com>  Sat, 04 APR 2020 12:52:04 -0800
 
 
 
