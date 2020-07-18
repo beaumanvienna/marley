@@ -452,19 +452,18 @@ int main(int argc, char* argv[])
 {
     
     int pcsx2_argc;
-    char *pcsx2_argv[11]; 
-    char arg1[1024]; 
-    char arg2[1024];
-    char arg3[1024]; 
-    char arg4[1024]; 
-    char arg5[1024]; 
+    char *pcsx2_argv[10];
     
-    char arg6[1024]; 
-    char arg7[1024]; 
-    char arg8[1024]; 
-    char arg9[1024]; 
-    char arg10[1024]; 
-    char arg11[1024]; 
+    char arg1[1024];
+    char arg2[1024];
+    char arg3[1024];
+    char arg4[1024];
+    char arg5[1024];
+    char arg6[1024];
+    char arg7[1024];
+    char arg8[1024];
+    char arg9[1024];
+    char arg10[1024];
     
     int n;
     string str;
@@ -507,41 +506,37 @@ int main(int argc, char* argv[])
     pcsx2_argv[0] = arg1;
 #else
 
-    str = "--gs=/usr/games/Marley/PCSX2/libGSdx.so";
+    str = "--spu2=/usr/games/Marley/PCSX2/libspu2x-2.0.0.so";
     n = str.length(); 
     strcpy(arg2, str.c_str()); 
     
-    str = "--spu2=/usr/games/Marley/PCSX2/libspu2x-2.0.0.so";
-    n = str.length(); 
-    strcpy(arg3, str.c_str()); 
-    
     str = "--cdvd=/usr/games/Marley/PCSX2/libCDVDnull.so";
     n = str.length(); 
-    strcpy(arg4, str.c_str()); 
+    strcpy(arg3, str.c_str()); 
 
     str = "--usb=/usr/games/Marley/PCSX2/libUSBnull-0.7.0.so";
     n = str.length(); 
-    strcpy(arg5, str.c_str()); 
+    strcpy(arg4, str.c_str()); 
 
     str = "--fw=/usr/games/Marley/PCSX2/libFWnull-0.7.0.so";
     n = str.length(); 
-    strcpy(arg6, str.c_str()); 
+    strcpy(arg5, str.c_str()); 
 
     str = "--dev9=/usr/games/Marley/PCSX2/libdev9null-0.5.0.so";
     n = str.length(); 
-    strcpy(arg7, str.c_str()); 
+    strcpy(arg6, str.c_str()); 
     
     str = "--nogui";
     n = str.length(); 
-    strcpy(arg8, str.c_str()); 
+    strcpy(arg7, str.c_str()); 
     
     str = "--fullboot";
     n = str.length(); 
-    strcpy(arg9, str.c_str()); 
+    strcpy(arg8, str.c_str()); 
 
     str = "--fullscreen";
     n = str.length(); 
-    strcpy(arg10, str.c_str()); 
+    strcpy(arg9, str.c_str()); 
 
     pcsx2_argv[0] = arg1;
     pcsx2_argv[1] = arg2;
@@ -552,16 +547,16 @@ int main(int argc, char* argv[])
     pcsx2_argv[6] = arg7;
     pcsx2_argv[7] = arg8;
     pcsx2_argv[8] = arg9;
-    pcsx2_argv[9] = arg10;
 
     if (argc > 1)
     {
         str = argv[1];
         n = str.length(); 
-        strcpy(arg11, str.c_str());
+        strcpy(arg10, str.c_str());
 
-        pcsx2_argv[10] = arg11;
-        pcsx2_argc = 7;//11;
+        pcsx2_argv[9] = arg10;
+        //pcsx2_argc = 6; // plugins, no other options
+        pcsx2_argc = 10; // all options plus game
     }
     else
     {

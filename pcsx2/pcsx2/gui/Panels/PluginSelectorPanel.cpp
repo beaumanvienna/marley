@@ -459,12 +459,13 @@ void Panels::PluginSelectorPanel::Apply()
 	if( !m_FileList ) return;
 
 	AppConfig curconf( *g_Conf );
-
+    int i = 0;
 	const PluginInfo* pi = tbl_PluginInfo; do
 	{
+        i++;
 		const PluginsEnum_t pid = pi->id;
 		int sel = m_ComponentBoxes->Get(pid).GetSelection();
-		if( sel == wxNOT_FOUND )
+		if( (sel == wxNOT_FOUND) && (i!=1) && (i!=2) )
 		{
 			wxString plugname( pi->GetShortname() );
 
