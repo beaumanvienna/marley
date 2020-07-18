@@ -23,8 +23,18 @@
 #include "Gif_Unit.h"
 #include "MTVU.h"
 #include "Elfheader.h"
-
-
+typedef unsigned int uint32;
+typedef unsigned char uint8;
+int GSopen2(void** dsp, uint32 flags);
+void GSsetVsync(int vsync);
+int GSopen(void** dsp, const char* title, int mt);
+void GSsetBaseMem(uint8* mem);
+void GSinitReadFIFO2(uint8* mem, uint32 size);
+void GSinitReadFIFO(uint8* mem);
+void GSsetGameCRC(uint32 crc, int options);
+void GSgifTransfer(const uint8* mem, uint32 size);
+void GSgifTransfer2(uint8* mem, uint32 size);
+void GSgifTransfer3(uint8* mem, uint32 size);
 // Uncomment this to enable profiling of the GS RingBufferCopy function.
 //#define PCSX2_GSRING_SAMPLING_STATS
 
@@ -198,9 +208,9 @@ void SysMtgsThread::OpenPlugin()
 	int result;
 
 	if( GSopen2 != NULL )
-		result = GSopen2( (void*)pDsp, 1 | (renderswitch ? 4 : 0) );
+		result = GSopen2( (void**)pDsp, 1 | (renderswitch ? 4 : 0) );
 	else
-		result = GSopen( (void*)pDsp, "PCSX2", renderswitch ? 2 : 1 );
+		result = GSopen( (void**)pDsp, "PCSX2", renderswitch ? 2 : 1 );
 
 
 	GSsetVsync(EmuConfig.GS.GetVsync());
@@ -334,13 +344,13 @@ void SysMtgsThread::ExecuteTaskInThread()
 					if( endpos >= RingBufferSize )
 					{
 						uint firstcopylen = RingBufferSize - datapos;
-						GSgifTransfer( (u32*)data, firstcopylen );
+						GSgifTransfer( (uint8*)data, firstcopylen );
 						datapos = endpos & RingBufferMask;
-						GSgifTransfer( (u32*)RingBuffer.m_Ring, datapos );
+						GSgifTransfer( (uint8*)RingBuffer.m_Ring, datapos );
 					}
 					else
 					{
-						GSgifTransfer( (u32*)data, qsize );
+						GSgifTransfer( (uint8*)data, qsize );
 					}
 
 					ringposinc += qsize;
@@ -359,13 +369,13 @@ void SysMtgsThread::ExecuteTaskInThread()
 					if( endpos >= RingBufferSize )
 					{
 						uint firstcopylen = RingBufferSize - datapos;
-						GSgifTransfer2( (u32*)data, firstcopylen );
+						GSgifTransfer2( (uint8*)data, firstcopylen );
 						datapos = endpos & RingBufferMask;
-						GSgifTransfer2( (u32*)RingBuffer.m_Ring, datapos );
+						GSgifTransfer2( (uint8*)RingBuffer.m_Ring, datapos );
 					}
 					else
 					{
-						GSgifTransfer2( (u32*)data, qsize );
+						GSgifTransfer2( (uint8*)data, qsize );
 					}
 
 					ringposinc += qsize;
@@ -384,13 +394,13 @@ void SysMtgsThread::ExecuteTaskInThread()
 					if( endpos >= RingBufferSize )
 					{
 						uint firstcopylen = RingBufferSize - datapos;
-						GSgifTransfer3( (u32*)data, firstcopylen );
+						GSgifTransfer3( (uint8*)data, firstcopylen );
 						datapos = endpos & RingBufferMask;
-						GSgifTransfer3( (u32*)RingBuffer.m_Ring, datapos );
+						GSgifTransfer3( (uint8*)RingBuffer.m_Ring, datapos );
 					}
 					else
 					{
-						GSgifTransfer3( (u32*)data, qsize );
+						GSgifTransfer3( (uint8*)data, qsize );
 					}
 
 					ringposinc += qsize;
@@ -401,7 +411,7 @@ void SysMtgsThread::ExecuteTaskInThread()
 					Gif_Path& path   = gifUnit.gifPath[tag.data[2]];
 					u32       offset = tag.data[0];
 					u32       size   = tag.data[1];
-					if (offset != ~0u) GSgifTransfer((u32*)&path.buffer[offset], size/16);
+					if (offset != ~0u) GSgifTransfer((uint8*)&path.buffer[offset], size/16);
 					path.readAmount.fetch_sub(size, std::memory_order_acq_rel);
 					break;
 				}
@@ -415,7 +425,7 @@ void SysMtgsThread::ExecuteTaskInThread()
 					busy.PartialAcquire();
 					Gif_Path& path   = gifUnit.gifPath[GIF_PATH_1];
 					GS_Packet gsPack = path.GetGSPacketMTVU(); // Get vu1 program's xgkick packet(s)
-					if (gsPack.size) GSgifTransfer((u32*)&path.buffer[gsPack.offset], gsPack.size/16);
+					if (gsPack.size) GSgifTransfer((uint8*)&path.buffer[gsPack.offset], gsPack.size/16);
 					path.readAmount.fetch_sub(gsPack.size + gsPack.readAmount, std::memory_order_acq_rel);
 					path.PopGSPacketMTVU(); // Should be done last, for proper Gif_MTGS_Wait()
 					break;
@@ -499,14 +509,12 @@ void SysMtgsThread::ExecuteTaskInThread()
 
 						case GS_RINGTYPE_INIT_READ_FIFO1:
 							MTGS_LOG( "(MTGS Packet Read) ringtype=Fifo1" );
-							if (GSinitReadFIFO)
-								GSinitReadFIFO( (u64*)tag.pointer);
+                            GSinitReadFIFO( (uint8*)tag.pointer);
 						break;
 
 						case GS_RINGTYPE_INIT_READ_FIFO2:
 							MTGS_LOG( "(MTGS Packet Read) ringtype=Fifo2, size=%d", tag.data[0] );
-							if (GSinitReadFIFO2)
-								GSinitReadFIFO2( (u64*)tag.pointer, tag.data[0]);
+                            GSinitReadFIFO2( (uint8*)tag.pointer, tag.data[0]);
 						break;
 
 #ifdef PCSX2_DEVBUILD

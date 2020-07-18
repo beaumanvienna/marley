@@ -17,6 +17,10 @@
 #include "MainFrame.h"
 #include "GSFrame.h"
 #include "ApplyState.h"
+
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
+
 #include "ConsoleLogger.h"
 
 #include "AppAccelerators.h"
@@ -357,7 +361,10 @@ namespace Implementations
 
 	void Sys_TakeSnapshot()
 	{
-		GSmakeSnapshot( g_Conf->Folders.Snapshots.ToUTF8() );
+        char str[1024];
+        wxString mystring = g_Conf->Folders.Snapshots.ToUTF8();
+        strcpy(str, mystring.mb_str()); 
+		GSmakeSnapshot( str );
 	}
 
 	void Sys_RenderToggle()

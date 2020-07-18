@@ -16,6 +16,12 @@
 #include "PrecompiledHeader.h"
 #include "MainFrame.h"
 #include "AppAccelerators.h"
+typedef unsigned int uint32;
+void GSosdMonitor(const char *key, const char *value, uint32 color);
+void GSosdLog(const char *utf8, uint32 color);
+void GSsetVsync(int vsync);
+void GSsetExclusive(int enabled);
+int  GSopen2(void** dsp, uint32 flags);
 #include "ConsoleLogger.h"
 #include "MSWstuff.h"
 #include "MTVU.h" // for thread cancellation on shutdown

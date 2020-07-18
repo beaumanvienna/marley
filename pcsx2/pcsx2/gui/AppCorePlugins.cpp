@@ -25,6 +25,10 @@
 #include "GS.h"
 #include "AppConfig.h"
 
+typedef unsigned int uint32;
+void GSsetVsync(int vsync);
+int  GSopen2(void** dsp, uint32 flags);
+
 using namespace Threading;
 
 // The GS plugin needs to be opened to save/load the state during plugin configuration, but

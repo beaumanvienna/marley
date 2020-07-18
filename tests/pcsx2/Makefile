@@ -6,6 +6,7 @@ LINKER_OBJECTS += ../../pcsx2/build/common/src/x86emitter/libx86emitter.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
+LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
 LINKER_OBJECTS += -lwx_baseu-3.0
 LINKER_OBJECTS += -lwx_gtk2u_core-3.0
 LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
@@ -35,6 +36,8 @@ LINKER_OBJECTS += -lrt
 LINKER_OBJECTS += -lm
 LINKER_OBJECTS += -lpthread
 LINKER_OBJECTS += -lz
+LINKER_OBJECTS += -lpng
+LINKER_OBJECTS += -llzma
 
 LINKER_OBJECTS += -lSDL2
 LINKER_OBJECTS += -lX11 

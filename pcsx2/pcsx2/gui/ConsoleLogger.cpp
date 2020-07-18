@@ -16,6 +16,9 @@
 #include "PrecompiledHeader.h"
 #include "App.h"
 #include "MainFrame.h"
+typedef unsigned int uint32;
+void GSosdMonitor(const char *key, const char *value, uint32 color);
+void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "MSWstuff.h"
 

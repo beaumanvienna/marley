@@ -23,7 +23,8 @@
 
 #include "ZipTools/ThreadedZipTools.h"
 #include "Utilities/pxStreams.h"
-
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 
 #include <wx/wfstream.h>

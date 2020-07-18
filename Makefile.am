@@ -17,8 +17,7 @@ COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so
 COPY_FILES += pcsx2/build/plugins/libcdvdGigaherz.so 
 COPY_FILES += pcsx2/build/plugins/libUSBnull-0.7.0.so 
 COPY_FILES += pcsx2/build/plugins/libspu2x-2.0.0.so
-COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so 
-COPY_FILES += pcsx2/build/plugins/libGSdx.so 
+COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so  
 COPY_FILES += pcsx2/build/plugins/libdev9ghzdrk-0.4.so 
 COPY_FILES += pcsx2/build/plugins/libdev9null-0.5.0.so 
 
@@ -29,7 +28,6 @@ pcsx2/build/plugins/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/li
 pcsx2/build/plugins/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
 pcsx2/build/plugins/libspu2x-2.0.0.so: 		pcsx2/build/plugins/spu2-x/src/libspu2x-2.0.0.so
 pcsx2/build/plugins/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.so
-pcsx2/build/plugins/libGSdx.so: 			pcsx2/build/plugins/GSdx/libGSdx.so 
 pcsx2/build/plugins/libdev9ghzdrk-0.4.so: 	pcsx2/build/plugins/dev9ghzdrk/libdev9ghzdrk-0.4.so
 pcsx2/build/plugins/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
 
@@ -235,6 +233,7 @@ marley_LDADD 	+= pcsx2/build/common/src/x86emitter/libx86emitter.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
+marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
 marley_LDADD 	+= -lwx_baseu-3.0 
 marley_LDADD 	+= -lwx_gtk2u_core-3.0 
 marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
@@ -256,3 +255,4 @@ marley_LDADD 	+= -laio
 marley_LDADD 	+= -lwx_baseu-3.0
 marley_LDADD 	+= -lwx_gtk2u_core-3.0 
 marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
+marley_LDADD 	+= -llzma

@@ -33,6 +33,10 @@
 #include "R5900Exceptions.h"
 #include "Sio.h"
 
+typedef unsigned int uint32;
+void GSsetVsync(int vsync);
+int  GSopen2(void** dsp, uint32 flags);
+
 __aligned16 SysMtgsThread mtgsThread;
 __aligned16 AppCoreThread CoreThread;
 

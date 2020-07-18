@@ -13,6 +13,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ 
 #include "PrecompiledHeader.h"
 #include "IopCommon.h"
 
@@ -27,7 +28,32 @@
 #include "Utilities/pxStreams.h"
 
 #include "svnrev.h"
+typedef unsigned int uint32;
+typedef unsigned char uint8;
+void GSosdMonitor(const char *key, const char *value, uint32 color);
+void GSosdLog(const char *utf8, uint32 color);
+void GSsetVsync(int vsync);
+void GSsetExclusive(int enabled);
+int  GSopen(void** dsp, const char* title, int mt);
+int  GSopen2(void** dsp, uint32 flags);
+void GSreadFIFO(uint8* mem);
+void GSreadFIFO2(uint8* mem, uint32 size);
+struct GSKeyEventData {uint32 key, type;};
+void GSkeyEvent(GSKeyEventData* e);
+void GSgifTransfer(const uint8* mem, uint32 size);
+void GSgifTransfer1(uint8* mem, uint32 addr);
+void GSgifTransfer2(uint8* mem, uint32 size);
+void GSgifTransfer3(uint8* mem, uint32 size);
+void GSsetBaseMem(uint8* mem);
+void GSsetGameCRC(uint32 crc, int options);
+void GSinitReadFIFO(uint8* mem);
 #include "ConsoleLogger.h"
+
+void GSmakeSnapshot2(char *pathname, int *snapdone, int savejpg) {} 
+void GSsetLogDir(const char* dir) {}
+void GSinitReadFIFO2(unsigned long* mem, int i) {GSinitReadFIFO((uint8*) mem);}
+int  GSopen_(void* dsp, char const* title, int mt) {return GSopen((void**) dsp,title,mt);}
+
 
 SysPluginBindings SysPlugins;
 
@@ -238,12 +264,12 @@ static void CALLBACK GS_Legacy_gifTransfer( const u32* src, u32 data )
 				memcpy( &path1queue[path1size], src128, data*16);
 				path1size += data;
 			}
-			GSgifTransfer1( (u32*)path1queue, 0 );
+			GSgifTransfer1( (uint8*)path1queue, 0 );
 			path1size = 0;
 		}
 		else
 		{
-			GSgifTransfer1( (u32*)src128, 0 );
+			GSgifTransfer1( (uint8*)src128, 0 );
 		}
 	}
 }
@@ -253,12 +279,12 @@ static void CALLBACK GS_Legacy_gifTransfer( const u32* src, u32 data )
 // Since GSgifTransfer2 is the least hacky old call-back, and MTGS will
 // just be using a single gif path, we'll just solely use path 2...
 static void CALLBACK GS_Legacy_gifTransfer(const u32* src, u32 data) {
-	GSgifTransfer2((u32*)src, data);
+	GSgifTransfer2((uint8*)src, data);
 }
 #endif
 
 static void CALLBACK GS_Legacy_GSreadFIFO2(u64* pMem, int qwc) {
-	while(qwc--) GSreadFIFO(pMem);
+	while(qwc--) GSreadFIFO((uint8*)pMem);
 }
 
 // PAD
@@ -381,7 +407,7 @@ static const LegacyApi_CommonMethod s_MethMessCommon[] =
 // ----------------------------------------------------------------------------
 static const LegacyApi_ReqMethod s_MethMessReq_GS[] =
 {
-	{	"GSopen",			(vMeth**)&GSopen,			NULL	},
+	{	"GSopen",			(vMeth**)&GSopen_,			NULL	},
 	{	"GSvsync",			(vMeth**)&GSvsync,			NULL	},
 	{	"GSgifTransfer",	(vMeth**)&GSgifTransfer,	(vMeth*)GS_Legacy_gifTransfer },
 	{	"GSgifTransfer2",	(vMeth**)&GSgifTransfer2,	NULL	},

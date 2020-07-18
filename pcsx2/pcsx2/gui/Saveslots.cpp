@@ -16,6 +16,8 @@
 #include "PrecompiledHeader.h"
 #include "App.h"
 #include "AppSaveStates.h"
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "MainFrame.h"
 
@@ -30,6 +32,8 @@
 // --------------------------------------------------------------------------------------
 
 static int StatesC = 0;
+
+void GSchangeSaveState(s32 state, const char *filename) {}
 
 #ifdef USE_NEW_SAVESLOTS_UI
 std::array<Saveslot,StateSlotsCount> saveslot_cache = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};

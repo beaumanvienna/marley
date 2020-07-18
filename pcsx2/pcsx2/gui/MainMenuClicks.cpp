@@ -19,7 +19,8 @@
 #include "CDVD/CDVD.h"
 #include "GS.h"
 #include "GSFrame.h"
-
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "MainFrame.h"
 #include "IsoDropTarget.h"
@@ -803,7 +804,11 @@ void MainEmuFrame::Menu_Capture_Screenshot_Screenshot_Click(wxCommandEvent & eve
 	{
 		return;
 	}
-	GSmakeSnapshot(g_Conf->Folders.Snapshots.ToAscii());
+    
+    char str[1024];
+    wxString mystring = g_Conf->Folders.Snapshots.ToAscii();
+    strcpy(str, mystring.mb_str()); 
+	GSmakeSnapshot(str);
 }
 
 #ifndef DISABLE_RECORDING

@@ -17,6 +17,8 @@
 #include "IopCommon.h"
 
 #include "Common.h"
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "Sio.h"
 #include "sio_internal.h"

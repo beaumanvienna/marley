@@ -20,7 +20,9 @@
 #include "Gif_Unit.h"
 #include "VUmicro.h"
 #include "newVif.h"
-
+typedef unsigned char uint8;
+typedef unsigned int uint32;
+void GSreadFIFO2(uint8* mem, uint32 size);
 u32 g_vif1Cycles = 0;
 
 void initVif1_Dma()
@@ -77,7 +79,7 @@ void vif1TransferToMemory()
 		GetMTGS().SendPointerPacket(GS_RINGTYPE_INIT_READ_FIFO2, size, pMem);
 		GetMTGS().WaitGS(false); // wait without reg sync
 	}
-	GSreadFIFO2((u64*)pMem, size);
+	GSreadFIFO2((uint8*)pMem, size);
 //	pMem += size;
 
 	//Some games such as Alex Ferguson's Player Manager 2001 reads less than GSLastDownloadSize by VIF then reads the remainder by FIFO

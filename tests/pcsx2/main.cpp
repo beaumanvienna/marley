@@ -14,15 +14,19 @@
 
 using namespace std;
 
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 750
+
 int pcsx2_main(int argc, char* argv[]);
 
-//Gamepad array
+
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 string gPathToFirmwarePSXX;
+SDL_Window* gWindow = NULL;
 
 bool setBaseDir(void)
 {
@@ -418,6 +422,32 @@ bool openJoy(int i)
     }
 }
 
+bool initGUI(void)
+{
+    bool ok = true;
+    Uint32 windowFlags;
+    int imgFlags;
+    
+    windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
+    
+
+    //Create main window
+    string str = "marley ";
+    gWindow = SDL_CreateWindow( str.c_str(), 
+                                SDL_WINDOWPOS_CENTERED, 
+                                SDL_WINDOWPOS_CENTERED, 
+                                WINDOW_WIDTH, 
+                                WINDOW_HEIGHT, 
+                                windowFlags );
+    if( gWindow == NULL )
+    {
+        printf( "Error creating main window. SDL Error: %s\n", SDL_GetError() );
+        ok = false;
+    }
+    
+    return ok;
+}
+
 int main(int argc, char* argv[])
 {
     
@@ -449,6 +479,7 @@ int main(int argc, char* argv[])
     
     setBaseDir();
     initJoy();
+    initGUI();
     
     while( !gQuit )
     {
@@ -530,7 +561,7 @@ int main(int argc, char* argv[])
         strcpy(arg11, str.c_str());
 
         pcsx2_argv[10] = arg11;
-        pcsx2_argc = 11;
+        pcsx2_argc = 7;//11;
     }
     else
     {

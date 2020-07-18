@@ -50,6 +50,9 @@
 #include <gtk/gtk.h>
 #endif
 
+typedef unsigned int uint32;
+int  GSopen2(void** dsp, uint32 flags);
+
 // Safe to remove these lines when this is handled properly.
 #ifdef __WXMAC__
 // Great joy....

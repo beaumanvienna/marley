@@ -21,7 +21,9 @@
 #include "Counters.h"
 #include "GS.h"
 #include "MSWstuff.h"
-
+typedef unsigned int uint32;
+void GSosdLog(const char *utf8, uint32 color);
+int  GSopen2(void** dsp, uint32 flags);
 #include "ConsoleLogger.h"
 
 #ifndef DISABLE_RECORDING
