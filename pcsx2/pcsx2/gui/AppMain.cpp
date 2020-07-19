@@ -1052,7 +1052,8 @@ void Pcsx2App::OpenGsPanel()
 	pDsp[0] = (uptr)XDisplay;
 	pDsp[1] = (uptr)Xwindow;
 
-	gsFrame->ShowFullScreen( g_Conf->GSWindow.IsFullscreen );
+	//gsFrame->ShowFullScreen( g_Conf->GSWindow.IsFullscreen );
+    gsFrame->SetSize (1,1,1,1);	
 }
 
 void Pcsx2App::CloseGsPanel()
