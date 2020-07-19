@@ -244,7 +244,7 @@ enum class GSRendererType : int8_t
 #else
 	// Use ogl renderer as default otherwise it crash at startup
 	// GSRenderOGL only GSDeviceOGL (not GSDeviceNULL)
-	Default = OGL_HW
+	Default = OGL_SW
 #endif
 
 };
