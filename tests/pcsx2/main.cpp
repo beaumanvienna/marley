@@ -11,7 +11,8 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
-
+#include <X11/Xlib.h>
+#include <SDL_syswm.h>
 using namespace std;
 
 #define WINDOW_WIDTH 1280
@@ -26,7 +27,7 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 string gPathToFirmwarePSXX;
-SDL_Window* gWindow = NULL;
+SDL_Window* gWindow = nullptr;
 
 bool setBaseDir(void)
 {
@@ -447,7 +448,8 @@ bool initGUI(void)
     
     return ok;
 }
-
+Display* XDisplay;
+Window Xwindow;
 int main(int argc, char* argv[])
 {
     
@@ -475,6 +477,19 @@ int main(int argc, char* argv[])
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         return -1;
     }
+    
+    SDL_GL_ResetAttributes();
+  
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
     
     setBaseDir();
     initJoy();
@@ -563,11 +578,20 @@ int main(int argc, char* argv[])
         pcsx2_argc = 1;
     }
 #endif
-    printf("jc 1st run\n");
-    pcsx2_main(pcsx2_argc,pcsx2_argv);
-    /*printf("jc 2nd run\n");
-    pcsx2_main(pcsx2_argc,pcsx2_argv);*/
-    printf("jc exit\n");
-    
+
+    SDL_SysWMinfo sdlWindowInfo;
+    SDL_VERSION(&sdlWindowInfo.version);
+    if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+    {
+        if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+        {
+            Xwindow      = sdlWindowInfo.info.x11.window;
+            XDisplay     = sdlWindowInfo.info.x11.display;
+            
+            pcsx2_main(pcsx2_argc,pcsx2_argv);
+            printf("jc exit test\n");    
+        }
+    }
+
     return 0;
 }

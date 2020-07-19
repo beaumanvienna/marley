@@ -22,6 +22,10 @@
 #include "stdafx.h"
 #include "GSWndOGL.h"
 
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_syswm.h>
+
 #if defined(__unix__)
 GSWndOGL::GSWndOGL()
 	: m_NativeWindow(0), m_NativeDisplay(nullptr), m_context(0), m_has_late_vsync(false), m_swapinterval_ext(nullptr), m_swapinterval_mesa(nullptr)
@@ -34,7 +38,11 @@ static int  ctxErrorHandler(Display *dpy, XErrorEvent *ev)
 	ctxError = true;
 	return 0;
 }
-
+extern SDL_Window* gWindow;
+namespace GLLoader {
+	void check_gl_version(int major,int minor);
+}
+SDL_GLContext SDLcontext;
 void GSWndOGL::CreateContext(int major, int minor)
 {
 	if ( !m_NativeDisplay || !m_NativeWindow )
@@ -42,63 +50,18 @@ void GSWndOGL::CreateContext(int major, int minor)
 		fprintf( stderr, "Wrong X11 display/window\n" );
 		throw GSDXRecoverableError();
 	}
+    
+    SDL_GLContext SDLcontext = SDL_GL_CreateContext(gWindow);
+    #define immediate_updates 0
+    #define updates_synchronized 1
+    SDL_GL_SetSwapInterval(updates_synchronized);
 
-	// Get visual information
-	static int attrListDbl[] =
-	{
-		// GLX_X_RENDERABLE: If True is specified, then only frame buffer configurations that have associated X
-		// visuals (and can be used to render to Windows and/or GLX pixmaps) will be considered. The default value is GLX_DONT_CARE.
-		GLX_X_RENDERABLE    , True,
-		GLX_RED_SIZE        , 8,
-		GLX_GREEN_SIZE      , 8,
-		GLX_BLUE_SIZE       , 8,
-		GLX_DEPTH_SIZE      , 0,
-		GLX_DOUBLEBUFFER    , True,
-		None
-	};
-
-	PFNGLXCHOOSEFBCONFIGPROC glX_ChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC) glXGetProcAddress((GLubyte *) "glXChooseFBConfig");
-	int fbcount = 0;
-	GLXFBConfig *fbc = glX_ChooseFBConfig(m_NativeDisplay, DefaultScreen(m_NativeDisplay), attrListDbl, &fbcount);
-	if (!fbc || fbcount < 1) {
-		throw GSDXRecoverableError();
-	}
-
-	PFNGLXCREATECONTEXTATTRIBSARBPROC glX_CreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddress((const GLubyte*) "glXCreateContextAttribsARB");
-	if (!glX_CreateContextAttribsARB) {
-		throw GSDXRecoverableError();
-	}
-
-	// Install a dummy handler to handle gracefully (aka not segfault) the support of GL version
-	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
-	// Be sure the handler is installed
-	XSync( m_NativeDisplay, false);
-
-	// Create a context
-	int context_attribs[] =
-	{
-		GLX_CONTEXT_MAJOR_VERSION_ARB, major,
-		GLX_CONTEXT_MINOR_VERSION_ARB, minor,
-#ifdef ENABLE_OGL_DEBUG
-		GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
-#else
-		// Open Source isn't happy with an unsupported flags...
-		//GLX_CONTEXT_FLAGS_ARB, GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR,
-#endif
-		GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-		None
-	};
-
-	m_context = glX_CreateContextAttribsARB(m_NativeDisplay, fbc[0], 0, true, context_attribs);
-	XFree(fbc);
-
-	// Don't forget to reinstall the older Handler
-	XSetErrorHandler(oldHandler);
+    m_context = glXGetCurrentContext();
 
 	// Get latest error
 	XSync( m_NativeDisplay, false);
 
-	if (!m_context || ctxError) {
+	if (!m_context) {
 		fprintf(stderr, "Failed to create the opengl context. Check your drivers support openGL %d.%d. Hint: opensource drivers don't\n", major, minor );
 		throw GSDXRecoverableError();
 	}
@@ -107,7 +70,6 @@ void GSWndOGL::CreateContext(int major, int minor)
 void GSWndOGL::AttachContext()
 {
 	if (!IsContextAttached()) {
-		//fprintf(stderr, "Attach the context\n");
 		glXMakeCurrent(m_NativeDisplay, m_NativeWindow, m_context);
 		m_ctx_attached = true;
 	}
@@ -116,8 +78,7 @@ void GSWndOGL::AttachContext()
 void GSWndOGL::DetachContext()
 {
 	if (IsContextAttached()) {
-		//fprintf(stderr, "Detach the context\n");
-		glXMakeCurrent(m_NativeDisplay, None, NULL);
+		//glXMakeCurrent(m_NativeDisplay, None, NULL);
 		m_ctx_attached = false;
 	}
 }
@@ -130,13 +91,13 @@ void GSWndOGL::PopulateWndGlFunction()
 	const char* ext = glXQueryExtensionsString(m_NativeDisplay, DefaultScreen(m_NativeDisplay));
 	m_has_late_vsync = m_swapinterval_ext && ext && strstr(ext, "GLX_EXT_swap_control");
 }
-
+extern Display* XDisplay;
 bool GSWndOGL::Attach(void* handle, bool managed)
 {
 	m_NativeWindow = *(Window*)handle;
 	m_managed = managed;
 
-	m_NativeDisplay = XOpenDisplay(NULL);
+	m_NativeDisplay = XDisplay;
 
 	FullContextInit();
 
@@ -146,14 +107,14 @@ bool GSWndOGL::Attach(void* handle, bool managed)
 void GSWndOGL::Detach()
 {
 	// Actually the destructor is not called when there is only a GSclose/GSshutdown
-	// The window still need to be closed
+	/*// The window still need to be closed
 	DetachContext();
 	if (m_context) glXDestroyContext(m_NativeDisplay, m_context);
 
 	if (m_NativeDisplay) {
 		XCloseDisplay(m_NativeDisplay);
 		m_NativeDisplay = NULL;
-	}
+	}*/
 }
 
 bool GSWndOGL::Create(const std::string& title, int w, int h)
@@ -200,7 +161,9 @@ void* GSWndOGL::GetDisplay()
 	// note this part must be only executed when replaying .gs debug file
 	return (void*)m_NativeDisplay;
 }
-
+extern SDL_Window* gWindow;
+extern Display* XDisplay;
+extern Window Xwindow;
 GSVector4i GSWndOGL::GetClientRect()
 {
 	unsigned int h = 480;
@@ -211,8 +174,7 @@ GSVector4i GSWndOGL::GetClientRect()
 	Window winDummy;
     int xDummy;
     int yDummy;
-
-	if (!m_NativeDisplay) m_NativeDisplay = XOpenDisplay(NULL);
+	
 	XGetGeometry(m_NativeDisplay, m_NativeWindow, &winDummy, &xDummy, &yDummy, &w, &h, &borderDummy, &depthDummy);
 
 	return GSVector4i(0, 0, (int)w, (int)h);

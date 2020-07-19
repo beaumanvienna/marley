@@ -25,7 +25,7 @@
 #include "../include/statemachine.h"
 #include "../include/controller.h"
 #include "../include/emu.h"
-
+#include <X11/Xlib.h>
 //rendering window 
 SDL_Window* gWindow = NULL;
 
@@ -37,6 +37,9 @@ SDL_Texture* gTextures[NUM_TEXTURES];
 
 bool gFullscreen;
 int xOffset,yOffset;
+
+Display* XDisplay;
+Window Xwindow;
 
 bool loadMedia()
 {

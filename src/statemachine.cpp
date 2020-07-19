@@ -30,6 +30,8 @@
 #include "../include/controller.h"
 #include "../include/emu.h"
 #include <algorithm>
+#include <X11/Xlib.h>
+#include <SDL_syswm.h>
 
 int gState = 0;
 int gCurrentGame;
@@ -58,6 +60,8 @@ int secondRun;
 int secondRunHat;
 int secondRunValue;
 
+extern Display* XDisplay;
+extern Window Xwindow;
 
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
@@ -456,21 +460,21 @@ bool statemachine(int cmd)
                                 n = str.length(); 
                                 strcpy(arg6, str.c_str()); 
                                 
-                                str = "--nogui";
-                                n = str.length(); 
-                                strcpy(arg7, str.c_str()); 
-                                
                                 str = "--fullboot";
                                 n = str.length(); 
-                                strcpy(arg8, str.c_str()); 
+                                strcpy(arg7, str.c_str()); 
 
-                                str = "--fullscreen";
-                                n = str.length(); 
-                                strcpy(arg9, str.c_str()); 
-                                
                                 str = gGame[gCurrentGame];
                                 n = str.length(); 
-                                strcpy(arg10, str.c_str()); 
+                                strcpy(arg8, str.c_str());
+                                
+                                str = "--nogui";
+                                n = str.length(); 
+                                strcpy(arg9, str.c_str());
+                                
+                                /*str = "--fullscreen";
+                                n = str.length(); 
+                                strcpy(arg10, str.c_str()); */
 
                                 argv[0] = arg1;
                                 argv[1] = arg2;
@@ -481,13 +485,53 @@ bool statemachine(int cmd)
                                 argv[6] = arg7;
                                 argv[7] = arg8;
                                 argv[8] = arg9;
-                                argv[9] = arg10;
+                                //argv[9] = arg10;
                                 
-                                argc = 10;
+                                //argc = 10; // fullscreen
+                                argc = 9;
                                 
-                                pcsx2_main(argc,argv);
-                                
-                                restoreSDL();
+                                SDL_SysWMinfo sdlWindowInfo;
+                                SDL_VERSION(&sdlWindowInfo.version);
+                                if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+                                {
+                                    if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+                                    {
+                                        Xwindow      = sdlWindowInfo.info.x11.window;
+                                        XDisplay     = sdlWindowInfo.info.x11.display;
+                                        pcsx2_main(argc,argv);   
+                                        
+                                        if (gWindow)
+                                        {
+                                            SDL_GL_ResetAttributes();
+      
+                                            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+                                            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
+                                            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+                                            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+                                            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+                                            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+                                            SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+                                            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+                                            SDL_GL_SetAttribute(SDL_GL_STEREO, 0);                                        
+                                            
+                                            SDL_GL_MakeCurrent(gWindow,SDL_GL_CreateContext(gWindow));
+
+                                            restoreSDL();
+
+                                        } 
+                                        else
+                                        {
+                                            printf("gWindow == NULL, aborting\n");
+                                            exit (0);
+                                        }
+                                        
+                                    }
+                                } 
+                                else
+                                {
+                                    printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+                                }
                             }
 #endif
 
