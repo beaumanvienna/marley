@@ -11,8 +11,6 @@ linux_64_before_install() {
 
 	sudo apt-get -qq update
 
-	# libgl1-mesa-dev, liblzma-dev, libxext-dev, zlib1g-dev already installed on
-	# build worker, I put these here in case the build image changes.
 	sudo apt-get -y install \
 		debhelper cmake chrpath libsdl2-dev libsdl2-image-dev \
 		debhelper libsdl2-dev libsdl2-image-dev cmake chrpath libsdl2-ttf-dev, \
