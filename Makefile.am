@@ -252,7 +252,4 @@ marley_LDADD 	+= -lpangoxft-1.0
 marley_LDADD 	+= -lgdk-x11-2.0
 marley_LDADD 	+= -lgtk-x11-2.0
 marley_LDADD 	+= -laio
-marley_LDADD 	+= -lwx_baseu-3.0
-marley_LDADD 	+= -lwx_gtk2u_core-3.0 
-marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
 marley_LDADD 	+= -llzma
