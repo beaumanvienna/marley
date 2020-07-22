@@ -126,7 +126,6 @@ void printSupportedEmus(void)
         }
         printf("%s\n",gSupportedEmulators[i].c_str());    
     }
-    SDL_Delay(1000);
 }
 
 void initEMU(void)
