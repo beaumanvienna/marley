@@ -64,11 +64,11 @@ using namespace std;
     
     bool initGUI(void);
     bool loadMedia(void);
-    bool closeGUI(void);
+    void closeGUI(void);
     bool freeTextures(void);
-    bool renderScreen(void);
-    bool setFullscreen(void);
-    bool setWindowed(void);
+    void renderScreen(void);
+    void setFullscreen(void);
+    void setWindowed(void);
     bool restoreGUI();
     bool createRenderer(void);
     

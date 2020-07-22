@@ -35,7 +35,7 @@
 
 #define PI 3.14159
 
-bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
+void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
 bool setBaseDir(void);
 
@@ -73,7 +73,6 @@ bool init()
     
     printf("This is marley version %s\n",PACKAGE_VERSION);
 
-    //printf( "init()\n");
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
     {
@@ -115,7 +114,6 @@ bool init()
                 ok = false;
             }
         }
-        //printf( "init() end\n");
     }
     
     checkConf();
@@ -477,14 +475,14 @@ int main( int argc, char* argv[] )
     return 0;
 }
 
-bool restoreSDL(void)
+void restoreSDL(void)
 {
     restoreController();
     restoreGUI();
 }
 
 //Motion on gamepad x
-bool joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
+void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 {
     if((event.jaxis.axis == 0) || (event.jaxis.axis == 3))
     {
@@ -507,7 +505,6 @@ bool createTemplate(string name)
     outfile.open(name.c_str(), std::ios_base::app); 
     if(outfile) 
     {
-        //printf("writing to file\n"); 
         string l1 = "# marley ";
         l1 += PACKAGE_VERSION;
         l1 += "\n\n\n";
@@ -573,7 +570,7 @@ bool setPathToGames(string str)
     return ok;    
 }
 
-bool loadConfig(ifstream* configFile)
+void loadConfig(ifstream* configFile)
 {
     string entry, line, slash;
     int pos;
@@ -590,7 +587,7 @@ bool loadConfig(ifstream* configFile)
             entry = line.substr(pos+1,line.length()-pos);
             if ( !(setPathToFirmware(entry)) )
             {
-                printf("Marley could not find firmware path for PSX %s\n",entry.c_str());
+                printf("Could not find firmware path for PSX %s\n",entry.c_str());
             }
         }
         if (line.find("search_dir_games=") == 0)
@@ -603,7 +600,6 @@ bool loadConfig(ifstream* configFile)
             }
         }
     }
-    
     configFile[0].close();
 }
 
@@ -664,7 +660,6 @@ bool checkConf(void)
 
     if ( gBaseDir != "") 
     {
-        
         DIR* dir = opendir(gBaseDir.c_str());
         if ((dir) && (isDirectory(gBaseDir.c_str()) ))
         {

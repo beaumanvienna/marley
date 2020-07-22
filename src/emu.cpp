@@ -57,7 +57,7 @@ vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","sne
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc"};
 bool gGamesFound;
 
-bool checkFirmwarePSX(void)
+void checkFirmwarePSX(void)
 {
     if (gPathToFirmwarePSX!="")
     {
@@ -112,7 +112,7 @@ bool checkFirmwarePSX(void)
     }
 }
 
-bool printSupportedEmus(void)
+void printSupportedEmus(void)
 {
     bool notEmpty;
     int i;
@@ -126,9 +126,10 @@ bool printSupportedEmus(void)
         }
         printf("%s\n",gSupportedEmulators[i].c_str());    
     }
+    SDL_Delay(1000);
 }
 
-bool initEMU(void)
+void initEMU(void)
 {
     printSupportedEmus();
     
@@ -205,7 +206,7 @@ bool isDirectory(const char *filename)
     return ok;
 }
 
-bool stripList(list<string> *tmpList,list<string> *toBeRemoved)
+void stripList(list<string> *tmpList,list<string> *toBeRemoved)
 {
     list<string>::iterator iteratorTmpList;
     list<string>::iterator iteratorToBeRemoved;
@@ -250,7 +251,7 @@ bool stripList(list<string> *tmpList,list<string> *toBeRemoved)
     }
 }
 
-bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
+void checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 {
     string line, name;
 
@@ -357,7 +358,7 @@ bool findInVector(vector<string>* vec, string str)
     return ok;
 }
 
-bool finalizeList(std::list<string> *tmpList)
+void finalizeList(std::list<string> *tmpList)
 {
     list<string>::iterator iteratorTmpList;
     string strList;
@@ -384,7 +385,7 @@ bool finalizeList(std::list<string> *tmpList)
     }
 }
 
-bool buildGameList(void)
+void buildGameList(void)
 {
     std::list<string> tmpList;
     std::list<string> toBeRemoved;

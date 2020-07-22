@@ -63,7 +63,7 @@ using namespace std;
         STATE_CONF_MAX
     } configStates;
 
-    bool statemachine(int cmd);
+    void statemachine(int cmd);
     void statemachineConf(int cmd);
     void statemachineConfAxis(int cmd, bool negative);
     void statemachineConfHat(int hat, int value);

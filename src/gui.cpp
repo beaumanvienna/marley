@@ -307,7 +307,7 @@ bool initGUI(void)
 }
 
 
-bool closeGUI(void)
+void closeGUI(void)
 {
     //Destroy main window    
     SDL_DestroyRenderer( gRenderer );
@@ -316,7 +316,7 @@ bool closeGUI(void)
     gRenderer = NULL;
 }
     
-bool renderIcons(void)
+void renderIcons(void)
 {
     //render destination 
     SDL_Rect destination;
@@ -529,7 +529,7 @@ bool renderIcons(void)
 }
 
 
-bool setFullscreen(void)
+void setFullscreen(void)
 {
     SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_DisplayMode DM;
@@ -538,7 +538,7 @@ bool setFullscreen(void)
     yOffset = (DM.h-WINDOW_HEIGHT)/2;
     printf("xoff: %i, yoff: %i\n",xOffset,yOffset);
 }
-bool setWindowed(void)
+void setWindowed(void)
 {
     SDL_SetWindowFullscreen(gWindow, 0);
     xOffset = 0;
@@ -603,7 +603,7 @@ bool restoreGUI(void)
     return ok;
 }
     
-bool renderScreen(void)
+void renderScreen(void)
 {
     //render destination 
     SDL_Rect destination;

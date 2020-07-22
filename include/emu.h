@@ -35,10 +35,10 @@ using namespace std;
     extern string gPathToGames;
     extern bool gGamesFound;
     
-    bool initEMU(void);
-    bool checkFirmwarePSX(void);
-    bool printSupportedEmus(void);
-    bool buildGameList(void);
+    void initEMU(void);
+    void checkFirmwarePSX(void);
+    void printSupportedEmus(void);
+    void buildGameList(void);
     bool isDirectory(const char *path);
     
 #endif

@@ -75,7 +75,7 @@ void resetStatemachine(void)
     gControllerConfNum=-1;
 }
 
-bool statemachine(int cmd)
+void statemachine(int cmd)
 {
     string execute;
     bool emuReturn = false;
@@ -639,7 +639,6 @@ bool statemachine(int cmd)
     {
         
     }
-    return 0;
 }
 
 

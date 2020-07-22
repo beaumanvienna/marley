@@ -63,7 +63,7 @@ bool initWii(void)
 using namespace WiimoteReal;
 
 
-bool mainLoopWii(void)
+void mainLoopWii(void)
 {
     u16 buttons;
     
@@ -128,7 +128,7 @@ bool mainLoopWii(void)
     wiimoteOnline_prev = wiimoteOnline;
 }
 
-bool shutdownWii(void)
+void shutdownWii(void)
 {
     //Core::Stop();
     //Core::Shutdown();

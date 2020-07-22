@@ -58,7 +58,7 @@ using namespace std;
         int pcsx2_main(int argc, char* argv[]);
     #endif
     
-    bool restoreSDL(void);
+    void restoreSDL(void);
     bool setPathToGames(string filename);
     bool setPathToFirmware(string str);
     bool addSettingToConfigFile(string setting);

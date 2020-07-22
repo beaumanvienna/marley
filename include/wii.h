@@ -65,7 +65,7 @@ using namespace std;
 #define MARLEY_WII_H
 
     bool initWii(void);
-    bool mainLoopWii(void);
-    bool shutdownWii(void);
+    void mainLoopWii(void);
+    void shutdownWii(void);
 
 #endif

@@ -467,7 +467,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 }
 
 
-bool restoreController(void)
+void restoreController(void)
 {
     SDL_JoystickEventState(SDL_ENABLE);
 }
@@ -732,7 +732,7 @@ int checkType(string name, string nameDB)
 }
 
 
-bool openWiimote(int nb)
+void openWiimote(int nb)
 {
     //search for 1st empty slot
     for (int designation=0;designation< MAX_GAMEPADS; designation++)
@@ -757,7 +757,7 @@ bool openWiimote(int nb)
         }
     }
 }
-bool closeWiimote(int nb)
+void closeWiimote(int nb)
 {
     //search for 1st empty slot
     for (int designation=0;designation< MAX_GAMEPADS; designation++)

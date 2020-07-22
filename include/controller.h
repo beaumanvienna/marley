@@ -74,11 +74,11 @@ using namespace std;
     bool printJoyInfo(int i);
     bool closeJoy(int instance_id);
     bool closeAllJoy(void);
-    bool restoreController(void);
+    void restoreController(void);
     void setMapping(void);
     int checkType(string name, string nameDB);
-    bool openWiimote(int nb);
-    bool closeWiimote(int nb);
+    void openWiimote(int nb);
+    void closeWiimote(int nb);
 
     //Gamepad array for all instances
     extern SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
