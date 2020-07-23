@@ -43,34 +43,6 @@ elseif(NOT APPLE)
     list(APPEND wxWidgets_CONFIG_OPTIONS --toolkit=gtk2)
 endif()
 
-# wx2.8 => /usr/bin/wx-config-2.8
-# lib32-wx2.8 => /usr/bin/wx-config32-2.8
-# wx3.0 => /usr/bin/wx-config-3.0
-# I'm going to take a wild guess and predict this:
-# lib32-wx3.0 => /usr/bin/wx-config32-3.0
-# FindwxWidgets only searches for wx-config.
-#if(CMAKE_CROSSCOMPILING)
-#    # May need to fix the filenames for lib32-wx3.0.
-#    if(${PCSX2_TARGET_ARCHITECTURES} MATCHES "i386")
-#        if (Fedora AND EXISTS "/usr/bin/wx-config-3.0")
-#            set(wxWidgets_CONFIG_EXECUTABLE "/usr/bin/wx-config-3.0")
-#        endif()
-#        if (EXISTS "/usr/bin/wx-config32")
-#            set(wxWidgets_CONFIG_EXECUTABLE "/usr/bin/wx-config32")
-#        endif()
-#        if (EXISTS "/usr/bin/wx-config32-3.0")
-#            set(wxWidgets_CONFIG_EXECUTABLE "/usr/bin/wx-config32-3.0")
-#        endif()
-#    endif()
-#else()
-#    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-#        set(wxWidgets_CONFIG_EXECUTABLE "/usr/local/bin/wxgtk3u-3.0-config")
-#    endif()
-#    if(EXISTS "/usr/bin/wx-config-3.0")
-#        set(wxWidgets_CONFIG_EXECUTABLE "/usr/bin/wx-config-3.0")
-#    endif()
-#endif()
-
 find_package(wxWidgets COMPONENTS base core adv)
 find_package(ZLIB)
 

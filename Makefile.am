@@ -236,15 +236,17 @@ marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
 marley_LDADD 	+= -lwx_baseu-3.0 
 
-#marley_LDADD 	+= -lwx_gtk2u_core-3.0 
-#marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
-#marley_LDADD 	+= -lgdk-x11-2.0
-#marley_LDADD 	+= -lgtk-x11-2.0
 
-marley_LDADD 	+= -lwx_gtk3u_core-3.0 
-marley_LDADD 	+= -lwx_gtk3u_adv-3.0 
-marley_LDADD 	+= -lgtk-3
-marley_LDADD 	+= -lgdk-3
+#marley_LDADD 	+= -lwx_gtk3u_core-3.0 
+#marley_LDADD 	+= -lwx_gtk3u_adv-3.0 
+#marley_LDADD 	+= -lgtk-3
+#marley_LDADD 	+= -lgdk-3
+
+marley_LDADD 	+= -lwx_gtk2u_core-3.0 
+marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
+marley_LDADD 	+= -lgdk-x11-2.0
+marley_LDADD 	+= -lgtk-x11-2.0
+
 
 marley_LDADD 	+= -lglib-2.0
 marley_LDADD 	+= -lgobject-2.0
