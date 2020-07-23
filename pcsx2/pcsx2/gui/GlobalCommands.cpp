@@ -36,7 +36,7 @@ void GSosdLog(const char *utf8, uint32 color);
 #include "Dump.h"
 #include "DebugTools/Debug.h"
 #include "R3000A.h"
-
+#include <SDL.h>
 // renderswitch - tells GSdx to go into dx9 sw if "renderswitch" is set.
 bool renderswitch = false;
 uint renderswitch_delay = 0;
@@ -44,7 +44,7 @@ uint renderswitch_delay = 0;
 extern bool switchAR;
 
 static int g_Pcsx2Recording = 0; // true 1 if recording video and sound
-
+extern SDL_Window* gWindow;
 
 KeyAcceleratorCode::KeyAcceleratorCode( const wxKeyEvent& evt )
 {
@@ -469,11 +469,17 @@ namespace Implementations
 		Console.Warning("hardware registers dumped EE:%x, IOP:%x\n", cpuRegs.pc, psxRegs.pc);
 #endif
 	}
-
+    
 	void FullscreenToggle()
 	{
-		if( GSFrame* gsframe = wxGetApp().GetGsFramePtr() )
-			gsframe->ShowFullScreen( !gsframe->IsFullScreen() );
+		if (SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN))
+		{
+			SDL_SetWindowFullscreen(gWindow, 0);
+		}
+		else
+		{
+			SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		}
 	}
 #ifndef DISABLE_RECORDING
 	void FrameAdvance()

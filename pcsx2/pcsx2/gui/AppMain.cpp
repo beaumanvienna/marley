@@ -1045,15 +1045,10 @@ void Pcsx2App::OpenGsPanel()
 	
 	pxAssertDev( !GetCorePlugins().IsOpen( PluginId_GS ), "GS Plugin must be closed prior to opening a new Gs Panel!" );
 
-    wxSize gsFrameSize( gsFrame->GetSize() );
-
-    SDL_SetWindowSize(gWindow,gsFrameSize.GetWidth(), gsFrameSize.GetHeight());
-
 	pDsp[0] = (uptr)XDisplay;
 	pDsp[1] = (uptr)Xwindow;
 
-	//gsFrame->ShowFullScreen( g_Conf->GSWindow.IsFullscreen );
-    gsFrame->SetSize (1,1,1,1);	
+	gsFrame->SetSize (1,1,1,1);
 }
 
 void Pcsx2App::CloseGsPanel()

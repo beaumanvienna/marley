@@ -471,10 +471,6 @@ void statemachine(int cmd)
                                 str = "--nogui";
                                 n = str.length(); 
                                 strcpy(arg9, str.c_str());
-                                
-                                /*str = "--fullscreen";
-                                n = str.length(); 
-                                strcpy(arg10, str.c_str()); */
 
                                 argv[0] = arg1;
                                 argv[1] = arg2;
@@ -485,9 +481,7 @@ void statemachine(int cmd)
                                 argv[6] = arg7;
                                 argv[7] = arg8;
                                 argv[8] = arg9;
-                                //argv[9] = arg10;
-                                
-                                //argc = 10; // fullscreen
+
                                 argc = 9;
                                 
                                 SDL_SysWMinfo sdlWindowInfo;
@@ -498,34 +492,8 @@ void statemachine(int cmd)
                                     {
                                         Xwindow      = sdlWindowInfo.info.x11.window;
                                         XDisplay     = sdlWindowInfo.info.x11.display;
-                                        pcsx2_main(argc,argv);   
-                                        
-                                        if (gWindow)
-                                        {
-                                            SDL_GL_ResetAttributes();
-      
-                                            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-                                            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
-                                            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-                                            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-                                            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-                                            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-                                            SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-                                            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-                                            SDL_GL_SetAttribute(SDL_GL_STEREO, 0);                                        
-                                            
-                                            SDL_GL_MakeCurrent(gWindow,SDL_GL_CreateContext(gWindow));
-
-                                            restoreSDL();
-
-                                        } 
-                                        else
-                                        {
-                                            printf("gWindow == NULL, aborting\n");
-                                            exit (0);
-                                        }
-                                        
+                                        pcsx2_main(argc,argv);
+                                        restoreSDL();
                                     }
                                 } 
                                 else

@@ -465,7 +465,7 @@ int main(int argc, char* argv[])
     char arg7[1024];
     char arg8[1024];
     char arg9[1024];
-    char arg10[1024];
+
     
     int n;
     string str;
@@ -515,11 +515,6 @@ int main(int argc, char* argv[])
     str = "pcsx2";
     n = str.length(); 
     strcpy(arg1, str.c_str()); 
-//#define TEST1
-#ifdef TEST1
-    pcsx2_argc = 1;
-    pcsx2_argv[0] = arg1;
-#else
 
     str = "--spu2=/usr/games/Marley/PCSX2/libspu2x-2.0.0.so";
     n = str.length(); 
@@ -549,10 +544,6 @@ int main(int argc, char* argv[])
     n = str.length(); 
     strcpy(arg8, str.c_str()); 
 
-    str = "--fullscreen";
-    n = str.length(); 
-    strcpy(arg9, str.c_str()); 
-
     pcsx2_argv[0] = arg1;
     pcsx2_argv[1] = arg2;
     pcsx2_argv[2] = arg3;
@@ -561,23 +552,21 @@ int main(int argc, char* argv[])
     pcsx2_argv[5] = arg6;
     pcsx2_argv[6] = arg7;
     pcsx2_argv[7] = arg8;
-    pcsx2_argv[8] = arg9;
 
     if (argc > 1)
     {
         str = argv[1];
         n = str.length(); 
-        strcpy(arg10, str.c_str());
+        strcpy(arg9, str.c_str());
 
-        pcsx2_argv[9] = arg10;
-        //pcsx2_argc = 6; // plugins, no other options
-        pcsx2_argc = 10; // all options plus game
+        pcsx2_argv[8] = arg9;
+        pcsx2_argc = 9; // nogui, fullboot
     }
     else
     {
-        pcsx2_argc = 1;
+        pcsx2_argc = 6; // only plugins, no other options
     }
-#endif
+
 
     SDL_SysWMinfo sdlWindowInfo;
     SDL_VERSION(&sdlWindowInfo.version);
@@ -588,7 +577,7 @@ int main(int argc, char* argv[])
             Xwindow      = sdlWindowInfo.info.x11.window;
             XDisplay     = sdlWindowInfo.info.x11.display;
             
-            pcsx2_main(pcsx2_argc,pcsx2_argv);
+            while (1) pcsx2_main(pcsx2_argc,pcsx2_argv);
             printf("jc exit test\n");    
         }
     }
