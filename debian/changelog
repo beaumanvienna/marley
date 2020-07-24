@@ -8,7 +8,7 @@ marley (0.1.1) focal; urgency=medium
   * support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, MD (Sega Genesis)
    
- -- JC <beaumanvienna@gmail.com>  Tue, 14 JUN 2020 18:00:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Thu, 23 JUL 2020 20:35:00 -0800
 
 marley (0.1.0) bionic; urgency=medium
 
@@ -21,7 +21,7 @@ marley (0.1.0) bionic; urgency=medium
   * support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, MD (Sega Genesis)
    
- -- JC <beaumanvienna@gmail.com>  Tue, 14 JUN 2020 18:00:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Tue, 14 JUL 2020 18:00:00 -0800
 
 marley (0.0.9) bionic; urgency=medium
 
