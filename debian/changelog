@@ -1,4 +1,4 @@
-marley (0.1.1.1) focal; urgency=medium
+marley (0.1.1.2) focal; urgency=medium
 
   * PCSX2 added
   * PCSX2 is using Marley's main window
