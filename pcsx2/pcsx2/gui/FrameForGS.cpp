@@ -505,7 +505,7 @@ static const uint TitleBarUpdateMsWhenRecording = 50;
 #endif
 
 GSFrame::GSFrame( const wxString& title)
-	: wxFrame(NULL, wxID_ANY, title, g_Conf->GSWindow.WindowPos,wxSize(-1,-1),wxMINIMIZE)
+	: wxFrame(NULL, wxID_ANY, title, g_Conf->GSWindow.WindowPos,wxSize(1,1))
 	, m_timer_UpdateTitle( this )
 {
 	SetIcons( wxGetApp().GetIconBundle() );

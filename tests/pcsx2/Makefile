@@ -8,8 +8,16 @@ LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
 LINKER_OBJECTS += -lwx_baseu-3.0
-LINKER_OBJECTS += -lwx_gtk2u_core-3.0
-LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
+
+#LINKER_OBJECTS += -lwx_gtk2u_core-3.0
+#LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
+#LINKER_OBJECTS += -lgdk-x11-2.0
+#LINKER_OBJECTS += -lgtk-x11-2.0
+
+LINKER_OBJECTS 	+= -lwx_gtk3u_core-3.0 
+LINKER_OBJECTS 	+= -lwx_gtk3u_adv-3.0 
+LINKER_OBJECTS 	+= -lgtk-3
+LINKER_OBJECTS 	+= -lgdk-3
 
 LINKER_OBJECTS += -lglib-2.0
 LINKER_OBJECTS += -lgobject-2.0
@@ -23,8 +31,6 @@ LINKER_OBJECTS += -lpango-1.0
 LINKER_OBJECTS += -lpangocairo-1.0
 LINKER_OBJECTS += -lpangoft2-1.0
 LINKER_OBJECTS += -lpangoxft-1.0
-LINKER_OBJECTS += -lgdk-x11-2.0
-LINKER_OBJECTS += -lgtk-x11-2.0
 LINKER_OBJECTS += -laio
 LINKER_OBJECTS += -lGL
 LINKER_OBJECTS += -lstdc++
