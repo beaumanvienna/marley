@@ -224,6 +224,7 @@ int main( int argc, char* argv[] )
         //main loop
         while( !gQuit )
         {
+			SDL_Delay(33); // 30 fps
             mainLoopWii();
             //Handle events on queue
             while( SDL_PollEvent( &event ) != 0 )

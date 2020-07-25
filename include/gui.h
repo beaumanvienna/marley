@@ -57,10 +57,6 @@ using namespace std;
         #define TEX_PS4                 20
         #define TEX_WIIMOTE             21
         #define TEX_SNES                22
-
-
-    #define WINDOW_WIDTH 1280
-    #define WINDOW_HEIGHT 750
     
     bool initGUI(void);
     bool loadMedia(void);
@@ -88,5 +84,8 @@ using namespace std;
     extern bool gIgnore;
     
     extern TTF_Font* gFont;
+    
+	extern int WINDOW_WIDTH;
+	extern int WINDOW_HEIGHT;
     
 #endif

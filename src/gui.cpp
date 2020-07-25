@@ -41,6 +41,44 @@ int xOffset,yOffset;
 Display* XDisplay;
 Window Xwindow;
 
+int WINDOW_WIDTH;
+int WINDOW_HEIGHT;
+
+int x_offset_1150;
+int x_offset_1068;
+int x_offset_900;
+int x_offset_720;
+int x_offset_630;
+int x_offset_600;
+int x_offset_560;
+int x_offset_530;
+int x_offset_350;
+int x_offset_345;
+int x_offset_300;
+int x_offset_250;
+int x_offset_200;
+int x_offset_150;
+int x_offset_132;
+int x_offset_100;
+int x_offset_80;
+int x_offset_50;
+int x_offset_20;
+int y_offset_675;
+int y_offset_620;
+int y_offset_450;
+int y_offset_390;
+int y_offset_370;
+int y_offset_250;
+int y_offset_215;
+int y_offset_200;
+int y_offset_140;
+int y_offset_130;
+int y_offset_80;
+int y_offset_65;
+int y_offset_45;
+int y_offset_36;
+int y_offset_10;
+
 bool loadMedia()
 {
     bool ok = true;
@@ -261,6 +299,47 @@ bool initGUI(void)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
     
+    SDL_DisplayMode current;
+    SDL_GetCurrentDisplayMode(0, &current);
+    WINDOW_WIDTH = current.w / 1.5; 
+    WINDOW_HEIGHT = current.h / 1.5;
+	
+	x_offset_1150 = WINDOW_WIDTH / 1.087;
+	x_offset_1068 = WINDOW_WIDTH / 1.170412;
+	x_offset_900 = WINDOW_WIDTH / 1.4;
+	x_offset_720 = WINDOW_WIDTH / 1.7;
+	x_offset_630 = WINDOW_WIDTH / 2;
+	x_offset_600 = WINDOW_WIDTH / 2.1;
+	x_offset_560 = WINDOW_WIDTH / 2.2;
+	x_offset_530 = WINDOW_WIDTH / 2.4;
+	x_offset_350 = WINDOW_WIDTH / 3.6;
+	x_offset_345 = WINDOW_WIDTH / 3.62;
+	x_offset_300 = WINDOW_WIDTH / 4.2;
+	x_offset_250 = WINDOW_WIDTH / 5;
+	x_offset_200 = WINDOW_WIDTH / 6.25;
+	x_offset_150 = WINDOW_WIDTH / 8.3;
+	x_offset_132 = WINDOW_WIDTH / 9.5;
+	x_offset_100 = WINDOW_WIDTH / 12.5;
+	x_offset_80 = WINDOW_WIDTH / 15.6;
+	x_offset_50 = WINDOW_WIDTH / 25;
+	x_offset_20 = WINDOW_WIDTH / 62.5;
+	
+	y_offset_675 = WINDOW_HEIGHT / 1.1;
+	y_offset_620 = WINDOW_HEIGHT / 1.2;
+	y_offset_450 = WINDOW_HEIGHT / 1.7;
+	y_offset_390 = WINDOW_HEIGHT / 1.9;
+	y_offset_370 = WINDOW_HEIGHT / 2;
+	y_offset_250 = WINDOW_HEIGHT / 3;
+	y_offset_215 = WINDOW_HEIGHT / 3.5;
+	y_offset_200 = WINDOW_HEIGHT / 3.75;
+	y_offset_140 = WINDOW_HEIGHT / 5.4;
+	y_offset_130 = WINDOW_HEIGHT / 5.8;
+	y_offset_80 = WINDOW_HEIGHT / 9.4;
+	y_offset_65 = WINDOW_HEIGHT / 11.5;
+	y_offset_45 = WINDOW_HEIGHT / 16.7;
+	y_offset_36 = WINDOW_HEIGHT / 20.8;
+	y_offset_10 = WINDOW_HEIGHT / 75;
+    
     xOffset = 0;
     yOffset = 0;
     windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
@@ -323,7 +402,7 @@ void renderIcons(void)
     SDL_Surface* surfaceMessage = NULL; 
     SDL_Texture* message = NULL;     
     
-    destination = { 1100+xOffset, 10+yOffset, 132, 45 };
+    destination = { x_offset_1068+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
     if (gState == STATE_OFF)
     {
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
@@ -337,7 +416,7 @@ void renderIcons(void)
     {
         if (gGamesFound)
         {
-            destination = { 50+xOffset, 10+yOffset, 132, 45 };
+            destination = { x_offset_50+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
             if (gState == STATE_PLAY)
             {
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
@@ -350,11 +429,11 @@ void renderIcons(void)
         
         if (gGamesFound)
         {
-            destination = { 200+xOffset, 10+yOffset, 132, 45 };
+            destination = { x_offset_200+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
         }
         else
         {
-            destination = { 50+xOffset, 10+yOffset, 132, 45 };
+            destination = { x_offset_50+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
         }
         if (gState == STATE_SETUP)
         {
@@ -373,7 +452,7 @@ void renderIcons(void)
                 SDL_Color inactive = {125, 46, 115};  
                 SDL_Color active = {222, 81, 223};  
                 
-                destination = { 50+xOffset, 675+yOffset, 1180, 36 };
+                destination = { x_offset_50+xOffset, y_offset_675+yOffset, x_offset_1150, y_offset_36 };
                 SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
@@ -405,14 +484,14 @@ void renderIcons(void)
                     surfaceMessage = TTF_RenderText_Solid(gFont, name_short.c_str(), inactive); 
                 }
                 int strLength = name_short.length();
-                destination = { 50+xOffset, 675+yOffset, strLength*20, 36 };
+                destination = { x_offset_50+xOffset, y_offset_675+yOffset, strLength*x_offset_20, y_offset_36 };
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
                 SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             else
             {
                 
-                destination = { 50+xOffset, 675+yOffset, 345, 45 };
+                destination = { x_offset_50+xOffset, y_offset_675+yOffset, x_offset_345, y_offset_45 };
                 //if (gState == STATE_SETUP)
                 //{
                     SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
@@ -424,10 +503,10 @@ void renderIcons(void)
             
             if (gControllerConf)
             {
-                int yConfOffset = 250*gControllerConfNum;
+                int yConfOffset = y_offset_250*gControllerConfNum;
                 
                 int strLength = gConfText.length();
-                destination = { 150+xOffset, 215+yOffset+yConfOffset, strLength*20, 45 };
+                destination = { x_offset_150+xOffset, y_offset_215+yOffset+yConfOffset, strLength*x_offset_20, y_offset_45 };
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, gConfText.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
@@ -436,7 +515,7 @@ void renderIcons(void)
             }
             
             
-            destination = { 50+xOffset, 620+yOffset, 530, 45 };
+            destination = { x_offset_50+xOffset, y_offset_620+yOffset, x_offset_530, y_offset_45 };
             if (gState == STATE_FLR_GAMES)
             {
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
@@ -446,7 +525,7 @@ void renderIcons(void)
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
             }
             
-            destination = { 50+xOffset, 675+yOffset, 530, 45 };
+            destination = { x_offset_50+xOffset, y_offset_675+yOffset, x_offset_530, y_offset_45 };
             if (gState == STATE_FLR_FW)
             {
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
@@ -472,12 +551,12 @@ void renderIcons(void)
                 {
                     text = text.substr(text.length()-30,30);
                 }
-                destination = { 600+xOffset, 620+yOffset, 630, 45 };
+                destination = { x_offset_600+xOffset, y_offset_620+yOffset, x_offset_630, y_offset_45 };
                 SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 int strLength = text.length();
-                destination = { 600+xOffset, 620+yOffset, strLength*20, 45 };
+                destination = { x_offset_600+xOffset, y_offset_620+yOffset, strLength*x_offset_20, y_offset_45 };
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
@@ -499,12 +578,12 @@ void renderIcons(void)
                 {
                     text = text.substr(text.length()-30,30);
                 }
-                destination = { 600+xOffset, 675+yOffset, 630, 45 };
+                destination = { x_offset_600+xOffset, y_offset_675+yOffset, x_offset_630, y_offset_45 };
                 SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 int strLength = text.length();
-                destination = { 600+xOffset, 675+yOffset, strLength*20, 45 };
+                destination = { x_offset_600+xOffset, y_offset_675+yOffset, strLength*x_offset_20, y_offset_45 };
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
@@ -515,14 +594,14 @@ void renderIcons(void)
     }
     else
     {
-        destination = { 50+xOffset, 10+yOffset, 560, 45 };
+        destination = { x_offset_50+xOffset, y_offset_10+yOffset, x_offset_560, y_offset_45 };
         
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     
     if (!gPSX_firmware)
     {
-        destination = { 50+xOffset, 65+yOffset, 560, 45 };
+        destination = { x_offset_50+xOffset, y_offset_65+yOffset, x_offset_560, y_offset_45 };
         
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_FW_PSX], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
@@ -623,33 +702,33 @@ void renderScreen(void)
         
         if (gSetupIsRunning)
         {
-            destination = { 50+xOffset, 140+yOffset, 720, 200 };
+            destination = { x_offset_50+xOffset, y_offset_140+yOffset, x_offset_720, y_offset_200 };
             SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
             SDL_RenderFillRect(gRenderer, &destination);
             
             if (gControllerConfNum != 0)
             {
-                height=int(amplitude0L/200);
-                if (height>250) height=250;
-                destination = { 50+xOffset, 140+yOffset, 50, height };
+                height=int(amplitude0L/y_offset_200);
+                if (height>y_offset_200) height=y_offset_200;
+                destination = { x_offset_50+xOffset, y_offset_140+yOffset, x_offset_50, height };
                 SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 0 barrel: Set rendering space and render to screen
-                destination = { 100+xOffset, 140+yOffset, 200, 200 };
+                destination = { x_offset_100+xOffset, y_offset_140+yOffset, x_offset_200, y_offset_200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
                 
-                height=int(amplitude0R/200);
-                if (height>250) height=250;
-                destination = { 300+xOffset, 140+yOffset, 50, height };
+                height=int(amplitude0R/y_offset_200);
+                if (height>y_offset_200) height=y_offset_200;
+                destination = { x_offset_300+xOffset, y_offset_140+yOffset, x_offset_50, height };
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 0 barrel: Set rendering space and render to screen
-                destination = { 350+xOffset, 140+yOffset, 200, 200 };
+                destination = { x_offset_350+xOffset, y_offset_140+yOffset, x_offset_200, y_offset_200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
                 
                 //icon for configuration run
-                destination = { 600+xOffset, 200+yOffset, 80, 80 };
+                destination = { x_offset_600+xOffset, y_offset_200+yOffset, x_offset_80, y_offset_80 };
                 
                 if (gState == STATE_CONF0)
                 {
@@ -664,7 +743,7 @@ void renderScreen(void)
         
         ctrlTex = checkType(name,nameDB);
         
-        destination = { 900+xOffset, 130+yOffset, 250, 250 };
+        destination = { x_offset_900+xOffset, y_offset_130+yOffset, x_offset_250, y_offset_250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     
@@ -679,34 +758,34 @@ void renderScreen(void)
         if (gSetupIsRunning)
         {
             
-            destination = { 50+xOffset, 390+yOffset, 720, 200 };
+            destination = { x_offset_50+xOffset, y_offset_390+yOffset, x_offset_720, y_offset_200 };
             SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 200);
             SDL_RenderFillRect(gRenderer, &destination);
             
             if (gControllerConfNum != 1)
             {
             
-                height=int(amplitude1L/200);
-                if (height>250) height=250;
-                destination = { 50+xOffset, 390+yOffset, 50, height };
+                height=int(amplitude1L/y_offset_200);
+                if (height>y_offset_200) height=y_offset_200;
+                destination = { x_offset_50+xOffset, y_offset_390+yOffset, x_offset_50, height };
                 SDL_SetRenderDrawColor(gRenderer, 120, 162, 219, 128);
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 1 barrel: Set rendering space and render to screen
-                destination = { 100+xOffset, 390+yOffset, 200, 200 };
+                destination = { x_offset_100+xOffset, y_offset_390+yOffset, x_offset_200, y_offset_200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
                 
-                height=int(amplitude1R/200);
-                if (height>250) height=250;
-                destination = { 300+xOffset, 390+yOffset, 50, height };
+                height=int(amplitude1R/y_offset_200);
+                if (height>y_offset_200) height=y_offset_200;
+                destination = { x_offset_300+xOffset, y_offset_390+yOffset, x_offset_50, height };
                 SDL_RenderFillRect(gRenderer, &destination);
                 
                 //controller 1 barrel: Set rendering space and render to screen
-                destination = { 350+xOffset, 390+yOffset, 200, 200 };
+                destination = { x_offset_350+xOffset, y_offset_390+yOffset, x_offset_200, y_offset_200 };
                 SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
                             
                 //icon for configuration run
-                destination = { 600+xOffset, 450+yOffset, 80, 80 };
+                destination = { x_offset_600+xOffset, y_offset_450+yOffset, x_offset_80, y_offset_80 };
                 
                 if (gState == STATE_CONF1)
                 {
@@ -721,7 +800,7 @@ void renderScreen(void)
         
         ctrlTex = checkType(name,nameDB);
         
-        destination = { 900+xOffset, 370+yOffset, 250, 250 };
+        destination = { x_offset_900+xOffset, y_offset_370+yOffset, x_offset_250, y_offset_250 };
         SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
     }
     renderIcons();
