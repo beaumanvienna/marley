@@ -386,7 +386,7 @@ void GamePauseScreen::CreateViews() {
 		rightColumnItems->Add(new Choice(mm->T("Exit")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMenu);
 	} else {
 		//rightColumnItems->Add(new Choice(pa->T("Exit to menu")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMenu);
-        rightColumnItems->Add(new Choice(pa->T("Exit to marley")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMarley);
+        rightColumnItems->Add(new Choice(pa->T("Exit to Marley")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMarley);
 	}
 }
 
