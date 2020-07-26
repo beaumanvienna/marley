@@ -138,7 +138,7 @@ namespace MIPSComp
 		bool doCheck = false;
 		FixupBranch skip;
 
-		if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
+		if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
 			u32 addr = iaddr & 0x3FFFFFFF;
 			// Need to initialize since this only loads part of the register.
 			// But rs no longer matters (even if rs == rt) since we have the address.
@@ -182,7 +182,7 @@ namespace MIPSComp
 		// This gets hit in a few games, as a result of never-taken delay slots (some branch types
 		// conditionally execute the delay slot instructions). Ignore in those cases.
 		if (!js.inDelaySlot) {
-			_dbg_assert_msg_(JIT, !gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
+			_dbg_assert_msg_(!gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
 		}
 
 		if (load) {
@@ -191,7 +191,7 @@ namespace MIPSComp
 			gpr.MapInIn(rt, rs);
 		}
 
-		if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
+		if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
 			SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2, true);
 			doCheck = true;
 		} else {
@@ -297,7 +297,7 @@ namespace MIPSComp
 		case 43: //sw
 			// Map base register as pointer and go from there - if the displacement isn't too big.
 			// This is faster if there are multiple loads from the same pointer. Need to hook up the MIPS analyzer..
-			if (jo.cachePointers && g_PConfig.bFastMemory) {
+			if (jo.cachePointers && g_Config.bFastMemory) {
 				// ARM has smaller load/store immediate displacements than MIPS, 12 bits - and some memory ops only have 8 bits.
 				int offsetRange = 0x3ff;
 				if (o == 41 || o == 33 || o == 37 || o == 32)
@@ -322,7 +322,7 @@ namespace MIPSComp
 				}
 			}
 
-			if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
+			if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
 				// TODO: Avoid mapping a register for the "zero" register, use R0 instead.
 
 				// We can compute the full address at compile time. Kickass.
@@ -339,10 +339,10 @@ namespace MIPSComp
 					addrReg = R0;
 				}
 			} else {
-				_dbg_assert_msg_(JIT, !gpr.IsImm(rs), "Invalid immediate address?  CPU bug?");
+				_dbg_assert_msg_(!gpr.IsImm(rs), "Invalid immediate address?  CPU bug?");
 				load ? gpr.MapDirtyIn(rt, rs) : gpr.MapInIn(rt, rs);
 
-				if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
+				if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
 					SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
 					doCheck = true;
 				} else {

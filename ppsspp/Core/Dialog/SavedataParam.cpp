@@ -61,8 +61,8 @@ namespace
 
 	bool ReadPSPFile(std::string filename, u8 **data, s64 dataSize, s64 *readSize)
 	{
-		u32 handle = pspFileSystem.OpenFile(filename, FILEACCESS_READ);
-		if (handle == 0)
+		int handle = pspFileSystem.OpenFile(filename, FILEACCESS_READ);
+		if (handle < 0)
 			return false;
 
 		if(dataSize == -1)
@@ -81,8 +81,8 @@ namespace
 
 	bool WritePSPFile(std::string filename, u8 *data, SceSize dataSize)
 	{
-		u32 handle = pspFileSystem.OpenFile(filename, (FileAccess)(FILEACCESS_WRITE | FILEACCESS_CREATE | FILEACCESS_TRUNCATE));
-		if (handle == 0)
+		int handle = pspFileSystem.OpenFile(filename, (FileAccess)(FILEACCESS_WRITE | FILEACCESS_CREATE | FILEACCESS_TRUNCATE));
+		if (handle < 0)
 			return false;
 
 		size_t result = pspFileSystem.WriteFile(handle, data, dataSize);
@@ -209,7 +209,7 @@ void SavedataParam::Init()
 	// Create a nomedia file to hide save icons form Android image viewer
 #ifdef __ANDROID__
 	int handle = pspFileSystem.OpenFile(savePath + ".nomedia", (FileAccess)(FILEACCESS_CREATE | FILEACCESS_WRITE), 0);
-	if (handle) {
+	if (handle >= 0) {
 		pspFileSystem.CloseFile(handle);
 	} else {
 		ELOG("Failed to create .nomedia file");
@@ -392,7 +392,7 @@ int SavedataParam::Save(SceUtilitySavedataParam* param, const std::string &saveD
 
 	if (!pspFileSystem.GetFileInfo(dirPath).exists) {
 		if (!pspFileSystem.MkDir(dirPath)) {
-			I18NCategory *err = GetI18NCategory("Error");
+			auto err = GetI18NCategory("Error");
 			host->NotifyUserMessage(err->T("Unable to write savedata, disk may be full"));
 		}
 	}
@@ -403,7 +403,7 @@ int SavedataParam::Save(SceUtilitySavedataParam* param, const std::string &saveD
 	memset(cryptedHash,0,0x10);
 	// Encrypt save.
 	// TODO: Is this the correct difference between MAKEDATA and MAKEDATASECURE?
-	if (param->dataBuf.IsValid() && g_PConfig.bEncryptSave && secureMode)
+	if (param->dataBuf.IsValid() && g_Config.bEncryptSave && secureMode)
 	{
 		cryptedSize = param->dataSize;
 		if(cryptedSize == 0 || (SceSize)cryptedSize > param->dataBufSize)
@@ -422,7 +422,7 @@ int SavedataParam::Save(SceUtilitySavedataParam* param, const std::string &saveD
 		}
 
 		if (EncryptData(decryptMode, cryptedData, &cryptedSize, &aligned_len, cryptedHash, (hasKey ? param->key : 0)) != 0) {
-			I18NCategory *err = GetI18NCategory("Error");
+			auto err = GetI18NCategory("Error");
 			host->NotifyUserMessage(err->T("Save encryption failed. This save won't work on real PSP"), 6.0f);
 			ERROR_LOG(SCEUTILITY,"Save encryption failed. This save won't work on real PSP");
 			delete[] cryptedData;
@@ -688,8 +688,8 @@ void SavedataParam::LoadCryptedSave(SceUtilitySavedataParam *param, u8 *data, co
 			decryptMode = prevCryptMode;
 
 			// Don't notify the user if we're not going to upgrade the save.
-			if (!g_PConfig.bEncryptSave) {
-				I18NCategory *di = GetI18NCategory("Dialog");
+			if (!g_Config.bEncryptSave) {
+				auto di = GetI18NCategory("Dialog");
 				host->NotifyUserMessage(di->T("When you save, it will load on a PSP, but not an older PPSSPP"), 6.0f);
 				host->NotifyUserMessage(di->T("Old savedata detected"), 6.0f);
 			}
@@ -699,9 +699,9 @@ void SavedataParam::LoadCryptedSave(SceUtilitySavedataParam *param, u8 *data, co
 			} else {
 				WARN_LOG_REPORT(SCEUTILITY, "Savedata loading with detected hashmode %d instead of file's %d", decryptMode, prevCryptMode);
 			}
-			if (g_PConfig.bSavedataUpgrade) {
+			if (g_Config.bSavedataUpgrade) {
 				decryptMode = prevCryptMode;
-				I18NCategory *di = GetI18NCategory("Dialog");
+				auto di = GetI18NCategory("Dialog");
 				host->NotifyUserMessage(di->T("When you save, it will not work on outdated PSP Firmware anymore"), 6.0f);
 				host->NotifyUserMessage(di->T("Old savedata detected"), 6.0f);
 			}
@@ -1075,7 +1075,7 @@ int SavedataParam::GetSizes(SceUtilitySavedataParam *param)
 		// Add the size of the data itself (don't forget encryption overhead.)
 		// This is only added if a filename is specified.
 		if (param->fileName[0] != 0) {
-			if (g_PConfig.bEncryptSave) {
+			if (g_Config.bEncryptSave) {
 				total_size += getSizeNormalized((u32)param->dataSize + 16);
 			} else {
 				total_size += getSizeNormalized((u32)param->dataSize);

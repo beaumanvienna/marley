@@ -1,0 +1,71 @@
+language: c
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    # packages list: https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+    - iptables-dev
+    - libevent-dev
+    - libnfnetlink-dev
+    - libmnl-dev
+    - libnftnl-dev
+    - uuid-dev
+    - libcap-dev
+    - cmake
+    - doxygen
+    - graphviz
+
+# https://docs.travis-ci.com/user/reference/xenial/
+dist: xenial
+
+env:
+  - 'PROJECT=minissdpd'
+  - 'PROJECT=miniupnpc'
+  - 'PROJECT=miniupnpc-async'
+  - 'PROJECT=miniupnpc-libevent'
+  - 'PROJECT=miniupnpd'
+
+jobs:
+  exclude:
+    - os: osx
+      env: PROJECT=miniupnpd
+    - os: osx
+      compiler: gcc
+
+compiler:
+  - gcc
+  - clang
+
+before_install:
+  - 'if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" == "gcc" ] ; then CC=gcc-4.9; fi'
+  - 'if [ "$TRAVIS_OS_NAME" != "osx" ] || [ "$PROJECT" != "miniupnpc" ] ; then
+      export CFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" ;
+      export LDFLAGS="-fsanitize=address -g" ;
+	fi'
+
+script:
+  - 'cd $TRAVIS_BUILD_DIR && cd $PROJECT'
+  - 'if [ "$PROJECT" = "miniupnpd" ] ; then mkdir build && cd build && ../configure --ipv6 --igd2 ; fi'
+  - 'make -j3'
+  - 'make check'
+  - 'if [ "$PROJECT" = "miniupnpd" ] ; then make dox ; cd .. ; fi'
+  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$PROJECT" = "miniupnpd" ]; then
+      mkdir build-nft && cd build-nft && ../configure --ipv6 --igd2 --firewall=nftables ;
+    fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$PROJECT" = "miniupnpd" ]; then
+      make -j3 && make check ;
+    fi
+  - if [ "$PROJECT" = "miniupnpc" ]; then
+      INSTALLPREFIX="$HOME/_pythonmodule" make pythonmodule;
+    fi
+  - if [ -f "CMakeLists.txt" ] ; then
+      mkdir cmake-build && cd cmake-build &&
+      cmake .. && make ;
+    fi
+
+after_success:
+  - 'INSTALLPREFIX="$HOME/$PROJECT" make install'

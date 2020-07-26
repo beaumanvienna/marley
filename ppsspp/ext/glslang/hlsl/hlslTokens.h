@@ -37,7 +37,7 @@
 #ifndef EHLSLTOKENS_H_
 #define EHLSLTOKENS_H_
 
-namespace Pglslang {
+namespace glslang {
 
 enum EHlslTokenClass {
     EHTokNone = 0,
@@ -369,6 +369,6 @@ enum EHlslTokenClass {
     EHTokQuestion,
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // EHLSLTOKENS_H_

@@ -75,12 +75,12 @@
 //
 // (Call once per process, not once per thread.)
 //
-SH_IMPORT_EXPORT int PShInitialize();
+SH_IMPORT_EXPORT int ShInitialize();
 
 //
 // Call this at process shutdown to clean up memory.
 //
-SH_IMPORT_EXPORT int PShFinalize();
+SH_IMPORT_EXPORT int ShFinalize();
 
 //
 // Types of languages the compiler can consume.
@@ -121,7 +121,7 @@ typedef enum {
     LAST_ELEMENT_MARKER(EShLanguageMaskCount),
 } EShLanguageMask;
 
-namespace Pglslang {
+namespace glslang {
 
 class TType;
 
@@ -193,9 +193,9 @@ struct TEnvironment {
     TTarget target;           // what to generate
 };
 
-const char* PStageName(EShLanguage);
+const char* StageName(EShLanguage);
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 //
 // Types of output the linker will create.
@@ -291,19 +291,19 @@ typedef void* ShHandle;
 // Driver calls these to create and destroy compiler/linker
 // objects.
 //
-SH_IMPORT_EXPORT ShHandle PShConstructCompiler(const EShLanguage, int debugOptions);  // one per shader
-SH_IMPORT_EXPORT ShHandle PShConstructLinker(const EShExecutable, int debugOptions);  // one per shader pair
-SH_IMPORT_EXPORT ShHandle PShConstructUniformMap();                 // one per uniform namespace (currently entire program object)
-SH_IMPORT_EXPORT void PShDestruct(ShHandle);
+SH_IMPORT_EXPORT ShHandle ShConstructCompiler(const EShLanguage, int debugOptions);  // one per shader
+SH_IMPORT_EXPORT ShHandle ShConstructLinker(const EShExecutable, int debugOptions);  // one per shader pair
+SH_IMPORT_EXPORT ShHandle ShConstructUniformMap();                 // one per uniform namespace (currently entire program object)
+SH_IMPORT_EXPORT void ShDestruct(ShHandle);
 
 //
-// The return value of PShCompile is boolean, non-zero indicating
+// The return value of ShCompile is boolean, non-zero indicating
 // success.
 //
-// The info-log should be written by PShCompile into
+// The info-log should be written by ShCompile into
 // ShHandle, so it can answer future queries.
 //
-SH_IMPORT_EXPORT int PShCompile(
+SH_IMPORT_EXPORT int ShCompile(
     const ShHandle,
     const char* const shaderStrings[],
     const int numStrings,
@@ -316,7 +316,7 @@ SH_IMPORT_EXPORT int PShCompile(
     EShMessages messages = EShMsgDefault // warnings and errors
     );
 
-SH_IMPORT_EXPORT int PShLinkExt(
+SH_IMPORT_EXPORT int ShLinkExt(
     const ShHandle,               // linker object
     const ShHandle h[],           // compiler objects to link together
     const int numHandles);
@@ -325,26 +325,26 @@ SH_IMPORT_EXPORT int PShLinkExt(
 // ShSetEncrpytionMethod is a place-holder for specifying
 // how source code is encrypted.
 //
-SH_IMPORT_EXPORT void PShSetEncryptionMethod(ShHandle);
+SH_IMPORT_EXPORT void ShSetEncryptionMethod(ShHandle);
 
 //
 // All the following return 0 if the information is not
 // available in the object passed down, or the object is bad.
 //
-SH_IMPORT_EXPORT const char* PShGetInfoLog(const ShHandle);
-SH_IMPORT_EXPORT const void* PShGetExecutable(const ShHandle);
-SH_IMPORT_EXPORT int PShSetVirtualAttributeBindings(const ShHandle, const ShBindingTable*);   // to detect user aliasing
-SH_IMPORT_EXPORT int PShSetFixedAttributeBindings(const ShHandle, const ShBindingTable*);     // to force any physical mappings
+SH_IMPORT_EXPORT const char* ShGetInfoLog(const ShHandle);
+SH_IMPORT_EXPORT const void* ShGetExecutable(const ShHandle);
+SH_IMPORT_EXPORT int ShSetVirtualAttributeBindings(const ShHandle, const ShBindingTable*);   // to detect user aliasing
+SH_IMPORT_EXPORT int ShSetFixedAttributeBindings(const ShHandle, const ShBindingTable*);     // to force any physical mappings
 //
 // Tell the linker to never assign a vertex attribute to this list of physical attributes
 //
-SH_IMPORT_EXPORT int PShExcludeAttributes(const ShHandle, int *attributes, int count);
+SH_IMPORT_EXPORT int ShExcludeAttributes(const ShHandle, int *attributes, int count);
 
 //
 // Returns the location ID of the named uniform.
 // Returns -1 if error.
 //
-SH_IMPORT_EXPORT int PShGetUniformLocation(const ShHandle uniformMap, const char* name);
+SH_IMPORT_EXPORT int ShGetUniformLocation(const ShHandle uniformMap, const char* name);
 
 #ifdef __cplusplus
     }  // end extern "C"
@@ -373,7 +373,7 @@ SH_IMPORT_EXPORT int PShGetUniformLocation(const ShHandle uniformMap, const char
 class TCompiler;
 class TInfoSink;
 
-namespace Pglslang {
+namespace glslang {
 
 const char* GetEsslVersionString();
 const char* GetGlslVersionString();
@@ -908,6 +908,6 @@ private:
     TProgram& operator=(TProgram&);
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _COMPILER_INTERFACE_INCLUDED_

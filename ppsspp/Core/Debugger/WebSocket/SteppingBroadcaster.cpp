@@ -29,7 +29,7 @@ struct CPUSteppingEvent {
 		j.writeString("event", "cpu.stepping");
 		j.writeUint("pc", currentMIPS->pc);
 		// A double ought to be good enough for a 156 day debug session.
-		j.writeFloat("ticks", CoreTiming_P::GetTicks());
+		j.writeFloat("ticks", CoreTiming::GetTicks());
 		j.end();
 		return j.str();
 	}

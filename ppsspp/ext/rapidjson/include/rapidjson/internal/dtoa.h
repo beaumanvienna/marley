@@ -24,7 +24,7 @@
 #include "ieee754.h"
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
@@ -239,7 +239,7 @@ inline char* dtoa(double value, char* buffer, int maxDecimalPlaces = 324) {
 RAPIDJSON_DIAG_POP
 #endif
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #endif // RAPIDJSON_DTOA_

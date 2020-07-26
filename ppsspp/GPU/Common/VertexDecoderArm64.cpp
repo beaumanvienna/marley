@@ -149,7 +149,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	dec_ = &dec;
 
 	BeginWrite();
-	const u8 *start = PAlignCode16();
+	const u8 *start = AlignCode16();
 
 	bool prescaleStep = false;
 	bool skinning = false;
@@ -196,7 +196,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	// Add code to convert matrices to 4x4.
 	// Later we might want to do this when the matrices are loaded instead.
 	int boneCount = 0;
-	if (dec.weighttype && g_PConfig.bSoftwareSkinning) {
+	if (dec.weighttype && g_Config.bSoftwareSkinning) {
 		// Copying from R3 to R4
 		MOVP2R(X3, gstate.boneMatrix);
 		MOVP2R(X4, bones);
@@ -248,7 +248,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 		if (!CompileStep(dec, i)) {
 			EndWrite();
 			// Reset the code ptr (effectively undoing what we generated) and return zero to indicate that we failed.
-			SetCodePtr(const_cast<u8 *>(start));
+			ResetCodePtr(GetOffset(start));
 			char temp[1024] = {0};
 			dec.ToString(temp);
 			ERROR_LOG(G3D, "Could not compile vertex decoder, failed at step %d: %s", i, temp);

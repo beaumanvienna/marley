@@ -71,9 +71,9 @@ public:
 
 protected:
 	void CreateViews() override;
-	PUI::EventReturn OnGameSelected(PUI::EventParams &e);
-	PUI::EventReturn OnRetry(PUI::EventParams &e);
-	PUI::EventReturn OnGameLaunch(PUI::EventParams &e);
+	UI::EventReturn OnGameSelected(UI::EventParams &e);
+	UI::EventReturn OnRetry(UI::EventParams &e);
+	UI::EventReturn OnGameLaunch(UI::EventParams &e);
 
 private:
 	void SetFilter(const StoreFilter &filter);
@@ -104,8 +104,8 @@ private:
 	std::string lang_;
 	std::string lastSelectedName_;
 
-	PUI::ViewGroup *scrollItemView_;
-	PUI::ViewGroup *productPanel_;
-	PUI::TextView *titleText_;
+	UI::ViewGroup *scrollItemView_;
+	UI::ViewGroup *productPanel_;
+	UI::TextView *titleText_;
 };
 

@@ -38,8 +38,8 @@ static u32 backlightOffTime;
 
 void __ImposeInit()
 {
-	language = g_PConfig.iLanguage;
-	buttonValue = g_PConfig.iButtonPreference;
+	language = g_Config.iLanguage;
+	buttonValue = g_Config.iButtonPreference;
 	umdPopup = PSP_UMD_POPUP_DISABLE;
 	backlightOffTime = 0;
 }
@@ -59,10 +59,10 @@ void __ImposeDoState(PointerWrap &p)
 static u32 sceImposeGetBatteryIconStatus(u32 chargingPtr, u32 iconStatusPtr)
 {
 	DEBUG_LOG(SCEUTILITY, "sceImposeGetBatteryIconStatus(%08x, %08x)", chargingPtr, iconStatusPtr);
-	if (Memory_P::IsValidAddress(chargingPtr))
-		Memory_P::PWrite_U32(PSP_IMPOSE_BATTICON_NONE, chargingPtr);
-	if (Memory_P::IsValidAddress(iconStatusPtr))
-		Memory_P::PWrite_U32(3, iconStatusPtr);
+	if (Memory::IsValidAddress(chargingPtr))
+		Memory::Write_U32(PSP_IMPOSE_BATTICON_NONE, chargingPtr);
+	if (Memory::IsValidAddress(iconStatusPtr))
+		Memory::Write_U32(3, iconStatusPtr);
 	return 0;
 }
 
@@ -77,10 +77,10 @@ static u32 sceImposeSetLanguageMode(u32 languageVal, u32 buttonVal)
 static u32 sceImposeGetLanguageMode(u32 languagePtr, u32 btnPtr)
 {
 	DEBUG_LOG(SCEUTILITY, "sceImposeGetLanguageMode(%08x, %08x)", languagePtr, btnPtr);
-	if (Memory_P::IsValidAddress(languagePtr))
-		Memory_P::PWrite_U32(language, languagePtr);
-	if (Memory_P::IsValidAddress(btnPtr))
-		Memory_P::PWrite_U32(buttonValue, btnPtr);
+	if (Memory::IsValidAddress(languagePtr))
+		Memory::Write_U32(language, languagePtr);
+	if (Memory::IsValidAddress(btnPtr))
+		Memory::Write_U32(buttonValue, btnPtr);
 	return 0;
 }
 

@@ -23,7 +23,7 @@ void Compatibility::Load(const std::string &gameID) {
 	Clear();
 
 	{
-		PIniFile compat;
+		IniFile compat;
 		// This loads from assets.
 		if (compat.LoadFromVFS("compat.ini")) {
 			CheckSettings(compat, gameID);
@@ -31,7 +31,7 @@ void Compatibility::Load(const std::string &gameID) {
 	}
 
 	{
-		PIniFile compat2;
+		IniFile compat2;
 		// This one is user-editable. Need to load it after the system one.
 		std::string path = GetSysDirectory(DIRECTORY_SYSTEM) + "compat.ini";
 		if (compat2.Load(path)) {
@@ -44,7 +44,7 @@ void Compatibility::Clear() {
 	memset(&flags_, 0, sizeof(flags_));
 }
 
-void Compatibility::CheckSettings(PIniFile &iniFile, const std::string &gameID) {
+void Compatibility::CheckSettings(IniFile &iniFile, const std::string &gameID) {
 	CheckSetting(iniFile, gameID, "VertexDepthRounding", &flags_.VertexDepthRounding);
 	CheckSetting(iniFile, gameID, "PixelDepthRounding", &flags_.PixelDepthRounding);
 	CheckSetting(iniFile, gameID, "DepthRangeHack", &flags_.DepthRangeHack);
@@ -59,7 +59,6 @@ void Compatibility::CheckSettings(PIniFile &iniFile, const std::string &gameID) 
 	CheckSetting(iniFile, gameID, "DisableAccurateDepth", &flags_.DisableAccurateDepth);
 	CheckSetting(iniFile, gameID, "MGS2AcidHack", &flags_.MGS2AcidHack);
 	CheckSetting(iniFile, gameID, "SonicRivalsHack", &flags_.SonicRivalsHack);
-	CheckSetting(iniFile, gameID, "RenderPassMerge", &flags_.RenderPassMerge);
 	CheckSetting(iniFile, gameID, "BlockTransferAllowCreateFB", &flags_.BlockTransferAllowCreateFB);
 	CheckSetting(iniFile, gameID, "YugiohSaveFix", &flags_.YugiohSaveFix);
 	CheckSetting(iniFile, gameID, "ForceUMDDelay", &flags_.ForceUMDDelay);
@@ -67,8 +66,10 @@ void Compatibility::CheckSettings(PIniFile &iniFile, const std::string &gameID) 
 	CheckSetting(iniFile, gameID, "JitInvalidationHack", &flags_.JitInvalidationHack);
 	CheckSetting(iniFile, gameID, "HideISOFiles", &flags_.HideISOFiles);
 	CheckSetting(iniFile, gameID, "MoreAccurateVMMUL", &flags_.MoreAccurateVMMUL);
+	CheckSetting(iniFile, gameID, "ForceSoftwareRenderer", &flags_.ForceSoftwareRenderer);
+	CheckSetting(iniFile, gameID, "DarkStalkersPresentHack", &flags_.DarkStalkersPresentHack);
 }
 
-void Compatibility::CheckSetting(PIniFile &iniFile, const std::string &gameID, const char *option, bool *flag) {
+void Compatibility::CheckSetting(IniFile &iniFile, const std::string &gameID, const char *option, bool *flag) {
 	iniFile.Get(option, gameID.c_str(), flag, *flag);
 }

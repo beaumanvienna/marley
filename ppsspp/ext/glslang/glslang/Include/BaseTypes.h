@@ -38,7 +38,7 @@
 #ifndef _BASICTYPES_INCLUDED_
 #define _BASICTYPES_INCLUDED_
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Basic type.  Arrays, vectors, sampler details, etc., are orthogonal to this.
@@ -554,6 +554,6 @@ __inline int getTypeRank(TBasicType type)
     return res;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _BASICTYPES_INCLUDED_

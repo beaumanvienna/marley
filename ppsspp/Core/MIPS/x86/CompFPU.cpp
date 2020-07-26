@@ -47,8 +47,10 @@
 
 namespace MIPSComp {
 
-using namespace PGen;
+using namespace Gen;
 using namespace X64JitConstants;
+
+alignas(16) const u32 reverseQNAN[4] = { 0x803FFFFF, 0x803FFFFF, 0x803FFFFF, 0x803FFFFF };
 
 void Jit::CopyFPReg(X64Reg dst, OpArg src) {
 	if (src.IsSimpleReg()) {
@@ -90,10 +92,31 @@ void Jit::Comp_FPU3op(MIPSOpcode op) {
 	switch (op & 0x3f) {
 	case 0: CompFPTriArith(op, &XEmitter::ADDSS, false); break; //F(fd) = F(fs) + F(ft); //add
 	case 1: CompFPTriArith(op, &XEmitter::SUBSS, true); break;  //F(fd) = F(fs) - F(ft); //sub
-	case 2: CompFPTriArith(op, &XEmitter::MULSS, false); break; //F(fd) = F(fs) * F(ft); //mul
+	case 2: //F(fd) = F(fs) * F(ft); //mul
+		// XMM1 = !my_isnan(fs) && !my_isnan(ft)
+		MOVSS(XMM1, fpr.R(_FS));
+		CMPORDSS(XMM1, fpr.R(_FT));
+		CompFPTriArith(op, &XEmitter::MULSS, false);
+
+		// fd must still be in a reg, save it in XMM0 for now.
+		MOVAPS(XMM0, fpr.R(_FD));
+		// fd = my_isnan(fd) && !my_isnan(fs) && !my_isnan(ft)
+		CMPUNORDSS(fpr.RX(_FD), fpr.R(_FD));
+		ANDPS(fpr.RX(_FD), R(XMM1));
+		// At this point fd = FFFFFFFF if non-NAN inputs produced a NAN output.
+		// We'll AND it with the inverse QNAN bits to clear (00000000 means no change.)
+		if (RipAccessible(&reverseQNAN)) {
+			ANDPS(fpr.RX(_FD), M(&reverseQNAN));  // rip accessible
+		} else {
+			MOV(PTRBITS, R(TEMPREG), ImmPtr(&reverseQNAN));
+			ANDPS(fpr.RX(_FD), MatR(TEMPREG));
+		}
+		// ANDN is backwards, which is why we saved XMM0 to start.  Now put it back.
+		ANDNPS(fpr.RX(_FD), R(XMM0));
+		break;
 	case 3: CompFPTriArith(op, &XEmitter::DIVSS, true); break;  //F(fd) = F(fs) / F(ft); //div
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to compile FPU3Op instruction that can't be interpreted");
+		_dbg_assert_msg_(false,"Trying to compile FPU3Op instruction that can't be interpreted");
 		break;
 	}
 }
@@ -105,7 +128,7 @@ void Jit::Comp_FPULS(MIPSOpcode op) {
 	MIPSGPReg rs = _RS;
 
 	switch (op >> 26) {
-	case 49: //FI(ft) = Memory_P::PRead_U32(addr); break; //lwc1
+	case 49: //FI(ft) = Memory::Read_U32(addr); break; //lwc1
 		{
 			gpr.Lock(rs);
 			fpr.SpillLock(ft);
@@ -116,14 +139,14 @@ void Jit::Comp_FPULS(MIPSOpcode op) {
 			if (safe.PrepareRead(src, 4))
 				MOVSS(fpr.RX(ft), src);
 			if (safe.PrepareSlowRead(safeMemFuncs.readU32))
-				PMOVD_xmm(fpr.RX(ft), R(EAX));
+				MOVD_xmm(fpr.RX(ft), R(EAX));
 			safe.Finish();
 
 			gpr.UnlockAll();
 			fpr.ReleaseSpillLocks();
 		}
 		break;
-	case 57: //Memory_P::PWrite_U32(FI(ft), addr); break; //swc1
+	case 57: //Memory::Write_U32(FI(ft), addr); break; //swc1
 		{
 			gpr.Lock(rs);
 			fpr.SpillLock(ft);
@@ -146,7 +169,7 @@ void Jit::Comp_FPULS(MIPSOpcode op) {
 		break;
 
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to interpret FPULS instruction that can't be interpreted");
+		_dbg_assert_msg_(false,"Trying to interpret FPULS instruction that can't be interpreted");
 		break;
 	}
 }
@@ -170,7 +193,7 @@ void Jit::CompFPComp(int lhs, int rhs, u8 compare, bool allowNaN) {
 		CMPSS(XMM0, fpr.R(rhs), compare);
 	}
 
-	PMOVD_xmm(gpr.R(MIPS_REG_FPCOND), XMM0);
+	MOVD_xmm(gpr.R(MIPS_REG_FPCOND), XMM0);
 }
 
 void Jit::Comp_FPUComp(MIPSOpcode op) {
@@ -241,18 +264,18 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 		}
 		if (setMXCSR != -1) {
 			STMXCSR(MIPSSTATE_VAR(mxcsrTemp));
-			PMOV(32, R(TEMPREG), MIPSSTATE_VAR(mxcsrTemp));
-			P_AND(32, R(TEMPREG), Imm32(~(3 << 13)));
-			P_OR(32, R(TEMPREG), Imm32(setMXCSR << 13));
-			PMOV(32, MIPSSTATE_VAR(temp), R(TEMPREG));
+			MOV(32, R(TEMPREG), MIPSSTATE_VAR(mxcsrTemp));
+			AND(32, R(TEMPREG), Imm32(~(3 << 13)));
+			OR(32, R(TEMPREG), Imm32(setMXCSR << 13));
+			MOV(32, MIPSSTATE_VAR(temp), R(TEMPREG));
 			LDMXCSR(MIPSSTATE_VAR(temp));
 		}
 
 		(this->*conv)(TEMPREG, fpr.R(fs));
 
 		// Did we get an indefinite integer value?
-		PCMP(32, R(TEMPREG), Imm32(0x80000000));
-		FixupBranch skip = PJ_CC(CC_NE);
+		CMP(32, R(TEMPREG), Imm32(0x80000000));
+		FixupBranch skip = J_CC(CC_NE);
 		if (fd != fs) {
 			CopyFPReg(fpr.RX(fd), fpr.R(fs));
 		}
@@ -261,11 +284,11 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 
 		// At this point, -inf = 0xffffffff, inf/nan = 0x00000000.
 		// We want -inf to be 0x80000000 inf/nan to be 0x7fffffff, so we flip those bits.
-		PMOVD_xmm(R(TEMPREG), fpr.RX(fd));
-		P_XOR(32, R(TEMPREG), Imm32(0x7fffffff));
+		MOVD_xmm(R(TEMPREG), fpr.RX(fd));
+		XOR(32, R(TEMPREG), Imm32(0x7fffffff));
 
-		PSetJumpTarget(skip);
-		PMOVD_xmm(fpr.RX(fd), R(TEMPREG));
+		SetJumpTarget(skip);
+		MOVD_xmm(fpr.RX(fd), R(TEMPREG));
 
 		if (setMXCSR != -1) {
 			LDMXCSR(MIPSSTATE_VAR(mxcsrTemp));
@@ -276,7 +299,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 	case 5:	//F(fd)	= fabsf(F(fs)); break; //abs
 		fpr.SpillLock(fd, fs);
 		fpr.MapReg(fd, fd == fs, true);
-		PMOV(PTRBITS, R(TEMPREG), ImmPtr(&ssNoSignMask[0]));
+		MOV(PTRBITS, R(TEMPREG), ImmPtr(&ssNoSignMask[0]));
 		if (fd != fs && fpr.IsMapped(fs)) {
 			MOVAPS(fpr.RX(fd), MatR(TEMPREG));
 			ANDPS(fpr.RX(fd), fpr.R(fs));
@@ -299,7 +322,7 @@ void Jit::Comp_FPU2op(MIPSOpcode op) {
 	case 7:	//F(fd)	= -F(fs);			 break; //neg
 		fpr.SpillLock(fd, fs);
 		fpr.MapReg(fd, fd == fs, true);
-		PMOV(PTRBITS, R(TEMPREG), ImmPtr(&ssSignBits2[0]));
+		MOV(PTRBITS, R(TEMPREG), ImmPtr(&ssSignBits2[0]));
 		if (fd != fs && fpr.IsMapped(fs)) {
 			MOVAPS(fpr.RX(fd), MatR(TEMPREG));
 			XORPS(fpr.RX(fd), fpr.R(fs));
@@ -368,9 +391,9 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 		// If fs is not mapped, most likely it's being abandoned.
 		// Just load from memory in that case.
 		if (fpr.R(fs).IsSimpleReg()) {
-			PMOVD_xmm(gpr.R(rt), fpr.RX(fs));
+			MOVD_xmm(gpr.R(rt), fpr.RX(fs));
 		} else {
-			PMOV(32, gpr.R(rt), fpr.R(fs));
+			MOV(32, gpr.R(rt), fpr.R(fs));
 		}
 		break;
 
@@ -384,19 +407,19 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 				gpr.MapReg(MIPS_REG_FPCOND, true, false);
 			}
 			gpr.MapReg(rt, false, true);
-			PMOV(32, gpr.R(rt), MIPSSTATE_VAR(fcr31));
+			MOV(32, gpr.R(rt), MIPSSTATE_VAR(fcr31));
 			if (wasImm) {
 				if (gpr.GetImm(MIPS_REG_FPCOND) & 1) {
-					P_OR(32, gpr.R(rt), Imm32(1 << 23));
+					OR(32, gpr.R(rt), Imm32(1 << 23));
 				} else {
-					P_AND(32, gpr.R(rt), Imm32(~(1 << 23)));
+					AND(32, gpr.R(rt), Imm32(~(1 << 23)));
 				}
 			} else {
-				P_AND(32, gpr.R(rt), Imm32(~(1 << 23)));
-				PMOV(32, R(TEMPREG), gpr.R(MIPS_REG_FPCOND));
-				P_AND(32, R(TEMPREG), Imm32(1));
+				AND(32, gpr.R(rt), Imm32(~(1 << 23)));
+				MOV(32, R(TEMPREG), gpr.R(MIPS_REG_FPCOND));
+				AND(32, R(TEMPREG), Imm32(1));
 				SHL(32, R(TEMPREG), Imm8(23));
-				P_OR(32, gpr.R(rt), R(TEMPREG));
+				OR(32, gpr.R(rt), R(TEMPREG));
 			}
 			gpr.UnlockAll();
 		} else if (fs == 0) {
@@ -412,7 +435,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 			XORPS(fpr.RX(fs), fpr.R(fs));
 		} else {
 			gpr.KillImmediate(rt, true, false);
-			PMOVD_xmm(fpr.RX(fs), gpr.R(rt));
+			MOVD_xmm(fpr.RX(fs), gpr.R(rt));
 		}
 		return;
 
@@ -422,7 +445,7 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 			RestoreRoundingMode();
 			if (gpr.IsImm(rt)) {
 				gpr.SetImm(MIPS_REG_FPCOND, (gpr.GetImm(rt) >> 23) & 1);
-				PMOV(32, MIPSSTATE_VAR(fcr31), Imm32(gpr.GetImm(rt) & 0x0181FFFF));
+				MOV(32, MIPSSTATE_VAR(fcr31), Imm32(gpr.GetImm(rt) & 0x0181FFFF));
 				if ((gpr.GetImm(rt) & 0x1000003) == 0) {
 					// Default nearest / no-flush mode, just leave it cleared.
 				} else {
@@ -433,11 +456,11 @@ void Jit::Comp_mxc1(MIPSOpcode op) {
 				gpr.Lock(rt, MIPS_REG_FPCOND);
 				gpr.MapReg(rt, true, false);
 				gpr.MapReg(MIPS_REG_FPCOND, false, true);
-				PMOV(32, gpr.R(MIPS_REG_FPCOND), gpr.R(rt));
+				MOV(32, gpr.R(MIPS_REG_FPCOND), gpr.R(rt));
 				SHR(32, gpr.R(MIPS_REG_FPCOND), Imm8(23));
-				P_AND(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
-				PMOV(32, MIPSSTATE_VAR(fcr31), gpr.R(rt));
-				P_AND(32, MIPSSTATE_VAR(fcr31), Imm32(0x0181FFFF));
+				AND(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
+				MOV(32, MIPSSTATE_VAR(fcr31), gpr.R(rt));
+				AND(32, MIPSSTATE_VAR(fcr31), Imm32(0x0181FFFF));
 				gpr.UnlockAll();
 				UpdateRoundingMode();
 				ApplyRoundingMode();

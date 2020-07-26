@@ -50,6 +50,7 @@
 #include "sceJpeg.h"
 #include "sceKernel.h"
 #include "sceKernelAlarm.h"
+#include "sceKernelHeap.h"
 #include "sceKernelInterrupt.h"
 #include "sceKernelThread.h"
 #include "sceKernelMemory.h"
@@ -169,6 +170,7 @@ void __KernelShutdown()
 	kernelObjects.Clear();
 
 	__UsbCamShutdown();
+	__UsbGpsShutdown();
 
 	__AudioCodecShutdown();
 	__VideoPmpShutdown();
@@ -197,8 +199,8 @@ void __KernelShutdown()
 	__CheatShutdown();
 	__KernelModuleShutdown();
 
-	CoreTiming_P::ClearPendingEvents();
-	CoreTiming_P::UnregisterAllPEvents();
+	CoreTiming::ClearPendingEvents();
+	CoreTiming::UnregisterAllEvents();
 	Reporting::Shutdown();
 	SaveState::Shutdown();
 
@@ -295,6 +297,12 @@ bool __KernelIsRunning() {
 	return kernelRunning;
 }
 
+std::string __KernelStateSummary() {
+	std::string threadSummary = __KernelThreadingSummary();
+	return StringFromFormat("%s", threadSummary.c_str());
+}
+
+
 void sceKernelExitGame()
 {
 	INFO_LOG(SCEKERNEL, "sceKernelExitGame");
@@ -311,7 +319,7 @@ void sceKernelExitGameWithStatus()
 
 u32 sceKernelDevkitVersion()
 {
-	int firmwareVersion = g_PConfig.iFirmwareVersion;
+	int firmwareVersion = g_Config.iFirmwareVersion;
 	int major = firmwareVersion / 100;
 	int minor = (firmwareVersion / 10) % 10;
 	int revision = firmwareVersion % 10;
@@ -628,12 +636,12 @@ struct SystemStatus {
 
 static int sceKernelReferSystemStatus(u32 statusPtr) {
 	DEBUG_LOG(SCEKERNEL, "sceKernelReferSystemStatus(%08x)", statusPtr);
-	if (Memory_P::IsValidAddress(statusPtr)) {
+	if (Memory::IsValidAddress(statusPtr)) {
 		SystemStatus status;
 		memset(&status, 0, sizeof(SystemStatus));
 		status.size = sizeof(SystemStatus);
 		// TODO: Fill in the struct!
-		Memory_P::WriteStruct(statusPtr, &status);
+		Memory::WriteStruct(statusPtr, &status);
 	}
 	return 0;
 }
@@ -669,8 +677,8 @@ static u32 sceKernelReferThreadProfiler(u32 statusPtr) {
 	//DebugProfilerRegs regs;
 	//memset(&regs, 0, sizeof(regs));
 	// TODO: fill the struct.
-	//if (Memory_P::IsValidAddress(statusPtr)) {
-	//	Memory_P::WriteStruct(statusPtr, &regs);
+	//if (Memory::IsValidAddress(statusPtr)) {
+	//	Memory::WriteStruct(statusPtr, &regs);
 	//}
 	return 0;
 }
@@ -738,7 +746,7 @@ const HLEFunction ThreadManForUser[] =
 	{0X3B183E26, &WrapI_I<sceKernelGetThreadExitStatus>,             "sceKernelGetThreadExitStatus",              'i', "i"       },
 	{0X52089CA1, &WrapI_I<sceKernelGetThreadStackFreeSize>,          "sceKernelGetThreadStackFreeSize",           'i', "i"       },
 	{0XFFC36A14, &WrapU_UU<sceKernelReferThreadRunStatus>,           "sceKernelReferThreadRunStatus",             'x', "xx"      },
-	{0X17C1684E, &WrapU_UU<sceKernelReferThreadStatus>,              "sceKernelReferThreadStatus",                'x', "xx"      },
+	{0X17C1684E, &WrapU_UU<sceKernelReferThreadStatus>,              "sceKernelReferThreadStatus",                'i', "xp"      },
 	{0X2C34E053, &WrapI_I<sceKernelReleaseWaitThread>,               "sceKernelReleaseWaitThread",                'i', "i"       },
 	{0X75156E8F, &WrapI_I<sceKernelResumeThread>,                    "sceKernelResumeThread",                     'i', "i"       },
 	{0X3AD58B8C, &WrapU_V<sceKernelSuspendDispatchThread>,           "sceKernelSuspendDispatchThread",            'x', "",       HLE_NOT_IN_INTERRUPT },
@@ -868,6 +876,12 @@ const HLEFunction ThreadManForKernel[] =
 	{0xCEADEB47, &WrapI_U<sceKernelDelayThread>,                     "sceKernelDelayThread",                      'i', "x",      HLE_NOT_IN_INTERRUPT | HLE_NOT_DISPATCH_SUSPENDED | HLE_KERNEL_SYSCALL },
 	{0x446D8DE6, &WrapI_CUUIUU<sceKernelCreateThread>,               "sceKernelCreateThread",                     'i', "sxxixx", HLE_NOT_IN_INTERRUPT | HLE_KERNEL_SYSCALL },
 	{0xF475845D, &WrapI_IIU<sceKernelStartThread>,                   "sceKernelStartThread",                      'i', "iix",    HLE_NOT_IN_INTERRUPT | HLE_KERNEL_SYSCALL },
+	{0X9FA03CD3, &WrapI_I<sceKernelDeleteThread>,                    "sceKernelDeleteThread",                     'i', "i",      HLE_KERNEL_SYSCALL },
+	{0XAA73C935, &WrapV_I<sceKernelExitThread>,                      "sceKernelExitThread",                       'v', "i",      HLE_KERNEL_SYSCALL },
+	{0X809CE29B, &WrapV_I<sceKernelExitDeleteThread>,                "sceKernelExitDeleteThread",                 'v', "i",      HLE_KERNEL_SYSCALL },
+	{0X9944F31F, &WrapI_I<sceKernelSuspendThread>,                   "sceKernelSuspendThread",                    'i', "i",      HLE_KERNEL_SYSCALL },
+	{0X75156E8F, &WrapI_I<sceKernelResumeThread>,                    "sceKernelResumeThread",                     'i', "i",      HLE_KERNEL_SYSCALL },
+	{0X94416130, &WrapU_UUUU<sceKernelGetThreadmanIdList>,           "sceKernelGetThreadmanIdList",               'x', "xxxx",   HLE_KERNEL_SYSCALL },
 };
 
 void Register_ThreadManForUser()
@@ -896,6 +910,7 @@ const HLEFunction LoadExecForKernel[] =
 	{0x4AC57943, &WrapI_I<sceKernelRegisterExitCallback>,            "sceKernelRegisterExitCallback",             'i', "i",      HLE_KERNEL_SYSCALL },
 	{0XA3D5E142, nullptr,                                            "LoadExecForKernel_a3d5e142",                '?', ""        },
 	{0X28D0D249, &WrapI_CU<sceKernelLoadExec>,                       "sceKernelLoadExec_28D0D249",                'i', "sx"      },
+	{0x6D302D3D, &WrapV_V<sceKernelExitGame>,                        "sceKernelExitVSHKernel",                    'v', "x", HLE_KERNEL_SYSCALL },// when called in game mode it will have the same effect that sceKernelExitGame 	
 };
  
 void Register_LoadExecForKernel()

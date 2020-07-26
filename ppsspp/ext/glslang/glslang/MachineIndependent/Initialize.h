@@ -43,7 +43,7 @@
 #include "SymbolTable.h"
 #include "Versions.h"
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // This is made to hold parseable strings for almost all the built-in
@@ -107,6 +107,6 @@ protected:
     int dimMap[EsdNumDims];
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _INITIALIZE_INCLUDED_

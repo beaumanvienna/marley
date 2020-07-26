@@ -56,14 +56,14 @@ class TUniformMap;
 //
 class TShHandleBase {
 public:
-    TShHandleBase() { pool = new Pglslang::TPoolAllocator; }
+    TShHandleBase() { pool = new glslang::TPoolAllocator; }
     virtual ~TShHandleBase() { delete pool; }
     virtual TCompiler* getAsCompiler() { return 0; }
     virtual TLinker* getAsLinker() { return 0; }
     virtual TUniformMap* getAsUniformMap() { return 0; }
-    virtual Pglslang::TPoolAllocator* getPool() const { return pool; }
+    virtual glslang::TPoolAllocator* getPool() const { return pool; }
 private:
-    Pglslang::TPoolAllocator* pool;
+    glslang::TPoolAllocator* pool;
 };
 
 //
@@ -109,8 +109,8 @@ protected:
 //
 // Link operations are based on a list of compile results...
 //
-typedef Pglslang::TVector<TCompiler*> TCompilerList;
-typedef Pglslang::TVector<TShHandleBase*> THandleList;
+typedef glslang::TVector<TCompiler*> TCompilerList;
+typedef glslang::TVector<TShHandleBase*> THandleList;
 
 //
 // The base class for the machine dependent linker to derive from
@@ -161,16 +161,16 @@ protected:
 // destroy the machine dependent objects, which contain the
 // above machine independent information.
 //
-TCompiler* PConstructCompiler(EShLanguage, int);
+TCompiler* ConstructCompiler(EShLanguage, int);
 
-TShHandleBase* PConstructLinker(EShExecutable, int);
-TShHandleBase* PConstructBindings();
-void PDeleteLinker(TShHandleBase*);
-void PDeleteBindingList(TShHandleBase* bindingList);
+TShHandleBase* ConstructLinker(EShExecutable, int);
+TShHandleBase* ConstructBindings();
+void DeleteLinker(TShHandleBase*);
+void DeleteBindingList(TShHandleBase* bindingList);
 
-TUniformMap* PConstructUniformMap();
-void PDeleteCompiler(TCompiler*);
+TUniformMap* ConstructUniformMap();
+void DeleteCompiler(TCompiler*);
 
-void PDeleteUniformMap(TUniformMap*);
+void DeleteUniformMap(TUniformMap*);
 
 #endif // _SHHANDLE_INCLUDED_

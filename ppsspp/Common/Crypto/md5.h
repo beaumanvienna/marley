@@ -63,7 +63,7 @@ void md5_update( md5_context *ctx, unsigned char *input, int ilen );
  * \param ctx      MD5 context
  * \param output   MD5 checksum result
  */
-void md5_Pfinish( md5_context *ctx, unsigned char output[16] );
+void md5_finish( md5_context *ctx, unsigned char output[16] );
 
 /**
  * \brief          Output = MD5( input buffer )

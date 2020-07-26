@@ -39,7 +39,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-using namespace Pspv;
+using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
@@ -298,13 +298,13 @@ static void print_resources(const Compiler &compiler, const char *tag, const Sma
 	fprintf(stderr, "=============\n\n");
 }
 
-static const char *execution_model_to_str(Pspv::ExecutionModel model)
+static const char *execution_model_to_str(spv::ExecutionModel model)
 {
 	switch (model)
 	{
-	case Pspv::ExecutionModelVertex:
+	case spv::ExecutionModelVertex:
 		return "vertex";
-	case Pspv::ExecutionModelTessellationControl:
+	case spv::ExecutionModelTessellationControl:
 		return "tessellation control";
 	case ExecutionModelTessellationEvaluation:
 		return "tessellation evaluation";

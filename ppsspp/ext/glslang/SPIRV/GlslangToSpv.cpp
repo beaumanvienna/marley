@@ -42,7 +42,7 @@
 #include "spirv.hpp"
 #include "GlslangToSpv.h"
 #include "SpvBuilder.h"
-namespace Pspv {
+namespace spv {
     #include "GLSL.std.450.h"
     #include "GLSL.ext.KHR.h"
     #include "GLSL.ext.EXT.h"
@@ -69,7 +69,7 @@ namespace {
 namespace {
 class SpecConstantOpModeGuard {
 public:
-    SpecConstantOpModeGuard(Pspv::Builder* builder)
+    SpecConstantOpModeGuard(spv::Builder* builder)
         : builder_(builder) {
         previous_flag_ = builder->isInSpecConstCodeGenMode();
     }
@@ -82,13 +82,13 @@ public:
     }
 
 private:
-    Pspv::Builder* builder_;
+    spv::Builder* builder_;
     bool previous_flag_;
 };
 
 struct OpDecorations {
     public:
-        OpDecorations(Pspv::Decoration precision, Pspv::Decoration noContraction, Pspv::Decoration nonUniform) :
+        OpDecorations(spv::Decoration precision, spv::Decoration noContraction, spv::Decoration nonUniform) :
             precision(precision)
 #ifndef GLSLANG_WEB
             ,
@@ -97,17 +97,17 @@ struct OpDecorations {
 #endif
         { }
 
-    Pspv::Decoration precision;
+    spv::Decoration precision;
 
 #ifdef GLSLANG_WEB
-        void addNoContraction(Pspv::Builder&, Pspv::Id) const { }
-        void addNonUniform(Pspv::Builder&, Pspv::Id) const { }
+        void addNoContraction(spv::Builder&, spv::Id) const { }
+        void addNonUniform(spv::Builder&, spv::Id) const { }
 #else
-        void addNoContraction(Pspv::Builder& builder, Pspv::Id t) { builder.addDecoration(t, noContraction); }
-        void addNonUniform(Pspv::Builder& builder, Pspv::Id t)  { builder.addDecoration(t, nonUniform); }
+        void addNoContraction(spv::Builder& builder, spv::Id t) { builder.addDecoration(t, noContraction); }
+        void addNonUniform(spv::Builder& builder, spv::Id t)  { builder.addDecoration(t, nonUniform); }
     protected:
-        Pspv::Decoration noContraction;
-        Pspv::Decoration nonUniform;
+        spv::Decoration noContraction;
+        spv::Decoration nonUniform;
 #endif
 
 };
@@ -119,21 +119,21 @@ struct OpDecorations {
 //
 // Derives from the AST walking base class.
 //
-class TGlslangToSpvTraverser : public Pglslang::TIntermTraverser {
+class TGlslangToSpvTraverser : public glslang::TIntermTraverser {
 public:
-    TGlslangToSpvTraverser(unsigned int spvVersion, const Pglslang::TIntermediate*, Pspv::SpvBuildLogger* logger,
-        Pglslang::SpvOptions& options);
+    TGlslangToSpvTraverser(unsigned int spvVersion, const glslang::TIntermediate*, spv::SpvBuildLogger* logger,
+        glslang::SpvOptions& options);
     virtual ~TGlslangToSpvTraverser() { }
 
-    bool visitAggregate(Pglslang::TVisit, Pglslang::TIntermAggregate*);
-    bool visitBinary(Pglslang::TVisit, Pglslang::TIntermBinary*);
-    void visitConstantUnion(Pglslang::TIntermConstantUnion*);
-    bool visitSelection(Pglslang::TVisit, Pglslang::TIntermSelection*);
-    bool visitSwitch(Pglslang::TVisit, Pglslang::TIntermSwitch*);
-    void visitSymbol(Pglslang::TIntermSymbol* symbol);
-    bool visitUnary(Pglslang::TVisit, Pglslang::TIntermUnary*);
-    bool visitLoop(Pglslang::TVisit, Pglslang::TIntermLoop*);
-    bool visitBranch(Pglslang::TVisit visit, Pglslang::TIntermBranch*);
+    bool visitAggregate(glslang::TVisit, glslang::TIntermAggregate*);
+    bool visitBinary(glslang::TVisit, glslang::TIntermBinary*);
+    void visitConstantUnion(glslang::TIntermConstantUnion*);
+    bool visitSelection(glslang::TVisit, glslang::TIntermSelection*);
+    bool visitSwitch(glslang::TVisit, glslang::TIntermSwitch*);
+    void visitSymbol(glslang::TIntermSymbol* symbol);
+    bool visitUnary(glslang::TVisit, glslang::TIntermUnary*);
+    bool visitLoop(glslang::TVisit, glslang::TIntermLoop*);
+    bool visitBranch(glslang::TVisit visit, glslang::TIntermBranch*);
 
     void finishSpv();
     void dumpSpv(std::vector<unsigned int>& out);
@@ -142,120 +142,120 @@ protected:
     TGlslangToSpvTraverser(TGlslangToSpvTraverser&);
     TGlslangToSpvTraverser& operator=(TGlslangToSpvTraverser&);
 
-    Pspv::Decoration TranslateInterpolationDecoration(const Pglslang::TQualifier& qualifier);
-    Pspv::Decoration TranslateAuxiliaryStorageDecoration(const Pglslang::TQualifier& qualifier);
-    Pspv::Decoration TranslateNonUniformDecoration(const Pglslang::TQualifier& qualifier);
-    Pspv::Builder::AccessChain::CoherentFlags TranslateCoherent(const Pglslang::TType& type);
-    Pspv::MemoryAccessMask TranslateMemoryAccess(const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags);
-    Pspv::ImageOperandsMask TranslateImageOperands(const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags);
-    Pspv::Scope TranslateMemoryScope(const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags);
-    Pspv::BuiltIn TranslateBuiltInDecoration(Pglslang::TBuiltInVariable, bool memberDeclaration);
-    Pspv::ImageFormat TranslateImageFormat(const Pglslang::TType& type);
-    Pspv::SelectionControlMask TranslateSelectionControl(const Pglslang::TIntermSelection&) const;
-    Pspv::SelectionControlMask TranslateSwitchControl(const Pglslang::TIntermSwitch&) const;
-    Pspv::LoopControlMask TranslateLoopControl(const Pglslang::TIntermLoop&, std::vector<unsigned int>& operands) const;
-    Pspv::StorageClass TranslateStorageClass(const Pglslang::TType&);
-    void addIndirectionIndexCapabilities(const Pglslang::TType& baseType, const Pglslang::TType& indexType);
-    Pspv::Id createSpvVariable(const Pglslang::TIntermSymbol*, Pspv::Id forcedType);
-    Pspv::Id getSampledType(const Pglslang::TSampler&);
-    Pspv::Id getInvertedSwizzleType(const Pglslang::TIntermTyped&);
-    Pspv::Id createInvertedSwizzle(Pspv::Decoration precision, const Pglslang::TIntermTyped&, Pspv::Id parentResult);
-    void convertSwizzle(const Pglslang::TIntermAggregate&, std::vector<unsigned>& swizzle);
-    Pspv::Id convertGlslangToSpvType(const Pglslang::TType& type, bool forwardReferenceOnly = false);
-    Pspv::Id convertGlslangToSpvType(const Pglslang::TType& type, Pglslang::TLayoutPacking, const Pglslang::TQualifier&,
+    spv::Decoration TranslateInterpolationDecoration(const glslang::TQualifier& qualifier);
+    spv::Decoration TranslateAuxiliaryStorageDecoration(const glslang::TQualifier& qualifier);
+    spv::Decoration TranslateNonUniformDecoration(const glslang::TQualifier& qualifier);
+    spv::Builder::AccessChain::CoherentFlags TranslateCoherent(const glslang::TType& type);
+    spv::MemoryAccessMask TranslateMemoryAccess(const spv::Builder::AccessChain::CoherentFlags &coherentFlags);
+    spv::ImageOperandsMask TranslateImageOperands(const spv::Builder::AccessChain::CoherentFlags &coherentFlags);
+    spv::Scope TranslateMemoryScope(const spv::Builder::AccessChain::CoherentFlags &coherentFlags);
+    spv::BuiltIn TranslateBuiltInDecoration(glslang::TBuiltInVariable, bool memberDeclaration);
+    spv::ImageFormat TranslateImageFormat(const glslang::TType& type);
+    spv::SelectionControlMask TranslateSelectionControl(const glslang::TIntermSelection&) const;
+    spv::SelectionControlMask TranslateSwitchControl(const glslang::TIntermSwitch&) const;
+    spv::LoopControlMask TranslateLoopControl(const glslang::TIntermLoop&, std::vector<unsigned int>& operands) const;
+    spv::StorageClass TranslateStorageClass(const glslang::TType&);
+    void addIndirectionIndexCapabilities(const glslang::TType& baseType, const glslang::TType& indexType);
+    spv::Id createSpvVariable(const glslang::TIntermSymbol*, spv::Id forcedType);
+    spv::Id getSampledType(const glslang::TSampler&);
+    spv::Id getInvertedSwizzleType(const glslang::TIntermTyped&);
+    spv::Id createInvertedSwizzle(spv::Decoration precision, const glslang::TIntermTyped&, spv::Id parentResult);
+    void convertSwizzle(const glslang::TIntermAggregate&, std::vector<unsigned>& swizzle);
+    spv::Id convertGlslangToSpvType(const glslang::TType& type, bool forwardReferenceOnly = false);
+    spv::Id convertGlslangToSpvType(const glslang::TType& type, glslang::TLayoutPacking, const glslang::TQualifier&,
         bool lastBufferBlockMember, bool forwardReferenceOnly = false);
-    bool filterMember(const Pglslang::TType& member);
-    Pspv::Id convertGlslangStructToSpvType(const Pglslang::TType&, const Pglslang::TTypeList* glslangStruct,
-                                          Pglslang::TLayoutPacking, const Pglslang::TQualifier&);
-    void decorateStructType(const Pglslang::TType&, const Pglslang::TTypeList* glslangStruct, Pglslang::TLayoutPacking,
-                            const Pglslang::TQualifier&, Pspv::Id);
-    Pspv::Id makeArraySizeId(const Pglslang::TArraySizes&, int dim);
-    Pspv::Id accessChainLoad(const Pglslang::TType& type);
-    void    accessChainStore(const Pglslang::TType& type, Pspv::Id rvalue);
-    void multiTypeStore(const Pglslang::TType&, Pspv::Id rValue);
-    Pglslang::TLayoutPacking getExplicitLayout(const Pglslang::TType& type) const;
-    int getArrayStride(const Pglslang::TType& arrayType, Pglslang::TLayoutPacking, Pglslang::TLayoutMatrix);
-    int getMatrixStride(const Pglslang::TType& matrixType, Pglslang::TLayoutPacking, Pglslang::TLayoutMatrix);
-    void updateMemberOffset(const Pglslang::TType& structType, const Pglslang::TType& memberType, int& currentOffset,
-                            int& nextOffset, Pglslang::TLayoutPacking, Pglslang::TLayoutMatrix);
-    void declareUseOfStructMember(const Pglslang::TTypeList& members, int glslangMember);
+    bool filterMember(const glslang::TType& member);
+    spv::Id convertGlslangStructToSpvType(const glslang::TType&, const glslang::TTypeList* glslangStruct,
+                                          glslang::TLayoutPacking, const glslang::TQualifier&);
+    void decorateStructType(const glslang::TType&, const glslang::TTypeList* glslangStruct, glslang::TLayoutPacking,
+                            const glslang::TQualifier&, spv::Id);
+    spv::Id makeArraySizeId(const glslang::TArraySizes&, int dim);
+    spv::Id accessChainLoad(const glslang::TType& type);
+    void    accessChainStore(const glslang::TType& type, spv::Id rvalue);
+    void multiTypeStore(const glslang::TType&, spv::Id rValue);
+    glslang::TLayoutPacking getExplicitLayout(const glslang::TType& type) const;
+    int getArrayStride(const glslang::TType& arrayType, glslang::TLayoutPacking, glslang::TLayoutMatrix);
+    int getMatrixStride(const glslang::TType& matrixType, glslang::TLayoutPacking, glslang::TLayoutMatrix);
+    void updateMemberOffset(const glslang::TType& structType, const glslang::TType& memberType, int& currentOffset,
+                            int& nextOffset, glslang::TLayoutPacking, glslang::TLayoutMatrix);
+    void declareUseOfStructMember(const glslang::TTypeList& members, int glslangMember);
 
-    bool isShaderEntryPoint(const Pglslang::TIntermAggregate* node);
-    bool writableParam(Pglslang::TStorageQualifier) const;
-    bool originalParam(Pglslang::TStorageQualifier, const Pglslang::TType&, bool implicitThisParam);
-    void makeFunctions(const Pglslang::TIntermSequence&);
-    void makeGlobalInitializers(const Pglslang::TIntermSequence&);
-    void visitFunctions(const Pglslang::TIntermSequence&);
-    void handleFunctionEntry(const Pglslang::TIntermAggregate* node);
-    void translateArguments(const Pglslang::TIntermAggregate& node, std::vector<Pspv::Id>& arguments, Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
-    void translateArguments(Pglslang::TIntermUnary& node, std::vector<Pspv::Id>& arguments);
-    Pspv::Id createImageTextureFunctionCall(Pglslang::TIntermOperator* node);
-    Pspv::Id handleUserFunctionCall(const Pglslang::TIntermAggregate*);
+    bool isShaderEntryPoint(const glslang::TIntermAggregate* node);
+    bool writableParam(glslang::TStorageQualifier) const;
+    bool originalParam(glslang::TStorageQualifier, const glslang::TType&, bool implicitThisParam);
+    void makeFunctions(const glslang::TIntermSequence&);
+    void makeGlobalInitializers(const glslang::TIntermSequence&);
+    void visitFunctions(const glslang::TIntermSequence&);
+    void handleFunctionEntry(const glslang::TIntermAggregate* node);
+    void translateArguments(const glslang::TIntermAggregate& node, std::vector<spv::Id>& arguments, spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
+    void translateArguments(glslang::TIntermUnary& node, std::vector<spv::Id>& arguments);
+    spv::Id createImageTextureFunctionCall(glslang::TIntermOperator* node);
+    spv::Id handleUserFunctionCall(const glslang::TIntermAggregate*);
 
-    Pspv::Id createBinaryOperation(Pglslang::TOperator op, OpDecorations&, Pspv::Id typeId, Pspv::Id left, Pspv::Id right,
-                                  Pglslang::TBasicType typeProxy, bool reduceComparison = true);
-    Pspv::Id createBinaryMatrixOperation(Pspv::Op, OpDecorations&, Pspv::Id typeId, Pspv::Id left, Pspv::Id right);
-    Pspv::Id createUnaryOperation(Pglslang::TOperator op, OpDecorations&, Pspv::Id typeId, Pspv::Id operand,
-                                 Pglslang::TBasicType typeProxy, const Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
-    Pspv::Id createUnaryMatrixOperation(Pspv::Op op, OpDecorations&, Pspv::Id typeId, Pspv::Id operand,
-                                       Pglslang::TBasicType typeProxy);
-    Pspv::Id createConversion(Pglslang::TOperator op, OpDecorations&, Pspv::Id destTypeId, Pspv::Id operand,
-                             Pglslang::TBasicType typeProxy);
-    Pspv::Id createIntWidthConversion(Pglslang::TOperator op, Pspv::Id operand, int vectorSize);
-    Pspv::Id makeSmearedConstant(Pspv::Id constant, int vectorSize);
-    Pspv::Id createAtomicOperation(Pglslang::TOperator op, Pspv::Decoration precision, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy, const Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
-    Pspv::Id createInvocationsOperation(Pglslang::TOperator op, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy);
-    Pspv::Id CreateInvocationsVectorOperation(Pspv::Op op, Pspv::GroupOperation groupOperation, Pspv::Id typeId, std::vector<Pspv::Id>& operands);
-    Pspv::Id createSubgroupOperation(Pglslang::TOperator op, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy);
-    Pspv::Id createMiscOperation(Pglslang::TOperator op, Pspv::Decoration precision, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy);
-    Pspv::Id createNoArgOperation(Pglslang::TOperator op, Pspv::Decoration precision, Pspv::Id typeId);
-    Pspv::Id getSymbolId(const Pglslang::TIntermSymbol* node);
-    void addMeshNVDecoration(Pspv::Id id, int member, const Pglslang::TQualifier & qualifier);
-    Pspv::Id createSpvConstant(const Pglslang::TIntermTyped&);
-    Pspv::Id createSpvConstantFromConstUnionArray(const Pglslang::TType& type, const Pglslang::TConstUnionArray&, int& nextConst, bool specConstant);
-    bool isTrivialLeaf(const Pglslang::TIntermTyped* node);
-    bool isTrivial(const Pglslang::TIntermTyped* node);
-    Pspv::Id createShortCircuit(Pglslang::TOperator, Pglslang::TIntermTyped& left, Pglslang::TIntermTyped& right);
-    Pspv::Id getExtBuiltins(const char* name);
-    std::pair<Pspv::Id, Pspv::Id> getForcedType(Pspv::BuiltIn, const Pglslang::TType&);
-    Pspv::Id translateForcedType(Pspv::Id object);
-    Pspv::Id createCompositeConstruct(Pspv::Id typeId, std::vector<Pspv::Id> constituents);
+    spv::Id createBinaryOperation(glslang::TOperator op, OpDecorations&, spv::Id typeId, spv::Id left, spv::Id right,
+                                  glslang::TBasicType typeProxy, bool reduceComparison = true);
+    spv::Id createBinaryMatrixOperation(spv::Op, OpDecorations&, spv::Id typeId, spv::Id left, spv::Id right);
+    spv::Id createUnaryOperation(glslang::TOperator op, OpDecorations&, spv::Id typeId, spv::Id operand,
+                                 glslang::TBasicType typeProxy, const spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
+    spv::Id createUnaryMatrixOperation(spv::Op op, OpDecorations&, spv::Id typeId, spv::Id operand,
+                                       glslang::TBasicType typeProxy);
+    spv::Id createConversion(glslang::TOperator op, OpDecorations&, spv::Id destTypeId, spv::Id operand,
+                             glslang::TBasicType typeProxy);
+    spv::Id createIntWidthConversion(glslang::TOperator op, spv::Id operand, int vectorSize);
+    spv::Id makeSmearedConstant(spv::Id constant, int vectorSize);
+    spv::Id createAtomicOperation(glslang::TOperator op, spv::Decoration precision, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy, const spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags);
+    spv::Id createInvocationsOperation(glslang::TOperator op, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy);
+    spv::Id CreateInvocationsVectorOperation(spv::Op op, spv::GroupOperation groupOperation, spv::Id typeId, std::vector<spv::Id>& operands);
+    spv::Id createSubgroupOperation(glslang::TOperator op, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy);
+    spv::Id createMiscOperation(glslang::TOperator op, spv::Decoration precision, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy);
+    spv::Id createNoArgOperation(glslang::TOperator op, spv::Decoration precision, spv::Id typeId);
+    spv::Id getSymbolId(const glslang::TIntermSymbol* node);
+    void addMeshNVDecoration(spv::Id id, int member, const glslang::TQualifier & qualifier);
+    spv::Id createSpvConstant(const glslang::TIntermTyped&);
+    spv::Id createSpvConstantFromConstUnionArray(const glslang::TType& type, const glslang::TConstUnionArray&, int& nextConst, bool specConstant);
+    bool isTrivialLeaf(const glslang::TIntermTyped* node);
+    bool isTrivial(const glslang::TIntermTyped* node);
+    spv::Id createShortCircuit(glslang::TOperator, glslang::TIntermTyped& left, glslang::TIntermTyped& right);
+    spv::Id getExtBuiltins(const char* name);
+    std::pair<spv::Id, spv::Id> getForcedType(spv::BuiltIn, const glslang::TType&);
+    spv::Id translateForcedType(spv::Id object);
+    spv::Id createCompositeConstruct(spv::Id typeId, std::vector<spv::Id> constituents);
 
-    Pglslang::SpvOptions& options;
-    Pspv::Function* shaderEntry;
-    Pspv::Function* currentFunction;
-    Pspv::Instruction* entryPoint;
+    glslang::SpvOptions& options;
+    spv::Function* shaderEntry;
+    spv::Function* currentFunction;
+    spv::Instruction* entryPoint;
     int sequenceDepth;
 
-    Pspv::SpvBuildLogger* logger;
+    spv::SpvBuildLogger* logger;
 
     // There is a 1:1 mapping between a spv builder and a module; this is thread safe
-    Pspv::Builder builder;
+    spv::Builder builder;
     bool inEntryPoint;
     bool entryPointTerminated;
     bool linkageOnly;                  // true when visiting the set of objects in the AST present only for establishing interface, whether or not they were statically used
-    std::set<Pspv::Id> iOSet;           // all input/output variables from either static use or declaration of interface
-    const Pglslang::TIntermediate* glslangIntermediate;
+    std::set<spv::Id> iOSet;           // all input/output variables from either static use or declaration of interface
+    const glslang::TIntermediate* glslangIntermediate;
     bool nanMinMaxClamp;               // true if use NMin/NMax/NClamp instead of FMin/FMax/FClamp
-    Pspv::Id stdBuiltins;
-    std::unordered_map<const char*, Pspv::Id> extBuiltinMap;
+    spv::Id stdBuiltins;
+    std::unordered_map<const char*, spv::Id> extBuiltinMap;
 
-    std::unordered_map<int, Pspv::Id> symbolValues;
+    std::unordered_map<int, spv::Id> symbolValues;
     std::unordered_set<int> rValueParameters;  // set of formal function parameters passed as rValues, rather than a pointer
-    std::unordered_map<std::string, Pspv::Function*> functionMap;
-    std::unordered_map<const Pglslang::TTypeList*, Pspv::Id> structMap[Pglslang::ElpCount][Pglslang::ElmCount];
+    std::unordered_map<std::string, spv::Function*> functionMap;
+    std::unordered_map<const glslang::TTypeList*, spv::Id> structMap[glslang::ElpCount][glslang::ElmCount];
     // for mapping glslang block indices to spv indices (e.g., due to hidden members):
     std::unordered_map<int, std::vector<int>> memberRemapper;
     // for mapping glslang symbol struct to symbol Id
-    std::unordered_map<const Pglslang::TTypeList*, int> glslangTypeToIdMap;
+    std::unordered_map<const glslang::TTypeList*, int> glslangTypeToIdMap;
     std::stack<bool> breakForLoop;  // false means break for switch
-    std::unordered_map<std::string, const Pglslang::TIntermSymbol*> counterOriginator;
+    std::unordered_map<std::string, const glslang::TIntermSymbol*> counterOriginator;
     // Map pointee types for EbtReference to their forward pointers
-    std::map<const Pglslang::TType *, Pspv::Id> forwardPointers;
+    std::map<const glslang::TType *, spv::Id> forwardPointers;
     // Type forcing, for when SPIR-V wants a different type than the AST,
     // requiring local translation to and from SPIR-V type on every access.
     // Maps <builtin-variable-id -> AST-required-type-id>
-    std::unordered_map<Pspv::Id, Pspv::Id> forceType;
+    std::unordered_map<spv::Id, spv::Id> forceType;
 };
 
 //
@@ -263,106 +263,106 @@ protected:
 //
 
 // Translate glslang profile to SPIR-V source language.
-Pspv::SourceLanguage TranslateSourceLanguage(Pglslang::EShSource source, EProfile profile)
+spv::SourceLanguage TranslateSourceLanguage(glslang::EShSource source, EProfile profile)
 {
 #ifdef GLSLANG_WEB
-    return Pspv::SourceLanguageESSL;
+    return spv::SourceLanguageESSL;
 #endif
 
     switch (source) {
-    case Pglslang::EShSourceGlsl:
+    case glslang::EShSourceGlsl:
         switch (profile) {
         case ENoProfile:
         case ECoreProfile:
         case ECompatibilityProfile:
-            return Pspv::SourceLanguageGLSL;
+            return spv::SourceLanguageGLSL;
         case EEsProfile:
-            return Pspv::SourceLanguageESSL;
+            return spv::SourceLanguageESSL;
         default:
-            return Pspv::SourceLanguageUnknown;
+            return spv::SourceLanguageUnknown;
         }
-    case Pglslang::EShSourceHlsl:
-        return Pspv::SourceLanguageHLSL;
+    case glslang::EShSourceHlsl:
+        return spv::SourceLanguageHLSL;
     default:
-        return Pspv::SourceLanguageUnknown;
+        return spv::SourceLanguageUnknown;
     }
 }
 
 // Translate glslang language (stage) to SPIR-V execution model.
-Pspv::ExecutionModel TranslateExecutionModel(EShLanguage stage)
+spv::ExecutionModel TranslateExecutionModel(EShLanguage stage)
 {
     switch (stage) {
-    case EShLangVertex:           return Pspv::ExecutionModelVertex;
-    case EShLangFragment:         return Pspv::ExecutionModelFragment;
-    case EShLangCompute:          return Pspv::ExecutionModelGLCompute;
+    case EShLangVertex:           return spv::ExecutionModelVertex;
+    case EShLangFragment:         return spv::ExecutionModelFragment;
+    case EShLangCompute:          return spv::ExecutionModelGLCompute;
 #ifndef GLSLANG_WEB
-    case EShLangTessControl:      return Pspv::ExecutionModelTessellationControl;
-    case EShLangTessEvaluation:   return Pspv::ExecutionModelTessellationEvaluation;
-    case EShLangGeometry:         return Pspv::ExecutionModelGeometry;
-    case EShLangRayGenNV:         return Pspv::ExecutionModelRayGenerationNV;
-    case EShLangIntersectNV:      return Pspv::ExecutionModelIntersectionNV;
-    case EShLangAnyHitNV:         return Pspv::ExecutionModelAnyHitNV;
-    case EShLangClosestHitNV:     return Pspv::ExecutionModelClosestHitNV;
-    case EShLangMissNV:           return Pspv::ExecutionModelMissNV;
-    case EShLangCallableNV:       return Pspv::ExecutionModelCallableNV;
-    case EShLangTaskNV:           return Pspv::ExecutionModelTaskNV;
-    case EShLangMeshNV:           return Pspv::ExecutionModelMeshNV;
+    case EShLangTessControl:      return spv::ExecutionModelTessellationControl;
+    case EShLangTessEvaluation:   return spv::ExecutionModelTessellationEvaluation;
+    case EShLangGeometry:         return spv::ExecutionModelGeometry;
+    case EShLangRayGenNV:         return spv::ExecutionModelRayGenerationNV;
+    case EShLangIntersectNV:      return spv::ExecutionModelIntersectionNV;
+    case EShLangAnyHitNV:         return spv::ExecutionModelAnyHitNV;
+    case EShLangClosestHitNV:     return spv::ExecutionModelClosestHitNV;
+    case EShLangMissNV:           return spv::ExecutionModelMissNV;
+    case EShLangCallableNV:       return spv::ExecutionModelCallableNV;
+    case EShLangTaskNV:           return spv::ExecutionModelTaskNV;
+    case EShLangMeshNV:           return spv::ExecutionModelMeshNV;
 #endif
     default:
         assert(0);
-        return Pspv::ExecutionModelFragment;
+        return spv::ExecutionModelFragment;
     }
 }
 
 // Translate glslang sampler type to SPIR-V dimensionality.
-Pspv::Dim TranslateDimensionality(const Pglslang::TSampler& sampler)
+spv::Dim TranslateDimensionality(const glslang::TSampler& sampler)
 {
     switch (sampler.dim) {
-    case Pglslang::Esd1D:      return Pspv::Dim1D;
-    case Pglslang::Esd2D:      return Pspv::Dim2D;
-    case Pglslang::Esd3D:      return Pspv::Dim3D;
-    case Pglslang::EsdCube:    return Pspv::DimCube;
-    case Pglslang::EsdRect:    return Pspv::DimRect;
-    case Pglslang::EsdBuffer:  return Pspv::DimBuffer;
-    case Pglslang::EsdSubpass: return Pspv::DimSubpassData;
+    case glslang::Esd1D:      return spv::Dim1D;
+    case glslang::Esd2D:      return spv::Dim2D;
+    case glslang::Esd3D:      return spv::Dim3D;
+    case glslang::EsdCube:    return spv::DimCube;
+    case glslang::EsdRect:    return spv::DimRect;
+    case glslang::EsdBuffer:  return spv::DimBuffer;
+    case glslang::EsdSubpass: return spv::DimSubpassData;
     default:
         assert(0);
-        return Pspv::Dim2D;
+        return spv::Dim2D;
     }
 }
 
 // Translate glslang precision to SPIR-V precision decorations.
-Pspv::Decoration TranslatePrecisionDecoration(Pglslang::TPrecisionQualifier glslangPrecision)
+spv::Decoration TranslatePrecisionDecoration(glslang::TPrecisionQualifier glslangPrecision)
 {
     switch (glslangPrecision) {
-    case Pglslang::EpqLow:    return Pspv::DecorationRelaxedPrecision;
-    case Pglslang::EpqMedium: return Pspv::DecorationRelaxedPrecision;
+    case glslang::EpqLow:    return spv::DecorationRelaxedPrecision;
+    case glslang::EpqMedium: return spv::DecorationRelaxedPrecision;
     default:
-        return Pspv::NoPrecision;
+        return spv::NoPrecision;
     }
 }
 
 // Translate glslang type to SPIR-V precision decorations.
-Pspv::Decoration TranslatePrecisionDecoration(const Pglslang::TType& type)
+spv::Decoration TranslatePrecisionDecoration(const glslang::TType& type)
 {
     return TranslatePrecisionDecoration(type.getQualifier().precision);
 }
 
 // Translate glslang type to SPIR-V block decorations.
-Pspv::Decoration TranslateBlockDecoration(const Pglslang::TType& type, bool useStorageBuffer)
+spv::Decoration TranslateBlockDecoration(const glslang::TType& type, bool useStorageBuffer)
 {
-    if (type.getBasicType() == Pglslang::EbtBlock) {
+    if (type.getBasicType() == glslang::EbtBlock) {
         switch (type.getQualifier().storage) {
-        case Pglslang::EvqUniform:      return Pspv::DecorationBlock;
-        case Pglslang::EvqBuffer:       return useStorageBuffer ? Pspv::DecorationBlock : Pspv::DecorationBufferBlock;
-        case Pglslang::EvqVaryingIn:    return Pspv::DecorationBlock;
-        case Pglslang::EvqVaryingOut:   return Pspv::DecorationBlock;
+        case glslang::EvqUniform:      return spv::DecorationBlock;
+        case glslang::EvqBuffer:       return useStorageBuffer ? spv::DecorationBlock : spv::DecorationBufferBlock;
+        case glslang::EvqVaryingIn:    return spv::DecorationBlock;
+        case glslang::EvqVaryingOut:   return spv::DecorationBlock;
 #ifndef GLSLANG_WEB
-        case Pglslang::EvqPayloadNV:    return Pspv::DecorationBlock;
-        case Pglslang::EvqPayloadInNV:  return Pspv::DecorationBlock;
-        case Pglslang::EvqHitAttrNV:    return Pspv::DecorationBlock;
-        case Pglslang::EvqCallableDataNV:   return Pspv::DecorationBlock;
-        case Pglslang::EvqCallableDataInNV: return Pspv::DecorationBlock;
+        case glslang::EvqPayloadNV:    return spv::DecorationBlock;
+        case glslang::EvqPayloadInNV:  return spv::DecorationBlock;
+        case glslang::EvqHitAttrNV:    return spv::DecorationBlock;
+        case glslang::EvqCallableDataNV:   return spv::DecorationBlock;
+        case glslang::EvqCallableDataInNV: return spv::DecorationBlock;
 #endif
         default:
             assert(0);
@@ -370,160 +370,160 @@ Pspv::Decoration TranslateBlockDecoration(const Pglslang::TType& type, bool useS
         }
     }
 
-    return Pspv::DecorationMax;
+    return spv::DecorationMax;
 }
 
 // Translate glslang type to SPIR-V memory decorations.
-void TranslateMemoryDecoration(const Pglslang::TQualifier& qualifier, std::vector<Pspv::Decoration>& memory, bool useVulkanMemoryModel)
+void TranslateMemoryDecoration(const glslang::TQualifier& qualifier, std::vector<spv::Decoration>& memory, bool useVulkanMemoryModel)
 {
     if (!useVulkanMemoryModel) {
         if (qualifier.isCoherent())
-            memory.push_back(Pspv::DecorationCoherent);
+            memory.push_back(spv::DecorationCoherent);
         if (qualifier.isVolatile()) {
-            memory.push_back(Pspv::DecorationVolatile);
-            memory.push_back(Pspv::DecorationCoherent);
+            memory.push_back(spv::DecorationVolatile);
+            memory.push_back(spv::DecorationCoherent);
         }
     }
     if (qualifier.isRestrict())
-        memory.push_back(Pspv::DecorationRestrict);
+        memory.push_back(spv::DecorationRestrict);
     if (qualifier.isReadOnly())
-        memory.push_back(Pspv::DecorationNonWritable);
+        memory.push_back(spv::DecorationNonWritable);
     if (qualifier.isWriteOnly())
-       memory.push_back(Pspv::DecorationNonReadable);
+       memory.push_back(spv::DecorationNonReadable);
 }
 
 // Translate glslang type to SPIR-V layout decorations.
-Pspv::Decoration TranslateLayoutDecoration(const Pglslang::TType& type, Pglslang::TLayoutMatrix matrixLayout)
+spv::Decoration TranslateLayoutDecoration(const glslang::TType& type, glslang::TLayoutMatrix matrixLayout)
 {
     if (type.isMatrix()) {
         switch (matrixLayout) {
-        case Pglslang::ElmRowMajor:
-            return Pspv::DecorationRowMajor;
-        case Pglslang::ElmColumnMajor:
-            return Pspv::DecorationColMajor;
+        case glslang::ElmRowMajor:
+            return spv::DecorationRowMajor;
+        case glslang::ElmColumnMajor:
+            return spv::DecorationColMajor;
         default:
             // opaque layouts don't need a majorness
-            return Pspv::DecorationMax;
+            return spv::DecorationMax;
         }
     } else {
         switch (type.getBasicType()) {
         default:
-            return Pspv::DecorationMax;
+            return spv::DecorationMax;
             break;
-        case Pglslang::EbtBlock:
+        case glslang::EbtBlock:
             switch (type.getQualifier().storage) {
-            case Pglslang::EvqUniform:
-            case Pglslang::EvqBuffer:
+            case glslang::EvqUniform:
+            case glslang::EvqBuffer:
                 switch (type.getQualifier().layoutPacking) {
-                case Pglslang::ElpShared:  return Pspv::DecorationGLSLShared;
-                case Pglslang::ElpPacked:  return Pspv::DecorationGLSLPacked;
+                case glslang::ElpShared:  return spv::DecorationGLSLShared;
+                case glslang::ElpPacked:  return spv::DecorationGLSLPacked;
                 default:
-                    return Pspv::DecorationMax;
+                    return spv::DecorationMax;
                 }
-            case Pglslang::EvqVaryingIn:
-            case Pglslang::EvqVaryingOut:
+            case glslang::EvqVaryingIn:
+            case glslang::EvqVaryingOut:
                 if (type.getQualifier().isTaskMemory()) {
                     switch (type.getQualifier().layoutPacking) {
-                    case Pglslang::ElpShared:  return Pspv::DecorationGLSLShared;
-                    case Pglslang::ElpPacked:  return Pspv::DecorationGLSLPacked;
+                    case glslang::ElpShared:  return spv::DecorationGLSLShared;
+                    case glslang::ElpPacked:  return spv::DecorationGLSLPacked;
                     default: break;
                     }
                 } else {
-                    assert(type.getQualifier().layoutPacking == Pglslang::ElpNone);
+                    assert(type.getQualifier().layoutPacking == glslang::ElpNone);
                 }
-                return Pspv::DecorationMax;
+                return spv::DecorationMax;
 #ifndef GLSLANG_WEB
-            case Pglslang::EvqPayloadNV:
-            case Pglslang::EvqPayloadInNV:
-            case Pglslang::EvqHitAttrNV:
-            case Pglslang::EvqCallableDataNV:
-            case Pglslang::EvqCallableDataInNV:
-                return Pspv::DecorationMax;
+            case glslang::EvqPayloadNV:
+            case glslang::EvqPayloadInNV:
+            case glslang::EvqHitAttrNV:
+            case glslang::EvqCallableDataNV:
+            case glslang::EvqCallableDataInNV:
+                return spv::DecorationMax;
 #endif
             default:
                 assert(0);
-                return Pspv::DecorationMax;
+                return spv::DecorationMax;
             }
         }
     }
 }
 
 // Translate glslang type to SPIR-V interpolation decorations.
-// Returns Pspv::DecorationMax when no decoration
+// Returns spv::DecorationMax when no decoration
 // should be applied.
-Pspv::Decoration TGlslangToSpvTraverser::TranslateInterpolationDecoration(const Pglslang::TQualifier& qualifier)
+spv::Decoration TGlslangToSpvTraverser::TranslateInterpolationDecoration(const glslang::TQualifier& qualifier)
 {
     if (qualifier.smooth)
         // Smooth decoration doesn't exist in SPIR-V 1.0
-        return Pspv::DecorationMax;
+        return spv::DecorationMax;
     else if (qualifier.isNonPerspective())
-        return Pspv::DecorationNoPerspective;
+        return spv::DecorationNoPerspective;
     else if (qualifier.flat)
-        return Pspv::DecorationFlat;
+        return spv::DecorationFlat;
     else if (qualifier.isExplicitInterpolation()) {
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::DecorationExplicitInterpAMD;
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::DecorationExplicitInterpAMD;
     }
     else
-        return Pspv::DecorationMax;
+        return spv::DecorationMax;
 }
 
 // Translate glslang type to SPIR-V auxiliary storage decorations.
-// Returns Pspv::DecorationMax when no decoration
+// Returns spv::DecorationMax when no decoration
 // should be applied.
-Pspv::Decoration TGlslangToSpvTraverser::TranslateAuxiliaryStorageDecoration(const Pglslang::TQualifier& qualifier)
+spv::Decoration TGlslangToSpvTraverser::TranslateAuxiliaryStorageDecoration(const glslang::TQualifier& qualifier)
 {
     if (qualifier.centroid)
-        return Pspv::DecorationCentroid;
+        return spv::DecorationCentroid;
 #ifndef GLSLANG_WEB
     else if (qualifier.patch)
-        return Pspv::DecorationPatch;
+        return spv::DecorationPatch;
     else if (qualifier.sample) {
-        builder.addCapability(Pspv::CapabilitySampleRateShading);
-        return Pspv::DecorationSample;
+        builder.addCapability(spv::CapabilitySampleRateShading);
+        return spv::DecorationSample;
     }
 #endif
 
-    return Pspv::DecorationMax;
+    return spv::DecorationMax;
 }
 
 // If glslang type is invariant, return SPIR-V invariant decoration.
-Pspv::Decoration TranslateInvariantDecoration(const Pglslang::TQualifier& qualifier)
+spv::Decoration TranslateInvariantDecoration(const glslang::TQualifier& qualifier)
 {
     if (qualifier.invariant)
-        return Pspv::DecorationInvariant;
+        return spv::DecorationInvariant;
     else
-        return Pspv::DecorationMax;
+        return spv::DecorationMax;
 }
 
 // If glslang type is noContraction, return SPIR-V NoContraction decoration.
-Pspv::Decoration TranslateNoContractionDecoration(const Pglslang::TQualifier& qualifier)
+spv::Decoration TranslateNoContractionDecoration(const glslang::TQualifier& qualifier)
 {
 #ifndef GLSLANG_WEB
     if (qualifier.isNoContraction())
-        return Pspv::DecorationNoContraction;
+        return spv::DecorationNoContraction;
     else
 #endif
-        return Pspv::DecorationMax;
+        return spv::DecorationMax;
 }
 
 // If glslang type is nonUniform, return SPIR-V NonUniform decoration.
-Pspv::Decoration TGlslangToSpvTraverser::TranslateNonUniformDecoration(const Pglslang::TQualifier& qualifier)
+spv::Decoration TGlslangToSpvTraverser::TranslateNonUniformDecoration(const glslang::TQualifier& qualifier)
 {
 #ifndef GLSLANG_WEB
     if (qualifier.isNonUniform()) {
-        builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", Pspv::Spv_1_5);
-        builder.addCapability(Pspv::CapabilityShaderNonUniformEXT);
-        return Pspv::DecorationNonUniformEXT;
+        builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", spv::Spv_1_5);
+        builder.addCapability(spv::CapabilityShaderNonUniformEXT);
+        return spv::DecorationNonUniformEXT;
     } else
 #endif
-        return Pspv::DecorationMax;
+        return spv::DecorationMax;
 }
 
-Pspv::MemoryAccessMask TGlslangToSpvTraverser::TranslateMemoryAccess(
-    const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags)
+spv::MemoryAccessMask TGlslangToSpvTraverser::TranslateMemoryAccess(
+    const spv::Builder::AccessChain::CoherentFlags &coherentFlags)
 {
-    Pspv::MemoryAccessMask mask = Pspv::MemoryAccessMaskNone;
+    spv::MemoryAccessMask mask = spv::MemoryAccessMaskNone;
 
 #ifndef GLSLANG_WEB
     if (!glslangIntermediate->usingVulkanMemoryModel() || coherentFlags.isImage)
@@ -535,27 +535,27 @@ Pspv::MemoryAccessMask TGlslangToSpvTraverser::TranslateMemoryAccess(
         coherentFlags.queuefamilycoherent ||
         coherentFlags.workgroupcoherent ||
         coherentFlags.subgroupcoherent) {
-        mask = mask | Pspv::MemoryAccessMakePointerAvailableKHRMask |
-                      Pspv::MemoryAccessMakePointerVisibleKHRMask;
+        mask = mask | spv::MemoryAccessMakePointerAvailableKHRMask |
+                      spv::MemoryAccessMakePointerVisibleKHRMask;
     }
     if (coherentFlags.nonprivate) {
-        mask = mask | Pspv::MemoryAccessNonPrivatePointerKHRMask;
+        mask = mask | spv::MemoryAccessNonPrivatePointerKHRMask;
     }
     if (coherentFlags.volatil) {
-        mask = mask | Pspv::MemoryAccessVolatileMask;
+        mask = mask | spv::MemoryAccessVolatileMask;
     }
-    if (mask != Pspv::MemoryAccessMaskNone) {
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+    if (mask != spv::MemoryAccessMaskNone) {
+        builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
     }
 #endif
 
     return mask;
 }
 
-Pspv::ImageOperandsMask TGlslangToSpvTraverser::TranslateImageOperands(
-    const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags)
+spv::ImageOperandsMask TGlslangToSpvTraverser::TranslateImageOperands(
+    const spv::Builder::AccessChain::CoherentFlags &coherentFlags)
 {
-    Pspv::ImageOperandsMask mask = Pspv::ImageOperandsMaskNone;
+    spv::ImageOperandsMask mask = spv::ImageOperandsMaskNone;
 
 #ifndef GLSLANG_WEB
     if (!glslangIntermediate->usingVulkanMemoryModel())
@@ -567,33 +567,33 @@ Pspv::ImageOperandsMask TGlslangToSpvTraverser::TranslateImageOperands(
         coherentFlags.queuefamilycoherent ||
         coherentFlags.workgroupcoherent ||
         coherentFlags.subgroupcoherent) {
-        mask = mask | Pspv::ImageOperandsMakeTexelAvailableKHRMask |
-                      Pspv::ImageOperandsMakeTexelVisibleKHRMask;
+        mask = mask | spv::ImageOperandsMakeTexelAvailableKHRMask |
+                      spv::ImageOperandsMakeTexelVisibleKHRMask;
     }
     if (coherentFlags.nonprivate) {
-        mask = mask | Pspv::ImageOperandsNonPrivateTexelKHRMask;
+        mask = mask | spv::ImageOperandsNonPrivateTexelKHRMask;
     }
     if (coherentFlags.volatil) {
-        mask = mask | Pspv::ImageOperandsVolatileTexelKHRMask;
+        mask = mask | spv::ImageOperandsVolatileTexelKHRMask;
     }
-    if (mask != Pspv::ImageOperandsMaskNone) {
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+    if (mask != spv::ImageOperandsMaskNone) {
+        builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
     }
 #endif
 
     return mask;
 }
 
-Pspv::Builder::AccessChain::CoherentFlags TGlslangToSpvTraverser::TranslateCoherent(const Pglslang::TType& type)
+spv::Builder::AccessChain::CoherentFlags TGlslangToSpvTraverser::TranslateCoherent(const glslang::TType& type)
 {
-    Pspv::Builder::AccessChain::CoherentFlags flags = {};
+    spv::Builder::AccessChain::CoherentFlags flags = {};
 #ifndef GLSLANG_WEB
     flags.coherent = type.getQualifier().coherent;
     flags.devicecoherent = type.getQualifier().devicecoherent;
     flags.queuefamilycoherent = type.getQualifier().queuefamilycoherent;
     // shared variables are implicitly workgroupcoherent in GLSL.
     flags.workgroupcoherent = type.getQualifier().workgroupcoherent ||
-                              type.getQualifier().storage == Pglslang::EvqShared;
+                              type.getQualifier().storage == glslang::EvqShared;
     flags.subgroupcoherent = type.getQualifier().subgroupcoherent;
     flags.volatil = type.getQualifier().volatil;
     // *coherent variables are implicitly nonprivate in GLSL
@@ -604,31 +604,31 @@ Pspv::Builder::AccessChain::CoherentFlags TGlslangToSpvTraverser::TranslateCoher
                        flags.devicecoherent ||
                        flags.coherent ||
                        flags.volatil;
-    flags.isImage = type.getBasicType() == Pglslang::EbtSampler;
+    flags.isImage = type.getBasicType() == glslang::EbtSampler;
 #endif
     return flags;
 }
 
-Pspv::Scope TGlslangToSpvTraverser::TranslateMemoryScope(
-    const Pspv::Builder::AccessChain::CoherentFlags &coherentFlags)
+spv::Scope TGlslangToSpvTraverser::TranslateMemoryScope(
+    const spv::Builder::AccessChain::CoherentFlags &coherentFlags)
 {
-    Pspv::Scope scope = Pspv::ScopeMax;
+    spv::Scope scope = spv::ScopeMax;
 
 #ifndef GLSLANG_WEB
     if (coherentFlags.volatil || coherentFlags.coherent) {
         // coherent defaults to Device scope in the old model, QueueFamilyKHR scope in the new model
-        scope = glslangIntermediate->usingVulkanMemoryModel() ? Pspv::ScopeQueueFamilyKHR : Pspv::ScopeDevice;
+        scope = glslangIntermediate->usingVulkanMemoryModel() ? spv::ScopeQueueFamilyKHR : spv::ScopeDevice;
     } else if (coherentFlags.devicecoherent) {
-        scope = Pspv::ScopeDevice;
+        scope = spv::ScopeDevice;
     } else if (coherentFlags.queuefamilycoherent) {
-        scope = Pspv::ScopeQueueFamilyKHR;
+        scope = spv::ScopeQueueFamilyKHR;
     } else if (coherentFlags.workgroupcoherent) {
-        scope = Pspv::ScopeWorkgroup;
+        scope = spv::ScopeWorkgroup;
     } else if (coherentFlags.subgroupcoherent) {
-        scope = Pspv::ScopeSubgroup;
+        scope = spv::ScopeSubgroup;
     }
-    if (glslangIntermediate->usingVulkanMemoryModel() && scope == Pspv::ScopeDevice) {
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelDeviceScopeKHR);
+    if (glslangIntermediate->usingVulkanMemoryModel() && scope == spv::ScopeDevice) {
+        builder.addCapability(spv::CapabilityVulkanMemoryModelDeviceScopeKHR);
     }
 #endif
 
@@ -640,45 +640,45 @@ Pspv::Scope TGlslangToSpvTraverser::TranslateMemoryScope(
 // is generated only when using the variable in an executable instruction, but not when
 // just declaring a struct member variable with it.  This is true for PointSize,
 // ClipDistance, and CullDistance.
-Pspv::BuiltIn TGlslangToSpvTraverser::TranslateBuiltInDecoration(Pglslang::TBuiltInVariable builtIn, bool memberDeclaration)
+spv::BuiltIn TGlslangToSpvTraverser::TranslateBuiltInDecoration(glslang::TBuiltInVariable builtIn, bool memberDeclaration)
 {
     switch (builtIn) {
-    case Pglslang::EbvPointSize:
+    case glslang::EbvPointSize:
 #ifndef GLSLANG_WEB
         // Defer adding the capability until the built-in is actually used.
         if (! memberDeclaration) {
             switch (glslangIntermediate->getStage()) {
             case EShLangGeometry:
-                builder.addCapability(Pspv::CapabilityGeometryPointSize);
+                builder.addCapability(spv::CapabilityGeometryPointSize);
                 break;
             case EShLangTessControl:
             case EShLangTessEvaluation:
-                builder.addCapability(Pspv::CapabilityTessellationPointSize);
+                builder.addCapability(spv::CapabilityTessellationPointSize);
                 break;
             default:
                 break;
             }
         }
 #endif
-        return Pspv::BuiltInPointSize;
+        return spv::BuiltInPointSize;
 
-    case Pglslang::EbvPosition:             return Pspv::BuiltInPosition;
-    case Pglslang::EbvVertexId:             return Pspv::BuiltInVertexId;
-    case Pglslang::EbvInstanceId:           return Pspv::BuiltInInstanceId;
-    case Pglslang::EbvVertexIndex:          return Pspv::BuiltInVertexIndex;
-    case Pglslang::EbvInstanceIndex:        return Pspv::BuiltInInstanceIndex;
+    case glslang::EbvPosition:             return spv::BuiltInPosition;
+    case glslang::EbvVertexId:             return spv::BuiltInVertexId;
+    case glslang::EbvInstanceId:           return spv::BuiltInInstanceId;
+    case glslang::EbvVertexIndex:          return spv::BuiltInVertexIndex;
+    case glslang::EbvInstanceIndex:        return spv::BuiltInInstanceIndex;
 
-    case Pglslang::EbvFragCoord:            return Pspv::BuiltInFragCoord;
-    case Pglslang::EbvPointCoord:           return Pspv::BuiltInPointCoord;
-    case Pglslang::EbvFace:                 return Pspv::BuiltInFrontFacing;
-    case Pglslang::EbvFragDepth:            return Pspv::BuiltInFragDepth;
+    case glslang::EbvFragCoord:            return spv::BuiltInFragCoord;
+    case glslang::EbvPointCoord:           return spv::BuiltInPointCoord;
+    case glslang::EbvFace:                 return spv::BuiltInFrontFacing;
+    case glslang::EbvFragDepth:            return spv::BuiltInFragDepth;
 
-    case Pglslang::EbvNumWorkGroups:        return Pspv::BuiltInNumWorkgroups;
-    case Pglslang::EbvWorkGroupSize:        return Pspv::BuiltInWorkgroupSize;
-    case Pglslang::EbvWorkGroupId:          return Pspv::BuiltInWorkgroupId;
-    case Pglslang::EbvLocalInvocationId:    return Pspv::BuiltInLocalInvocationId;
-    case Pglslang::EbvLocalInvocationIndex: return Pspv::BuiltInLocalInvocationIndex;
-    case Pglslang::EbvGlobalInvocationId:   return Pspv::BuiltInGlobalInvocationId;
+    case glslang::EbvNumWorkGroups:        return spv::BuiltInNumWorkgroups;
+    case glslang::EbvWorkGroupSize:        return spv::BuiltInWorkgroupSize;
+    case glslang::EbvWorkGroupId:          return spv::BuiltInWorkgroupId;
+    case glslang::EbvLocalInvocationId:    return spv::BuiltInLocalInvocationId;
+    case glslang::EbvLocalInvocationIndex: return spv::BuiltInLocalInvocationIndex;
+    case glslang::EbvGlobalInvocationId:   return spv::BuiltInGlobalInvocationId;
 
 #ifndef GLSLANG_WEB
     // These *Distance capabilities logically belong here, but if the member is declared and
@@ -687,373 +687,373 @@ Pspv::BuiltIn TGlslangToSpvTraverser::TranslateBuiltInDecoration(Pglslang::TBuil
     // Potentially, the specification should be more clear what the minimum
     // use needed is to trigger the capability.
     //
-    case Pglslang::EbvClipDistance:
+    case glslang::EbvClipDistance:
         if (!memberDeclaration)
-            builder.addCapability(Pspv::CapabilityClipDistance);
-        return Pspv::BuiltInClipDistance;
+            builder.addCapability(spv::CapabilityClipDistance);
+        return spv::BuiltInClipDistance;
 
-    case Pglslang::EbvCullDistance:
+    case glslang::EbvCullDistance:
         if (!memberDeclaration)
-            builder.addCapability(Pspv::CapabilityCullDistance);
-        return Pspv::BuiltInCullDistance;
+            builder.addCapability(spv::CapabilityCullDistance);
+        return spv::BuiltInCullDistance;
 
-    case Pglslang::EbvViewportIndex:
-        builder.addCapability(Pspv::CapabilityMultiViewport);
+    case glslang::EbvViewportIndex:
+        builder.addCapability(spv::CapabilityMultiViewport);
         if (glslangIntermediate->getStage() == EShLangVertex ||
             glslangIntermediate->getStage() == EShLangTessControl ||
             glslangIntermediate->getStage() == EShLangTessEvaluation) {
 
-            builder.addIncorporatedExtension(Pspv::E_SPV_EXT_shader_viewport_index_layer, Pspv::Spv_1_5);
-            builder.addCapability(Pspv::CapabilityShaderViewportIndexLayerEXT);
+            builder.addIncorporatedExtension(spv::E_SPV_EXT_shader_viewport_index_layer, spv::Spv_1_5);
+            builder.addCapability(spv::CapabilityShaderViewportIndexLayerEXT);
         }
-        return Pspv::BuiltInViewportIndex;
+        return spv::BuiltInViewportIndex;
 
-    case Pglslang::EbvSampleId:
-        builder.addCapability(Pspv::CapabilitySampleRateShading);
-        return Pspv::BuiltInSampleId;
+    case glslang::EbvSampleId:
+        builder.addCapability(spv::CapabilitySampleRateShading);
+        return spv::BuiltInSampleId;
 
-    case Pglslang::EbvSamplePosition:
-        builder.addCapability(Pspv::CapabilitySampleRateShading);
-        return Pspv::BuiltInSamplePosition;
+    case glslang::EbvSamplePosition:
+        builder.addCapability(spv::CapabilitySampleRateShading);
+        return spv::BuiltInSamplePosition;
 
-    case Pglslang::EbvSampleMask:
-        return Pspv::BuiltInSampleMask;
+    case glslang::EbvSampleMask:
+        return spv::BuiltInSampleMask;
 
-    case Pglslang::EbvLayer:
+    case glslang::EbvLayer:
         if (glslangIntermediate->getStage() == EShLangMeshNV) {
-            return Pspv::BuiltInLayer;
+            return spv::BuiltInLayer;
         }
-        builder.addCapability(Pspv::CapabilityGeometry);
+        builder.addCapability(spv::CapabilityGeometry);
         if (glslangIntermediate->getStage() == EShLangVertex ||
             glslangIntermediate->getStage() == EShLangTessControl ||
             glslangIntermediate->getStage() == EShLangTessEvaluation) {
 
-            builder.addIncorporatedExtension(Pspv::E_SPV_EXT_shader_viewport_index_layer, Pspv::Spv_1_5);
-            builder.addCapability(Pspv::CapabilityShaderViewportIndexLayerEXT);
+            builder.addIncorporatedExtension(spv::E_SPV_EXT_shader_viewport_index_layer, spv::Spv_1_5);
+            builder.addCapability(spv::CapabilityShaderViewportIndexLayerEXT);
         }
-        return Pspv::BuiltInLayer;
+        return spv::BuiltInLayer;
 
-    case Pglslang::EbvBaseVertex:
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_shader_draw_parameters, Pspv::Spv_1_3);
-        builder.addCapability(Pspv::CapabilityDrawParameters);
-        return Pspv::BuiltInBaseVertex;
+    case glslang::EbvBaseVertex:
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_shader_draw_parameters, spv::Spv_1_3);
+        builder.addCapability(spv::CapabilityDrawParameters);
+        return spv::BuiltInBaseVertex;
 
-    case Pglslang::EbvBaseInstance:
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_shader_draw_parameters, Pspv::Spv_1_3);
-        builder.addCapability(Pspv::CapabilityDrawParameters);
-        return Pspv::BuiltInBaseInstance;
+    case glslang::EbvBaseInstance:
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_shader_draw_parameters, spv::Spv_1_3);
+        builder.addCapability(spv::CapabilityDrawParameters);
+        return spv::BuiltInBaseInstance;
 
-    case Pglslang::EbvDrawId:
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_shader_draw_parameters, Pspv::Spv_1_3);
-        builder.addCapability(Pspv::CapabilityDrawParameters);
-        return Pspv::BuiltInDrawIndex;
+    case glslang::EbvDrawId:
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_shader_draw_parameters, spv::Spv_1_3);
+        builder.addCapability(spv::CapabilityDrawParameters);
+        return spv::BuiltInDrawIndex;
 
-    case Pglslang::EbvPrimitiveId:
+    case glslang::EbvPrimitiveId:
         if (glslangIntermediate->getStage() == EShLangFragment)
-            builder.addCapability(Pspv::CapabilityGeometry);
-        return Pspv::BuiltInPrimitiveId;
+            builder.addCapability(spv::CapabilityGeometry);
+        return spv::BuiltInPrimitiveId;
 
-    case Pglslang::EbvFragStencilRef:
-        builder.addExtension(Pspv::E_SPV_EXT_shader_stencil_export);
-        builder.addCapability(Pspv::CapabilityStencilExportEXT);
-        return Pspv::BuiltInFragStencilRefEXT;
+    case glslang::EbvFragStencilRef:
+        builder.addExtension(spv::E_SPV_EXT_shader_stencil_export);
+        builder.addCapability(spv::CapabilityStencilExportEXT);
+        return spv::BuiltInFragStencilRefEXT;
 
-    case Pglslang::EbvInvocationId:         return Pspv::BuiltInInvocationId;
-    case Pglslang::EbvTessLevelInner:       return Pspv::BuiltInTessLevelInner;
-    case Pglslang::EbvTessLevelOuter:       return Pspv::BuiltInTessLevelOuter;
-    case Pglslang::EbvTessCoord:            return Pspv::BuiltInTessCoord;
-    case Pglslang::EbvPatchVertices:        return Pspv::BuiltInPatchVertices;
-    case Pglslang::EbvHelperInvocation:     return Pspv::BuiltInHelperInvocation;
+    case glslang::EbvInvocationId:         return spv::BuiltInInvocationId;
+    case glslang::EbvTessLevelInner:       return spv::BuiltInTessLevelInner;
+    case glslang::EbvTessLevelOuter:       return spv::BuiltInTessLevelOuter;
+    case glslang::EbvTessCoord:            return spv::BuiltInTessCoord;
+    case glslang::EbvPatchVertices:        return spv::BuiltInPatchVertices;
+    case glslang::EbvHelperInvocation:     return spv::BuiltInHelperInvocation;
 
-    case Pglslang::EbvSubGroupSize:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupSize;
+    case glslang::EbvSubGroupSize:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupSize;
 
-    case Pglslang::EbvSubGroupInvocation:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupLocalInvocationId;
+    case glslang::EbvSubGroupInvocation:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupLocalInvocationId;
 
-    case Pglslang::EbvSubGroupEqMask:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupEqMask;
+    case glslang::EbvSubGroupEqMask:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupEqMask;
 
-    case Pglslang::EbvSubGroupGeMask:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupGeMask;
+    case glslang::EbvSubGroupGeMask:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupGeMask;
 
-    case Pglslang::EbvSubGroupGtMask:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupGtMask;
+    case glslang::EbvSubGroupGtMask:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupGtMask;
 
-    case Pglslang::EbvSubGroupLeMask:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupLeMask;
+    case glslang::EbvSubGroupLeMask:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupLeMask;
 
-    case Pglslang::EbvSubGroupLtMask:
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-        return Pspv::BuiltInSubgroupLtMask;
+    case glslang::EbvSubGroupLtMask:
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+        return spv::BuiltInSubgroupLtMask;
 
-    case Pglslang::EbvNumSubgroups:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        return Pspv::BuiltInNumSubgroups;
+    case glslang::EbvNumSubgroups:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        return spv::BuiltInNumSubgroups;
 
-    case Pglslang::EbvSubgroupID:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        return Pspv::BuiltInSubgroupId;
+    case glslang::EbvSubgroupID:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        return spv::BuiltInSubgroupId;
 
-    case Pglslang::EbvSubgroupSize2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        return Pspv::BuiltInSubgroupSize;
+    case glslang::EbvSubgroupSize2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        return spv::BuiltInSubgroupSize;
 
-    case Pglslang::EbvSubgroupInvocation2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        return Pspv::BuiltInSubgroupLocalInvocationId;
+    case glslang::EbvSubgroupInvocation2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        return spv::BuiltInSubgroupLocalInvocationId;
 
-    case Pglslang::EbvSubgroupEqMask2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
-        return Pspv::BuiltInSubgroupEqMask;
+    case glslang::EbvSubgroupEqMask2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
+        return spv::BuiltInSubgroupEqMask;
 
-    case Pglslang::EbvSubgroupGeMask2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
-        return Pspv::BuiltInSubgroupGeMask;
+    case glslang::EbvSubgroupGeMask2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
+        return spv::BuiltInSubgroupGeMask;
 
-    case Pglslang::EbvSubgroupGtMask2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
-        return Pspv::BuiltInSubgroupGtMask;
+    case glslang::EbvSubgroupGtMask2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
+        return spv::BuiltInSubgroupGtMask;
 
-    case Pglslang::EbvSubgroupLeMask2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
-        return Pspv::BuiltInSubgroupLeMask;
+    case glslang::EbvSubgroupLeMask2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
+        return spv::BuiltInSubgroupLeMask;
 
-    case Pglslang::EbvSubgroupLtMask2:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
-        return Pspv::BuiltInSubgroupLtMask;
+    case glslang::EbvSubgroupLtMask2:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
+        return spv::BuiltInSubgroupLtMask;
 
-    case Pglslang::EbvBaryCoordNoPersp:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordNoPerspAMD;
+    case glslang::EbvBaryCoordNoPersp:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordNoPerspAMD;
 
-    case Pglslang::EbvBaryCoordNoPerspCentroid:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordNoPerspCentroidAMD;
+    case glslang::EbvBaryCoordNoPerspCentroid:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordNoPerspCentroidAMD;
 
-    case Pglslang::EbvBaryCoordNoPerspSample:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordNoPerspSampleAMD;
+    case glslang::EbvBaryCoordNoPerspSample:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordNoPerspSampleAMD;
 
-    case Pglslang::EbvBaryCoordSmooth:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordSmoothAMD;
+    case glslang::EbvBaryCoordSmooth:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordSmoothAMD;
 
-    case Pglslang::EbvBaryCoordSmoothCentroid:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordSmoothCentroidAMD;
+    case glslang::EbvBaryCoordSmoothCentroid:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordSmoothCentroidAMD;
 
-    case Pglslang::EbvBaryCoordSmoothSample:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordSmoothSampleAMD;
+    case glslang::EbvBaryCoordSmoothSample:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordSmoothSampleAMD;
 
-    case Pglslang::EbvBaryCoordPullModel:
-        builder.addExtension(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        return Pspv::BuiltInBaryCoordPullModelAMD;
+    case glslang::EbvBaryCoordPullModel:
+        builder.addExtension(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        return spv::BuiltInBaryCoordPullModelAMD;
 
-    case Pglslang::EbvDeviceIndex:
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_device_group, Pspv::Spv_1_3);
-        builder.addCapability(Pspv::CapabilityDeviceGroup);
-        return Pspv::BuiltInDeviceIndex;
+    case glslang::EbvDeviceIndex:
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_device_group, spv::Spv_1_3);
+        builder.addCapability(spv::CapabilityDeviceGroup);
+        return spv::BuiltInDeviceIndex;
 
-    case Pglslang::EbvViewIndex:
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_multiview, Pspv::Spv_1_3);
-        builder.addCapability(Pspv::CapabilityMultiView);
-        return Pspv::BuiltInViewIndex;
+    case glslang::EbvViewIndex:
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_multiview, spv::Spv_1_3);
+        builder.addCapability(spv::CapabilityMultiView);
+        return spv::BuiltInViewIndex;
 
-    case Pglslang::EbvFragSizeEXT:
-        builder.addExtension(Pspv::E_SPV_EXT_fragment_invocation_density);
-        builder.addCapability(Pspv::CapabilityFragmentDensityEXT);
-        return Pspv::BuiltInFragSizeEXT;
+    case glslang::EbvFragSizeEXT:
+        builder.addExtension(spv::E_SPV_EXT_fragment_invocation_density);
+        builder.addCapability(spv::CapabilityFragmentDensityEXT);
+        return spv::BuiltInFragSizeEXT;
 
-    case Pglslang::EbvFragInvocationCountEXT:
-        builder.addExtension(Pspv::E_SPV_EXT_fragment_invocation_density);
-        builder.addCapability(Pspv::CapabilityFragmentDensityEXT);
-        return Pspv::BuiltInFragInvocationCountEXT;
+    case glslang::EbvFragInvocationCountEXT:
+        builder.addExtension(spv::E_SPV_EXT_fragment_invocation_density);
+        builder.addCapability(spv::CapabilityFragmentDensityEXT);
+        return spv::BuiltInFragInvocationCountEXT;
 
-    case Pglslang::EbvViewportMaskNV:
+    case glslang::EbvViewportMaskNV:
         if (!memberDeclaration) {
-            builder.addExtension(Pspv::E_SPV_NV_viewport_array2);
-            builder.addCapability(Pspv::CapabilityShaderViewportMaskNV);
+            builder.addExtension(spv::E_SPV_NV_viewport_array2);
+            builder.addCapability(spv::CapabilityShaderViewportMaskNV);
         }
-        return Pspv::BuiltInViewportMaskNV;
-    case Pglslang::EbvSecondaryPositionNV:
+        return spv::BuiltInViewportMaskNV;
+    case glslang::EbvSecondaryPositionNV:
         if (!memberDeclaration) {
-            builder.addExtension(Pspv::E_SPV_NV_stereo_view_rendering);
-            builder.addCapability(Pspv::CapabilityShaderStereoViewNV);
+            builder.addExtension(spv::E_SPV_NV_stereo_view_rendering);
+            builder.addCapability(spv::CapabilityShaderStereoViewNV);
         }
-        return Pspv::BuiltInSecondaryPositionNV;
-    case Pglslang::EbvSecondaryViewportMaskNV:
+        return spv::BuiltInSecondaryPositionNV;
+    case glslang::EbvSecondaryViewportMaskNV:
         if (!memberDeclaration) {
-            builder.addExtension(Pspv::E_SPV_NV_stereo_view_rendering);
-            builder.addCapability(Pspv::CapabilityShaderStereoViewNV);
+            builder.addExtension(spv::E_SPV_NV_stereo_view_rendering);
+            builder.addCapability(spv::CapabilityShaderStereoViewNV);
         }
-        return Pspv::BuiltInSecondaryViewportMaskNV;
-    case Pglslang::EbvPositionPerViewNV:
+        return spv::BuiltInSecondaryViewportMaskNV;
+    case glslang::EbvPositionPerViewNV:
         if (!memberDeclaration) {
-            builder.addExtension(Pspv::E_SPV_NVX_multiview_per_view_attributes);
-            builder.addCapability(Pspv::CapabilityPerViewAttributesNV);
+            builder.addExtension(spv::E_SPV_NVX_multiview_per_view_attributes);
+            builder.addCapability(spv::CapabilityPerViewAttributesNV);
         }
-        return Pspv::BuiltInPositionPerViewNV;
-    case Pglslang::EbvViewportMaskPerViewNV:
+        return spv::BuiltInPositionPerViewNV;
+    case glslang::EbvViewportMaskPerViewNV:
         if (!memberDeclaration) {
-            builder.addExtension(Pspv::E_SPV_NVX_multiview_per_view_attributes);
-            builder.addCapability(Pspv::CapabilityPerViewAttributesNV);
+            builder.addExtension(spv::E_SPV_NVX_multiview_per_view_attributes);
+            builder.addCapability(spv::CapabilityPerViewAttributesNV);
         }
-        return Pspv::BuiltInViewportMaskPerViewNV;
-    case Pglslang::EbvFragFullyCoveredNV:
-        builder.addExtension(Pspv::E_SPV_EXT_fragment_fully_covered);
-        builder.addCapability(Pspv::CapabilityFragmentFullyCoveredEXT);
-        return Pspv::BuiltInFullyCoveredEXT;
-    case Pglslang::EbvFragmentSizeNV:
-        builder.addExtension(Pspv::E_SPV_NV_shading_rate);
-        builder.addCapability(Pspv::CapabilityShadingRateNV);
-        return Pspv::BuiltInFragmentSizeNV;
-    case Pglslang::EbvInvocationsPerPixelNV:
-        builder.addExtension(Pspv::E_SPV_NV_shading_rate);
-        builder.addCapability(Pspv::CapabilityShadingRateNV);
-        return Pspv::BuiltInInvocationsPerPixelNV;
+        return spv::BuiltInViewportMaskPerViewNV;
+    case glslang::EbvFragFullyCoveredNV:
+        builder.addExtension(spv::E_SPV_EXT_fragment_fully_covered);
+        builder.addCapability(spv::CapabilityFragmentFullyCoveredEXT);
+        return spv::BuiltInFullyCoveredEXT;
+    case glslang::EbvFragmentSizeNV:
+        builder.addExtension(spv::E_SPV_NV_shading_rate);
+        builder.addCapability(spv::CapabilityShadingRateNV);
+        return spv::BuiltInFragmentSizeNV;
+    case glslang::EbvInvocationsPerPixelNV:
+        builder.addExtension(spv::E_SPV_NV_shading_rate);
+        builder.addCapability(spv::CapabilityShadingRateNV);
+        return spv::BuiltInInvocationsPerPixelNV;
 
     // ray tracing
-    case Pglslang::EbvLaunchIdNV:
-        return Pspv::BuiltInLaunchIdNV;
-    case Pglslang::EbvLaunchSizeNV:
-        return Pspv::BuiltInLaunchSizeNV;
-    case Pglslang::EbvWorldRayOriginNV:
-        return Pspv::BuiltInWorldRayOriginNV;
-    case Pglslang::EbvWorldRayDirectionNV:
-        return Pspv::BuiltInWorldRayDirectionNV;
-    case Pglslang::EbvObjectRayOriginNV:
-        return Pspv::BuiltInObjectRayOriginNV;
-    case Pglslang::EbvObjectRayDirectionNV:
-        return Pspv::BuiltInObjectRayDirectionNV;
-    case Pglslang::EbvRayTminNV:
-        return Pspv::BuiltInRayTminNV;
-    case Pglslang::EbvRayTmaxNV:
-        return Pspv::BuiltInRayTmaxNV;
-    case Pglslang::EbvInstanceCustomIndexNV:
-        return Pspv::BuiltInInstanceCustomIndexNV;
-    case Pglslang::EbvHitTNV:
-        return Pspv::BuiltInHitTNV;
-    case Pglslang::EbvHitKindNV:
-        return Pspv::BuiltInHitKindNV;
-    case Pglslang::EbvObjectToWorldNV:
-        return Pspv::BuiltInObjectToWorldNV;
-    case Pglslang::EbvWorldToObjectNV:
-        return Pspv::BuiltInWorldToObjectNV;
-    case Pglslang::EbvIncomingRayFlagsNV:
-        return Pspv::BuiltInIncomingRayFlagsNV;
+    case glslang::EbvLaunchIdNV:
+        return spv::BuiltInLaunchIdNV;
+    case glslang::EbvLaunchSizeNV:
+        return spv::BuiltInLaunchSizeNV;
+    case glslang::EbvWorldRayOriginNV:
+        return spv::BuiltInWorldRayOriginNV;
+    case glslang::EbvWorldRayDirectionNV:
+        return spv::BuiltInWorldRayDirectionNV;
+    case glslang::EbvObjectRayOriginNV:
+        return spv::BuiltInObjectRayOriginNV;
+    case glslang::EbvObjectRayDirectionNV:
+        return spv::BuiltInObjectRayDirectionNV;
+    case glslang::EbvRayTminNV:
+        return spv::BuiltInRayTminNV;
+    case glslang::EbvRayTmaxNV:
+        return spv::BuiltInRayTmaxNV;
+    case glslang::EbvInstanceCustomIndexNV:
+        return spv::BuiltInInstanceCustomIndexNV;
+    case glslang::EbvHitTNV:
+        return spv::BuiltInHitTNV;
+    case glslang::EbvHitKindNV:
+        return spv::BuiltInHitKindNV;
+    case glslang::EbvObjectToWorldNV:
+        return spv::BuiltInObjectToWorldNV;
+    case glslang::EbvWorldToObjectNV:
+        return spv::BuiltInWorldToObjectNV;
+    case glslang::EbvIncomingRayFlagsNV:
+        return spv::BuiltInIncomingRayFlagsNV;
 
     // barycentrics
-    case Pglslang::EbvBaryCoordNV:
-        builder.addExtension(Pspv::E_SPV_NV_fragment_shader_barycentric);
-        builder.addCapability(Pspv::CapabilityFragmentBarycentricNV);
-        return Pspv::BuiltInBaryCoordNV;
-    case Pglslang::EbvBaryCoordNoPerspNV:
-        builder.addExtension(Pspv::E_SPV_NV_fragment_shader_barycentric);
-        builder.addCapability(Pspv::CapabilityFragmentBarycentricNV);
-        return Pspv::BuiltInBaryCoordNoPerspNV;
+    case glslang::EbvBaryCoordNV:
+        builder.addExtension(spv::E_SPV_NV_fragment_shader_barycentric);
+        builder.addCapability(spv::CapabilityFragmentBarycentricNV);
+        return spv::BuiltInBaryCoordNV;
+    case glslang::EbvBaryCoordNoPerspNV:
+        builder.addExtension(spv::E_SPV_NV_fragment_shader_barycentric);
+        builder.addCapability(spv::CapabilityFragmentBarycentricNV);
+        return spv::BuiltInBaryCoordNoPerspNV;
 
     // mesh shaders
-    case Pglslang::EbvTaskCountNV:
-        return Pspv::BuiltInTaskCountNV;
-    case Pglslang::EbvPrimitiveCountNV:
-        return Pspv::BuiltInPrimitiveCountNV;
-    case Pglslang::EbvPrimitiveIndicesNV:
-        return Pspv::BuiltInPrimitiveIndicesNV;
-    case Pglslang::EbvClipDistancePerViewNV:
-        return Pspv::BuiltInClipDistancePerViewNV;
-    case Pglslang::EbvCullDistancePerViewNV:
-        return Pspv::BuiltInCullDistancePerViewNV;
-    case Pglslang::EbvLayerPerViewNV:
-        return Pspv::BuiltInLayerPerViewNV;
-    case Pglslang::EbvMeshViewCountNV:
-        return Pspv::BuiltInMeshViewCountNV;
-    case Pglslang::EbvMeshViewIndicesNV:
-        return Pspv::BuiltInMeshViewIndicesNV;
+    case glslang::EbvTaskCountNV:
+        return spv::BuiltInTaskCountNV;
+    case glslang::EbvPrimitiveCountNV:
+        return spv::BuiltInPrimitiveCountNV;
+    case glslang::EbvPrimitiveIndicesNV:
+        return spv::BuiltInPrimitiveIndicesNV;
+    case glslang::EbvClipDistancePerViewNV:
+        return spv::BuiltInClipDistancePerViewNV;
+    case glslang::EbvCullDistancePerViewNV:
+        return spv::BuiltInCullDistancePerViewNV;
+    case glslang::EbvLayerPerViewNV:
+        return spv::BuiltInLayerPerViewNV;
+    case glslang::EbvMeshViewCountNV:
+        return spv::BuiltInMeshViewCountNV;
+    case glslang::EbvMeshViewIndicesNV:
+        return spv::BuiltInMeshViewIndicesNV;
 
     // sm builtins
-    case Pglslang::EbvWarpsPerSM:
-        builder.addExtension(Pspv::E_SPV_NV_shader_sm_builtins);
-        builder.addCapability(Pspv::CapabilityShaderSMBuiltinsNV);
-        return Pspv::BuiltInWarpsPerSMNV;
-    case Pglslang::EbvSMCount:
-        builder.addExtension(Pspv::E_SPV_NV_shader_sm_builtins);
-        builder.addCapability(Pspv::CapabilityShaderSMBuiltinsNV);
-        return Pspv::BuiltInSMCountNV;
-    case Pglslang::EbvWarpID:
-        builder.addExtension(Pspv::E_SPV_NV_shader_sm_builtins);
-        builder.addCapability(Pspv::CapabilityShaderSMBuiltinsNV);
-        return Pspv::BuiltInWarpIDNV;
-    case Pglslang::EbvSMID:
-        builder.addExtension(Pspv::E_SPV_NV_shader_sm_builtins);
-        builder.addCapability(Pspv::CapabilityShaderSMBuiltinsNV);
-        return Pspv::BuiltInSMIDNV;
+    case glslang::EbvWarpsPerSM:
+        builder.addExtension(spv::E_SPV_NV_shader_sm_builtins);
+        builder.addCapability(spv::CapabilityShaderSMBuiltinsNV);
+        return spv::BuiltInWarpsPerSMNV;
+    case glslang::EbvSMCount:
+        builder.addExtension(spv::E_SPV_NV_shader_sm_builtins);
+        builder.addCapability(spv::CapabilityShaderSMBuiltinsNV);
+        return spv::BuiltInSMCountNV;
+    case glslang::EbvWarpID:
+        builder.addExtension(spv::E_SPV_NV_shader_sm_builtins);
+        builder.addCapability(spv::CapabilityShaderSMBuiltinsNV);
+        return spv::BuiltInWarpIDNV;
+    case glslang::EbvSMID:
+        builder.addExtension(spv::E_SPV_NV_shader_sm_builtins);
+        builder.addCapability(spv::CapabilityShaderSMBuiltinsNV);
+        return spv::BuiltInSMIDNV;
 #endif
 
     default:
-        return Pspv::BuiltInMax;
+        return spv::BuiltInMax;
     }
 }
 
 // Translate glslang image layout format to SPIR-V image format.
-Pspv::ImageFormat TGlslangToSpvTraverser::TranslateImageFormat(const Pglslang::TType& type)
+spv::ImageFormat TGlslangToSpvTraverser::TranslateImageFormat(const glslang::TType& type)
 {
-    assert(type.getBasicType() == Pglslang::EbtSampler);
+    assert(type.getBasicType() == glslang::EbtSampler);
 
 #ifdef GLSLANG_WEB
-    return Pspv::ImageFormatUnknown;
+    return spv::ImageFormatUnknown;
 #endif
 
     // Check for capabilities
     switch (type.getQualifier().getFormat()) {
-    case Pglslang::ElfRg32f:
-    case Pglslang::ElfRg16f:
-    case Pglslang::ElfR11fG11fB10f:
-    case Pglslang::ElfR16f:
-    case Pglslang::ElfRgba16:
-    case Pglslang::ElfRgb10A2:
-    case Pglslang::ElfRg16:
-    case Pglslang::ElfRg8:
-    case Pglslang::ElfR16:
-    case Pglslang::ElfR8:
-    case Pglslang::ElfRgba16Snorm:
-    case Pglslang::ElfRg16Snorm:
-    case Pglslang::ElfRg8Snorm:
-    case Pglslang::ElfR16Snorm:
-    case Pglslang::ElfR8Snorm:
+    case glslang::ElfRg32f:
+    case glslang::ElfRg16f:
+    case glslang::ElfR11fG11fB10f:
+    case glslang::ElfR16f:
+    case glslang::ElfRgba16:
+    case glslang::ElfRgb10A2:
+    case glslang::ElfRg16:
+    case glslang::ElfRg8:
+    case glslang::ElfR16:
+    case glslang::ElfR8:
+    case glslang::ElfRgba16Snorm:
+    case glslang::ElfRg16Snorm:
+    case glslang::ElfRg8Snorm:
+    case glslang::ElfR16Snorm:
+    case glslang::ElfR8Snorm:
 
-    case Pglslang::ElfRg32i:
-    case Pglslang::ElfRg16i:
-    case Pglslang::ElfRg8i:
-    case Pglslang::ElfR16i:
-    case Pglslang::ElfR8i:
+    case glslang::ElfRg32i:
+    case glslang::ElfRg16i:
+    case glslang::ElfRg8i:
+    case glslang::ElfR16i:
+    case glslang::ElfR8i:
 
-    case Pglslang::ElfRgb10a2ui:
-    case Pglslang::ElfRg32ui:
-    case Pglslang::ElfRg16ui:
-    case Pglslang::ElfRg8ui:
-    case Pglslang::ElfR16ui:
-    case Pglslang::ElfR8ui:
-        builder.addCapability(Pspv::CapabilityStorageImageExtendedFormats);
+    case glslang::ElfRgb10a2ui:
+    case glslang::ElfRg32ui:
+    case glslang::ElfRg16ui:
+    case glslang::ElfRg8ui:
+    case glslang::ElfR16ui:
+    case glslang::ElfR8ui:
+        builder.addCapability(spv::CapabilityStorageImageExtendedFormats);
         break;
 
     default:
@@ -1062,103 +1062,103 @@ Pspv::ImageFormat TGlslangToSpvTraverser::TranslateImageFormat(const Pglslang::T
 
     // do the translation
     switch (type.getQualifier().getFormat()) {
-    case Pglslang::ElfNone:          return Pspv::ImageFormatUnknown;
-    case Pglslang::ElfRgba32f:       return Pspv::ImageFormatRgba32f;
-    case Pglslang::ElfRgba16f:       return Pspv::ImageFormatRgba16f;
-    case Pglslang::ElfR32f:          return Pspv::ImageFormatR32f;
-    case Pglslang::ElfRgba8:         return Pspv::ImageFormatRgba8;
-    case Pglslang::ElfRgba8Snorm:    return Pspv::ImageFormatRgba8Snorm;
-    case Pglslang::ElfRg32f:         return Pspv::ImageFormatRg32f;
-    case Pglslang::ElfRg16f:         return Pspv::ImageFormatRg16f;
-    case Pglslang::ElfR11fG11fB10f:  return Pspv::ImageFormatR11fG11fB10f;
-    case Pglslang::ElfR16f:          return Pspv::ImageFormatR16f;
-    case Pglslang::ElfRgba16:        return Pspv::ImageFormatRgba16;
-    case Pglslang::ElfRgb10A2:       return Pspv::ImageFormatRgb10A2;
-    case Pglslang::ElfRg16:          return Pspv::ImageFormatRg16;
-    case Pglslang::ElfRg8:           return Pspv::ImageFormatRg8;
-    case Pglslang::ElfR16:           return Pspv::ImageFormatR16;
-    case Pglslang::ElfR8:            return Pspv::ImageFormatR8;
-    case Pglslang::ElfRgba16Snorm:   return Pspv::ImageFormatRgba16Snorm;
-    case Pglslang::ElfRg16Snorm:     return Pspv::ImageFormatRg16Snorm;
-    case Pglslang::ElfRg8Snorm:      return Pspv::ImageFormatRg8Snorm;
-    case Pglslang::ElfR16Snorm:      return Pspv::ImageFormatR16Snorm;
-    case Pglslang::ElfR8Snorm:       return Pspv::ImageFormatR8Snorm;
-    case Pglslang::ElfRgba32i:       return Pspv::ImageFormatRgba32i;
-    case Pglslang::ElfRgba16i:       return Pspv::ImageFormatRgba16i;
-    case Pglslang::ElfRgba8i:        return Pspv::ImageFormatRgba8i;
-    case Pglslang::ElfR32i:          return Pspv::ImageFormatR32i;
-    case Pglslang::ElfRg32i:         return Pspv::ImageFormatRg32i;
-    case Pglslang::ElfRg16i:         return Pspv::ImageFormatRg16i;
-    case Pglslang::ElfRg8i:          return Pspv::ImageFormatRg8i;
-    case Pglslang::ElfR16i:          return Pspv::ImageFormatR16i;
-    case Pglslang::ElfR8i:           return Pspv::ImageFormatR8i;
-    case Pglslang::ElfRgba32ui:      return Pspv::ImageFormatRgba32ui;
-    case Pglslang::ElfRgba16ui:      return Pspv::ImageFormatRgba16ui;
-    case Pglslang::ElfRgba8ui:       return Pspv::ImageFormatRgba8ui;
-    case Pglslang::ElfR32ui:         return Pspv::ImageFormatR32ui;
-    case Pglslang::ElfRg32ui:        return Pspv::ImageFormatRg32ui;
-    case Pglslang::ElfRg16ui:        return Pspv::ImageFormatRg16ui;
-    case Pglslang::ElfRgb10a2ui:     return Pspv::ImageFormatRgb10a2ui;
-    case Pglslang::ElfRg8ui:         return Pspv::ImageFormatRg8ui;
-    case Pglslang::ElfR16ui:         return Pspv::ImageFormatR16ui;
-    case Pglslang::ElfR8ui:          return Pspv::ImageFormatR8ui;
-    default:                        return Pspv::ImageFormatMax;
+    case glslang::ElfNone:          return spv::ImageFormatUnknown;
+    case glslang::ElfRgba32f:       return spv::ImageFormatRgba32f;
+    case glslang::ElfRgba16f:       return spv::ImageFormatRgba16f;
+    case glslang::ElfR32f:          return spv::ImageFormatR32f;
+    case glslang::ElfRgba8:         return spv::ImageFormatRgba8;
+    case glslang::ElfRgba8Snorm:    return spv::ImageFormatRgba8Snorm;
+    case glslang::ElfRg32f:         return spv::ImageFormatRg32f;
+    case glslang::ElfRg16f:         return spv::ImageFormatRg16f;
+    case glslang::ElfR11fG11fB10f:  return spv::ImageFormatR11fG11fB10f;
+    case glslang::ElfR16f:          return spv::ImageFormatR16f;
+    case glslang::ElfRgba16:        return spv::ImageFormatRgba16;
+    case glslang::ElfRgb10A2:       return spv::ImageFormatRgb10A2;
+    case glslang::ElfRg16:          return spv::ImageFormatRg16;
+    case glslang::ElfRg8:           return spv::ImageFormatRg8;
+    case glslang::ElfR16:           return spv::ImageFormatR16;
+    case glslang::ElfR8:            return spv::ImageFormatR8;
+    case glslang::ElfRgba16Snorm:   return spv::ImageFormatRgba16Snorm;
+    case glslang::ElfRg16Snorm:     return spv::ImageFormatRg16Snorm;
+    case glslang::ElfRg8Snorm:      return spv::ImageFormatRg8Snorm;
+    case glslang::ElfR16Snorm:      return spv::ImageFormatR16Snorm;
+    case glslang::ElfR8Snorm:       return spv::ImageFormatR8Snorm;
+    case glslang::ElfRgba32i:       return spv::ImageFormatRgba32i;
+    case glslang::ElfRgba16i:       return spv::ImageFormatRgba16i;
+    case glslang::ElfRgba8i:        return spv::ImageFormatRgba8i;
+    case glslang::ElfR32i:          return spv::ImageFormatR32i;
+    case glslang::ElfRg32i:         return spv::ImageFormatRg32i;
+    case glslang::ElfRg16i:         return spv::ImageFormatRg16i;
+    case glslang::ElfRg8i:          return spv::ImageFormatRg8i;
+    case glslang::ElfR16i:          return spv::ImageFormatR16i;
+    case glslang::ElfR8i:           return spv::ImageFormatR8i;
+    case glslang::ElfRgba32ui:      return spv::ImageFormatRgba32ui;
+    case glslang::ElfRgba16ui:      return spv::ImageFormatRgba16ui;
+    case glslang::ElfRgba8ui:       return spv::ImageFormatRgba8ui;
+    case glslang::ElfR32ui:         return spv::ImageFormatR32ui;
+    case glslang::ElfRg32ui:        return spv::ImageFormatRg32ui;
+    case glslang::ElfRg16ui:        return spv::ImageFormatRg16ui;
+    case glslang::ElfRgb10a2ui:     return spv::ImageFormatRgb10a2ui;
+    case glslang::ElfRg8ui:         return spv::ImageFormatRg8ui;
+    case glslang::ElfR16ui:         return spv::ImageFormatR16ui;
+    case glslang::ElfR8ui:          return spv::ImageFormatR8ui;
+    default:                        return spv::ImageFormatMax;
     }
 }
 
-Pspv::SelectionControlMask TGlslangToSpvTraverser::TranslateSelectionControl(const Pglslang::TIntermSelection& selectionNode) const
+spv::SelectionControlMask TGlslangToSpvTraverser::TranslateSelectionControl(const glslang::TIntermSelection& selectionNode) const
 {
     if (selectionNode.getFlatten())
-        return Pspv::SelectionControlFlattenMask;
+        return spv::SelectionControlFlattenMask;
     if (selectionNode.getDontFlatten())
-        return Pspv::SelectionControlDontFlattenMask;
-    return Pspv::SelectionControlMaskNone;
+        return spv::SelectionControlDontFlattenMask;
+    return spv::SelectionControlMaskNone;
 }
 
-Pspv::SelectionControlMask TGlslangToSpvTraverser::TranslateSwitchControl(const Pglslang::TIntermSwitch& switchNode) const
+spv::SelectionControlMask TGlslangToSpvTraverser::TranslateSwitchControl(const glslang::TIntermSwitch& switchNode) const
 {
     if (switchNode.getFlatten())
-        return Pspv::SelectionControlFlattenMask;
+        return spv::SelectionControlFlattenMask;
     if (switchNode.getDontFlatten())
-        return Pspv::SelectionControlDontFlattenMask;
-    return Pspv::SelectionControlMaskNone;
+        return spv::SelectionControlDontFlattenMask;
+    return spv::SelectionControlMaskNone;
 }
 
 // return a non-0 dependency if the dependency argument must be set
-Pspv::LoopControlMask TGlslangToSpvTraverser::TranslateLoopControl(const Pglslang::TIntermLoop& loopNode,
+spv::LoopControlMask TGlslangToSpvTraverser::TranslateLoopControl(const glslang::TIntermLoop& loopNode,
     std::vector<unsigned int>& operands) const
 {
-    Pspv::LoopControlMask control = Pspv::LoopControlMaskNone;
+    spv::LoopControlMask control = spv::LoopControlMaskNone;
 
     if (loopNode.getDontUnroll())
-        control = control | Pspv::LoopControlDontUnrollMask;
+        control = control | spv::LoopControlDontUnrollMask;
     if (loopNode.getUnroll())
-        control = control | Pspv::LoopControlUnrollMask;
-    if (unsigned(loopNode.getLoopDependency()) == Pglslang::TIntermLoop::dependencyInfinite)
-        control = control | Pspv::LoopControlDependencyInfiniteMask;
+        control = control | spv::LoopControlUnrollMask;
+    if (unsigned(loopNode.getLoopDependency()) == glslang::TIntermLoop::dependencyInfinite)
+        control = control | spv::LoopControlDependencyInfiniteMask;
     else if (loopNode.getLoopDependency() > 0) {
-        control = control | Pspv::LoopControlDependencyLengthMask;
+        control = control | spv::LoopControlDependencyLengthMask;
         operands.push_back((unsigned int)loopNode.getLoopDependency());
     }
-    if (glslangIntermediate->getSpv().spv >= Pglslang::EShTargetSpv_1_4) {
+    if (glslangIntermediate->getSpv().spv >= glslang::EShTargetSpv_1_4) {
         if (loopNode.getMinIterations() > 0) {
-            control = control | Pspv::LoopControlMinIterationsMask;
+            control = control | spv::LoopControlMinIterationsMask;
             operands.push_back(loopNode.getMinIterations());
         }
-        if (loopNode.getMaxIterations() < Pglslang::TIntermLoop::iterationsInfinite) {
-            control = control | Pspv::LoopControlMaxIterationsMask;
+        if (loopNode.getMaxIterations() < glslang::TIntermLoop::iterationsInfinite) {
+            control = control | spv::LoopControlMaxIterationsMask;
             operands.push_back(loopNode.getMaxIterations());
         }
         if (loopNode.getIterationMultiple() > 1) {
-            control = control | Pspv::LoopControlIterationMultipleMask;
+            control = control | spv::LoopControlIterationMultipleMask;
             operands.push_back(loopNode.getIterationMultiple());
         }
         if (loopNode.getPeelCount() > 0) {
-            control = control | Pspv::LoopControlPeelCountMask;
+            control = control | spv::LoopControlPeelCountMask;
             operands.push_back(loopNode.getPeelCount());
         }
         if (loopNode.getPartialCount() > 0) {
-            control = control | Pspv::LoopControlPartialCountMask;
+            control = control | spv::LoopControlPartialCountMask;
             operands.push_back(loopNode.getPartialCount());
         }
     }
@@ -1167,96 +1167,96 @@ Pspv::LoopControlMask TGlslangToSpvTraverser::TranslateLoopControl(const Pglslan
 }
 
 // Translate glslang type to SPIR-V storage class.
-Pspv::StorageClass TGlslangToSpvTraverser::TranslateStorageClass(const Pglslang::TType& type)
+spv::StorageClass TGlslangToSpvTraverser::TranslateStorageClass(const glslang::TType& type)
 {
     if (type.getQualifier().isPipeInput())
-        return Pspv::StorageClassInput;
+        return spv::StorageClassInput;
     if (type.getQualifier().isPipeOutput())
-        return Pspv::StorageClassOutput;
+        return spv::StorageClassOutput;
 
-    if (glslangIntermediate->getSource() != Pglslang::EShSourceHlsl ||
-            type.getQualifier().storage == Pglslang::EvqUniform) {
+    if (glslangIntermediate->getSource() != glslang::EShSourceHlsl ||
+            type.getQualifier().storage == glslang::EvqUniform) {
         if (type.isAtomic())
-            return Pspv::StorageClassAtomicCounter;
+            return spv::StorageClassAtomicCounter;
         if (type.containsOpaque())
-            return Pspv::StorageClassUniformConstant;
+            return spv::StorageClassUniformConstant;
     }
 
     if (type.getQualifier().isUniformOrBuffer() &&
         type.getQualifier().isShaderRecordNV()) {
-        return Pspv::StorageClassShaderRecordBufferNV;
+        return spv::StorageClassShaderRecordBufferNV;
     }
 
-    if (glslangIntermediate->usingStorageBuffer() && type.getQualifier().storage == Pglslang::EvqBuffer) {
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_storage_buffer_storage_class, Pspv::Spv_1_3);
-        return Pspv::StorageClassStorageBuffer;
+    if (glslangIntermediate->usingStorageBuffer() && type.getQualifier().storage == glslang::EvqBuffer) {
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_storage_buffer_storage_class, spv::Spv_1_3);
+        return spv::StorageClassStorageBuffer;
     }
 
     if (type.getQualifier().isUniformOrBuffer()) {
         if (type.getQualifier().isPushConstant())
-            return Pspv::StorageClassPushConstant;
-        if (type.getBasicType() == Pglslang::EbtBlock)
-            return Pspv::StorageClassUniform;
-        return Pspv::StorageClassUniformConstant;
+            return spv::StorageClassPushConstant;
+        if (type.getBasicType() == glslang::EbtBlock)
+            return spv::StorageClassUniform;
+        return spv::StorageClassUniformConstant;
     }
 
     switch (type.getQualifier().storage) {
-    case Pglslang::EvqGlobal:        return Pspv::StorageClassPrivate;
-    case Pglslang::EvqConstReadOnly: return Pspv::StorageClassFunction;
-    case Pglslang::EvqTemporary:     return Pspv::StorageClassFunction;
-    case Pglslang::EvqShared:           return Pspv::StorageClassWorkgroup;
+    case glslang::EvqGlobal:        return spv::StorageClassPrivate;
+    case glslang::EvqConstReadOnly: return spv::StorageClassFunction;
+    case glslang::EvqTemporary:     return spv::StorageClassFunction;
+    case glslang::EvqShared:           return spv::StorageClassWorkgroup;
 #ifndef GLSLANG_WEB
-    case Pglslang::EvqPayloadNV:        return Pspv::StorageClassRayPayloadNV;
-    case Pglslang::EvqPayloadInNV:      return Pspv::StorageClassIncomingRayPayloadNV;
-    case Pglslang::EvqHitAttrNV:        return Pspv::StorageClassHitAttributeNV;
-    case Pglslang::EvqCallableDataNV:   return Pspv::StorageClassCallableDataNV;
-    case Pglslang::EvqCallableDataInNV: return Pspv::StorageClassIncomingCallableDataNV;
+    case glslang::EvqPayloadNV:        return spv::StorageClassRayPayloadNV;
+    case glslang::EvqPayloadInNV:      return spv::StorageClassIncomingRayPayloadNV;
+    case glslang::EvqHitAttrNV:        return spv::StorageClassHitAttributeNV;
+    case glslang::EvqCallableDataNV:   return spv::StorageClassCallableDataNV;
+    case glslang::EvqCallableDataInNV: return spv::StorageClassIncomingCallableDataNV;
 #endif
     default:
         assert(0);
         break;
     }
 
-    return Pspv::StorageClassFunction;
+    return spv::StorageClassFunction;
 }
 
 // Add capabilities pertaining to how an array is indexed.
-void TGlslangToSpvTraverser::addIndirectionIndexCapabilities(const Pglslang::TType& baseType,
-                                                             const Pglslang::TType& indexType)
+void TGlslangToSpvTraverser::addIndirectionIndexCapabilities(const glslang::TType& baseType,
+                                                             const glslang::TType& indexType)
 {
 #ifndef GLSLANG_WEB
     if (indexType.getQualifier().isNonUniform()) {
         // deal with an asserted non-uniform index
         // SPV_EXT_descriptor_indexing already added in TranslateNonUniformDecoration
-        if (baseType.getBasicType() == Pglslang::EbtSampler) {
+        if (baseType.getBasicType() == glslang::EbtSampler) {
             if (baseType.getQualifier().hasAttachment())
-                builder.addCapability(Pspv::CapabilityInputAttachmentArrayNonUniformIndexingEXT);
+                builder.addCapability(spv::CapabilityInputAttachmentArrayNonUniformIndexingEXT);
             else if (baseType.isImage() && baseType.getSampler().isBuffer())
-                builder.addCapability(Pspv::CapabilityStorageTexelBufferArrayNonUniformIndexingEXT);
+                builder.addCapability(spv::CapabilityStorageTexelBufferArrayNonUniformIndexingEXT);
             else if (baseType.isTexture() && baseType.getSampler().isBuffer())
-                builder.addCapability(Pspv::CapabilityUniformTexelBufferArrayNonUniformIndexingEXT);
+                builder.addCapability(spv::CapabilityUniformTexelBufferArrayNonUniformIndexingEXT);
             else if (baseType.isImage())
-                builder.addCapability(Pspv::CapabilityStorageImageArrayNonUniformIndexingEXT);
+                builder.addCapability(spv::CapabilityStorageImageArrayNonUniformIndexingEXT);
             else if (baseType.isTexture())
-                builder.addCapability(Pspv::CapabilitySampledImageArrayNonUniformIndexingEXT);
-        } else if (baseType.getBasicType() == Pglslang::EbtBlock) {
-            if (baseType.getQualifier().storage == Pglslang::EvqBuffer)
-                builder.addCapability(Pspv::CapabilityStorageBufferArrayNonUniformIndexingEXT);
-            else if (baseType.getQualifier().storage == Pglslang::EvqUniform)
-                builder.addCapability(Pspv::CapabilityUniformBufferArrayNonUniformIndexingEXT);
+                builder.addCapability(spv::CapabilitySampledImageArrayNonUniformIndexingEXT);
+        } else if (baseType.getBasicType() == glslang::EbtBlock) {
+            if (baseType.getQualifier().storage == glslang::EvqBuffer)
+                builder.addCapability(spv::CapabilityStorageBufferArrayNonUniformIndexingEXT);
+            else if (baseType.getQualifier().storage == glslang::EvqUniform)
+                builder.addCapability(spv::CapabilityUniformBufferArrayNonUniformIndexingEXT);
         }
     } else {
         // assume a dynamically uniform index
-        if (baseType.getBasicType() == Pglslang::EbtSampler) {
+        if (baseType.getBasicType() == glslang::EbtSampler) {
             if (baseType.getQualifier().hasAttachment()) {
-                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", Pspv::Spv_1_5);
-                builder.addCapability(Pspv::CapabilityInputAttachmentArrayDynamicIndexingEXT);
+                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", spv::Spv_1_5);
+                builder.addCapability(spv::CapabilityInputAttachmentArrayDynamicIndexingEXT);
             } else if (baseType.isImage() && baseType.getSampler().isBuffer()) {
-                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", Pspv::Spv_1_5);
-                builder.addCapability(Pspv::CapabilityStorageTexelBufferArrayDynamicIndexingEXT);
+                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", spv::Spv_1_5);
+                builder.addCapability(spv::CapabilityStorageTexelBufferArrayDynamicIndexingEXT);
             } else if (baseType.isTexture() && baseType.getSampler().isBuffer()) {
-                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", Pspv::Spv_1_5);
-                builder.addCapability(Pspv::CapabilityUniformTexelBufferArrayDynamicIndexingEXT);
+                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", spv::Spv_1_5);
+                builder.addCapability(spv::CapabilityUniformTexelBufferArrayDynamicIndexingEXT);
             }
         }
     }
@@ -1265,10 +1265,10 @@ void TGlslangToSpvTraverser::addIndirectionIndexCapabilities(const Pglslang::TTy
 
 // Return whether or not the given type is something that should be tied to a
 // descriptor set.
-bool IsDescriptorResource(const Pglslang::TType& type)
+bool IsDescriptorResource(const glslang::TType& type)
 {
     // uniform and buffer blocks are included, unless it is a push_constant
-    if (type.getBasicType() == Pglslang::EbtBlock)
+    if (type.getBasicType() == glslang::EbtBlock)
         return type.getQualifier().isUniformOrBuffer() &&
         ! type.getQualifier().isShaderRecordNV() &&
         ! type.getQualifier().isPushConstant();
@@ -1277,16 +1277,16 @@ bool IsDescriptorResource(const Pglslang::TType& type)
     // basically samplerXXX/subpass/sampler/texture are all included
     // if they are the global-scope-class, not the function parameter
     // (or local, if they ever exist) class.
-    if (type.getBasicType() == Pglslang::EbtSampler)
+    if (type.getBasicType() == glslang::EbtSampler)
         return type.getQualifier().isUniformOrBuffer();
 
     // None of the above.
     return false;
 }
 
-void InheritQualifiers(Pglslang::TQualifier& child, const Pglslang::TQualifier& parent)
+void InheritQualifiers(glslang::TQualifier& child, const glslang::TQualifier& parent)
 {
-    if (child.layoutMatrix == Pglslang::ElmNone)
+    if (child.layoutMatrix == glslang::ElmNone)
         child.layoutMatrix = parent.layoutMatrix;
 
     if (parent.invariant)
@@ -1333,7 +1333,7 @@ void InheritQualifiers(Pglslang::TQualifier& child, const Pglslang::TQualifier& 
 #endif
 }
 
-bool HasNonLayoutQualifiers(const Pglslang::TType& type, const Pglslang::TQualifier& qualifier)
+bool HasNonLayoutQualifiers(const glslang::TType& type, const glslang::TQualifier& qualifier)
 {
     // This should list qualifiers that simultaneous satisfy:
     // - struct members might inherit from a struct declaration
@@ -1343,25 +1343,25 @@ bool HasNonLayoutQualifiers(const Pglslang::TType& type, const Pglslang::TQualif
     //     (note smooth does not, and expecting something like volatile
     //      to effect the whole object)
     // - are not part of the offset/st430/etc or row/column-major layout
-    return qualifier.invariant || (qualifier.hasLocation() && type.getBasicType() == Pglslang::EbtBlock);
+    return qualifier.invariant || (qualifier.hasLocation() && type.getBasicType() == glslang::EbtBlock);
 }
 
 //
 // Implement the TGlslangToSpvTraverser class.
 //
 
-TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const Pglslang::TIntermediate* glslangIntermediate,
-                                               Pspv::SpvBuildLogger* buildLogger, Pglslang::SpvOptions& options)
+TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const glslang::TIntermediate* glslangIntermediate,
+                                               spv::SpvBuildLogger* buildLogger, glslang::SpvOptions& options)
     : TIntermTraverser(true, false, true),
       options(options),
       shaderEntry(nullptr), currentFunction(nullptr),
       sequenceDepth(0), logger(buildLogger),
-      builder(spvVersion, (Pglslang::GetKhronosToolId() << 16) | Pglslang::GetSpirvGeneratorVersion(), logger),
+      builder(spvVersion, (glslang::GetKhronosToolId() << 16) | glslang::GetSpirvGeneratorVersion(), logger),
       inEntryPoint(false), entryPointTerminated(false), linkageOnly(false),
       glslangIntermediate(glslangIntermediate),
       nanMinMaxClamp(glslangIntermediate->getNanMinMaxClamp())
 {
-    Pspv::ExecutionModel executionModel = TranslateExecutionModel(glslangIntermediate->getStage());
+    spv::ExecutionModel executionModel = TranslateExecutionModel(glslangIntermediate->getStage());
 
     builder.clearAccessChain();
     builder.setSource(TranslateSourceLanguage(glslangIntermediate->getSource(), glslangIntermediate->getProfile()),
@@ -1377,14 +1377,14 @@ TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const Pg
         std::string text;
         const std::vector<std::string>& processes = glslangIntermediate->getProcesses();
         for (int p = 0; p < (int)processes.size(); ++p) {
-            if (glslangIntermediate->getSpv().spv < Pglslang::EShTargetSpv_1_1) {
+            if (glslangIntermediate->getSpv().spv < glslang::EShTargetSpv_1_1) {
                 text.append("// OpModuleProcessed ");
                 text.append(processes[p]);
                 text.append("\n");
             } else
                 builder.addModuleProcessed(processes[p]);
         }
-        if (glslangIntermediate->getSpv().spv < Pglslang::EShTargetSpv_1_1 && (int)processes.size() > 0)
+        if (glslangIntermediate->getSpv().spv < glslang::EShTargetSpv_1_1 && (int)processes.size() > 0)
             text.append("#line 1\n");
         text.append(glslangIntermediate->getSourceText());
         builder.setSourceText(text);
@@ -1395,23 +1395,23 @@ TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const Pg
     }
     stdBuiltins = builder.import("GLSL.std.450");
 
-    Pspv::AddressingModel addressingModel = Pspv::AddressingModelLogical;
-    Pspv::MemoryModel memoryModel = Pspv::MemoryModelGLSL450;
+    spv::AddressingModel addressingModel = spv::AddressingModelLogical;
+    spv::MemoryModel memoryModel = spv::MemoryModelGLSL450;
 
     if (glslangIntermediate->usingPhysicalStorageBuffer()) {
-        addressingModel = Pspv::AddressingModelPhysicalStorageBuffer64EXT;
-        builder.addIncorporatedExtension(Pspv::E_SPV_EXT_physical_storage_buffer, Pspv::Spv_1_5);
-        builder.addCapability(Pspv::CapabilityPhysicalStorageBufferAddressesEXT);
+        addressingModel = spv::AddressingModelPhysicalStorageBuffer64EXT;
+        builder.addIncorporatedExtension(spv::E_SPV_EXT_physical_storage_buffer, spv::Spv_1_5);
+        builder.addCapability(spv::CapabilityPhysicalStorageBufferAddressesEXT);
     };
     if (glslangIntermediate->usingVulkanMemoryModel()) {
-        memoryModel = Pspv::MemoryModelVulkanKHR;
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
-        builder.addIncorporatedExtension(Pspv::E_SPV_KHR_vulkan_memory_model, Pspv::Spv_1_5);
+        memoryModel = spv::MemoryModelVulkanKHR;
+        builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
+        builder.addIncorporatedExtension(spv::E_SPV_KHR_vulkan_memory_model, spv::Spv_1_5);
     }
     builder.setMemoryModel(addressingModel, memoryModel);
 
     if (glslangIntermediate->usingVariablePointers()) {
-        builder.addCapability(Pspv::CapabilityVariablePointers);
+        builder.addCapability(spv::CapabilityVariablePointers);
     }
 
     shaderEntry = builder.makeEntryPoint(glslangIntermediate->getEntryPointName().c_str());
@@ -1425,161 +1425,161 @@ TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const Pg
     // Add the top-level modes for this shader.
 
     if (glslangIntermediate->getXfbMode()) {
-        builder.addCapability(Pspv::CapabilityTransformFeedback);
-        builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeXfb);
+        builder.addCapability(spv::CapabilityTransformFeedback);
+        builder.addExecutionMode(shaderEntry, spv::ExecutionModeXfb);
     }
 
     unsigned int mode;
     switch (glslangIntermediate->getStage()) {
     case EShLangVertex:
-        builder.addCapability(Pspv::CapabilityShader);
+        builder.addCapability(spv::CapabilityShader);
         break;
 
     case EShLangFragment:
-        builder.addCapability(Pspv::CapabilityShader);
+        builder.addCapability(spv::CapabilityShader);
         if (glslangIntermediate->getPixelCenterInteger())
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModePixelCenterInteger);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModePixelCenterInteger);
 
         if (glslangIntermediate->getOriginUpperLeft())
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOriginUpperLeft);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeOriginUpperLeft);
         else
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOriginLowerLeft);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeOriginLowerLeft);
 
         if (glslangIntermediate->getEarlyFragmentTests())
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeEarlyFragmentTests);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeEarlyFragmentTests);
 
         if (glslangIntermediate->getPostDepthCoverage()) {
-            builder.addCapability(Pspv::CapabilitySampleMaskPostDepthCoverage);
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModePostDepthCoverage);
-            builder.addExtension(Pspv::E_SPV_KHR_post_depth_coverage);
+            builder.addCapability(spv::CapabilitySampleMaskPostDepthCoverage);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModePostDepthCoverage);
+            builder.addExtension(spv::E_SPV_KHR_post_depth_coverage);
         }
 
-        if (glslangIntermediate->getDepth() != Pglslang::EldUnchanged && glslangIntermediate->isDepthReplacing())
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeDepthReplacing);
+        if (glslangIntermediate->getDepth() != glslang::EldUnchanged && glslangIntermediate->isDepthReplacing())
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeDepthReplacing);
 
 #ifndef GLSLANG_WEB
         switch(glslangIntermediate->getDepth()) {
-        case Pglslang::EldGreater:  mode = Pspv::ExecutionModeDepthGreater; break;
-        case Pglslang::EldLess:     mode = Pspv::ExecutionModeDepthLess;    break;
-        default:                   mode = Pspv::ExecutionModeMax;          break;
+        case glslang::EldGreater:  mode = spv::ExecutionModeDepthGreater; break;
+        case glslang::EldLess:     mode = spv::ExecutionModeDepthLess;    break;
+        default:                   mode = spv::ExecutionModeMax;          break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
         switch (glslangIntermediate->getInterlockOrdering()) {
-        case Pglslang::EioPixelInterlockOrdered:         mode = Pspv::ExecutionModePixelInterlockOrderedEXT;
+        case glslang::EioPixelInterlockOrdered:         mode = spv::ExecutionModePixelInterlockOrderedEXT;
             break;
-        case Pglslang::EioPixelInterlockUnordered:       mode = Pspv::ExecutionModePixelInterlockUnorderedEXT;
+        case glslang::EioPixelInterlockUnordered:       mode = spv::ExecutionModePixelInterlockUnorderedEXT;
             break;
-        case Pglslang::EioSampleInterlockOrdered:        mode = Pspv::ExecutionModeSampleInterlockOrderedEXT;
+        case glslang::EioSampleInterlockOrdered:        mode = spv::ExecutionModeSampleInterlockOrderedEXT;
             break;
-        case Pglslang::EioSampleInterlockUnordered:      mode = Pspv::ExecutionModeSampleInterlockUnorderedEXT;
+        case glslang::EioSampleInterlockUnordered:      mode = spv::ExecutionModeSampleInterlockUnorderedEXT;
             break;
-        case Pglslang::EioShadingRateInterlockOrdered:   mode = Pspv::ExecutionModeShadingRateInterlockOrderedEXT;
+        case glslang::EioShadingRateInterlockOrdered:   mode = spv::ExecutionModeShadingRateInterlockOrderedEXT;
             break;
-        case Pglslang::EioShadingRateInterlockUnordered: mode = Pspv::ExecutionModeShadingRateInterlockUnorderedEXT;
+        case glslang::EioShadingRateInterlockUnordered: mode = spv::ExecutionModeShadingRateInterlockUnorderedEXT;
             break;
-        default:                                        mode = Pspv::ExecutionModeMax;
+        default:                                        mode = spv::ExecutionModeMax;
             break;
         }
-        if (mode != Pspv::ExecutionModeMax) {
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
-            if (mode == Pspv::ExecutionModeShadingRateInterlockOrderedEXT ||
-                mode == Pspv::ExecutionModeShadingRateInterlockUnorderedEXT) {
-                builder.addCapability(Pspv::CapabilityFragmentShaderShadingRateInterlockEXT);
-            } else if (mode == Pspv::ExecutionModePixelInterlockOrderedEXT ||
-                       mode == Pspv::ExecutionModePixelInterlockUnorderedEXT) {
-                builder.addCapability(Pspv::CapabilityFragmentShaderPixelInterlockEXT);
+        if (mode != spv::ExecutionModeMax) {
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
+            if (mode == spv::ExecutionModeShadingRateInterlockOrderedEXT ||
+                mode == spv::ExecutionModeShadingRateInterlockUnorderedEXT) {
+                builder.addCapability(spv::CapabilityFragmentShaderShadingRateInterlockEXT);
+            } else if (mode == spv::ExecutionModePixelInterlockOrderedEXT ||
+                       mode == spv::ExecutionModePixelInterlockUnorderedEXT) {
+                builder.addCapability(spv::CapabilityFragmentShaderPixelInterlockEXT);
             } else {
-                builder.addCapability(Pspv::CapabilityFragmentShaderSampleInterlockEXT);
+                builder.addCapability(spv::CapabilityFragmentShaderSampleInterlockEXT);
             }
-            builder.addExtension(Pspv::E_SPV_EXT_fragment_shader_interlock);
+            builder.addExtension(spv::E_SPV_EXT_fragment_shader_interlock);
         }
 #endif
         break;
 
     case EShLangCompute:
-        builder.addCapability(Pspv::CapabilityShader);
-        builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeLocalSize, glslangIntermediate->getLocalSize(0),
+        builder.addCapability(spv::CapabilityShader);
+        builder.addExecutionMode(shaderEntry, spv::ExecutionModeLocalSize, glslangIntermediate->getLocalSize(0),
                                                                            glslangIntermediate->getLocalSize(1),
                                                                            glslangIntermediate->getLocalSize(2));
-        if (glslangIntermediate->getLayoutDerivativeModeNone() == Pglslang::LayoutDerivativeGroupQuads) {
-            builder.addCapability(Pspv::CapabilityComputeDerivativeGroupQuadsNV);
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeDerivativeGroupQuadsNV);
-            builder.addExtension(Pspv::E_SPV_NV_compute_shader_derivatives);
-        } else if (glslangIntermediate->getLayoutDerivativeModeNone() == Pglslang::LayoutDerivativeGroupLinear) {
-            builder.addCapability(Pspv::CapabilityComputeDerivativeGroupLinearNV);
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeDerivativeGroupLinearNV);
-            builder.addExtension(Pspv::E_SPV_NV_compute_shader_derivatives);
+        if (glslangIntermediate->getLayoutDerivativeModeNone() == glslang::LayoutDerivativeGroupQuads) {
+            builder.addCapability(spv::CapabilityComputeDerivativeGroupQuadsNV);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeDerivativeGroupQuadsNV);
+            builder.addExtension(spv::E_SPV_NV_compute_shader_derivatives);
+        } else if (glslangIntermediate->getLayoutDerivativeModeNone() == glslang::LayoutDerivativeGroupLinear) {
+            builder.addCapability(spv::CapabilityComputeDerivativeGroupLinearNV);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeDerivativeGroupLinearNV);
+            builder.addExtension(spv::E_SPV_NV_compute_shader_derivatives);
         }
         break;
 #ifndef GLSLANG_WEB
     case EShLangTessEvaluation:
     case EShLangTessControl:
-        builder.addCapability(Pspv::CapabilityTessellation);
+        builder.addCapability(spv::CapabilityTessellation);
 
-        Pglslang::TLayoutGeometry primitive;
+        glslang::TLayoutGeometry primitive;
 
         if (glslangIntermediate->getStage() == EShLangTessControl) {
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
             primitive = glslangIntermediate->getOutputPrimitive();
         } else {
             primitive = glslangIntermediate->getInputPrimitive();
         }
 
         switch (primitive) {
-        case Pglslang::ElgTriangles:           mode = Pspv::ExecutionModeTriangles;     break;
-        case Pglslang::ElgQuads:               mode = Pspv::ExecutionModeQuads;         break;
-        case Pglslang::ElgIsolines:            mode = Pspv::ExecutionModeIsolines;      break;
-        default:                              mode = Pspv::ExecutionModeMax;           break;
+        case glslang::ElgTriangles:           mode = spv::ExecutionModeTriangles;     break;
+        case glslang::ElgQuads:               mode = spv::ExecutionModeQuads;         break;
+        case glslang::ElgIsolines:            mode = spv::ExecutionModeIsolines;      break;
+        default:                              mode = spv::ExecutionModeMax;           break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
 
         switch (glslangIntermediate->getVertexSpacing()) {
-        case Pglslang::EvsEqual:            mode = Pspv::ExecutionModeSpacingEqual;          break;
-        case Pglslang::EvsFractionalEven:   mode = Pspv::ExecutionModeSpacingFractionalEven; break;
-        case Pglslang::EvsFractionalOdd:    mode = Pspv::ExecutionModeSpacingFractionalOdd;  break;
-        default:                           mode = Pspv::ExecutionModeMax;                   break;
+        case glslang::EvsEqual:            mode = spv::ExecutionModeSpacingEqual;          break;
+        case glslang::EvsFractionalEven:   mode = spv::ExecutionModeSpacingFractionalEven; break;
+        case glslang::EvsFractionalOdd:    mode = spv::ExecutionModeSpacingFractionalOdd;  break;
+        default:                           mode = spv::ExecutionModeMax;                   break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
 
         switch (glslangIntermediate->getVertexOrder()) {
-        case Pglslang::EvoCw:     mode = Pspv::ExecutionModeVertexOrderCw;  break;
-        case Pglslang::EvoCcw:    mode = Pspv::ExecutionModeVertexOrderCcw; break;
-        default:                 mode = Pspv::ExecutionModeMax;            break;
+        case glslang::EvoCw:     mode = spv::ExecutionModeVertexOrderCw;  break;
+        case glslang::EvoCcw:    mode = spv::ExecutionModeVertexOrderCcw; break;
+        default:                 mode = spv::ExecutionModeMax;            break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
 
         if (glslangIntermediate->getPointMode())
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModePointMode);
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModePointMode);
         break;
 
     case EShLangGeometry:
-        builder.addCapability(Pspv::CapabilityGeometry);
+        builder.addCapability(spv::CapabilityGeometry);
         switch (glslangIntermediate->getInputPrimitive()) {
-        case Pglslang::ElgPoints:             mode = Pspv::ExecutionModeInputPoints;             break;
-        case Pglslang::ElgLines:              mode = Pspv::ExecutionModeInputLines;              break;
-        case Pglslang::ElgLinesAdjacency:     mode = Pspv::ExecutionModeInputLinesAdjacency;     break;
-        case Pglslang::ElgTriangles:          mode = Pspv::ExecutionModeTriangles;               break;
-        case Pglslang::ElgTrianglesAdjacency: mode = Pspv::ExecutionModeInputTrianglesAdjacency; break;
-        default:                             mode = Pspv::ExecutionModeMax;                     break;
+        case glslang::ElgPoints:             mode = spv::ExecutionModeInputPoints;             break;
+        case glslang::ElgLines:              mode = spv::ExecutionModeInputLines;              break;
+        case glslang::ElgLinesAdjacency:     mode = spv::ExecutionModeInputLinesAdjacency;     break;
+        case glslang::ElgTriangles:          mode = spv::ExecutionModeTriangles;               break;
+        case glslang::ElgTrianglesAdjacency: mode = spv::ExecutionModeInputTrianglesAdjacency; break;
+        default:                             mode = spv::ExecutionModeMax;                     break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
 
-        builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeInvocations, glslangIntermediate->getInvocations());
+        builder.addExecutionMode(shaderEntry, spv::ExecutionModeInvocations, glslangIntermediate->getInvocations());
 
         switch (glslangIntermediate->getOutputPrimitive()) {
-        case Pglslang::ElgPoints:        mode = Pspv::ExecutionModeOutputPoints;                 break;
-        case Pglslang::ElgLineStrip:     mode = Pspv::ExecutionModeOutputLineStrip;              break;
-        case Pglslang::ElgTriangleStrip: mode = Pspv::ExecutionModeOutputTriangleStrip;          break;
-        default:                        mode = Pspv::ExecutionModeMax;                          break;
+        case glslang::ElgPoints:        mode = spv::ExecutionModeOutputPoints;                 break;
+        case glslang::ElgLineStrip:     mode = spv::ExecutionModeOutputLineStrip;              break;
+        case glslang::ElgTriangleStrip: mode = spv::ExecutionModeOutputTriangleStrip;          break;
+        default:                        mode = spv::ExecutionModeMax;                          break;
         }
-        if (mode != Pspv::ExecutionModeMax)
-            builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
-        builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
+        if (mode != spv::ExecutionModeMax)
+            builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
+        builder.addExecutionMode(shaderEntry, spv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
         break;
 
     case EShLangRayGenNV:
@@ -1588,28 +1588,28 @@ TGlslangToSpvTraverser::TGlslangToSpvTraverser(unsigned int spvVersion, const Pg
     case EShLangClosestHitNV:
     case EShLangMissNV:
     case EShLangCallableNV:
-        builder.addCapability(Pspv::CapabilityRayTracingNV);
+        builder.addCapability(spv::CapabilityRayTracingNV);
         builder.addExtension("SPV_NV_ray_tracing");
         break;
     case EShLangTaskNV:
     case EShLangMeshNV:
-        builder.addCapability(Pspv::CapabilityMeshShadingNV);
-        builder.addExtension(Pspv::E_SPV_NV_mesh_shader);
-        builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeLocalSize, glslangIntermediate->getLocalSize(0),
+        builder.addCapability(spv::CapabilityMeshShadingNV);
+        builder.addExtension(spv::E_SPV_NV_mesh_shader);
+        builder.addExecutionMode(shaderEntry, spv::ExecutionModeLocalSize, glslangIntermediate->getLocalSize(0),
                                                                            glslangIntermediate->getLocalSize(1),
                                                                            glslangIntermediate->getLocalSize(2));
         if (glslangIntermediate->getStage() == EShLangMeshNV) {
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
-            builder.addExecutionMode(shaderEntry, Pspv::ExecutionModeOutputPrimitivesNV, glslangIntermediate->getPrimitives());
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeOutputVertices, glslangIntermediate->getVertices());
+            builder.addExecutionMode(shaderEntry, spv::ExecutionModeOutputPrimitivesNV, glslangIntermediate->getPrimitives());
 
             switch (glslangIntermediate->getOutputPrimitive()) {
-            case Pglslang::ElgPoints:        mode = Pspv::ExecutionModeOutputPoints;      break;
-            case Pglslang::ElgLines:         mode = Pspv::ExecutionModeOutputLinesNV;     break;
-            case Pglslang::ElgTriangles:     mode = Pspv::ExecutionModeOutputTrianglesNV; break;
-            default:                        mode = Pspv::ExecutionModeMax;               break;
+            case glslang::ElgPoints:        mode = spv::ExecutionModeOutputPoints;      break;
+            case glslang::ElgLines:         mode = spv::ExecutionModeOutputLinesNV;     break;
+            case glslang::ElgTriangles:     mode = spv::ExecutionModeOutputTrianglesNV; break;
+            default:                        mode = spv::ExecutionModeMax;               break;
             }
-            if (mode != Pspv::ExecutionModeMax)
-                builder.addExecutionMode(shaderEntry, (Pspv::ExecutionMode)mode);
+            if (mode != spv::ExecutionModeMax)
+                builder.addExecutionMode(shaderEntry, (spv::ExecutionMode)mode);
         }
         break;
 #endif
@@ -1660,7 +1660,7 @@ void TGlslangToSpvTraverser::dumpSpv(std::vector<unsigned int>& out)
 //  - complex lvalue base setups:  foo.bar[3]....  , where we see foo and start up an access chain
 //  - something simple that degenerates into the last bullet
 //
-void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
+void TGlslangToSpvTraverser::visitSymbol(glslang::TIntermSymbol* symbol)
 {
     SpecConstantOpModeGuard spec_constant_op_mode_setter(&builder);
     if (symbol->getType().isStruct())
@@ -1671,18 +1671,18 @@ void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
 
     // getSymbolId() will set up all the IO decorations on the first call.
     // Formal function parameters were mapped during makeFunctions().
-    Pspv::Id id = getSymbolId(symbol);
+    spv::Id id = getSymbolId(symbol);
 
     if (builder.isPointer(id)) {
         // Include all "static use" and "linkage only" interface variables on the OpEntryPoint instruction
         // Consider adding to the OpEntryPoint interface list.
         // Only looking at structures if they have at least one member.
         if (!symbol->getType().isStruct() || symbol->getType().getStruct()->size() > 0) {
-            Pspv::StorageClass sc = builder.getStorageClass(id);
+            spv::StorageClass sc = builder.getStorageClass(id);
             // Before SPIR-V 1.4, we only want to include Input and Output.
             // Starting with SPIR-V 1.4, we want all globals.
-            if ((glslangIntermediate->getSpv().spv >= Pglslang::EShTargetSpv_1_4 && sc != Pspv::StorageClassFunction) ||
-                (sc == Pspv::StorageClassInput || sc == Pspv::StorageClassOutput)) {
+            if ((glslangIntermediate->getSpv().spv >= glslang::EShTargetSpv_1_4 && sc != spv::StorageClassFunction) ||
+                (sc == spv::StorageClassInput || sc == spv::StorageClassOutput)) {
                 iOSet.insert(id);
             }
         }
@@ -1692,7 +1692,7 @@ void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
         // operation.
         // Note this turns it from an l-value to an r-value.
         // Currently, all symbols needing this are inputs; avoid the map lookup when non-input.
-        if (symbol->getType().getQualifier().storage == Pglslang::EvqVaryingIn)
+        if (symbol->getType().getQualifier().storage == glslang::EvqVaryingIn)
             id = translateForcedType(id);
     }
 
@@ -1712,7 +1712,7 @@ void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
         // B) Specialization constants (normal constants don't even come in as a variable),
         //    These are also pure R-values.
         // C) R-Values from type translation, see above call to translateForcedType()
-        Pglslang::TQualifier qualifier = symbol->getQualifier();
+        glslang::TQualifier qualifier = symbol->getQualifier();
         if (qualifier.isSpecConstant() || rValueParameters.find(symbol->getId()) != rValueParameters.end() ||
             !builder.isPointerType(builder.getTypeId(id)))
             builder.setAccessChainRValue(id);
@@ -1740,11 +1740,11 @@ void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
                     auto it = counterOriginator.find(keyName);
                     if (it != counterOriginator.end()) {
                         id = getSymbolId(it->second);
-                        if (id != Pspv::NoResult) {
-                            Pspv::Id counterId = getSymbolId(symbol);
-                            if (counterId != Pspv::NoResult) {
+                        if (id != spv::NoResult) {
+                            spv::Id counterId = getSymbolId(symbol);
+                            if (counterId != spv::NoResult) {
                                 builder.addExtension("SPV_GOOGLE_hlsl_functionality1");
-                                builder.addDecorationId(id, Pspv::DecorationHlslCounterBufferGOOGLE, counterId);
+                                builder.addDecorationId(id, spv::DecorationHlslCounterBufferGOOGLE, counterId);
                             }
                         }
                     }
@@ -1755,7 +1755,7 @@ void TGlslangToSpvTraverser::visitSymbol(Pglslang::TIntermSymbol* symbol)
 #endif
 }
 
-bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang::TIntermBinary* node)
+bool TGlslangToSpvTraverser::visitBinary(glslang::TVisit /* visit */, glslang::TIntermBinary* node)
 {
     builder.setLine(node->getLoc().line, node->getLoc().getFilename());
     if (node->getLeft()->getAsSymbolNode() != nullptr && node->getLeft()->getType().isStruct()) {
@@ -1771,21 +1771,21 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
 
     // First, handle special cases
     switch (node->getOp()) {
-    case Pglslang::EOpAssign:
-    case Pglslang::EOpAddAssign:
-    case Pglslang::EOpSubAssign:
-    case Pglslang::EOpMulAssign:
-    case Pglslang::EOpVectorTimesMatrixAssign:
-    case Pglslang::EOpVectorTimesScalarAssign:
-    case Pglslang::EOpMatrixTimesScalarAssign:
-    case Pglslang::EOpMatrixTimesMatrixAssign:
-    case Pglslang::EOpDivAssign:
-    case Pglslang::EOpModAssign:
-    case Pglslang::EOpAndAssign:
-    case Pglslang::EOpInclusiveOrAssign:
-    case Pglslang::EOpExclusiveOrAssign:
-    case Pglslang::EOpLeftShiftAssign:
-    case Pglslang::EOpRightShiftAssign:
+    case glslang::EOpAssign:
+    case glslang::EOpAddAssign:
+    case glslang::EOpSubAssign:
+    case glslang::EOpMulAssign:
+    case glslang::EOpVectorTimesMatrixAssign:
+    case glslang::EOpVectorTimesScalarAssign:
+    case glslang::EOpMatrixTimesScalarAssign:
+    case glslang::EOpMatrixTimesMatrixAssign:
+    case glslang::EOpDivAssign:
+    case glslang::EOpModAssign:
+    case glslang::EOpAndAssign:
+    case glslang::EOpInclusiveOrAssign:
+    case glslang::EOpExclusiveOrAssign:
+    case glslang::EOpLeftShiftAssign:
+    case glslang::EOpRightShiftAssign:
         // A bin-op assign "a += b" means the same thing as "a = a + b"
         // where a is evaluated before b. For a simple assignment, GLSL
         // says to evaluate the left before the right.  So, always, left
@@ -1794,17 +1794,17 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             // get the left l-value, save it away
             builder.clearAccessChain();
             node->getLeft()->traverse(this);
-            Pspv::Builder::AccessChain lValue = builder.getAccessChain();
+            spv::Builder::AccessChain lValue = builder.getAccessChain();
 
             // evaluate the right
             builder.clearAccessChain();
             node->getRight()->traverse(this);
-            Pspv::Id rValue = accessChainLoad(node->getRight()->getType());
+            spv::Id rValue = accessChainLoad(node->getRight()->getType());
 
-            if (node->getOp() != Pglslang::EOpAssign) {
+            if (node->getOp() != glslang::EOpAssign) {
                 // the left is also an r-value
                 builder.setAccessChain(lValue);
-                Pspv::Id leftRValue = accessChainLoad(node->getLeft()->getType());
+                spv::Id leftRValue = accessChainLoad(node->getLeft()->getType());
 
                 // do the operation
                 OpDecorations decorations = { TranslatePrecisionDecoration(node->getOperationPrecision()),
@@ -1815,7 +1815,7 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
                                                node->getType().getBasicType());
 
                 // these all need their counterparts in createBinaryOperation()
-                assert(rValue != Pspv::NoResult);
+                assert(rValue != spv::NoResult);
             }
 
             // store the result
@@ -1827,8 +1827,8 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             builder.setAccessChainRValue(rValue);
         }
         return false;
-    case Pglslang::EOpIndexDirect:
-    case Pglslang::EOpIndexDirectStruct:
+    case glslang::EOpIndexDirect:
+    case glslang::EOpIndexDirectStruct:
         {
             // Structure, array, matrix, or vector indirection with statically known index.
             // Get the left part of the access chain.
@@ -1839,7 +1839,7 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             const int glslangIndex = node->getRight()->getAsConstantUnion()->getConstArray()[0].getIConst();
             if (! node->getLeft()->getType().isArray() &&
                 node->getLeft()->getType().isVector() &&
-                node->getOp() == Pglslang::EOpIndexDirect) {
+                node->getOp() == glslang::EOpIndexDirect) {
                 // This is essentially a hard-coded vector swizzle of size 1,
                 // so short circuit the access-chain stuff with a swizzle.
                 std::vector<unsigned> swizzle;
@@ -1847,7 +1847,7 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
                 int dummySize;
                 builder.accessChainPushSwizzle(swizzle, convertGlslangToSpvType(node->getLeft()->getType()),
                                                TranslateCoherent(node->getLeft()->getType()),
-                                               glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                               glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
             } else {
 
                 // Load through a block reference is performed with a dot operator that
@@ -1855,16 +1855,16 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
                 // do a load and reset the access chain.
                 if (node->getLeft()->isReference() &&
                     !node->getLeft()->getType().isArray() &&
-                    node->getOp() == Pglslang::EOpIndexDirectStruct)
+                    node->getOp() == glslang::EOpIndexDirectStruct)
                 {
-                    Pspv::Id left = accessChainLoad(node->getLeft()->getType());
+                    spv::Id left = accessChainLoad(node->getLeft()->getType());
                     builder.clearAccessChain();
                     builder.setAccessChainLValue(left);
                 }
 
                 int spvIndex = glslangIndex;
-                if (node->getLeft()->getBasicType() == Pglslang::EbtBlock &&
-                    node->getOp() == Pglslang::EOpIndexDirectStruct)
+                if (node->getLeft()->getBasicType() == glslang::EbtBlock &&
+                    node->getOp() == glslang::EOpIndexDirectStruct)
                 {
                     // This may be, e.g., an anonymous block-member selection, which generally need
                     // index remapping due to hidden members in anonymous blocks.
@@ -1886,7 +1886,7 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             }
         }
         return false;
-    case Pglslang::EOpIndexIndirect:
+    case glslang::EOpIndexIndirect:
         {
             // Array, matrix, or vector indirection with variable index.
             // Will use native SPIR-V access-chain for and array indirection;
@@ -1898,12 +1898,12 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             node->getLeft()->traverse(this);
 
             // save it so that computing the right side doesn't trash it
-            Pspv::Builder::AccessChain partial = builder.getAccessChain();
+            spv::Builder::AccessChain partial = builder.getAccessChain();
 
             // compute the next index in the chain
             builder.clearAccessChain();
             node->getRight()->traverse(this);
-            Pspv::Id index = accessChainLoad(node->getRight()->getType());
+            spv::Id index = accessChainLoad(node->getRight()->getType());
 
             addIndirectionIndexCapabilities(node->getLeft()->getType(), node->getRight()->getType());
 
@@ -1914,12 +1914,12 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
                 int dummySize;
                 builder.accessChainPushComponent(index, convertGlslangToSpvType(node->getLeft()->getType()),
                                                 TranslateCoherent(node->getLeft()->getType()),
-                                                glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                                glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
             } else
                 builder.accessChainPush(index, TranslateCoherent(node->getLeft()->getType()), node->getLeft()->getType().getBufferReferenceAlignment());
         }
         return false;
-    case Pglslang::EOpVectorSwizzle:
+    case glslang::EOpVectorSwizzle:
         {
             node->getLeft()->traverse(this);
             std::vector<unsigned> swizzle;
@@ -1927,14 +1927,14 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             int dummySize;
             builder.accessChainPushSwizzle(swizzle, convertGlslangToSpvType(node->getLeft()->getType()),
                                            TranslateCoherent(node->getLeft()->getType()),
-                                           glslangIntermediate->PgetBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
+                                           glslangIntermediate->getBaseAlignmentScalar(node->getLeft()->getType(), dummySize));
         }
         return false;
-    case Pglslang::EOpMatrixSwizzle:
+    case glslang::EOpMatrixSwizzle:
         logger->missingFunctionality("matrix swizzle");
         return true;
-    case Pglslang::EOpLogicalOr:
-    case Pglslang::EOpLogicalAnd:
+    case glslang::EOpLogicalOr:
+    case glslang::EOpLogicalAnd:
         {
 
             // These may require short circuiting, but can sometimes be done as straight
@@ -1943,7 +1943,7 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
             if (isTrivial(node->getRight()->getAsTyped()))
                 break; // handle below as a normal binary operation
             // otherwise, we need to do dynamic short circuiting on the right operand
-            Pspv::Id result = createShortCircuit(node->getOp(), *node->getLeft()->getAsTyped(), *node->getRight()->getAsTyped());
+            spv::Id result = createShortCircuit(node->getOp(), *node->getLeft()->getAsTyped(), *node->getRight()->getAsTyped());
             builder.clearAccessChain();
             builder.setAccessChainRValue(result);
         }
@@ -1957,18 +1957,18 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
     // get right operand
     builder.clearAccessChain();
     node->getLeft()->traverse(this);
-    Pspv::Id left = accessChainLoad(node->getLeft()->getType());
+    spv::Id left = accessChainLoad(node->getLeft()->getType());
 
     // get left operand
     builder.clearAccessChain();
     node->getRight()->traverse(this);
-    Pspv::Id right = accessChainLoad(node->getRight()->getType());
+    spv::Id right = accessChainLoad(node->getRight()->getType());
 
     // get result
     OpDecorations decorations = { TranslatePrecisionDecoration(node->getOperationPrecision()),
                                   TranslateNoContractionDecoration(node->getType().getQualifier()),
                                   TranslateNonUniformDecoration(node->getType().getQualifier()) };
-    Pspv::Id result = createBinaryOperation(node->getOp(), decorations,
+    spv::Id result = createBinaryOperation(node->getOp(), decorations,
                                            convertGlslangToSpvType(node->getType()), left, right,
                                            node->getLeft()->getType().getBasicType());
 
@@ -1985,20 +1985,20 @@ bool TGlslangToSpvTraverser::visitBinary(Pglslang::TVisit /* visit */, Pglslang:
 // Figure out what, if any, type changes are needed when accessing a specific built-in.
 // Returns <the type SPIR-V requires for declarion, the type to translate to on use>.
 // Also see comment for 'forceType', regarding tracking SPIR-V-required types.
-std::pair<Pspv::Id, Pspv::Id> TGlslangToSpvTraverser::getForcedType(Pspv::BuiltIn builtIn,
-    const Pglslang::TType& glslangType)
+std::pair<spv::Id, spv::Id> TGlslangToSpvTraverser::getForcedType(spv::BuiltIn builtIn,
+    const glslang::TType& glslangType)
 {
     switch(builtIn)
     {
-        case Pspv::BuiltInSubgroupEqMask:
-        case Pspv::BuiltInSubgroupGeMask:
-        case Pspv::BuiltInSubgroupGtMask:
-        case Pspv::BuiltInSubgroupLeMask:
-        case Pspv::BuiltInSubgroupLtMask: {
+        case spv::BuiltInSubgroupEqMask:
+        case spv::BuiltInSubgroupGeMask:
+        case spv::BuiltInSubgroupGtMask:
+        case spv::BuiltInSubgroupLeMask:
+        case spv::BuiltInSubgroupLtMask: {
             // these require changing a 64-bit scaler -> a vector of 32-bit components
             if (glslangType.isVector())
                 break;
-            std::pair<Pspv::Id, Pspv::Id> ret(builder.makeVectorType(builder.makeUintType(32), 4),
+            std::pair<spv::Id, spv::Id> ret(builder.makeVectorType(builder.makeUintType(32), 4),
                                             builder.makeUintType(64));
             return ret;
         }
@@ -2006,21 +2006,21 @@ std::pair<Pspv::Id, Pspv::Id> TGlslangToSpvTraverser::getForcedType(Pspv::BuiltI
             break;
     }
 
-    std::pair<Pspv::Id, Pspv::Id> ret(Pspv::NoType, Pspv::NoType);
+    std::pair<spv::Id, spv::Id> ret(spv::NoType, spv::NoType);
     return ret;
 }
 
 // For an object previously identified (see getForcedType() and forceType)
 // as needing type translations, do the translation needed for a load, turning
 // an L-value into in R-value.
-Pspv::Id TGlslangToSpvTraverser::translateForcedType(Pspv::Id object)
+spv::Id TGlslangToSpvTraverser::translateForcedType(spv::Id object)
 {
     const auto forceIt = forceType.find(object);
     if (forceIt == forceType.end())
         return object;
 
-    Pspv::Id desiredTypeId = forceIt->second;
-    Pspv::Id objectTypeId = builder.getTypeId(object);
+    spv::Id desiredTypeId = forceIt->second;
+    spv::Id objectTypeId = builder.getTypeId(object);
     assert(builder.isPointerType(objectTypeId));
     objectTypeId = builder.getContainedTypeId(objectTypeId);
     if (builder.isVectorType(objectTypeId) &&
@@ -2029,13 +2029,13 @@ Pspv::Id TGlslangToSpvTraverser::translateForcedType(Pspv::Id object)
             // handle 32-bit v.xy* -> 64-bit
             builder.clearAccessChain();
             builder.setAccessChainLValue(object);
-            object = builder.accessChainLoad(Pspv::NoPrecision, Pspv::DecorationMax, objectTypeId);
-            std::vector<Pspv::Id> components;
+            object = builder.accessChainLoad(spv::NoPrecision, spv::DecorationMax, objectTypeId);
+            std::vector<spv::Id> components;
             components.push_back(builder.createCompositeExtract(object, builder.getContainedTypeId(objectTypeId), 0));
             components.push_back(builder.createCompositeExtract(object, builder.getContainedTypeId(objectTypeId), 1));
 
-            Pspv::Id vecType = builder.makeVectorType(builder.getContainedTypeId(objectTypeId), 2);
-            return builder.createUnaryOp(Pspv::OpBitcast, desiredTypeId,
+            spv::Id vecType = builder.makeVectorType(builder.getContainedTypeId(objectTypeId), 2);
+            return builder.createUnaryOp(spv::OpBitcast, desiredTypeId,
                                          builder.createCompositeConstruct(vecType, components));
         } else {
             logger->missingFunctionality("forcing 32-bit vector type to non 64-bit scalar");
@@ -2047,7 +2047,7 @@ Pspv::Id TGlslangToSpvTraverser::translateForcedType(Pspv::Id object)
     return object;
 }
 
-bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::TIntermUnary* node)
+bool TGlslangToSpvTraverser::visitUnary(glslang::TVisit /* visit */, glslang::TIntermUnary* node)
 {
     builder.setLine(node->getLoc().line, node->getLoc().getFilename());
 
@@ -2055,11 +2055,11 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
     if (node->getType().getQualifier().isSpecConstant())
         spec_constant_op_mode_setter.turnOnSpecConstantOpMode();
 
-    Pspv::Id result = Pspv::NoResult;
+    spv::Id result = spv::NoResult;
 
     // try texturing first
     result = createImageTextureFunctionCall(node);
-    if (result != Pspv::NoResult) {
+    if (result != spv::NoResult) {
         builder.clearAccessChain();
         builder.setAccessChainRValue(result);
 
@@ -2068,7 +2068,7 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
 
     // Non-texturing.
 
-    if (node->getOp() == Pglslang::EOpArrayLength) {
+    if (node->getOp() == glslang::EOpArrayLength) {
         // Quite special; won't want to evaluate the operand.
 
         // Currently, the front-end does not allow .length() on an array until it is sized,
@@ -2080,16 +2080,16 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
         // So, this has to be block.lastMember.length().
         // SPV wants "block" and member number as the operands, go get them.
 
-        Pspv::Id length;
+        spv::Id length;
         if (node->getOperand()->getType().isCoopMat()) {
             spec_constant_op_mode_setter.turnOnSpecConstantOpMode();
 
-            Pspv::Id typeId = convertGlslangToSpvType(node->getOperand()->getType());
+            spv::Id typeId = convertGlslangToSpvType(node->getOperand()->getType());
             assert(builder.isCooperativeMatrixType(typeId));
 
             length = builder.createCooperativeMatrixLength(typeId);
         } else {
-            Pglslang::TIntermTyped* block = node->getOperand()->getAsBinaryNode()->getLeft();
+            glslang::TIntermTyped* block = node->getOperand()->getAsBinaryNode()->getLeft();
             block->traverse(this);
             unsigned int member = node->getOperand()->getAsBinaryNode()->getRight()->getAsConstantUnion()->getConstArray()[0].getUConst();
             length = builder.createArrayLength(builder.accessChainGetLValue(), member);
@@ -2098,11 +2098,11 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
         // GLSL semantics say the result of .length() is an int, while SPIR-V says
         // signedness must be 0. So, convert from SPIR-V unsigned back to GLSL's
         // AST expectation of a signed result.
-        if (glslangIntermediate->getSource() == Pglslang::EShSourceGlsl) {
+        if (glslangIntermediate->getSource() == glslang::EShSourceGlsl) {
             if (builder.isInSpecConstCodeGenMode()) {
-                length = builder.createBinOp(Pspv::OpIAdd, builder.makeIntType(32), length, builder.makeIntConstant(0));
+                length = builder.createBinOp(spv::OpIAdd, builder.makeIntType(32), length, builder.makeIntConstant(0));
             } else {
-                length = builder.createUnaryOp(Pspv::OpBitcast, builder.makeIntType(32), length);
+                length = builder.createUnaryOp(spv::OpBitcast, builder.makeIntType(32), length);
             }
         }
 
@@ -2116,29 +2116,29 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
 
     // Does it need a swizzle inversion?  If so, evaluation is inverted;
     // operate first on the swizzle base, then apply the swizzle.
-    Pspv::Id invertedType = Pspv::NoType;
-    auto resultType = [&invertedType, &node, this](){ return invertedType != Pspv::NoType ? invertedType : convertGlslangToSpvType(node->getType()); };
-    if (node->getOp() == Pglslang::EOpInterpolateAtCentroid)
+    spv::Id invertedType = spv::NoType;
+    auto resultType = [&invertedType, &node, this](){ return invertedType != spv::NoType ? invertedType : convertGlslangToSpvType(node->getType()); };
+    if (node->getOp() == glslang::EOpInterpolateAtCentroid)
         invertedType = getInvertedSwizzleType(*node->getOperand());
 
     builder.clearAccessChain();
     TIntermNode *operandNode;
-    if (invertedType != Pspv::NoType)
+    if (invertedType != spv::NoType)
         operandNode = node->getOperand()->getAsBinaryNode()->getLeft();
     else
         operandNode = node->getOperand();
     
     operandNode->traverse(this);
 
-    Pspv::Id operand = Pspv::NoResult;
+    spv::Id operand = spv::NoResult;
 
-    Pspv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
+    spv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
 
 #ifndef GLSLANG_WEB
-    if (node->getOp() == Pglslang::EOpAtomicCounterIncrement ||
-        node->getOp() == Pglslang::EOpAtomicCounterDecrement ||
-        node->getOp() == Pglslang::EOpAtomicCounter          ||
-        node->getOp() == Pglslang::EOpInterpolateAtCentroid) {
+    if (node->getOp() == glslang::EOpAtomicCounterIncrement ||
+        node->getOp() == glslang::EOpAtomicCounterDecrement ||
+        node->getOp() == glslang::EOpAtomicCounter          ||
+        node->getOp() == glslang::EOpInterpolateAtCentroid) {
         operand = builder.accessChainGetLValue(); // Special case l-value operands
         lvalueCoherentFlags = builder.getAccessChain().coherentFlags;
         lvalueCoherentFlags |= TranslateCoherent(operandNode->getAsTyped()->getType());
@@ -2174,47 +2174,47 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
 
     // it must be a special case, check...
     switch (node->getOp()) {
-    case Pglslang::EOpPostIncrement:
-    case Pglslang::EOpPostDecrement:
-    case Pglslang::EOpPreIncrement:
-    case Pglslang::EOpPreDecrement:
+    case glslang::EOpPostIncrement:
+    case glslang::EOpPostDecrement:
+    case glslang::EOpPreIncrement:
+    case glslang::EOpPreDecrement:
         {
             // we need the integer value "1" or the floating point "1.0" to add/subtract
-            Pspv::Id one = 0;
-            if (node->getBasicType() == Pglslang::EbtFloat)
+            spv::Id one = 0;
+            if (node->getBasicType() == glslang::EbtFloat)
                 one = builder.makeFloatConstant(1.0F);
 #ifndef GLSLANG_WEB
-            else if (node->getBasicType() == Pglslang::EbtDouble)
+            else if (node->getBasicType() == glslang::EbtDouble)
                 one = builder.makeDoubleConstant(1.0);
-            else if (node->getBasicType() == Pglslang::EbtFloat16)
+            else if (node->getBasicType() == glslang::EbtFloat16)
                 one = builder.makeFloat16Constant(1.0F);
-            else if (node->getBasicType() == Pglslang::EbtInt8  || node->getBasicType() == Pglslang::EbtUint8)
+            else if (node->getBasicType() == glslang::EbtInt8  || node->getBasicType() == glslang::EbtUint8)
                 one = builder.makeInt8Constant(1);
-            else if (node->getBasicType() == Pglslang::EbtInt16 || node->getBasicType() == Pglslang::EbtUint16)
+            else if (node->getBasicType() == glslang::EbtInt16 || node->getBasicType() == glslang::EbtUint16)
                 one = builder.makeInt16Constant(1);
-            else if (node->getBasicType() == Pglslang::EbtInt64 || node->getBasicType() == Pglslang::EbtUint64)
+            else if (node->getBasicType() == glslang::EbtInt64 || node->getBasicType() == glslang::EbtUint64)
                 one = builder.makeInt64Constant(1);
 #endif
             else
                 one = builder.makeIntConstant(1);
-            Pglslang::TOperator op;
-            if (node->getOp() == Pglslang::EOpPreIncrement ||
-                node->getOp() == Pglslang::EOpPostIncrement)
-                op = Pglslang::EOpAdd;
+            glslang::TOperator op;
+            if (node->getOp() == glslang::EOpPreIncrement ||
+                node->getOp() == glslang::EOpPostIncrement)
+                op = glslang::EOpAdd;
             else
-                op = Pglslang::EOpSub;
+                op = glslang::EOpSub;
 
-            Pspv::Id result = createBinaryOperation(op, decorations,
+            spv::Id result = createBinaryOperation(op, decorations,
                                                    convertGlslangToSpvType(node->getType()), operand, one,
                                                    node->getType().getBasicType());
-            assert(result != Pspv::NoResult);
+            assert(result != spv::NoResult);
 
             // The result of operation is always stored, but conditionally the
             // consumed result.  The consumed result is always an r-value.
             builder.accessChainStore(result);
             builder.clearAccessChain();
-            if (node->getOp() == Pglslang::EOpPreIncrement ||
-                node->getOp() == Pglslang::EOpPreDecrement)
+            if (node->getOp() == glslang::EOpPreIncrement ||
+                node->getOp() == glslang::EOpPreDecrement)
                 builder.setAccessChainRValue(result);
             else
                 builder.setAccessChainRValue(operand);
@@ -2223,11 +2223,11 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
         return false;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpEmitStreamVertex:
-        builder.createNoResultOp(Pspv::OpEmitStreamVertex, operand);
+    case glslang::EOpEmitStreamVertex:
+        builder.createNoResultOp(spv::OpEmitStreamVertex, operand);
         return false;
-    case Pglslang::EOpEndStreamPrimitive:
-        builder.createNoResultOp(Pspv::OpEndStreamPrimitive, operand);
+    case glslang::EOpEndStreamPrimitive:
+        builder.createNoResultOp(spv::OpEndStreamPrimitive, operand);
         return false;
 #endif
 
@@ -2238,17 +2238,17 @@ bool TGlslangToSpvTraverser::visitUnary(Pglslang::TVisit /* visit */, Pglslang::
 }
 
 // Construct a composite object, recursively copying members if their types don't match
-Pspv::Id TGlslangToSpvTraverser::createCompositeConstruct(Pspv::Id resultTypeId, std::vector<Pspv::Id> constituents)
+spv::Id TGlslangToSpvTraverser::createCompositeConstruct(spv::Id resultTypeId, std::vector<spv::Id> constituents)
 {
     for (int c = 0; c < (int)constituents.size(); ++c) {
-        Pspv::Id& constituent = constituents[c];
-        Pspv::Id lType = builder.getContainedTypeId(resultTypeId, c);
-        Pspv::Id rType = builder.getTypeId(constituent);
+        spv::Id& constituent = constituents[c];
+        spv::Id lType = builder.getContainedTypeId(resultTypeId, c);
+        spv::Id rType = builder.getTypeId(constituent);
         if (lType != rType) {
-            if (glslangIntermediate->getSpv().spv >= Pglslang::EShTargetSpv_1_4) {
-                constituent = builder.createUnaryOp(Pspv::OpCopyLogical, lType, constituent);
+            if (glslangIntermediate->getSpv().spv >= glslang::EShTargetSpv_1_4) {
+                constituent = builder.createUnaryOp(spv::OpCopyLogical, lType, constituent);
             } else if (builder.isStructType(rType)) {
-                std::vector<Pspv::Id> rTypeConstituents;
+                std::vector<spv::Id> rTypeConstituents;
                 int numrTypeConstituents = builder.getNumTypeConstituents(rType);
                 for (int i = 0; i < numrTypeConstituents; ++i) {
                     rTypeConstituents.push_back(builder.createCompositeExtract(constituent, builder.getContainedTypeId(rType, i), i));
@@ -2256,10 +2256,10 @@ Pspv::Id TGlslangToSpvTraverser::createCompositeConstruct(Pspv::Id resultTypeId,
                 constituents[c] = createCompositeConstruct(lType, rTypeConstituents);
             } else {
                 assert(builder.isArrayType(rType));
-                std::vector<Pspv::Id> rTypeConstituents;
+                std::vector<spv::Id> rTypeConstituents;
                 int numrTypeConstituents = builder.getNumTypeConstituents(rType);
 
-                Pspv::Id elementRType = builder.getContainedTypeId(rType);
+                spv::Id elementRType = builder.getContainedTypeId(rType);
                 for (int i = 0; i < numrTypeConstituents; ++i) {
                     rTypeConstituents.push_back(builder.createCompositeExtract(constituent, elementRType, i));
                 }
@@ -2270,47 +2270,47 @@ Pspv::Id TGlslangToSpvTraverser::createCompositeConstruct(Pspv::Id resultTypeId,
     return builder.createCompositeConstruct(resultTypeId, constituents);
 }
 
-bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TIntermAggregate* node)
+bool TGlslangToSpvTraverser::visitAggregate(glslang::TVisit visit, glslang::TIntermAggregate* node)
 {
     SpecConstantOpModeGuard spec_constant_op_mode_setter(&builder);
     if (node->getType().getQualifier().isSpecConstant())
         spec_constant_op_mode_setter.turnOnSpecConstantOpMode();
 
-    Pspv::Id result = Pspv::NoResult;
-    Pspv::Id invertedType = Pspv::NoType;  // to use to override the natural type of the node
-    auto resultType = [&invertedType, &node, this](){ return invertedType != Pspv::NoType ? invertedType : convertGlslangToSpvType(node->getType()); };
+    spv::Id result = spv::NoResult;
+    spv::Id invertedType = spv::NoType;  // to use to override the natural type of the node
+    auto resultType = [&invertedType, &node, this](){ return invertedType != spv::NoType ? invertedType : convertGlslangToSpvType(node->getType()); };
 
     // try texturing
     result = createImageTextureFunctionCall(node);
-    if (result != Pspv::NoResult) {
+    if (result != spv::NoResult) {
         builder.clearAccessChain();
         builder.setAccessChainRValue(result);
 
         return false;
     }
 #ifndef GLSLANG_WEB
-    else if (node->getOp() == Pglslang::EOpImageStore ||
-        node->getOp() == Pglslang::EOpImageStoreLod ||
-        node->getOp() == Pglslang::EOpImageAtomicStore) {
+    else if (node->getOp() == glslang::EOpImageStore ||
+        node->getOp() == glslang::EOpImageStoreLod ||
+        node->getOp() == glslang::EOpImageAtomicStore) {
         // "imageStore" is a special case, which has no result
         return false;
     }
 #endif
 
-    Pglslang::TOperator binOp = Pglslang::EOpNull;
+    glslang::TOperator binOp = glslang::EOpNull;
     bool reduceComparison = true;
     bool isMatrix = false;
     bool noReturnValue = false;
     bool atomic = false;
 
-    Pspv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
+    spv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
 
     assert(node->getOp());
 
-    Pspv::Decoration precision = TranslatePrecisionDecoration(node->getOperationPrecision());
+    spv::Decoration precision = TranslatePrecisionDecoration(node->getOperationPrecision());
 
     switch (node->getOp()) {
-    case Pglslang::EOpSequence:
+    case glslang::EOpSequence:
     {
         if (preVisit)
             ++sequenceDepth;
@@ -2336,27 +2336,27 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
 
         return true;
     }
-    case Pglslang::EOpLinkerObjects:
+    case glslang::EOpLinkerObjects:
     {
-        if (visit == Pglslang::EvPreVisit)
+        if (visit == glslang::EvPreVisit)
             linkageOnly = true;
         else
             linkageOnly = false;
 
         return true;
     }
-    case Pglslang::EOpComma:
+    case glslang::EOpComma:
     {
         // processing from left to right naturally leaves the right-most
         // lying around in the access chain
-        Pglslang::TIntermSequence& glslangOperands = node->getSequence();
+        glslang::TIntermSequence& glslangOperands = node->getSequence();
         for (int i = 0; i < (int)glslangOperands.size(); ++i)
             glslangOperands[i]->traverse(this);
 
         return false;
     }
-    case Pglslang::EOpFunction:
-        if (visit == Pglslang::EvPreVisit) {
+    case glslang::EOpFunction:
+        if (visit == glslang::EvPreVisit) {
             if (isShaderEntryPoint(node)) {
                 inEntryPoint = true;
                 builder.setBuildPoint(shaderEntry->getLastBlock());
@@ -2372,12 +2372,12 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
         }
 
         return true;
-    case Pglslang::EOpParameters:
+    case glslang::EOpParameters:
         // Parameters will have been consumed by EOpFunction processing, but not
         // the body, so we still visited the function node's children, making this
         // child redundant.
         return false;
-    case Pglslang::EOpFunctionCall:
+    case glslang::EOpFunctionCall:
     {
         builder.setLine(node->getLoc().line, node->getLoc().getFilename());
         if (node->isUserDefined())
@@ -2391,125 +2391,125 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
 
         return false;
     }
-    case Pglslang::EOpConstructMat2x2:
-    case Pglslang::EOpConstructMat2x3:
-    case Pglslang::EOpConstructMat2x4:
-    case Pglslang::EOpConstructMat3x2:
-    case Pglslang::EOpConstructMat3x3:
-    case Pglslang::EOpConstructMat3x4:
-    case Pglslang::EOpConstructMat4x2:
-    case Pglslang::EOpConstructMat4x3:
-    case Pglslang::EOpConstructMat4x4:
-    case Pglslang::EOpConstructDMat2x2:
-    case Pglslang::EOpConstructDMat2x3:
-    case Pglslang::EOpConstructDMat2x4:
-    case Pglslang::EOpConstructDMat3x2:
-    case Pglslang::EOpConstructDMat3x3:
-    case Pglslang::EOpConstructDMat3x4:
-    case Pglslang::EOpConstructDMat4x2:
-    case Pglslang::EOpConstructDMat4x3:
-    case Pglslang::EOpConstructDMat4x4:
-    case Pglslang::EOpConstructIMat2x2:
-    case Pglslang::EOpConstructIMat2x3:
-    case Pglslang::EOpConstructIMat2x4:
-    case Pglslang::EOpConstructIMat3x2:
-    case Pglslang::EOpConstructIMat3x3:
-    case Pglslang::EOpConstructIMat3x4:
-    case Pglslang::EOpConstructIMat4x2:
-    case Pglslang::EOpConstructIMat4x3:
-    case Pglslang::EOpConstructIMat4x4:
-    case Pglslang::EOpConstructUMat2x2:
-    case Pglslang::EOpConstructUMat2x3:
-    case Pglslang::EOpConstructUMat2x4:
-    case Pglslang::EOpConstructUMat3x2:
-    case Pglslang::EOpConstructUMat3x3:
-    case Pglslang::EOpConstructUMat3x4:
-    case Pglslang::EOpConstructUMat4x2:
-    case Pglslang::EOpConstructUMat4x3:
-    case Pglslang::EOpConstructUMat4x4:
-    case Pglslang::EOpConstructBMat2x2:
-    case Pglslang::EOpConstructBMat2x3:
-    case Pglslang::EOpConstructBMat2x4:
-    case Pglslang::EOpConstructBMat3x2:
-    case Pglslang::EOpConstructBMat3x3:
-    case Pglslang::EOpConstructBMat3x4:
-    case Pglslang::EOpConstructBMat4x2:
-    case Pglslang::EOpConstructBMat4x3:
-    case Pglslang::EOpConstructBMat4x4:
-    case Pglslang::EOpConstructF16Mat2x2:
-    case Pglslang::EOpConstructF16Mat2x3:
-    case Pglslang::EOpConstructF16Mat2x4:
-    case Pglslang::EOpConstructF16Mat3x2:
-    case Pglslang::EOpConstructF16Mat3x3:
-    case Pglslang::EOpConstructF16Mat3x4:
-    case Pglslang::EOpConstructF16Mat4x2:
-    case Pglslang::EOpConstructF16Mat4x3:
-    case Pglslang::EOpConstructF16Mat4x4:
+    case glslang::EOpConstructMat2x2:
+    case glslang::EOpConstructMat2x3:
+    case glslang::EOpConstructMat2x4:
+    case glslang::EOpConstructMat3x2:
+    case glslang::EOpConstructMat3x3:
+    case glslang::EOpConstructMat3x4:
+    case glslang::EOpConstructMat4x2:
+    case glslang::EOpConstructMat4x3:
+    case glslang::EOpConstructMat4x4:
+    case glslang::EOpConstructDMat2x2:
+    case glslang::EOpConstructDMat2x3:
+    case glslang::EOpConstructDMat2x4:
+    case glslang::EOpConstructDMat3x2:
+    case glslang::EOpConstructDMat3x3:
+    case glslang::EOpConstructDMat3x4:
+    case glslang::EOpConstructDMat4x2:
+    case glslang::EOpConstructDMat4x3:
+    case glslang::EOpConstructDMat4x4:
+    case glslang::EOpConstructIMat2x2:
+    case glslang::EOpConstructIMat2x3:
+    case glslang::EOpConstructIMat2x4:
+    case glslang::EOpConstructIMat3x2:
+    case glslang::EOpConstructIMat3x3:
+    case glslang::EOpConstructIMat3x4:
+    case glslang::EOpConstructIMat4x2:
+    case glslang::EOpConstructIMat4x3:
+    case glslang::EOpConstructIMat4x4:
+    case glslang::EOpConstructUMat2x2:
+    case glslang::EOpConstructUMat2x3:
+    case glslang::EOpConstructUMat2x4:
+    case glslang::EOpConstructUMat3x2:
+    case glslang::EOpConstructUMat3x3:
+    case glslang::EOpConstructUMat3x4:
+    case glslang::EOpConstructUMat4x2:
+    case glslang::EOpConstructUMat4x3:
+    case glslang::EOpConstructUMat4x4:
+    case glslang::EOpConstructBMat2x2:
+    case glslang::EOpConstructBMat2x3:
+    case glslang::EOpConstructBMat2x4:
+    case glslang::EOpConstructBMat3x2:
+    case glslang::EOpConstructBMat3x3:
+    case glslang::EOpConstructBMat3x4:
+    case glslang::EOpConstructBMat4x2:
+    case glslang::EOpConstructBMat4x3:
+    case glslang::EOpConstructBMat4x4:
+    case glslang::EOpConstructF16Mat2x2:
+    case glslang::EOpConstructF16Mat2x3:
+    case glslang::EOpConstructF16Mat2x4:
+    case glslang::EOpConstructF16Mat3x2:
+    case glslang::EOpConstructF16Mat3x3:
+    case glslang::EOpConstructF16Mat3x4:
+    case glslang::EOpConstructF16Mat4x2:
+    case glslang::EOpConstructF16Mat4x3:
+    case glslang::EOpConstructF16Mat4x4:
         isMatrix = true;
         // fall through
-    case Pglslang::EOpConstructFloat:
-    case Pglslang::EOpConstructVec2:
-    case Pglslang::EOpConstructVec3:
-    case Pglslang::EOpConstructVec4:
-    case Pglslang::EOpConstructDouble:
-    case Pglslang::EOpConstructDVec2:
-    case Pglslang::EOpConstructDVec3:
-    case Pglslang::EOpConstructDVec4:
-    case Pglslang::EOpConstructFloat16:
-    case Pglslang::EOpConstructF16Vec2:
-    case Pglslang::EOpConstructF16Vec3:
-    case Pglslang::EOpConstructF16Vec4:
-    case Pglslang::EOpConstructBool:
-    case Pglslang::EOpConstructBVec2:
-    case Pglslang::EOpConstructBVec3:
-    case Pglslang::EOpConstructBVec4:
-    case Pglslang::EOpConstructInt8:
-    case Pglslang::EOpConstructI8Vec2:
-    case Pglslang::EOpConstructI8Vec3:
-    case Pglslang::EOpConstructI8Vec4:
-    case Pglslang::EOpConstructUint8:
-    case Pglslang::EOpConstructU8Vec2:
-    case Pglslang::EOpConstructU8Vec3:
-    case Pglslang::EOpConstructU8Vec4:
-    case Pglslang::EOpConstructInt16:
-    case Pglslang::EOpConstructI16Vec2:
-    case Pglslang::EOpConstructI16Vec3:
-    case Pglslang::EOpConstructI16Vec4:
-    case Pglslang::EOpConstructUint16:
-    case Pglslang::EOpConstructU16Vec2:
-    case Pglslang::EOpConstructU16Vec3:
-    case Pglslang::EOpConstructU16Vec4:
-    case Pglslang::EOpConstructInt:
-    case Pglslang::EOpConstructIVec2:
-    case Pglslang::EOpConstructIVec3:
-    case Pglslang::EOpConstructIVec4:
-    case Pglslang::EOpConstructUint:
-    case Pglslang::EOpConstructUVec2:
-    case Pglslang::EOpConstructUVec3:
-    case Pglslang::EOpConstructUVec4:
-    case Pglslang::EOpConstructInt64:
-    case Pglslang::EOpConstructI64Vec2:
-    case Pglslang::EOpConstructI64Vec3:
-    case Pglslang::EOpConstructI64Vec4:
-    case Pglslang::EOpConstructUint64:
-    case Pglslang::EOpConstructU64Vec2:
-    case Pglslang::EOpConstructU64Vec3:
-    case Pglslang::EOpConstructU64Vec4:
-    case Pglslang::EOpConstructStruct:
-    case Pglslang::EOpConstructTextureSampler:
-    case Pglslang::EOpConstructReference:
-    case Pglslang::EOpConstructCooperativeMatrix:
+    case glslang::EOpConstructFloat:
+    case glslang::EOpConstructVec2:
+    case glslang::EOpConstructVec3:
+    case glslang::EOpConstructVec4:
+    case glslang::EOpConstructDouble:
+    case glslang::EOpConstructDVec2:
+    case glslang::EOpConstructDVec3:
+    case glslang::EOpConstructDVec4:
+    case glslang::EOpConstructFloat16:
+    case glslang::EOpConstructF16Vec2:
+    case glslang::EOpConstructF16Vec3:
+    case glslang::EOpConstructF16Vec4:
+    case glslang::EOpConstructBool:
+    case glslang::EOpConstructBVec2:
+    case glslang::EOpConstructBVec3:
+    case glslang::EOpConstructBVec4:
+    case glslang::EOpConstructInt8:
+    case glslang::EOpConstructI8Vec2:
+    case glslang::EOpConstructI8Vec3:
+    case glslang::EOpConstructI8Vec4:
+    case glslang::EOpConstructUint8:
+    case glslang::EOpConstructU8Vec2:
+    case glslang::EOpConstructU8Vec3:
+    case glslang::EOpConstructU8Vec4:
+    case glslang::EOpConstructInt16:
+    case glslang::EOpConstructI16Vec2:
+    case glslang::EOpConstructI16Vec3:
+    case glslang::EOpConstructI16Vec4:
+    case glslang::EOpConstructUint16:
+    case glslang::EOpConstructU16Vec2:
+    case glslang::EOpConstructU16Vec3:
+    case glslang::EOpConstructU16Vec4:
+    case glslang::EOpConstructInt:
+    case glslang::EOpConstructIVec2:
+    case glslang::EOpConstructIVec3:
+    case glslang::EOpConstructIVec4:
+    case glslang::EOpConstructUint:
+    case glslang::EOpConstructUVec2:
+    case glslang::EOpConstructUVec3:
+    case glslang::EOpConstructUVec4:
+    case glslang::EOpConstructInt64:
+    case glslang::EOpConstructI64Vec2:
+    case glslang::EOpConstructI64Vec3:
+    case glslang::EOpConstructI64Vec4:
+    case glslang::EOpConstructUint64:
+    case glslang::EOpConstructU64Vec2:
+    case glslang::EOpConstructU64Vec3:
+    case glslang::EOpConstructU64Vec4:
+    case glslang::EOpConstructStruct:
+    case glslang::EOpConstructTextureSampler:
+    case glslang::EOpConstructReference:
+    case glslang::EOpConstructCooperativeMatrix:
     {
         builder.setLine(node->getLoc().line, node->getLoc().getFilename());
-        std::vector<Pspv::Id> arguments;
+        std::vector<spv::Id> arguments;
         translateArguments(*node, arguments, lvalueCoherentFlags);
-        Pspv::Id constructed;
-        if (node->getOp() == Pglslang::EOpConstructTextureSampler)
-            constructed = builder.createOp(Pspv::OpSampledImage, resultType(), arguments);
-        else if (node->getOp() == Pglslang::EOpConstructStruct ||
-                 node->getOp() == Pglslang::EOpConstructCooperativeMatrix ||
+        spv::Id constructed;
+        if (node->getOp() == glslang::EOpConstructTextureSampler)
+            constructed = builder.createOp(spv::OpSampledImage, resultType(), arguments);
+        else if (node->getOp() == glslang::EOpConstructStruct ||
+                 node->getOp() == glslang::EOpConstructCooperativeMatrix ||
                  node->getType().isArray()) {
-            std::vector<Pspv::Id> constituents;
+            std::vector<spv::Id> constituents;
             for (int c = 0; c < (int)arguments.size(); ++c)
                 constituents.push_back(arguments[c]);
             constructed = createCompositeConstruct(resultType(), constituents);
@@ -2526,127 +2526,127 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
 
     // These six are component-wise compares with component-wise results.
     // Forward on to createBinaryOperation(), requesting a vector result.
-    case Pglslang::EOpLessThan:
-    case Pglslang::EOpGreaterThan:
-    case Pglslang::EOpLessThanEqual:
-    case Pglslang::EOpGreaterThanEqual:
-    case Pglslang::EOpVectorEqual:
-    case Pglslang::EOpVectorNotEqual:
+    case glslang::EOpLessThan:
+    case glslang::EOpGreaterThan:
+    case glslang::EOpLessThanEqual:
+    case glslang::EOpGreaterThanEqual:
+    case glslang::EOpVectorEqual:
+    case glslang::EOpVectorNotEqual:
     {
         // Map the operation to a binary
         binOp = node->getOp();
         reduceComparison = false;
         switch (node->getOp()) {
-        case Pglslang::EOpVectorEqual:     binOp = Pglslang::EOpVectorEqual;      break;
-        case Pglslang::EOpVectorNotEqual:  binOp = Pglslang::EOpVectorNotEqual;   break;
+        case glslang::EOpVectorEqual:     binOp = glslang::EOpVectorEqual;      break;
+        case glslang::EOpVectorNotEqual:  binOp = glslang::EOpVectorNotEqual;   break;
         default:                          binOp = node->getOp();                break;
         }
 
         break;
     }
-    case Pglslang::EOpMul:
+    case glslang::EOpMul:
         // component-wise matrix multiply
-        binOp = Pglslang::EOpMul;
+        binOp = glslang::EOpMul;
         break;
-    case Pglslang::EOpOuterProduct:
+    case glslang::EOpOuterProduct:
         // two vectors multiplied to make a matrix
-        binOp = Pglslang::EOpOuterProduct;
+        binOp = glslang::EOpOuterProduct;
         break;
-    case Pglslang::EOpDot:
+    case glslang::EOpDot:
     {
         // for scalar dot product, use multiply
-        Pglslang::TIntermSequence& glslangOperands = node->getSequence();
+        glslang::TIntermSequence& glslangOperands = node->getSequence();
         if (glslangOperands[0]->getAsTyped()->getVectorSize() == 1)
-            binOp = Pglslang::EOpMul;
+            binOp = glslang::EOpMul;
         break;
     }
-    case Pglslang::EOpMod:
+    case glslang::EOpMod:
         // when an aggregate, this is the floating-point mod built-in function,
         // which can be emitted by the one in createBinaryOperation()
-        binOp = Pglslang::EOpMod;
+        binOp = glslang::EOpMod;
         break;
 
-    case Pglslang::EOpEmitVertex:
-    case Pglslang::EOpEndPrimitive:
-    case Pglslang::EOpBarrier:
-    case Pglslang::EOpMemoryBarrier:
-    case Pglslang::EOpMemoryBarrierAtomicCounter:
-    case Pglslang::EOpMemoryBarrierBuffer:
-    case Pglslang::EOpMemoryBarrierImage:
-    case Pglslang::EOpMemoryBarrierShared:
-    case Pglslang::EOpGroupMemoryBarrier:
-    case Pglslang::EOpDeviceMemoryBarrier:
-    case Pglslang::EOpAllMemoryBarrierWithGroupSync:
-    case Pglslang::EOpDeviceMemoryBarrierWithGroupSync:
-    case Pglslang::EOpWorkgroupMemoryBarrier:
-    case Pglslang::EOpWorkgroupMemoryBarrierWithGroupSync:
-    case Pglslang::EOpSubgroupBarrier:
-    case Pglslang::EOpSubgroupMemoryBarrier:
-    case Pglslang::EOpSubgroupMemoryBarrierBuffer:
-    case Pglslang::EOpSubgroupMemoryBarrierImage:
-    case Pglslang::EOpSubgroupMemoryBarrierShared:
+    case glslang::EOpEmitVertex:
+    case glslang::EOpEndPrimitive:
+    case glslang::EOpBarrier:
+    case glslang::EOpMemoryBarrier:
+    case glslang::EOpMemoryBarrierAtomicCounter:
+    case glslang::EOpMemoryBarrierBuffer:
+    case glslang::EOpMemoryBarrierImage:
+    case glslang::EOpMemoryBarrierShared:
+    case glslang::EOpGroupMemoryBarrier:
+    case glslang::EOpDeviceMemoryBarrier:
+    case glslang::EOpAllMemoryBarrierWithGroupSync:
+    case glslang::EOpDeviceMemoryBarrierWithGroupSync:
+    case glslang::EOpWorkgroupMemoryBarrier:
+    case glslang::EOpWorkgroupMemoryBarrierWithGroupSync:
+    case glslang::EOpSubgroupBarrier:
+    case glslang::EOpSubgroupMemoryBarrier:
+    case glslang::EOpSubgroupMemoryBarrierBuffer:
+    case glslang::EOpSubgroupMemoryBarrierImage:
+    case glslang::EOpSubgroupMemoryBarrierShared:
         noReturnValue = true;
         // These all have 0 operands and will naturally finish up in the code below for 0 operands
         break;
 
-    case Pglslang::EOpAtomicAdd:
-    case Pglslang::EOpAtomicMin:
-    case Pglslang::EOpAtomicMax:
-    case Pglslang::EOpAtomicAnd:
-    case Pglslang::EOpAtomicOr:
-    case Pglslang::EOpAtomicXor:
-    case Pglslang::EOpAtomicExchange:
-    case Pglslang::EOpAtomicCompSwap:
+    case glslang::EOpAtomicAdd:
+    case glslang::EOpAtomicMin:
+    case glslang::EOpAtomicMax:
+    case glslang::EOpAtomicAnd:
+    case glslang::EOpAtomicOr:
+    case glslang::EOpAtomicXor:
+    case glslang::EOpAtomicExchange:
+    case glslang::EOpAtomicCompSwap:
         atomic = true;
         break;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpAtomicStore:
+    case glslang::EOpAtomicStore:
         noReturnValue = true;
         // fallthrough
-    case Pglslang::EOpAtomicLoad:
+    case glslang::EOpAtomicLoad:
         atomic = true;
         break;
 
-    case Pglslang::EOpAtomicCounterAdd:
-    case Pglslang::EOpAtomicCounterSubtract:
-    case Pglslang::EOpAtomicCounterMin:
-    case Pglslang::EOpAtomicCounterMax:
-    case Pglslang::EOpAtomicCounterAnd:
-    case Pglslang::EOpAtomicCounterOr:
-    case Pglslang::EOpAtomicCounterXor:
-    case Pglslang::EOpAtomicCounterExchange:
-    case Pglslang::EOpAtomicCounterCompSwap:
+    case glslang::EOpAtomicCounterAdd:
+    case glslang::EOpAtomicCounterSubtract:
+    case glslang::EOpAtomicCounterMin:
+    case glslang::EOpAtomicCounterMax:
+    case glslang::EOpAtomicCounterAnd:
+    case glslang::EOpAtomicCounterOr:
+    case glslang::EOpAtomicCounterXor:
+    case glslang::EOpAtomicCounterExchange:
+    case glslang::EOpAtomicCounterCompSwap:
         builder.addExtension("SPV_KHR_shader_atomic_counter_ops");
-        builder.addCapability(Pspv::CapabilityAtomicStorageOps);
+        builder.addCapability(spv::CapabilityAtomicStorageOps);
         atomic = true;
         break;
 
-    case Pglslang::EOpAbsDifference:
-    case Pglslang::EOpAddSaturate:
-    case Pglslang::EOpSubSaturate:
-    case Pglslang::EOpAverage:
-    case Pglslang::EOpAverageRounded:
-    case Pglslang::EOpMul32x16:
-        builder.addCapability(Pspv::CapabilityIntegerFunctions2INTEL);
+    case glslang::EOpAbsDifference:
+    case glslang::EOpAddSaturate:
+    case glslang::EOpSubSaturate:
+    case glslang::EOpAverage:
+    case glslang::EOpAverageRounded:
+    case glslang::EOpMul32x16:
+        builder.addCapability(spv::CapabilityIntegerFunctions2INTEL);
         builder.addExtension("SPV_INTEL_shader_integer_functions2");
         binOp = node->getOp();
         break;
 
-    case Pglslang::EOpIgnoreIntersectionNV:
-    case Pglslang::EOpTerminateRayNV:
-    case Pglslang::EOpTraceNV:
-    case Pglslang::EOpExecuteCallableNV:
-    case Pglslang::EOpWritePackedPrimitiveIndices4x8NV:
+    case glslang::EOpIgnoreIntersectionNV:
+    case glslang::EOpTerminateRayNV:
+    case glslang::EOpTraceNV:
+    case glslang::EOpExecuteCallableNV:
+    case glslang::EOpWritePackedPrimitiveIndices4x8NV:
         noReturnValue = true;
         break;
-    case Pglslang::EOpCooperativeMatrixLoad:
-    case Pglslang::EOpCooperativeMatrixStore:
+    case glslang::EOpCooperativeMatrixLoad:
+    case glslang::EOpCooperativeMatrixStore:
         noReturnValue = true;
         break;
-    case Pglslang::EOpBeginInvocationInterlock:
-    case Pglslang::EOpEndInvocationInterlock:
-        builder.addExtension(Pspv::E_SPV_EXT_fragment_shader_interlock);
+    case glslang::EOpBeginInvocationInterlock:
+    case glslang::EOpEndInvocationInterlock:
+        builder.addExtension(spv::E_SPV_EXT_fragment_shader_interlock);
         noReturnValue = true;
         break;
 #endif
@@ -2658,18 +2658,18 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
     //
     // See if it maps to a regular operation.
     //
-    if (binOp != Pglslang::EOpNull) {
-        Pglslang::TIntermTyped* left = node->getSequence()[0]->getAsTyped();
-        Pglslang::TIntermTyped* right = node->getSequence()[1]->getAsTyped();
+    if (binOp != glslang::EOpNull) {
+        glslang::TIntermTyped* left = node->getSequence()[0]->getAsTyped();
+        glslang::TIntermTyped* right = node->getSequence()[1]->getAsTyped();
         assert(left && right);
 
         builder.clearAccessChain();
         left->traverse(this);
-        Pspv::Id leftId = accessChainLoad(left->getType());
+        spv::Id leftId = accessChainLoad(left->getType());
 
         builder.clearAccessChain();
         right->traverse(this);
-        Pspv::Id rightId = accessChainLoad(right->getType());
+        spv::Id rightId = accessChainLoad(right->getType());
 
         builder.setLine(node->getLoc().line, node->getLoc().getFilename());
         OpDecorations decorations = { precision,
@@ -2680,7 +2680,7 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
                                        left->getType().getBasicType(), reduceComparison);
 
         // code above should only make binOp that exists in createBinaryOperation
-        assert(result != Pspv::NoResult);
+        assert(result != spv::NoResult);
         builder.clearAccessChain();
         builder.setAccessChainRValue(result);
 
@@ -2690,77 +2690,77 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
     //
     // Create the list of operands.
     //
-    Pglslang::TIntermSequence& glslangOperands = node->getSequence();
-    std::vector<Pspv::Id> operands;
-    std::vector<Pspv::IdImmediate> memoryAccessOperands;
+    glslang::TIntermSequence& glslangOperands = node->getSequence();
+    std::vector<spv::Id> operands;
+    std::vector<spv::IdImmediate> memoryAccessOperands;
     for (int arg = 0; arg < (int)glslangOperands.size(); ++arg) {
         // special case l-value operands; there are just a few
         bool lvalue = false;
         switch (node->getOp()) {
-        case Pglslang::EOpModf:
+        case glslang::EOpModf:
             if (arg == 1)
                 lvalue = true;
             break;
 
-        case Pglslang::EOpAtomicAdd:
-        case Pglslang::EOpAtomicMin:
-        case Pglslang::EOpAtomicMax:
-        case Pglslang::EOpAtomicAnd:
-        case Pglslang::EOpAtomicOr:
-        case Pglslang::EOpAtomicXor:
-        case Pglslang::EOpAtomicExchange:
-        case Pglslang::EOpAtomicCompSwap:
+        case glslang::EOpAtomicAdd:
+        case glslang::EOpAtomicMin:
+        case glslang::EOpAtomicMax:
+        case glslang::EOpAtomicAnd:
+        case glslang::EOpAtomicOr:
+        case glslang::EOpAtomicXor:
+        case glslang::EOpAtomicExchange:
+        case glslang::EOpAtomicCompSwap:
             if (arg == 0)
                 lvalue = true;
             break;
 
 #ifndef GLSLANG_WEB
-        case Pglslang::EOpFrexp:
+        case glslang::EOpFrexp:
             if (arg == 1)
                 lvalue = true;
             break;
-        case Pglslang::EOpInterpolateAtSample:
-        case Pglslang::EOpInterpolateAtOffset:
-        case Pglslang::EOpInterpolateAtVertex:
+        case glslang::EOpInterpolateAtSample:
+        case glslang::EOpInterpolateAtOffset:
+        case glslang::EOpInterpolateAtVertex:
             if (arg == 0) {
                 lvalue = true;
 
                 // Does it need a swizzle inversion?  If so, evaluation is inverted;
                 // operate first on the swizzle base, then apply the swizzle.
                 if (glslangOperands[0]->getAsOperator() &&
-                    glslangOperands[0]->getAsOperator()->getOp() == Pglslang::EOpVectorSwizzle)
+                    glslangOperands[0]->getAsOperator()->getOp() == glslang::EOpVectorSwizzle)
                     invertedType = convertGlslangToSpvType(glslangOperands[0]->getAsBinaryNode()->getLeft()->getType());
             }
             break;
-        case Pglslang::EOpAtomicLoad:
-        case Pglslang::EOpAtomicStore:
-        case Pglslang::EOpAtomicCounterAdd:
-        case Pglslang::EOpAtomicCounterSubtract:
-        case Pglslang::EOpAtomicCounterMin:
-        case Pglslang::EOpAtomicCounterMax:
-        case Pglslang::EOpAtomicCounterAnd:
-        case Pglslang::EOpAtomicCounterOr:
-        case Pglslang::EOpAtomicCounterXor:
-        case Pglslang::EOpAtomicCounterExchange:
-        case Pglslang::EOpAtomicCounterCompSwap:
+        case glslang::EOpAtomicLoad:
+        case glslang::EOpAtomicStore:
+        case glslang::EOpAtomicCounterAdd:
+        case glslang::EOpAtomicCounterSubtract:
+        case glslang::EOpAtomicCounterMin:
+        case glslang::EOpAtomicCounterMax:
+        case glslang::EOpAtomicCounterAnd:
+        case glslang::EOpAtomicCounterOr:
+        case glslang::EOpAtomicCounterXor:
+        case glslang::EOpAtomicCounterExchange:
+        case glslang::EOpAtomicCounterCompSwap:
             if (arg == 0)
                 lvalue = true;
             break;
-        case Pglslang::EOpAddCarry:
-        case Pglslang::EOpSubBorrow:
+        case glslang::EOpAddCarry:
+        case glslang::EOpSubBorrow:
             if (arg == 2)
                 lvalue = true;
             break;
-        case Pglslang::EOpUMulExtended:
-        case Pglslang::EOpIMulExtended:
+        case glslang::EOpUMulExtended:
+        case glslang::EOpIMulExtended:
             if (arg >= 2)
                 lvalue = true;
             break;
-        case Pglslang::EOpCooperativeMatrixLoad:
+        case glslang::EOpCooperativeMatrixLoad:
             if (arg == 0 || arg == 1)
                 lvalue = true;
             break;
-        case Pglslang::EOpCooperativeMatrixStore:
+        case glslang::EOpCooperativeMatrixStore:
             if (arg == 1)
                 lvalue = true;
             break;
@@ -2769,22 +2769,22 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
             break;
         }
         builder.clearAccessChain();
-        if (invertedType != Pspv::NoType && arg == 0)
+        if (invertedType != spv::NoType && arg == 0)
             glslangOperands[0]->getAsBinaryNode()->getLeft()->traverse(this);
         else
             glslangOperands[arg]->traverse(this);
 
 #ifndef GLSLANG_WEB
-        if (node->getOp() == Pglslang::EOpCooperativeMatrixLoad ||
-            node->getOp() == Pglslang::EOpCooperativeMatrixStore) {
+        if (node->getOp() == glslang::EOpCooperativeMatrixLoad ||
+            node->getOp() == glslang::EOpCooperativeMatrixStore) {
 
             if (arg == 1) {
                 // fold "element" parameter into the access chain
-                Pspv::Builder::AccessChain save = builder.getAccessChain();
+                spv::Builder::AccessChain save = builder.getAccessChain();
                 builder.clearAccessChain();
                 glslangOperands[2]->traverse(this);
 
-                Pspv::Id elementId = accessChainLoad(glslangOperands[2]->getAsTyped()->getType());
+                spv::Id elementId = accessChainLoad(glslangOperands[2]->getAsTyped()->getType());
 
                 builder.setAccessChain(save);
 
@@ -2792,26 +2792,26 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
                 builder.accessChainPush(elementId, TranslateCoherent(glslangOperands[arg]->getAsTyped()->getType()),
                                                    glslangOperands[arg]->getAsTyped()->getType().getBufferReferenceAlignment());
 
-                Pspv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
+                spv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
                 unsigned int alignment = builder.getAccessChain().alignment;
 
                 int memoryAccess = TranslateMemoryAccess(coherentFlags);
-                if (node->getOp() == Pglslang::EOpCooperativeMatrixLoad)
-                    memoryAccess &= ~Pspv::MemoryAccessMakePointerAvailableKHRMask;
-                if (node->getOp() == Pglslang::EOpCooperativeMatrixStore)
-                    memoryAccess &= ~Pspv::MemoryAccessMakePointerVisibleKHRMask;
-                if (builder.getStorageClass(builder.getAccessChain().base) == Pspv::StorageClassPhysicalStorageBufferEXT) {
-                    memoryAccess = (Pspv::MemoryAccessMask)(memoryAccess | Pspv::MemoryAccessAlignedMask);
+                if (node->getOp() == glslang::EOpCooperativeMatrixLoad)
+                    memoryAccess &= ~spv::MemoryAccessMakePointerAvailableKHRMask;
+                if (node->getOp() == glslang::EOpCooperativeMatrixStore)
+                    memoryAccess &= ~spv::MemoryAccessMakePointerVisibleKHRMask;
+                if (builder.getStorageClass(builder.getAccessChain().base) == spv::StorageClassPhysicalStorageBufferEXT) {
+                    memoryAccess = (spv::MemoryAccessMask)(memoryAccess | spv::MemoryAccessAlignedMask);
                 }
 
-                memoryAccessOperands.push_back(Pspv::IdImmediate(false, memoryAccess));
+                memoryAccessOperands.push_back(spv::IdImmediate(false, memoryAccess));
 
-                if (memoryAccess & Pspv::MemoryAccessAlignedMask) {
-                    memoryAccessOperands.push_back(Pspv::IdImmediate(false, alignment));
+                if (memoryAccess & spv::MemoryAccessAlignedMask) {
+                    memoryAccessOperands.push_back(spv::IdImmediate(false, alignment));
                 }
 
-                if (memoryAccess & (Pspv::MemoryAccessMakePointerAvailableKHRMask | Pspv::MemoryAccessMakePointerVisibleKHRMask)) {
-                    memoryAccessOperands.push_back(Pspv::IdImmediate(true, builder.makeUintConstant(TranslateMemoryScope(coherentFlags))));
+                if (memoryAccess & (spv::MemoryAccessMakePointerAvailableKHRMask | spv::MemoryAccessMakePointerVisibleKHRMask)) {
+                    memoryAccessOperands.push_back(spv::IdImmediate(true, builder.makeUintConstant(TranslateMemoryScope(coherentFlags))));
                 }
             } else if (arg == 2) {
                 continue;
@@ -2831,31 +2831,31 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
 
     builder.setLine(node->getLoc().line, node->getLoc().getFilename());
 #ifndef GLSLANG_WEB
-    if (node->getOp() == Pglslang::EOpCooperativeMatrixLoad) {
-        std::vector<Pspv::IdImmediate> idImmOps;
+    if (node->getOp() == glslang::EOpCooperativeMatrixLoad) {
+        std::vector<spv::IdImmediate> idImmOps;
 
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[1])); // buf
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[2])); // stride
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[3])); // colMajor
+        idImmOps.push_back(spv::IdImmediate(true, operands[1])); // buf
+        idImmOps.push_back(spv::IdImmediate(true, operands[2])); // stride
+        idImmOps.push_back(spv::IdImmediate(true, operands[3])); // colMajor
         idImmOps.insert(idImmOps.end(), memoryAccessOperands.begin(), memoryAccessOperands.end());
         // get the pointee type
-        Pspv::Id typeId = builder.getContainedTypeId(builder.getTypeId(operands[0]));
+        spv::Id typeId = builder.getContainedTypeId(builder.getTypeId(operands[0]));
         assert(builder.isCooperativeMatrixType(typeId));
         // do the op
-        Pspv::Id result = builder.createOp(Pspv::OpCooperativeMatrixLoadNV, typeId, idImmOps);
+        spv::Id result = builder.createOp(spv::OpCooperativeMatrixLoadNV, typeId, idImmOps);
         // store the result to the pointer (out param 'm')
         builder.createStore(result, operands[0]);
         result = 0;
-    } else if (node->getOp() == Pglslang::EOpCooperativeMatrixStore) {
-        std::vector<Pspv::IdImmediate> idImmOps;
+    } else if (node->getOp() == glslang::EOpCooperativeMatrixStore) {
+        std::vector<spv::IdImmediate> idImmOps;
 
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[1])); // buf
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[0])); // object
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[2])); // stride
-        idImmOps.push_back(Pspv::IdImmediate(true, operands[3])); // colMajor
+        idImmOps.push_back(spv::IdImmediate(true, operands[1])); // buf
+        idImmOps.push_back(spv::IdImmediate(true, operands[0])); // object
+        idImmOps.push_back(spv::IdImmediate(true, operands[2])); // stride
+        idImmOps.push_back(spv::IdImmediate(true, operands[3])); // colMajor
         idImmOps.insert(idImmOps.end(), memoryAccessOperands.begin(), memoryAccessOperands.end());
 
-        builder.createNoResultOp(Pspv::OpCooperativeMatrixStoreNV, idImmOps);
+        builder.createNoResultOp(spv::OpCooperativeMatrixStoreNV, idImmOps);
         result = 0;
     } else
 #endif
@@ -2909,14 +2909,14 @@ bool TGlslangToSpvTraverser::visitAggregate(Pglslang::TVisit visit, Pglslang::TI
 // if we have an l-value, that can be more efficient if it will
 // become the base of a complex r-value expression, because the
 // next layer copies r-values into memory to use the access-chain mechanism
-bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglslang::TIntermSelection* node)
+bool TGlslangToSpvTraverser::visitSelection(glslang::TVisit /* visit */, glslang::TIntermSelection* node)
 {
     // see if OpSelect can handle it
     const auto isOpSelectable = [&]() {
-        if (node->getBasicType() == Pglslang::EbtVoid)
+        if (node->getBasicType() == glslang::EbtVoid)
             return false;
         // OpSelect can do all other types starting with SPV 1.4
-        if (glslangIntermediate->getSpv().spv < Pglslang::EShTargetSpv_1_4) {
+        if (glslangIntermediate->getSpv().spv < glslang::EShTargetSpv_1_4) {
             // pre-1.4, only scalars and vectors can be handled
             if ((!node->getType().isScalar() && !node->getType().isVector()))
                 return false;
@@ -2949,7 +2949,7 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
                node->getType() == node->getFalseBlock()->getAsTyped()->getType());
 
         // return true if a single operand to ? : is okay for OpSelect
-        const auto operandOkay = [](Pglslang::TIntermTyped* node) {
+        const auto operandOkay = [](glslang::TIntermTyped* node) {
             return node->getAsSymbolNode() || node->getType().getQualifier().isConstant();
         };
 
@@ -2957,23 +2957,23 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
                operandOkay(node->getFalseBlock()->getAsTyped());
     };
 
-    Pspv::Id result = Pspv::NoResult; // upcoming result selecting between trueValue and falseValue
+    spv::Id result = spv::NoResult; // upcoming result selecting between trueValue and falseValue
     // emit the condition before doing anything with selection
     node->getCondition()->traverse(this);
-    Pspv::Id condition = accessChainLoad(node->getCondition()->getType());
+    spv::Id condition = accessChainLoad(node->getCondition()->getType());
 
     // Find a way of executing both sides and selecting the right result.
     const auto executeBothSides = [&]() -> void {
         // execute both sides
         node->getTrueBlock()->traverse(this);
-        Pspv::Id trueValue = accessChainLoad(node->getTrueBlock()->getAsTyped()->getType());
+        spv::Id trueValue = accessChainLoad(node->getTrueBlock()->getAsTyped()->getType());
         node->getFalseBlock()->traverse(this);
-        Pspv::Id falseValue = accessChainLoad(node->getTrueBlock()->getAsTyped()->getType());
+        spv::Id falseValue = accessChainLoad(node->getTrueBlock()->getAsTyped()->getType());
 
         builder.setLine(node->getLoc().line, node->getLoc().getFilename());
 
         // done if void
-        if (node->getBasicType() == Pglslang::EbtVoid)
+        if (node->getBasicType() == glslang::EbtVoid)
             return;
 
         // emit code to select between trueValue and falseValue
@@ -2984,14 +2984,14 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
 
             // smear condition to vector, if necessary (AST is always scalar)
             // Before 1.4, smear like for mix(), starting with 1.4, keep it scalar
-            if (glslangIntermediate->getSpv().spv < Pglslang::EShTargetSpv_1_4 && builder.isVector(trueValue)) {
-                condition = builder.smearScalar(Pspv::NoPrecision, condition, 
+            if (glslangIntermediate->getSpv().spv < glslang::EShTargetSpv_1_4 && builder.isVector(trueValue)) {
+                condition = builder.smearScalar(spv::NoPrecision, condition, 
                                                 builder.makeVectorType(builder.makeBoolType(),
                                                                        builder.getNumComponents(trueValue)));
             }
 
             // OpSelect
-            result = builder.createTriOp(Pspv::OpSelect,
+            result = builder.createTriOp(spv::OpSelect,
                                          convertGlslangToSpvType(node->getType()), condition,
                                                                  trueValue, falseValue);
 
@@ -3000,13 +3000,13 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
         } else {
             // We need control flow to select the result.
             // TODO: Once SPIR-V OpSelect allows arbitrary types, eliminate this path.
-            result = builder.createVariable(Pspv::StorageClassFunction, convertGlslangToSpvType(node->getType()));
+            result = builder.createVariable(spv::StorageClassFunction, convertGlslangToSpvType(node->getType()));
 
             // Selection control:
-            const Pspv::SelectionControlMask control = TranslateSelectionControl(*node);
+            const spv::SelectionControlMask control = TranslateSelectionControl(*node);
 
             // make an "if" based on the value created by the condition
-            Pspv::Builder::If ifBuilder(condition, control, builder);
+            spv::Builder::If ifBuilder(condition, control, builder);
 
             // emit the "then" statement
             builder.createStore(trueValue, result);
@@ -3025,19 +3025,19 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
     // Execute the one side needed, as per the condition
     const auto executeOneSide = [&]() {
         // Always emit control flow.
-        if (node->getBasicType() != Pglslang::EbtVoid)
-            result = builder.createVariable(Pspv::StorageClassFunction, convertGlslangToSpvType(node->getType()));
+        if (node->getBasicType() != glslang::EbtVoid)
+            result = builder.createVariable(spv::StorageClassFunction, convertGlslangToSpvType(node->getType()));
 
         // Selection control:
-        const Pspv::SelectionControlMask control = TranslateSelectionControl(*node);
+        const spv::SelectionControlMask control = TranslateSelectionControl(*node);
 
         // make an "if" based on the value created by the condition
-        Pspv::Builder::If ifBuilder(condition, control, builder);
+        spv::Builder::If ifBuilder(condition, control, builder);
 
         // emit the "then" statement
         if (node->getTrueBlock() != nullptr) {
             node->getTrueBlock()->traverse(this);
-            if (result != Pspv::NoResult)
+            if (result != spv::NoResult)
                 builder.createStore(accessChainLoad(node->getTrueBlock()->getAsTyped()->getType()), result);
         }
 
@@ -3045,14 +3045,14 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
             ifBuilder.makeBeginElse();
             // emit the "else" statement
             node->getFalseBlock()->traverse(this);
-            if (result != Pspv::NoResult)
+            if (result != spv::NoResult)
                 builder.createStore(accessChainLoad(node->getFalseBlock()->getAsTyped()->getType()), result);
         }
 
         // finish off the control flow
         ifBuilder.makeEndIf();
 
-        if (result != Pspv::NoResult) {
+        if (result != spv::NoResult) {
             builder.clearAccessChain();
             builder.setAccessChainLValue(result);
         }
@@ -3070,26 +3070,26 @@ bool TGlslangToSpvTraverser::visitSelection(Pglslang::TVisit /* visit */, Pglsla
     return false;
 }
 
-bool TGlslangToSpvTraverser::visitSwitch(Pglslang::TVisit /* visit */, Pglslang::TIntermSwitch* node)
+bool TGlslangToSpvTraverser::visitSwitch(glslang::TVisit /* visit */, glslang::TIntermSwitch* node)
 {
     // emit and get the condition before doing anything with switch
     node->getCondition()->traverse(this);
-    Pspv::Id selector = accessChainLoad(node->getCondition()->getAsTyped()->getType());
+    spv::Id selector = accessChainLoad(node->getCondition()->getAsTyped()->getType());
 
     // Selection control:
-    const Pspv::SelectionControlMask control = TranslateSwitchControl(*node);
+    const spv::SelectionControlMask control = TranslateSwitchControl(*node);
 
     // browse the children to sort out code segments
     int defaultSegment = -1;
     std::vector<TIntermNode*> codeSegments;
-    Pglslang::TIntermSequence& sequence = node->getBody()->getSequence();
+    glslang::TIntermSequence& sequence = node->getBody()->getSequence();
     std::vector<int> caseValues;
     std::vector<int> valueIndexToSegment(sequence.size());  // note: probably not all are used, it is an overestimate
-    for (Pglslang::TIntermSequence::iterator c = sequence.begin(); c != sequence.end(); ++c) {
+    for (glslang::TIntermSequence::iterator c = sequence.begin(); c != sequence.end(); ++c) {
         TIntermNode* child = *c;
-        if (child->getAsBranchNode() && child->getAsBranchNode()->getFlowOp() == Pglslang::EOpDefault)
+        if (child->getAsBranchNode() && child->getAsBranchNode()->getFlowOp() == glslang::EOpDefault)
             defaultSegment = (int)codeSegments.size();
-        else if (child->getAsBranchNode() && child->getAsBranchNode()->getFlowOp() == Pglslang::EOpCase) {
+        else if (child->getAsBranchNode() && child->getAsBranchNode()->getFlowOp() == glslang::EOpCase) {
             valueIndexToSegment[caseValues.size()] = (int)codeSegments.size();
             caseValues.push_back(child->getAsBranchNode()->getExpression()->getAsConstantUnion()->getConstArray()[0].getIConst());
         } else
@@ -3103,7 +3103,7 @@ bool TGlslangToSpvTraverser::visitSwitch(Pglslang::TVisit /* visit */, Pglslang:
         codeSegments.push_back(nullptr);
 
     // make the switch statement
-    std::vector<Pspv::Block*> segmentBlocks; // returned, as the blocks allocated in the call
+    std::vector<spv::Block*> segmentBlocks; // returned, as the blocks allocated in the call
     builder.makeSwitch(selector, control, (int)codeSegments.size(), caseValues, valueIndexToSegment, defaultSegment, segmentBlocks);
 
     // emit all the code in the segments
@@ -3122,23 +3122,23 @@ bool TGlslangToSpvTraverser::visitSwitch(Pglslang::TVisit /* visit */, Pglslang:
     return false;
 }
 
-void TGlslangToSpvTraverser::visitConstantUnion(Pglslang::TIntermConstantUnion* node)
+void TGlslangToSpvTraverser::visitConstantUnion(glslang::TIntermConstantUnion* node)
 {
     int nextConst = 0;
-    Pspv::Id constant = createSpvConstantFromConstUnionArray(node->getType(), node->getConstArray(), nextConst, false);
+    spv::Id constant = createSpvConstantFromConstUnionArray(node->getType(), node->getConstArray(), nextConst, false);
 
     builder.clearAccessChain();
     builder.setAccessChainRValue(constant);
 }
 
-bool TGlslangToSpvTraverser::visitLoop(Pglslang::TVisit /* visit */, Pglslang::TIntermLoop* node)
+bool TGlslangToSpvTraverser::visitLoop(glslang::TVisit /* visit */, glslang::TIntermLoop* node)
 {
     auto blocks = builder.makeNewLoop();
     builder.createBranch(&blocks.head);
 
     // Loop control:
     std::vector<unsigned int> operands;
-    const Pspv::LoopControlMask control = TranslateLoopControl(*node, operands);
+    const spv::LoopControlMask control = TranslateLoopControl(*node, operands);
 
     // Spec requires back edges to target header blocks, and every header block
     // must dominate its merge block.  Make a header block first to ensure these
@@ -3150,12 +3150,12 @@ bool TGlslangToSpvTraverser::visitLoop(Pglslang::TVisit /* visit */, Pglslang::T
     builder.setBuildPoint(&blocks.head);
     builder.createLoopMerge(&blocks.merge, &blocks.continue_target, control, operands);
     if (node->testFirst() && node->getTest()) {
-        Pspv::Block& test = builder.makeNewBlock();
+        spv::Block& test = builder.makeNewBlock();
         builder.createBranch(&test);
 
         builder.setBuildPoint(&test);
         node->getTest()->traverse(this);
-        Pspv::Id condition = accessChainLoad(node->getTest()->getType());
+        spv::Id condition = accessChainLoad(node->getTest()->getType());
         builder.createConditionalBranch(condition, &blocks.body, &blocks.merge);
 
         builder.setBuildPoint(&blocks.body);
@@ -3185,7 +3185,7 @@ bool TGlslangToSpvTraverser::visitLoop(Pglslang::TVisit /* visit */, Pglslang::T
             node->getTerminal()->traverse(this);
         if (node->getTest()) {
             node->getTest()->traverse(this);
-            Pspv::Id condition =
+            spv::Id condition =
                 accessChainLoad(node->getTest()->getType());
             builder.createConditionalBranch(condition, &blocks.head, &blocks.merge);
         } else {
@@ -3200,7 +3200,7 @@ bool TGlslangToSpvTraverser::visitLoop(Pglslang::TVisit /* visit */, Pglslang::T
     return false;
 }
 
-bool TGlslangToSpvTraverser::visitBranch(Pglslang::TVisit /* visit */, Pglslang::TIntermBranch* node)
+bool TGlslangToSpvTraverser::visitBranch(glslang::TVisit /* visit */, glslang::TIntermBranch* node)
 {
     if (node->getExpression())
         node->getExpression()->traverse(this);
@@ -3208,25 +3208,25 @@ bool TGlslangToSpvTraverser::visitBranch(Pglslang::TVisit /* visit */, Pglslang:
     builder.setLine(node->getLoc().line, node->getLoc().getFilename());
 
     switch (node->getFlowOp()) {
-    case Pglslang::EOpKill:
+    case glslang::EOpKill:
         builder.makeDiscard();
         break;
-    case Pglslang::EOpBreak:
+    case glslang::EOpBreak:
         if (breakForLoop.top())
             builder.createLoopExit();
         else
             builder.addSwitchBreak();
         break;
-    case Pglslang::EOpContinue:
+    case glslang::EOpContinue:
         builder.createLoopContinue();
         break;
-    case Pglslang::EOpReturn:
+    case glslang::EOpReturn:
         if (node->getExpression()) {
-            const Pglslang::TType& glslangReturnType = node->getExpression()->getType();
-            Pspv::Id returnId = accessChainLoad(glslangReturnType);
+            const glslang::TType& glslangReturnType = node->getExpression()->getType();
+            spv::Id returnId = accessChainLoad(glslangReturnType);
             if (builder.getTypeId(returnId) != currentFunction->getReturnType()) {
                 builder.clearAccessChain();
-                Pspv::Id copyId = builder.createVariable(Pspv::StorageClassFunction, currentFunction->getReturnType());
+                spv::Id copyId = builder.createVariable(spv::StorageClassFunction, currentFunction->getReturnType());
                 builder.setAccessChainLValue(copyId);
                 multiTypeStore(glslangReturnType, returnId);
                 returnId = builder.createLoad(copyId);
@@ -3239,10 +3239,10 @@ bool TGlslangToSpvTraverser::visitBranch(Pglslang::TVisit /* visit */, Pglslang:
         break;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpDemote:
-        builder.createNoResultOp(Pspv::OpDemoteToHelperInvocationEXT);
-        builder.addExtension(Pspv::E_SPV_EXT_demote_to_helper_invocation);
-        builder.addCapability(Pspv::CapabilityDemoteToHelperInvocationEXT);
+    case glslang::EOpDemote:
+        builder.createNoResultOp(spv::OpDemoteToHelperInvocationEXT);
+        builder.addExtension(spv::E_SPV_EXT_demote_to_helper_invocation);
+        builder.addCapability(spv::CapabilityDemoteToHelperInvocationEXT);
         break;
 #endif
 
@@ -3254,91 +3254,91 @@ bool TGlslangToSpvTraverser::visitBranch(Pglslang::TVisit /* visit */, Pglslang:
     return false;
 }
 
-Pspv::Id TGlslangToSpvTraverser::createSpvVariable(const Pglslang::TIntermSymbol* node, Pspv::Id forcedType)
+spv::Id TGlslangToSpvTraverser::createSpvVariable(const glslang::TIntermSymbol* node, spv::Id forcedType)
 {
     // First, steer off constants, which are not SPIR-V variables, but
     // can still have a mapping to a SPIR-V Id.
     // This includes specialization constants.
     if (node->getQualifier().isConstant()) {
-        Pspv::Id result = createSpvConstant(*node);
-        if (result != Pspv::NoResult)
+        spv::Id result = createSpvConstant(*node);
+        if (result != spv::NoResult)
             return result;
     }
 
     // Now, handle actual variables
-    Pspv::StorageClass storageClass = TranslateStorageClass(node->getType());
-    Pspv::Id spvType = forcedType == Pspv::NoType ? convertGlslangToSpvType(node->getType())
+    spv::StorageClass storageClass = TranslateStorageClass(node->getType());
+    spv::Id spvType = forcedType == spv::NoType ? convertGlslangToSpvType(node->getType())
                                                 : forcedType;
 
     const bool contains16BitType = node->getType().contains16BitFloat() ||
                                    node->getType().contains16BitInt();
     if (contains16BitType) {
         switch (storageClass) {
-        case Pspv::StorageClassInput:
-        case Pspv::StorageClassOutput:
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_16bit_storage, Pspv::Spv_1_3);
-            builder.addCapability(Pspv::CapabilityStorageInputOutput16);
+        case spv::StorageClassInput:
+        case spv::StorageClassOutput:
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_16bit_storage, spv::Spv_1_3);
+            builder.addCapability(spv::CapabilityStorageInputOutput16);
             break;
-        case Pspv::StorageClassUniform:
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_16bit_storage, Pspv::Spv_1_3);
-            if (node->getType().getQualifier().storage == Pglslang::EvqBuffer)
-                builder.addCapability(Pspv::CapabilityStorageUniformBufferBlock16);
+        case spv::StorageClassUniform:
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_16bit_storage, spv::Spv_1_3);
+            if (node->getType().getQualifier().storage == glslang::EvqBuffer)
+                builder.addCapability(spv::CapabilityStorageUniformBufferBlock16);
             else
-                builder.addCapability(Pspv::CapabilityStorageUniform16);
+                builder.addCapability(spv::CapabilityStorageUniform16);
             break;
 #ifndef GLSLANG_WEB
-        case Pspv::StorageClassPushConstant:
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_16bit_storage, Pspv::Spv_1_3);
-            builder.addCapability(Pspv::CapabilityStoragePushConstant16);
+        case spv::StorageClassPushConstant:
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_16bit_storage, spv::Spv_1_3);
+            builder.addCapability(spv::CapabilityStoragePushConstant16);
             break;
-        case Pspv::StorageClassStorageBuffer:
-        case Pspv::StorageClassPhysicalStorageBufferEXT:
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_16bit_storage, Pspv::Spv_1_3);
-            builder.addCapability(Pspv::CapabilityStorageUniformBufferBlock16);
+        case spv::StorageClassStorageBuffer:
+        case spv::StorageClassPhysicalStorageBufferEXT:
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_16bit_storage, spv::Spv_1_3);
+            builder.addCapability(spv::CapabilityStorageUniformBufferBlock16);
             break;
 #endif
         default:
             if (node->getType().contains16BitFloat())
-                builder.addCapability(Pspv::CapabilityFloat16);
+                builder.addCapability(spv::CapabilityFloat16);
             if (node->getType().contains16BitInt())
-                builder.addCapability(Pspv::CapabilityInt16);
+                builder.addCapability(spv::CapabilityInt16);
             break;
         }
     }
 
     if (node->getType().contains8BitInt()) {
-        if (storageClass == Pspv::StorageClassPushConstant) {
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_8bit_storage, Pspv::Spv_1_5);
-            builder.addCapability(Pspv::CapabilityStoragePushConstant8);
-        } else if (storageClass == Pspv::StorageClassUniform) {
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_8bit_storage, Pspv::Spv_1_5);
-            builder.addCapability(Pspv::CapabilityUniformAndStorageBuffer8BitAccess);
-        } else if (storageClass == Pspv::StorageClassStorageBuffer) {
-            builder.addIncorporatedExtension(Pspv::E_SPV_KHR_8bit_storage, Pspv::Spv_1_5);
-            builder.addCapability(Pspv::CapabilityStorageBuffer8BitAccess);
+        if (storageClass == spv::StorageClassPushConstant) {
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_8bit_storage, spv::Spv_1_5);
+            builder.addCapability(spv::CapabilityStoragePushConstant8);
+        } else if (storageClass == spv::StorageClassUniform) {
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_8bit_storage, spv::Spv_1_5);
+            builder.addCapability(spv::CapabilityUniformAndStorageBuffer8BitAccess);
+        } else if (storageClass == spv::StorageClassStorageBuffer) {
+            builder.addIncorporatedExtension(spv::E_SPV_KHR_8bit_storage, spv::Spv_1_5);
+            builder.addCapability(spv::CapabilityStorageBuffer8BitAccess);
         } else {
-            builder.addCapability(Pspv::CapabilityInt8);
+            builder.addCapability(spv::CapabilityInt8);
         }
     }
 
     const char* name = node->getName().c_str();
-    if (Pglslang::IsAnonymous(name))
+    if (glslang::IsAnonymous(name))
         name = "";
 
     return builder.createVariable(storageClass, spvType, name);
 }
 
 // Return type Id of the sampled type.
-Pspv::Id TGlslangToSpvTraverser::getSampledType(const Pglslang::TSampler& sampler)
+spv::Id TGlslangToSpvTraverser::getSampledType(const glslang::TSampler& sampler)
 {
     switch (sampler.type) {
-        case Pglslang::EbtInt:      return builder.makeIntType(32);
-        case Pglslang::EbtUint:     return builder.makeUintType(32);
-        case Pglslang::EbtFloat:    return builder.makeFloatType(32);
+        case glslang::EbtInt:      return builder.makeIntType(32);
+        case glslang::EbtUint:     return builder.makeUintType(32);
+        case glslang::EbtFloat:    return builder.makeFloatType(32);
 #ifndef GLSLANG_WEB
-        case Pglslang::EbtFloat16:
-            builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float_fetch);
-            builder.addCapability(Pspv::CapabilityFloat16ImageAMD);
+        case glslang::EbtFloat16:
+            builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float_fetch);
+            builder.addCapability(spv::CapabilityFloat16ImageAMD);
             return builder.makeFloatType(16);
 #endif
         default:
@@ -3350,18 +3350,18 @@ Pspv::Id TGlslangToSpvTraverser::getSampledType(const Pglslang::TSampler& sample
 // If node is a swizzle operation, return the type that should be used if
 // the swizzle base is first consumed by another operation, before the swizzle
 // is applied.
-Pspv::Id TGlslangToSpvTraverser::getInvertedSwizzleType(const Pglslang::TIntermTyped& node)
+spv::Id TGlslangToSpvTraverser::getInvertedSwizzleType(const glslang::TIntermTyped& node)
 {
     if (node.getAsOperator() &&
-        node.getAsOperator()->getOp() == Pglslang::EOpVectorSwizzle)
+        node.getAsOperator()->getOp() == glslang::EOpVectorSwizzle)
         return convertGlslangToSpvType(node.getAsBinaryNode()->getLeft()->getType());
     else
-        return Pspv::NoType;
+        return spv::NoType;
 }
 
 // When inverting a swizzle with a parent op, this function
 // will apply the swizzle operation to a completed parent operation.
-Pspv::Id TGlslangToSpvTraverser::createInvertedSwizzle(Pspv::Decoration precision, const Pglslang::TIntermTyped& node, Pspv::Id parentResult)
+spv::Id TGlslangToSpvTraverser::createInvertedSwizzle(spv::Decoration precision, const glslang::TIntermTyped& node, spv::Id parentResult)
 {
     std::vector<unsigned> swizzle;
     convertSwizzle(*node.getAsBinaryNode()->getRight()->getAsAggregate(), swizzle);
@@ -3369,9 +3369,9 @@ Pspv::Id TGlslangToSpvTraverser::createInvertedSwizzle(Pspv::Decoration precisio
 }
 
 // Convert a glslang AST swizzle node to a swizzle vector for building SPIR-V.
-void TGlslangToSpvTraverser::convertSwizzle(const Pglslang::TIntermAggregate& node, std::vector<unsigned>& swizzle)
+void TGlslangToSpvTraverser::convertSwizzle(const glslang::TIntermAggregate& node, std::vector<unsigned>& swizzle)
 {
-    const Pglslang::TIntermSequence& swizzleSequence = node.getSequence();
+    const glslang::TIntermSequence& swizzleSequence = node.getSequence();
     for (int i = 0; i < (int)swizzleSequence.size(); ++i)
         swizzle.push_back(swizzleSequence[i]->getAsConstantUnion()->getConstArray()[0].getIConst());
 }
@@ -3379,7 +3379,7 @@ void TGlslangToSpvTraverser::convertSwizzle(const Pglslang::TIntermAggregate& no
 // Convert from a glslang type to an SPV type, by calling into a
 // recursive version of this function. This establishes the inherited
 // layout state rooted from the top-level type.
-Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& type, bool forwardReferenceOnly)
+spv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const glslang::TType& type, bool forwardReferenceOnly)
 {
     return convertGlslangToSpvType(type, getExplicitLayout(type), type.getQualifier(), false, forwardReferenceOnly);
 }
@@ -3387,87 +3387,87 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
 // Do full recursive conversion of an arbitrary glslang type to a SPIR-V Id.
 // explicitLayout can be kept the same throughout the hierarchical recursive walk.
 // Mutually recursive with convertGlslangStructToSpvType().
-Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& type,
-    Pglslang::TLayoutPacking explicitLayout, const Pglslang::TQualifier& qualifier,
+spv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const glslang::TType& type,
+    glslang::TLayoutPacking explicitLayout, const glslang::TQualifier& qualifier,
     bool lastBufferBlockMember, bool forwardReferenceOnly)
 {
-    Pspv::Id spvType = Pspv::NoResult;
+    spv::Id spvType = spv::NoResult;
 
     switch (type.getBasicType()) {
-    case Pglslang::EbtVoid:
+    case glslang::EbtVoid:
         spvType = builder.makeVoidType();
         assert (! type.isArray());
         break;
-    case Pglslang::EbtBool:
+    case glslang::EbtBool:
         // "transparent" bool doesn't exist in SPIR-V.  The GLSL convention is
         // a 32-bit int where non-0 means true.
-        if (explicitLayout != Pglslang::ElpNone)
+        if (explicitLayout != glslang::ElpNone)
             spvType = builder.makeUintType(32);
         else
             spvType = builder.makeBoolType();
         break;
-    case Pglslang::EbtInt:
+    case glslang::EbtInt:
         spvType = builder.makeIntType(32);
         break;
-    case Pglslang::EbtUint:
+    case glslang::EbtUint:
         spvType = builder.makeUintType(32);
         break;
-    case Pglslang::EbtFloat:
+    case glslang::EbtFloat:
         spvType = builder.makeFloatType(32);
         break;
 #ifndef GLSLANG_WEB
-    case Pglslang::EbtDouble:
+    case glslang::EbtDouble:
         spvType = builder.makeFloatType(64);
         break;
-    case Pglslang::EbtFloat16:
+    case glslang::EbtFloat16:
         spvType = builder.makeFloatType(16);
         break;
-    case Pglslang::EbtInt8:
+    case glslang::EbtInt8:
         spvType = builder.makeIntType(8);
         break;
-    case Pglslang::EbtUint8:
+    case glslang::EbtUint8:
         spvType = builder.makeUintType(8);
         break;
-    case Pglslang::EbtInt16:
+    case glslang::EbtInt16:
         spvType = builder.makeIntType(16);
         break;
-    case Pglslang::EbtUint16:
+    case glslang::EbtUint16:
         spvType = builder.makeUintType(16);
         break;
-    case Pglslang::EbtInt64:
+    case glslang::EbtInt64:
         spvType = builder.makeIntType(64);
         break;
-    case Pglslang::EbtUint64:
+    case glslang::EbtUint64:
         spvType = builder.makeUintType(64);
         break;
-    case Pglslang::EbtAtomicUint:
-        builder.addCapability(Pspv::CapabilityAtomicStorage);
+    case glslang::EbtAtomicUint:
+        builder.addCapability(spv::CapabilityAtomicStorage);
         spvType = builder.makeUintType(32);
         break;
-    case Pglslang::EbtAccStructNV:
+    case glslang::EbtAccStructNV:
         spvType = builder.makeAccelerationStructureNVType();
         break;
-    case Pglslang::EbtReference:
+    case glslang::EbtReference:
         {
             // Make the forward pointer, then recurse to convert the structure type, then
             // patch up the forward pointer with a real pointer type.
             if (forwardPointers.find(type.getReferentType()) == forwardPointers.end()) {
-                Pspv::Id forwardId = builder.makeForwardPointer(Pspv::StorageClassPhysicalStorageBufferEXT);
+                spv::Id forwardId = builder.makeForwardPointer(spv::StorageClassPhysicalStorageBufferEXT);
                 forwardPointers[type.getReferentType()] = forwardId;
             }
             spvType = forwardPointers[type.getReferentType()];
             if (!forwardReferenceOnly) {
-                Pspv::Id referentType = convertGlslangToSpvType(*type.getReferentType());
-                builder.makePointerFromForwardPointer(Pspv::StorageClassPhysicalStorageBufferEXT,
+                spv::Id referentType = convertGlslangToSpvType(*type.getReferentType());
+                builder.makePointerFromForwardPointer(spv::StorageClassPhysicalStorageBufferEXT,
                                                       forwardPointers[type.getReferentType()],
                                                       referentType);
             }
         }
         break;
 #endif
-    case Pglslang::EbtSampler:
+    case glslang::EbtSampler:
         {
-            const Pglslang::TSampler& sampler = type.getSampler();
+            const glslang::TSampler& sampler = type.getSampler();
             if (sampler.isPureSampler()) {
                 spvType = builder.makeSamplerType();
             } else {
@@ -3482,21 +3482,21 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
             }
         }
         break;
-    case Pglslang::EbtStruct:
-    case Pglslang::EbtBlock:
+    case glslang::EbtStruct:
+    case glslang::EbtBlock:
         {
             // If we've seen this struct type, return it
-            const Pglslang::TTypeList* glslangMembers = type.getStruct();
+            const glslang::TTypeList* glslangMembers = type.getStruct();
 
             // Try to share structs for different layouts, but not yet for other
             // kinds of qualification (primarily not yet including interpolant qualification).
             if (! HasNonLayoutQualifiers(type, qualifier))
                 spvType = structMap[explicitLayout][qualifier.layoutMatrix][glslangMembers];
-            if (spvType != Pspv::NoResult)
+            if (spvType != spv::NoResult)
                 break;
 
             // else, we haven't seen it...
-            if (type.getBasicType() == Pglslang::EbtBlock)
+            if (type.getBasicType() == glslang::EbtBlock)
                 memberRemapper[glslangTypeToIdMap[glslangMembers]].resize(glslangMembers->size());
             spvType = convertGlslangStructToSpvType(type, glslangMembers, explicitLayout, qualifier);
         }
@@ -3515,18 +3515,18 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
     }
 
     if (type.isCoopMat()) {
-        builder.addCapability(Pspv::CapabilityCooperativeMatrixNV);
-        builder.addExtension(Pspv::E_SPV_NV_cooperative_matrix);
-        if (type.getBasicType() == Pglslang::EbtFloat16)
-            builder.addCapability(Pspv::CapabilityFloat16);
-        if (type.getBasicType() == Pglslang::EbtUint8 ||
-            type.getBasicType() == Pglslang::EbtInt8) {
-            builder.addCapability(Pspv::CapabilityInt8);
+        builder.addCapability(spv::CapabilityCooperativeMatrixNV);
+        builder.addExtension(spv::E_SPV_NV_cooperative_matrix);
+        if (type.getBasicType() == glslang::EbtFloat16)
+            builder.addCapability(spv::CapabilityFloat16);
+        if (type.getBasicType() == glslang::EbtUint8 ||
+            type.getBasicType() == glslang::EbtInt8) {
+            builder.addCapability(spv::CapabilityInt8);
         }
 
-        Pspv::Id scope = makeArraySizeId(*type.getTypeParameters(), 1);
-        Pspv::Id rows = makeArraySizeId(*type.getTypeParameters(), 2);
-        Pspv::Id cols = makeArraySizeId(*type.getTypeParameters(), 3);
+        spv::Id scope = makeArraySizeId(*type.getTypeParameters(), 1);
+        spv::Id rows = makeArraySizeId(*type.getTypeParameters(), 2);
+        spv::Id cols = makeArraySizeId(*type.getTypeParameters(), 3);
 
         spvType = builder.makeCooperativeMatrixType(spvType, scope, rows, cols);
     }
@@ -3537,10 +3537,10 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
         // Do all but the outer dimension
         if (type.getArraySizes()->getNumDims() > 1) {
             // We need to decorate array strides for types needing explicit layout, except blocks.
-            if (explicitLayout != Pglslang::ElpNone && type.getBasicType() != Pglslang::EbtBlock) {
+            if (explicitLayout != glslang::ElpNone && type.getBasicType() != glslang::EbtBlock) {
                 // Use a dummy glslang type for querying internal strides of
                 // arrays of arrays, but using just a one-dimensional array.
-                Pglslang::TType simpleArrayType(type, 0); // deference type of the array
+                glslang::TType simpleArrayType(type, 0); // deference type of the array
                 while (simpleArrayType.getArraySizes()->getNumDims() > 1)
                     simpleArrayType.getArraySizes()->dereference();
 
@@ -3553,14 +3553,14 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
             for (int dim = type.getArraySizes()->getNumDims() - 1; dim > 0; --dim) {
                 spvType = builder.makeArrayType(spvType, makeArraySizeId(*type.getArraySizes(), dim), stride);
                 if (stride > 0)
-                    builder.addDecoration(spvType, Pspv::DecorationArrayStride, stride);
+                    builder.addDecoration(spvType, spv::DecorationArrayStride, stride);
                 stride *= type.getArraySizes()->getDimSize(dim);
             }
         } else {
             // single-dimensional array, and don't yet have stride
 
             // We need to decorate array strides for types needing explicit layout, except blocks.
-            if (explicitLayout != Pglslang::ElpNone && type.getBasicType() != Pglslang::EbtBlock)
+            if (explicitLayout != glslang::ElpNone && type.getBasicType() != glslang::EbtBlock)
                 stride = getArrayStride(type, explicitLayout, qualifier.layoutMatrix);
         }
 
@@ -3571,14 +3571,14 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
         else {
 #ifndef GLSLANG_WEB
             if (!lastBufferBlockMember) {
-                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", Pspv::Spv_1_5);
-                builder.addCapability(Pspv::CapabilityRuntimeDescriptorArrayEXT);
+                builder.addIncorporatedExtension("SPV_EXT_descriptor_indexing", spv::Spv_1_5);
+                builder.addCapability(spv::CapabilityRuntimeDescriptorArrayEXT);
             }
 #endif
             spvType = builder.makeRuntimeArray(spvType);
         }
         if (stride > 0)
-            builder.addDecoration(spvType, Pspv::DecorationArrayStride, stride);
+            builder.addDecoration(spvType, spv::DecorationArrayStride, stride);
     }
 
     return spvType;
@@ -3588,7 +3588,7 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const Pglslang::TType& 
 //
 // Identify interface members that don't have their required extension turned on.
 //
-bool TGlslangToSpvTraverser::filterMember(const Pglslang::TType& member)
+bool TGlslangToSpvTraverser::filterMember(const glslang::TType& member)
 {
 #ifndef GLSLANG_WEB
     auto& extensions = glslangIntermediate->getRequestedExtensions();
@@ -3619,23 +3619,23 @@ bool TGlslangToSpvTraverser::filterMember(const Pglslang::TType& member)
 // Do full recursive conversion of a glslang structure (or block) type to a SPIR-V Id.
 // explicitLayout can be kept the same throughout the hierarchical recursive walk.
 // Mutually recursive with convertGlslangToSpvType().
-Pspv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const Pglslang::TType& type,
-                                                              const Pglslang::TTypeList* glslangMembers,
-                                                              Pglslang::TLayoutPacking explicitLayout,
-                                                              const Pglslang::TQualifier& qualifier)
+spv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const glslang::TType& type,
+                                                              const glslang::TTypeList* glslangMembers,
+                                                              glslang::TLayoutPacking explicitLayout,
+                                                              const glslang::TQualifier& qualifier)
 {
     // Create a vector of struct types for SPIR-V to consume
-    std::vector<Pspv::Id> spvMembers;
+    std::vector<spv::Id> spvMembers;
     int memberDelta = 0;  // how much the member's index changes from glslang to SPIR-V, normally 0, except sometimes for blocks
-    std::vector<std::pair<Pglslang::TType*, Pglslang::TQualifier> > deferredForwardPointers;
+    std::vector<std::pair<glslang::TType*, glslang::TQualifier> > deferredForwardPointers;
     for (int i = 0; i < (int)glslangMembers->size(); i++) {
-        Pglslang::TType& glslangMember = *(*glslangMembers)[i].type;
+        glslang::TType& glslangMember = *(*glslangMembers)[i].type;
         if (glslangMember.hiddenMember()) {
             ++memberDelta;
-            if (type.getBasicType() == Pglslang::EbtBlock)
+            if (type.getBasicType() == glslang::EbtBlock)
                 memberRemapper[glslangTypeToIdMap[glslangMembers]][i] = -1;
         } else {
-            if (type.getBasicType() == Pglslang::EbtBlock) {
+            if (type.getBasicType() == glslang::EbtBlock) {
                 if (filterMember(glslangMember)) {
                     memberDelta++;
                     memberRemapper[glslangTypeToIdMap[glslangMembers]][i] = -1;
@@ -3644,7 +3644,7 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const Pglslang::T
                 memberRemapper[glslangTypeToIdMap[glslangMembers]][i] = i - memberDelta;
             }
             // modify just this child's view of the qualifier
-            Pglslang::TQualifier memberQualifier = glslangMember.getQualifier();
+            glslang::TQualifier memberQualifier = glslangMember.getQualifier();
             InheritQualifiers(memberQualifier, qualifier);
 
             // manually inherit location
@@ -3652,7 +3652,7 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const Pglslang::T
                 memberQualifier.layoutLocation = qualifier.layoutLocation;
 
             // recurse
-            bool lastBufferBlockMember = qualifier.storage == Pglslang::EvqBuffer &&
+            bool lastBufferBlockMember = qualifier.storage == glslang::EvqBuffer &&
                                          i == (int)glslangMembers->size() - 1;
 
             // Make forward pointers for any pointer members, and create a list of members to
@@ -3671,7 +3671,7 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const Pglslang::T
     }
 
     // Make the SPIR-V type
-    Pspv::Id spvType = builder.makeStructType(spvMembers, type.getTypeName().c_str());
+    spv::Id spvType = builder.makeStructType(spvMembers, type.getTypeName().c_str());
     if (! HasNonLayoutQualifiers(type, qualifier))
         structMap[explicitLayout][qualifier.layoutMatrix][glslangMembers] = spvType;
 
@@ -3686,26 +3686,26 @@ Pspv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const Pglslang::T
     return spvType;
 }
 
-void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
-                                                const Pglslang::TTypeList* glslangMembers,
-                                                Pglslang::TLayoutPacking explicitLayout,
-                                                const Pglslang::TQualifier& qualifier,
-                                                Pspv::Id spvType)
+void TGlslangToSpvTraverser::decorateStructType(const glslang::TType& type,
+                                                const glslang::TTypeList* glslangMembers,
+                                                glslang::TLayoutPacking explicitLayout,
+                                                const glslang::TQualifier& qualifier,
+                                                spv::Id spvType)
 {
     // Name and decorate the non-hidden members
     int offset = -1;
     int locationOffset = 0;  // for use within the members of this struct
     for (int i = 0; i < (int)glslangMembers->size(); i++) {
-        Pglslang::TType& glslangMember = *(*glslangMembers)[i].type;
+        glslang::TType& glslangMember = *(*glslangMembers)[i].type;
         int member = i;
-        if (type.getBasicType() == Pglslang::EbtBlock) {
+        if (type.getBasicType() == glslang::EbtBlock) {
             member = memberRemapper[glslangTypeToIdMap[glslangMembers]][i];
             if (filterMember(glslangMember))
                 continue;
         }
 
         // modify just this child's view of the qualifier
-        Pglslang::TQualifier memberQualifier = glslangMember.getQualifier();
+        glslang::TQualifier memberQualifier = glslangMember.getQualifier();
         InheritQualifiers(memberQualifier, qualifier);
 
         // using -1 above to indicate a hidden member
@@ -3718,10 +3718,10 @@ void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
         builder.addMemberDecoration(spvType, member, TranslatePrecisionDecoration(glslangMember));
         // Add interpolation and auxiliary storage decorations only to
         // top-level members of Input and Output storage classes
-        if (type.getQualifier().storage == Pglslang::EvqVaryingIn ||
-            type.getQualifier().storage == Pglslang::EvqVaryingOut) {
-            if (type.getBasicType() == Pglslang::EbtBlock ||
-                glslangIntermediate->getSource() == Pglslang::EShSourceHlsl) {
+        if (type.getQualifier().storage == glslang::EvqVaryingIn ||
+            type.getQualifier().storage == glslang::EvqVaryingOut) {
+            if (type.getBasicType() == glslang::EbtBlock ||
+                glslangIntermediate->getSource() == glslang::EShSourceHlsl) {
                 builder.addMemberDecoration(spvType, member, TranslateInterpolationDecoration(memberQualifier));
                 builder.addMemberDecoration(spvType, member, TranslateAuxiliaryStorageDecoration(memberQualifier));
 #ifndef GLSLANG_WEB
@@ -3732,10 +3732,10 @@ void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
         builder.addMemberDecoration(spvType, member, TranslateInvariantDecoration(memberQualifier));
 
 #ifndef GLSLANG_WEB
-        if (type.getBasicType() == Pglslang::EbtBlock &&
-            qualifier.storage == Pglslang::EvqBuffer) {
+        if (type.getBasicType() == glslang::EbtBlock &&
+            qualifier.storage == glslang::EvqBuffer) {
             // Add memory decorations only to top-level members of shader storage block
-            std::vector<Pspv::Decoration> memory;
+            std::vector<spv::Decoration> memory;
             TranslateMemoryDecoration(memberQualifier, memory, glslangIntermediate->usingVulkanMemoryModel());
             for (unsigned int i = 0; i < memory.size(); ++i)
                 builder.addMemberDecoration(spvType, member, memory[i]);
@@ -3748,36 +3748,36 @@ void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
         // Ignore member locations if the container is an array, as that's
         // ill-specified and decisions have been made to not allow this.
         if (! type.isArray() && memberQualifier.hasLocation())
-            builder.addMemberDecoration(spvType, member, Pspv::DecorationLocation, memberQualifier.layoutLocation);
+            builder.addMemberDecoration(spvType, member, spv::DecorationLocation, memberQualifier.layoutLocation);
 
         if (qualifier.hasLocation())      // track for upcoming inheritance
-            locationOffset += glslangIntermediate->PcomputeTypeLocationSize(
+            locationOffset += glslangIntermediate->computeTypeLocationSize(
                                             glslangMember, glslangIntermediate->getStage());
 
         // component, XFB, others
         if (glslangMember.getQualifier().hasComponent())
-            builder.addMemberDecoration(spvType, member, Pspv::DecorationComponent,
+            builder.addMemberDecoration(spvType, member, spv::DecorationComponent,
                                         glslangMember.getQualifier().layoutComponent);
         if (glslangMember.getQualifier().hasXfbOffset())
-            builder.addMemberDecoration(spvType, member, Pspv::DecorationOffset,
+            builder.addMemberDecoration(spvType, member, spv::DecorationOffset,
                                         glslangMember.getQualifier().layoutXfbOffset);
-        else if (explicitLayout != Pglslang::ElpNone) {
+        else if (explicitLayout != glslang::ElpNone) {
             // figure out what to do with offset, which is accumulating
             int nextOffset;
             updateMemberOffset(type, glslangMember, offset, nextOffset, explicitLayout, memberQualifier.layoutMatrix);
             if (offset >= 0)
-                builder.addMemberDecoration(spvType, member, Pspv::DecorationOffset, offset);
+                builder.addMemberDecoration(spvType, member, spv::DecorationOffset, offset);
             offset = nextOffset;
         }
 
-        if (glslangMember.isMatrix() && explicitLayout != Pglslang::ElpNone)
-            builder.addMemberDecoration(spvType, member, Pspv::DecorationMatrixStride,
+        if (glslangMember.isMatrix() && explicitLayout != glslang::ElpNone)
+            builder.addMemberDecoration(spvType, member, spv::DecorationMatrixStride,
                                         getMatrixStride(glslangMember, explicitLayout, memberQualifier.layoutMatrix));
 
         // built-in variable decorations
-        Pspv::BuiltIn builtIn = TranslateBuiltInDecoration(glslangMember.getQualifier().builtIn, true);
-        if (builtIn != Pspv::BuiltInMax)
-            builder.addMemberDecoration(spvType, member, Pspv::DecorationBuiltIn, (int)builtIn);
+        spv::BuiltIn builtIn = TranslateBuiltInDecoration(glslangMember.getQualifier().builtIn, true);
+        if (builtIn != spv::BuiltInMax)
+            builder.addMemberDecoration(spvType, member, spv::DecorationBuiltIn, (int)builtIn);
 
 #ifndef GLSLANG_WEB
         // nonuniform
@@ -3785,29 +3785,29 @@ void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
 
         if (glslangIntermediate->getHlslFunctionality1() && memberQualifier.semanticName != nullptr) {
             builder.addExtension("SPV_GOOGLE_hlsl_functionality1");
-            builder.addMemberDecoration(spvType, member, (Pspv::Decoration)Pspv::DecorationHlslSemanticGOOGLE,
+            builder.addMemberDecoration(spvType, member, (spv::Decoration)spv::DecorationHlslSemanticGOOGLE,
                                         memberQualifier.semanticName);
         }
 
-        if (builtIn == Pspv::BuiltInLayer) {
+        if (builtIn == spv::BuiltInLayer) {
             // SPV_NV_viewport_array2 extension
             if (glslangMember.getQualifier().layoutViewportRelative){
-                builder.addMemberDecoration(spvType, member, (Pspv::Decoration)Pspv::DecorationViewportRelativeNV);
-                builder.addCapability(Pspv::CapabilityShaderViewportMaskNV);
-                builder.addExtension(Pspv::E_SPV_NV_viewport_array2);
+                builder.addMemberDecoration(spvType, member, (spv::Decoration)spv::DecorationViewportRelativeNV);
+                builder.addCapability(spv::CapabilityShaderViewportMaskNV);
+                builder.addExtension(spv::E_SPV_NV_viewport_array2);
             }
             if (glslangMember.getQualifier().layoutSecondaryViewportRelativeOffset != -2048){
                 builder.addMemberDecoration(spvType, member,
-                                            (Pspv::Decoration)Pspv::DecorationSecondaryViewportRelativeNV,
+                                            (spv::Decoration)spv::DecorationSecondaryViewportRelativeNV,
                                             glslangMember.getQualifier().layoutSecondaryViewportRelativeOffset);
-                builder.addCapability(Pspv::CapabilityShaderStereoViewNV);
-                builder.addExtension(Pspv::E_SPV_NV_stereo_view_rendering);
+                builder.addCapability(spv::CapabilityShaderStereoViewNV);
+                builder.addExtension(spv::E_SPV_NV_stereo_view_rendering);
             }
         }
         if (glslangMember.getQualifier().layoutPassthrough) {
-            builder.addMemberDecoration(spvType, member, (Pspv::Decoration)Pspv::DecorationPassthroughNV);
-            builder.addCapability(Pspv::CapabilityGeometryShaderPassthroughNV);
-            builder.addExtension(Pspv::E_SPV_NV_geometry_shader_passthrough);
+            builder.addMemberDecoration(spvType, member, (spv::Decoration)spv::DecorationPassthroughNV);
+            builder.addCapability(spv::CapabilityGeometryShaderPassthroughNV);
+            builder.addExtension(spv::E_SPV_NV_geometry_shader_passthrough);
         }
 #endif
     }
@@ -3821,10 +3821,10 @@ void TGlslangToSpvTraverser::decorateStructType(const Pglslang::TType& type,
 // This is not quite trivial, because of specialization constants.
 // Sometimes, a raw constant is turned into an Id, and sometimes
 // a specialization constant expression is.
-Pspv::Id TGlslangToSpvTraverser::makeArraySizeId(const Pglslang::TArraySizes& arraySizes, int dim)
+spv::Id TGlslangToSpvTraverser::makeArraySizeId(const glslang::TArraySizes& arraySizes, int dim)
 {
     // First, see if this is sized with a node, meaning a specialization constant:
-    Pglslang::TIntermTyped* specNode = arraySizes.getDimNode(dim);
+    glslang::TIntermTyped* specNode = arraySizes.getDimNode(dim);
     if (specNode != nullptr) {
         builder.clearAccessChain();
         specNode->traverse(this);
@@ -3842,36 +3842,36 @@ Pspv::Id TGlslangToSpvTraverser::makeArraySizeId(const Pglslang::TArraySizes& ar
 //  - use the SPIR-V inferred type instead of another conversion of the glslang type
 //    (avoids unnecessary work and possible type punning for structures)
 //  - do conversion of concrete to abstract type
-Pspv::Id TGlslangToSpvTraverser::accessChainLoad(const Pglslang::TType& type)
+spv::Id TGlslangToSpvTraverser::accessChainLoad(const glslang::TType& type)
 {
-    Pspv::Id nominalTypeId = builder.accessChainGetInferredType();
+    spv::Id nominalTypeId = builder.accessChainGetInferredType();
 
-    Pspv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
+    spv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
     coherentFlags |= TranslateCoherent(type);
 
     unsigned int alignment = builder.getAccessChain().alignment;
     alignment |= type.getBufferReferenceAlignment();
 
-    Pspv::Id loadedId = builder.accessChainLoad(TranslatePrecisionDecoration(type),
+    spv::Id loadedId = builder.accessChainLoad(TranslatePrecisionDecoration(type),
                                                TranslateNonUniformDecoration(type.getQualifier()),
                                                nominalTypeId,
-                                               Pspv::MemoryAccessMask(TranslateMemoryAccess(coherentFlags) & ~Pspv::MemoryAccessMakePointerAvailableKHRMask),
+                                               spv::MemoryAccessMask(TranslateMemoryAccess(coherentFlags) & ~spv::MemoryAccessMakePointerAvailableKHRMask),
                                                TranslateMemoryScope(coherentFlags),
                                                alignment);
 
     // Need to convert to abstract types when necessary
-    if (type.getBasicType() == Pglslang::EbtBool) {
+    if (type.getBasicType() == glslang::EbtBool) {
         if (builder.isScalarType(nominalTypeId)) {
             // Conversion for bool
-            Pspv::Id boolType = builder.makeBoolType();
+            spv::Id boolType = builder.makeBoolType();
             if (nominalTypeId != boolType)
-                loadedId = builder.createBinOp(Pspv::OpINotEqual, boolType, loadedId, builder.makeUintConstant(0));
+                loadedId = builder.createBinOp(spv::OpINotEqual, boolType, loadedId, builder.makeUintConstant(0));
         } else if (builder.isVectorType(nominalTypeId)) {
             // Conversion for bvec
             int vecSize = builder.getNumTypeComponents(nominalTypeId);
-            Pspv::Id bvecType = builder.makeVectorType(builder.makeBoolType(), vecSize);
+            spv::Id bvecType = builder.makeVectorType(builder.makeBoolType(), vecSize);
             if (nominalTypeId != bvecType)
-                loadedId = builder.createBinOp(Pspv::OpINotEqual, bvecType, loadedId, makeSmearedConstant(builder.makeUintConstant(0), vecSize));
+                loadedId = builder.createBinOp(spv::OpINotEqual, bvecType, loadedId, makeSmearedConstant(builder.makeUintConstant(0), vecSize));
         }
     }
 
@@ -3882,45 +3882,45 @@ Pspv::Id TGlslangToSpvTraverser::accessChainLoad(const Pglslang::TType& type)
 //  - do conversion of concrete to abstract type
 //
 // Implicitly uses the existing builder.accessChain as the storage target.
-void TGlslangToSpvTraverser::accessChainStore(const Pglslang::TType& type, Pspv::Id rvalue)
+void TGlslangToSpvTraverser::accessChainStore(const glslang::TType& type, spv::Id rvalue)
 {
     // Need to convert to abstract types when necessary
-    if (type.getBasicType() == Pglslang::EbtBool) {
-        Pspv::Id nominalTypeId = builder.accessChainGetInferredType();
+    if (type.getBasicType() == glslang::EbtBool) {
+        spv::Id nominalTypeId = builder.accessChainGetInferredType();
 
         if (builder.isScalarType(nominalTypeId)) {
             // Conversion for bool
-            Pspv::Id boolType = builder.makeBoolType();
+            spv::Id boolType = builder.makeBoolType();
             if (nominalTypeId != boolType) {
                 // keep these outside arguments, for determinant order-of-evaluation
-                Pspv::Id one = builder.makeUintConstant(1);
-                Pspv::Id zero = builder.makeUintConstant(0);
-                rvalue = builder.createTriOp(Pspv::OpSelect, nominalTypeId, rvalue, one, zero);
+                spv::Id one = builder.makeUintConstant(1);
+                spv::Id zero = builder.makeUintConstant(0);
+                rvalue = builder.createTriOp(spv::OpSelect, nominalTypeId, rvalue, one, zero);
             } else if (builder.getTypeId(rvalue) != boolType)
-                rvalue = builder.createBinOp(Pspv::OpINotEqual, boolType, rvalue, builder.makeUintConstant(0));
+                rvalue = builder.createBinOp(spv::OpINotEqual, boolType, rvalue, builder.makeUintConstant(0));
         } else if (builder.isVectorType(nominalTypeId)) {
             // Conversion for bvec
             int vecSize = builder.getNumTypeComponents(nominalTypeId);
-            Pspv::Id bvecType = builder.makeVectorType(builder.makeBoolType(), vecSize);
+            spv::Id bvecType = builder.makeVectorType(builder.makeBoolType(), vecSize);
             if (nominalTypeId != bvecType) {
                 // keep these outside arguments, for determinant order-of-evaluation
-                Pspv::Id one = makeSmearedConstant(builder.makeUintConstant(1), vecSize);
-                Pspv::Id zero = makeSmearedConstant(builder.makeUintConstant(0), vecSize);
-                rvalue = builder.createTriOp(Pspv::OpSelect, nominalTypeId, rvalue, one, zero);
+                spv::Id one = makeSmearedConstant(builder.makeUintConstant(1), vecSize);
+                spv::Id zero = makeSmearedConstant(builder.makeUintConstant(0), vecSize);
+                rvalue = builder.createTriOp(spv::OpSelect, nominalTypeId, rvalue, one, zero);
             } else if (builder.getTypeId(rvalue) != bvecType)
-                rvalue = builder.createBinOp(Pspv::OpINotEqual, bvecType, rvalue,
+                rvalue = builder.createBinOp(spv::OpINotEqual, bvecType, rvalue,
                                              makeSmearedConstant(builder.makeUintConstant(0), vecSize));
         }
     }
 
-    Pspv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
+    spv::Builder::AccessChain::CoherentFlags coherentFlags = builder.getAccessChain().coherentFlags;
     coherentFlags |= TranslateCoherent(type);
 
     unsigned int alignment = builder.getAccessChain().alignment;
     alignment |= type.getBufferReferenceAlignment();
 
     builder.accessChainStore(rvalue,
-                             Pspv::MemoryAccessMask(TranslateMemoryAccess(coherentFlags) & ~Pspv::MemoryAccessMakePointerVisibleKHRMask),
+                             spv::MemoryAccessMask(TranslateMemoryAccess(coherentFlags) & ~spv::MemoryAccessMakePointerVisibleKHRMask),
                              TranslateMemoryScope(coherentFlags), alignment);
 }
 
@@ -3935,7 +3935,7 @@ void TGlslangToSpvTraverser::accessChainStore(const Pglslang::TType& type, Pspv:
 // simplifies to a simple OpStore.
 //
 // Implicitly uses the existing builder.accessChain as the storage target.
-void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::Id rValue)
+void TGlslangToSpvTraverser::multiTypeStore(const glslang::TType& type, spv::Id rValue)
 {
     // we only do the complex path here if it's an aggregate
     if (! type.isStruct() && ! type.isArray()) {
@@ -3944,9 +3944,9 @@ void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::I
     }
 
     // and, it has to be a case of type aliasing
-    Pspv::Id rType = builder.getTypeId(rValue);
-    Pspv::Id lValue = builder.accessChainGetLValue();
-    Pspv::Id lType = builder.getContainedTypeId(builder.getTypeId(lValue));
+    spv::Id rType = builder.getTypeId(rValue);
+    spv::Id lValue = builder.accessChainGetLValue();
+    spv::Id lType = builder.getContainedTypeId(builder.getTypeId(lValue));
     if (lType == rType) {
         accessChainStore(type, rValue);
         return;
@@ -3957,14 +3957,14 @@ void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::I
     // by member copy, recursively.
 
     // SPIR-V 1.4 added an instruction to do help do this.
-    if (glslangIntermediate->getSpv().spv >= Pglslang::EShTargetSpv_1_4) {
+    if (glslangIntermediate->getSpv().spv >= glslang::EShTargetSpv_1_4) {
         // However, bool in uniform space is changed to int, so
         // OpCopyLogical does not work for that.
         // TODO: It would be more robust to do a full recursive verification of the types satisfying SPIR-V rules.
-        bool rBool = builder.containsType(builder.getTypeId(rValue), Pspv::OpTypeBool, 0);
-        bool lBool = builder.containsType(lType, Pspv::OpTypeBool, 0);
+        bool rBool = builder.containsType(builder.getTypeId(rValue), spv::OpTypeBool, 0);
+        bool lBool = builder.containsType(lType, spv::OpTypeBool, 0);
         if (lBool == rBool) {
-            Pspv::Id logicalCopy = builder.createUnaryOp(Pspv::OpCopyLogical, lType, rValue);
+            spv::Id logicalCopy = builder.createUnaryOp(spv::OpCopyLogical, lType, rValue);
             accessChainStore(type, logicalCopy);
             return;
         }
@@ -3972,11 +3972,11 @@ void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::I
 
     // If an array, copy element by element.
     if (type.isArray()) {
-        Pglslang::TType glslangElementType(type, 0);
-        Pspv::Id elementRType = builder.getContainedTypeId(rType);
+        glslang::TType glslangElementType(type, 0);
+        spv::Id elementRType = builder.getContainedTypeId(rType);
         for (int index = 0; index < type.getOuterArraySize(); ++index) {
             // get the source member
-            Pspv::Id elementRValue = builder.createCompositeExtract(rValue, elementRType, index);
+            spv::Id elementRValue = builder.createCompositeExtract(rValue, elementRType, index);
 
             // set up the target storage
             builder.clearAccessChain();
@@ -3990,13 +3990,13 @@ void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::I
         assert(type.isStruct());
 
         // loop over structure members
-        const Pglslang::TTypeList& members = *type.getStruct();
+        const glslang::TTypeList& members = *type.getStruct();
         for (int m = 0; m < (int)members.size(); ++m) {
-            const Pglslang::TType& glslangMemberType = *members[m].type;
+            const glslang::TType& glslangMemberType = *members[m].type;
 
             // get the source member
-            Pspv::Id memberRType = builder.getContainedTypeId(rType, m);
-            Pspv::Id memberRValue = builder.createCompositeExtract(rValue, memberRType, m);
+            spv::Id memberRType = builder.getContainedTypeId(rType, m);
+            spv::Id memberRValue = builder.createCompositeExtract(rValue, memberRType, m);
 
             // set up the target storage
             builder.clearAccessChain();
@@ -4012,50 +4012,50 @@ void TGlslangToSpvTraverser::multiTypeStore(const Pglslang::TType& type, Pspv::I
 // Decide whether or not this type should be
 // decorated with offsets and strides, and if so
 // whether std140 or std430 rules should be applied.
-Pglslang::TLayoutPacking TGlslangToSpvTraverser::getExplicitLayout(const Pglslang::TType& type) const
+glslang::TLayoutPacking TGlslangToSpvTraverser::getExplicitLayout(const glslang::TType& type) const
 {
     // has to be a block
-    if (type.getBasicType() != Pglslang::EbtBlock)
-        return Pglslang::ElpNone;
+    if (type.getBasicType() != glslang::EbtBlock)
+        return glslang::ElpNone;
 
     // has to be a uniform or buffer block or task in/out blocks
-    if (type.getQualifier().storage != Pglslang::EvqUniform &&
-        type.getQualifier().storage != Pglslang::EvqBuffer &&
+    if (type.getQualifier().storage != glslang::EvqUniform &&
+        type.getQualifier().storage != glslang::EvqBuffer &&
         !type.getQualifier().isTaskMemory())
-        return Pglslang::ElpNone;
+        return glslang::ElpNone;
 
     // return the layout to use
     switch (type.getQualifier().layoutPacking) {
-    case Pglslang::ElpStd140:
-    case Pglslang::ElpStd430:
-    case Pglslang::ElpScalar:
+    case glslang::ElpStd140:
+    case glslang::ElpStd430:
+    case glslang::ElpScalar:
         return type.getQualifier().layoutPacking;
     default:
-        return Pglslang::ElpNone;
+        return glslang::ElpNone;
     }
 }
 
 // Given an array type, returns the integer stride required for that array
-int TGlslangToSpvTraverser::getArrayStride(const Pglslang::TType& arrayType, Pglslang::TLayoutPacking explicitLayout, Pglslang::TLayoutMatrix matrixLayout)
+int TGlslangToSpvTraverser::getArrayStride(const glslang::TType& arrayType, glslang::TLayoutPacking explicitLayout, glslang::TLayoutMatrix matrixLayout)
 {
     int size;
     int stride;
-    glslangIntermediate->getMemberAlignment(arrayType, size, stride, explicitLayout, matrixLayout == Pglslang::ElmRowMajor);
+    glslangIntermediate->getMemberAlignment(arrayType, size, stride, explicitLayout, matrixLayout == glslang::ElmRowMajor);
 
     return stride;
 }
 
 // Given a matrix type, or array (of array) of matrixes type, returns the integer stride required for that matrix
 // when used as a member of an interface block
-int TGlslangToSpvTraverser::getMatrixStride(const Pglslang::TType& matrixType, Pglslang::TLayoutPacking explicitLayout, Pglslang::TLayoutMatrix matrixLayout)
+int TGlslangToSpvTraverser::getMatrixStride(const glslang::TType& matrixType, glslang::TLayoutPacking explicitLayout, glslang::TLayoutMatrix matrixLayout)
 {
-    Pglslang::TType elementType;
+    glslang::TType elementType;
     elementType.shallowCopy(matrixType);
     elementType.clearArraySizes();
 
     int size;
     int stride;
-    glslangIntermediate->getMemberAlignment(elementType, size, stride, explicitLayout, matrixLayout == Pglslang::ElmRowMajor);
+    glslangIntermediate->getMemberAlignment(elementType, size, stride, explicitLayout, matrixLayout == glslang::ElmRowMajor);
 
     return stride;
 }
@@ -4066,8 +4066,8 @@ int TGlslangToSpvTraverser::getMatrixStride(const Pglslang::TType& matrixType, P
 // 'currentOffset' should be passed in already initialized, ready to modify, and reflecting
 // the migration of data from nextOffset -> currentOffset.  It should be -1 on the first call.
 // -1 means a non-forced member offset (no decoration needed).
-void TGlslangToSpvTraverser::updateMemberOffset(const Pglslang::TType& structType, const Pglslang::TType& memberType, int& currentOffset, int& nextOffset,
-                                                Pglslang::TLayoutPacking explicitLayout, Pglslang::TLayoutMatrix matrixLayout)
+void TGlslangToSpvTraverser::updateMemberOffset(const glslang::TType& structType, const glslang::TType& memberType, int& currentOffset, int& nextOffset,
+                                                glslang::TLayoutPacking explicitLayout, glslang::TLayoutMatrix matrixLayout)
 {
     // this will get a positive value when deemed necessary
     nextOffset = -1;
@@ -4081,7 +4081,7 @@ void TGlslangToSpvTraverser::updateMemberOffset(const Pglslang::TType& structTyp
     // once cross-compilation unit GLSL validation is done, as the original user
     // settings are needed in layoutOffset, and then the following will come into play.
 
-    if (explicitLayout == Pglslang::ElpNone) {
+    if (explicitLayout == glslang::ElpNone) {
         if (! memberType.getQualifier().hasOffset())
             currentOffset = -1;
 
@@ -4097,7 +4097,7 @@ void TGlslangToSpvTraverser::updateMemberOffset(const Pglslang::TType& structTyp
 
     int memberSize;
     int dummyStride;
-    int memberAlignment = glslangIntermediate->getMemberAlignment(memberType, memberSize, dummyStride, explicitLayout, matrixLayout == Pglslang::ElmRowMajor);
+    int memberAlignment = glslangIntermediate->getMemberAlignment(memberType, memberSize, dummyStride, explicitLayout, matrixLayout == glslang::ElmRowMajor);
 
     // Adjust alignment for HLSL rules
     // TODO: make this consistent in early phases of code:
@@ -4107,43 +4107,43 @@ void TGlslangToSpvTraverser::updateMemberOffset(const Pglslang::TType& structTyp
     if (glslangIntermediate->usingHlslOffsets() &&
         ! memberType.isArray() && memberType.isVector() && structType.getTypeName().compare("$Global") != 0) {
         int dummySize;
-        int componentAlignment = glslangIntermediate->PgetBaseAlignmentScalar(memberType, dummySize);
+        int componentAlignment = glslangIntermediate->getBaseAlignmentScalar(memberType, dummySize);
         if (componentAlignment <= 4)
             memberAlignment = componentAlignment;
     }
 
     // Bump up to member alignment
-    Pglslang::RoundToPow2(currentOffset, memberAlignment);
+    glslang::RoundToPow2(currentOffset, memberAlignment);
 
     // Bump up to vec4 if there is a bad straddle
-    if (explicitLayout != Pglslang::ElpScalar && glslangIntermediate->PimproperStraddle(memberType, memberSize, currentOffset))
-        Pglslang::RoundToPow2(currentOffset, 16);
+    if (explicitLayout != glslang::ElpScalar && glslangIntermediate->improperStraddle(memberType, memberSize, currentOffset))
+        glslang::RoundToPow2(currentOffset, 16);
 
     nextOffset = currentOffset + memberSize;
 }
 
-void TGlslangToSpvTraverser::declareUseOfStructMember(const Pglslang::TTypeList& members, int glslangMember)
+void TGlslangToSpvTraverser::declareUseOfStructMember(const glslang::TTypeList& members, int glslangMember)
 {
-    const Pglslang::TBuiltInVariable glslangBuiltIn = members[glslangMember].type->getQualifier().builtIn;
+    const glslang::TBuiltInVariable glslangBuiltIn = members[glslangMember].type->getQualifier().builtIn;
     switch (glslangBuiltIn)
     {
-    case Pglslang::EbvPointSize:
+    case glslang::EbvPointSize:
 #ifndef GLSLANG_WEB
-    case Pglslang::EbvClipDistance:
-    case Pglslang::EbvCullDistance:
-    case Pglslang::EbvViewportMaskNV:
-    case Pglslang::EbvSecondaryPositionNV:
-    case Pglslang::EbvSecondaryViewportMaskNV:
-    case Pglslang::EbvPositionPerViewNV:
-    case Pglslang::EbvViewportMaskPerViewNV:
-    case Pglslang::EbvTaskCountNV:
-    case Pglslang::EbvPrimitiveCountNV:
-    case Pglslang::EbvPrimitiveIndicesNV:
-    case Pglslang::EbvClipDistancePerViewNV:
-    case Pglslang::EbvCullDistancePerViewNV:
-    case Pglslang::EbvLayerPerViewNV:
-    case Pglslang::EbvMeshViewCountNV:
-    case Pglslang::EbvMeshViewIndicesNV:
+    case glslang::EbvClipDistance:
+    case glslang::EbvCullDistance:
+    case glslang::EbvViewportMaskNV:
+    case glslang::EbvSecondaryPositionNV:
+    case glslang::EbvSecondaryViewportMaskNV:
+    case glslang::EbvPositionPerViewNV:
+    case glslang::EbvViewportMaskPerViewNV:
+    case glslang::EbvTaskCountNV:
+    case glslang::EbvPrimitiveCountNV:
+    case glslang::EbvPrimitiveIndicesNV:
+    case glslang::EbvClipDistancePerViewNV:
+    case glslang::EbvCullDistancePerViewNV:
+    case glslang::EbvLayerPerViewNV:
+    case glslang::EbvMeshViewCountNV:
+    case glslang::EbvMeshViewIndicesNV:
 #endif
         // Generate the associated capability.  Delegate to TranslateBuiltInDecoration.
         // Alternately, we could just call this for any glslang built-in, since the
@@ -4156,7 +4156,7 @@ void TGlslangToSpvTraverser::declareUseOfStructMember(const Pglslang::TTypeList&
     }
 }
 
-bool TGlslangToSpvTraverser::isShaderEntryPoint(const Pglslang::TIntermAggregate* node)
+bool TGlslangToSpvTraverser::isShaderEntryPoint(const glslang::TIntermAggregate* node)
 {
     return node->getName().compare(glslangIntermediate->getEntryPointMangledName().c_str()) == 0;
 }
@@ -4164,33 +4164,33 @@ bool TGlslangToSpvTraverser::isShaderEntryPoint(const Pglslang::TIntermAggregate
 // Does parameter need a place to keep writes, separate from the original?
 // Assumes called after originalParam(), which filters out block/buffer/opaque-based
 // qualifiers such that we should have only in/out/inout/constreadonly here.
-bool TGlslangToSpvTraverser::writableParam(Pglslang::TStorageQualifier qualifier) const
+bool TGlslangToSpvTraverser::writableParam(glslang::TStorageQualifier qualifier) const
 {
-    assert(qualifier == Pglslang::EvqIn ||
-           qualifier == Pglslang::EvqOut ||
-           qualifier == Pglslang::EvqInOut ||
-           qualifier == Pglslang::EvqConstReadOnly);
-    return qualifier != Pglslang::EvqConstReadOnly;
+    assert(qualifier == glslang::EvqIn ||
+           qualifier == glslang::EvqOut ||
+           qualifier == glslang::EvqInOut ||
+           qualifier == glslang::EvqConstReadOnly);
+    return qualifier != glslang::EvqConstReadOnly;
 }
 
 // Is parameter pass-by-original?
-bool TGlslangToSpvTraverser::originalParam(Pglslang::TStorageQualifier qualifier, const Pglslang::TType& paramType,
+bool TGlslangToSpvTraverser::originalParam(glslang::TStorageQualifier qualifier, const glslang::TType& paramType,
                                            bool implicitThisParam)
 {
     if (implicitThisParam)                                                                     // implicit this
         return true;
-    if (glslangIntermediate->getSource() == Pglslang::EShSourceHlsl)
-        return paramType.getBasicType() == Pglslang::EbtBlock;
+    if (glslangIntermediate->getSource() == glslang::EShSourceHlsl)
+        return paramType.getBasicType() == glslang::EbtBlock;
     return paramType.containsOpaque() ||                                                       // sampler, etc.
-           (paramType.getBasicType() == Pglslang::EbtBlock && qualifier == Pglslang::EvqBuffer); // SSBO
+           (paramType.getBasicType() == glslang::EbtBlock && qualifier == glslang::EvqBuffer); // SSBO
 }
 
 // Make all the functions, skeletally, without actually visiting their bodies.
-void TGlslangToSpvTraverser::makeFunctions(const Pglslang::TIntermSequence& glslFunctions)
+void TGlslangToSpvTraverser::makeFunctions(const glslang::TIntermSequence& glslFunctions)
 {
-    const auto getParamDecorations = [&](std::vector<Pspv::Decoration>& decorations, const Pglslang::TType& type, bool useVulkanMemoryModel) {
-        Pspv::Decoration paramPrecision = TranslatePrecisionDecoration(type);
-        if (paramPrecision != Pspv::NoPrecision)
+    const auto getParamDecorations = [&](std::vector<spv::Decoration>& decorations, const glslang::TType& type, bool useVulkanMemoryModel) {
+        spv::Decoration paramPrecision = TranslatePrecisionDecoration(type);
+        if (paramPrecision != spv::NoPrecision)
             decorations.push_back(paramPrecision);
         TranslateMemoryDecoration(type.getQualifier(), decorations, useVulkanMemoryModel);
         if (type.isReference()) {
@@ -4199,18 +4199,18 @@ void TGlslangToSpvTraverser::makeFunctions(const Pglslang::TIntermSequence& glsl
             // memory and use RestrictPointer/AliasedPointer.
             if (originalParam(type.getQualifier().storage, type, false) ||
                 !writableParam(type.getQualifier().storage)) {
-                decorations.push_back(type.getQualifier().isRestrict() ? Pspv::DecorationRestrict :
-                                                                         Pspv::DecorationAliased);
+                decorations.push_back(type.getQualifier().isRestrict() ? spv::DecorationRestrict :
+                                                                         spv::DecorationAliased);
             } else {
-                decorations.push_back(type.getQualifier().isRestrict() ? Pspv::DecorationRestrictPointerEXT :
-                                                                         Pspv::DecorationAliasedPointerEXT);
+                decorations.push_back(type.getQualifier().isRestrict() ? spv::DecorationRestrictPointerEXT :
+                                                                         spv::DecorationAliasedPointerEXT);
             }
         }
     };
 
     for (int f = 0; f < (int)glslFunctions.size(); ++f) {
-        Pglslang::TIntermAggregate* glslFunction = glslFunctions[f]->getAsAggregate();
-        if (! glslFunction || glslFunction->getOp() != Pglslang::EOpFunction || isShaderEntryPoint(glslFunction))
+        glslang::TIntermAggregate* glslFunction = glslFunctions[f]->getAsAggregate();
+        if (! glslFunction || glslFunction->getOp() != glslang::EOpFunction || isShaderEntryPoint(glslFunction))
             continue;
 
         // We're on a user function.  Set up the basic interface for the function now,
@@ -4227,9 +4227,9 @@ void TGlslangToSpvTraverser::makeFunctions(const Pglslang::TIntermSequence& glsl
         // - "out" and "inout" arguments can't be done as pointers to the calling argument, because
         //   GLSL has copy-in/copy-out semantics.  They can be handled though with a pointer to a copy.
 
-        std::vector<Pspv::Id> paramTypes;
-        std::vector<std::vector<Pspv::Decoration>> paramDecorations; // list of decorations per parameter
-        Pglslang::TIntermSequence& parameters = glslFunction->getSequence()[0]->getAsAggregate()->getSequence();
+        std::vector<spv::Id> paramTypes;
+        std::vector<std::vector<spv::Decoration>> paramDecorations; // list of decorations per parameter
+        glslang::TIntermSequence& parameters = glslFunction->getSequence()[0]->getAsAggregate()->getSequence();
 
 #ifdef ENABLE_HLSL
         bool implicitThis = (int)parameters.size() > 0 && parameters[0]->getAsSymbolNode()->getName() ==
@@ -4240,20 +4240,20 @@ void TGlslangToSpvTraverser::makeFunctions(const Pglslang::TIntermSequence& glsl
 
         paramDecorations.resize(parameters.size());
         for (int p = 0; p < (int)parameters.size(); ++p) {
-            const Pglslang::TType& paramType = parameters[p]->getAsTyped()->getType();
-            Pspv::Id typeId = convertGlslangToSpvType(paramType);
+            const glslang::TType& paramType = parameters[p]->getAsTyped()->getType();
+            spv::Id typeId = convertGlslangToSpvType(paramType);
             if (originalParam(paramType.getQualifier().storage, paramType, implicitThis && p == 0))
                 typeId = builder.makePointer(TranslateStorageClass(paramType), typeId);
             else if (writableParam(paramType.getQualifier().storage))
-                typeId = builder.makePointer(Pspv::StorageClassFunction, typeId);
+                typeId = builder.makePointer(spv::StorageClassFunction, typeId);
             else
                 rValueParameters.insert(parameters[p]->getAsSymbolNode()->getId());
             getParamDecorations(paramDecorations[p], paramType, glslangIntermediate->usingVulkanMemoryModel());
             paramTypes.push_back(typeId);
         }
 
-        Pspv::Block* functionBlock;
-        Pspv::Function *function = builder.makeFunctionEntry(TranslatePrecisionDecoration(glslFunction->getType()),
+        spv::Block* functionBlock;
+        spv::Function *function = builder.makeFunctionEntry(TranslatePrecisionDecoration(glslFunction->getType()),
                                                             convertGlslangToSpvType(glslFunction->getType()),
                                                             glslFunction->getName().c_str(), paramTypes,
                                                             paramDecorations, &functionBlock);
@@ -4269,24 +4269,24 @@ void TGlslangToSpvTraverser::makeFunctions(const Pglslang::TIntermSequence& glsl
             // give a name too
             builder.addName(function->getParamId(p), parameters[p]->getAsSymbolNode()->getName().c_str());
 
-            const Pglslang::TType& paramType = parameters[p]->getAsTyped()->getType();
+            const glslang::TType& paramType = parameters[p]->getAsTyped()->getType();
             if (paramType.contains8BitInt())
-                builder.addCapability(Pspv::CapabilityInt8);
+                builder.addCapability(spv::CapabilityInt8);
             if (paramType.contains16BitInt())
-                builder.addCapability(Pspv::CapabilityInt16);
+                builder.addCapability(spv::CapabilityInt16);
             if (paramType.contains16BitFloat())
-                builder.addCapability(Pspv::CapabilityFloat16);
+                builder.addCapability(spv::CapabilityFloat16);
         }
     }
 }
 
 // Process all the initializers, while skipping the functions and link objects
-void TGlslangToSpvTraverser::makeGlobalInitializers(const Pglslang::TIntermSequence& initializers)
+void TGlslangToSpvTraverser::makeGlobalInitializers(const glslang::TIntermSequence& initializers)
 {
     builder.setBuildPoint(shaderEntry->getLastBlock());
     for (int i = 0; i < (int)initializers.size(); ++i) {
-        Pglslang::TIntermAggregate* initializer = initializers[i]->getAsAggregate();
-        if (initializer && initializer->getOp() != Pglslang::EOpFunction && initializer->getOp() != Pglslang::EOpLinkerObjects) {
+        glslang::TIntermAggregate* initializer = initializers[i]->getAsAggregate();
+        if (initializer && initializer->getOp() != glslang::EOpFunction && initializer->getOp() != glslang::EOpLinkerObjects) {
 
             // We're on a top-level node that's not a function.  Treat as an initializer, whose
             // code goes into the beginning of the entry point.
@@ -4296,38 +4296,38 @@ void TGlslangToSpvTraverser::makeGlobalInitializers(const Pglslang::TIntermSeque
 }
 
 // Process all the functions, while skipping initializers.
-void TGlslangToSpvTraverser::visitFunctions(const Pglslang::TIntermSequence& glslFunctions)
+void TGlslangToSpvTraverser::visitFunctions(const glslang::TIntermSequence& glslFunctions)
 {
     for (int f = 0; f < (int)glslFunctions.size(); ++f) {
-        Pglslang::TIntermAggregate* node = glslFunctions[f]->getAsAggregate();
-        if (node && (node->getOp() == Pglslang::EOpFunction || node->getOp() == Pglslang::EOpLinkerObjects))
+        glslang::TIntermAggregate* node = glslFunctions[f]->getAsAggregate();
+        if (node && (node->getOp() == glslang::EOpFunction || node->getOp() == glslang::EOpLinkerObjects))
             node->traverse(this);
     }
 }
 
-void TGlslangToSpvTraverser::handleFunctionEntry(const Pglslang::TIntermAggregate* node)
+void TGlslangToSpvTraverser::handleFunctionEntry(const glslang::TIntermAggregate* node)
 {
     // SPIR-V functions should already be in the functionMap from the prepass
     // that called makeFunctions().
     currentFunction = functionMap[node->getName().c_str()];
-    Pspv::Block* functionBlock = currentFunction->getEntryBlock();
+    spv::Block* functionBlock = currentFunction->getEntryBlock();
     builder.setBuildPoint(functionBlock);
 }
 
-void TGlslangToSpvTraverser::translateArguments(const Pglslang::TIntermAggregate& node, std::vector<Pspv::Id>& arguments, Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
+void TGlslangToSpvTraverser::translateArguments(const glslang::TIntermAggregate& node, std::vector<spv::Id>& arguments, spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
 {
-    const Pglslang::TIntermSequence& glslangArguments = node.getSequence();
+    const glslang::TIntermSequence& glslangArguments = node.getSequence();
 
-    Pglslang::TSampler sampler = {};
+    glslang::TSampler sampler = {};
     bool cubeCompare = false;
 #ifndef GLSLANG_WEB
     bool f16ShadowCompare = false;
 #endif
     if (node.isTexture() || node.isImage()) {
         sampler = glslangArguments[0]->getAsTyped()->getType().getSampler();
-        cubeCompare = sampler.dim == Pglslang::EsdCube && sampler.arrayed && sampler.shadow;
+        cubeCompare = sampler.dim == glslang::EsdCube && sampler.arrayed && sampler.shadow;
 #ifndef GLSLANG_WEB
-        f16ShadowCompare = sampler.shadow && glslangArguments[1]->getAsTyped()->getType().getBasicType() == Pglslang::EbtFloat16;
+        f16ShadowCompare = sampler.shadow && glslangArguments[1]->getAsTyped()->getType().getBasicType() == glslang::EbtFloat16;
 #endif
     }
 
@@ -4339,95 +4339,95 @@ void TGlslangToSpvTraverser::translateArguments(const Pglslang::TIntermAggregate
         // Special case l-value operands
         bool lvalue = false;
         switch (node.getOp()) {
-        case Pglslang::EOpImageAtomicAdd:
-        case Pglslang::EOpImageAtomicMin:
-        case Pglslang::EOpImageAtomicMax:
-        case Pglslang::EOpImageAtomicAnd:
-        case Pglslang::EOpImageAtomicOr:
-        case Pglslang::EOpImageAtomicXor:
-        case Pglslang::EOpImageAtomicExchange:
-        case Pglslang::EOpImageAtomicCompSwap:
-        case Pglslang::EOpImageAtomicLoad:
-        case Pglslang::EOpImageAtomicStore:
+        case glslang::EOpImageAtomicAdd:
+        case glslang::EOpImageAtomicMin:
+        case glslang::EOpImageAtomicMax:
+        case glslang::EOpImageAtomicAnd:
+        case glslang::EOpImageAtomicOr:
+        case glslang::EOpImageAtomicXor:
+        case glslang::EOpImageAtomicExchange:
+        case glslang::EOpImageAtomicCompSwap:
+        case glslang::EOpImageAtomicLoad:
+        case glslang::EOpImageAtomicStore:
             if (i == 0)
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseImageLoad:
+        case glslang::EOpSparseImageLoad:
             if ((sampler.ms && i == 3) || (! sampler.ms && i == 2))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTexture:
+        case glslang::EOpSparseTexture:
             if (((cubeCompare || f16ShadowCompare) && i == 3) || (! (cubeCompare || f16ShadowCompare) && i == 2))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureClamp:
+        case glslang::EOpSparseTextureClamp:
             if (((cubeCompare || f16ShadowCompare) && i == 4) || (! (cubeCompare || f16ShadowCompare) && i == 3))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureLod:
-        case Pglslang::EOpSparseTextureOffset:
+        case glslang::EOpSparseTextureLod:
+        case glslang::EOpSparseTextureOffset:
             if  ((f16ShadowCompare && i == 4) || (! f16ShadowCompare && i == 3))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureFetch:
-            if ((sampler.dim != Pglslang::EsdRect && i == 3) || (sampler.dim == Pglslang::EsdRect && i == 2))
+        case glslang::EOpSparseTextureFetch:
+            if ((sampler.dim != glslang::EsdRect && i == 3) || (sampler.dim == glslang::EsdRect && i == 2))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureFetchOffset:
-            if ((sampler.dim != Pglslang::EsdRect && i == 4) || (sampler.dim == Pglslang::EsdRect && i == 3))
+        case glslang::EOpSparseTextureFetchOffset:
+            if ((sampler.dim != glslang::EsdRect && i == 4) || (sampler.dim == glslang::EsdRect && i == 3))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureLodOffset:
-        case Pglslang::EOpSparseTextureGrad:
-        case Pglslang::EOpSparseTextureOffsetClamp:
+        case glslang::EOpSparseTextureLodOffset:
+        case glslang::EOpSparseTextureGrad:
+        case glslang::EOpSparseTextureOffsetClamp:
             if ((f16ShadowCompare && i == 5) || (! f16ShadowCompare && i == 4))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGradOffset:
-        case Pglslang::EOpSparseTextureGradClamp:
+        case glslang::EOpSparseTextureGradOffset:
+        case glslang::EOpSparseTextureGradClamp:
             if ((f16ShadowCompare && i == 6) || (! f16ShadowCompare && i == 5))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGradOffsetClamp:
+        case glslang::EOpSparseTextureGradOffsetClamp:
             if ((f16ShadowCompare && i == 7) || (! f16ShadowCompare && i == 6))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGather:
+        case glslang::EOpSparseTextureGather:
             if ((sampler.shadow && i == 3) || (! sampler.shadow && i == 2))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGatherOffset:
-        case Pglslang::EOpSparseTextureGatherOffsets:
+        case glslang::EOpSparseTextureGatherOffset:
+        case glslang::EOpSparseTextureGatherOffsets:
             if ((sampler.shadow && i == 4) || (! sampler.shadow && i == 3))
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGatherLod:
+        case glslang::EOpSparseTextureGatherLod:
             if (i == 3)
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseTextureGatherLodOffset:
-        case Pglslang::EOpSparseTextureGatherLodOffsets:
+        case glslang::EOpSparseTextureGatherLodOffset:
+        case glslang::EOpSparseTextureGatherLodOffsets:
             if (i == 4)
                 lvalue = true;
             break;
-        case Pglslang::EOpSparseImageLoadLod:
+        case glslang::EOpSparseImageLoadLod:
             if (i == 3)
                 lvalue = true;
             break;
-        case Pglslang::EOpImageSampleFootprintNV:
+        case glslang::EOpImageSampleFootprintNV:
             if (i == 4)
                 lvalue = true;
             break;
-        case Pglslang::EOpImageSampleFootprintClampNV:
-        case Pglslang::EOpImageSampleFootprintLodNV:
+        case glslang::EOpImageSampleFootprintClampNV:
+        case glslang::EOpImageSampleFootprintLodNV:
             if (i == 5)
                 lvalue = true;
             break;
-        case Pglslang::EOpImageSampleFootprintGradNV:
+        case glslang::EOpImageSampleFootprintGradNV:
             if (i == 6)
                 lvalue = true;
             break;
-        case Pglslang::EOpImageSampleFootprintGradClampNV:
+        case glslang::EOpImageSampleFootprintGradClampNV:
             if (i == 7)
                 lvalue = true;
             break;
@@ -4445,86 +4445,86 @@ void TGlslangToSpvTraverser::translateArguments(const Pglslang::TIntermAggregate
     }
 }
 
-void TGlslangToSpvTraverser::translateArguments(Pglslang::TIntermUnary& node, std::vector<Pspv::Id>& arguments)
+void TGlslangToSpvTraverser::translateArguments(glslang::TIntermUnary& node, std::vector<spv::Id>& arguments)
 {
     builder.clearAccessChain();
     node.getOperand()->traverse(this);
     arguments.push_back(accessChainLoad(node.getOperand()->getType()));
 }
 
-Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TIntermOperator* node)
+spv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(glslang::TIntermOperator* node)
 {
     if (! node->isImage() && ! node->isTexture())
-        return Pspv::NoResult;
+        return spv::NoResult;
 
     builder.setLine(node->getLoc().line, node->getLoc().getFilename());
 
     // Process a GLSL texturing op (will be SPV image)
 
-    const Pglslang::TType &imageType = node->getAsAggregate()
+    const glslang::TType &imageType = node->getAsAggregate()
                                         ? node->getAsAggregate()->getSequence()[0]->getAsTyped()->getType()
                                         : node->getAsUnaryNode()->getOperand()->getAsTyped()->getType();
-    const Pglslang::TSampler sampler = imageType.getSampler();
+    const glslang::TSampler sampler = imageType.getSampler();
 #ifdef GLSLANG_WEB
     const bool f16ShadowCompare = false;
 #else
     bool f16ShadowCompare = (sampler.shadow && node->getAsAggregate())
-            ? node->getAsAggregate()->getSequence()[1]->getAsTyped()->getType().getBasicType() == Pglslang::EbtFloat16
+            ? node->getAsAggregate()->getSequence()[1]->getAsTyped()->getType().getBasicType() == glslang::EbtFloat16
             : false;
 #endif
 
     const auto signExtensionMask = [&]() {
-        if (builder.getSpvVersion() >= Pspv::Spv_1_4) {
-            if (sampler.type == Pglslang::EbtUint)
-                return Pspv::ImageOperandsZeroExtendMask;
-            else if (sampler.type == Pglslang::EbtInt)
-                return Pspv::ImageOperandsSignExtendMask;
+        if (builder.getSpvVersion() >= spv::Spv_1_4) {
+            if (sampler.type == glslang::EbtUint)
+                return spv::ImageOperandsZeroExtendMask;
+            else if (sampler.type == glslang::EbtInt)
+                return spv::ImageOperandsSignExtendMask;
         }
-        return Pspv::ImageOperandsMaskNone;
+        return spv::ImageOperandsMaskNone;
     };
 
-    Pspv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
+    spv::Builder::AccessChain::CoherentFlags lvalueCoherentFlags;
 
-    std::vector<Pspv::Id> arguments;
+    std::vector<spv::Id> arguments;
     if (node->getAsAggregate())
         translateArguments(*node->getAsAggregate(), arguments, lvalueCoherentFlags);
     else
         translateArguments(*node->getAsUnaryNode(), arguments);
-    Pspv::Decoration precision = TranslatePrecisionDecoration(node->getOperationPrecision());
+    spv::Decoration precision = TranslatePrecisionDecoration(node->getOperationPrecision());
 
-    Pspv::Builder::TextureParameters params = { };
+    spv::Builder::TextureParameters params = { };
     params.sampler = arguments[0];
 
-    Pglslang::TCrackedTextureOp cracked;
+    glslang::TCrackedTextureOp cracked;
     node->crackTexture(sampler, cracked);
 
-    const bool isUnsignedResult = node->getType().getBasicType() == Pglslang::EbtUint;
+    const bool isUnsignedResult = node->getType().getBasicType() == glslang::EbtUint;
 
     // Check for queries
     if (cracked.query) {
         // OpImageQueryLod works on a sampled image, for other queries the image has to be extracted first
-        if (node->getOp() != Pglslang::EOpTextureQueryLod && builder.isSampledImage(params.sampler))
-            params.sampler = builder.createUnaryOp(Pspv::OpImage, builder.getImageType(params.sampler), params.sampler);
+        if (node->getOp() != glslang::EOpTextureQueryLod && builder.isSampledImage(params.sampler))
+            params.sampler = builder.createUnaryOp(spv::OpImage, builder.getImageType(params.sampler), params.sampler);
 
         switch (node->getOp()) {
-        case Pglslang::EOpImageQuerySize:
-        case Pglslang::EOpTextureQuerySize:
+        case glslang::EOpImageQuerySize:
+        case glslang::EOpTextureQuerySize:
             if (arguments.size() > 1) {
                 params.lod = arguments[1];
-                return builder.createTextureQueryCall(Pspv::OpImageQuerySizeLod, params, isUnsignedResult);
+                return builder.createTextureQueryCall(spv::OpImageQuerySizeLod, params, isUnsignedResult);
             } else
-                return builder.createTextureQueryCall(Pspv::OpImageQuerySize, params, isUnsignedResult);
+                return builder.createTextureQueryCall(spv::OpImageQuerySize, params, isUnsignedResult);
 #ifndef GLSLANG_WEB
-        case Pglslang::EOpImageQuerySamples:
-        case Pglslang::EOpTextureQuerySamples:
-            return builder.createTextureQueryCall(Pspv::OpImageQuerySamples, params, isUnsignedResult);
-        case Pglslang::EOpTextureQueryLod:
+        case glslang::EOpImageQuerySamples:
+        case glslang::EOpTextureQuerySamples:
+            return builder.createTextureQueryCall(spv::OpImageQuerySamples, params, isUnsignedResult);
+        case glslang::EOpTextureQueryLod:
             params.coords = arguments[1];
-            return builder.createTextureQueryCall(Pspv::OpImageQueryLod, params, isUnsignedResult);
-        case Pglslang::EOpTextureQueryLevels:
-            return builder.createTextureQueryCall(Pspv::OpImageQueryLevels, params, isUnsignedResult);
-        case Pglslang::EOpSparseTexelsResident:
-            return builder.createUnaryOp(Pspv::OpImageSparseTexelsResident, builder.makeBoolType(), arguments[0]);
+            return builder.createTextureQueryCall(spv::OpImageQueryLod, params, isUnsignedResult);
+        case glslang::EOpTextureQueryLevels:
+            return builder.createTextureQueryCall(spv::OpImageQueryLevels, params, isUnsignedResult);
+        case glslang::EOpSparseTexelsResident:
+            return builder.createUnaryOp(spv::OpImageSparseTexelsResident, builder.makeBoolType(), arguments[0]);
 #endif
         default:
             assert(0);
@@ -4534,7 +4534,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
 
     int components = node->getType().getVectorSize();
 
-    if (node->getOp() == Pglslang::EOpTextureFetch) {
+    if (node->getOp() == glslang::EOpTextureFetch) {
         // These must produce 4 components, per SPIR-V spec.  We'll add a conversion constructor if needed.
         // This will only happen through the HLSL path for operator[], so we do not have to handle e.g.
         // the EOpTexture/Proj/Lod/etc family.  It would be harmless to do so, but would need more logic
@@ -4542,15 +4542,15 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         components = 4;
     }
 
-    Pglslang::TType returnType(node->getType().getBasicType(), Pglslang::EvqTemporary, components);
+    glslang::TType returnType(node->getType().getBasicType(), glslang::EvqTemporary, components);
 
     auto resultType = [&returnType,this]{ return convertGlslangToSpvType(returnType); };
 
     // Check for image functions other than queries
     if (node->isImage()) {
-        std::vector<Pspv::IdImmediate> operands;
+        std::vector<spv::IdImmediate> operands;
         auto opIt = arguments.begin();
-        Pspv::IdImmediate image = { true, *(opIt++) };
+        spv::IdImmediate image = { true, *(opIt++) };
         operands.push_back(image);
 
         // Handle subpass operations
@@ -4558,67 +4558,67 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         // built-in function.
         if (cracked.subpass) {
             // add on the (0,0) coordinate
-            Pspv::Id zero = builder.makeIntConstant(0);
-            std::vector<Pspv::Id> comps;
+            spv::Id zero = builder.makeIntConstant(0);
+            std::vector<spv::Id> comps;
             comps.push_back(zero);
             comps.push_back(zero);
-            Pspv::IdImmediate coord = { true,
+            spv::IdImmediate coord = { true,
                 builder.makeCompositeConstant(builder.makeVectorType(builder.makeIntType(32), 2), comps) };
             operands.push_back(coord);
-            Pspv::IdImmediate imageOperands = { false, Pspv::ImageOperandsMaskNone };
+            spv::IdImmediate imageOperands = { false, spv::ImageOperandsMaskNone };
             imageOperands.word = imageOperands.word | signExtensionMask();
             if (sampler.isMultiSample()) {
-                imageOperands.word = imageOperands.word | Pspv::ImageOperandsSampleMask;
+                imageOperands.word = imageOperands.word | spv::ImageOperandsSampleMask;
             }
-            if (imageOperands.word != Pspv::ImageOperandsMaskNone) {
+            if (imageOperands.word != spv::ImageOperandsMaskNone) {
                 operands.push_back(imageOperands);
                 if (sampler.isMultiSample()) {
-                    Pspv::IdImmediate imageOperand = { true, *(opIt++) };
+                    spv::IdImmediate imageOperand = { true, *(opIt++) };
                     operands.push_back(imageOperand);
                 }
             }
-            Pspv::Id result = builder.createOp(Pspv::OpImageRead, resultType(), operands);
+            spv::Id result = builder.createOp(spv::OpImageRead, resultType(), operands);
             builder.setPrecision(result, precision);
             return result;
         }
 
-        Pspv::IdImmediate coord = { true, *(opIt++) };
+        spv::IdImmediate coord = { true, *(opIt++) };
         operands.push_back(coord);
-        if (node->getOp() == Pglslang::EOpImageLoad || node->getOp() == Pglslang::EOpImageLoadLod) {
-            Pspv::ImageOperandsMask mask = Pspv::ImageOperandsMaskNone;
+        if (node->getOp() == glslang::EOpImageLoad || node->getOp() == glslang::EOpImageLoadLod) {
+            spv::ImageOperandsMask mask = spv::ImageOperandsMaskNone;
             if (sampler.isMultiSample()) {
-                mask = mask | Pspv::ImageOperandsSampleMask;
+                mask = mask | spv::ImageOperandsSampleMask;
             }
             if (cracked.lod) {
-                builder.addExtension(Pspv::E_SPV_AMD_shader_image_load_store_lod);
-                builder.addCapability(Pspv::CapabilityImageReadWriteLodAMD);
-                mask = mask | Pspv::ImageOperandsLodMask;
+                builder.addExtension(spv::E_SPV_AMD_shader_image_load_store_lod);
+                builder.addCapability(spv::CapabilityImageReadWriteLodAMD);
+                mask = mask | spv::ImageOperandsLodMask;
             }
             mask = mask | TranslateImageOperands(TranslateCoherent(imageType));
-            mask = (Pspv::ImageOperandsMask)(mask & ~Pspv::ImageOperandsMakeTexelAvailableKHRMask);
+            mask = (spv::ImageOperandsMask)(mask & ~spv::ImageOperandsMakeTexelAvailableKHRMask);
             mask = mask | signExtensionMask();
-            if (mask != Pspv::ImageOperandsMaskNone) {
-                Pspv::IdImmediate imageOperands = { false, (unsigned int)mask };
+            if (mask != spv::ImageOperandsMaskNone) {
+                spv::IdImmediate imageOperands = { false, (unsigned int)mask };
                 operands.push_back(imageOperands);
             }
-            if (mask & Pspv::ImageOperandsSampleMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsSampleMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsLodMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsLodMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsMakeTexelVisibleKHRMask) {
-                Pspv::IdImmediate imageOperand = { true,
+            if (mask & spv::ImageOperandsMakeTexelVisibleKHRMask) {
+                spv::IdImmediate imageOperand = { true,
                                     builder.makeUintConstant(TranslateMemoryScope(TranslateCoherent(imageType))) };
                 operands.push_back(imageOperand);
             }
 
-            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == Pspv::ImageFormatUnknown)
-                builder.addCapability(Pspv::CapabilityStorageImageReadWithoutFormat);
+            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == spv::ImageFormatUnknown)
+                builder.addCapability(spv::CapabilityStorageImageReadWithoutFormat);
 
-            std::vector<Pspv::Id> result(1, builder.createOp(Pspv::OpImageRead, resultType(), operands));
+            std::vector<spv::Id> result(1, builder.createOp(spv::OpImageRead, resultType(), operands));
             builder.setPrecision(result[0], precision);
 
             // If needed, add a conversion constructor to the proper size.
@@ -4626,94 +4626,94 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
                 result[0] = builder.createConstructor(precision, result, convertGlslangToSpvType(node->getType()));
 
             return result[0];
-        } else if (node->getOp() == Pglslang::EOpImageStore || node->getOp() == Pglslang::EOpImageStoreLod) {
+        } else if (node->getOp() == glslang::EOpImageStore || node->getOp() == glslang::EOpImageStoreLod) {
 
             // Push the texel value before the operands
             if (sampler.isMultiSample() || cracked.lod) {
-                Pspv::IdImmediate texel = { true, *(opIt + 1) };
+                spv::IdImmediate texel = { true, *(opIt + 1) };
                 operands.push_back(texel);
             } else {
-                Pspv::IdImmediate texel = { true, *opIt };
+                spv::IdImmediate texel = { true, *opIt };
                 operands.push_back(texel);
             }
 
-            Pspv::ImageOperandsMask mask = Pspv::ImageOperandsMaskNone;
+            spv::ImageOperandsMask mask = spv::ImageOperandsMaskNone;
             if (sampler.isMultiSample()) {
-                mask = mask | Pspv::ImageOperandsSampleMask;
+                mask = mask | spv::ImageOperandsSampleMask;
             }
             if (cracked.lod) {
-                builder.addExtension(Pspv::E_SPV_AMD_shader_image_load_store_lod);
-                builder.addCapability(Pspv::CapabilityImageReadWriteLodAMD);
-                mask = mask | Pspv::ImageOperandsLodMask;
+                builder.addExtension(spv::E_SPV_AMD_shader_image_load_store_lod);
+                builder.addCapability(spv::CapabilityImageReadWriteLodAMD);
+                mask = mask | spv::ImageOperandsLodMask;
             }
             mask = mask | TranslateImageOperands(TranslateCoherent(imageType));
-            mask = (Pspv::ImageOperandsMask)(mask & ~Pspv::ImageOperandsMakeTexelVisibleKHRMask);
+            mask = (spv::ImageOperandsMask)(mask & ~spv::ImageOperandsMakeTexelVisibleKHRMask);
             mask = mask | signExtensionMask();
-            if (mask != Pspv::ImageOperandsMaskNone) {
-                Pspv::IdImmediate imageOperands = { false, (unsigned int)mask };
+            if (mask != spv::ImageOperandsMaskNone) {
+                spv::IdImmediate imageOperands = { false, (unsigned int)mask };
                 operands.push_back(imageOperands);
             }
-            if (mask & Pspv::ImageOperandsSampleMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsSampleMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsLodMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsLodMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsMakeTexelAvailableKHRMask) {
-                Pspv::IdImmediate imageOperand = { true,
+            if (mask & spv::ImageOperandsMakeTexelAvailableKHRMask) {
+                spv::IdImmediate imageOperand = { true,
                     builder.makeUintConstant(TranslateMemoryScope(TranslateCoherent(imageType))) };
                 operands.push_back(imageOperand);
             }
 
-            builder.createNoResultOp(Pspv::OpImageWrite, operands);
-            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == Pspv::ImageFormatUnknown)
-                builder.addCapability(Pspv::CapabilityStorageImageWriteWithoutFormat);
-            return Pspv::NoResult;
-        } else if (node->getOp() == Pglslang::EOpSparseImageLoad ||
-                   node->getOp() == Pglslang::EOpSparseImageLoadLod) {
-            builder.addCapability(Pspv::CapabilitySparseResidency);
-            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == Pspv::ImageFormatUnknown)
-                builder.addCapability(Pspv::CapabilityStorageImageReadWithoutFormat);
+            builder.createNoResultOp(spv::OpImageWrite, operands);
+            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == spv::ImageFormatUnknown)
+                builder.addCapability(spv::CapabilityStorageImageWriteWithoutFormat);
+            return spv::NoResult;
+        } else if (node->getOp() == glslang::EOpSparseImageLoad ||
+                   node->getOp() == glslang::EOpSparseImageLoadLod) {
+            builder.addCapability(spv::CapabilitySparseResidency);
+            if (builder.getImageTypeFormat(builder.getImageType(operands.front().word)) == spv::ImageFormatUnknown)
+                builder.addCapability(spv::CapabilityStorageImageReadWithoutFormat);
 
-            Pspv::ImageOperandsMask mask = Pspv::ImageOperandsMaskNone;
+            spv::ImageOperandsMask mask = spv::ImageOperandsMaskNone;
             if (sampler.isMultiSample()) {
-                mask = mask | Pspv::ImageOperandsSampleMask;
+                mask = mask | spv::ImageOperandsSampleMask;
             }
             if (cracked.lod) {
-                builder.addExtension(Pspv::E_SPV_AMD_shader_image_load_store_lod);
-                builder.addCapability(Pspv::CapabilityImageReadWriteLodAMD);
+                builder.addExtension(spv::E_SPV_AMD_shader_image_load_store_lod);
+                builder.addCapability(spv::CapabilityImageReadWriteLodAMD);
 
-                mask = mask | Pspv::ImageOperandsLodMask;
+                mask = mask | spv::ImageOperandsLodMask;
             }
             mask = mask | TranslateImageOperands(TranslateCoherent(imageType));
-            mask = (Pspv::ImageOperandsMask)(mask & ~Pspv::ImageOperandsMakeTexelAvailableKHRMask);
+            mask = (spv::ImageOperandsMask)(mask & ~spv::ImageOperandsMakeTexelAvailableKHRMask);
             mask = mask | signExtensionMask();
-            if (mask != Pspv::ImageOperandsMaskNone) {
-                Pspv::IdImmediate imageOperands = { false, (unsigned int)mask };
+            if (mask != spv::ImageOperandsMaskNone) {
+                spv::IdImmediate imageOperands = { false, (unsigned int)mask };
                 operands.push_back(imageOperands);
             }
-            if (mask & Pspv::ImageOperandsSampleMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsSampleMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsLodMask) {
-                Pspv::IdImmediate imageOperand = { true, *opIt++ };
+            if (mask & spv::ImageOperandsLodMask) {
+                spv::IdImmediate imageOperand = { true, *opIt++ };
                 operands.push_back(imageOperand);
             }
-            if (mask & Pspv::ImageOperandsMakeTexelVisibleKHRMask) {
-                Pspv::IdImmediate imageOperand = { true, builder.makeUintConstant(TranslateMemoryScope(TranslateCoherent(imageType))) };
+            if (mask & spv::ImageOperandsMakeTexelVisibleKHRMask) {
+                spv::IdImmediate imageOperand = { true, builder.makeUintConstant(TranslateMemoryScope(TranslateCoherent(imageType))) };
                 operands.push_back(imageOperand);
             }
 
             // Create the return type that was a special structure
-            Pspv::Id texelOut = *opIt;
-            Pspv::Id typeId0 = resultType();
-            Pspv::Id typeId1 = builder.getDerefTypeId(texelOut);
-            Pspv::Id resultTypeId = builder.makeStructResultType(typeId0, typeId1);
+            spv::Id texelOut = *opIt;
+            spv::Id typeId0 = resultType();
+            spv::Id typeId1 = builder.getDerefTypeId(texelOut);
+            spv::Id resultTypeId = builder.makeStructResultType(typeId0, typeId1);
 
-            Pspv::Id resultId = builder.createOp(Pspv::OpImageSparseRead, resultTypeId, operands);
+            spv::Id resultId = builder.createOp(spv::OpImageSparseRead, resultTypeId, operands);
 
             // Decode the return type
             builder.createStore(builder.createCompositeExtract(resultId, typeId1, 1), texelOut);
@@ -4724,20 +4724,20 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
             // GLSL "IMAGE_PARAMS" will involve in constructing an image texel pointer and this pointer,
             // as the first source operand, is required by SPIR-V atomic operations.
             // For non-MS, the sample value should be 0
-            Pspv::IdImmediate sample = { true, sampler.isMultiSample() ? *(opIt++) : builder.makeUintConstant(0) };
+            spv::IdImmediate sample = { true, sampler.isMultiSample() ? *(opIt++) : builder.makeUintConstant(0) };
             operands.push_back(sample);
 
-            Pspv::Id resultTypeId;
+            spv::Id resultTypeId;
             // imageAtomicStore has a void return type so base the pointer type on
             // the type of the value operand.
-            if (node->getOp() == Pglslang::EOpImageAtomicStore) {
-                resultTypeId = builder.makePointer(Pspv::StorageClassImage, builder.getTypeId(*opIt));
+            if (node->getOp() == glslang::EOpImageAtomicStore) {
+                resultTypeId = builder.makePointer(spv::StorageClassImage, builder.getTypeId(*opIt));
             } else {
-                resultTypeId = builder.makePointer(Pspv::StorageClassImage, resultType());
+                resultTypeId = builder.makePointer(spv::StorageClassImage, resultType());
             }
-            Pspv::Id pointer = builder.createOp(Pspv::OpImageTexelPointer, resultTypeId, operands);
+            spv::Id pointer = builder.createOp(spv::OpImageTexelPointer, resultTypeId, operands);
 
-            std::vector<Pspv::Id> operands;
+            std::vector<spv::Id> operands;
             operands.push_back(pointer);
             for (; opIt != arguments.end(); ++opIt)
                 operands.push_back(*opIt);
@@ -4752,19 +4752,19 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         assert(sampler.ms);
 
         auto opIt = arguments.begin();
-        std::vector<Pspv::Id> operands;
+        std::vector<spv::Id> operands;
 
         // Extract the image if necessary
         if (builder.isSampledImage(params.sampler))
-            params.sampler = builder.createUnaryOp(Pspv::OpImage, builder.getImageType(params.sampler), params.sampler);
+            params.sampler = builder.createUnaryOp(spv::OpImage, builder.getImageType(params.sampler), params.sampler);
 
         operands.push_back(params.sampler);
         ++opIt;
 
         if (sampler.isSubpass()) {
             // add on the (0,0) coordinate
-            Pspv::Id zero = builder.makeIntConstant(0);
-            std::vector<Pspv::Id> comps;
+            spv::Id zero = builder.makeIntConstant(0);
+            std::vector<spv::Id> comps;
             comps.push_back(zero);
             comps.push_back(zero);
             operands.push_back(builder.makeCompositeConstant(builder.makeVectorType(builder.makeIntType(32), 2), comps));
@@ -4773,14 +4773,14 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         for (; opIt != arguments.end(); ++opIt)
             operands.push_back(*opIt);
 
-        Pspv::Op fragMaskOp = Pspv::OpNop;
-        if (node->getOp() == Pglslang::EOpFragmentMaskFetch)
-            fragMaskOp = Pspv::OpFragmentMaskFetchAMD;
-        else if (node->getOp() == Pglslang::EOpFragmentFetch)
-            fragMaskOp = Pspv::OpFragmentFetchAMD;
+        spv::Op fragMaskOp = spv::OpNop;
+        if (node->getOp() == glslang::EOpFragmentMaskFetch)
+            fragMaskOp = spv::OpFragmentMaskFetchAMD;
+        else if (node->getOp() == glslang::EOpFragmentFetch)
+            fragMaskOp = spv::OpFragmentFetchAMD;
 
-        builder.addExtension(Pspv::E_SPV_AMD_shader_fragment_mask);
-        builder.addCapability(Pspv::CapabilityFragmentMaskAMD);
+        builder.addExtension(spv::E_SPV_AMD_shader_fragment_mask);
+        builder.addCapability(spv::CapabilityFragmentMaskAMD);
         return builder.createOp(fragMaskOp, resultType(), operands);
     }
 #endif
@@ -4788,7 +4788,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
     // Check for texture functions other than queries
     bool sparse = node->isSparseTexture();
     bool imageFootprint = node->isImageFootprint();
-    bool cubeCompare = sampler.dim == Pglslang::EsdCube && sampler.isArrayed() && sampler.isShadow();
+    bool cubeCompare = sampler.dim == glslang::EsdCube && sampler.isArrayed() && sampler.isShadow();
 
     // check for bias argument
     bool bias = false;
@@ -4821,16 +4821,16 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
     if (cracked.fetch) {
         // a fetch needs to have the image extracted first
         if (builder.isSampledImage(params.sampler))
-            params.sampler = builder.createUnaryOp(Pspv::OpImage, builder.getImageType(params.sampler), params.sampler);
+            params.sampler = builder.createUnaryOp(spv::OpImage, builder.getImageType(params.sampler), params.sampler);
     }
 
 #ifndef GLSLANG_WEB
     if (cracked.gather) {
         const auto& sourceExtensions = glslangIntermediate->getRequestedExtensions();
         if (bias || cracked.lod ||
-            sourceExtensions.find(Pglslang::E_GL_AMD_texture_gather_bias_lod) != sourceExtensions.end()) {
-            builder.addExtension(Pspv::E_SPV_AMD_texture_gather_bias_lod);
-            builder.addCapability(Pspv::CapabilityImageGatherBiasLodAMD);
+            sourceExtensions.find(glslang::E_GL_AMD_texture_gather_bias_lod) != sourceExtensions.end()) {
+            builder.addExtension(spv::E_SPV_AMD_texture_gather_bias_lod);
+            builder.addCapability(spv::CapabilityImageGatherBiasLodAMD);
         }
     }
 #endif
@@ -4849,7 +4849,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         params.Dref = arguments[2];
         ++extraArgs;
     } else if (sampler.shadow) {
-        std::vector<Pspv::Id> indexes;
+        std::vector<spv::Id> indexes;
         int dRefComp;
         if (cracked.proj)
             dRefComp = 2;  // "The resulting 3rd component of P in the shadow forms is used as Dref"
@@ -4912,7 +4912,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         } else
             params.component = builder.makeIntConstant(0);
     }
-    Pspv::Id  resultStruct = Pspv::NoResult;
+    spv::Id  resultStruct = spv::NoResult;
     if (imageFootprint) {
         //Following three extra arguments
         // int granularity, bool coarse, out gl_TextureFootprint2DNV footprint
@@ -4930,8 +4930,8 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
 
 #ifndef GLSLANG_WEB
     if (imageFootprint) {
-        builder.addExtension(Pspv::E_SPV_NV_shader_image_footprint);
-        builder.addCapability(Pspv::CapabilityImageFootprintNV);
+        builder.addExtension(spv::E_SPV_NV_shader_image_footprint);
+        builder.addCapability(spv::CapabilityImageFootprintNV);
 
 
         //resultStructType(OpenGL type) contains 5 elements:
@@ -4950,7 +4950,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         //    uint  lod;
         //    uint  granularity;
         //};
-        Pspv::Id resultStructType = builder.getContainedTypeId(builder.getTypeId(resultStruct));
+        spv::Id resultStructType = builder.getContainedTypeId(builder.getTypeId(resultStruct));
         assert(builder.isStructType(resultStructType));
 
         //resType (SPIR-V type) contains 6 elements:
@@ -4960,15 +4960,15 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         //Member 3 must be a vector of integer type, whose Signedness operand is 0(mask), 
         //Member 4 must be a scalar of integer type, whose Signedness operand is 0(lod),
         //Member 5 must be a scalar of integer type, whose Signedness operand is 0(granularity).
-        std::vector<Pspv::Id> members;
+        std::vector<spv::Id> members;
         members.push_back(resultType());
         for (int i = 0; i < 5; i++) {
             members.push_back(builder.getContainedTypeId(resultStructType, i));
         }
-        Pspv::Id resType = builder.makeStructType(members, "ResType");
+        spv::Id resType = builder.makeStructType(members, "ResType");
 
         //call ImageFootprintNV
-        Pspv::Id res = builder.createTextureCall(precision, resType, sparse, cracked.fetch, cracked.proj,
+        spv::Id res = builder.createTextureCall(precision, resType, sparse, cracked.fetch, cracked.proj,
                                                 cracked.gather, noImplicitLod, params, signExtensionMask());
         
         //copy resType (SPIR-V type) to resultStructType(OpenGL type)
@@ -4977,7 +4977,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
             builder.setAccessChainLValue(resultStruct);
 
             //Accessing to a struct we created, no coherent flag is set
-            Pspv::Builder::AccessChain::CoherentFlags flags;
+            spv::Builder::AccessChain::CoherentFlags flags;
             flags.clear();
 
             builder.accessChainPush(builder.makeIntConstant(i), flags, 0);
@@ -4996,14 +4996,14 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
         int projSourceComp = builder.getNumComponents(params.coords) - 1;
         int projTargetComp;
         switch (sampler.dim) {
-        case Pglslang::Esd1D:   projTargetComp = 1;              break;
-        case Pglslang::Esd2D:   projTargetComp = 2;              break;
-        case Pglslang::EsdRect: projTargetComp = 2;              break;
+        case glslang::Esd1D:   projTargetComp = 1;              break;
+        case glslang::Esd2D:   projTargetComp = 2;              break;
+        case glslang::EsdRect: projTargetComp = 2;              break;
         default:               projTargetComp = projSourceComp; break;
         }
         // copy the projective coordinate if we have to
         if (projTargetComp != projSourceComp) {
-            Pspv::Id projComp = builder.createCompositeExtract(params.coords,
+            spv::Id projComp = builder.createCompositeExtract(params.coords,
                                                               builder.getScalarTypeId(builder.getTypeId(params.coords)),
                                                               projSourceComp);
             params.coords = builder.createCompositeInsert(projComp, params.coords,
@@ -5023,7 +5023,7 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
     }
 #endif
 
-    std::vector<Pspv::Id> result( 1, 
+    std::vector<spv::Id> result( 1, 
         builder.createTextureCall(precision, resultType(), sparse, cracked.fetch, cracked.proj, cracked.gather,
                                   noImplicitLod, params, signExtensionMask())
     );
@@ -5034,15 +5034,15 @@ Pspv::Id TGlslangToSpvTraverser::createImageTextureFunctionCall(Pglslang::TInter
     return result[0];
 }
 
-Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermAggregate* node)
+spv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const glslang::TIntermAggregate* node)
 {
     // Grab the function's pointer from the previously created function
-    Pspv::Function* function = functionMap[node->getName().c_str()];
+    spv::Function* function = functionMap[node->getName().c_str()];
     if (! function)
         return 0;
 
-    const Pglslang::TIntermSequence& glslangArgs = node->getSequence();
-    const Pglslang::TQualifierList& qualifiers = node->getQualifierList();
+    const glslang::TIntermSequence& glslangArgs = node->getSequence();
+    const glslang::TQualifierList& qualifiers = node->getQualifierList();
 
     //  See comments in makeFunctions() for details about the semantics for parameter passing.
     //
@@ -5053,9 +5053,9 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
     // 4. Copy back the results
 
     // 1. Evaluate the arguments and their types
-    std::vector<Pspv::Builder::AccessChain> lValues;
-    std::vector<Pspv::Id> rValues;
-    std::vector<const Pglslang::TType*> argTypes;
+    std::vector<spv::Builder::AccessChain> lValues;
+    std::vector<spv::Id> rValues;
+    std::vector<const glslang::TType*> argTypes;
     for (int a = 0; a < (int)glslangArgs.size(); ++a) {
         argTypes.push_back(&glslangArgs[a]->getAsTyped()->getType());
         // build l-value
@@ -5078,20 +5078,20 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
     // Also, build up the list of actual arguments to pass in for the call
     int lValueCount = 0;
     int rValueCount = 0;
-    std::vector<Pspv::Id> spvArgs;
+    std::vector<spv::Id> spvArgs;
     for (int a = 0; a < (int)glslangArgs.size(); ++a) {
-        Pspv::Id arg;
+        spv::Id arg;
         if (originalParam(qualifiers[a], *argTypes[a], function->hasImplicitThis() && a == 0)) {
             builder.setAccessChain(lValues[lValueCount]);
             arg = builder.accessChainGetLValue();
             ++lValueCount;
         } else if (writableParam(qualifiers[a])) {
             // need space to hold the copy
-            arg = builder.createVariable(Pspv::StorageClassFunction, builder.getContainedTypeId(function->getParamType(a)), "param");
-            if (qualifiers[a] == Pglslang::EvqIn || qualifiers[a] == Pglslang::EvqInOut) {
+            arg = builder.createVariable(spv::StorageClassFunction, builder.getContainedTypeId(function->getParamType(a)), "param");
+            if (qualifiers[a] == glslang::EvqIn || qualifiers[a] == glslang::EvqInOut) {
                 // need to copy the input into output space
                 builder.setAccessChain(lValues[lValueCount]);
-                Pspv::Id copy = accessChainLoad(*argTypes[a]);
+                spv::Id copy = accessChainLoad(*argTypes[a]);
                 builder.clearAccessChain();
                 builder.setAccessChainLValue(arg);
                 multiTypeStore(*argTypes[a], copy);
@@ -5100,7 +5100,7 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
         } else {
             // process r-value, which involves a copy for a type mismatch
             if (function->getParamType(a) != convertGlslangToSpvType(*argTypes[a])) {
-                Pspv::Id argCopy = builder.createVariable(Pspv::StorageClassFunction, function->getParamType(a), "arg");
+                spv::Id argCopy = builder.createVariable(spv::StorageClassFunction, function->getParamType(a), "arg");
                 builder.clearAccessChain();
                 builder.setAccessChainLValue(argCopy);
                 multiTypeStore(*argTypes[a], rValues[rValueCount]);
@@ -5113,7 +5113,7 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
     }
 
     // 3. Make the call.
-    Pspv::Id result = builder.createFunctionCall(function, spvArgs);
+    spv::Id result = builder.createFunctionCall(function, spvArgs);
     builder.setPrecision(result, TranslatePrecisionDecoration(node->getType()));
 
     // 4. Copy back out an "out" arguments.
@@ -5122,8 +5122,8 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
         if (originalParam(qualifiers[a], *argTypes[a], function->hasImplicitThis() && a == 0))
             ++lValueCount;
         else if (writableParam(qualifiers[a])) {
-            if (qualifiers[a] == Pglslang::EvqOut || qualifiers[a] == Pglslang::EvqInOut) {
-                Pspv::Id copy = builder.createLoad(spvArgs[a]);
+            if (qualifiers[a] == glslang::EvqOut || qualifiers[a] == glslang::EvqInOut) {
+                spv::Id copy = builder.createLoad(spvArgs[a]);
                 builder.setAccessChain(lValues[lValueCount]);
                 multiTypeStore(*argTypes[a], copy);
             }
@@ -5135,159 +5135,159 @@ Pspv::Id TGlslangToSpvTraverser::handleUserFunctionCall(const Pglslang::TIntermA
 }
 
 // Translate AST operation to SPV operation, already having SPV-based operands/types.
-Pspv::Id TGlslangToSpvTraverser::createBinaryOperation(Pglslang::TOperator op, OpDecorations& decorations,
-                                                      Pspv::Id typeId, Pspv::Id left, Pspv::Id right,
-                                                      Pglslang::TBasicType typeProxy, bool reduceComparison)
+spv::Id TGlslangToSpvTraverser::createBinaryOperation(glslang::TOperator op, OpDecorations& decorations,
+                                                      spv::Id typeId, spv::Id left, spv::Id right,
+                                                      glslang::TBasicType typeProxy, bool reduceComparison)
 {
     bool isUnsigned = isTypeUnsignedInt(typeProxy);
     bool isFloat = isTypeFloat(typeProxy);
-    bool isBool = typeProxy == Pglslang::EbtBool;
+    bool isBool = typeProxy == glslang::EbtBool;
 
-    Pspv::Op binOp = Pspv::OpNop;
+    spv::Op binOp = spv::OpNop;
     bool needMatchingVectors = true;  // for non-matrix ops, would a scalar need to smear to match a vector?
     bool comparison = false;
 
     switch (op) {
-    case Pglslang::EOpAdd:
-    case Pglslang::EOpAddAssign:
+    case glslang::EOpAdd:
+    case glslang::EOpAddAssign:
         if (isFloat)
-            binOp = Pspv::OpFAdd;
+            binOp = spv::OpFAdd;
         else
-            binOp = Pspv::OpIAdd;
+            binOp = spv::OpIAdd;
         break;
-    case Pglslang::EOpSub:
-    case Pglslang::EOpSubAssign:
+    case glslang::EOpSub:
+    case glslang::EOpSubAssign:
         if (isFloat)
-            binOp = Pspv::OpFSub;
+            binOp = spv::OpFSub;
         else
-            binOp = Pspv::OpISub;
+            binOp = spv::OpISub;
         break;
-    case Pglslang::EOpMul:
-    case Pglslang::EOpMulAssign:
+    case glslang::EOpMul:
+    case glslang::EOpMulAssign:
         if (isFloat)
-            binOp = Pspv::OpFMul;
+            binOp = spv::OpFMul;
         else
-            binOp = Pspv::OpIMul;
+            binOp = spv::OpIMul;
         break;
-    case Pglslang::EOpVectorTimesScalar:
-    case Pglslang::EOpVectorTimesScalarAssign:
+    case glslang::EOpVectorTimesScalar:
+    case glslang::EOpVectorTimesScalarAssign:
         if (isFloat && (builder.isVector(left) || builder.isVector(right))) {
             if (builder.isVector(right))
                 std::swap(left, right);
             assert(builder.isScalar(right));
             needMatchingVectors = false;
-            binOp = Pspv::OpVectorTimesScalar;
+            binOp = spv::OpVectorTimesScalar;
         } else if (isFloat)
-            binOp = Pspv::OpFMul;
+            binOp = spv::OpFMul;
           else
-            binOp = Pspv::OpIMul;
+            binOp = spv::OpIMul;
         break;
-    case Pglslang::EOpVectorTimesMatrix:
-    case Pglslang::EOpVectorTimesMatrixAssign:
-        binOp = Pspv::OpVectorTimesMatrix;
+    case glslang::EOpVectorTimesMatrix:
+    case glslang::EOpVectorTimesMatrixAssign:
+        binOp = spv::OpVectorTimesMatrix;
         break;
-    case Pglslang::EOpMatrixTimesVector:
-        binOp = Pspv::OpMatrixTimesVector;
+    case glslang::EOpMatrixTimesVector:
+        binOp = spv::OpMatrixTimesVector;
         break;
-    case Pglslang::EOpMatrixTimesScalar:
-    case Pglslang::EOpMatrixTimesScalarAssign:
-        binOp = Pspv::OpMatrixTimesScalar;
+    case glslang::EOpMatrixTimesScalar:
+    case glslang::EOpMatrixTimesScalarAssign:
+        binOp = spv::OpMatrixTimesScalar;
         break;
-    case Pglslang::EOpMatrixTimesMatrix:
-    case Pglslang::EOpMatrixTimesMatrixAssign:
-        binOp = Pspv::OpMatrixTimesMatrix;
+    case glslang::EOpMatrixTimesMatrix:
+    case glslang::EOpMatrixTimesMatrixAssign:
+        binOp = spv::OpMatrixTimesMatrix;
         break;
-    case Pglslang::EOpOuterProduct:
-        binOp = Pspv::OpOuterProduct;
+    case glslang::EOpOuterProduct:
+        binOp = spv::OpOuterProduct;
         needMatchingVectors = false;
         break;
 
-    case Pglslang::EOpDiv:
-    case Pglslang::EOpDivAssign:
+    case glslang::EOpDiv:
+    case glslang::EOpDivAssign:
         if (isFloat)
-            binOp = Pspv::OpFDiv;
+            binOp = spv::OpFDiv;
         else if (isUnsigned)
-            binOp = Pspv::OpUDiv;
+            binOp = spv::OpUDiv;
         else
-            binOp = Pspv::OpSDiv;
+            binOp = spv::OpSDiv;
         break;
-    case Pglslang::EOpMod:
-    case Pglslang::EOpModAssign:
+    case glslang::EOpMod:
+    case glslang::EOpModAssign:
         if (isFloat)
-            binOp = Pspv::OpFMod;
+            binOp = spv::OpFMod;
         else if (isUnsigned)
-            binOp = Pspv::OpUMod;
+            binOp = spv::OpUMod;
         else
-            binOp = Pspv::OpSMod;
+            binOp = spv::OpSMod;
         break;
-    case Pglslang::EOpRightShift:
-    case Pglslang::EOpRightShiftAssign:
+    case glslang::EOpRightShift:
+    case glslang::EOpRightShiftAssign:
         if (isUnsigned)
-            binOp = Pspv::OpShiftRightLogical;
+            binOp = spv::OpShiftRightLogical;
         else
-            binOp = Pspv::OpShiftRightArithmetic;
+            binOp = spv::OpShiftRightArithmetic;
         break;
-    case Pglslang::EOpLeftShift:
-    case Pglslang::EOpLeftShiftAssign:
-        binOp = Pspv::OpShiftLeftLogical;
+    case glslang::EOpLeftShift:
+    case glslang::EOpLeftShiftAssign:
+        binOp = spv::OpShiftLeftLogical;
         break;
-    case Pglslang::EOpAnd:
-    case Pglslang::EOpAndAssign:
-        binOp = Pspv::OpBitwiseAnd;
+    case glslang::EOpAnd:
+    case glslang::EOpAndAssign:
+        binOp = spv::OpBitwiseAnd;
         break;
-    case Pglslang::EOpLogicalAnd:
+    case glslang::EOpLogicalAnd:
         needMatchingVectors = false;
-        binOp = Pspv::OpLogicalAnd;
+        binOp = spv::OpLogicalAnd;
         break;
-    case Pglslang::EOpInclusiveOr:
-    case Pglslang::EOpInclusiveOrAssign:
-        binOp = Pspv::OpBitwiseOr;
+    case glslang::EOpInclusiveOr:
+    case glslang::EOpInclusiveOrAssign:
+        binOp = spv::OpBitwiseOr;
         break;
-    case Pglslang::EOpLogicalOr:
+    case glslang::EOpLogicalOr:
         needMatchingVectors = false;
-        binOp = Pspv::OpLogicalOr;
+        binOp = spv::OpLogicalOr;
         break;
-    case Pglslang::EOpExclusiveOr:
-    case Pglslang::EOpExclusiveOrAssign:
-        binOp = Pspv::OpBitwiseXor;
+    case glslang::EOpExclusiveOr:
+    case glslang::EOpExclusiveOrAssign:
+        binOp = spv::OpBitwiseXor;
         break;
-    case Pglslang::EOpLogicalXor:
+    case glslang::EOpLogicalXor:
         needMatchingVectors = false;
-        binOp = Pspv::OpLogicalNotEqual;
+        binOp = spv::OpLogicalNotEqual;
         break;
 
-    case Pglslang::EOpAbsDifference:
-        binOp = isUnsigned ? Pspv::OpAbsUSubINTEL : Pspv::OpAbsISubINTEL;
+    case glslang::EOpAbsDifference:
+        binOp = isUnsigned ? spv::OpAbsUSubINTEL : spv::OpAbsISubINTEL;
         break;
 
-    case Pglslang::EOpAddSaturate:
-        binOp = isUnsigned ? Pspv::OpUAddSatINTEL : Pspv::OpIAddSatINTEL;
+    case glslang::EOpAddSaturate:
+        binOp = isUnsigned ? spv::OpUAddSatINTEL : spv::OpIAddSatINTEL;
         break;
 
-    case Pglslang::EOpSubSaturate:
-        binOp = isUnsigned ? Pspv::OpUSubSatINTEL : Pspv::OpISubSatINTEL;
+    case glslang::EOpSubSaturate:
+        binOp = isUnsigned ? spv::OpUSubSatINTEL : spv::OpISubSatINTEL;
         break;
 
-    case Pglslang::EOpAverage:
-        binOp = isUnsigned ? Pspv::OpUAverageINTEL : Pspv::OpIAverageINTEL;
+    case glslang::EOpAverage:
+        binOp = isUnsigned ? spv::OpUAverageINTEL : spv::OpIAverageINTEL;
         break;
 
-    case Pglslang::EOpAverageRounded:
-        binOp = isUnsigned ? Pspv::OpUAverageRoundedINTEL : Pspv::OpIAverageRoundedINTEL;
+    case glslang::EOpAverageRounded:
+        binOp = isUnsigned ? spv::OpUAverageRoundedINTEL : spv::OpIAverageRoundedINTEL;
         break;
 
-    case Pglslang::EOpMul32x16:
-        binOp = isUnsigned ? Pspv::OpUMul32x16INTEL : Pspv::OpIMul32x16INTEL;
+    case glslang::EOpMul32x16:
+        binOp = isUnsigned ? spv::OpUMul32x16INTEL : spv::OpIMul32x16INTEL;
         break;
 
-    case Pglslang::EOpLessThan:
-    case Pglslang::EOpGreaterThan:
-    case Pglslang::EOpLessThanEqual:
-    case Pglslang::EOpGreaterThanEqual:
-    case Pglslang::EOpEqual:
-    case Pglslang::EOpNotEqual:
-    case Pglslang::EOpVectorEqual:
-    case Pglslang::EOpVectorNotEqual:
+    case glslang::EOpLessThan:
+    case glslang::EOpGreaterThan:
+    case glslang::EOpLessThanEqual:
+    case glslang::EOpGreaterThanEqual:
+    case glslang::EOpEqual:
+    case glslang::EOpNotEqual:
+    case glslang::EOpVectorEqual:
+    case glslang::EOpVectorNotEqual:
         comparison = true;
         break;
     default:
@@ -5295,7 +5295,7 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryOperation(Pglslang::TOperator op, O
     }
 
     // handle mapped binary operations (should be non-comparison)
-    if (binOp != Pspv::OpNop) {
+    if (binOp != spv::OpNop) {
         assert(comparison == false);
         if (builder.isMatrix(left) || builder.isMatrix(right) ||
             builder.isCooperativeMatrix(left) || builder.isCooperativeMatrix(right))
@@ -5305,7 +5305,7 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryOperation(Pglslang::TOperator op, O
         if (needMatchingVectors)
             builder.promoteScalar(decorations.precision, left, right);
 
-        Pspv::Id result = builder.createBinOp(binOp, typeId, left, right);
+        spv::Id result = builder.createBinOp(binOp, typeId, left, right);
         decorations.addNoContraction(builder, result);
         decorations.addNonUniform(builder, result);
         return builder.setPrecision(result, decorations.precision);
@@ -5316,70 +5316,70 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryOperation(Pglslang::TOperator op, O
 
     // Handle comparison instructions
 
-    if (reduceComparison && (op == Pglslang::EOpEqual || op == Pglslang::EOpNotEqual)
+    if (reduceComparison && (op == glslang::EOpEqual || op == glslang::EOpNotEqual)
                          && (builder.isVector(left) || builder.isMatrix(left) || builder.isAggregate(left))) {
-        Pspv::Id result = builder.createCompositeCompare(decorations.precision, left, right, op == Pglslang::EOpEqual);
+        spv::Id result = builder.createCompositeCompare(decorations.precision, left, right, op == glslang::EOpEqual);
         decorations.addNonUniform(builder, result);
         return result;
     }
 
     switch (op) {
-    case Pglslang::EOpLessThan:
+    case glslang::EOpLessThan:
         if (isFloat)
-            binOp = Pspv::OpFOrdLessThan;
+            binOp = spv::OpFOrdLessThan;
         else if (isUnsigned)
-            binOp = Pspv::OpULessThan;
+            binOp = spv::OpULessThan;
         else
-            binOp = Pspv::OpSLessThan;
+            binOp = spv::OpSLessThan;
         break;
-    case Pglslang::EOpGreaterThan:
+    case glslang::EOpGreaterThan:
         if (isFloat)
-            binOp = Pspv::OpFOrdGreaterThan;
+            binOp = spv::OpFOrdGreaterThan;
         else if (isUnsigned)
-            binOp = Pspv::OpUGreaterThan;
+            binOp = spv::OpUGreaterThan;
         else
-            binOp = Pspv::OpSGreaterThan;
+            binOp = spv::OpSGreaterThan;
         break;
-    case Pglslang::EOpLessThanEqual:
+    case glslang::EOpLessThanEqual:
         if (isFloat)
-            binOp = Pspv::OpFOrdLessThanEqual;
+            binOp = spv::OpFOrdLessThanEqual;
         else if (isUnsigned)
-            binOp = Pspv::OpULessThanEqual;
+            binOp = spv::OpULessThanEqual;
         else
-            binOp = Pspv::OpSLessThanEqual;
+            binOp = spv::OpSLessThanEqual;
         break;
-    case Pglslang::EOpGreaterThanEqual:
+    case glslang::EOpGreaterThanEqual:
         if (isFloat)
-            binOp = Pspv::OpFOrdGreaterThanEqual;
+            binOp = spv::OpFOrdGreaterThanEqual;
         else if (isUnsigned)
-            binOp = Pspv::OpUGreaterThanEqual;
+            binOp = spv::OpUGreaterThanEqual;
         else
-            binOp = Pspv::OpSGreaterThanEqual;
+            binOp = spv::OpSGreaterThanEqual;
         break;
-    case Pglslang::EOpEqual:
-    case Pglslang::EOpVectorEqual:
+    case glslang::EOpEqual:
+    case glslang::EOpVectorEqual:
         if (isFloat)
-            binOp = Pspv::OpFOrdEqual;
+            binOp = spv::OpFOrdEqual;
         else if (isBool)
-            binOp = Pspv::OpLogicalEqual;
+            binOp = spv::OpLogicalEqual;
         else
-            binOp = Pspv::OpIEqual;
+            binOp = spv::OpIEqual;
         break;
-    case Pglslang::EOpNotEqual:
-    case Pglslang::EOpVectorNotEqual:
+    case glslang::EOpNotEqual:
+    case glslang::EOpVectorNotEqual:
         if (isFloat)
-            binOp = Pspv::OpFOrdNotEqual;
+            binOp = spv::OpFOrdNotEqual;
         else if (isBool)
-            binOp = Pspv::OpLogicalNotEqual;
+            binOp = spv::OpLogicalNotEqual;
         else
-            binOp = Pspv::OpINotEqual;
+            binOp = spv::OpINotEqual;
         break;
     default:
         break;
     }
 
-    if (binOp != Pspv::OpNop) {
-        Pspv::Id result = builder.createBinOp(binOp, typeId, left, right);
+    if (binOp != spv::OpNop) {
+        spv::Id result = builder.createBinOp(binOp, typeId, left, right);
         decorations.addNoContraction(builder, result);
         decorations.addNonUniform(builder, result);
         return builder.setPrecision(result, decorations.precision);
@@ -5402,36 +5402,36 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryOperation(Pglslang::TOperator op, O
 //   matrix op scalar    op in {+, -, /}
 //   scalar op matrix    op in {+, -, /}
 //
-Pspv::Id TGlslangToSpvTraverser::createBinaryMatrixOperation(Pspv::Op op, OpDecorations& decorations, Pspv::Id typeId,
-                                                            Pspv::Id left, Pspv::Id right)
+spv::Id TGlslangToSpvTraverser::createBinaryMatrixOperation(spv::Op op, OpDecorations& decorations, spv::Id typeId,
+                                                            spv::Id left, spv::Id right)
 {
     bool firstClass = true;
 
     // First, handle first-class matrix operations (* and matrix/scalar)
     switch (op) {
-    case Pspv::OpFDiv:
+    case spv::OpFDiv:
         if (builder.isMatrix(left) && builder.isScalar(right)) {
             // turn matrix / scalar into a multiply...
-            Pspv::Id resultType = builder.getTypeId(right);
-            right = builder.createBinOp(Pspv::OpFDiv, resultType, builder.makeFpConstant(resultType, 1.0), right);
-            op = Pspv::OpMatrixTimesScalar;
+            spv::Id resultType = builder.getTypeId(right);
+            right = builder.createBinOp(spv::OpFDiv, resultType, builder.makeFpConstant(resultType, 1.0), right);
+            op = spv::OpMatrixTimesScalar;
         } else
             firstClass = false;
         break;
-    case Pspv::OpMatrixTimesScalar:
+    case spv::OpMatrixTimesScalar:
         if (builder.isMatrix(right) || builder.isCooperativeMatrix(right))
             std::swap(left, right);
         assert(builder.isScalar(right));
         break;
-    case Pspv::OpVectorTimesMatrix:
+    case spv::OpVectorTimesMatrix:
         assert(builder.isVector(left));
         assert(builder.isMatrix(right));
         break;
-    case Pspv::OpMatrixTimesVector:
+    case spv::OpMatrixTimesVector:
         assert(builder.isMatrix(left));
         assert(builder.isVector(right));
         break;
-    case Pspv::OpMatrixTimesMatrix:
+    case spv::OpMatrixTimesMatrix:
         assert(builder.isMatrix(left));
         assert(builder.isMatrix(right));
         break;
@@ -5444,7 +5444,7 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryMatrixOperation(Pspv::Op op, OpDeco
         firstClass = true;
 
     if (firstClass) {
-        Pspv::Id result = builder.createBinOp(op, typeId, left, right);
+        spv::Id result = builder.createBinOp(op, typeId, left, right);
         decorations.addNoContraction(builder, result);
         decorations.addNonUniform(builder, result);
         return builder.setPrecision(result, decorations.precision);
@@ -5458,21 +5458,21 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryMatrixOperation(Pspv::Op op, OpDeco
     //   - do vector operations
     //   - make a matrix out the vector results
     switch (op) {
-    case Pspv::OpFAdd:
-    case Pspv::OpFSub:
-    case Pspv::OpFDiv:
-    case Pspv::OpFMod:
-    case Pspv::OpFMul:
+    case spv::OpFAdd:
+    case spv::OpFSub:
+    case spv::OpFDiv:
+    case spv::OpFMod:
+    case spv::OpFMul:
     {
         // one time set up...
         bool  leftMat = builder.isMatrix(left);
         bool rightMat = builder.isMatrix(right);
         unsigned int numCols = leftMat ? builder.getNumColumns(left) : builder.getNumColumns(right);
         int numRows = leftMat ? builder.getNumRows(left) : builder.getNumRows(right);
-        Pspv::Id scalarType = builder.getScalarTypeId(typeId);
-        Pspv::Id vecType = builder.makeVectorType(scalarType, numRows);
-        std::vector<Pspv::Id> results;
-        Pspv::Id smearVec = Pspv::NoResult;
+        spv::Id scalarType = builder.getScalarTypeId(typeId);
+        spv::Id vecType = builder.makeVectorType(scalarType, numRows);
+        std::vector<spv::Id> results;
+        spv::Id smearVec = spv::NoResult;
         if (builder.isScalar(left))
             smearVec = builder.smearScalar(decorations.precision, left, vecType);
         else if (builder.isScalar(right))
@@ -5482,430 +5482,430 @@ Pspv::Id TGlslangToSpvTraverser::createBinaryMatrixOperation(Pspv::Op op, OpDeco
         for (unsigned int c = 0; c < numCols; ++c) {
             std::vector<unsigned int> indexes;
             indexes.push_back(c);
-            Pspv::Id  leftVec =  leftMat ? builder.createCompositeExtract( left, vecType, indexes) : smearVec;
-            Pspv::Id rightVec = rightMat ? builder.createCompositeExtract(right, vecType, indexes) : smearVec;
-            Pspv::Id result = builder.createBinOp(op, vecType, leftVec, rightVec);
+            spv::Id  leftVec =  leftMat ? builder.createCompositeExtract( left, vecType, indexes) : smearVec;
+            spv::Id rightVec = rightMat ? builder.createCompositeExtract(right, vecType, indexes) : smearVec;
+            spv::Id result = builder.createBinOp(op, vecType, leftVec, rightVec);
             decorations.addNoContraction(builder, result);
             decorations.addNonUniform(builder, result);
             results.push_back(builder.setPrecision(result, decorations.precision));
         }
 
         // put the pieces together
-        Pspv::Id result = builder.setPrecision(builder.createCompositeConstruct(typeId, results), decorations.precision);
+        spv::Id result = builder.setPrecision(builder.createCompositeConstruct(typeId, results), decorations.precision);
         decorations.addNonUniform(builder, result);
         return result;
     }
     default:
         assert(0);
-        return Pspv::NoResult;
+        return spv::NoResult;
     }
 }
 
-Pspv::Id TGlslangToSpvTraverser::createUnaryOperation(Pglslang::TOperator op, OpDecorations& decorations, Pspv::Id typeId,
-                                                     Pspv::Id operand, Pglslang::TBasicType typeProxy, const Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
+spv::Id TGlslangToSpvTraverser::createUnaryOperation(glslang::TOperator op, OpDecorations& decorations, spv::Id typeId,
+                                                     spv::Id operand, glslang::TBasicType typeProxy, const spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
 {
-    Pspv::Op unaryOp = Pspv::OpNop;
+    spv::Op unaryOp = spv::OpNop;
     int extBuiltins = -1;
     int libCall = -1;
     bool isUnsigned = isTypeUnsignedInt(typeProxy);
     bool isFloat = isTypeFloat(typeProxy);
 
     switch (op) {
-    case Pglslang::EOpNegative:
+    case glslang::EOpNegative:
         if (isFloat) {
-            unaryOp = Pspv::OpFNegate;
+            unaryOp = spv::OpFNegate;
             if (builder.isMatrixType(typeId))
                 return createUnaryMatrixOperation(unaryOp, decorations, typeId, operand, typeProxy);
         } else
-            unaryOp = Pspv::OpSNegate;
+            unaryOp = spv::OpSNegate;
         break;
 
-    case Pglslang::EOpLogicalNot:
-    case Pglslang::EOpVectorLogicalNot:
-        unaryOp = Pspv::OpLogicalNot;
+    case glslang::EOpLogicalNot:
+    case glslang::EOpVectorLogicalNot:
+        unaryOp = spv::OpLogicalNot;
         break;
-    case Pglslang::EOpBitwiseNot:
-        unaryOp = Pspv::OpNot;
-        break;
-
-    case Pglslang::EOpDeterminant:
-        libCall = Pspv::GLSLstd450Determinant;
-        break;
-    case Pglslang::EOpMatrixInverse:
-        libCall = Pspv::GLSLstd450MatrixInverse;
-        break;
-    case Pglslang::EOpTranspose:
-        unaryOp = Pspv::OpTranspose;
+    case glslang::EOpBitwiseNot:
+        unaryOp = spv::OpNot;
         break;
 
-    case Pglslang::EOpRadians:
-        libCall = Pspv::GLSLstd450Radians;
+    case glslang::EOpDeterminant:
+        libCall = spv::GLSLstd450Determinant;
         break;
-    case Pglslang::EOpDegrees:
-        libCall = Pspv::GLSLstd450Degrees;
+    case glslang::EOpMatrixInverse:
+        libCall = spv::GLSLstd450MatrixInverse;
         break;
-    case Pglslang::EOpSin:
-        libCall = Pspv::GLSLstd450Sin;
-        break;
-    case Pglslang::EOpCos:
-        libCall = Pspv::GLSLstd450Cos;
-        break;
-    case Pglslang::EOpTan:
-        libCall = Pspv::GLSLstd450Tan;
-        break;
-    case Pglslang::EOpAcos:
-        libCall = Pspv::GLSLstd450Acos;
-        break;
-    case Pglslang::EOpAsin:
-        libCall = Pspv::GLSLstd450Asin;
-        break;
-    case Pglslang::EOpAtan:
-        libCall = Pspv::GLSLstd450Atan;
+    case glslang::EOpTranspose:
+        unaryOp = spv::OpTranspose;
         break;
 
-    case Pglslang::EOpAcosh:
-        libCall = Pspv::GLSLstd450Acosh;
+    case glslang::EOpRadians:
+        libCall = spv::GLSLstd450Radians;
         break;
-    case Pglslang::EOpAsinh:
-        libCall = Pspv::GLSLstd450Asinh;
+    case glslang::EOpDegrees:
+        libCall = spv::GLSLstd450Degrees;
         break;
-    case Pglslang::EOpAtanh:
-        libCall = Pspv::GLSLstd450Atanh;
+    case glslang::EOpSin:
+        libCall = spv::GLSLstd450Sin;
         break;
-    case Pglslang::EOpTanh:
-        libCall = Pspv::GLSLstd450Tanh;
+    case glslang::EOpCos:
+        libCall = spv::GLSLstd450Cos;
         break;
-    case Pglslang::EOpCosh:
-        libCall = Pspv::GLSLstd450Cosh;
+    case glslang::EOpTan:
+        libCall = spv::GLSLstd450Tan;
         break;
-    case Pglslang::EOpSinh:
-        libCall = Pspv::GLSLstd450Sinh;
+    case glslang::EOpAcos:
+        libCall = spv::GLSLstd450Acos;
         break;
-
-    case Pglslang::EOpLength:
-        libCall = Pspv::GLSLstd450Length;
+    case glslang::EOpAsin:
+        libCall = spv::GLSLstd450Asin;
         break;
-    case Pglslang::EOpNormalize:
-        libCall = Pspv::GLSLstd450Normalize;
-        break;
-
-    case Pglslang::EOpExp:
-        libCall = Pspv::GLSLstd450Exp;
-        break;
-    case Pglslang::EOpLog:
-        libCall = Pspv::GLSLstd450Log;
-        break;
-    case Pglslang::EOpExp2:
-        libCall = Pspv::GLSLstd450Exp2;
-        break;
-    case Pglslang::EOpLog2:
-        libCall = Pspv::GLSLstd450Log2;
-        break;
-    case Pglslang::EOpSqrt:
-        libCall = Pspv::GLSLstd450Sqrt;
-        break;
-    case Pglslang::EOpInverseSqrt:
-        libCall = Pspv::GLSLstd450InverseSqrt;
+    case glslang::EOpAtan:
+        libCall = spv::GLSLstd450Atan;
         break;
 
-    case Pglslang::EOpFloor:
-        libCall = Pspv::GLSLstd450Floor;
+    case glslang::EOpAcosh:
+        libCall = spv::GLSLstd450Acosh;
         break;
-    case Pglslang::EOpTrunc:
-        libCall = Pspv::GLSLstd450Trunc;
+    case glslang::EOpAsinh:
+        libCall = spv::GLSLstd450Asinh;
         break;
-    case Pglslang::EOpRound:
-        libCall = Pspv::GLSLstd450Round;
+    case glslang::EOpAtanh:
+        libCall = spv::GLSLstd450Atanh;
         break;
-    case Pglslang::EOpRoundEven:
-        libCall = Pspv::GLSLstd450RoundEven;
+    case glslang::EOpTanh:
+        libCall = spv::GLSLstd450Tanh;
         break;
-    case Pglslang::EOpCeil:
-        libCall = Pspv::GLSLstd450Ceil;
+    case glslang::EOpCosh:
+        libCall = spv::GLSLstd450Cosh;
         break;
-    case Pglslang::EOpFract:
-        libCall = Pspv::GLSLstd450Fract;
-        break;
-
-    case Pglslang::EOpIsNan:
-        unaryOp = Pspv::OpIsNan;
-        break;
-    case Pglslang::EOpIsInf:
-        unaryOp = Pspv::OpIsInf;
-        break;
-    case Pglslang::EOpIsFinite:
-        unaryOp = Pspv::OpIsFinite;
+    case glslang::EOpSinh:
+        libCall = spv::GLSLstd450Sinh;
         break;
 
-    case Pglslang::EOpFloatBitsToInt:
-    case Pglslang::EOpFloatBitsToUint:
-    case Pglslang::EOpIntBitsToFloat:
-    case Pglslang::EOpUintBitsToFloat:
-    case Pglslang::EOpDoubleBitsToInt64:
-    case Pglslang::EOpDoubleBitsToUint64:
-    case Pglslang::EOpInt64BitsToDouble:
-    case Pglslang::EOpUint64BitsToDouble:
-    case Pglslang::EOpFloat16BitsToInt16:
-    case Pglslang::EOpFloat16BitsToUint16:
-    case Pglslang::EOpInt16BitsToFloat16:
-    case Pglslang::EOpUint16BitsToFloat16:
-        unaryOp = Pspv::OpBitcast;
+    case glslang::EOpLength:
+        libCall = spv::GLSLstd450Length;
+        break;
+    case glslang::EOpNormalize:
+        libCall = spv::GLSLstd450Normalize;
         break;
 
-    case Pglslang::EOpPackSnorm2x16:
-        libCall = Pspv::GLSLstd450PackSnorm2x16;
+    case glslang::EOpExp:
+        libCall = spv::GLSLstd450Exp;
         break;
-    case Pglslang::EOpUnpackSnorm2x16:
-        libCall = Pspv::GLSLstd450UnpackSnorm2x16;
+    case glslang::EOpLog:
+        libCall = spv::GLSLstd450Log;
         break;
-    case Pglslang::EOpPackUnorm2x16:
-        libCall = Pspv::GLSLstd450PackUnorm2x16;
+    case glslang::EOpExp2:
+        libCall = spv::GLSLstd450Exp2;
         break;
-    case Pglslang::EOpUnpackUnorm2x16:
-        libCall = Pspv::GLSLstd450UnpackUnorm2x16;
+    case glslang::EOpLog2:
+        libCall = spv::GLSLstd450Log2;
         break;
-    case Pglslang::EOpPackHalf2x16:
-        libCall = Pspv::GLSLstd450PackHalf2x16;
+    case glslang::EOpSqrt:
+        libCall = spv::GLSLstd450Sqrt;
         break;
-    case Pglslang::EOpUnpackHalf2x16:
-        libCall = Pspv::GLSLstd450UnpackHalf2x16;
+    case glslang::EOpInverseSqrt:
+        libCall = spv::GLSLstd450InverseSqrt;
+        break;
+
+    case glslang::EOpFloor:
+        libCall = spv::GLSLstd450Floor;
+        break;
+    case glslang::EOpTrunc:
+        libCall = spv::GLSLstd450Trunc;
+        break;
+    case glslang::EOpRound:
+        libCall = spv::GLSLstd450Round;
+        break;
+    case glslang::EOpRoundEven:
+        libCall = spv::GLSLstd450RoundEven;
+        break;
+    case glslang::EOpCeil:
+        libCall = spv::GLSLstd450Ceil;
+        break;
+    case glslang::EOpFract:
+        libCall = spv::GLSLstd450Fract;
+        break;
+
+    case glslang::EOpIsNan:
+        unaryOp = spv::OpIsNan;
+        break;
+    case glslang::EOpIsInf:
+        unaryOp = spv::OpIsInf;
+        break;
+    case glslang::EOpIsFinite:
+        unaryOp = spv::OpIsFinite;
+        break;
+
+    case glslang::EOpFloatBitsToInt:
+    case glslang::EOpFloatBitsToUint:
+    case glslang::EOpIntBitsToFloat:
+    case glslang::EOpUintBitsToFloat:
+    case glslang::EOpDoubleBitsToInt64:
+    case glslang::EOpDoubleBitsToUint64:
+    case glslang::EOpInt64BitsToDouble:
+    case glslang::EOpUint64BitsToDouble:
+    case glslang::EOpFloat16BitsToInt16:
+    case glslang::EOpFloat16BitsToUint16:
+    case glslang::EOpInt16BitsToFloat16:
+    case glslang::EOpUint16BitsToFloat16:
+        unaryOp = spv::OpBitcast;
+        break;
+
+    case glslang::EOpPackSnorm2x16:
+        libCall = spv::GLSLstd450PackSnorm2x16;
+        break;
+    case glslang::EOpUnpackSnorm2x16:
+        libCall = spv::GLSLstd450UnpackSnorm2x16;
+        break;
+    case glslang::EOpPackUnorm2x16:
+        libCall = spv::GLSLstd450PackUnorm2x16;
+        break;
+    case glslang::EOpUnpackUnorm2x16:
+        libCall = spv::GLSLstd450UnpackUnorm2x16;
+        break;
+    case glslang::EOpPackHalf2x16:
+        libCall = spv::GLSLstd450PackHalf2x16;
+        break;
+    case glslang::EOpUnpackHalf2x16:
+        libCall = spv::GLSLstd450UnpackHalf2x16;
         break;
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpPackSnorm4x8:
-        libCall = Pspv::GLSLstd450PackSnorm4x8;
+    case glslang::EOpPackSnorm4x8:
+        libCall = spv::GLSLstd450PackSnorm4x8;
         break;
-    case Pglslang::EOpUnpackSnorm4x8:
-        libCall = Pspv::GLSLstd450UnpackSnorm4x8;
+    case glslang::EOpUnpackSnorm4x8:
+        libCall = spv::GLSLstd450UnpackSnorm4x8;
         break;
-    case Pglslang::EOpPackUnorm4x8:
-        libCall = Pspv::GLSLstd450PackUnorm4x8;
+    case glslang::EOpPackUnorm4x8:
+        libCall = spv::GLSLstd450PackUnorm4x8;
         break;
-    case Pglslang::EOpUnpackUnorm4x8:
-        libCall = Pspv::GLSLstd450UnpackUnorm4x8;
+    case glslang::EOpUnpackUnorm4x8:
+        libCall = spv::GLSLstd450UnpackUnorm4x8;
         break;
-    case Pglslang::EOpPackDouble2x32:
-        libCall = Pspv::GLSLstd450PackDouble2x32;
+    case glslang::EOpPackDouble2x32:
+        libCall = spv::GLSLstd450PackDouble2x32;
         break;
-    case Pglslang::EOpUnpackDouble2x32:
-        libCall = Pspv::GLSLstd450UnpackDouble2x32;
+    case glslang::EOpUnpackDouble2x32:
+        libCall = spv::GLSLstd450UnpackDouble2x32;
         break;
 #endif
 
-    case Pglslang::EOpPackInt2x32:
-    case Pglslang::EOpUnpackInt2x32:
-    case Pglslang::EOpPackUint2x32:
-    case Pglslang::EOpUnpackUint2x32:
-    case Pglslang::EOpPack16:
-    case Pglslang::EOpPack32:
-    case Pglslang::EOpPack64:
-    case Pglslang::EOpUnpack32:
-    case Pglslang::EOpUnpack16:
-    case Pglslang::EOpUnpack8:
-    case Pglslang::EOpPackInt2x16:
-    case Pglslang::EOpUnpackInt2x16:
-    case Pglslang::EOpPackUint2x16:
-    case Pglslang::EOpUnpackUint2x16:
-    case Pglslang::EOpPackInt4x16:
-    case Pglslang::EOpUnpackInt4x16:
-    case Pglslang::EOpPackUint4x16:
-    case Pglslang::EOpUnpackUint4x16:
-    case Pglslang::EOpPackFloat2x16:
-    case Pglslang::EOpUnpackFloat2x16:
-        unaryOp = Pspv::OpBitcast;
+    case glslang::EOpPackInt2x32:
+    case glslang::EOpUnpackInt2x32:
+    case glslang::EOpPackUint2x32:
+    case glslang::EOpUnpackUint2x32:
+    case glslang::EOpPack16:
+    case glslang::EOpPack32:
+    case glslang::EOpPack64:
+    case glslang::EOpUnpack32:
+    case glslang::EOpUnpack16:
+    case glslang::EOpUnpack8:
+    case glslang::EOpPackInt2x16:
+    case glslang::EOpUnpackInt2x16:
+    case glslang::EOpPackUint2x16:
+    case glslang::EOpUnpackUint2x16:
+    case glslang::EOpPackInt4x16:
+    case glslang::EOpUnpackInt4x16:
+    case glslang::EOpPackUint4x16:
+    case glslang::EOpUnpackUint4x16:
+    case glslang::EOpPackFloat2x16:
+    case glslang::EOpUnpackFloat2x16:
+        unaryOp = spv::OpBitcast;
         break;
 
-    case Pglslang::EOpDPdx:
-        unaryOp = Pspv::OpDPdx;
+    case glslang::EOpDPdx:
+        unaryOp = spv::OpDPdx;
         break;
-    case Pglslang::EOpDPdy:
-        unaryOp = Pspv::OpDPdy;
+    case glslang::EOpDPdy:
+        unaryOp = spv::OpDPdy;
         break;
-    case Pglslang::EOpFwidth:
-        unaryOp = Pspv::OpFwidth;
-        break;
-
-    case Pglslang::EOpAny:
-        unaryOp = Pspv::OpAny;
-        break;
-    case Pglslang::EOpAll:
-        unaryOp = Pspv::OpAll;
+    case glslang::EOpFwidth:
+        unaryOp = spv::OpFwidth;
         break;
 
-    case Pglslang::EOpAbs:
+    case glslang::EOpAny:
+        unaryOp = spv::OpAny;
+        break;
+    case glslang::EOpAll:
+        unaryOp = spv::OpAll;
+        break;
+
+    case glslang::EOpAbs:
         if (isFloat)
-            libCall = Pspv::GLSLstd450FAbs;
+            libCall = spv::GLSLstd450FAbs;
         else
-            libCall = Pspv::GLSLstd450SAbs;
+            libCall = spv::GLSLstd450SAbs;
         break;
-    case Pglslang::EOpSign:
+    case glslang::EOpSign:
         if (isFloat)
-            libCall = Pspv::GLSLstd450FSign;
+            libCall = spv::GLSLstd450FSign;
         else
-            libCall = Pspv::GLSLstd450SSign;
+            libCall = spv::GLSLstd450SSign;
         break;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpDPdxFine:
-        unaryOp = Pspv::OpDPdxFine;
+    case glslang::EOpDPdxFine:
+        unaryOp = spv::OpDPdxFine;
         break;
-    case Pglslang::EOpDPdyFine:
-        unaryOp = Pspv::OpDPdyFine;
+    case glslang::EOpDPdyFine:
+        unaryOp = spv::OpDPdyFine;
         break;
-    case Pglslang::EOpFwidthFine:
-        unaryOp = Pspv::OpFwidthFine;
+    case glslang::EOpFwidthFine:
+        unaryOp = spv::OpFwidthFine;
         break;
-    case Pglslang::EOpDPdxCoarse:
-        unaryOp = Pspv::OpDPdxCoarse;
+    case glslang::EOpDPdxCoarse:
+        unaryOp = spv::OpDPdxCoarse;
         break;
-    case Pglslang::EOpDPdyCoarse:
-        unaryOp = Pspv::OpDPdyCoarse;
+    case glslang::EOpDPdyCoarse:
+        unaryOp = spv::OpDPdyCoarse;
         break;
-    case Pglslang::EOpFwidthCoarse:
-        unaryOp = Pspv::OpFwidthCoarse;
+    case glslang::EOpFwidthCoarse:
+        unaryOp = spv::OpFwidthCoarse;
         break;
-    case Pglslang::EOpInterpolateAtCentroid:
-        if (typeProxy == Pglslang::EbtFloat16)
-            builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float);
-        libCall = Pspv::GLSLstd450InterpolateAtCentroid;
+    case glslang::EOpInterpolateAtCentroid:
+        if (typeProxy == glslang::EbtFloat16)
+            builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
+        libCall = spv::GLSLstd450InterpolateAtCentroid;
         break;
-    case Pglslang::EOpAtomicCounterIncrement:
-    case Pglslang::EOpAtomicCounterDecrement:
-    case Pglslang::EOpAtomicCounter:
+    case glslang::EOpAtomicCounterIncrement:
+    case glslang::EOpAtomicCounterDecrement:
+    case glslang::EOpAtomicCounter:
     {
         // Handle all of the atomics in one place, in createAtomicOperation()
-        std::vector<Pspv::Id> operands;
+        std::vector<spv::Id> operands;
         operands.push_back(operand);
         return createAtomicOperation(op, decorations.precision, typeId, operands, typeProxy, lvalueCoherentFlags);
     }
 
-    case Pglslang::EOpBitFieldReverse:
-        unaryOp = Pspv::OpBitReverse;
+    case glslang::EOpBitFieldReverse:
+        unaryOp = spv::OpBitReverse;
         break;
-    case Pglslang::EOpBitCount:
-        unaryOp = Pspv::OpBitCount;
+    case glslang::EOpBitCount:
+        unaryOp = spv::OpBitCount;
         break;
-    case Pglslang::EOpFindLSB:
-        libCall = Pspv::GLSLstd450FindILsb;
+    case glslang::EOpFindLSB:
+        libCall = spv::GLSLstd450FindILsb;
         break;
-    case Pglslang::EOpFindMSB:
+    case glslang::EOpFindMSB:
         if (isUnsigned)
-            libCall = Pspv::GLSLstd450FindUMsb;
+            libCall = spv::GLSLstd450FindUMsb;
         else
-            libCall = Pspv::GLSLstd450FindSMsb;
+            libCall = spv::GLSLstd450FindSMsb;
         break;
 
-    case Pglslang::EOpCountLeadingZeros:
-        builder.addCapability(Pspv::CapabilityIntegerFunctions2INTEL);
+    case glslang::EOpCountLeadingZeros:
+        builder.addCapability(spv::CapabilityIntegerFunctions2INTEL);
         builder.addExtension("SPV_INTEL_shader_integer_functions2");
-        unaryOp = Pspv::OpUCountLeadingZerosINTEL;
+        unaryOp = spv::OpUCountLeadingZerosINTEL;
         break;
 
-    case Pglslang::EOpCountTrailingZeros:
-        builder.addCapability(Pspv::CapabilityIntegerFunctions2INTEL);
+    case glslang::EOpCountTrailingZeros:
+        builder.addCapability(spv::CapabilityIntegerFunctions2INTEL);
         builder.addExtension("SPV_INTEL_shader_integer_functions2");
-        unaryOp = Pspv::OpUCountTrailingZerosINTEL;
+        unaryOp = spv::OpUCountTrailingZerosINTEL;
         break;
 
-    case Pglslang::EOpBallot:
-    case Pglslang::EOpReadFirstInvocation:
-    case Pglslang::EOpAnyInvocation:
-    case Pglslang::EOpAllInvocations:
-    case Pglslang::EOpAllInvocationsEqual:
-    case Pglslang::EOpMinInvocations:
-    case Pglslang::EOpMaxInvocations:
-    case Pglslang::EOpAddInvocations:
-    case Pglslang::EOpMinInvocationsNonUniform:
-    case Pglslang::EOpMaxInvocationsNonUniform:
-    case Pglslang::EOpAddInvocationsNonUniform:
-    case Pglslang::EOpMinInvocationsInclusiveScan:
-    case Pglslang::EOpMaxInvocationsInclusiveScan:
-    case Pglslang::EOpAddInvocationsInclusiveScan:
-    case Pglslang::EOpMinInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpMaxInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpAddInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpMinInvocationsExclusiveScan:
-    case Pglslang::EOpMaxInvocationsExclusiveScan:
-    case Pglslang::EOpAddInvocationsExclusiveScan:
-    case Pglslang::EOpMinInvocationsExclusiveScanNonUniform:
-    case Pglslang::EOpMaxInvocationsExclusiveScanNonUniform:
-    case Pglslang::EOpAddInvocationsExclusiveScanNonUniform:
+    case glslang::EOpBallot:
+    case glslang::EOpReadFirstInvocation:
+    case glslang::EOpAnyInvocation:
+    case glslang::EOpAllInvocations:
+    case glslang::EOpAllInvocationsEqual:
+    case glslang::EOpMinInvocations:
+    case glslang::EOpMaxInvocations:
+    case glslang::EOpAddInvocations:
+    case glslang::EOpMinInvocationsNonUniform:
+    case glslang::EOpMaxInvocationsNonUniform:
+    case glslang::EOpAddInvocationsNonUniform:
+    case glslang::EOpMinInvocationsInclusiveScan:
+    case glslang::EOpMaxInvocationsInclusiveScan:
+    case glslang::EOpAddInvocationsInclusiveScan:
+    case glslang::EOpMinInvocationsInclusiveScanNonUniform:
+    case glslang::EOpMaxInvocationsInclusiveScanNonUniform:
+    case glslang::EOpAddInvocationsInclusiveScanNonUniform:
+    case glslang::EOpMinInvocationsExclusiveScan:
+    case glslang::EOpMaxInvocationsExclusiveScan:
+    case glslang::EOpAddInvocationsExclusiveScan:
+    case glslang::EOpMinInvocationsExclusiveScanNonUniform:
+    case glslang::EOpMaxInvocationsExclusiveScanNonUniform:
+    case glslang::EOpAddInvocationsExclusiveScanNonUniform:
     {
-        std::vector<Pspv::Id> operands;
+        std::vector<spv::Id> operands;
         operands.push_back(operand);
         return createInvocationsOperation(op, typeId, operands, typeProxy);
     }
-    case Pglslang::EOpSubgroupAll:
-    case Pglslang::EOpSubgroupAny:
-    case Pglslang::EOpSubgroupAllEqual:
-    case Pglslang::EOpSubgroupBroadcastFirst:
-    case Pglslang::EOpSubgroupBallot:
-    case Pglslang::EOpSubgroupInverseBallot:
-    case Pglslang::EOpSubgroupBallotBitCount:
-    case Pglslang::EOpSubgroupBallotInclusiveBitCount:
-    case Pglslang::EOpSubgroupBallotExclusiveBitCount:
-    case Pglslang::EOpSubgroupBallotFindLSB:
-    case Pglslang::EOpSubgroupBallotFindMSB:
-    case Pglslang::EOpSubgroupAdd:
-    case Pglslang::EOpSubgroupMul:
-    case Pglslang::EOpSubgroupMin:
-    case Pglslang::EOpSubgroupMax:
-    case Pglslang::EOpSubgroupAnd:
-    case Pglslang::EOpSubgroupOr:
-    case Pglslang::EOpSubgroupXor:
-    case Pglslang::EOpSubgroupInclusiveAdd:
-    case Pglslang::EOpSubgroupInclusiveMul:
-    case Pglslang::EOpSubgroupInclusiveMin:
-    case Pglslang::EOpSubgroupInclusiveMax:
-    case Pglslang::EOpSubgroupInclusiveAnd:
-    case Pglslang::EOpSubgroupInclusiveOr:
-    case Pglslang::EOpSubgroupInclusiveXor:
-    case Pglslang::EOpSubgroupExclusiveAdd:
-    case Pglslang::EOpSubgroupExclusiveMul:
-    case Pglslang::EOpSubgroupExclusiveMin:
-    case Pglslang::EOpSubgroupExclusiveMax:
-    case Pglslang::EOpSubgroupExclusiveAnd:
-    case Pglslang::EOpSubgroupExclusiveOr:
-    case Pglslang::EOpSubgroupExclusiveXor:
-    case Pglslang::EOpSubgroupQuadSwapHorizontal:
-    case Pglslang::EOpSubgroupQuadSwapVertical:
-    case Pglslang::EOpSubgroupQuadSwapDiagonal: {
-        std::vector<Pspv::Id> operands;
+    case glslang::EOpSubgroupAll:
+    case glslang::EOpSubgroupAny:
+    case glslang::EOpSubgroupAllEqual:
+    case glslang::EOpSubgroupBroadcastFirst:
+    case glslang::EOpSubgroupBallot:
+    case glslang::EOpSubgroupInverseBallot:
+    case glslang::EOpSubgroupBallotBitCount:
+    case glslang::EOpSubgroupBallotInclusiveBitCount:
+    case glslang::EOpSubgroupBallotExclusiveBitCount:
+    case glslang::EOpSubgroupBallotFindLSB:
+    case glslang::EOpSubgroupBallotFindMSB:
+    case glslang::EOpSubgroupAdd:
+    case glslang::EOpSubgroupMul:
+    case glslang::EOpSubgroupMin:
+    case glslang::EOpSubgroupMax:
+    case glslang::EOpSubgroupAnd:
+    case glslang::EOpSubgroupOr:
+    case glslang::EOpSubgroupXor:
+    case glslang::EOpSubgroupInclusiveAdd:
+    case glslang::EOpSubgroupInclusiveMul:
+    case glslang::EOpSubgroupInclusiveMin:
+    case glslang::EOpSubgroupInclusiveMax:
+    case glslang::EOpSubgroupInclusiveAnd:
+    case glslang::EOpSubgroupInclusiveOr:
+    case glslang::EOpSubgroupInclusiveXor:
+    case glslang::EOpSubgroupExclusiveAdd:
+    case glslang::EOpSubgroupExclusiveMul:
+    case glslang::EOpSubgroupExclusiveMin:
+    case glslang::EOpSubgroupExclusiveMax:
+    case glslang::EOpSubgroupExclusiveAnd:
+    case glslang::EOpSubgroupExclusiveOr:
+    case glslang::EOpSubgroupExclusiveXor:
+    case glslang::EOpSubgroupQuadSwapHorizontal:
+    case glslang::EOpSubgroupQuadSwapVertical:
+    case glslang::EOpSubgroupQuadSwapDiagonal: {
+        std::vector<spv::Id> operands;
         operands.push_back(operand);
         return createSubgroupOperation(op, typeId, operands, typeProxy);
     }
-    case Pglslang::EOpMbcnt:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_ballot);
-        libCall = Pspv::MbcntAMD;
+    case glslang::EOpMbcnt:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_ballot);
+        libCall = spv::MbcntAMD;
         break;
 
-    case Pglslang::EOpCubeFaceIndex:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_gcn_shader);
-        libCall = Pspv::CubeFaceIndexAMD;
+    case glslang::EOpCubeFaceIndex:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_gcn_shader);
+        libCall = spv::CubeFaceIndexAMD;
         break;
 
-    case Pglslang::EOpCubeFaceCoord:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_gcn_shader);
-        libCall = Pspv::CubeFaceCoordAMD;
+    case glslang::EOpCubeFaceCoord:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_gcn_shader);
+        libCall = spv::CubeFaceCoordAMD;
         break;
-    case Pglslang::EOpSubgroupPartition:
-        unaryOp = Pspv::OpGroupNonUniformPartitionNV;
+    case glslang::EOpSubgroupPartition:
+        unaryOp = spv::OpGroupNonUniformPartitionNV;
         break;
-    case Pglslang::EOpConstructReference:
-        unaryOp = Pspv::OpBitcast;
+    case glslang::EOpConstructReference:
+        unaryOp = spv::OpBitcast;
         break;
 #endif
 
-    case Pglslang::EOpCopyObject:
-        unaryOp = Pspv::OpCopyObject;
+    case glslang::EOpCopyObject:
+        unaryOp = spv::OpCopyObject;
         break;
 
     default:
         return 0;
     }
 
-    Pspv::Id id;
+    spv::Id id;
     if (libCall >= 0) {
-        std::vector<Pspv::Id> args;
+        std::vector<spv::Id> args;
         args.push_back(operand);
         id = builder.createBuiltinCall(typeId, extBuiltins >= 0 ? extBuiltins : stdBuiltins, libCall, args);
     } else {
@@ -5918,8 +5918,8 @@ Pspv::Id TGlslangToSpvTraverser::createUnaryOperation(Pglslang::TOperator op, Op
 }
 
 // Create a unary operation on a matrix
-Pspv::Id TGlslangToSpvTraverser::createUnaryMatrixOperation(Pspv::Op op, OpDecorations& decorations, Pspv::Id typeId,
-                                                           Pspv::Id operand, Pglslang::TBasicType /* typeProxy */)
+spv::Id TGlslangToSpvTraverser::createUnaryMatrixOperation(spv::Op op, OpDecorations& decorations, spv::Id typeId,
+                                                           spv::Id operand, glslang::TBasicType /* typeProxy */)
 {
     // Handle unary operations vector by vector.
     // The result type is the same type as the original type.
@@ -5931,23 +5931,23 @@ Pspv::Id TGlslangToSpvTraverser::createUnaryMatrixOperation(Pspv::Op op, OpDecor
     // get the types sorted out
     int numCols = builder.getNumColumns(operand);
     int numRows = builder.getNumRows(operand);
-    Pspv::Id srcVecType  = builder.makeVectorType(builder.getScalarTypeId(builder.getTypeId(operand)), numRows);
-    Pspv::Id destVecType = builder.makeVectorType(builder.getScalarTypeId(typeId), numRows);
-    std::vector<Pspv::Id> results;
+    spv::Id srcVecType  = builder.makeVectorType(builder.getScalarTypeId(builder.getTypeId(operand)), numRows);
+    spv::Id destVecType = builder.makeVectorType(builder.getScalarTypeId(typeId), numRows);
+    std::vector<spv::Id> results;
 
     // do each vector op
     for (int c = 0; c < numCols; ++c) {
         std::vector<unsigned int> indexes;
         indexes.push_back(c);
-        Pspv::Id srcVec  = builder.createCompositeExtract(operand, srcVecType, indexes);
-        Pspv::Id destVec = builder.createUnaryOp(op, destVecType, srcVec);
+        spv::Id srcVec  = builder.createCompositeExtract(operand, srcVecType, indexes);
+        spv::Id destVec = builder.createUnaryOp(op, destVecType, srcVec);
         decorations.addNoContraction(builder, destVec);
         decorations.addNonUniform(builder, destVec);
         results.push_back(builder.setPrecision(destVec, decorations.precision));
     }
 
     // put the pieces together
-    Pspv::Id result = builder.setPrecision(builder.createCompositeConstruct(typeId, results), decorations.precision);
+    spv::Id result = builder.setPrecision(builder.createCompositeConstruct(typeId, results), decorations.precision);
     decorations.addNonUniform(builder, result);
     return result;
 }
@@ -5955,41 +5955,41 @@ Pspv::Id TGlslangToSpvTraverser::createUnaryMatrixOperation(Pspv::Op op, OpDecor
 // For converting integers where both the bitwidth and the signedness could
 // change, but only do the width change here. The caller is still responsible
 // for the signedness conversion.
-Pspv::Id TGlslangToSpvTraverser::createIntWidthConversion(Pglslang::TOperator op, Pspv::Id operand, int vectorSize)
+spv::Id TGlslangToSpvTraverser::createIntWidthConversion(glslang::TOperator op, spv::Id operand, int vectorSize)
 {
     // Get the result type width, based on the type to convert to.
     int width = 32;
     switch(op) {
-    case Pglslang::EOpConvInt16ToUint8:
-    case Pglslang::EOpConvIntToUint8:
-    case Pglslang::EOpConvInt64ToUint8:
-    case Pglslang::EOpConvUint16ToInt8:
-    case Pglslang::EOpConvUintToInt8:
-    case Pglslang::EOpConvUint64ToInt8:
+    case glslang::EOpConvInt16ToUint8:
+    case glslang::EOpConvIntToUint8:
+    case glslang::EOpConvInt64ToUint8:
+    case glslang::EOpConvUint16ToInt8:
+    case glslang::EOpConvUintToInt8:
+    case glslang::EOpConvUint64ToInt8:
         width = 8;
         break;
-    case Pglslang::EOpConvInt8ToUint16:
-    case Pglslang::EOpConvIntToUint16:
-    case Pglslang::EOpConvInt64ToUint16:
-    case Pglslang::EOpConvUint8ToInt16:
-    case Pglslang::EOpConvUintToInt16:
-    case Pglslang::EOpConvUint64ToInt16:
+    case glslang::EOpConvInt8ToUint16:
+    case glslang::EOpConvIntToUint16:
+    case glslang::EOpConvInt64ToUint16:
+    case glslang::EOpConvUint8ToInt16:
+    case glslang::EOpConvUintToInt16:
+    case glslang::EOpConvUint64ToInt16:
         width = 16;
         break;
-    case Pglslang::EOpConvInt8ToUint:
-    case Pglslang::EOpConvInt16ToUint:
-    case Pglslang::EOpConvInt64ToUint:
-    case Pglslang::EOpConvUint8ToInt:
-    case Pglslang::EOpConvUint16ToInt:
-    case Pglslang::EOpConvUint64ToInt:
+    case glslang::EOpConvInt8ToUint:
+    case glslang::EOpConvInt16ToUint:
+    case glslang::EOpConvInt64ToUint:
+    case glslang::EOpConvUint8ToInt:
+    case glslang::EOpConvUint16ToInt:
+    case glslang::EOpConvUint64ToInt:
         width = 32;
         break;
-    case Pglslang::EOpConvInt8ToUint64:
-    case Pglslang::EOpConvInt16ToUint64:
-    case Pglslang::EOpConvIntToUint64:
-    case Pglslang::EOpConvUint8ToInt64:
-    case Pglslang::EOpConvUint16ToInt64:
-    case Pglslang::EOpConvUintToInt64:
+    case glslang::EOpConvInt8ToUint64:
+    case glslang::EOpConvInt16ToUint64:
+    case glslang::EOpConvIntToUint64:
+    case glslang::EOpConvUint8ToInt64:
+    case glslang::EOpConvUint16ToInt64:
+    case glslang::EOpConvUintToInt64:
         width = 64;
         break;
 
@@ -6000,26 +6000,26 @@ Pspv::Id TGlslangToSpvTraverser::createIntWidthConversion(Pglslang::TOperator op
 
     // Get the conversion operation and result type,
     // based on the target width, but the source type.
-    Pspv::Id type = Pspv::NoType;
-    Pspv::Op convOp = Pspv::OpNop;
+    spv::Id type = spv::NoType;
+    spv::Op convOp = spv::OpNop;
     switch(op) {
-    case Pglslang::EOpConvInt8ToUint16:
-    case Pglslang::EOpConvInt8ToUint:
-    case Pglslang::EOpConvInt8ToUint64:
-    case Pglslang::EOpConvInt16ToUint8:
-    case Pglslang::EOpConvInt16ToUint:
-    case Pglslang::EOpConvInt16ToUint64:
-    case Pglslang::EOpConvIntToUint8:
-    case Pglslang::EOpConvIntToUint16:
-    case Pglslang::EOpConvIntToUint64:
-    case Pglslang::EOpConvInt64ToUint8:
-    case Pglslang::EOpConvInt64ToUint16:
-    case Pglslang::EOpConvInt64ToUint:
-        convOp = Pspv::OpSConvert;
+    case glslang::EOpConvInt8ToUint16:
+    case glslang::EOpConvInt8ToUint:
+    case glslang::EOpConvInt8ToUint64:
+    case glslang::EOpConvInt16ToUint8:
+    case glslang::EOpConvInt16ToUint:
+    case glslang::EOpConvInt16ToUint64:
+    case glslang::EOpConvIntToUint8:
+    case glslang::EOpConvIntToUint16:
+    case glslang::EOpConvIntToUint64:
+    case glslang::EOpConvInt64ToUint8:
+    case glslang::EOpConvInt64ToUint16:
+    case glslang::EOpConvInt64ToUint:
+        convOp = spv::OpSConvert;
         type = builder.makeIntType(width);
         break;
     default:
-        convOp = Pspv::OpUConvert;
+        convOp = spv::OpUConvert;
         type = builder.makeUintType(width);
         break;
     }
@@ -6030,35 +6030,35 @@ Pspv::Id TGlslangToSpvTraverser::createIntWidthConversion(Pglslang::TOperator op
     return builder.createUnaryOp(convOp, type, operand);
 }
 
-Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDecorations& decorations, Pspv::Id destType,
-                                                 Pspv::Id operand, Pglslang::TBasicType typeProxy)
+spv::Id TGlslangToSpvTraverser::createConversion(glslang::TOperator op, OpDecorations& decorations, spv::Id destType,
+                                                 spv::Id operand, glslang::TBasicType typeProxy)
 {
-    Pspv::Op convOp = Pspv::OpNop;
-    Pspv::Id zero = 0;
-    Pspv::Id one = 0;
+    spv::Op convOp = spv::OpNop;
+    spv::Id zero = 0;
+    spv::Id one = 0;
 
     int vectorSize = builder.isVectorType(destType) ? builder.getNumTypeComponents(destType) : 0;
 
     switch (op) {
-    case Pglslang::EOpConvIntToBool:
-    case Pglslang::EOpConvUintToBool:
+    case glslang::EOpConvIntToBool:
+    case glslang::EOpConvUintToBool:
         zero = builder.makeUintConstant(0);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpINotEqual, destType, operand, zero);
-    case Pglslang::EOpConvFloatToBool:
+        return builder.createBinOp(spv::OpINotEqual, destType, operand, zero);
+    case glslang::EOpConvFloatToBool:
         zero = builder.makeFloatConstant(0.0F);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpFOrdNotEqual, destType, operand, zero);
-    case Pglslang::EOpConvBoolToFloat:
-        convOp = Pspv::OpSelect;
+        return builder.createBinOp(spv::OpFOrdNotEqual, destType, operand, zero);
+    case glslang::EOpConvBoolToFloat:
+        convOp = spv::OpSelect;
         zero = builder.makeFloatConstant(0.0F);
         one  = builder.makeFloatConstant(1.0F);
         break;
 
-    case Pglslang::EOpConvBoolToInt:
-    case Pglslang::EOpConvBoolToInt64:
+    case glslang::EOpConvBoolToInt:
+    case glslang::EOpConvBoolToInt64:
 #ifndef GLSLANG_WEB
-        if (op == Pglslang::EOpConvBoolToInt64) {
+        if (op == glslang::EOpConvBoolToInt64) {
             zero = builder.makeInt64Constant(0);
             one = builder.makeInt64Constant(1);
         } else
@@ -6068,13 +6068,13 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
             one = builder.makeIntConstant(1);
         }
 
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
 
-    case Pglslang::EOpConvBoolToUint:
-    case Pglslang::EOpConvBoolToUint64:
+    case glslang::EOpConvBoolToUint:
+    case glslang::EOpConvBoolToUint64:
 #ifndef GLSLANG_WEB
-        if (op == Pglslang::EOpConvBoolToUint64) {
+        if (op == glslang::EOpConvBoolToUint64) {
             zero = builder.makeUint64Constant(0);
             one = builder.makeUint64Constant(1);
         } else
@@ -6084,70 +6084,70 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
             one = builder.makeUintConstant(1);
         }
 
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
 
-    case Pglslang::EOpConvInt8ToFloat16:
-    case Pglslang::EOpConvInt8ToFloat:
-    case Pglslang::EOpConvInt8ToDouble:
-    case Pglslang::EOpConvInt16ToFloat16:
-    case Pglslang::EOpConvInt16ToFloat:
-    case Pglslang::EOpConvInt16ToDouble:
-    case Pglslang::EOpConvIntToFloat16:
-    case Pglslang::EOpConvIntToFloat:
-    case Pglslang::EOpConvIntToDouble:
-    case Pglslang::EOpConvInt64ToFloat:
-    case Pglslang::EOpConvInt64ToDouble:
-    case Pglslang::EOpConvInt64ToFloat16:
-        convOp = Pspv::OpConvertSToF;
+    case glslang::EOpConvInt8ToFloat16:
+    case glslang::EOpConvInt8ToFloat:
+    case glslang::EOpConvInt8ToDouble:
+    case glslang::EOpConvInt16ToFloat16:
+    case glslang::EOpConvInt16ToFloat:
+    case glslang::EOpConvInt16ToDouble:
+    case glslang::EOpConvIntToFloat16:
+    case glslang::EOpConvIntToFloat:
+    case glslang::EOpConvIntToDouble:
+    case glslang::EOpConvInt64ToFloat:
+    case glslang::EOpConvInt64ToDouble:
+    case glslang::EOpConvInt64ToFloat16:
+        convOp = spv::OpConvertSToF;
         break;
 
-    case Pglslang::EOpConvUint8ToFloat16:
-    case Pglslang::EOpConvUint8ToFloat:
-    case Pglslang::EOpConvUint8ToDouble:
-    case Pglslang::EOpConvUint16ToFloat16:
-    case Pglslang::EOpConvUint16ToFloat:
-    case Pglslang::EOpConvUint16ToDouble:
-    case Pglslang::EOpConvUintToFloat16:
-    case Pglslang::EOpConvUintToFloat:
-    case Pglslang::EOpConvUintToDouble:
-    case Pglslang::EOpConvUint64ToFloat:
-    case Pglslang::EOpConvUint64ToDouble:
-    case Pglslang::EOpConvUint64ToFloat16:
-        convOp = Pspv::OpConvertUToF;
+    case glslang::EOpConvUint8ToFloat16:
+    case glslang::EOpConvUint8ToFloat:
+    case glslang::EOpConvUint8ToDouble:
+    case glslang::EOpConvUint16ToFloat16:
+    case glslang::EOpConvUint16ToFloat:
+    case glslang::EOpConvUint16ToDouble:
+    case glslang::EOpConvUintToFloat16:
+    case glslang::EOpConvUintToFloat:
+    case glslang::EOpConvUintToDouble:
+    case glslang::EOpConvUint64ToFloat:
+    case glslang::EOpConvUint64ToDouble:
+    case glslang::EOpConvUint64ToFloat16:
+        convOp = spv::OpConvertUToF;
         break;
 
-    case Pglslang::EOpConvFloat16ToInt8:
-    case Pglslang::EOpConvFloatToInt8:
-    case Pglslang::EOpConvDoubleToInt8:
-    case Pglslang::EOpConvFloat16ToInt16:
-    case Pglslang::EOpConvFloatToInt16:
-    case Pglslang::EOpConvDoubleToInt16:
-    case Pglslang::EOpConvFloat16ToInt:
-    case Pglslang::EOpConvFloatToInt:
-    case Pglslang::EOpConvDoubleToInt:
-    case Pglslang::EOpConvFloat16ToInt64:
-    case Pglslang::EOpConvFloatToInt64:
-    case Pglslang::EOpConvDoubleToInt64:
-        convOp = Pspv::OpConvertFToS;
+    case glslang::EOpConvFloat16ToInt8:
+    case glslang::EOpConvFloatToInt8:
+    case glslang::EOpConvDoubleToInt8:
+    case glslang::EOpConvFloat16ToInt16:
+    case glslang::EOpConvFloatToInt16:
+    case glslang::EOpConvDoubleToInt16:
+    case glslang::EOpConvFloat16ToInt:
+    case glslang::EOpConvFloatToInt:
+    case glslang::EOpConvDoubleToInt:
+    case glslang::EOpConvFloat16ToInt64:
+    case glslang::EOpConvFloatToInt64:
+    case glslang::EOpConvDoubleToInt64:
+        convOp = spv::OpConvertFToS;
         break;
 
-    case Pglslang::EOpConvUint8ToInt8:
-    case Pglslang::EOpConvInt8ToUint8:
-    case Pglslang::EOpConvUint16ToInt16:
-    case Pglslang::EOpConvInt16ToUint16:
-    case Pglslang::EOpConvUintToInt:
-    case Pglslang::EOpConvIntToUint:
-    case Pglslang::EOpConvUint64ToInt64:
-    case Pglslang::EOpConvInt64ToUint64:
+    case glslang::EOpConvUint8ToInt8:
+    case glslang::EOpConvInt8ToUint8:
+    case glslang::EOpConvUint16ToInt16:
+    case glslang::EOpConvInt16ToUint16:
+    case glslang::EOpConvUintToInt:
+    case glslang::EOpConvIntToUint:
+    case glslang::EOpConvUint64ToInt64:
+    case glslang::EOpConvInt64ToUint64:
         if (builder.isInSpecConstCodeGenMode()) {
             // Build zero scalar or vector for OpIAdd.
 #ifndef GLSLANG_WEB
-            if(op == Pglslang::EOpConvUint8ToInt8 || op == Pglslang::EOpConvInt8ToUint8) {
+            if(op == glslang::EOpConvUint8ToInt8 || op == glslang::EOpConvInt8ToUint8) {
                 zero = builder.makeUint8Constant(0);
-            } else if (op == Pglslang::EOpConvUint16ToInt16 || op == Pglslang::EOpConvInt16ToUint16) {
+            } else if (op == glslang::EOpConvUint16ToInt16 || op == glslang::EOpConvInt16ToUint16) {
                 zero = builder.makeUint16Constant(0);
-            } else if (op == Pglslang::EOpConvUint64ToInt64 || op == Pglslang::EOpConvInt64ToUint64) {
+            } else if (op == glslang::EOpConvUint64ToInt64 || op == glslang::EOpConvInt64ToUint64) {
                 zero = builder.makeUint64Constant(0);
             } else
 #endif
@@ -6157,182 +6157,182 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
             zero = makeSmearedConstant(zero, vectorSize);
             // Use OpIAdd, instead of OpBitcast to do the conversion when
             // generating for OpSpecConstantOp instruction.
-            return builder.createBinOp(Pspv::OpIAdd, destType, operand, zero);
+            return builder.createBinOp(spv::OpIAdd, destType, operand, zero);
         }
         // For normal run-time conversion instruction, use OpBitcast.
-        convOp = Pspv::OpBitcast;
+        convOp = spv::OpBitcast;
         break;
 
-    case Pglslang::EOpConvFloat16ToUint8:
-    case Pglslang::EOpConvFloatToUint8:
-    case Pglslang::EOpConvDoubleToUint8:
-    case Pglslang::EOpConvFloat16ToUint16:
-    case Pglslang::EOpConvFloatToUint16:
-    case Pglslang::EOpConvDoubleToUint16:
-    case Pglslang::EOpConvFloat16ToUint:
-    case Pglslang::EOpConvFloatToUint:
-    case Pglslang::EOpConvDoubleToUint:
-    case Pglslang::EOpConvFloatToUint64:
-    case Pglslang::EOpConvDoubleToUint64:
-    case Pglslang::EOpConvFloat16ToUint64:
-        convOp = Pspv::OpConvertFToU;
+    case glslang::EOpConvFloat16ToUint8:
+    case glslang::EOpConvFloatToUint8:
+    case glslang::EOpConvDoubleToUint8:
+    case glslang::EOpConvFloat16ToUint16:
+    case glslang::EOpConvFloatToUint16:
+    case glslang::EOpConvDoubleToUint16:
+    case glslang::EOpConvFloat16ToUint:
+    case glslang::EOpConvFloatToUint:
+    case glslang::EOpConvDoubleToUint:
+    case glslang::EOpConvFloatToUint64:
+    case glslang::EOpConvDoubleToUint64:
+    case glslang::EOpConvFloat16ToUint64:
+        convOp = spv::OpConvertFToU;
         break;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpConvInt8ToBool:
-    case Pglslang::EOpConvUint8ToBool:
+    case glslang::EOpConvInt8ToBool:
+    case glslang::EOpConvUint8ToBool:
         zero = builder.makeUint8Constant(0);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpINotEqual, destType, operand, zero);
-    case Pglslang::EOpConvInt16ToBool:
-    case Pglslang::EOpConvUint16ToBool:
+        return builder.createBinOp(spv::OpINotEqual, destType, operand, zero);
+    case glslang::EOpConvInt16ToBool:
+    case glslang::EOpConvUint16ToBool:
         zero = builder.makeUint16Constant(0);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpINotEqual, destType, operand, zero);
-    case Pglslang::EOpConvInt64ToBool:
-    case Pglslang::EOpConvUint64ToBool:
+        return builder.createBinOp(spv::OpINotEqual, destType, operand, zero);
+    case glslang::EOpConvInt64ToBool:
+    case glslang::EOpConvUint64ToBool:
         zero = builder.makeUint64Constant(0);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpINotEqual, destType, operand, zero);
-    case Pglslang::EOpConvDoubleToBool:
+        return builder.createBinOp(spv::OpINotEqual, destType, operand, zero);
+    case glslang::EOpConvDoubleToBool:
         zero = builder.makeDoubleConstant(0.0);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpFOrdNotEqual, destType, operand, zero);
-    case Pglslang::EOpConvFloat16ToBool:
+        return builder.createBinOp(spv::OpFOrdNotEqual, destType, operand, zero);
+    case glslang::EOpConvFloat16ToBool:
         zero = builder.makeFloat16Constant(0.0F);
         zero = makeSmearedConstant(zero, vectorSize);
-        return builder.createBinOp(Pspv::OpFOrdNotEqual, destType, operand, zero);
-    case Pglslang::EOpConvBoolToDouble:
-        convOp = Pspv::OpSelect;
+        return builder.createBinOp(spv::OpFOrdNotEqual, destType, operand, zero);
+    case glslang::EOpConvBoolToDouble:
+        convOp = spv::OpSelect;
         zero = builder.makeDoubleConstant(0.0);
         one  = builder.makeDoubleConstant(1.0);
         break;
-    case Pglslang::EOpConvBoolToFloat16:
-        convOp = Pspv::OpSelect;
+    case glslang::EOpConvBoolToFloat16:
+        convOp = spv::OpSelect;
         zero = builder.makeFloat16Constant(0.0F);
         one = builder.makeFloat16Constant(1.0F);
         break;
-    case Pglslang::EOpConvBoolToInt8:
+    case glslang::EOpConvBoolToInt8:
         zero = builder.makeInt8Constant(0);
         one  = builder.makeInt8Constant(1);
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
-    case Pglslang::EOpConvBoolToUint8:
+    case glslang::EOpConvBoolToUint8:
         zero = builder.makeUint8Constant(0);
         one  = builder.makeUint8Constant(1);
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
-    case Pglslang::EOpConvBoolToInt16:
+    case glslang::EOpConvBoolToInt16:
         zero = builder.makeInt16Constant(0);
         one  = builder.makeInt16Constant(1);
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
-    case Pglslang::EOpConvBoolToUint16:
+    case glslang::EOpConvBoolToUint16:
         zero = builder.makeUint16Constant(0);
         one  = builder.makeUint16Constant(1);
-        convOp = Pspv::OpSelect;
+        convOp = spv::OpSelect;
         break;
-    case Pglslang::EOpConvDoubleToFloat:
-    case Pglslang::EOpConvFloatToDouble:
-    case Pglslang::EOpConvDoubleToFloat16:
-    case Pglslang::EOpConvFloat16ToDouble:
-    case Pglslang::EOpConvFloatToFloat16:
-    case Pglslang::EOpConvFloat16ToFloat:
-        convOp = Pspv::OpFConvert;
+    case glslang::EOpConvDoubleToFloat:
+    case glslang::EOpConvFloatToDouble:
+    case glslang::EOpConvDoubleToFloat16:
+    case glslang::EOpConvFloat16ToDouble:
+    case glslang::EOpConvFloatToFloat16:
+    case glslang::EOpConvFloat16ToFloat:
+        convOp = spv::OpFConvert;
         if (builder.isMatrixType(destType))
             return createUnaryMatrixOperation(convOp, decorations, destType, operand, typeProxy);
         break;
 
-    case Pglslang::EOpConvInt8ToInt16:
-    case Pglslang::EOpConvInt8ToInt:
-    case Pglslang::EOpConvInt8ToInt64:
-    case Pglslang::EOpConvInt16ToInt8:
-    case Pglslang::EOpConvInt16ToInt:
-    case Pglslang::EOpConvInt16ToInt64:
-    case Pglslang::EOpConvIntToInt8:
-    case Pglslang::EOpConvIntToInt16:
-    case Pglslang::EOpConvIntToInt64:
-    case Pglslang::EOpConvInt64ToInt8:
-    case Pglslang::EOpConvInt64ToInt16:
-    case Pglslang::EOpConvInt64ToInt:
-        convOp = Pspv::OpSConvert;
+    case glslang::EOpConvInt8ToInt16:
+    case glslang::EOpConvInt8ToInt:
+    case glslang::EOpConvInt8ToInt64:
+    case glslang::EOpConvInt16ToInt8:
+    case glslang::EOpConvInt16ToInt:
+    case glslang::EOpConvInt16ToInt64:
+    case glslang::EOpConvIntToInt8:
+    case glslang::EOpConvIntToInt16:
+    case glslang::EOpConvIntToInt64:
+    case glslang::EOpConvInt64ToInt8:
+    case glslang::EOpConvInt64ToInt16:
+    case glslang::EOpConvInt64ToInt:
+        convOp = spv::OpSConvert;
         break;
 
-    case Pglslang::EOpConvUint8ToUint16:
-    case Pglslang::EOpConvUint8ToUint:
-    case Pglslang::EOpConvUint8ToUint64:
-    case Pglslang::EOpConvUint16ToUint8:
-    case Pglslang::EOpConvUint16ToUint:
-    case Pglslang::EOpConvUint16ToUint64:
-    case Pglslang::EOpConvUintToUint8:
-    case Pglslang::EOpConvUintToUint16:
-    case Pglslang::EOpConvUintToUint64:
-    case Pglslang::EOpConvUint64ToUint8:
-    case Pglslang::EOpConvUint64ToUint16:
-    case Pglslang::EOpConvUint64ToUint:
-        convOp = Pspv::OpUConvert;
+    case glslang::EOpConvUint8ToUint16:
+    case glslang::EOpConvUint8ToUint:
+    case glslang::EOpConvUint8ToUint64:
+    case glslang::EOpConvUint16ToUint8:
+    case glslang::EOpConvUint16ToUint:
+    case glslang::EOpConvUint16ToUint64:
+    case glslang::EOpConvUintToUint8:
+    case glslang::EOpConvUintToUint16:
+    case glslang::EOpConvUintToUint64:
+    case glslang::EOpConvUint64ToUint8:
+    case glslang::EOpConvUint64ToUint16:
+    case glslang::EOpConvUint64ToUint:
+        convOp = spv::OpUConvert;
         break;
 
-    case Pglslang::EOpConvInt8ToUint16:
-    case Pglslang::EOpConvInt8ToUint:
-    case Pglslang::EOpConvInt8ToUint64:
-    case Pglslang::EOpConvInt16ToUint8:
-    case Pglslang::EOpConvInt16ToUint:
-    case Pglslang::EOpConvInt16ToUint64:
-    case Pglslang::EOpConvIntToUint8:
-    case Pglslang::EOpConvIntToUint16:
-    case Pglslang::EOpConvIntToUint64:
-    case Pglslang::EOpConvInt64ToUint8:
-    case Pglslang::EOpConvInt64ToUint16:
-    case Pglslang::EOpConvInt64ToUint:
-    case Pglslang::EOpConvUint8ToInt16:
-    case Pglslang::EOpConvUint8ToInt:
-    case Pglslang::EOpConvUint8ToInt64:
-    case Pglslang::EOpConvUint16ToInt8:
-    case Pglslang::EOpConvUint16ToInt:
-    case Pglslang::EOpConvUint16ToInt64:
-    case Pglslang::EOpConvUintToInt8:
-    case Pglslang::EOpConvUintToInt16:
-    case Pglslang::EOpConvUintToInt64:
-    case Pglslang::EOpConvUint64ToInt8:
-    case Pglslang::EOpConvUint64ToInt16:
-    case Pglslang::EOpConvUint64ToInt:
+    case glslang::EOpConvInt8ToUint16:
+    case glslang::EOpConvInt8ToUint:
+    case glslang::EOpConvInt8ToUint64:
+    case glslang::EOpConvInt16ToUint8:
+    case glslang::EOpConvInt16ToUint:
+    case glslang::EOpConvInt16ToUint64:
+    case glslang::EOpConvIntToUint8:
+    case glslang::EOpConvIntToUint16:
+    case glslang::EOpConvIntToUint64:
+    case glslang::EOpConvInt64ToUint8:
+    case glslang::EOpConvInt64ToUint16:
+    case glslang::EOpConvInt64ToUint:
+    case glslang::EOpConvUint8ToInt16:
+    case glslang::EOpConvUint8ToInt:
+    case glslang::EOpConvUint8ToInt64:
+    case glslang::EOpConvUint16ToInt8:
+    case glslang::EOpConvUint16ToInt:
+    case glslang::EOpConvUint16ToInt64:
+    case glslang::EOpConvUintToInt8:
+    case glslang::EOpConvUintToInt16:
+    case glslang::EOpConvUintToInt64:
+    case glslang::EOpConvUint64ToInt8:
+    case glslang::EOpConvUint64ToInt16:
+    case glslang::EOpConvUint64ToInt:
         // OpSConvert/OpUConvert + OpBitCast
         operand = createIntWidthConversion(op, operand, vectorSize);
 
         if (builder.isInSpecConstCodeGenMode()) {
             // Build zero scalar or vector for OpIAdd.
             switch(op) {
-            case Pglslang::EOpConvInt16ToUint8:
-            case Pglslang::EOpConvIntToUint8:
-            case Pglslang::EOpConvInt64ToUint8:
-            case Pglslang::EOpConvUint16ToInt8:
-            case Pglslang::EOpConvUintToInt8:
-            case Pglslang::EOpConvUint64ToInt8:
+            case glslang::EOpConvInt16ToUint8:
+            case glslang::EOpConvIntToUint8:
+            case glslang::EOpConvInt64ToUint8:
+            case glslang::EOpConvUint16ToInt8:
+            case glslang::EOpConvUintToInt8:
+            case glslang::EOpConvUint64ToInt8:
                 zero = builder.makeUint8Constant(0);
                 break;
-            case Pglslang::EOpConvInt8ToUint16:
-            case Pglslang::EOpConvIntToUint16:
-            case Pglslang::EOpConvInt64ToUint16:
-            case Pglslang::EOpConvUint8ToInt16:
-            case Pglslang::EOpConvUintToInt16:
-            case Pglslang::EOpConvUint64ToInt16:
+            case glslang::EOpConvInt8ToUint16:
+            case glslang::EOpConvIntToUint16:
+            case glslang::EOpConvInt64ToUint16:
+            case glslang::EOpConvUint8ToInt16:
+            case glslang::EOpConvUintToInt16:
+            case glslang::EOpConvUint64ToInt16:
                 zero = builder.makeUint16Constant(0);
                 break;
-            case Pglslang::EOpConvInt8ToUint:
-            case Pglslang::EOpConvInt16ToUint:
-            case Pglslang::EOpConvInt64ToUint:
-            case Pglslang::EOpConvUint8ToInt:
-            case Pglslang::EOpConvUint16ToInt:
-            case Pglslang::EOpConvUint64ToInt:
+            case glslang::EOpConvInt8ToUint:
+            case glslang::EOpConvInt16ToUint:
+            case glslang::EOpConvInt64ToUint:
+            case glslang::EOpConvUint8ToInt:
+            case glslang::EOpConvUint16ToInt:
+            case glslang::EOpConvUint64ToInt:
                 zero = builder.makeUintConstant(0);
                 break;
-            case Pglslang::EOpConvInt8ToUint64:
-            case Pglslang::EOpConvInt16ToUint64:
-            case Pglslang::EOpConvIntToUint64:
-            case Pglslang::EOpConvUint8ToInt64:
-            case Pglslang::EOpConvUint16ToInt64:
-            case Pglslang::EOpConvUintToInt64:
+            case glslang::EOpConvInt8ToUint64:
+            case glslang::EOpConvInt16ToUint64:
+            case glslang::EOpConvIntToUint64:
+            case glslang::EOpConvUint8ToInt64:
+            case glslang::EOpConvUint16ToInt64:
+            case glslang::EOpConvUintToInt64:
                 zero = builder.makeUint64Constant(0);
                 break;
             default:
@@ -6342,23 +6342,23 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
             zero = makeSmearedConstant(zero, vectorSize);
             // Use OpIAdd, instead of OpBitcast to do the conversion when
             // generating for OpSpecConstantOp instruction.
-            return builder.createBinOp(Pspv::OpIAdd, destType, operand, zero);
+            return builder.createBinOp(spv::OpIAdd, destType, operand, zero);
         }
         // For normal run-time conversion instruction, use OpBitcast.
-        convOp = Pspv::OpBitcast;
+        convOp = spv::OpBitcast;
         break;
-    case Pglslang::EOpConvUint64ToPtr:
-        convOp = Pspv::OpConvertUToPtr;
+    case glslang::EOpConvUint64ToPtr:
+        convOp = spv::OpConvertUToPtr;
         break;
-    case Pglslang::EOpConvPtrToUint64:
-        convOp = Pspv::OpConvertPtrToU;
+    case glslang::EOpConvPtrToUint64:
+        convOp = spv::OpConvertPtrToU;
         break;
-    case Pglslang::EOpConvPtrToUvec2:
-    case Pglslang::EOpConvUvec2ToPtr:
+    case glslang::EOpConvPtrToUvec2:
+    case glslang::EOpConvUvec2ToPtr:
         if (builder.isVector(operand))
-            builder.promoteIncorporatedExtension(Pspv::E_SPV_EXT_physical_storage_buffer,
-                                                 Pspv::E_SPV_KHR_physical_storage_buffer, Pspv::Spv_1_5);
-        convOp = Pspv::OpBitcast;
+            builder.promoteIncorporatedExtension(spv::E_SPV_EXT_physical_storage_buffer,
+                                                 spv::E_SPV_KHR_physical_storage_buffer, spv::Spv_1_5);
+        convOp = spv::OpBitcast;
         break;
 #endif
 
@@ -6366,11 +6366,11 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
         break;
     }
 
-    Pspv::Id result = 0;
-    if (convOp == Pspv::OpNop)
+    spv::Id result = 0;
+    if (convOp == spv::OpNop)
         return result;
 
-    if (convOp == Pspv::OpSelect) {
+    if (convOp == spv::OpSelect) {
         zero = makeSmearedConstant(zero, vectorSize);
         one  = makeSmearedConstant(one, vectorSize);
         result = builder.createTriOp(convOp, destType, operand, one, zero);
@@ -6382,89 +6382,89 @@ Pspv::Id TGlslangToSpvTraverser::createConversion(Pglslang::TOperator op, OpDeco
     return result;
 }
 
-Pspv::Id TGlslangToSpvTraverser::makeSmearedConstant(Pspv::Id constant, int vectorSize)
+spv::Id TGlslangToSpvTraverser::makeSmearedConstant(spv::Id constant, int vectorSize)
 {
     if (vectorSize == 0)
         return constant;
 
-    Pspv::Id vectorTypeId = builder.makeVectorType(builder.getTypeId(constant), vectorSize);
-    std::vector<Pspv::Id> components;
+    spv::Id vectorTypeId = builder.makeVectorType(builder.getTypeId(constant), vectorSize);
+    std::vector<spv::Id> components;
     for (int c = 0; c < vectorSize; ++c)
         components.push_back(constant);
     return builder.makeCompositeConstant(vectorTypeId, components);
 }
 
 // For glslang ops that map to SPV atomic opCodes
-Pspv::Id TGlslangToSpvTraverser::createAtomicOperation(Pglslang::TOperator op, Pspv::Decoration /*precision*/, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy, const Pspv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
+spv::Id TGlslangToSpvTraverser::createAtomicOperation(glslang::TOperator op, spv::Decoration /*precision*/, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy, const spv::Builder::AccessChain::CoherentFlags &lvalueCoherentFlags)
 {
-    Pspv::Op opCode = Pspv::OpNop;
+    spv::Op opCode = spv::OpNop;
 
     switch (op) {
-    case Pglslang::EOpAtomicAdd:
-    case Pglslang::EOpImageAtomicAdd:
-    case Pglslang::EOpAtomicCounterAdd:
-        opCode = Pspv::OpAtomicIAdd;
+    case glslang::EOpAtomicAdd:
+    case glslang::EOpImageAtomicAdd:
+    case glslang::EOpAtomicCounterAdd:
+        opCode = spv::OpAtomicIAdd;
         break;
-    case Pglslang::EOpAtomicCounterSubtract:
-        opCode = Pspv::OpAtomicISub;
+    case glslang::EOpAtomicCounterSubtract:
+        opCode = spv::OpAtomicISub;
         break;
-    case Pglslang::EOpAtomicMin:
-    case Pglslang::EOpImageAtomicMin:
-    case Pglslang::EOpAtomicCounterMin:
-        opCode = (typeProxy == Pglslang::EbtUint || typeProxy == Pglslang::EbtUint64) ? Pspv::OpAtomicUMin : Pspv::OpAtomicSMin;
+    case glslang::EOpAtomicMin:
+    case glslang::EOpImageAtomicMin:
+    case glslang::EOpAtomicCounterMin:
+        opCode = (typeProxy == glslang::EbtUint || typeProxy == glslang::EbtUint64) ? spv::OpAtomicUMin : spv::OpAtomicSMin;
         break;
-    case Pglslang::EOpAtomicMax:
-    case Pglslang::EOpImageAtomicMax:
-    case Pglslang::EOpAtomicCounterMax:
-        opCode = (typeProxy == Pglslang::EbtUint || typeProxy == Pglslang::EbtUint64) ? Pspv::OpAtomicUMax : Pspv::OpAtomicSMax;
+    case glslang::EOpAtomicMax:
+    case glslang::EOpImageAtomicMax:
+    case glslang::EOpAtomicCounterMax:
+        opCode = (typeProxy == glslang::EbtUint || typeProxy == glslang::EbtUint64) ? spv::OpAtomicUMax : spv::OpAtomicSMax;
         break;
-    case Pglslang::EOpAtomicAnd:
-    case Pglslang::EOpImageAtomicAnd:
-    case Pglslang::EOpAtomicCounterAnd:
-        opCode = Pspv::OpAtomicAnd;
+    case glslang::EOpAtomicAnd:
+    case glslang::EOpImageAtomicAnd:
+    case glslang::EOpAtomicCounterAnd:
+        opCode = spv::OpAtomicAnd;
         break;
-    case Pglslang::EOpAtomicOr:
-    case Pglslang::EOpImageAtomicOr:
-    case Pglslang::EOpAtomicCounterOr:
-        opCode = Pspv::OpAtomicOr;
+    case glslang::EOpAtomicOr:
+    case glslang::EOpImageAtomicOr:
+    case glslang::EOpAtomicCounterOr:
+        opCode = spv::OpAtomicOr;
         break;
-    case Pglslang::EOpAtomicXor:
-    case Pglslang::EOpImageAtomicXor:
-    case Pglslang::EOpAtomicCounterXor:
-        opCode = Pspv::OpAtomicXor;
+    case glslang::EOpAtomicXor:
+    case glslang::EOpImageAtomicXor:
+    case glslang::EOpAtomicCounterXor:
+        opCode = spv::OpAtomicXor;
         break;
-    case Pglslang::EOpAtomicExchange:
-    case Pglslang::EOpImageAtomicExchange:
-    case Pglslang::EOpAtomicCounterExchange:
-        opCode = Pspv::OpAtomicExchange;
+    case glslang::EOpAtomicExchange:
+    case glslang::EOpImageAtomicExchange:
+    case glslang::EOpAtomicCounterExchange:
+        opCode = spv::OpAtomicExchange;
         break;
-    case Pglslang::EOpAtomicCompSwap:
-    case Pglslang::EOpImageAtomicCompSwap:
-    case Pglslang::EOpAtomicCounterCompSwap:
-        opCode = Pspv::OpAtomicCompareExchange;
+    case glslang::EOpAtomicCompSwap:
+    case glslang::EOpImageAtomicCompSwap:
+    case glslang::EOpAtomicCounterCompSwap:
+        opCode = spv::OpAtomicCompareExchange;
         break;
-    case Pglslang::EOpAtomicCounterIncrement:
-        opCode = Pspv::OpAtomicIIncrement;
+    case glslang::EOpAtomicCounterIncrement:
+        opCode = spv::OpAtomicIIncrement;
         break;
-    case Pglslang::EOpAtomicCounterDecrement:
-        opCode = Pspv::OpAtomicIDecrement;
+    case glslang::EOpAtomicCounterDecrement:
+        opCode = spv::OpAtomicIDecrement;
         break;
-    case Pglslang::EOpAtomicCounter:
-    case Pglslang::EOpImageAtomicLoad:
-    case Pglslang::EOpAtomicLoad:
-        opCode = Pspv::OpAtomicLoad;
+    case glslang::EOpAtomicCounter:
+    case glslang::EOpImageAtomicLoad:
+    case glslang::EOpAtomicLoad:
+        opCode = spv::OpAtomicLoad;
         break;
-    case Pglslang::EOpAtomicStore:
-    case Pglslang::EOpImageAtomicStore:
-        opCode = Pspv::OpAtomicStore;
+    case glslang::EOpAtomicStore:
+    case glslang::EOpImageAtomicStore:
+        opCode = spv::OpAtomicStore;
         break;
     default:
         assert(0);
         break;
     }
 
-    if (typeProxy == Pglslang::EbtInt64 || typeProxy == Pglslang::EbtUint64)
-        builder.addCapability(Pspv::CapabilityInt64Atomics);
+    if (typeProxy == glslang::EbtInt64 || typeProxy == glslang::EbtUint64)
+        builder.addCapability(spv::CapabilityInt64Atomics);
 
     // Sort out the operands
     //  - mapping from glslang -> SPV
@@ -6472,24 +6472,24 @@ Pspv::Id TGlslangToSpvTraverser::createAtomicOperation(Pglslang::TOperator op, P
     //  - compare-exchange swaps the value and comparator
     //  - compare-exchange has an extra memory semantics
     //  - EOpAtomicCounterDecrement needs a post decrement
-    Pspv::Id pointerId = 0, compareId = 0, valueId = 0;
+    spv::Id pointerId = 0, compareId = 0, valueId = 0;
     // scope defaults to Device in the old model, QueueFamilyKHR in the new model
-    Pspv::Id scopeId;
+    spv::Id scopeId;
     if (glslangIntermediate->usingVulkanMemoryModel()) {
-        scopeId = builder.makeUintConstant(Pspv::ScopeQueueFamilyKHR);
+        scopeId = builder.makeUintConstant(spv::ScopeQueueFamilyKHR);
     } else {
-        scopeId = builder.makeUintConstant(Pspv::ScopeDevice);
+        scopeId = builder.makeUintConstant(spv::ScopeDevice);
     }
     // semantics default to relaxed 
-    Pspv::Id semanticsId = builder.makeUintConstant(lvalueCoherentFlags.isVolatile() && glslangIntermediate->usingVulkanMemoryModel() ?
-                                                    Pspv::MemorySemanticsVolatileMask :
-                                                    Pspv::MemorySemanticsMaskNone);
-    Pspv::Id semanticsId2 = semanticsId;
+    spv::Id semanticsId = builder.makeUintConstant(lvalueCoherentFlags.isVolatile() && glslangIntermediate->usingVulkanMemoryModel() ?
+                                                    spv::MemorySemanticsVolatileMask :
+                                                    spv::MemorySemanticsMaskNone);
+    spv::Id semanticsId2 = semanticsId;
 
     pointerId = operands[0];
-    if (opCode == Pspv::OpAtomicIIncrement || opCode == Pspv::OpAtomicIDecrement) {
+    if (opCode == spv::OpAtomicIIncrement || opCode == spv::OpAtomicIDecrement) {
         // no additional operands
-    } else if (opCode == Pspv::OpAtomicCompareExchange) {
+    } else if (opCode == spv::OpAtomicCompareExchange) {
         compareId = operands[1];
         valueId = operands[2];
         if (operands.size() > 3) {
@@ -6497,7 +6497,7 @@ Pspv::Id TGlslangToSpvTraverser::createAtomicOperation(Pglslang::TOperator op, P
             semanticsId = builder.makeUintConstant(builder.getConstantScalar(operands[4]) | builder.getConstantScalar(operands[5]));
             semanticsId2 = builder.makeUintConstant(builder.getConstantScalar(operands[6]) | builder.getConstantScalar(operands[7]));
         }
-    } else if (opCode == Pspv::OpAtomicLoad) {
+    } else if (opCode == spv::OpAtomicLoad) {
         if (operands.size() > 1) {
             scopeId = operands[1];
             semanticsId = builder.makeUintConstant(builder.getConstantScalar(operands[2]) | builder.getConstantScalar(operands[3]));
@@ -6513,136 +6513,136 @@ Pspv::Id TGlslangToSpvTraverser::createAtomicOperation(Pglslang::TOperator op, P
 
     // Check for capabilities
     unsigned semanticsImmediate = builder.getConstantScalar(semanticsId) | builder.getConstantScalar(semanticsId2);
-    if (semanticsImmediate & (Pspv::MemorySemanticsMakeAvailableKHRMask |
-                              Pspv::MemorySemanticsMakeVisibleKHRMask |
-                              Pspv::MemorySemanticsOutputMemoryKHRMask |
-                              Pspv::MemorySemanticsVolatileMask)) {
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+    if (semanticsImmediate & (spv::MemorySemanticsMakeAvailableKHRMask |
+                              spv::MemorySemanticsMakeVisibleKHRMask |
+                              spv::MemorySemanticsOutputMemoryKHRMask |
+                              spv::MemorySemanticsVolatileMask)) {
+        builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
     }
 
-    if (glslangIntermediate->usingVulkanMemoryModel() && builder.getConstantScalar(scopeId) == Pspv::ScopeDevice) {
-        builder.addCapability(Pspv::CapabilityVulkanMemoryModelDeviceScopeKHR);
+    if (glslangIntermediate->usingVulkanMemoryModel() && builder.getConstantScalar(scopeId) == spv::ScopeDevice) {
+        builder.addCapability(spv::CapabilityVulkanMemoryModelDeviceScopeKHR);
     }
 
-    std::vector<Pspv::Id> spvAtomicOperands;  // hold the spv operands
+    std::vector<spv::Id> spvAtomicOperands;  // hold the spv operands
     spvAtomicOperands.push_back(pointerId);
     spvAtomicOperands.push_back(scopeId);
     spvAtomicOperands.push_back(semanticsId);
-    if (opCode == Pspv::OpAtomicCompareExchange) {
+    if (opCode == spv::OpAtomicCompareExchange) {
         spvAtomicOperands.push_back(semanticsId2);
         spvAtomicOperands.push_back(valueId);
         spvAtomicOperands.push_back(compareId);
-    } else if (opCode != Pspv::OpAtomicLoad && opCode != Pspv::OpAtomicIIncrement && opCode != Pspv::OpAtomicIDecrement) {
+    } else if (opCode != spv::OpAtomicLoad && opCode != spv::OpAtomicIIncrement && opCode != spv::OpAtomicIDecrement) {
         spvAtomicOperands.push_back(valueId);
     }
 
-    if (opCode == Pspv::OpAtomicStore) {
+    if (opCode == spv::OpAtomicStore) {
         builder.createNoResultOp(opCode, spvAtomicOperands);
         return 0;
     } else {
-        Pspv::Id resultId = builder.createOp(opCode, typeId, spvAtomicOperands);
+        spv::Id resultId = builder.createOp(opCode, typeId, spvAtomicOperands);
 
         // GLSL and HLSL atomic-counter decrement return post-decrement value,
         // while SPIR-V returns pre-decrement value. Translate between these semantics.
-        if (op == Pglslang::EOpAtomicCounterDecrement)
-            resultId = builder.createBinOp(Pspv::OpISub, typeId, resultId, builder.makeIntConstant(1));
+        if (op == glslang::EOpAtomicCounterDecrement)
+            resultId = builder.createBinOp(spv::OpISub, typeId, resultId, builder.makeIntConstant(1));
 
         return resultId;
     }
 }
 
 // Create group invocation operations.
-Pspv::Id TGlslangToSpvTraverser::createInvocationsOperation(Pglslang::TOperator op, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy)
+spv::Id TGlslangToSpvTraverser::createInvocationsOperation(glslang::TOperator op, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy)
 {
     bool isUnsigned = isTypeUnsignedInt(typeProxy);
     bool isFloat = isTypeFloat(typeProxy);
 
-    Pspv::Op opCode = Pspv::OpNop;
-    std::vector<Pspv::IdImmediate> spvGroupOperands;
-    Pspv::GroupOperation groupOperation = Pspv::GroupOperationMax;
+    spv::Op opCode = spv::OpNop;
+    std::vector<spv::IdImmediate> spvGroupOperands;
+    spv::GroupOperation groupOperation = spv::GroupOperationMax;
 
-    if (op == Pglslang::EOpBallot || op == Pglslang::EOpReadFirstInvocation ||
-        op == Pglslang::EOpReadInvocation) {
-        builder.addExtension(Pspv::E_SPV_KHR_shader_ballot);
-        builder.addCapability(Pspv::CapabilitySubgroupBallotKHR);
-    } else if (op == Pglslang::EOpAnyInvocation ||
-        op == Pglslang::EOpAllInvocations ||
-        op == Pglslang::EOpAllInvocationsEqual) {
-        builder.addExtension(Pspv::E_SPV_KHR_subgroup_vote);
-        builder.addCapability(Pspv::CapabilitySubgroupVoteKHR);
+    if (op == glslang::EOpBallot || op == glslang::EOpReadFirstInvocation ||
+        op == glslang::EOpReadInvocation) {
+        builder.addExtension(spv::E_SPV_KHR_shader_ballot);
+        builder.addCapability(spv::CapabilitySubgroupBallotKHR);
+    } else if (op == glslang::EOpAnyInvocation ||
+        op == glslang::EOpAllInvocations ||
+        op == glslang::EOpAllInvocationsEqual) {
+        builder.addExtension(spv::E_SPV_KHR_subgroup_vote);
+        builder.addCapability(spv::CapabilitySubgroupVoteKHR);
     } else {
-        builder.addCapability(Pspv::CapabilityGroups);
-        if (op == Pglslang::EOpMinInvocationsNonUniform ||
-            op == Pglslang::EOpMaxInvocationsNonUniform ||
-            op == Pglslang::EOpAddInvocationsNonUniform ||
-            op == Pglslang::EOpMinInvocationsInclusiveScanNonUniform ||
-            op == Pglslang::EOpMaxInvocationsInclusiveScanNonUniform ||
-            op == Pglslang::EOpAddInvocationsInclusiveScanNonUniform ||
-            op == Pglslang::EOpMinInvocationsExclusiveScanNonUniform ||
-            op == Pglslang::EOpMaxInvocationsExclusiveScanNonUniform ||
-            op == Pglslang::EOpAddInvocationsExclusiveScanNonUniform)
-            builder.addExtension(Pspv::E_SPV_AMD_shader_ballot);
+        builder.addCapability(spv::CapabilityGroups);
+        if (op == glslang::EOpMinInvocationsNonUniform ||
+            op == glslang::EOpMaxInvocationsNonUniform ||
+            op == glslang::EOpAddInvocationsNonUniform ||
+            op == glslang::EOpMinInvocationsInclusiveScanNonUniform ||
+            op == glslang::EOpMaxInvocationsInclusiveScanNonUniform ||
+            op == glslang::EOpAddInvocationsInclusiveScanNonUniform ||
+            op == glslang::EOpMinInvocationsExclusiveScanNonUniform ||
+            op == glslang::EOpMaxInvocationsExclusiveScanNonUniform ||
+            op == glslang::EOpAddInvocationsExclusiveScanNonUniform)
+            builder.addExtension(spv::E_SPV_AMD_shader_ballot);
 
         switch (op) {
-        case Pglslang::EOpMinInvocations:
-        case Pglslang::EOpMaxInvocations:
-        case Pglslang::EOpAddInvocations:
-        case Pglslang::EOpMinInvocationsNonUniform:
-        case Pglslang::EOpMaxInvocationsNonUniform:
-        case Pglslang::EOpAddInvocationsNonUniform:
-            groupOperation = Pspv::GroupOperationReduce;
+        case glslang::EOpMinInvocations:
+        case glslang::EOpMaxInvocations:
+        case glslang::EOpAddInvocations:
+        case glslang::EOpMinInvocationsNonUniform:
+        case glslang::EOpMaxInvocationsNonUniform:
+        case glslang::EOpAddInvocationsNonUniform:
+            groupOperation = spv::GroupOperationReduce;
             break;
-        case Pglslang::EOpMinInvocationsInclusiveScan:
-        case Pglslang::EOpMaxInvocationsInclusiveScan:
-        case Pglslang::EOpAddInvocationsInclusiveScan:
-        case Pglslang::EOpMinInvocationsInclusiveScanNonUniform:
-        case Pglslang::EOpMaxInvocationsInclusiveScanNonUniform:
-        case Pglslang::EOpAddInvocationsInclusiveScanNonUniform:
-            groupOperation = Pspv::GroupOperationInclusiveScan;
+        case glslang::EOpMinInvocationsInclusiveScan:
+        case glslang::EOpMaxInvocationsInclusiveScan:
+        case glslang::EOpAddInvocationsInclusiveScan:
+        case glslang::EOpMinInvocationsInclusiveScanNonUniform:
+        case glslang::EOpMaxInvocationsInclusiveScanNonUniform:
+        case glslang::EOpAddInvocationsInclusiveScanNonUniform:
+            groupOperation = spv::GroupOperationInclusiveScan;
             break;
-        case Pglslang::EOpMinInvocationsExclusiveScan:
-        case Pglslang::EOpMaxInvocationsExclusiveScan:
-        case Pglslang::EOpAddInvocationsExclusiveScan:
-        case Pglslang::EOpMinInvocationsExclusiveScanNonUniform:
-        case Pglslang::EOpMaxInvocationsExclusiveScanNonUniform:
-        case Pglslang::EOpAddInvocationsExclusiveScanNonUniform:
-            groupOperation = Pspv::GroupOperationExclusiveScan;
+        case glslang::EOpMinInvocationsExclusiveScan:
+        case glslang::EOpMaxInvocationsExclusiveScan:
+        case glslang::EOpAddInvocationsExclusiveScan:
+        case glslang::EOpMinInvocationsExclusiveScanNonUniform:
+        case glslang::EOpMaxInvocationsExclusiveScanNonUniform:
+        case glslang::EOpAddInvocationsExclusiveScanNonUniform:
+            groupOperation = spv::GroupOperationExclusiveScan;
             break;
         default:
             break;
         }
-        Pspv::IdImmediate scope = { true, builder.makeUintConstant(Pspv::ScopeSubgroup) };
+        spv::IdImmediate scope = { true, builder.makeUintConstant(spv::ScopeSubgroup) };
         spvGroupOperands.push_back(scope);
-        if (groupOperation != Pspv::GroupOperationMax) {
-            Pspv::IdImmediate groupOp = { false, (unsigned)groupOperation };
+        if (groupOperation != spv::GroupOperationMax) {
+            spv::IdImmediate groupOp = { false, (unsigned)groupOperation };
             spvGroupOperands.push_back(groupOp);
         }
     }
 
     for (auto opIt = operands.begin(); opIt != operands.end(); ++opIt) {
-        Pspv::IdImmediate op = { true, *opIt };
+        spv::IdImmediate op = { true, *opIt };
         spvGroupOperands.push_back(op);
     }
 
     switch (op) {
-    case Pglslang::EOpAnyInvocation:
-        opCode = Pspv::OpSubgroupAnyKHR;
+    case glslang::EOpAnyInvocation:
+        opCode = spv::OpSubgroupAnyKHR;
         break;
-    case Pglslang::EOpAllInvocations:
-        opCode = Pspv::OpSubgroupAllKHR;
+    case glslang::EOpAllInvocations:
+        opCode = spv::OpSubgroupAllKHR;
         break;
-    case Pglslang::EOpAllInvocationsEqual:
-        opCode = Pspv::OpSubgroupAllEqualKHR;
+    case glslang::EOpAllInvocationsEqual:
+        opCode = spv::OpSubgroupAllEqualKHR;
         break;
-    case Pglslang::EOpReadInvocation:
-        opCode = Pspv::OpSubgroupReadInvocationKHR;
+    case glslang::EOpReadInvocation:
+        opCode = spv::OpSubgroupReadInvocationKHR;
         if (builder.isVectorType(typeId))
             return CreateInvocationsVectorOperation(opCode, groupOperation, typeId, operands);
         break;
-    case Pglslang::EOpReadFirstInvocation:
-        opCode = Pspv::OpSubgroupFirstInvocationKHR;
+    case glslang::EOpReadFirstInvocation:
+        opCode = spv::OpSubgroupFirstInvocationKHR;
         break;
-    case Pglslang::EOpBallot:
+    case glslang::EOpBallot:
     {
         // NOTE: According to the spec, the result type of "OpSubgroupBallotKHR" must be a 4 component vector of 32
         // bit integer types. The GLSL built-in function "ballotARB()" assumes the maximum number of invocations in
@@ -6650,99 +6650,99 @@ Pspv::Id TGlslangToSpvTraverser::createInvocationsOperation(Pglslang::TOperator 
         //
         //     result = Bitcast(SubgroupBallotKHR(Predicate).xy)
         //
-        Pspv::Id uintType  = builder.makeUintType(32);
-        Pspv::Id uvec4Type = builder.makeVectorType(uintType, 4);
-        Pspv::Id result = builder.createOp(Pspv::OpSubgroupBallotKHR, uvec4Type, spvGroupOperands);
+        spv::Id uintType  = builder.makeUintType(32);
+        spv::Id uvec4Type = builder.makeVectorType(uintType, 4);
+        spv::Id result = builder.createOp(spv::OpSubgroupBallotKHR, uvec4Type, spvGroupOperands);
 
-        std::vector<Pspv::Id> components;
+        std::vector<spv::Id> components;
         components.push_back(builder.createCompositeExtract(result, uintType, 0));
         components.push_back(builder.createCompositeExtract(result, uintType, 1));
 
-        Pspv::Id uvec2Type = builder.makeVectorType(uintType, 2);
-        return builder.createUnaryOp(Pspv::OpBitcast, typeId,
+        spv::Id uvec2Type = builder.makeVectorType(uintType, 2);
+        return builder.createUnaryOp(spv::OpBitcast, typeId,
                                      builder.createCompositeConstruct(uvec2Type, components));
     }
 
-    case Pglslang::EOpMinInvocations:
-    case Pglslang::EOpMaxInvocations:
-    case Pglslang::EOpAddInvocations:
-    case Pglslang::EOpMinInvocationsInclusiveScan:
-    case Pglslang::EOpMaxInvocationsInclusiveScan:
-    case Pglslang::EOpAddInvocationsInclusiveScan:
-    case Pglslang::EOpMinInvocationsExclusiveScan:
-    case Pglslang::EOpMaxInvocationsExclusiveScan:
-    case Pglslang::EOpAddInvocationsExclusiveScan:
-        if (op == Pglslang::EOpMinInvocations ||
-            op == Pglslang::EOpMinInvocationsInclusiveScan ||
-            op == Pglslang::EOpMinInvocationsExclusiveScan) {
+    case glslang::EOpMinInvocations:
+    case glslang::EOpMaxInvocations:
+    case glslang::EOpAddInvocations:
+    case glslang::EOpMinInvocationsInclusiveScan:
+    case glslang::EOpMaxInvocationsInclusiveScan:
+    case glslang::EOpAddInvocationsInclusiveScan:
+    case glslang::EOpMinInvocationsExclusiveScan:
+    case glslang::EOpMaxInvocationsExclusiveScan:
+    case glslang::EOpAddInvocationsExclusiveScan:
+        if (op == glslang::EOpMinInvocations ||
+            op == glslang::EOpMinInvocationsInclusiveScan ||
+            op == glslang::EOpMinInvocationsExclusiveScan) {
             if (isFloat)
-                opCode = Pspv::OpGroupFMin;
+                opCode = spv::OpGroupFMin;
             else {
                 if (isUnsigned)
-                    opCode = Pspv::OpGroupUMin;
+                    opCode = spv::OpGroupUMin;
                 else
-                    opCode = Pspv::OpGroupSMin;
+                    opCode = spv::OpGroupSMin;
             }
-        } else if (op == Pglslang::EOpMaxInvocations ||
-                   op == Pglslang::EOpMaxInvocationsInclusiveScan ||
-                   op == Pglslang::EOpMaxInvocationsExclusiveScan) {
+        } else if (op == glslang::EOpMaxInvocations ||
+                   op == glslang::EOpMaxInvocationsInclusiveScan ||
+                   op == glslang::EOpMaxInvocationsExclusiveScan) {
             if (isFloat)
-                opCode = Pspv::OpGroupFMax;
+                opCode = spv::OpGroupFMax;
             else {
                 if (isUnsigned)
-                    opCode = Pspv::OpGroupUMax;
+                    opCode = spv::OpGroupUMax;
                 else
-                    opCode = Pspv::OpGroupSMax;
+                    opCode = spv::OpGroupSMax;
             }
         } else {
             if (isFloat)
-                opCode = Pspv::OpGroupFAdd;
+                opCode = spv::OpGroupFAdd;
             else
-                opCode = Pspv::OpGroupIAdd;
+                opCode = spv::OpGroupIAdd;
         }
 
         if (builder.isVectorType(typeId))
             return CreateInvocationsVectorOperation(opCode, groupOperation, typeId, operands);
 
         break;
-    case Pglslang::EOpMinInvocationsNonUniform:
-    case Pglslang::EOpMaxInvocationsNonUniform:
-    case Pglslang::EOpAddInvocationsNonUniform:
-    case Pglslang::EOpMinInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpMaxInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpAddInvocationsInclusiveScanNonUniform:
-    case Pglslang::EOpMinInvocationsExclusiveScanNonUniform:
-    case Pglslang::EOpMaxInvocationsExclusiveScanNonUniform:
-    case Pglslang::EOpAddInvocationsExclusiveScanNonUniform:
-        if (op == Pglslang::EOpMinInvocationsNonUniform ||
-            op == Pglslang::EOpMinInvocationsInclusiveScanNonUniform ||
-            op == Pglslang::EOpMinInvocationsExclusiveScanNonUniform) {
+    case glslang::EOpMinInvocationsNonUniform:
+    case glslang::EOpMaxInvocationsNonUniform:
+    case glslang::EOpAddInvocationsNonUniform:
+    case glslang::EOpMinInvocationsInclusiveScanNonUniform:
+    case glslang::EOpMaxInvocationsInclusiveScanNonUniform:
+    case glslang::EOpAddInvocationsInclusiveScanNonUniform:
+    case glslang::EOpMinInvocationsExclusiveScanNonUniform:
+    case glslang::EOpMaxInvocationsExclusiveScanNonUniform:
+    case glslang::EOpAddInvocationsExclusiveScanNonUniform:
+        if (op == glslang::EOpMinInvocationsNonUniform ||
+            op == glslang::EOpMinInvocationsInclusiveScanNonUniform ||
+            op == glslang::EOpMinInvocationsExclusiveScanNonUniform) {
             if (isFloat)
-                opCode = Pspv::OpGroupFMinNonUniformAMD;
+                opCode = spv::OpGroupFMinNonUniformAMD;
             else {
                 if (isUnsigned)
-                    opCode = Pspv::OpGroupUMinNonUniformAMD;
+                    opCode = spv::OpGroupUMinNonUniformAMD;
                 else
-                    opCode = Pspv::OpGroupSMinNonUniformAMD;
+                    opCode = spv::OpGroupSMinNonUniformAMD;
             }
         }
-        else if (op == Pglslang::EOpMaxInvocationsNonUniform ||
-                 op == Pglslang::EOpMaxInvocationsInclusiveScanNonUniform ||
-                 op == Pglslang::EOpMaxInvocationsExclusiveScanNonUniform) {
+        else if (op == glslang::EOpMaxInvocationsNonUniform ||
+                 op == glslang::EOpMaxInvocationsInclusiveScanNonUniform ||
+                 op == glslang::EOpMaxInvocationsExclusiveScanNonUniform) {
             if (isFloat)
-                opCode = Pspv::OpGroupFMaxNonUniformAMD;
+                opCode = spv::OpGroupFMaxNonUniformAMD;
             else {
                 if (isUnsigned)
-                    opCode = Pspv::OpGroupUMaxNonUniformAMD;
+                    opCode = spv::OpGroupUMaxNonUniformAMD;
                 else
-                    opCode = Pspv::OpGroupSMaxNonUniformAMD;
+                    opCode = spv::OpGroupSMaxNonUniformAMD;
             }
         }
         else {
             if (isFloat)
-                opCode = Pspv::OpGroupFAddNonUniformAMD;
+                opCode = spv::OpGroupFAddNonUniformAMD;
             else
-                opCode = Pspv::OpGroupIAddNonUniformAMD;
+                opCode = spv::OpGroupIAddNonUniformAMD;
         }
 
         if (builder.isVectorType(typeId))
@@ -6751,24 +6751,24 @@ Pspv::Id TGlslangToSpvTraverser::createInvocationsOperation(Pglslang::TOperator 
         break;
     default:
         logger->missingFunctionality("invocation operation");
-        return Pspv::NoResult;
+        return spv::NoResult;
     }
 
-    assert(opCode != Pspv::OpNop);
+    assert(opCode != spv::OpNop);
     return builder.createOp(opCode, typeId, spvGroupOperands);
 }
 
 // Create group invocation operations on a vector
-Pspv::Id TGlslangToSpvTraverser::CreateInvocationsVectorOperation(Pspv::Op op, Pspv::GroupOperation groupOperation,
-    Pspv::Id typeId, std::vector<Pspv::Id>& operands)
+spv::Id TGlslangToSpvTraverser::CreateInvocationsVectorOperation(spv::Op op, spv::GroupOperation groupOperation,
+    spv::Id typeId, std::vector<spv::Id>& operands)
 {
-    assert(op == Pspv::OpGroupFMin || op == Pspv::OpGroupUMin || op == Pspv::OpGroupSMin ||
-           op == Pspv::OpGroupFMax || op == Pspv::OpGroupUMax || op == Pspv::OpGroupSMax ||
-           op == Pspv::OpGroupFAdd || op == Pspv::OpGroupIAdd || op == Pspv::OpGroupBroadcast ||
-           op == Pspv::OpSubgroupReadInvocationKHR ||
-           op == Pspv::OpGroupFMinNonUniformAMD || op == Pspv::OpGroupUMinNonUniformAMD || op == Pspv::OpGroupSMinNonUniformAMD ||
-           op == Pspv::OpGroupFMaxNonUniformAMD || op == Pspv::OpGroupUMaxNonUniformAMD || op == Pspv::OpGroupSMaxNonUniformAMD ||
-           op == Pspv::OpGroupFAddNonUniformAMD || op == Pspv::OpGroupIAddNonUniformAMD);
+    assert(op == spv::OpGroupFMin || op == spv::OpGroupUMin || op == spv::OpGroupSMin ||
+           op == spv::OpGroupFMax || op == spv::OpGroupUMax || op == spv::OpGroupSMax ||
+           op == spv::OpGroupFAdd || op == spv::OpGroupIAdd || op == spv::OpGroupBroadcast ||
+           op == spv::OpSubgroupReadInvocationKHR ||
+           op == spv::OpGroupFMinNonUniformAMD || op == spv::OpGroupUMinNonUniformAMD || op == spv::OpGroupSMinNonUniformAMD ||
+           op == spv::OpGroupFMaxNonUniformAMD || op == spv::OpGroupUMaxNonUniformAMD || op == spv::OpGroupSMaxNonUniformAMD ||
+           op == spv::OpGroupFAddNonUniformAMD || op == spv::OpGroupIAddNonUniformAMD);
 
     // Handle group invocation operations scalar by scalar.
     // The result type is the same type as the original type.
@@ -6779,29 +6779,29 @@ Pspv::Id TGlslangToSpvTraverser::CreateInvocationsVectorOperation(Pspv::Op op, P
 
     // get the types sorted out
     int numComponents = builder.getNumComponents(operands[0]);
-    Pspv::Id scalarType = builder.getScalarTypeId(builder.getTypeId(operands[0]));
-    std::vector<Pspv::Id> results;
+    spv::Id scalarType = builder.getScalarTypeId(builder.getTypeId(operands[0]));
+    std::vector<spv::Id> results;
 
     // do each scalar op
     for (int comp = 0; comp < numComponents; ++comp) {
         std::vector<unsigned int> indexes;
         indexes.push_back(comp);
-        Pspv::IdImmediate scalar = { true, builder.createCompositeExtract(operands[0], scalarType, indexes) };
-        std::vector<Pspv::IdImmediate> spvGroupOperands;
-        if (op == Pspv::OpSubgroupReadInvocationKHR) {
+        spv::IdImmediate scalar = { true, builder.createCompositeExtract(operands[0], scalarType, indexes) };
+        std::vector<spv::IdImmediate> spvGroupOperands;
+        if (op == spv::OpSubgroupReadInvocationKHR) {
             spvGroupOperands.push_back(scalar);
-            Pspv::IdImmediate operand = { true, operands[1] };
+            spv::IdImmediate operand = { true, operands[1] };
             spvGroupOperands.push_back(operand);
-        } else if (op == Pspv::OpGroupBroadcast) {
-            Pspv::IdImmediate scope = { true, builder.makeUintConstant(Pspv::ScopeSubgroup) };
+        } else if (op == spv::OpGroupBroadcast) {
+            spv::IdImmediate scope = { true, builder.makeUintConstant(spv::ScopeSubgroup) };
             spvGroupOperands.push_back(scope);
             spvGroupOperands.push_back(scalar);
-            Pspv::IdImmediate operand = { true, operands[1] };
+            spv::IdImmediate operand = { true, operands[1] };
             spvGroupOperands.push_back(operand);
         } else {
-            Pspv::IdImmediate scope = { true, builder.makeUintConstant(Pspv::ScopeSubgroup) };
+            spv::IdImmediate scope = { true, builder.makeUintConstant(spv::ScopeSubgroup) };
             spvGroupOperands.push_back(scope);
-            Pspv::IdImmediate groupOp = { false, (unsigned)groupOperation };
+            spv::IdImmediate groupOp = { false, (unsigned)groupOperation };
             spvGroupOperands.push_back(groupOp);
             spvGroupOperands.push_back(scalar);
         }
@@ -6814,107 +6814,107 @@ Pspv::Id TGlslangToSpvTraverser::CreateInvocationsVectorOperation(Pspv::Op op, P
 }
 
 // Create subgroup invocation operations.
-Pspv::Id TGlslangToSpvTraverser::createSubgroupOperation(Pglslang::TOperator op, Pspv::Id typeId,
-    std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy)
+spv::Id TGlslangToSpvTraverser::createSubgroupOperation(glslang::TOperator op, spv::Id typeId,
+    std::vector<spv::Id>& operands, glslang::TBasicType typeProxy)
 {
     // Add the required capabilities.
     switch (op) {
-    case Pglslang::EOpSubgroupElect:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
+    case glslang::EOpSubgroupElect:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
         break;
-    case Pglslang::EOpSubgroupAll:
-    case Pglslang::EOpSubgroupAny:
-    case Pglslang::EOpSubgroupAllEqual:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformVote);
+    case glslang::EOpSubgroupAll:
+    case glslang::EOpSubgroupAny:
+    case glslang::EOpSubgroupAllEqual:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformVote);
         break;
-    case Pglslang::EOpSubgroupBroadcast:
-    case Pglslang::EOpSubgroupBroadcastFirst:
-    case Pglslang::EOpSubgroupBallot:
-    case Pglslang::EOpSubgroupInverseBallot:
-    case Pglslang::EOpSubgroupBallotBitExtract:
-    case Pglslang::EOpSubgroupBallotBitCount:
-    case Pglslang::EOpSubgroupBallotInclusiveBitCount:
-    case Pglslang::EOpSubgroupBallotExclusiveBitCount:
-    case Pglslang::EOpSubgroupBallotFindLSB:
-    case Pglslang::EOpSubgroupBallotFindMSB:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformBallot);
+    case glslang::EOpSubgroupBroadcast:
+    case glslang::EOpSubgroupBroadcastFirst:
+    case glslang::EOpSubgroupBallot:
+    case glslang::EOpSubgroupInverseBallot:
+    case glslang::EOpSubgroupBallotBitExtract:
+    case glslang::EOpSubgroupBallotBitCount:
+    case glslang::EOpSubgroupBallotInclusiveBitCount:
+    case glslang::EOpSubgroupBallotExclusiveBitCount:
+    case glslang::EOpSubgroupBallotFindLSB:
+    case glslang::EOpSubgroupBallotFindMSB:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformBallot);
         break;
-    case Pglslang::EOpSubgroupShuffle:
-    case Pglslang::EOpSubgroupShuffleXor:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformShuffle);
+    case glslang::EOpSubgroupShuffle:
+    case glslang::EOpSubgroupShuffleXor:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformShuffle);
         break;
-    case Pglslang::EOpSubgroupShuffleUp:
-    case Pglslang::EOpSubgroupShuffleDown:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformShuffleRelative);
+    case glslang::EOpSubgroupShuffleUp:
+    case glslang::EOpSubgroupShuffleDown:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformShuffleRelative);
         break;
-    case Pglslang::EOpSubgroupAdd:
-    case Pglslang::EOpSubgroupMul:
-    case Pglslang::EOpSubgroupMin:
-    case Pglslang::EOpSubgroupMax:
-    case Pglslang::EOpSubgroupAnd:
-    case Pglslang::EOpSubgroupOr:
-    case Pglslang::EOpSubgroupXor:
-    case Pglslang::EOpSubgroupInclusiveAdd:
-    case Pglslang::EOpSubgroupInclusiveMul:
-    case Pglslang::EOpSubgroupInclusiveMin:
-    case Pglslang::EOpSubgroupInclusiveMax:
-    case Pglslang::EOpSubgroupInclusiveAnd:
-    case Pglslang::EOpSubgroupInclusiveOr:
-    case Pglslang::EOpSubgroupInclusiveXor:
-    case Pglslang::EOpSubgroupExclusiveAdd:
-    case Pglslang::EOpSubgroupExclusiveMul:
-    case Pglslang::EOpSubgroupExclusiveMin:
-    case Pglslang::EOpSubgroupExclusiveMax:
-    case Pglslang::EOpSubgroupExclusiveAnd:
-    case Pglslang::EOpSubgroupExclusiveOr:
-    case Pglslang::EOpSubgroupExclusiveXor:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformArithmetic);
+    case glslang::EOpSubgroupAdd:
+    case glslang::EOpSubgroupMul:
+    case glslang::EOpSubgroupMin:
+    case glslang::EOpSubgroupMax:
+    case glslang::EOpSubgroupAnd:
+    case glslang::EOpSubgroupOr:
+    case glslang::EOpSubgroupXor:
+    case glslang::EOpSubgroupInclusiveAdd:
+    case glslang::EOpSubgroupInclusiveMul:
+    case glslang::EOpSubgroupInclusiveMin:
+    case glslang::EOpSubgroupInclusiveMax:
+    case glslang::EOpSubgroupInclusiveAnd:
+    case glslang::EOpSubgroupInclusiveOr:
+    case glslang::EOpSubgroupInclusiveXor:
+    case glslang::EOpSubgroupExclusiveAdd:
+    case glslang::EOpSubgroupExclusiveMul:
+    case glslang::EOpSubgroupExclusiveMin:
+    case glslang::EOpSubgroupExclusiveMax:
+    case glslang::EOpSubgroupExclusiveAnd:
+    case glslang::EOpSubgroupExclusiveOr:
+    case glslang::EOpSubgroupExclusiveXor:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformArithmetic);
         break;
-    case Pglslang::EOpSubgroupClusteredAdd:
-    case Pglslang::EOpSubgroupClusteredMul:
-    case Pglslang::EOpSubgroupClusteredMin:
-    case Pglslang::EOpSubgroupClusteredMax:
-    case Pglslang::EOpSubgroupClusteredAnd:
-    case Pglslang::EOpSubgroupClusteredOr:
-    case Pglslang::EOpSubgroupClusteredXor:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformClustered);
+    case glslang::EOpSubgroupClusteredAdd:
+    case glslang::EOpSubgroupClusteredMul:
+    case glslang::EOpSubgroupClusteredMin:
+    case glslang::EOpSubgroupClusteredMax:
+    case glslang::EOpSubgroupClusteredAnd:
+    case glslang::EOpSubgroupClusteredOr:
+    case glslang::EOpSubgroupClusteredXor:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformClustered);
         break;
-    case Pglslang::EOpSubgroupQuadBroadcast:
-    case Pglslang::EOpSubgroupQuadSwapHorizontal:
-    case Pglslang::EOpSubgroupQuadSwapVertical:
-    case Pglslang::EOpSubgroupQuadSwapDiagonal:
-        builder.addCapability(Pspv::CapabilityGroupNonUniform);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformQuad);
+    case glslang::EOpSubgroupQuadBroadcast:
+    case glslang::EOpSubgroupQuadSwapHorizontal:
+    case glslang::EOpSubgroupQuadSwapVertical:
+    case glslang::EOpSubgroupQuadSwapDiagonal:
+        builder.addCapability(spv::CapabilityGroupNonUniform);
+        builder.addCapability(spv::CapabilityGroupNonUniformQuad);
         break;
-    case Pglslang::EOpSubgroupPartitionedAdd:
-    case Pglslang::EOpSubgroupPartitionedMul:
-    case Pglslang::EOpSubgroupPartitionedMin:
-    case Pglslang::EOpSubgroupPartitionedMax:
-    case Pglslang::EOpSubgroupPartitionedAnd:
-    case Pglslang::EOpSubgroupPartitionedOr:
-    case Pglslang::EOpSubgroupPartitionedXor:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedInclusiveXor:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedExclusiveXor:
-        builder.addExtension(Pspv::E_SPV_NV_shader_subgroup_partitioned);
-        builder.addCapability(Pspv::CapabilityGroupNonUniformPartitionedNV);
+    case glslang::EOpSubgroupPartitionedAdd:
+    case glslang::EOpSubgroupPartitionedMul:
+    case glslang::EOpSubgroupPartitionedMin:
+    case glslang::EOpSubgroupPartitionedMax:
+    case glslang::EOpSubgroupPartitionedAnd:
+    case glslang::EOpSubgroupPartitionedOr:
+    case glslang::EOpSubgroupPartitionedXor:
+    case glslang::EOpSubgroupPartitionedInclusiveAdd:
+    case glslang::EOpSubgroupPartitionedInclusiveMul:
+    case glslang::EOpSubgroupPartitionedInclusiveMin:
+    case glslang::EOpSubgroupPartitionedInclusiveMax:
+    case glslang::EOpSubgroupPartitionedInclusiveAnd:
+    case glslang::EOpSubgroupPartitionedInclusiveOr:
+    case glslang::EOpSubgroupPartitionedInclusiveXor:
+    case glslang::EOpSubgroupPartitionedExclusiveAdd:
+    case glslang::EOpSubgroupPartitionedExclusiveMul:
+    case glslang::EOpSubgroupPartitionedExclusiveMin:
+    case glslang::EOpSubgroupPartitionedExclusiveMax:
+    case glslang::EOpSubgroupPartitionedExclusiveAnd:
+    case glslang::EOpSubgroupPartitionedExclusiveOr:
+    case glslang::EOpSubgroupPartitionedExclusiveXor:
+        builder.addExtension(spv::E_SPV_NV_shader_subgroup_partitioned);
+        builder.addCapability(spv::CapabilityGroupNonUniformPartitionedNV);
         break;
     default: assert(0 && "Unhandled subgroup operation!");
     }
@@ -6922,335 +6922,335 @@ Pspv::Id TGlslangToSpvTraverser::createSubgroupOperation(Pglslang::TOperator op,
 
     const bool isUnsigned = isTypeUnsignedInt(typeProxy);
     const bool isFloat = isTypeFloat(typeProxy);
-    const bool isBool = typeProxy == Pglslang::EbtBool;
+    const bool isBool = typeProxy == glslang::EbtBool;
 
-    Pspv::Op opCode = Pspv::OpNop;
+    spv::Op opCode = spv::OpNop;
 
     // Figure out which opcode to use.
     switch (op) {
-    case Pglslang::EOpSubgroupElect:                   opCode = Pspv::OpGroupNonUniformElect; break;
-    case Pglslang::EOpSubgroupAll:                     opCode = Pspv::OpGroupNonUniformAll; break;
-    case Pglslang::EOpSubgroupAny:                     opCode = Pspv::OpGroupNonUniformAny; break;
-    case Pglslang::EOpSubgroupAllEqual:                opCode = Pspv::OpGroupNonUniformAllEqual; break;
-    case Pglslang::EOpSubgroupBroadcast:               opCode = Pspv::OpGroupNonUniformBroadcast; break;
-    case Pglslang::EOpSubgroupBroadcastFirst:          opCode = Pspv::OpGroupNonUniformBroadcastFirst; break;
-    case Pglslang::EOpSubgroupBallot:                  opCode = Pspv::OpGroupNonUniformBallot; break;
-    case Pglslang::EOpSubgroupInverseBallot:           opCode = Pspv::OpGroupNonUniformInverseBallot; break;
-    case Pglslang::EOpSubgroupBallotBitExtract:        opCode = Pspv::OpGroupNonUniformBallotBitExtract; break;
-    case Pglslang::EOpSubgroupBallotBitCount:
-    case Pglslang::EOpSubgroupBallotInclusiveBitCount:
-    case Pglslang::EOpSubgroupBallotExclusiveBitCount: opCode = Pspv::OpGroupNonUniformBallotBitCount; break;
-    case Pglslang::EOpSubgroupBallotFindLSB:           opCode = Pspv::OpGroupNonUniformBallotFindLSB; break;
-    case Pglslang::EOpSubgroupBallotFindMSB:           opCode = Pspv::OpGroupNonUniformBallotFindMSB; break;
-    case Pglslang::EOpSubgroupShuffle:                 opCode = Pspv::OpGroupNonUniformShuffle; break;
-    case Pglslang::EOpSubgroupShuffleXor:              opCode = Pspv::OpGroupNonUniformShuffleXor; break;
-    case Pglslang::EOpSubgroupShuffleUp:               opCode = Pspv::OpGroupNonUniformShuffleUp; break;
-    case Pglslang::EOpSubgroupShuffleDown:             opCode = Pspv::OpGroupNonUniformShuffleDown; break;
-    case Pglslang::EOpSubgroupAdd:
-    case Pglslang::EOpSubgroupInclusiveAdd:
-    case Pglslang::EOpSubgroupExclusiveAdd:
-    case Pglslang::EOpSubgroupClusteredAdd:
-    case Pglslang::EOpSubgroupPartitionedAdd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAdd:
+    case glslang::EOpSubgroupElect:                   opCode = spv::OpGroupNonUniformElect; break;
+    case glslang::EOpSubgroupAll:                     opCode = spv::OpGroupNonUniformAll; break;
+    case glslang::EOpSubgroupAny:                     opCode = spv::OpGroupNonUniformAny; break;
+    case glslang::EOpSubgroupAllEqual:                opCode = spv::OpGroupNonUniformAllEqual; break;
+    case glslang::EOpSubgroupBroadcast:               opCode = spv::OpGroupNonUniformBroadcast; break;
+    case glslang::EOpSubgroupBroadcastFirst:          opCode = spv::OpGroupNonUniformBroadcastFirst; break;
+    case glslang::EOpSubgroupBallot:                  opCode = spv::OpGroupNonUniformBallot; break;
+    case glslang::EOpSubgroupInverseBallot:           opCode = spv::OpGroupNonUniformInverseBallot; break;
+    case glslang::EOpSubgroupBallotBitExtract:        opCode = spv::OpGroupNonUniformBallotBitExtract; break;
+    case glslang::EOpSubgroupBallotBitCount:
+    case glslang::EOpSubgroupBallotInclusiveBitCount:
+    case glslang::EOpSubgroupBallotExclusiveBitCount: opCode = spv::OpGroupNonUniformBallotBitCount; break;
+    case glslang::EOpSubgroupBallotFindLSB:           opCode = spv::OpGroupNonUniformBallotFindLSB; break;
+    case glslang::EOpSubgroupBallotFindMSB:           opCode = spv::OpGroupNonUniformBallotFindMSB; break;
+    case glslang::EOpSubgroupShuffle:                 opCode = spv::OpGroupNonUniformShuffle; break;
+    case glslang::EOpSubgroupShuffleXor:              opCode = spv::OpGroupNonUniformShuffleXor; break;
+    case glslang::EOpSubgroupShuffleUp:               opCode = spv::OpGroupNonUniformShuffleUp; break;
+    case glslang::EOpSubgroupShuffleDown:             opCode = spv::OpGroupNonUniformShuffleDown; break;
+    case glslang::EOpSubgroupAdd:
+    case glslang::EOpSubgroupInclusiveAdd:
+    case glslang::EOpSubgroupExclusiveAdd:
+    case glslang::EOpSubgroupClusteredAdd:
+    case glslang::EOpSubgroupPartitionedAdd:
+    case glslang::EOpSubgroupPartitionedInclusiveAdd:
+    case glslang::EOpSubgroupPartitionedExclusiveAdd:
         if (isFloat) {
-            opCode = Pspv::OpGroupNonUniformFAdd;
+            opCode = spv::OpGroupNonUniformFAdd;
         } else {
-            opCode = Pspv::OpGroupNonUniformIAdd;
+            opCode = spv::OpGroupNonUniformIAdd;
         }
         break;
-    case Pglslang::EOpSubgroupMul:
-    case Pglslang::EOpSubgroupInclusiveMul:
-    case Pglslang::EOpSubgroupExclusiveMul:
-    case Pglslang::EOpSubgroupClusteredMul:
-    case Pglslang::EOpSubgroupPartitionedMul:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMul:
+    case glslang::EOpSubgroupMul:
+    case glslang::EOpSubgroupInclusiveMul:
+    case glslang::EOpSubgroupExclusiveMul:
+    case glslang::EOpSubgroupClusteredMul:
+    case glslang::EOpSubgroupPartitionedMul:
+    case glslang::EOpSubgroupPartitionedInclusiveMul:
+    case glslang::EOpSubgroupPartitionedExclusiveMul:
         if (isFloat) {
-            opCode = Pspv::OpGroupNonUniformFMul;
+            opCode = spv::OpGroupNonUniformFMul;
         } else {
-            opCode = Pspv::OpGroupNonUniformIMul;
+            opCode = spv::OpGroupNonUniformIMul;
         }
         break;
-    case Pglslang::EOpSubgroupMin:
-    case Pglslang::EOpSubgroupInclusiveMin:
-    case Pglslang::EOpSubgroupExclusiveMin:
-    case Pglslang::EOpSubgroupClusteredMin:
-    case Pglslang::EOpSubgroupPartitionedMin:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMin:
+    case glslang::EOpSubgroupMin:
+    case glslang::EOpSubgroupInclusiveMin:
+    case glslang::EOpSubgroupExclusiveMin:
+    case glslang::EOpSubgroupClusteredMin:
+    case glslang::EOpSubgroupPartitionedMin:
+    case glslang::EOpSubgroupPartitionedInclusiveMin:
+    case glslang::EOpSubgroupPartitionedExclusiveMin:
         if (isFloat) {
-            opCode = Pspv::OpGroupNonUniformFMin;
+            opCode = spv::OpGroupNonUniformFMin;
         } else if (isUnsigned) {
-            opCode = Pspv::OpGroupNonUniformUMin;
+            opCode = spv::OpGroupNonUniformUMin;
         } else {
-            opCode = Pspv::OpGroupNonUniformSMin;
+            opCode = spv::OpGroupNonUniformSMin;
         }
         break;
-    case Pglslang::EOpSubgroupMax:
-    case Pglslang::EOpSubgroupInclusiveMax:
-    case Pglslang::EOpSubgroupExclusiveMax:
-    case Pglslang::EOpSubgroupClusteredMax:
-    case Pglslang::EOpSubgroupPartitionedMax:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMax:
+    case glslang::EOpSubgroupMax:
+    case glslang::EOpSubgroupInclusiveMax:
+    case glslang::EOpSubgroupExclusiveMax:
+    case glslang::EOpSubgroupClusteredMax:
+    case glslang::EOpSubgroupPartitionedMax:
+    case glslang::EOpSubgroupPartitionedInclusiveMax:
+    case glslang::EOpSubgroupPartitionedExclusiveMax:
         if (isFloat) {
-            opCode = Pspv::OpGroupNonUniformFMax;
+            opCode = spv::OpGroupNonUniformFMax;
         } else if (isUnsigned) {
-            opCode = Pspv::OpGroupNonUniformUMax;
+            opCode = spv::OpGroupNonUniformUMax;
         } else {
-            opCode = Pspv::OpGroupNonUniformSMax;
+            opCode = spv::OpGroupNonUniformSMax;
         }
         break;
-    case Pglslang::EOpSubgroupAnd:
-    case Pglslang::EOpSubgroupInclusiveAnd:
-    case Pglslang::EOpSubgroupExclusiveAnd:
-    case Pglslang::EOpSubgroupClusteredAnd:
-    case Pglslang::EOpSubgroupPartitionedAnd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAnd:
+    case glslang::EOpSubgroupAnd:
+    case glslang::EOpSubgroupInclusiveAnd:
+    case glslang::EOpSubgroupExclusiveAnd:
+    case glslang::EOpSubgroupClusteredAnd:
+    case glslang::EOpSubgroupPartitionedAnd:
+    case glslang::EOpSubgroupPartitionedInclusiveAnd:
+    case glslang::EOpSubgroupPartitionedExclusiveAnd:
         if (isBool) {
-            opCode = Pspv::OpGroupNonUniformLogicalAnd;
+            opCode = spv::OpGroupNonUniformLogicalAnd;
         } else {
-            opCode = Pspv::OpGroupNonUniformBitwiseAnd;
+            opCode = spv::OpGroupNonUniformBitwiseAnd;
         }
         break;
-    case Pglslang::EOpSubgroupOr:
-    case Pglslang::EOpSubgroupInclusiveOr:
-    case Pglslang::EOpSubgroupExclusiveOr:
-    case Pglslang::EOpSubgroupClusteredOr:
-    case Pglslang::EOpSubgroupPartitionedOr:
-    case Pglslang::EOpSubgroupPartitionedInclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedExclusiveOr:
+    case glslang::EOpSubgroupOr:
+    case glslang::EOpSubgroupInclusiveOr:
+    case glslang::EOpSubgroupExclusiveOr:
+    case glslang::EOpSubgroupClusteredOr:
+    case glslang::EOpSubgroupPartitionedOr:
+    case glslang::EOpSubgroupPartitionedInclusiveOr:
+    case glslang::EOpSubgroupPartitionedExclusiveOr:
         if (isBool) {
-            opCode = Pspv::OpGroupNonUniformLogicalOr;
+            opCode = spv::OpGroupNonUniformLogicalOr;
         } else {
-            opCode = Pspv::OpGroupNonUniformBitwiseOr;
+            opCode = spv::OpGroupNonUniformBitwiseOr;
         }
         break;
-    case Pglslang::EOpSubgroupXor:
-    case Pglslang::EOpSubgroupInclusiveXor:
-    case Pglslang::EOpSubgroupExclusiveXor:
-    case Pglslang::EOpSubgroupClusteredXor:
-    case Pglslang::EOpSubgroupPartitionedXor:
-    case Pglslang::EOpSubgroupPartitionedInclusiveXor:
-    case Pglslang::EOpSubgroupPartitionedExclusiveXor:
+    case glslang::EOpSubgroupXor:
+    case glslang::EOpSubgroupInclusiveXor:
+    case glslang::EOpSubgroupExclusiveXor:
+    case glslang::EOpSubgroupClusteredXor:
+    case glslang::EOpSubgroupPartitionedXor:
+    case glslang::EOpSubgroupPartitionedInclusiveXor:
+    case glslang::EOpSubgroupPartitionedExclusiveXor:
         if (isBool) {
-            opCode = Pspv::OpGroupNonUniformLogicalXor;
+            opCode = spv::OpGroupNonUniformLogicalXor;
         } else {
-            opCode = Pspv::OpGroupNonUniformBitwiseXor;
+            opCode = spv::OpGroupNonUniformBitwiseXor;
         }
         break;
-    case Pglslang::EOpSubgroupQuadBroadcast:      opCode = Pspv::OpGroupNonUniformQuadBroadcast; break;
-    case Pglslang::EOpSubgroupQuadSwapHorizontal:
-    case Pglslang::EOpSubgroupQuadSwapVertical:
-    case Pglslang::EOpSubgroupQuadSwapDiagonal:   opCode = Pspv::OpGroupNonUniformQuadSwap; break;
+    case glslang::EOpSubgroupQuadBroadcast:      opCode = spv::OpGroupNonUniformQuadBroadcast; break;
+    case glslang::EOpSubgroupQuadSwapHorizontal:
+    case glslang::EOpSubgroupQuadSwapVertical:
+    case glslang::EOpSubgroupQuadSwapDiagonal:   opCode = spv::OpGroupNonUniformQuadSwap; break;
     default: assert(0 && "Unhandled subgroup operation!");
     }
 
     // get the right Group Operation
-    Pspv::GroupOperation groupOperation = Pspv::GroupOperationMax;
+    spv::GroupOperation groupOperation = spv::GroupOperationMax;
     switch (op) {
     default:
         break;
-    case Pglslang::EOpSubgroupBallotBitCount:
-    case Pglslang::EOpSubgroupAdd:
-    case Pglslang::EOpSubgroupMul:
-    case Pglslang::EOpSubgroupMin:
-    case Pglslang::EOpSubgroupMax:
-    case Pglslang::EOpSubgroupAnd:
-    case Pglslang::EOpSubgroupOr:
-    case Pglslang::EOpSubgroupXor:
-        groupOperation = Pspv::GroupOperationReduce;
+    case glslang::EOpSubgroupBallotBitCount:
+    case glslang::EOpSubgroupAdd:
+    case glslang::EOpSubgroupMul:
+    case glslang::EOpSubgroupMin:
+    case glslang::EOpSubgroupMax:
+    case glslang::EOpSubgroupAnd:
+    case glslang::EOpSubgroupOr:
+    case glslang::EOpSubgroupXor:
+        groupOperation = spv::GroupOperationReduce;
         break;
-    case Pglslang::EOpSubgroupBallotInclusiveBitCount:
-    case Pglslang::EOpSubgroupInclusiveAdd:
-    case Pglslang::EOpSubgroupInclusiveMul:
-    case Pglslang::EOpSubgroupInclusiveMin:
-    case Pglslang::EOpSubgroupInclusiveMax:
-    case Pglslang::EOpSubgroupInclusiveAnd:
-    case Pglslang::EOpSubgroupInclusiveOr:
-    case Pglslang::EOpSubgroupInclusiveXor:
-        groupOperation = Pspv::GroupOperationInclusiveScan;
+    case glslang::EOpSubgroupBallotInclusiveBitCount:
+    case glslang::EOpSubgroupInclusiveAdd:
+    case glslang::EOpSubgroupInclusiveMul:
+    case glslang::EOpSubgroupInclusiveMin:
+    case glslang::EOpSubgroupInclusiveMax:
+    case glslang::EOpSubgroupInclusiveAnd:
+    case glslang::EOpSubgroupInclusiveOr:
+    case glslang::EOpSubgroupInclusiveXor:
+        groupOperation = spv::GroupOperationInclusiveScan;
         break;
-    case Pglslang::EOpSubgroupBallotExclusiveBitCount:
-    case Pglslang::EOpSubgroupExclusiveAdd:
-    case Pglslang::EOpSubgroupExclusiveMul:
-    case Pglslang::EOpSubgroupExclusiveMin:
-    case Pglslang::EOpSubgroupExclusiveMax:
-    case Pglslang::EOpSubgroupExclusiveAnd:
-    case Pglslang::EOpSubgroupExclusiveOr:
-    case Pglslang::EOpSubgroupExclusiveXor:
-        groupOperation = Pspv::GroupOperationExclusiveScan;
+    case glslang::EOpSubgroupBallotExclusiveBitCount:
+    case glslang::EOpSubgroupExclusiveAdd:
+    case glslang::EOpSubgroupExclusiveMul:
+    case glslang::EOpSubgroupExclusiveMin:
+    case glslang::EOpSubgroupExclusiveMax:
+    case glslang::EOpSubgroupExclusiveAnd:
+    case glslang::EOpSubgroupExclusiveOr:
+    case glslang::EOpSubgroupExclusiveXor:
+        groupOperation = spv::GroupOperationExclusiveScan;
         break;
-    case Pglslang::EOpSubgroupClusteredAdd:
-    case Pglslang::EOpSubgroupClusteredMul:
-    case Pglslang::EOpSubgroupClusteredMin:
-    case Pglslang::EOpSubgroupClusteredMax:
-    case Pglslang::EOpSubgroupClusteredAnd:
-    case Pglslang::EOpSubgroupClusteredOr:
-    case Pglslang::EOpSubgroupClusteredXor:
-        groupOperation = Pspv::GroupOperationClusteredReduce;
+    case glslang::EOpSubgroupClusteredAdd:
+    case glslang::EOpSubgroupClusteredMul:
+    case glslang::EOpSubgroupClusteredMin:
+    case glslang::EOpSubgroupClusteredMax:
+    case glslang::EOpSubgroupClusteredAnd:
+    case glslang::EOpSubgroupClusteredOr:
+    case glslang::EOpSubgroupClusteredXor:
+        groupOperation = spv::GroupOperationClusteredReduce;
         break;
-    case Pglslang::EOpSubgroupPartitionedAdd:
-    case Pglslang::EOpSubgroupPartitionedMul:
-    case Pglslang::EOpSubgroupPartitionedMin:
-    case Pglslang::EOpSubgroupPartitionedMax:
-    case Pglslang::EOpSubgroupPartitionedAnd:
-    case Pglslang::EOpSubgroupPartitionedOr:
-    case Pglslang::EOpSubgroupPartitionedXor:
-        groupOperation = Pspv::GroupOperationPartitionedReduceNV;
+    case glslang::EOpSubgroupPartitionedAdd:
+    case glslang::EOpSubgroupPartitionedMul:
+    case glslang::EOpSubgroupPartitionedMin:
+    case glslang::EOpSubgroupPartitionedMax:
+    case glslang::EOpSubgroupPartitionedAnd:
+    case glslang::EOpSubgroupPartitionedOr:
+    case glslang::EOpSubgroupPartitionedXor:
+        groupOperation = spv::GroupOperationPartitionedReduceNV;
         break;
-    case Pglslang::EOpSubgroupPartitionedInclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedInclusiveXor:
-        groupOperation = Pspv::GroupOperationPartitionedInclusiveScanNV;
+    case glslang::EOpSubgroupPartitionedInclusiveAdd:
+    case glslang::EOpSubgroupPartitionedInclusiveMul:
+    case glslang::EOpSubgroupPartitionedInclusiveMin:
+    case glslang::EOpSubgroupPartitionedInclusiveMax:
+    case glslang::EOpSubgroupPartitionedInclusiveAnd:
+    case glslang::EOpSubgroupPartitionedInclusiveOr:
+    case glslang::EOpSubgroupPartitionedInclusiveXor:
+        groupOperation = spv::GroupOperationPartitionedInclusiveScanNV;
         break;
-    case Pglslang::EOpSubgroupPartitionedExclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedExclusiveXor:
-        groupOperation = Pspv::GroupOperationPartitionedExclusiveScanNV;
+    case glslang::EOpSubgroupPartitionedExclusiveAdd:
+    case glslang::EOpSubgroupPartitionedExclusiveMul:
+    case glslang::EOpSubgroupPartitionedExclusiveMin:
+    case glslang::EOpSubgroupPartitionedExclusiveMax:
+    case glslang::EOpSubgroupPartitionedExclusiveAnd:
+    case glslang::EOpSubgroupPartitionedExclusiveOr:
+    case glslang::EOpSubgroupPartitionedExclusiveXor:
+        groupOperation = spv::GroupOperationPartitionedExclusiveScanNV;
         break;
     }
 
     // build the instruction
-    std::vector<Pspv::IdImmediate> spvGroupOperands;
+    std::vector<spv::IdImmediate> spvGroupOperands;
 
     // Every operation begins with the Execution Scope operand.
-    Pspv::IdImmediate executionScope = { true, builder.makeUintConstant(Pspv::ScopeSubgroup) };
+    spv::IdImmediate executionScope = { true, builder.makeUintConstant(spv::ScopeSubgroup) };
     spvGroupOperands.push_back(executionScope);
 
     // Next, for all operations that use a Group Operation, push that as an operand.
-    if (groupOperation != Pspv::GroupOperationMax) {
-        Pspv::IdImmediate groupOperand = { false, (unsigned)groupOperation };
+    if (groupOperation != spv::GroupOperationMax) {
+        spv::IdImmediate groupOperand = { false, (unsigned)groupOperation };
         spvGroupOperands.push_back(groupOperand);
     }
 
     // Push back the operands next.
     for (auto opIt = operands.cbegin(); opIt != operands.cend(); ++opIt) {
-        Pspv::IdImmediate operand = { true, *opIt };
+        spv::IdImmediate operand = { true, *opIt };
         spvGroupOperands.push_back(operand);
     }
 
     // Some opcodes have additional operands.
-    Pspv::Id directionId = Pspv::NoResult;
+    spv::Id directionId = spv::NoResult;
     switch (op) {
     default: break;
-    case Pglslang::EOpSubgroupQuadSwapHorizontal: directionId = builder.makeUintConstant(0); break;
-    case Pglslang::EOpSubgroupQuadSwapVertical:   directionId = builder.makeUintConstant(1); break;
-    case Pglslang::EOpSubgroupQuadSwapDiagonal:   directionId = builder.makeUintConstant(2); break;
+    case glslang::EOpSubgroupQuadSwapHorizontal: directionId = builder.makeUintConstant(0); break;
+    case glslang::EOpSubgroupQuadSwapVertical:   directionId = builder.makeUintConstant(1); break;
+    case glslang::EOpSubgroupQuadSwapDiagonal:   directionId = builder.makeUintConstant(2); break;
     }
-    if (directionId != Pspv::NoResult) {
-        Pspv::IdImmediate direction = { true, directionId };
+    if (directionId != spv::NoResult) {
+        spv::IdImmediate direction = { true, directionId };
         spvGroupOperands.push_back(direction);
     }
 
     return builder.createOp(opCode, typeId, spvGroupOperands);
 }
 
-Pspv::Id TGlslangToSpvTraverser::createMiscOperation(Pglslang::TOperator op, Pspv::Decoration precision, Pspv::Id typeId, std::vector<Pspv::Id>& operands, Pglslang::TBasicType typeProxy)
+spv::Id TGlslangToSpvTraverser::createMiscOperation(glslang::TOperator op, spv::Decoration precision, spv::Id typeId, std::vector<spv::Id>& operands, glslang::TBasicType typeProxy)
 {
     bool isUnsigned = isTypeUnsignedInt(typeProxy);
     bool isFloat = isTypeFloat(typeProxy);
 
-    Pspv::Op opCode = Pspv::OpNop;
+    spv::Op opCode = spv::OpNop;
     int extBuiltins = -1;
     int libCall = -1;
     size_t consumedOperands = operands.size();
-    Pspv::Id typeId0 = 0;
+    spv::Id typeId0 = 0;
     if (consumedOperands > 0)
         typeId0 = builder.getTypeId(operands[0]);
-    Pspv::Id typeId1 = 0;
+    spv::Id typeId1 = 0;
     if (consumedOperands > 1)
         typeId1 = builder.getTypeId(operands[1]);
-    Pspv::Id frexpIntType = 0;
+    spv::Id frexpIntType = 0;
 
     switch (op) {
-    case Pglslang::EOpMin:
+    case glslang::EOpMin:
         if (isFloat)
-            libCall = nanMinMaxClamp ? Pspv::GLSLstd450NMin : Pspv::GLSLstd450FMin;
+            libCall = nanMinMaxClamp ? spv::GLSLstd450NMin : spv::GLSLstd450FMin;
         else if (isUnsigned)
-            libCall = Pspv::GLSLstd450UMin;
+            libCall = spv::GLSLstd450UMin;
         else
-            libCall = Pspv::GLSLstd450SMin;
+            libCall = spv::GLSLstd450SMin;
         builder.promoteScalar(precision, operands.front(), operands.back());
         break;
-    case Pglslang::EOpModf:
-        libCall = Pspv::GLSLstd450Modf;
+    case glslang::EOpModf:
+        libCall = spv::GLSLstd450Modf;
         break;
-    case Pglslang::EOpMax:
+    case glslang::EOpMax:
         if (isFloat)
-            libCall = nanMinMaxClamp ? Pspv::GLSLstd450NMax : Pspv::GLSLstd450FMax;
+            libCall = nanMinMaxClamp ? spv::GLSLstd450NMax : spv::GLSLstd450FMax;
         else if (isUnsigned)
-            libCall = Pspv::GLSLstd450UMax;
+            libCall = spv::GLSLstd450UMax;
         else
-            libCall = Pspv::GLSLstd450SMax;
+            libCall = spv::GLSLstd450SMax;
         builder.promoteScalar(precision, operands.front(), operands.back());
         break;
-    case Pglslang::EOpPow:
-        libCall = Pspv::GLSLstd450Pow;
+    case glslang::EOpPow:
+        libCall = spv::GLSLstd450Pow;
         break;
-    case Pglslang::EOpDot:
-        opCode = Pspv::OpDot;
+    case glslang::EOpDot:
+        opCode = spv::OpDot;
         break;
-    case Pglslang::EOpAtan:
-        libCall = Pspv::GLSLstd450Atan2;
+    case glslang::EOpAtan:
+        libCall = spv::GLSLstd450Atan2;
         break;
 
-    case Pglslang::EOpClamp:
+    case glslang::EOpClamp:
         if (isFloat)
-            libCall = nanMinMaxClamp ? Pspv::GLSLstd450NClamp : Pspv::GLSLstd450FClamp;
+            libCall = nanMinMaxClamp ? spv::GLSLstd450NClamp : spv::GLSLstd450FClamp;
         else if (isUnsigned)
-            libCall = Pspv::GLSLstd450UClamp;
+            libCall = spv::GLSLstd450UClamp;
         else
-            libCall = Pspv::GLSLstd450SClamp;
+            libCall = spv::GLSLstd450SClamp;
         builder.promoteScalar(precision, operands.front(), operands[1]);
         builder.promoteScalar(precision, operands.front(), operands[2]);
         break;
-    case Pglslang::EOpMix:
+    case glslang::EOpMix:
         if (! builder.isBoolType(builder.getScalarTypeId(builder.getTypeId(operands.back())))) {
             assert(isFloat);
-            libCall = Pspv::GLSLstd450FMix;
+            libCall = spv::GLSLstd450FMix;
         } else {
-            opCode = Pspv::OpSelect;
+            opCode = spv::OpSelect;
             std::swap(operands.front(), operands.back());
         }
         builder.promoteScalar(precision, operands.front(), operands.back());
         break;
-    case Pglslang::EOpStep:
-        libCall = Pspv::GLSLstd450Step;
+    case glslang::EOpStep:
+        libCall = spv::GLSLstd450Step;
         builder.promoteScalar(precision, operands.front(), operands.back());
         break;
-    case Pglslang::EOpSmoothStep:
-        libCall = Pspv::GLSLstd450SmoothStep;
+    case glslang::EOpSmoothStep:
+        libCall = spv::GLSLstd450SmoothStep;
         builder.promoteScalar(precision, operands[0], operands[2]);
         builder.promoteScalar(precision, operands[1], operands[2]);
         break;
 
-    case Pglslang::EOpDistance:
-        libCall = Pspv::GLSLstd450Distance;
+    case glslang::EOpDistance:
+        libCall = spv::GLSLstd450Distance;
         break;
-    case Pglslang::EOpCross:
-        libCall = Pspv::GLSLstd450Cross;
+    case glslang::EOpCross:
+        libCall = spv::GLSLstd450Cross;
         break;
-    case Pglslang::EOpFaceForward:
-        libCall = Pspv::GLSLstd450FaceForward;
+    case glslang::EOpFaceForward:
+        libCall = spv::GLSLstd450FaceForward;
         break;
-    case Pglslang::EOpReflect:
-        libCall = Pspv::GLSLstd450Reflect;
+    case glslang::EOpReflect:
+        libCall = spv::GLSLstd450Reflect;
         break;
-    case Pglslang::EOpRefract:
-        libCall = Pspv::GLSLstd450Refract;
+    case glslang::EOpRefract:
+        libCall = spv::GLSLstd450Refract;
         break;
-    case Pglslang::EOpBarrier:
+    case glslang::EOpBarrier:
         {
             // This is for the extended controlBarrier function, with four operands.
             // The unextended barrier() goes through createNoArgOperation.
@@ -7258,93 +7258,93 @@ Pspv::Id TGlslangToSpvTraverser::createMiscOperation(Pglslang::TOperator op, Psp
             unsigned int executionScope = builder.getConstantScalar(operands[0]);
             unsigned int memoryScope = builder.getConstantScalar(operands[1]);
             unsigned int semantics = builder.getConstantScalar(operands[2]) | builder.getConstantScalar(operands[3]);
-            builder.createControlBarrier((Pspv::Scope)executionScope, (Pspv::Scope)memoryScope, (Pspv::MemorySemanticsMask)semantics);
-            if (semantics & (Pspv::MemorySemanticsMakeAvailableKHRMask |
-                             Pspv::MemorySemanticsMakeVisibleKHRMask |
-                             Pspv::MemorySemanticsOutputMemoryKHRMask |
-                             Pspv::MemorySemanticsVolatileMask)) {
-                builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+            builder.createControlBarrier((spv::Scope)executionScope, (spv::Scope)memoryScope, (spv::MemorySemanticsMask)semantics);
+            if (semantics & (spv::MemorySemanticsMakeAvailableKHRMask |
+                             spv::MemorySemanticsMakeVisibleKHRMask |
+                             spv::MemorySemanticsOutputMemoryKHRMask |
+                             spv::MemorySemanticsVolatileMask)) {
+                builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
             }
-            if (glslangIntermediate->usingVulkanMemoryModel() && (executionScope == Pspv::ScopeDevice || memoryScope == Pspv::ScopeDevice)) {
-                builder.addCapability(Pspv::CapabilityVulkanMemoryModelDeviceScopeKHR);
+            if (glslangIntermediate->usingVulkanMemoryModel() && (executionScope == spv::ScopeDevice || memoryScope == spv::ScopeDevice)) {
+                builder.addCapability(spv::CapabilityVulkanMemoryModelDeviceScopeKHR);
             }
             return 0;
         }
         break;
-    case Pglslang::EOpMemoryBarrier:
+    case glslang::EOpMemoryBarrier:
         {
             // This is for the extended memoryBarrier function, with three operands.
             // The unextended memoryBarrier() goes through createNoArgOperation.
             assert(operands.size() == 3);
             unsigned int memoryScope = builder.getConstantScalar(operands[0]);
             unsigned int semantics = builder.getConstantScalar(operands[1]) | builder.getConstantScalar(operands[2]);
-            builder.createMemoryBarrier((Pspv::Scope)memoryScope, (Pspv::MemorySemanticsMask)semantics);
-            if (semantics & (Pspv::MemorySemanticsMakeAvailableKHRMask |
-                             Pspv::MemorySemanticsMakeVisibleKHRMask |
-                             Pspv::MemorySemanticsOutputMemoryKHRMask |
-                             Pspv::MemorySemanticsVolatileMask)) {
-                builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+            builder.createMemoryBarrier((spv::Scope)memoryScope, (spv::MemorySemanticsMask)semantics);
+            if (semantics & (spv::MemorySemanticsMakeAvailableKHRMask |
+                             spv::MemorySemanticsMakeVisibleKHRMask |
+                             spv::MemorySemanticsOutputMemoryKHRMask |
+                             spv::MemorySemanticsVolatileMask)) {
+                builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
             }
-            if (glslangIntermediate->usingVulkanMemoryModel() && memoryScope == Pspv::ScopeDevice) {
-                builder.addCapability(Pspv::CapabilityVulkanMemoryModelDeviceScopeKHR);
+            if (glslangIntermediate->usingVulkanMemoryModel() && memoryScope == spv::ScopeDevice) {
+                builder.addCapability(spv::CapabilityVulkanMemoryModelDeviceScopeKHR);
             }
             return 0;
         }
         break;
 
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpInterpolateAtSample:
-        if (typeProxy == Pglslang::EbtFloat16)
-            builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float);
-        libCall = Pspv::GLSLstd450InterpolateAtSample;
+    case glslang::EOpInterpolateAtSample:
+        if (typeProxy == glslang::EbtFloat16)
+            builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
+        libCall = spv::GLSLstd450InterpolateAtSample;
         break;
-    case Pglslang::EOpInterpolateAtOffset:
-        if (typeProxy == Pglslang::EbtFloat16)
-            builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float);
-        libCall = Pspv::GLSLstd450InterpolateAtOffset;
+    case glslang::EOpInterpolateAtOffset:
+        if (typeProxy == glslang::EbtFloat16)
+            builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
+        libCall = spv::GLSLstd450InterpolateAtOffset;
         break;
-    case Pglslang::EOpAddCarry:
-        opCode = Pspv::OpIAddCarry;
+    case glslang::EOpAddCarry:
+        opCode = spv::OpIAddCarry;
         typeId = builder.makeStructResultType(typeId0, typeId0);
         consumedOperands = 2;
         break;
-    case Pglslang::EOpSubBorrow:
-        opCode = Pspv::OpISubBorrow;
+    case glslang::EOpSubBorrow:
+        opCode = spv::OpISubBorrow;
         typeId = builder.makeStructResultType(typeId0, typeId0);
         consumedOperands = 2;
         break;
-    case Pglslang::EOpUMulExtended:
-        opCode = Pspv::OpUMulExtended;
+    case glslang::EOpUMulExtended:
+        opCode = spv::OpUMulExtended;
         typeId = builder.makeStructResultType(typeId0, typeId0);
         consumedOperands = 2;
         break;
-    case Pglslang::EOpIMulExtended:
-        opCode = Pspv::OpSMulExtended;
+    case glslang::EOpIMulExtended:
+        opCode = spv::OpSMulExtended;
         typeId = builder.makeStructResultType(typeId0, typeId0);
         consumedOperands = 2;
         break;
-    case Pglslang::EOpBitfieldExtract:
+    case glslang::EOpBitfieldExtract:
         if (isUnsigned)
-            opCode = Pspv::OpBitFieldUExtract;
+            opCode = spv::OpBitFieldUExtract;
         else
-            opCode = Pspv::OpBitFieldSExtract;
+            opCode = spv::OpBitFieldSExtract;
         break;
-    case Pglslang::EOpBitfieldInsert:
-        opCode = Pspv::OpBitFieldInsert;
+    case glslang::EOpBitfieldInsert:
+        opCode = spv::OpBitFieldInsert;
         break;
 
-    case Pglslang::EOpFma:
-        libCall = Pspv::GLSLstd450Fma;
+    case glslang::EOpFma:
+        libCall = spv::GLSLstd450Fma;
         break;
-    case Pglslang::EOpFrexp:
+    case glslang::EOpFrexp:
         {
-            libCall = Pspv::GLSLstd450FrexpStruct;
+            libCall = spv::GLSLstd450FrexpStruct;
             assert(builder.isPointerType(typeId1));
             typeId1 = builder.getContainedTypeId(typeId1);
             int width = builder.getScalarTypeWidth(typeId1);
             if (width == 16)
                 // Using 16-bit exp operand, enable extension SPV_AMD_gpu_shader_int16
-                builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_int16);
+                builder.addExtension(spv::E_SPV_AMD_gpu_shader_int16);
             if (builder.getNumComponents(operands[0]) == 1)
                 frexpIntType = builder.makeIntegerType(width, true);
             else
@@ -7353,150 +7353,150 @@ Pspv::Id TGlslangToSpvTraverser::createMiscOperation(Pglslang::TOperator op, Psp
             consumedOperands = 1;
         }
         break;
-    case Pglslang::EOpLdexp:
-        libCall = Pspv::GLSLstd450Ldexp;
+    case glslang::EOpLdexp:
+        libCall = spv::GLSLstd450Ldexp;
         break;
 
-    case Pglslang::EOpReadInvocation:
+    case glslang::EOpReadInvocation:
         return createInvocationsOperation(op, typeId, operands, typeProxy);
 
-    case Pglslang::EOpSubgroupBroadcast:
-    case Pglslang::EOpSubgroupBallotBitExtract:
-    case Pglslang::EOpSubgroupShuffle:
-    case Pglslang::EOpSubgroupShuffleXor:
-    case Pglslang::EOpSubgroupShuffleUp:
-    case Pglslang::EOpSubgroupShuffleDown:
-    case Pglslang::EOpSubgroupClusteredAdd:
-    case Pglslang::EOpSubgroupClusteredMul:
-    case Pglslang::EOpSubgroupClusteredMin:
-    case Pglslang::EOpSubgroupClusteredMax:
-    case Pglslang::EOpSubgroupClusteredAnd:
-    case Pglslang::EOpSubgroupClusteredOr:
-    case Pglslang::EOpSubgroupClusteredXor:
-    case Pglslang::EOpSubgroupQuadBroadcast:
-    case Pglslang::EOpSubgroupPartitionedAdd:
-    case Pglslang::EOpSubgroupPartitionedMul:
-    case Pglslang::EOpSubgroupPartitionedMin:
-    case Pglslang::EOpSubgroupPartitionedMax:
-    case Pglslang::EOpSubgroupPartitionedAnd:
-    case Pglslang::EOpSubgroupPartitionedOr:
-    case Pglslang::EOpSubgroupPartitionedXor:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedInclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedInclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedInclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedInclusiveXor:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAdd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMul:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMin:
-    case Pglslang::EOpSubgroupPartitionedExclusiveMax:
-    case Pglslang::EOpSubgroupPartitionedExclusiveAnd:
-    case Pglslang::EOpSubgroupPartitionedExclusiveOr:
-    case Pglslang::EOpSubgroupPartitionedExclusiveXor:
+    case glslang::EOpSubgroupBroadcast:
+    case glslang::EOpSubgroupBallotBitExtract:
+    case glslang::EOpSubgroupShuffle:
+    case glslang::EOpSubgroupShuffleXor:
+    case glslang::EOpSubgroupShuffleUp:
+    case glslang::EOpSubgroupShuffleDown:
+    case glslang::EOpSubgroupClusteredAdd:
+    case glslang::EOpSubgroupClusteredMul:
+    case glslang::EOpSubgroupClusteredMin:
+    case glslang::EOpSubgroupClusteredMax:
+    case glslang::EOpSubgroupClusteredAnd:
+    case glslang::EOpSubgroupClusteredOr:
+    case glslang::EOpSubgroupClusteredXor:
+    case glslang::EOpSubgroupQuadBroadcast:
+    case glslang::EOpSubgroupPartitionedAdd:
+    case glslang::EOpSubgroupPartitionedMul:
+    case glslang::EOpSubgroupPartitionedMin:
+    case glslang::EOpSubgroupPartitionedMax:
+    case glslang::EOpSubgroupPartitionedAnd:
+    case glslang::EOpSubgroupPartitionedOr:
+    case glslang::EOpSubgroupPartitionedXor:
+    case glslang::EOpSubgroupPartitionedInclusiveAdd:
+    case glslang::EOpSubgroupPartitionedInclusiveMul:
+    case glslang::EOpSubgroupPartitionedInclusiveMin:
+    case glslang::EOpSubgroupPartitionedInclusiveMax:
+    case glslang::EOpSubgroupPartitionedInclusiveAnd:
+    case glslang::EOpSubgroupPartitionedInclusiveOr:
+    case glslang::EOpSubgroupPartitionedInclusiveXor:
+    case glslang::EOpSubgroupPartitionedExclusiveAdd:
+    case glslang::EOpSubgroupPartitionedExclusiveMul:
+    case glslang::EOpSubgroupPartitionedExclusiveMin:
+    case glslang::EOpSubgroupPartitionedExclusiveMax:
+    case glslang::EOpSubgroupPartitionedExclusiveAnd:
+    case glslang::EOpSubgroupPartitionedExclusiveOr:
+    case glslang::EOpSubgroupPartitionedExclusiveXor:
         return createSubgroupOperation(op, typeId, operands, typeProxy);
 
-    case Pglslang::EOpSwizzleInvocations:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_ballot);
-        libCall = Pspv::SwizzleInvocationsAMD;
+    case glslang::EOpSwizzleInvocations:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_ballot);
+        libCall = spv::SwizzleInvocationsAMD;
         break;
-    case Pglslang::EOpSwizzleInvocationsMasked:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_ballot);
-        libCall = Pspv::SwizzleInvocationsMaskedAMD;
+    case glslang::EOpSwizzleInvocationsMasked:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_ballot);
+        libCall = spv::SwizzleInvocationsMaskedAMD;
         break;
-    case Pglslang::EOpWriteInvocation:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_ballot);
-        libCall = Pspv::WriteInvocationAMD;
-        break;
-
-    case Pglslang::EOpMin3:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_trinary_minmax);
-        if (isFloat)
-            libCall = Pspv::FMin3AMD;
-        else {
-            if (isUnsigned)
-                libCall = Pspv::UMin3AMD;
-            else
-                libCall = Pspv::SMin3AMD;
-        }
-        break;
-    case Pglslang::EOpMax3:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_trinary_minmax);
-        if (isFloat)
-            libCall = Pspv::FMax3AMD;
-        else {
-            if (isUnsigned)
-                libCall = Pspv::UMax3AMD;
-            else
-                libCall = Pspv::SMax3AMD;
-        }
-        break;
-    case Pglslang::EOpMid3:
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_trinary_minmax);
-        if (isFloat)
-            libCall = Pspv::FMid3AMD;
-        else {
-            if (isUnsigned)
-                libCall = Pspv::UMid3AMD;
-            else
-                libCall = Pspv::SMid3AMD;
-        }
+    case glslang::EOpWriteInvocation:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_ballot);
+        libCall = spv::WriteInvocationAMD;
         break;
 
-    case Pglslang::EOpInterpolateAtVertex:
-        if (typeProxy == Pglslang::EbtFloat16)
-            builder.addExtension(Pspv::E_SPV_AMD_gpu_shader_half_float);
-        extBuiltins = getExtBuiltins(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter);
-        libCall = Pspv::InterpolateAtVertexAMD;
+    case glslang::EOpMin3:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_trinary_minmax);
+        if (isFloat)
+            libCall = spv::FMin3AMD;
+        else {
+            if (isUnsigned)
+                libCall = spv::UMin3AMD;
+            else
+                libCall = spv::SMin3AMD;
+        }
+        break;
+    case glslang::EOpMax3:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_trinary_minmax);
+        if (isFloat)
+            libCall = spv::FMax3AMD;
+        else {
+            if (isUnsigned)
+                libCall = spv::UMax3AMD;
+            else
+                libCall = spv::SMax3AMD;
+        }
+        break;
+    case glslang::EOpMid3:
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_trinary_minmax);
+        if (isFloat)
+            libCall = spv::FMid3AMD;
+        else {
+            if (isUnsigned)
+                libCall = spv::UMid3AMD;
+            else
+                libCall = spv::SMid3AMD;
+        }
         break;
 
-    case Pglslang::EOpReportIntersectionNV:
+    case glslang::EOpInterpolateAtVertex:
+        if (typeProxy == glslang::EbtFloat16)
+            builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
+        extBuiltins = getExtBuiltins(spv::E_SPV_AMD_shader_explicit_vertex_parameter);
+        libCall = spv::InterpolateAtVertexAMD;
+        break;
+
+    case glslang::EOpReportIntersectionNV:
     {
         typeId = builder.makeBoolType();
-        opCode = Pspv::OpReportIntersectionNV;
+        opCode = spv::OpReportIntersectionNV;
     }
     break;
-    case Pglslang::EOpTraceNV:
+    case glslang::EOpTraceNV:
     {
-        builder.createNoResultOp(Pspv::OpTraceNV, operands);
+        builder.createNoResultOp(spv::OpTraceNV, operands);
         return 0;
     }
     break;
-    case Pglslang::EOpExecuteCallableNV:
+    case glslang::EOpExecuteCallableNV:
     {
-        builder.createNoResultOp(Pspv::OpExecuteCallableNV, operands);
+        builder.createNoResultOp(spv::OpExecuteCallableNV, operands);
         return 0;
     }
     break;
-    case Pglslang::EOpWritePackedPrimitiveIndices4x8NV:
-        builder.createNoResultOp(Pspv::OpWritePackedPrimitiveIndices4x8NV, operands);
+    case glslang::EOpWritePackedPrimitiveIndices4x8NV:
+        builder.createNoResultOp(spv::OpWritePackedPrimitiveIndices4x8NV, operands);
         return 0;
-    case Pglslang::EOpCooperativeMatrixMulAdd:
-        opCode = Pspv::OpCooperativeMatrixMulAddNV;
+    case glslang::EOpCooperativeMatrixMulAdd:
+        opCode = spv::OpCooperativeMatrixMulAddNV;
         break;
 #endif // GLSLANG_WEB
     default:
         return 0;
     }
 
-    Pspv::Id id = 0;
+    spv::Id id = 0;
     if (libCall >= 0) {
         // Use an extended instruction from the standard library.
         // Construct the call arguments, without modifying the original operands vector.
         // We might need the remaining arguments, e.g. in the EOpFrexp case.
-        std::vector<Pspv::Id> callArguments(operands.begin(), operands.begin() + consumedOperands);
+        std::vector<spv::Id> callArguments(operands.begin(), operands.begin() + consumedOperands);
         id = builder.createBuiltinCall(typeId, extBuiltins >= 0 ? extBuiltins : stdBuiltins, libCall, callArguments);
-    } else if (opCode == Pspv::OpDot && !isFloat) {
+    } else if (opCode == spv::OpDot && !isFloat) {
         // int dot(int, int)
         // NOTE: never called for scalar/vector1, this is turned into simple mul before this can be reached
         const int componentCount = builder.getNumComponents(operands[0]);
-        Pspv::Id mulOp = builder.createBinOp(Pspv::OpIMul, builder.getTypeId(operands[0]), operands[0], operands[1]);
+        spv::Id mulOp = builder.createBinOp(spv::OpIMul, builder.getTypeId(operands[0]), operands[0], operands[1]);
         builder.setPrecision(mulOp, precision);
         id = builder.createCompositeExtract(mulOp, typeId, 0);
         for (int i = 1; i < componentCount; ++i) {
             builder.setPrecision(id, precision);
-            id = builder.createBinOp(Pspv::OpIAdd, typeId, id, builder.createCompositeExtract(mulOp, typeId, i));
+            id = builder.createBinOp(spv::OpIAdd, typeId, id, builder.createCompositeExtract(mulOp, typeId, i));
         }
     } else {
         switch (consumedOperands) {
@@ -7522,23 +7522,23 @@ Pspv::Id TGlslangToSpvTraverser::createMiscOperation(Pglslang::TOperator op, Psp
 #ifndef GLSLANG_WEB
     // Decode the return types that were structures
     switch (op) {
-    case Pglslang::EOpAddCarry:
-    case Pglslang::EOpSubBorrow:
+    case glslang::EOpAddCarry:
+    case glslang::EOpSubBorrow:
         builder.createStore(builder.createCompositeExtract(id, typeId0, 1), operands[2]);
         id = builder.createCompositeExtract(id, typeId0, 0);
         break;
-    case Pglslang::EOpUMulExtended:
-    case Pglslang::EOpIMulExtended:
+    case glslang::EOpUMulExtended:
+    case glslang::EOpIMulExtended:
         builder.createStore(builder.createCompositeExtract(id, typeId0, 0), operands[3]);
         builder.createStore(builder.createCompositeExtract(id, typeId0, 1), operands[2]);
         break;
-    case Pglslang::EOpFrexp:
+    case glslang::EOpFrexp:
         {
             assert(operands.size() == 2);
             if (builder.isFloatType(builder.getScalarTypeId(typeId1))) {
                 // "exp" is floating-point type (from HLSL intrinsic)
-                Pspv::Id member1 = builder.createCompositeExtract(id, frexpIntType, 1);
-                member1 = builder.createUnaryOp(Pspv::OpConvertSToF, typeId1, member1);
+                spv::Id member1 = builder.createCompositeExtract(id, frexpIntType, 1);
+                member1 = builder.createUnaryOp(spv::OpConvertSToF, typeId1, member1);
                 builder.createStore(member1, operands[1]);
             } else
                 // "exp" is integer type (from GLSL built-in function)
@@ -7555,151 +7555,151 @@ Pspv::Id TGlslangToSpvTraverser::createMiscOperation(Pglslang::TOperator op, Psp
 }
 
 // Intrinsics with no arguments (or no return value, and no precision).
-Pspv::Id TGlslangToSpvTraverser::createNoArgOperation(Pglslang::TOperator op, Pspv::Decoration precision, Pspv::Id typeId)
+spv::Id TGlslangToSpvTraverser::createNoArgOperation(glslang::TOperator op, spv::Decoration precision, spv::Id typeId)
 {
     // GLSL memory barriers use queuefamily scope in new model, device scope in old model
-    Pspv::Scope memoryBarrierScope = glslangIntermediate->usingVulkanMemoryModel() ? Pspv::ScopeQueueFamilyKHR : Pspv::ScopeDevice;
+    spv::Scope memoryBarrierScope = glslangIntermediate->usingVulkanMemoryModel() ? spv::ScopeQueueFamilyKHR : spv::ScopeDevice;
 
     switch (op) {
-    case Pglslang::EOpBarrier:
+    case glslang::EOpBarrier:
         if (glslangIntermediate->getStage() == EShLangTessControl) {
             if (glslangIntermediate->usingVulkanMemoryModel()) {
-                builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeWorkgroup,
-                                             Pspv::MemorySemanticsOutputMemoryKHRMask |
-                                             Pspv::MemorySemanticsAcquireReleaseMask);
-                builder.addCapability(Pspv::CapabilityVulkanMemoryModelKHR);
+                builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeWorkgroup,
+                                             spv::MemorySemanticsOutputMemoryKHRMask |
+                                             spv::MemorySemanticsAcquireReleaseMask);
+                builder.addCapability(spv::CapabilityVulkanMemoryModelKHR);
             } else {
-                builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeInvocation, Pspv::MemorySemanticsMaskNone);
+                builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeInvocation, spv::MemorySemanticsMaskNone);
             }
         } else {
-            builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeWorkgroup,
-                                            Pspv::MemorySemanticsWorkgroupMemoryMask |
-                                            Pspv::MemorySemanticsAcquireReleaseMask);
+            builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeWorkgroup,
+                                            spv::MemorySemanticsWorkgroupMemoryMask |
+                                            spv::MemorySemanticsAcquireReleaseMask);
         }
         return 0;
-    case Pglslang::EOpMemoryBarrier:
-        builder.createMemoryBarrier(memoryBarrierScope, Pspv::MemorySemanticsAllMemory |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpMemoryBarrier:
+        builder.createMemoryBarrier(memoryBarrierScope, spv::MemorySemanticsAllMemory |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpMemoryBarrierBuffer:
-        builder.createMemoryBarrier(memoryBarrierScope, Pspv::MemorySemanticsUniformMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpMemoryBarrierBuffer:
+        builder.createMemoryBarrier(memoryBarrierScope, spv::MemorySemanticsUniformMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpMemoryBarrierShared:
-        builder.createMemoryBarrier(memoryBarrierScope, Pspv::MemorySemanticsWorkgroupMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpMemoryBarrierShared:
+        builder.createMemoryBarrier(memoryBarrierScope, spv::MemorySemanticsWorkgroupMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpGroupMemoryBarrier:
-        builder.createMemoryBarrier(Pspv::ScopeWorkgroup, Pspv::MemorySemanticsAllMemory |
-                                                         Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpGroupMemoryBarrier:
+        builder.createMemoryBarrier(spv::ScopeWorkgroup, spv::MemorySemanticsAllMemory |
+                                                         spv::MemorySemanticsAcquireReleaseMask);
         return 0;
 #ifndef GLSLANG_WEB
-    case Pglslang::EOpMemoryBarrierAtomicCounter:
-        builder.createMemoryBarrier(memoryBarrierScope, Pspv::MemorySemanticsAtomicCounterMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpMemoryBarrierAtomicCounter:
+        builder.createMemoryBarrier(memoryBarrierScope, spv::MemorySemanticsAtomicCounterMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpMemoryBarrierImage:
-        builder.createMemoryBarrier(memoryBarrierScope, Pspv::MemorySemanticsImageMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpMemoryBarrierImage:
+        builder.createMemoryBarrier(memoryBarrierScope, spv::MemorySemanticsImageMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpAllMemoryBarrierWithGroupSync:
-        builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeDevice,
-                                        Pspv::MemorySemanticsAllMemory |
-                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpAllMemoryBarrierWithGroupSync:
+        builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeDevice,
+                                        spv::MemorySemanticsAllMemory |
+                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpDeviceMemoryBarrier:
-        builder.createMemoryBarrier(Pspv::ScopeDevice, Pspv::MemorySemanticsUniformMemoryMask |
-                                                      Pspv::MemorySemanticsImageMemoryMask |
-                                                      Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpDeviceMemoryBarrier:
+        builder.createMemoryBarrier(spv::ScopeDevice, spv::MemorySemanticsUniformMemoryMask |
+                                                      spv::MemorySemanticsImageMemoryMask |
+                                                      spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpDeviceMemoryBarrierWithGroupSync:
-        builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeDevice, Pspv::MemorySemanticsUniformMemoryMask |
-                                                                            Pspv::MemorySemanticsImageMemoryMask |
-                                                                            Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpDeviceMemoryBarrierWithGroupSync:
+        builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeDevice, spv::MemorySemanticsUniformMemoryMask |
+                                                                            spv::MemorySemanticsImageMemoryMask |
+                                                                            spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpWorkgroupMemoryBarrier:
-        builder.createMemoryBarrier(Pspv::ScopeWorkgroup, Pspv::MemorySemanticsWorkgroupMemoryMask |
-                                                         Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpWorkgroupMemoryBarrier:
+        builder.createMemoryBarrier(spv::ScopeWorkgroup, spv::MemorySemanticsWorkgroupMemoryMask |
+                                                         spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpWorkgroupMemoryBarrierWithGroupSync:
-        builder.createControlBarrier(Pspv::ScopeWorkgroup, Pspv::ScopeWorkgroup,
-                                        Pspv::MemorySemanticsWorkgroupMemoryMask |
-                                        Pspv::MemorySemanticsAcquireReleaseMask);
+    case glslang::EOpWorkgroupMemoryBarrierWithGroupSync:
+        builder.createControlBarrier(spv::ScopeWorkgroup, spv::ScopeWorkgroup,
+                                        spv::MemorySemanticsWorkgroupMemoryMask |
+                                        spv::MemorySemanticsAcquireReleaseMask);
         return 0;
-    case Pglslang::EOpSubgroupBarrier:
-        builder.createControlBarrier(Pspv::ScopeSubgroup, Pspv::ScopeSubgroup, Pspv::MemorySemanticsAllMemory |
-                                                                             Pspv::MemorySemanticsAcquireReleaseMask);
-        return Pspv::NoResult;
-    case Pglslang::EOpSubgroupMemoryBarrier:
-        builder.createMemoryBarrier(Pspv::ScopeSubgroup, Pspv::MemorySemanticsAllMemory |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
-        return Pspv::NoResult;
-    case Pglslang::EOpSubgroupMemoryBarrierBuffer:
-        builder.createMemoryBarrier(Pspv::ScopeSubgroup, Pspv::MemorySemanticsUniformMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
-        return Pspv::NoResult;
-    case Pglslang::EOpSubgroupMemoryBarrierImage:
-        builder.createMemoryBarrier(Pspv::ScopeSubgroup, Pspv::MemorySemanticsImageMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
-        return Pspv::NoResult;
-    case Pglslang::EOpSubgroupMemoryBarrierShared:
-        builder.createMemoryBarrier(Pspv::ScopeSubgroup, Pspv::MemorySemanticsWorkgroupMemoryMask |
-                                                        Pspv::MemorySemanticsAcquireReleaseMask);
-        return Pspv::NoResult;
+    case glslang::EOpSubgroupBarrier:
+        builder.createControlBarrier(spv::ScopeSubgroup, spv::ScopeSubgroup, spv::MemorySemanticsAllMemory |
+                                                                             spv::MemorySemanticsAcquireReleaseMask);
+        return spv::NoResult;
+    case glslang::EOpSubgroupMemoryBarrier:
+        builder.createMemoryBarrier(spv::ScopeSubgroup, spv::MemorySemanticsAllMemory |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
+        return spv::NoResult;
+    case glslang::EOpSubgroupMemoryBarrierBuffer:
+        builder.createMemoryBarrier(spv::ScopeSubgroup, spv::MemorySemanticsUniformMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
+        return spv::NoResult;
+    case glslang::EOpSubgroupMemoryBarrierImage:
+        builder.createMemoryBarrier(spv::ScopeSubgroup, spv::MemorySemanticsImageMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
+        return spv::NoResult;
+    case glslang::EOpSubgroupMemoryBarrierShared:
+        builder.createMemoryBarrier(spv::ScopeSubgroup, spv::MemorySemanticsWorkgroupMemoryMask |
+                                                        spv::MemorySemanticsAcquireReleaseMask);
+        return spv::NoResult;
 
-    case Pglslang::EOpEmitVertex:
-        builder.createNoResultOp(Pspv::OpEmitVertex);
+    case glslang::EOpEmitVertex:
+        builder.createNoResultOp(spv::OpEmitVertex);
         return 0;
-    case Pglslang::EOpEndPrimitive:
-        builder.createNoResultOp(Pspv::OpEndPrimitive);
+    case glslang::EOpEndPrimitive:
+        builder.createNoResultOp(spv::OpEndPrimitive);
         return 0;
 
-    case Pglslang::EOpSubgroupElect: {
-        std::vector<Pspv::Id> operands;
-        return createSubgroupOperation(op, typeId, operands, Pglslang::EbtVoid);
+    case glslang::EOpSubgroupElect: {
+        std::vector<spv::Id> operands;
+        return createSubgroupOperation(op, typeId, operands, glslang::EbtVoid);
     }
-    case Pglslang::EOpTime:
+    case glslang::EOpTime:
     {
-        std::vector<Pspv::Id> args; // Dummy arguments
-        Pspv::Id id = builder.createBuiltinCall(typeId, getExtBuiltins(Pspv::E_SPV_AMD_gcn_shader), Pspv::TimeAMD, args);
+        std::vector<spv::Id> args; // Dummy arguments
+        spv::Id id = builder.createBuiltinCall(typeId, getExtBuiltins(spv::E_SPV_AMD_gcn_shader), spv::TimeAMD, args);
         return builder.setPrecision(id, precision);
     }
-    case Pglslang::EOpIgnoreIntersectionNV:
-        builder.createNoResultOp(Pspv::OpIgnoreIntersectionNV);
+    case glslang::EOpIgnoreIntersectionNV:
+        builder.createNoResultOp(spv::OpIgnoreIntersectionNV);
         return 0;
-    case Pglslang::EOpTerminateRayNV:
-        builder.createNoResultOp(Pspv::OpTerminateRayNV);
-        return 0;
-
-    case Pglslang::EOpBeginInvocationInterlock:
-        builder.createNoResultOp(Pspv::OpBeginInvocationInterlockEXT);
-        return 0;
-    case Pglslang::EOpEndInvocationInterlock:
-        builder.createNoResultOp(Pspv::OpEndInvocationInterlockEXT);
+    case glslang::EOpTerminateRayNV:
+        builder.createNoResultOp(spv::OpTerminateRayNV);
         return 0;
 
-    case Pglslang::EOpIsHelperInvocation:
+    case glslang::EOpBeginInvocationInterlock:
+        builder.createNoResultOp(spv::OpBeginInvocationInterlockEXT);
+        return 0;
+    case glslang::EOpEndInvocationInterlock:
+        builder.createNoResultOp(spv::OpEndInvocationInterlockEXT);
+        return 0;
+
+    case glslang::EOpIsHelperInvocation:
     {
-        std::vector<Pspv::Id> args; // Dummy arguments
-        builder.addExtension(Pspv::E_SPV_EXT_demote_to_helper_invocation);
-        builder.addCapability(Pspv::CapabilityDemoteToHelperInvocationEXT);
-        return builder.createOp(Pspv::OpIsHelperInvocationEXT, typeId, args);
+        std::vector<spv::Id> args; // Dummy arguments
+        builder.addExtension(spv::E_SPV_EXT_demote_to_helper_invocation);
+        builder.addCapability(spv::CapabilityDemoteToHelperInvocationEXT);
+        return builder.createOp(spv::OpIsHelperInvocationEXT, typeId, args);
     }
 
-    case Pglslang::EOpReadClockSubgroupKHR: {
-        std::vector<Pspv::Id> args;
-        args.push_back(builder.makeUintConstant(Pspv::ScopeSubgroup));
-        builder.addExtension(Pspv::E_SPV_KHR_shader_clock);
-        builder.addCapability(Pspv::CapabilityShaderClockKHR);
-        return builder.createOp(Pspv::OpReadClockKHR, typeId, args);
+    case glslang::EOpReadClockSubgroupKHR: {
+        std::vector<spv::Id> args;
+        args.push_back(builder.makeUintConstant(spv::ScopeSubgroup));
+        builder.addExtension(spv::E_SPV_KHR_shader_clock);
+        builder.addCapability(spv::CapabilityShaderClockKHR);
+        return builder.createOp(spv::OpReadClockKHR, typeId, args);
     }
 
-    case Pglslang::EOpReadClockDeviceKHR: {
-        std::vector<Pspv::Id> args;
-        args.push_back(builder.makeUintConstant(Pspv::ScopeDevice));
-        builder.addExtension(Pspv::E_SPV_KHR_shader_clock);
-        builder.addCapability(Pspv::CapabilityShaderClockKHR);
-        return builder.createOp(Pspv::OpReadClockKHR, typeId, args);
+    case glslang::EOpReadClockDeviceKHR: {
+        std::vector<spv::Id> args;
+        args.push_back(builder.makeUintConstant(spv::ScopeDevice));
+        builder.addExtension(spv::E_SPV_KHR_shader_clock);
+        builder.addCapability(spv::CapabilityShaderClockKHR);
+        return builder.createOp(spv::OpReadClockKHR, typeId, args);
     }
 #endif
     default:
@@ -7711,82 +7711,82 @@ Pspv::Id TGlslangToSpvTraverser::createNoArgOperation(Pglslang::TOperator op, Ps
     return 0;
 }
 
-Pspv::Id TGlslangToSpvTraverser::getSymbolId(const Pglslang::TIntermSymbol* symbol)
+spv::Id TGlslangToSpvTraverser::getSymbolId(const glslang::TIntermSymbol* symbol)
 {
     auto iter = symbolValues.find(symbol->getId());
-    Pspv::Id id;
+    spv::Id id;
     if (symbolValues.end() != iter) {
         id = iter->second;
         return id;
     }
 
     // it was not found, create it
-    Pspv::BuiltIn builtIn = TranslateBuiltInDecoration(symbol->getQualifier().builtIn, false);
+    spv::BuiltIn builtIn = TranslateBuiltInDecoration(symbol->getQualifier().builtIn, false);
     auto forcedType = getForcedType(builtIn, symbol->getType());
     id = createSpvVariable(symbol, forcedType.first);
     symbolValues[symbol->getId()] = id;
-    if (forcedType.second != Pspv::NoType)
+    if (forcedType.second != spv::NoType)
         forceType[id] = forcedType.second;
 
-    if (symbol->getBasicType() != Pglslang::EbtBlock) {
+    if (symbol->getBasicType() != glslang::EbtBlock) {
         builder.addDecoration(id, TranslatePrecisionDecoration(symbol->getType()));
         builder.addDecoration(id, TranslateInterpolationDecoration(symbol->getType().getQualifier()));
         builder.addDecoration(id, TranslateAuxiliaryStorageDecoration(symbol->getType().getQualifier()));
 #ifndef GLSLANG_WEB
         addMeshNVDecoration(id, /*member*/ -1, symbol->getType().getQualifier());
         if (symbol->getQualifier().hasComponent())
-            builder.addDecoration(id, Pspv::DecorationComponent, symbol->getQualifier().layoutComponent);
+            builder.addDecoration(id, spv::DecorationComponent, symbol->getQualifier().layoutComponent);
         if (symbol->getQualifier().hasIndex())
-            builder.addDecoration(id, Pspv::DecorationIndex, symbol->getQualifier().layoutIndex);
+            builder.addDecoration(id, spv::DecorationIndex, symbol->getQualifier().layoutIndex);
 #endif
         if (symbol->getType().getQualifier().hasSpecConstantId())
-            builder.addDecoration(id, Pspv::DecorationSpecId, symbol->getType().getQualifier().layoutSpecConstantId);
+            builder.addDecoration(id, spv::DecorationSpecId, symbol->getType().getQualifier().layoutSpecConstantId);
         // atomic counters use this:
         if (symbol->getQualifier().hasOffset())
-            builder.addDecoration(id, Pspv::DecorationOffset, symbol->getQualifier().layoutOffset);
+            builder.addDecoration(id, spv::DecorationOffset, symbol->getQualifier().layoutOffset);
     }
 
     if (symbol->getQualifier().hasLocation())
-        builder.addDecoration(id, Pspv::DecorationLocation, symbol->getQualifier().layoutLocation);
+        builder.addDecoration(id, spv::DecorationLocation, symbol->getQualifier().layoutLocation);
     builder.addDecoration(id, TranslateInvariantDecoration(symbol->getType().getQualifier()));
     if (symbol->getQualifier().hasStream() && glslangIntermediate->isMultiStream()) {
-        builder.addCapability(Pspv::CapabilityGeometryStreams);
-        builder.addDecoration(id, Pspv::DecorationStream, symbol->getQualifier().layoutStream);
+        builder.addCapability(spv::CapabilityGeometryStreams);
+        builder.addDecoration(id, spv::DecorationStream, symbol->getQualifier().layoutStream);
     }
     if (symbol->getQualifier().hasSet())
-        builder.addDecoration(id, Pspv::DecorationDescriptorSet, symbol->getQualifier().layoutSet);
+        builder.addDecoration(id, spv::DecorationDescriptorSet, symbol->getQualifier().layoutSet);
     else if (IsDescriptorResource(symbol->getType())) {
         // default to 0
-        builder.addDecoration(id, Pspv::DecorationDescriptorSet, 0);
+        builder.addDecoration(id, spv::DecorationDescriptorSet, 0);
     }
     if (symbol->getQualifier().hasBinding())
-        builder.addDecoration(id, Pspv::DecorationBinding, symbol->getQualifier().layoutBinding);
+        builder.addDecoration(id, spv::DecorationBinding, symbol->getQualifier().layoutBinding);
     else if (IsDescriptorResource(symbol->getType())) {
         // default to 0
-        builder.addDecoration(id, Pspv::DecorationBinding, 0);
+        builder.addDecoration(id, spv::DecorationBinding, 0);
     }
     if (symbol->getQualifier().hasAttachment())
-        builder.addDecoration(id, Pspv::DecorationInputAttachmentIndex, symbol->getQualifier().layoutAttachment);
+        builder.addDecoration(id, spv::DecorationInputAttachmentIndex, symbol->getQualifier().layoutAttachment);
     if (glslangIntermediate->getXfbMode()) {
-        builder.addCapability(Pspv::CapabilityTransformFeedback);
+        builder.addCapability(spv::CapabilityTransformFeedback);
         if (symbol->getQualifier().hasXfbBuffer()) {
-            builder.addDecoration(id, Pspv::DecorationXfbBuffer, symbol->getQualifier().layoutXfbBuffer);
+            builder.addDecoration(id, spv::DecorationXfbBuffer, symbol->getQualifier().layoutXfbBuffer);
             unsigned stride = glslangIntermediate->getXfbStride(symbol->getQualifier().layoutXfbBuffer);
-            if (stride != Pglslang::TQualifier::layoutXfbStrideEnd)
-                builder.addDecoration(id, Pspv::DecorationXfbStride, stride);
+            if (stride != glslang::TQualifier::layoutXfbStrideEnd)
+                builder.addDecoration(id, spv::DecorationXfbStride, stride);
         }
         if (symbol->getQualifier().hasXfbOffset())
-            builder.addDecoration(id, Pspv::DecorationOffset, symbol->getQualifier().layoutXfbOffset);
+            builder.addDecoration(id, spv::DecorationOffset, symbol->getQualifier().layoutXfbOffset);
     }
 
     // add built-in variable decoration
-    if (builtIn != Pspv::BuiltInMax) {
-        builder.addDecoration(id, Pspv::DecorationBuiltIn, (int)builtIn);
+    if (builtIn != spv::BuiltInMax) {
+        builder.addDecoration(id, spv::DecorationBuiltIn, (int)builtIn);
     }
 
 #ifndef GLSLANG_WEB
     if (symbol->getType().isImage()) {
-        std::vector<Pspv::Decoration> memory;
+        std::vector<spv::Decoration> memory;
         TranslateMemoryDecoration(symbol->getType().getQualifier(), memory, glslangIntermediate->usingVulkanMemoryModel());
         for (unsigned int i = 0; i < memory.size(); ++i)
             builder.addDecoration(id, memory[i]);
@@ -7795,53 +7795,53 @@ Pspv::Id TGlslangToSpvTraverser::getSymbolId(const Pglslang::TIntermSymbol* symb
     // nonuniform
     builder.addDecoration(id, TranslateNonUniformDecoration(symbol->getType().getQualifier()));
 
-    if (builtIn == Pspv::BuiltInSampleMask) {
-          Pspv::Decoration decoration;
+    if (builtIn == spv::BuiltInSampleMask) {
+          spv::Decoration decoration;
           // GL_NV_sample_mask_override_coverage extension
           if (glslangIntermediate->getLayoutOverrideCoverage())
-              decoration = (Pspv::Decoration)Pspv::DecorationOverrideCoverageNV;
+              decoration = (spv::Decoration)spv::DecorationOverrideCoverageNV;
           else
-              decoration = (Pspv::Decoration)Pspv::DecorationMax;
+              decoration = (spv::Decoration)spv::DecorationMax;
         builder.addDecoration(id, decoration);
-        if (decoration != Pspv::DecorationMax) {
-            builder.addCapability(Pspv::CapabilitySampleMaskOverrideCoverageNV);
-            builder.addExtension(Pspv::E_SPV_NV_sample_mask_override_coverage);
+        if (decoration != spv::DecorationMax) {
+            builder.addCapability(spv::CapabilitySampleMaskOverrideCoverageNV);
+            builder.addExtension(spv::E_SPV_NV_sample_mask_override_coverage);
         }
     }
-    else if (builtIn == Pspv::BuiltInLayer) {
+    else if (builtIn == spv::BuiltInLayer) {
         // SPV_NV_viewport_array2 extension
         if (symbol->getQualifier().layoutViewportRelative) {
-            builder.addDecoration(id, (Pspv::Decoration)Pspv::DecorationViewportRelativeNV);
-            builder.addCapability(Pspv::CapabilityShaderViewportMaskNV);
-            builder.addExtension(Pspv::E_SPV_NV_viewport_array2);
+            builder.addDecoration(id, (spv::Decoration)spv::DecorationViewportRelativeNV);
+            builder.addCapability(spv::CapabilityShaderViewportMaskNV);
+            builder.addExtension(spv::E_SPV_NV_viewport_array2);
         }
         if (symbol->getQualifier().layoutSecondaryViewportRelativeOffset != -2048) {
-            builder.addDecoration(id, (Pspv::Decoration)Pspv::DecorationSecondaryViewportRelativeNV,
+            builder.addDecoration(id, (spv::Decoration)spv::DecorationSecondaryViewportRelativeNV,
                                   symbol->getQualifier().layoutSecondaryViewportRelativeOffset);
-            builder.addCapability(Pspv::CapabilityShaderStereoViewNV);
-            builder.addExtension(Pspv::E_SPV_NV_stereo_view_rendering);
+            builder.addCapability(spv::CapabilityShaderStereoViewNV);
+            builder.addExtension(spv::E_SPV_NV_stereo_view_rendering);
         }
     }
 
     if (symbol->getQualifier().layoutPassthrough) {
-        builder.addDecoration(id, Pspv::DecorationPassthroughNV);
-        builder.addCapability(Pspv::CapabilityGeometryShaderPassthroughNV);
-        builder.addExtension(Pspv::E_SPV_NV_geometry_shader_passthrough);
+        builder.addDecoration(id, spv::DecorationPassthroughNV);
+        builder.addCapability(spv::CapabilityGeometryShaderPassthroughNV);
+        builder.addExtension(spv::E_SPV_NV_geometry_shader_passthrough);
     }
     if (symbol->getQualifier().pervertexNV) {
-        builder.addDecoration(id, Pspv::DecorationPerVertexNV);
-        builder.addCapability(Pspv::CapabilityFragmentBarycentricNV);
-        builder.addExtension(Pspv::E_SPV_NV_fragment_shader_barycentric);
+        builder.addDecoration(id, spv::DecorationPerVertexNV);
+        builder.addCapability(spv::CapabilityFragmentBarycentricNV);
+        builder.addExtension(spv::E_SPV_NV_fragment_shader_barycentric);
     }
 
     if (glslangIntermediate->getHlslFunctionality1() && symbol->getType().getQualifier().semanticName != nullptr) {
         builder.addExtension("SPV_GOOGLE_hlsl_functionality1");
-        builder.addDecoration(id, (Pspv::Decoration)Pspv::DecorationHlslSemanticGOOGLE,
+        builder.addDecoration(id, (spv::Decoration)spv::DecorationHlslSemanticGOOGLE,
                               symbol->getType().getQualifier().semanticName);
     }
 
     if (symbol->isReference()) {
-        builder.addDecoration(id, symbol->getType().getQualifier().restrict ? Pspv::DecorationRestrictPointerEXT : Pspv::DecorationAliasedPointerEXT);
+        builder.addDecoration(id, symbol->getType().getQualifier().restrict ? spv::DecorationRestrictPointerEXT : spv::DecorationAliasedPointerEXT);
     }
 #endif
 
@@ -7850,36 +7850,36 @@ Pspv::Id TGlslangToSpvTraverser::getSymbolId(const Pglslang::TIntermSymbol* symb
 
 #ifndef GLSLANG_WEB
 // add per-primitive, per-view. per-task decorations to a struct member (member >= 0) or an object
-void TGlslangToSpvTraverser::addMeshNVDecoration(Pspv::Id id, int member, const Pglslang::TQualifier& qualifier)
+void TGlslangToSpvTraverser::addMeshNVDecoration(spv::Id id, int member, const glslang::TQualifier& qualifier)
 {
     if (member >= 0) {
         if (qualifier.perPrimitiveNV) {
             // Need to add capability/extension for fragment shader.
             // Mesh shader already adds this by default.
             if (glslangIntermediate->getStage() == EShLangFragment) {
-                builder.addCapability(Pspv::CapabilityMeshShadingNV);
-                builder.addExtension(Pspv::E_SPV_NV_mesh_shader);
+                builder.addCapability(spv::CapabilityMeshShadingNV);
+                builder.addExtension(spv::E_SPV_NV_mesh_shader);
             }
-            builder.addMemberDecoration(id, (unsigned)member, Pspv::DecorationPerPrimitiveNV);
+            builder.addMemberDecoration(id, (unsigned)member, spv::DecorationPerPrimitiveNV);
         }
         if (qualifier.perViewNV)
-            builder.addMemberDecoration(id, (unsigned)member, Pspv::DecorationPerViewNV);
+            builder.addMemberDecoration(id, (unsigned)member, spv::DecorationPerViewNV);
         if (qualifier.perTaskNV)
-            builder.addMemberDecoration(id, (unsigned)member, Pspv::DecorationPerTaskNV);
+            builder.addMemberDecoration(id, (unsigned)member, spv::DecorationPerTaskNV);
     } else {
         if (qualifier.perPrimitiveNV) {
             // Need to add capability/extension for fragment shader.
             // Mesh shader already adds this by default.
             if (glslangIntermediate->getStage() == EShLangFragment) {
-                builder.addCapability(Pspv::CapabilityMeshShadingNV);
-                builder.addExtension(Pspv::E_SPV_NV_mesh_shader);
+                builder.addCapability(spv::CapabilityMeshShadingNV);
+                builder.addExtension(spv::E_SPV_NV_mesh_shader);
             }
-            builder.addDecoration(id, Pspv::DecorationPerPrimitiveNV);
+            builder.addDecoration(id, spv::DecorationPerPrimitiveNV);
         }
         if (qualifier.perViewNV)
-            builder.addDecoration(id, Pspv::DecorationPerViewNV);
+            builder.addDecoration(id, spv::DecorationPerViewNV);
         if (qualifier.perTaskNV)
-            builder.addDecoration(id, Pspv::DecorationPerTaskNV);
+            builder.addDecoration(id, spv::DecorationPerTaskNV);
     }
 }
 #endif
@@ -7894,7 +7894,7 @@ void TGlslangToSpvTraverser::addMeshNVDecoration(Pspv::Id id, int member, const 
 // recursively walks.  So, this function walks the "top" of the tree:
 //  - emit specialization constant-building instructions for specConstant
 //  - when running into a non-spec-constant, switch to createSpvConstant()
-Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped& node)
+spv::Id TGlslangToSpvTraverser::createSpvConstant(const glslang::TIntermTyped& node)
 {
     assert(node.getQualifier().isConstant());
 
@@ -7911,13 +7911,13 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped&
 
     // gl_WorkGroupSize is a special case until the front-end handles hierarchical specialization constants,
     // even then, it's specialization ids are handled by special case syntax in GLSL: layout(local_size_x = ...
-    if (node.getType().getQualifier().builtIn == Pglslang::EbvWorkGroupSize) {
-        std::vector<Pspv::Id> dimConstId;
+    if (node.getType().getQualifier().builtIn == glslang::EbvWorkGroupSize) {
+        std::vector<spv::Id> dimConstId;
         for (int dim = 0; dim < 3; ++dim) {
-            bool specConst = (glslangIntermediate->getLocalSizeSpecId(dim) != Pglslang::TQualifier::layoutNotSet);
+            bool specConst = (glslangIntermediate->getLocalSizeSpecId(dim) != glslang::TQualifier::layoutNotSet);
             dimConstId.push_back(builder.makeUintConstant(glslangIntermediate->getLocalSize(dim), specConst));
             if (specConst) {
-                builder.addDecoration(dimConstId.back(), Pspv::DecorationSpecId,
+                builder.addDecoration(dimConstId.back(), spv::DecorationSpecId,
                                       glslangIntermediate->getLocalSizeSpecId(dim));
             }
         }
@@ -7927,7 +7927,7 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped&
     // An AST node labelled as specialization constant should be a symbol node.
     // Its initializer should either be a sub tree with constant nodes, or a constant union array.
     if (auto* sn = node.getAsSymbolNode()) {
-        Pspv::Id result;
+        spv::Id result;
         if (auto* sub_tree = sn->getConstSubtree()) {
             // Traverse the constant constructor sub tree like generating normal run-time instructions.
             // During the AST traversal, if the node is marked as 'specConstant', SpecConstantOpModeGuard
@@ -7939,7 +7939,7 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped&
             result = createSpvConstantFromConstUnionArray(sn->getType(), *const_union_array, nextConst, true);
         } else {
             logger->missingFunctionality("Invalid initializer for spec onstant.");
-            return Pspv::NoResult;
+            return spv::NoResult;
         }
         builder.addName(result, sn->getName().c_str());
         return result;
@@ -7948,7 +7948,7 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped&
     // Neither a front-end constant node, nor a specialization constant node with constant union array or
     // constant sub tree as initializer.
     logger->missingFunctionality("Neither a front-end constant nor a spec constant.");
-    return Pspv::NoResult;
+    return spv::NoResult;
 }
 
 // Use 'consts' as the flattened glslang source of scalar constants to recursively
@@ -7957,68 +7957,68 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstant(const Pglslang::TIntermTyped&
 // If there are not enough elements present in 'consts', 0 will be substituted;
 // an empty 'consts' can be used to create a fully zeroed SPIR-V constant.
 //
-Pspv::Id TGlslangToSpvTraverser::createSpvConstantFromConstUnionArray(const Pglslang::TType& glslangType, const Pglslang::TConstUnionArray& consts, int& nextConst, bool specConstant)
+spv::Id TGlslangToSpvTraverser::createSpvConstantFromConstUnionArray(const glslang::TType& glslangType, const glslang::TConstUnionArray& consts, int& nextConst, bool specConstant)
 {
     // vector of constants for SPIR-V
-    std::vector<Pspv::Id> spvConsts;
+    std::vector<spv::Id> spvConsts;
 
     // Type is used for struct and array constants
-    Pspv::Id typeId = convertGlslangToSpvType(glslangType);
+    spv::Id typeId = convertGlslangToSpvType(glslangType);
 
     if (glslangType.isArray()) {
-        Pglslang::TType elementType(glslangType, 0);
+        glslang::TType elementType(glslangType, 0);
         for (int i = 0; i < glslangType.getOuterArraySize(); ++i)
             spvConsts.push_back(createSpvConstantFromConstUnionArray(elementType, consts, nextConst, false));
     } else if (glslangType.isMatrix()) {
-        Pglslang::TType vectorType(glslangType, 0);
+        glslang::TType vectorType(glslangType, 0);
         for (int col = 0; col < glslangType.getMatrixCols(); ++col)
             spvConsts.push_back(createSpvConstantFromConstUnionArray(vectorType, consts, nextConst, false));
     } else if (glslangType.isCoopMat()) {
-        Pglslang::TType componentType(glslangType.getBasicType());
+        glslang::TType componentType(glslangType.getBasicType());
         spvConsts.push_back(createSpvConstantFromConstUnionArray(componentType, consts, nextConst, false));
     } else if (glslangType.isStruct()) {
-        Pglslang::TVector<Pglslang::TTypeLoc>::const_iterator iter;
+        glslang::TVector<glslang::TTypeLoc>::const_iterator iter;
         for (iter = glslangType.getStruct()->begin(); iter != glslangType.getStruct()->end(); ++iter)
             spvConsts.push_back(createSpvConstantFromConstUnionArray(*iter->type, consts, nextConst, false));
     } else if (glslangType.getVectorSize() > 1) {
         for (unsigned int i = 0; i < (unsigned int)glslangType.getVectorSize(); ++i) {
             bool zero = nextConst >= consts.size();
             switch (glslangType.getBasicType()) {
-            case Pglslang::EbtInt:
+            case glslang::EbtInt:
                 spvConsts.push_back(builder.makeIntConstant(zero ? 0 : consts[nextConst].getIConst()));
                 break;
-            case Pglslang::EbtUint:
+            case glslang::EbtUint:
                 spvConsts.push_back(builder.makeUintConstant(zero ? 0 : consts[nextConst].getUConst()));
                 break;
-            case Pglslang::EbtFloat:
+            case glslang::EbtFloat:
                 spvConsts.push_back(builder.makeFloatConstant(zero ? 0.0F : (float)consts[nextConst].getDConst()));
                 break;
-            case Pglslang::EbtBool:
+            case glslang::EbtBool:
                 spvConsts.push_back(builder.makeBoolConstant(zero ? false : consts[nextConst].getBConst()));
                 break;
 #ifndef GLSLANG_WEB
-            case Pglslang::EbtInt8:
+            case glslang::EbtInt8:
                 spvConsts.push_back(builder.makeInt8Constant(zero ? 0 : consts[nextConst].getI8Const()));
                 break;
-            case Pglslang::EbtUint8:
+            case glslang::EbtUint8:
                 spvConsts.push_back(builder.makeUint8Constant(zero ? 0 : consts[nextConst].getU8Const()));
                 break;
-            case Pglslang::EbtInt16:
+            case glslang::EbtInt16:
                 spvConsts.push_back(builder.makeInt16Constant(zero ? 0 : consts[nextConst].getI16Const()));
                 break;
-            case Pglslang::EbtUint16:
+            case glslang::EbtUint16:
                 spvConsts.push_back(builder.makeUint16Constant(zero ? 0 : consts[nextConst].getU16Const()));
                 break;
-            case Pglslang::EbtInt64:
+            case glslang::EbtInt64:
                 spvConsts.push_back(builder.makeInt64Constant(zero ? 0 : consts[nextConst].getI64Const()));
                 break;
-            case Pglslang::EbtUint64:
+            case glslang::EbtUint64:
                 spvConsts.push_back(builder.makeUint64Constant(zero ? 0 : consts[nextConst].getU64Const()));
                 break;
-            case Pglslang::EbtDouble:
+            case glslang::EbtDouble:
                 spvConsts.push_back(builder.makeDoubleConstant(zero ? 0.0 : consts[nextConst].getDConst()));
                 break;
-            case Pglslang::EbtFloat16:
+            case glslang::EbtFloat16:
                 spvConsts.push_back(builder.makeFloat16Constant(zero ? 0.0F : (float)consts[nextConst].getDConst()));
                 break;
 #endif
@@ -8031,48 +8031,48 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstantFromConstUnionArray(const Pgls
     } else {
         // we have a non-aggregate (scalar) constant
         bool zero = nextConst >= consts.size();
-        Pspv::Id scalar = 0;
+        spv::Id scalar = 0;
         switch (glslangType.getBasicType()) {
-        case Pglslang::EbtInt:
+        case glslang::EbtInt:
             scalar = builder.makeIntConstant(zero ? 0 : consts[nextConst].getIConst(), specConstant);
             break;
-        case Pglslang::EbtUint:
+        case glslang::EbtUint:
             scalar = builder.makeUintConstant(zero ? 0 : consts[nextConst].getUConst(), specConstant);
             break;
-        case Pglslang::EbtFloat:
+        case glslang::EbtFloat:
             scalar = builder.makeFloatConstant(zero ? 0.0F : (float)consts[nextConst].getDConst(), specConstant);
             break;
-        case Pglslang::EbtBool:
+        case glslang::EbtBool:
             scalar = builder.makeBoolConstant(zero ? false : consts[nextConst].getBConst(), specConstant);
             break;
 #ifndef GLSLANG_WEB
-        case Pglslang::EbtInt8:
+        case glslang::EbtInt8:
             scalar = builder.makeInt8Constant(zero ? 0 : consts[nextConst].getI8Const(), specConstant);
             break;
-        case Pglslang::EbtUint8:
+        case glslang::EbtUint8:
             scalar = builder.makeUint8Constant(zero ? 0 : consts[nextConst].getU8Const(), specConstant);
             break;
-        case Pglslang::EbtInt16:
+        case glslang::EbtInt16:
             scalar = builder.makeInt16Constant(zero ? 0 : consts[nextConst].getI16Const(), specConstant);
             break;
-        case Pglslang::EbtUint16:
+        case glslang::EbtUint16:
             scalar = builder.makeUint16Constant(zero ? 0 : consts[nextConst].getU16Const(), specConstant);
             break;
-        case Pglslang::EbtInt64:
+        case glslang::EbtInt64:
             scalar = builder.makeInt64Constant(zero ? 0 : consts[nextConst].getI64Const(), specConstant);
             break;
-        case Pglslang::EbtUint64:
+        case glslang::EbtUint64:
             scalar = builder.makeUint64Constant(zero ? 0 : consts[nextConst].getU64Const(), specConstant);
             break;
-        case Pglslang::EbtDouble:
+        case glslang::EbtDouble:
             scalar = builder.makeDoubleConstant(zero ? 0.0 : consts[nextConst].getDConst(), specConstant);
             break;
-        case Pglslang::EbtFloat16:
+        case glslang::EbtFloat16:
             scalar = builder.makeFloat16Constant(zero ? 0.0F : (float)consts[nextConst].getDConst(), specConstant);
             break;
-        case Pglslang::EbtReference:
+        case glslang::EbtReference:
             scalar = builder.makeUint64Constant(zero ? 0 : consts[nextConst].getU64Const(), specConstant);
-            scalar = builder.createUnaryOp(Pspv::OpBitcast, typeId, scalar);
+            scalar = builder.createUnaryOp(spv::OpBitcast, typeId, scalar);
             break;
 #endif
         default:
@@ -8088,7 +8088,7 @@ Pspv::Id TGlslangToSpvTraverser::createSpvConstantFromConstUnionArray(const Pgls
 
 // Return true if the node is a constant or symbol whose reading has no
 // non-trivial observable cost or effect.
-bool TGlslangToSpvTraverser::isTrivialLeaf(const Pglslang::TIntermTyped* node)
+bool TGlslangToSpvTraverser::isTrivialLeaf(const glslang::TIntermTyped* node)
 {
     // don't know what this is
     if (node == nullptr)
@@ -8104,13 +8104,13 @@ bool TGlslangToSpvTraverser::isTrivialLeaf(const Pglslang::TIntermTyped* node)
 
     // a symbol, depends on what's being read
     switch (node->getType().getQualifier().storage) {
-    case Pglslang::EvqTemporary:
-    case Pglslang::EvqGlobal:
-    case Pglslang::EvqIn:
-    case Pglslang::EvqInOut:
-    case Pglslang::EvqConst:
-    case Pglslang::EvqConstReadOnly:
-    case Pglslang::EvqUniform:
+    case glslang::EvqTemporary:
+    case glslang::EvqGlobal:
+    case glslang::EvqIn:
+    case glslang::EvqInOut:
+    case glslang::EvqConst:
+    case glslang::EvqConstReadOnly:
+    case glslang::EvqUniform:
         return true;
     default:
         return false;
@@ -8121,13 +8121,13 @@ bool TGlslangToSpvTraverser::isTrivialLeaf(const Pglslang::TIntermTyped* node)
 // HLSL (and/or vectors) are always trivial, as it does not short circuit.
 // Otherwise, error on the side of saying non-trivial.
 // Return true if trivial.
-bool TGlslangToSpvTraverser::isTrivial(const Pglslang::TIntermTyped* node)
+bool TGlslangToSpvTraverser::isTrivial(const glslang::TIntermTyped* node)
 {
     if (node == nullptr)
         return false;
 
     // count non scalars as trivial, as well as anything coming from HLSL
-    if (! node->getType().isScalarOrVec1() || glslangIntermediate->getSource() == Pglslang::EShSourceHlsl)
+    if (! node->getType().isScalarOrVec1() || glslangIntermediate->getSource() == glslang::EShSourceHlsl)
         return true;
 
     // symbols and constants are trivial
@@ -8137,8 +8137,8 @@ bool TGlslangToSpvTraverser::isTrivial(const Pglslang::TIntermTyped* node)
     // otherwise, it needs to be a simple operation or one or two leaf nodes
 
     // not a simple operation
-    const Pglslang::TIntermBinary* binaryNode = node->getAsBinaryNode();
-    const Pglslang::TIntermUnary* unaryNode = node->getAsUnaryNode();
+    const glslang::TIntermBinary* binaryNode = node->getAsBinaryNode();
+    const glslang::TIntermUnary* unaryNode = node->getAsUnaryNode();
     if (binaryNode == nullptr && unaryNode == nullptr)
         return false;
 
@@ -8151,22 +8151,22 @@ bool TGlslangToSpvTraverser::isTrivial(const Pglslang::TIntermTyped* node)
     }
 
     switch (node->getAsOperator()->getOp()) {
-    case Pglslang::EOpLogicalNot:
-    case Pglslang::EOpConvIntToBool:
-    case Pglslang::EOpConvUintToBool:
-    case Pglslang::EOpConvFloatToBool:
-    case Pglslang::EOpConvDoubleToBool:
-    case Pglslang::EOpEqual:
-    case Pglslang::EOpNotEqual:
-    case Pglslang::EOpLessThan:
-    case Pglslang::EOpGreaterThan:
-    case Pglslang::EOpLessThanEqual:
-    case Pglslang::EOpGreaterThanEqual:
-    case Pglslang::EOpIndexDirect:
-    case Pglslang::EOpIndexDirectStruct:
-    case Pglslang::EOpLogicalXor:
-    case Pglslang::EOpAny:
-    case Pglslang::EOpAll:
+    case glslang::EOpLogicalNot:
+    case glslang::EOpConvIntToBool:
+    case glslang::EOpConvUintToBool:
+    case glslang::EOpConvFloatToBool:
+    case glslang::EOpConvDoubleToBool:
+    case glslang::EOpEqual:
+    case glslang::EOpNotEqual:
+    case glslang::EOpLessThan:
+    case glslang::EOpGreaterThan:
+    case glslang::EOpLessThanEqual:
+    case glslang::EOpGreaterThanEqual:
+    case glslang::EOpIndexDirect:
+    case glslang::EOpIndexDirectStruct:
+    case glslang::EOpLogicalXor:
+    case glslang::EOpAny:
+    case glslang::EOpAll:
         return true;
     default:
         return false;
@@ -8175,17 +8175,17 @@ bool TGlslangToSpvTraverser::isTrivial(const Pglslang::TIntermTyped* node)
 
 // Emit short-circuiting code, where 'right' is never evaluated unless
 // the left side is true (for &&) or false (for ||).
-Pspv::Id TGlslangToSpvTraverser::createShortCircuit(Pglslang::TOperator op, Pglslang::TIntermTyped& left, Pglslang::TIntermTyped& right)
+spv::Id TGlslangToSpvTraverser::createShortCircuit(glslang::TOperator op, glslang::TIntermTyped& left, glslang::TIntermTyped& right)
 {
-    Pspv::Id boolTypeId = builder.makeBoolType();
+    spv::Id boolTypeId = builder.makeBoolType();
 
     // emit left operand
     builder.clearAccessChain();
     left.traverse(this);
-    Pspv::Id leftId = accessChainLoad(left.getType());
+    spv::Id leftId = accessChainLoad(left.getType());
 
     // Operands to accumulate OpPhi operands
-    std::vector<Pspv::Id> phiOperands;
+    std::vector<spv::Id> phiOperands;
     // accumulate left operand's phi information
     phiOperands.push_back(leftId);
     phiOperands.push_back(builder.getBuildPoint()->getId());
@@ -8196,16 +8196,16 @@ Pspv::Id TGlslangToSpvTraverser::createShortCircuit(Pglslang::TOperator op, Pgls
     //
     // TODO: this runtime "not" for || could be avoided by adding functionality
     // to 'builder' to have an "else" without an "then"
-    if (op == Pglslang::EOpLogicalOr)
-        leftId = builder.createUnaryOp(Pspv::OpLogicalNot, boolTypeId, leftId);
+    if (op == glslang::EOpLogicalOr)
+        leftId = builder.createUnaryOp(spv::OpLogicalNot, boolTypeId, leftId);
 
     // make an "if" based on the left value
-    Pspv::Builder::If ifBuilder(leftId, Pspv::SelectionControlMaskNone, builder);
+    spv::Builder::If ifBuilder(leftId, spv::SelectionControlMaskNone, builder);
 
     // emit right operand as the "then" part of the "if"
     builder.clearAccessChain();
     right.traverse(this);
-    Pspv::Id rightId = accessChainLoad(right.getType());
+    spv::Id rightId = accessChainLoad(right.getType());
 
     // accumulate left operand's phi information
     phiOperands.push_back(rightId);
@@ -8215,19 +8215,19 @@ Pspv::Id TGlslangToSpvTraverser::createShortCircuit(Pglslang::TOperator op, Pgls
     ifBuilder.makeEndIf();
 
     // phi together the two results
-    return builder.createOp(Pspv::OpPhi, boolTypeId, phiOperands);
+    return builder.createOp(spv::OpPhi, boolTypeId, phiOperands);
 }
 
 #ifndef GLSLANG_WEB
 // Return type Id of the imported set of extended instructions corresponds to the name.
 // Import this set if it has not been imported yet.
-Pspv::Id TGlslangToSpvTraverser::getExtBuiltins(const char* name)
+spv::Id TGlslangToSpvTraverser::getExtBuiltins(const char* name)
 {
     if (extBuiltinMap.find(name) != extBuiltinMap.end())
         return extBuiltinMap[name];
     else {
         builder.addExtension(name);
-        Pspv::Id extBuiltins = builder.import(name);
+        spv::Id extBuiltins = builder.import(name);
         extBuiltinMap[name] = extBuiltins;
         return extBuiltins;
     }
@@ -8236,13 +8236,13 @@ Pspv::Id TGlslangToSpvTraverser::getExtBuiltins(const char* name)
 
 };  // end anonymous namespace
 
-namespace Pglslang {
+namespace glslang {
 
 void GetSpirvVersion(std::string& version)
 {
     const int bufSize = 100;
     char buf[bufSize];
-    snprintf(buf, bufSize, "0x%08x, Revision %d", Pspv::Version, Pspv::Revision);
+    snprintf(buf, bufSize, "0x%08x, Revision %d", spv::Version, spv::Revision);
     version = buf;
 }
 
@@ -8315,12 +8315,12 @@ void OutputSpvHex(const std::vector<unsigned int>& spirv, const char* baseName, 
 //
 void GlslangToSpv(const TIntermediate& intermediate, std::vector<unsigned int>& spirv, SpvOptions* options)
 {
-    Pspv::SpvBuildLogger logger;
+    spv::SpvBuildLogger logger;
     GlslangToSpv(intermediate, spirv, &logger, options);
 }
 
 void GlslangToSpv(const TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                  Pspv::SpvBuildLogger* logger, SpvOptions* options)
+                  spv::SpvBuildLogger* logger, SpvOptions* options)
 {
     TIntermNode* root = intermediate.getTreeRoot();
 
@@ -8358,4 +8358,4 @@ void GlslangToSpv(const TIntermediate& intermediate, std::vector<unsigned int>& 
     GetThreadPoolAllocator().pop();
 }
 
-}; // end namespace Pglslang
+}; // end namespace glslang

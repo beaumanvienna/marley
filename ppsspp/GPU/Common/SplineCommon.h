@@ -68,7 +68,7 @@ struct SurfaceInfo {
 		if (tess_u < 1) tess_u = 1;
 		if (tess_v < 1) tess_v = 1;
 
-		switch (g_PConfig.iSplineBezierQuality) {
+		switch (g_Config.iSplineBezierQuality) {
 		case LOW_QUALITY:
 			tess_u = 2;
 			tess_v = 2;
@@ -206,8 +206,6 @@ template<class Surface>
 void SoftwareTessellation(OutputBuffers &output, const Surface &surface, u32 origVertType, const ControlPoints &points);
 
 } // namespace Spline
-
-bool CanUseHardwareTessellation(GEPatchPrimType prim);
 
 // Define function object for TemplateParameterDispatcher
 #define TEMPLATE_PARAMETER_DISPATCHER_FUNCTION(NAME, FUNCNAME, FUNCTYPE) \

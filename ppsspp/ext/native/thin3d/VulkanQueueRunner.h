@@ -6,6 +6,7 @@
 #include "Common/Vulkan/VulkanContext.h"
 #include "math/dataconv.h"
 #include "thin3d/DataFormat.h"
+#include "util/tiny_set.h"
 
 class VKRFramebuffer;
 struct VKRImage;
@@ -15,70 +16,6 @@ enum {
 	QUEUE_HACK_SONIC = 2,
 	// Killzone PR = 4.
 	QUEUE_HACK_RENDERPASS_MERGE = 8,
-};
-
-// Insert-only small-set implementation. Performs no allocation unless MaxFastSize is exceeded.
-template <class T, int MaxFastSize>
-struct TinySet {
-	~TinySet() { delete slowLookup_; }
-	inline void insert(T t) {
-		// Fast linear scan.
-		for (int i = 0; i < fastCount; i++) {
-			if (fastLookup_[i] == t)
-				return;  // We already have it.
-		}
-		// Fast insertion
-		if (fastCount < MaxFastSize) {
-			fastLookup_[fastCount++] = t;
-			return;
-		}
-		// Fall back to slow path.
-		insertSlow(t);
-	}
-	bool contains(T t) const {
-		for (int i = 0; i < fastCount; i++) {
-			if (fastLookup_[i] == t)
-				return true;
-		}
-		if (slowLookup_) {
-			for (auto x : *slowLookup_) {
-				if (x == t)
-					return true;
-			}
-		}
-		return false;
-	}
-	bool contains(const TinySet<T, MaxFastSize> &otherSet) {
-		// Awkward, kind of ruins the fun.
-		for (int i = 0; i < fastCount; i++) {
-			if (otherSet.contains(fastLookup_[i]))
-				return true;
-		}
-		if (slowLookup_) {
-			for (auto x : *slowLookup_) {
-				if (otherSet.contains(x))
-					return true;
-			}
-		}
-		return false;
-	}
-
-private:
-	void insertSlow(T t) {
-		if (!slowLookup_) {
-			slowLookup_ = new std::vector<T>();
-		} else {
-			for (size_t i = 0; i < slowLookup_->size(); i++) {
-				if ((*slowLookup_)[i] == t)
-					return;
-			}
-		}
-		slowLookup_->push_back(t);
-	}
-	T fastLookup_[MaxFastSize];
-	int fastCount = 0;
-	int slowCount = 0;
-	std::vector<T> *slowLookup_ = nullptr;
 };
 
 enum class VKRRenderCommand : uint8_t {
@@ -109,6 +46,7 @@ struct VkRenderData {
 			VkBuffer vbuffer;
 			VkDeviceSize voffset;
 			uint32_t count;
+			uint32_t offset;
 		} draw;
 		struct {
 			VkPipelineLayout pipelineLayout;
@@ -141,7 +79,7 @@ struct VkRenderData {
 			uint8_t stencilRef;
 		} stencil;
 		struct {
-			float color[4];
+			uint32_t color;
 		} blendColor;
 		struct {
 			VkPipelineLayout pipelineLayout;
@@ -173,6 +111,14 @@ struct TransitionRequest {
 	VkImageLayout targetLayout;
 };
 
+struct QueueProfileContext {
+	VkQueryPool queryPool;
+	std::vector<std::string> timestampDescriptions;
+	std::string profileSummary;
+	double cpuStartTime;
+	double cpuEndTime;
+};
+
 struct VKRStep {
 	VKRStep(VKRStepType _type) : stepType(_type) {}
 	~VKRStep() {}
@@ -181,6 +127,7 @@ struct VKRStep {
 	std::vector<VkRenderData> commands;
 	std::vector<TransitionRequest> preTransitions;
 	TinySet<VKRFramebuffer *, 8> dependencies;
+	const char *tag;
 	union {
 		struct {
 			VKRFramebuffer *framebuffer;
@@ -232,7 +179,7 @@ public:
 	}
 
 	// RunSteps can modify steps but will leave it in a valid state.
-	void RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &steps, VkQueryPool queryPool, std::vector<std::string> *timestampDescriptions);
+	void RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &steps, QueueProfileContext *profile);
 	void LogSteps(const std::vector<VKRStep *> &steps);
 
 	std::string StepToString(const VKRStep &step) const;

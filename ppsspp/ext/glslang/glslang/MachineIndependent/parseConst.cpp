@@ -39,7 +39,7 @@
 
 #include "ParseHelper.h"
 
-namespace Pglslang {
+namespace glslang {
 
 class TConstTraverser : public TIntermTraverser {
 public:
@@ -201,4 +201,4 @@ bool TIntermediate::parseConstTree(TIntermNode* root, TConstUnionArray unionArra
         return false;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

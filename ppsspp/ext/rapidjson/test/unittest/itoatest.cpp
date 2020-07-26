@@ -20,7 +20,7 @@ RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(type-limits)
 #endif
 
-using namespace rapidjson::Pinternal;
+using namespace rapidjson::internal;
 
 template <typename T>
 struct Traits {

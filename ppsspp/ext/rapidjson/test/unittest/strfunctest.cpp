@@ -16,7 +16,7 @@
 #include "rapidjson/internal/strfunc.h"
 
 using namespace rapidjson;
-using namespace rapidjson::Pinternal;
+using namespace rapidjson::internal;
 
 TEST(StrFunc, CountStringCodePoint) {
     SizeType count;

@@ -30,20 +30,20 @@ inline void truncate_cpy(char(&out)[Count], const char *src) {
 
 long parseHexLong(std::string s);
 long parseLong(std::string s);
-std::string PStringFromFormat(const char* format, ...);
+std::string StringFromFormat(const char* format, ...);
 // Cheap!
-bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
+bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 
 template<size_t Count>
 inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	PCharArrayFromFormatV(out, Count, format, args);
+	CharArrayFromFormatV(out, Count, format, args);
 	va_end(args);
 }
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
-bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
+bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
 
 std::string GetFilenameFromPath(std::string full_path);

@@ -18,7 +18,7 @@
 #ifdef USING_QT_UI
 #include <QtGui/QImage>
 #else
-#include <libpng17/png.h>
+#include <png.h>
 #endif
 
 #include <algorithm>
@@ -53,17 +53,17 @@ void TextureReplacer::Init() {
 void TextureReplacer::NotifyConfigChanged() {
 	gameID_ = g_paramSFO.GetDiscID();
 
-	enabled_ = g_PConfig.bReplaceTextures || g_PConfig.bSaveNewTextures;
+	enabled_ = g_Config.bReplaceTextures || g_Config.bSaveNewTextures;
 	if (enabled_) {
 		basePath_ = GetSysDirectory(DIRECTORY_TEXTURES) + gameID_ + "/";
 
 		// If we're saving, auto-create the directory.
-		if (g_PConfig.bSaveNewTextures && !PFile::Exists(basePath_ + NEW_TEXTURE_DIR)) {
-			PFile::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
-			PFile::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
+		if (g_Config.bSaveNewTextures && !File::Exists(basePath_ + NEW_TEXTURE_DIR)) {
+			File::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
+			File::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
 		}
 
-		enabled_ = PFile::Exists(basePath_) && PFile::IsDirectory(basePath_);
+		enabled_ = File::Exists(basePath_) && File::IsDirectory(basePath_);
 	}
 
 	if (enabled_) {
@@ -80,9 +80,11 @@ bool TextureReplacer::LoadIni() {
 	allowVideo_ = false;
 	ignoreAddress_ = false;
 	reduceHash_ = false;
+	// Prevents dumping the mipmaps.
+	ignoreMipmap_ = false;
 
-	if (PFile::Exists(basePath_ + INI_FILENAME)) {
-		PIniFile ini;
+	if (File::Exists(basePath_ + INI_FILENAME)) {
+		IniFile ini;
 		ini.LoadFromVFS(basePath_ + INI_FILENAME);
 
 		if (!LoadIniValues(ini)) {
@@ -94,7 +96,7 @@ bool TextureReplacer::LoadIni() {
 		if (ini.GetOrCreateSection("games")->Get(gameID_.c_str(), &overrideFilename, "")) {
 			if (!overrideFilename.empty() && overrideFilename != INI_FILENAME) {
 				INFO_LOG(G3D, "Loading extra texture ini: %s", overrideFilename.c_str());
-				PIniFile overrideIni;
+				IniFile overrideIni;
 				overrideIni.LoadFromVFS(basePath_ + overrideFilename);
 
 				if (!LoadIniValues(overrideIni, true)) {
@@ -108,7 +110,7 @@ bool TextureReplacer::LoadIni() {
 	return true;
 }
 
-bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
+bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
 	auto options = ini.GetOrCreateSection("options");
 	std::string hash;
 	options->Get("hash", &hash, "");
@@ -128,6 +130,7 @@ bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 	options->Get("ignoreAddress", &ignoreAddress_, ignoreAddress_);
 	// Multiplies sizeInRAM/bytesPerLine in XXHASH by 0.5.
 	options->Get("reduceHash", &reduceHash_, reduceHash_);
+	options->Get("ignoreMipmap", &ignoreMipmap_, ignoreMipmap_);
 	if (reduceHash_ && hash_ == ReplacedTextureHash::QUICK) {
 		reduceHash_ = false;
 		ERROR_LOG(G3D, "Texture Replacement: reduceHash option requires safer hash, use xxh32 or xxh64 instead.");
@@ -147,7 +150,7 @@ bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 	if (ini.HasSection("hashes")) {
 		auto hashes = ini.GetOrCreateSection("hashes")->ToMap();
 		// Format: hashname = filename.png
-		bool checkFilenames = g_PConfig.bSaveNewTextures && !g_PConfig.bIgnoreTextureFilenames;
+		bool checkFilenames = g_Config.bSaveNewTextures && !g_Config.bIgnoreTextureFilenames;
 		for (const auto &item : hashes) {
 			ReplacementAliasKey key(0, 0, 0);
 			if (sscanf(item.first.c_str(), "%16llx%8x_%d", &key.cachekey, &key.hash, &key.level) >= 1) {
@@ -168,7 +171,7 @@ bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 	}
 
 	if (filenameWarning) {
-		I18NCategory *err = GetI18NCategory("Error");
+		auto err = GetI18NCategory("Error");
 		host->NotifyUserMessage(err->T("textures.ini filenames may not be cross-platform"), 6.0f);
 	}
 
@@ -185,9 +188,9 @@ bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 
 void TextureReplacer::ParseHashRange(const std::string &key, const std::string &value) {
 	std::vector<std::string> keyParts;
-	PSplitString(key, ',', keyParts);
+	SplitString(key, ',', keyParts);
 	std::vector<std::string> valueParts;
-	PSplitString(value, ',', valueParts);
+	SplitString(value, ',', valueParts);
 
 	if (keyParts.size() != 3 || valueParts.size() != 2) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, expecting addr,w,h = w,h", key.c_str(), value.c_str());
@@ -197,14 +200,14 @@ void TextureReplacer::ParseHashRange(const std::string &key, const std::string &
 	u32 addr;
 	u32 fromW;
 	u32 fromH;
-	if (!PTryParse(keyParts[0], &addr) || !PTryParse(keyParts[1], &fromW) || !PTryParse(keyParts[2], &fromH)) {
+	if (!TryParse(keyParts[0], &addr) || !TryParse(keyParts[1], &fromW) || !TryParse(keyParts[2], &fromH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, key format is 0x12345678,512,512", key.c_str(), value.c_str());
 		return;
 	}
 
 	u32 toW;
 	u32 toH;
-	if (!PTryParse(valueParts[0], &toW) || !PTryParse(valueParts[1], &toH)) {
+	if (!TryParse(valueParts[0], &toW) || !TryParse(valueParts[1], &toH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, value format is 512,512", key.c_str(), value.c_str());
 		return;
 	}
@@ -219,7 +222,7 @@ void TextureReplacer::ParseHashRange(const std::string &key, const std::string &
 }
 
 u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureFormat fmt, u16 maxSeenV) {
-	_dbg_assert_msg_(G3D, enabled_, "Replacement not enabled");
+	_dbg_assert_msg_(enabled_, "Replacement not enabled");
 
 	if (!LookupHashRange(addr, w, h)) {
 		// There wasn't any hash range, let's fall back to maxSeenV logic.
@@ -228,7 +231,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 		}
 	}
 
-	const u8 *checkp = Memory_P::GetPointer(addr);
+	const u8 *checkp = Memory::GetPointer(addr);
 	float reduceHashSize = 1.0;
 	if (reduceHash_)
 		reduceHashSize = 0.5;
@@ -288,7 +291,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 
 ReplacedTexture &TextureReplacer::FindReplacement(u64 cachekey, u32 hash, int w, int h) {
 	// Only actually replace if we're replacing.  We might just be saving.
-	if (!Enabled() || !g_PConfig.bReplaceTextures) {
+	if (!Enabled() || !g_Config.bReplaceTextures) {
 		return none_;
 	}
 
@@ -317,7 +320,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 	for (int i = 0; i < MAX_MIP_LEVELS; ++i) {
 		const std::string hashfile = LookupHashFile(cachekey, hash, i);
 		const std::string filename = basePath_ + hashfile;
-		if (hashfile.empty() || !PFile::Exists(filename)) {
+		if (hashfile.empty() || !File::Exists(filename)) {
 			// Out of valid mip levels.  Bail out.
 			break;
 		}
@@ -339,8 +342,8 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 #else
 		png_image png = {};
 		png.version = PNG_IMAGE_VERSION;
-		FILE *fp = PFile::OpenCFile(filename, "rb");
-		if (Ppng_image_begin_read_from_stdio(&png, fp)) {
+		FILE *fp = File::OpenCFile(filename, "rb");
+		if (png_image_begin_read_from_stdio(&png, fp)) {
 			// We pad files that have been hashrange'd so they are the same texture size.
 			level.w = (png.width * w) / newW;
 			level.h = (png.height * h) / newH;
@@ -350,7 +353,7 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 		}
 		fclose(fp);
 
-		Ppng_image_free(&png);
+		png_image_free(&png);
 #endif
 
 		if (good && i != 0) {
@@ -373,13 +376,13 @@ void TextureReplacer::PopulateReplacement(ReplacedTexture *result, u64 cachekey,
 
 #ifndef USING_QT_UI
 static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int convert_to_8bit, const void *buffer, png_int_32 row_stride, const void *colormap) {
-	FILE *fp = PFile::OpenCFile(filename, "wb");
+	FILE *fp = File::OpenCFile(filename, "wb");
 	if (!fp) {
 		ERROR_LOG(SYSTEM, "Unable to open texture file for writing.");
 		return false;
 	}
 
-	if (Ppng_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
+	if (png_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
 		if (fclose(fp) != 0) {
 			ERROR_LOG(SYSTEM, "Texture file write failed.");
 			return false;
@@ -395,8 +398,8 @@ static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int
 #endif
 
 void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &replacedInfo, const void *data, int pitch, int level, int w, int h) {
-	_assert_msg_(G3D, enabled_, "Replacement not enabled");
-	if (!g_PConfig.bSaveNewTextures) {
+	_assert_msg_(enabled_, "Replacement not enabled");
+	if (!g_Config.bSaveNewTextures) {
 		// Ignore.
 		return;
 	}
@@ -411,20 +414,23 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	if (ignoreAddress_) {
 		cachekey = cachekey & 0xFFFFFFFFULL;
 	}
+	if (ignoreMipmap_ && level > 0) {
+		return;
+	}
 
 	std::string hashfile = LookupHashFile(cachekey, replacedInfo.hash, level);
 	const std::string filename = basePath_ + hashfile;
 	const std::string saveFilename = basePath_ + NEW_TEXTURE_DIR + hashfile;
 
 	// If it's empty, it's an ignored hash, we intentionally don't save.
-	if (hashfile.empty() || PFile::Exists(filename)) {
+	if (hashfile.empty() || File::Exists(filename)) {
 		// If it exists, must've been decoded and saved as a new texture already.
 		return;
 	}
 
 	ReplacementCacheKey replacementKey(cachekey, replacedInfo.hash);
 	auto it = savedCache_.find(replacementKey);
-	if (it != savedCache_.end() && PFile::Exists(saveFilename)) {
+	if (it != savedCache_.end() && File::Exists(saveFilename)) {
 		// We've already saved this texture.  Let's only save if it's bigger (e.g. scaled now.)
 		if (it->second.w >= w && it->second.h >= h) {
 			return;
@@ -439,9 +445,9 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	if (slash != hashfile.npos) {
 		// Create any directory structure as needed.
 		const std::string saveDirectory = basePath_ + NEW_TEXTURE_DIR + hashfile.substr(0, slash);
-		if (!PFile::Exists(saveDirectory)) {
-			PFile::CreateFullPath(saveDirectory);
-			PFile::CreateEmptyFile(saveDirectory + "/.nomedia");
+		if (!File::Exists(saveDirectory)) {
+			File::CreateFullPath(saveDirectory);
+			File::CreateEmptyFile(saveDirectory + "/.nomedia");
 		}
 	}
 
@@ -460,7 +466,7 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 		saveBuf.resize((pitch * h) / sizeof(u16));
 		switch (replacedInfo.fmt) {
 		case ReplacedTextureFormat::F_5650:
-			ConvertRGBA565ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
+			ConvertRGB565ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
 			break;
 		case ReplacedTextureFormat::F_5551:
 			ConvertRGBA5551ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
@@ -469,7 +475,7 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 			ConvertRGBA4444ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
 			break;
 		case ReplacedTextureFormat::F_0565_ABGR:
-			ConvertABGR565ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
+			ConvertBGR565ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
 			break;
 		case ReplacedTextureFormat::F_1555_ABGR:
 			ConvertABGR1555ToRGBA8888(saveBuf.data(), (const u16 *)data, (pitch * h) / sizeof(u16));
@@ -499,7 +505,7 @@ void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &repl
 	png.width = w;
 	png.height = h;
 	bool success = WriteTextureToPNG(&png, saveFilename, 0, data, pitch, nullptr);
-	Ppng_image_free(&png);
+	png_image_free(&png);
 
 	if (png.warning_or_error >= 2) {
 		ERROR_LOG(COMMON, "Saving screenshot to PNG produced errors.");
@@ -589,8 +595,8 @@ bool TextureReplacer::LookupHashRange(u32 addr, int &w, int &h) {
 }
 
 void ReplacedTexture::Load(int level, void *out, int rowPitch) {
-	_assert_msg_(G3D, (size_t)level < levels_.size(), "Invalid miplevel");
-	_assert_msg_(G3D, out != nullptr && rowPitch > 0, "Invalid out/pitch");
+	_assert_msg_((size_t)level < levels_.size(), "Invalid miplevel");
+	_assert_msg_(out != nullptr && rowPitch > 0, "Invalid out/pitch");
 
 	const ReplacedTextureLevel &info = levels_[level];
 
@@ -625,8 +631,8 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	png_image png = {};
 	png.version = PNG_IMAGE_VERSION;
 
-	FILE *fp = PFile::OpenCFile(info.file, "rb");
-	if (!Ppng_image_begin_read_from_stdio(&png, fp)) {
+	FILE *fp = File::OpenCFile(info.file, "rb");
+	if (!png_image_begin_read_from_stdio(&png, fp)) {
 		ERROR_LOG(G3D, "Could not load texture replacement info: %s - %s", info.file.c_str(), png.message);
 		return;
 	}
@@ -641,7 +647,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	}
 	png.format = PNG_FORMAT_RGBA;
 
-	if (!Ppng_image_finish_read(&png, nullptr, out, rowPitch, nullptr)) {
+	if (!png_image_finish_read(&png, nullptr, out, rowPitch, nullptr)) {
 		ERROR_LOG(G3D, "Could not load texture replacement: %s - %s", info.file.c_str(), png.message);
 		return;
 	}
@@ -655,7 +661,7 @@ void ReplacedTexture::Load(int level, void *out, int rowPitch) {
 	}
 
 	fclose(fp);
-	Ppng_image_free(&png);
+	png_image_free(&png);
 #endif
 }
 
@@ -664,29 +670,31 @@ bool TextureReplacer::GenerateIni(const std::string &gameID, std::string *genera
 		return false;
 
 	std::string texturesDirectory = GetSysDirectory(DIRECTORY_TEXTURES) + gameID + "/";
-	if (!PFile::Exists(texturesDirectory)) {
-		PFile::CreateFullPath(texturesDirectory);
+	if (!File::Exists(texturesDirectory)) {
+		File::CreateFullPath(texturesDirectory);
 	}
 
 	if (generatedFilename)
 		*generatedFilename = texturesDirectory + INI_FILENAME;
-	if (PFile::Exists(texturesDirectory + INI_FILENAME))
+	if (File::Exists(texturesDirectory + INI_FILENAME))
 		return true;
 
-	FILE *f = PFile::OpenCFile(texturesDirectory + INI_FILENAME, "wb");
+	FILE *f = File::OpenCFile(texturesDirectory + INI_FILENAME, "wb");
 	if (f) {
 		fwrite("\xEF\xBB\xBF", 0, 3, f);
 		fclose(f);
 
 		// Let's also write some defaults.
 		std::fstream fs;
-		PFile::OpenCPPFile(fs, texturesDirectory + INI_FILENAME, std::ios::out | std::ios::ate);
+		File::OpenCPPFile(fs, texturesDirectory + INI_FILENAME, std::ios::out | std::ios::ate);
 		fs << "# This file is optional and describes your textures.\n";
 		fs << "# Some information on syntax available here:\n";
 		fs << "# https://github.com/hrydgard/ppsspp/wiki/Texture-replacement-ini-syntax\n";
 		fs << "[options]\n";
 		fs << "version = 1\n";
 		fs << "hash = quick\n";
+		fs << "ignoreMipmap = false\n";
+		fs << "\n";
 		fs << "[games]\n";
 		fs << "# Used to make it easier to install, and override settings for other regions.\n";
 		fs << "# Files still have to be copied to each TEXTURES folder.";
@@ -699,5 +707,5 @@ bool TextureReplacer::GenerateIni(const std::string &gameID, std::string *genera
 		fs << "[hashranges]\n";
 		fs.close();
 	}
-	return PFile::Exists(texturesDirectory + INI_FILENAME);
+	return File::Exists(texturesDirectory + INI_FILENAME);
 }

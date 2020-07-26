@@ -44,9 +44,9 @@
 
 #include "preprocessor/PpContext.h"
 
-extern int yyparse(Pglslang::TParseContext*);
+extern int yyparse(glslang::TParseContext*);
 
-namespace Pglslang {
+namespace glslang {
 
 TParseContext::TParseContext(TSymbolTable& symbolTable, TIntermediate& interm, bool parsingBuiltins,
                              int version, EProfile profile, const SpvVersion& spvVersion, EShLanguage language,
@@ -288,7 +288,7 @@ void TParseContext::handlePragma(const TSourceLoc& loc, const TVector<TString>& 
     } else if (spvVersion.spv > 0 && tokens[0].compare("use_variable_pointers") == 0) {
         if (tokens.size() != 1)
             error(loc, "extra tokens", "#pragma", "");
-        if (spvVersion.spv < Pglslang::EShTargetSpv_1_3)
+        if (spvVersion.spv < glslang::EShTargetSpv_1_3)
             error(loc, "requires SPIR-V 1.3", "#pragma use_variable_pointers", "");
         intermediate.setUseVariablePointers();
     } else if (tokens[0].compare("once") == 0) {
@@ -3261,7 +3261,7 @@ void TParseContext::transparentOpaqueCheck(const TSourceLoc& loc, const TType& t
 //
 // Qualifier checks knowing the qualifier and that it is a member of a struct/block.
 //
-void TParseContext::memberQualifierCheck(Pglslang::TPublicType& publicType)
+void TParseContext::memberQualifierCheck(glslang::TPublicType& publicType)
 {
     globalQualifierFixCheck(publicType.loc, publicType.qualifier);
     checkNoShaderLayouts(publicType.loc, publicType.shaderQualifiers);
@@ -3696,7 +3696,7 @@ void TParseContext::arraySizeCheck(const TSourceLoc& loc, TIntermTyped* expr, TA
             if (symbol && symbol->getConstArray().size() > 0)
                 size = symbol->getConstArray()[0].getIConst();
         } else if (expr->getAsUnaryNode() &&
-                   expr->getAsUnaryNode()->getOp() == Pglslang::EOpArrayLength &&
+                   expr->getAsUnaryNode()->getOp() == glslang::EOpArrayLength &&
                    expr->getAsUnaryNode()->getOperand()->getType().isCoopMat()) {
             isConst = true;
             size = 1;
@@ -5197,7 +5197,7 @@ void TParseContext::setLayoutQualifier(const TSourceLoc& loc, TPublicType& publi
         } else {
             publicType.qualifier.layoutSpecConstantId = value;
             publicType.qualifier.specConstant = true;
-            if (! intermediate.PaddUsedConstantId(value))
+            if (! intermediate.addUsedConstantId(value))
                 error(loc, "specialization-constant id already used", id.c_str(), "");
         }
         if (nonLiteral)
@@ -5673,7 +5673,7 @@ void TParseContext::layoutTypeCheck(const TSourceLoc& loc, const TType& type)
         }
 
         bool typeCollision;
-        int repeated = intermediate.PaddUsedLocation(qualifier, type, typeCollision);
+        int repeated = intermediate.addUsedLocation(qualifier, type, typeCollision);
         if (repeated >= 0 && ! typeCollision)
             error(loc, "overlapping use of location", "location", "%d", repeated);
         // "fragment-shader outputs ... if two variables are placed within the same
@@ -5684,7 +5684,7 @@ void TParseContext::layoutTypeCheck(const TSourceLoc& loc, const TType& type)
 
 #ifndef GLSLANG_WEB
     if (qualifier.hasXfbOffset() && qualifier.hasXfbBuffer()) {
-        int repeated = intermediate.PaddXfbBufferOffset(type);
+        int repeated = intermediate.addXfbBufferOffset(type);
         if (repeated >= 0)
             error(loc, "overlapping offsets at", "xfb_offset", "offset %d in buffer %d", repeated, qualifier.layoutXfbBuffer);
 
@@ -6054,7 +6054,7 @@ void TParseContext::fixOffset(const TSourceLoc& loc, TSymbol& symbol)
                     error(loc, "array must be explicitly sized", "atomic_uint", "");
                 }
             }
-            int repeated = intermediate.PaddUsedOffsets(qualifier.layoutBinding, offset, numOffsets);
+            int repeated = intermediate.addUsedOffsets(qualifier.layoutBinding, offset, numOffsets);
             if (repeated >= 0)
                 error(loc, "atomic counters sharing the same offset:", "offset", "%d", repeated);
 
@@ -6934,7 +6934,7 @@ TIntermTyped* TParseContext::constructBuiltIn(const TType& type, TOperator op, T
     // the recursive call work, and avoids the most egregious case of creating integer matrices.
     if (node->getType().isMatrix() && (type.isScalar() || type.isVector()) &&
             type.isFloatingDomain() != node->getType().isFloatingDomain()) {
-        TType transitionType(node->getBasicType(), Pglslang::EvqTemporary, type.getVectorSize(), 0, 0, node->isVector());
+        TType transitionType(node->getBasicType(), glslang::EvqTemporary, type.getVectorSize(), 0, 0, node->isVector());
         TOperator transitionOp = intermediate.mapTypeToConstructorOp(transitionType);
         node = constructBuiltIn(transitionType, transitionOp, node, loc, false);
     }
@@ -7756,7 +7756,7 @@ void TParseContext::fixBlockLocations(const TSourceLoc& loc, TQualifier& qualifi
                     memberQualifier.layoutLocation = nextLocation;
                     memberQualifier.layoutComponent = TQualifier::layoutComponentEnd;
                 }
-                nextLocation = memberQualifier.layoutLocation + intermediate.PcomputeTypeLocationSize(
+                nextLocation = memberQualifier.layoutLocation + intermediate.computeTypeLocationSize(
                                     *typeList[member].type, language);
             }
         }
@@ -8325,5 +8325,5 @@ TIntermNode* TParseContext::addSwitch(const TSourceLoc& loc, TIntermTyped* expre
     return switchNode;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang
 

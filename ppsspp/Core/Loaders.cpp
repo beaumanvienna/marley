@@ -100,17 +100,17 @@ IdentifiedFileType Identify_File(FileLoader *fileLoader) {
 		std::string filename = fileLoader->Path();
 		if (filename.size() > 4) {
 			// Check for existence of EBOOT.PBP, as required for "Directory games".
-			if (PFile::Exists((filename + "/EBOOT.PBP").c_str())) {
+			if (File::Exists((filename + "/EBOOT.PBP").c_str())) {
 				return IdentifiedFileType::PSP_PBP_DIRECTORY;
 			}
 
 			// check if it's a disc directory
-			if (PFile::Exists((filename + "/PSP_GAME").c_str())) {
+			if (File::Exists((filename + "/PSP_GAME").c_str())) {
 				return IdentifiedFileType::PSP_DISC_DIRECTORY;
 			}
 
 			// Not that, okay, let's guess it's a savedata directory if it has a param.sfo...
-			if (PFile::Exists((filename + "/PARAM.SFO").c_str())) {
+			if (File::Exists((filename + "/PARAM.SFO").c_str())) {
 				return IdentifiedFileType::PSP_SAVEDATA_DIRECTORY;
 			}
 		}
@@ -176,7 +176,7 @@ IdentifiedFileType Identify_File(FileLoader *fileLoader) {
 
 		// Let's check if we got pointed to a PBP within such a directory.
 		// If so we just move up and return the directory itself as the game.
-		std::string path = PFile::GetDir(fileLoader->Path());
+		std::string path = File::GetDir(fileLoader->Path());
 		// If loading from memstick...
 		size_t pos = path.find("/PSP/GAME/");
 		if (pos != std::string::npos) {
@@ -258,7 +258,7 @@ bool LoadFile(FileLoader **fileLoaderPtr, std::string *error_string) {
 				}
 				else if (ebootType == IdentifiedFileType::PSP_PS1_PBP) {
 					*error_string = "PS1 EBOOTs are not supported by PPSSPP.";
-					coreState = CORE_ERROR;
+					coreState = CORE_BOOT_ERROR;
 					return false;
 				}
 				std::string path = fileLoader->Path();
@@ -270,7 +270,7 @@ bool LoadFile(FileLoader **fileLoaderPtr, std::string *error_string) {
 				return Load_PSP_ELF_PBP(fileLoader, error_string);
 			} else {
 				*error_string = "No EBOOT.PBP, misidentified game";
-				coreState = CORE_ERROR;
+				coreState = CORE_BOOT_ERROR;
 				return false;
 			}
 		}
@@ -352,6 +352,44 @@ bool LoadFile(FileLoader **fileLoaderPtr, std::string *error_string) {
 		break;
 	}
 
-	coreState = CORE_ERROR;
+	coreState = CORE_BOOT_ERROR;
 	return false;
+}
+
+bool UmdReplace(std::string filepath, std::string &error) {
+	IFileSystem* currentUMD = pspFileSystem.GetSystem("disc0:");
+
+	if (!currentUMD) {
+		error = "has no disc";
+		return false;
+	}
+
+	FileLoader *loadedFile = ConstructFileLoader(filepath);
+
+	if (!loadedFile->Exists()) {
+		delete loadedFile;
+		error = loadedFile->Path() + " doesn't exist";
+		return false;
+	}
+	UpdateLoadedFile(loadedFile);
+
+	loadedFile = ResolveFileLoaderTarget(loadedFile);
+	IdentifiedFileType type = Identify_File(loadedFile);
+
+	switch (type) {
+	case IdentifiedFileType::PSP_ISO:
+	case IdentifiedFileType::PSP_ISO_NP:
+	case IdentifiedFileType::PSP_DISC_DIRECTORY:
+		if (!ReInitMemoryForGameISO(loadedFile)) {
+			error = "reinit memory failed";
+			return false;
+		}
+
+		break;
+	default:
+		error = "Unsupported file type:" + std::to_string((int)type);
+		return false;
+		break;
+	}
+	return true;
 }

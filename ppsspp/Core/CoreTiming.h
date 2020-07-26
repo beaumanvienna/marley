@@ -70,7 +70,7 @@ inline s64 cyclesToUs(s64 cycles) {
 	return (cycles * 1000000) / CPU_HZ;
 }
 
-namespace CoreTiming_P
+namespace CoreTiming
 {
 	void Init();
 	void Shutdown();
@@ -87,7 +87,7 @@ namespace CoreTiming_P
 	int RegisterEvent(const char *name, TimedCallback callback);
 	// For save states.
 	void RestoreRegisterEvent(int event_type, const char *name, TimedCallback callback);
-	void UnregisterAllPEvents();
+	void UnregisterAllEvents();
 
 	// userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from disk,
 	// when we implement state saves.

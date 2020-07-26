@@ -606,7 +606,7 @@ class VertexDecoderJitCache : public ArmGen::ARMXCodeBlock {
 #elif PPSSPP_ARCH(ARM64)
 class VertexDecoderJitCache : public Arm64Gen::ARM64CodeBlock {
 #elif PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
-class VertexDecoderJitCache : public PGen::XCodeBlock {
+class VertexDecoderJitCache : public Gen::XCodeBlock {
 #elif PPSSPP_ARCH(MIPS)
 class VertexDecoderJitCache : public MIPSGen::MIPSCodeBlock {
 #else

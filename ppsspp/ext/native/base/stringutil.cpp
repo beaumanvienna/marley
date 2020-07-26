@@ -1,7 +1,12 @@
+#include "ppsspp_config.h"
 #ifdef _WIN32
 #include <windows.h>
 #undef min
 #undef max
+#endif
+#if PPSSPP_PLATFORM(SWITCH)
+#define _GNU_SOURCE
+#include <stdio.h>
 #endif
 #include <string.h>
 #include <stdarg.h>
@@ -129,7 +134,7 @@ void DataToHexString(const uint8_t *data, size_t size, std::string *output) {
 	buffer.TakeAll(output);
 }
 
-std::string PStringFromFormat(const char* format, ...)
+std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
 	std::string temp = "";
@@ -198,7 +203,7 @@ std::string StripQuotes(const std::string& s)
 }
 
 // For Debugging. Read out an u8 array.
-std::string PArrayToString(const uint8_t *data, uint32_t size, int line_len, bool spaces)
+std::string ArrayToString(const uint8_t *data, uint32_t size, int line_len, bool spaces)
 {
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;
@@ -218,7 +223,7 @@ std::string PArrayToString(const uint8_t *data, uint32_t size, int line_len, boo
 	return oss.str();
 }
 
-bool PTryParse(const std::string &str, uint32_t *const output)
+bool TryParse(const std::string &str, uint32_t *const output)
 {
 	char *endptr = NULL;
 
@@ -249,7 +254,7 @@ bool PTryParse(const std::string &str, uint32_t *const output)
 	return true;
 }
 
-bool PTryParse(const std::string &str, bool *const output)
+bool TryParse(const std::string &str, bool *const output)
 {
 	if ("1" == str || !strcasecmp("true", str.c_str()))
 		*output = true;
@@ -261,7 +266,7 @@ bool PTryParse(const std::string &str, bool *const output)
 	return true;
 }
 
-void PSplitString(const std::string& str, const char delim, std::vector<std::string>& output)
+void SplitString(const std::string& str, const char delim, std::vector<std::string>& output)
 {
 	size_t next = 0;
 	for (size_t pos = 0, len = str.length(); pos < len; ++pos) {

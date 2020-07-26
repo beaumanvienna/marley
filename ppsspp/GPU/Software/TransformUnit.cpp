@@ -27,6 +27,7 @@
 #include "GPU/Software/TransformUnit.h"
 #include "GPU/Software/Clipper.h"
 #include "GPU/Software/Lighting.h"
+#include "GPU/Software/RasterizerRectangle.h"
 
 #define TRANSFORM_BUF_SIZE (65536 * 48)
 
@@ -53,7 +54,7 @@ void SoftwareDrawEngine::DispatchFlush() {
 }
 
 void SoftwareDrawEngine::DispatchSubmitPrim(void *verts, void *inds, GEPrimitiveType prim, int vertexCount, u32 vertTypeID, int cullMode, int *bytesRead) {
-	_assert_msg_(G3D, cullMode == gstate.getCullMode(), "Mixed cull mode not supported.");
+	_assert_msg_(cullMode == gstate.getCullMode(), "Mixed cull mode not supported.");
 	transformUnit.SubmitPrimitive(verts, inds, prim, vertexCount, vertTypeID, bytesRead, this);
 }
 
@@ -319,8 +320,7 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 
 	VertexReader vreader(buf, vtxfmt, vertex_type);
 
-	const int max_vtcs_per_prim = 3;
-	static VertexData data[max_vtcs_per_prim];
+	static VertexData data[4];  // Normally max verts per prim is 3, but we temporarily need 4 to detect rectangles from strips.
 	// This is the index of the next vert in data (or higher, may need modulus.)
 	static int data_index = 0;
 
@@ -375,30 +375,30 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				case GE_PRIM_TRIANGLES:
 				{
 					if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-						PClipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
-						PClipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
+						Clipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
+						Clipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
 					} else if (!gstate.getCullMode()) {
-						PClipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
+						Clipper::ProcessTriangle(data[2], data[1], data[0], data[2]);
 					} else {
-						PClipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
+						Clipper::ProcessTriangle(data[0], data[1], data[2], data[2]);
 					}
 					break;
 				}
 
 				case GE_PRIM_RECTANGLES:
-					PClipper::ProcessRect(data[0], data[1]);
+					Clipper::ProcessRect(data[0], data[1]);
 					break;
 
 				case GE_PRIM_LINES:
-					PClipper::ProcessLine(data[0], data[1]);
+					Clipper::ProcessLine(data[0], data[1]);
 					break;
 
 				case GE_PRIM_POINTS:
-					PClipper::ProcessPoint(data[0]);
+					Clipper::ProcessPoint(data[0]);
 					break;
 
 				default:
-					_dbg_assert_msg_(G3D, false, "Unexpected prim type: %d", prim_type);
+					_dbg_assert_msg_(false, "Unexpected prim type: %d", prim_type);
 				}
 			}
 			break;
@@ -428,7 +428,7 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 					--skip_count;
 				} else {
 					// We already incremented data_index, so data_index & 1 is previous one.
-					PClipper::ProcessLine(data[data_index & 1], data[(data_index & 1) ^ 1]);
+					Clipper::ProcessLine(data[data_index & 1], data[(data_index & 1) ^ 1]);
 				}
 			}
 			break;
@@ -438,6 +438,26 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 		{
 			// Don't draw a triangle when loading the first two vertices.
 			int skip_count = data_index >= 2 ? 0 : 2 - data_index;
+
+			// If index count == 4, check if we can convert to a rectangle.
+			// This is for Darkstalkers (and should speed up many 2D games).
+			if (vertex_count == 4 && gstate.isModeThrough()) {
+				for (int vtx = 0; vtx < 4; ++vtx) {
+					if (indices) {
+						vreader.Goto(ConvertIndex(vtx) - index_lower_bound);
+					}
+					else {
+						vreader.Goto(vtx);
+					}
+					data[vtx] = ReadVertex(vreader);
+				}
+
+				// If a strip is effectively a rectangle, draw it as such!
+				if (Rasterizer::DetectRectangleFromThroughModeStrip(data)) {
+					Clipper::ProcessRect(data[0], data[3]);
+					break;
+				}
+			}
 
 			for (int vtx = 0; vtx < vertex_count; ++vtx) {
 				if (indices) {
@@ -461,14 +481,14 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				}
 
 				if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
-					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else if ((!gstate.getCullMode()) ^ ((data_index - 1) % 2)) {
 					// We need to reverse the vertex order for each second primitive,
 					// but we additionally need to do that for every primitive if CCW cullmode is used.
-					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else {
-					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
 				}
 			}
 			break;
@@ -515,14 +535,14 @@ void TransformUnit::SubmitPrimitive(void* vertices, void* indices, GEPrimitiveTy
 				}
 
 				if (!gstate.isCullEnabled() || gstate.isModeClear()) {
-					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
-					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else if ((!gstate.getCullMode()) ^ ((data_index - 1) % 2)) {
 					// We need to reverse the vertex order for each second primitive,
 					// but we additionally need to do that for every primitive if CCW cullmode is used.
-					PClipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
+					Clipper::ProcessTriangle(data[2], data[1], data[0], data[provoking_index]);
 				} else {
-					PClipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
+					Clipper::ProcessTriangle(data[0], data[1], data[2], data[provoking_index]);
 				}
 			}
 			break;
@@ -544,7 +564,7 @@ bool TransformUnit::GetCurrentSimpleVertices(int count, std::vector<GPUDebugVert
 	u16 indexUpperBound = count - 1;
 
 	if (count > 0 && (gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		const u8 *inds = Memory_P::GetPointer(gstate_c.indexAddr);
+		const u8 *inds = Memory::GetPointer(gstate_c.indexAddr);
 		const u16 *inds16 = (const u16 *)inds;
 		const u32 *inds32 = (const u32 *)inds;
 
@@ -589,10 +609,10 @@ bool TransformUnit::GetCurrentSimpleVertices(int count, std::vector<GPUDebugVert
 	VertexDecoderOptions options{};
 	vdecoder.SetVertexType(gstate.vertType, options);
 
-	if (!Memory_P::IsValidRange(gstate_c.vertexAddr, (indexUpperBound + 1) * vdecoder.VertexSize()))
+	if (!Memory::IsValidRange(gstate_c.vertexAddr, (indexUpperBound + 1) * vdecoder.VertexSize()))
 		return false;
 
-	DrawEngineCommon::NormalizeVertices((u8 *)(&simpleVertices[0]), (u8 *)(&temp_buffer[0]), Memory_P::GetPointer(gstate_c.vertexAddr), &vdecoder, indexLowerBound, indexUpperBound, gstate.vertType);
+	DrawEngineCommon::NormalizeVertices((u8 *)(&simpleVertices[0]), (u8 *)(&temp_buffer[0]), Memory::GetPointer(gstate_c.vertexAddr), &vdecoder, indexLowerBound, indexUpperBound, gstate.vertType);
 
 	float world[16];
 	float view[16];

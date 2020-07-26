@@ -39,7 +39,7 @@
 
 #include "ResourceLimits.h"
 
-namespace Pglslang {
+namespace glslang {
 
 const TBuiltInResource DefaultTBuiltInResource = {
     /* .MaxLights = */ 32,
@@ -491,4 +491,4 @@ void DecodeResourceLimits(TBuiltInResource* resources, char* config)
     }
 }
 
-}  // end namespace Pglslang
+}  // end namespace glslang

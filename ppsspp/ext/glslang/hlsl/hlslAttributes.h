@@ -43,7 +43,7 @@
 #include "../glslang/MachineIndependent/SymbolTable.h"
 #include "hlslScanContext.h"
 
-namespace Pglslang {
+namespace glslang {
 
     class TFunctionDeclarator {
     public:
@@ -54,6 +54,6 @@ namespace Pglslang {
         TVector<HlslToken>* body;
     };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // HLSLATTRIBUTES_H_

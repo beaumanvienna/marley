@@ -36,7 +36,7 @@
 #include "hlslAttributes.h"
 #include "hlslParseHelper.h"
 
-namespace Pglslang {
+namespace glslang {
     // Map the given string to an attribute enum from TAttributeType,
     // or EatNone if invalid.
     TAttributeType HlslParseContext::attributeFromName(const TString& nameSpace, const TString& name) const
@@ -146,4 +146,4 @@ namespace Pglslang {
             return EatNone;
     }
 
-} // end namespace Pglslang
+} // end namespace glslang

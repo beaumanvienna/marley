@@ -78,7 +78,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef PARSER_H
 #define PARSER_H
 
-namespace Pglslang {
+namespace glslang {
 
 // Multi-character tokens
 enum EFixedAtoms {
@@ -174,6 +174,6 @@ enum EFixedAtoms {
     PpAtomLast,
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif /* not PARSER_H */

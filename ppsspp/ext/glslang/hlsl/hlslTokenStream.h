@@ -38,7 +38,7 @@
 
 #include "hlslScanContext.h"
 
-namespace Pglslang {
+namespace glslang {
 
     class HlslTokenStream {
     public:
@@ -52,7 +52,7 @@ namespace Pglslang {
         bool acceptTokenClass(EHlslTokenClass);
         EHlslTokenClass peek() const;
         bool peekTokenClass(EHlslTokenClass) const;
-        Pglslang::TBuiltInVariable mapSemantic(const char* upperCase) { return scanner.mapSemantic(upperCase); }
+        glslang::TBuiltInVariable mapSemantic(const char* upperCase) { return scanner.mapSemantic(upperCase); }
 
         void pushTokenStream(const TVector<HlslToken>* tokens);
         void popTokenStream();
@@ -91,6 +91,6 @@ namespace Pglslang {
         HlslToken popTokenBuffer();
     };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // HLSLTOKENSTREAM_H_

@@ -45,7 +45,7 @@
 
 #include <map>
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Base class for parse helpers.
@@ -231,6 +231,6 @@ private:
     TParseVersions& operator=(const TParseVersions&);
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _PARSE_VERSIONS_INCLUDED_

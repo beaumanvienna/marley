@@ -21,7 +21,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/ChunkFile.h"
 #include "Common/FixedSizeQueue.h"
-#include "Common/Atomics.h"
 
 #ifdef _M_SSE
 #include <emmintrin.h>
@@ -47,17 +46,10 @@
 #include "Core/Util/AudioFormat.h"
 
 StereoResampler resampler;
-AudioDebugStats g_AudioDebugStats;
 
 // Should be used to lock anything related to the outAudioQueue.
 // atomic locks are used on the lock. TODO: make this lock-free
 std::atomic_flag atomicLock_;
-
-enum latency {
-	LOW_LATENCY = 0,
-	MEDIUM_LATENCY = 1,
-	HIGH_LATENCY = 2,
-};
 
 int eventAudioUpdate = -1;
 int eventHostAudioUpdate = -1;
@@ -75,7 +67,7 @@ static int audioHostIntervalCycles;
 static s32 *mixBuffer;
 static s16 *clampedMixBuffer;
 #ifndef MOBILE_DEVICE
-PWaveFileWriter g_wave_writer;
+WaveFileWriter g_wave_writer;
 static bool m_logAudio;
 #endif
 
@@ -86,13 +78,13 @@ static int chanQueueMinSizeFactor;
 
 static void hleAudioUpdate(u64 userdata, int cyclesLate) {
 	// Schedule the next cycle first.  __AudioUpdate() may consume cycles.
-	CoreTiming_P::ScheduleEvent(audioIntervalCycles - cyclesLate, eventAudioUpdate, 0);
+	CoreTiming::ScheduleEvent(audioIntervalCycles - cyclesLate, eventAudioUpdate, 0);
 
 	__AudioUpdate();
 }
 
 static void hleHostAudioUpdate(u64 userdata, int cyclesLate) {
-	CoreTiming_P::ScheduleEvent(audioHostIntervalCycles - cyclesLate, eventHostAudioUpdate, 0);
+	CoreTiming::ScheduleEvent(audioHostIntervalCycles - cyclesLate, eventHostAudioUpdate, 0);
 
 	// Not all hosts need this call to poke their audio system once in a while, but those that don't
 	// can just ignore it.
@@ -106,39 +98,22 @@ static void __AudioCPUMHzChange() {
 
 
 void __AudioInit() {
-	memset(&g_AudioDebugStats, 0, sizeof(g_AudioDebugStats));
+	resampler.ResetStatCounters();
 	mixFrequency = 44100;
 	srcFrequency = 0;
 
-	switch (g_PConfig.iAudioLatency) {
-	case LOW_LATENCY:
-		chanQueueMaxSizeFactor = 1;
-		chanQueueMinSizeFactor = 1;
-		hwBlockSize = 16;
-		hostAttemptBlockSize = 256;
-		break;
-	case MEDIUM_LATENCY:
-		chanQueueMaxSizeFactor = 2;
-		chanQueueMinSizeFactor = 1;
-		hwBlockSize = 64;
-		hostAttemptBlockSize = 512;
-		break;
-	case HIGH_LATENCY:
-		chanQueueMaxSizeFactor = 4;
-		chanQueueMinSizeFactor = 2;
-		hwBlockSize = 64;
-		hostAttemptBlockSize = 512;
-		break;
-
-	}
+	chanQueueMaxSizeFactor = 2;
+	chanQueueMinSizeFactor = 1;
+	hwBlockSize = 64;
+	hostAttemptBlockSize = 512;
 
 	__AudioCPUMHzChange();
 
-	eventAudioUpdate = CoreTiming_P::RegisterEvent("AudioUpdate", &hleAudioUpdate);
-	eventHostAudioUpdate = CoreTiming_P::RegisterEvent("AudioUpdateHost", &hleHostAudioUpdate);
+	eventAudioUpdate = CoreTiming::RegisterEvent("AudioUpdate", &hleAudioUpdate);
+	eventHostAudioUpdate = CoreTiming::RegisterEvent("AudioUpdateHost", &hleHostAudioUpdate);
 
-	CoreTiming_P::ScheduleEvent(audioIntervalCycles, eventAudioUpdate, 0);
-	CoreTiming_P::ScheduleEvent(audioHostIntervalCycles, eventHostAudioUpdate, 0);
+	CoreTiming::ScheduleEvent(audioIntervalCycles, eventAudioUpdate, 0);
+	CoreTiming::ScheduleEvent(audioHostIntervalCycles, eventHostAudioUpdate, 0);
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 
@@ -147,7 +122,7 @@ void __AudioInit() {
 	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
 	resampler.Clear();
-	CoreTiming_P::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
+	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
 void __AudioDoState(PointerWrap &p) {
@@ -156,9 +131,9 @@ void __AudioDoState(PointerWrap &p) {
 		return;
 
 	p.Do(eventAudioUpdate);
-	CoreTiming_P::RestoreRegisterEvent(eventAudioUpdate, "AudioUpdate", &hleAudioUpdate);
+	CoreTiming::RestoreRegisterEvent(eventAudioUpdate, "AudioUpdate", &hleAudioUpdate);
 	p.Do(eventHostAudioUpdate);
-	CoreTiming_P::RestoreRegisterEvent(eventHostAudioUpdate, "AudioUpdateHost", &hleHostAudioUpdate);
+	CoreTiming::RestoreRegisterEvent(eventHostAudioUpdate, "AudioUpdateHost", &hleHostAudioUpdate);
 
 	p.Do(mixFrequency);
 	if (s >= 2) {
@@ -203,7 +178,7 @@ void __AudioShutdown() {
 		chans[i].clear();
 
 #ifndef MOBILE_DEVICE
-	if (g_PConfig.bDumpAudio) {
+	if (g_Config.bDumpAudio) {
 		__StopLogAudio();
 	}
 #endif
@@ -261,10 +236,10 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		size_t sz1, sz2;
 		chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-		if (Memory_P::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
-			Memory_P::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
+		if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+			Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
 			if (buf2)
-				Memory_P::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
+				Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
 		}
 	} else {
 		// Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
@@ -275,10 +250,10 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		if (chan.format == PSP_AUDIO_FORMAT_STEREO) {
 			const u32 totalSamples = chan.sampleCount * 2;
 
-			s16_le *sampleData = (s16_le *) Memory_P::GetPointer(chan.sampleAddress);
+			s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
 
 			// Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
-			if (Memory_P::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+			if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
 				s16 *buf1 = 0, *buf2 = 0;
 				size_t sz1, sz2;
 				chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
@@ -290,7 +265,7 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		} else if (chan.format == PSP_AUDIO_FORMAT_MONO) {
 			// Rare, so unoptimized. Expands to stereo.
 			for (u32 i = 0; i < chan.sampleCount; i++) {
-				s16 sample = (s16)Memory_P::PRead_U16(chan.sampleAddress + 2 * i);
+				s16 sample = (s16)Memory::Read_U16(chan.sampleAddress + 2 * i);
 				chan.sampleQueue.push(ApplySampleVolume(sample, leftVol));
 				chan.sampleQueue.push(ApplySampleVolume(sample, rightVol));
 			}
@@ -437,33 +412,33 @@ void __AudioUpdate(bool resetRecording) {
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 	}
 
-	if (g_PConfig.bEnableSound) {
+	if (g_Config.bEnableSound) {
 		resampler.PushSamples(mixBuffer, hwBlockSize);
 #ifndef MOBILE_DEVICE
-		if (g_PConfig.bSaveLoadResetsAVdumping && resetRecording) {
+		if (g_Config.bSaveLoadResetsAVdumping && resetRecording) {
 			__StopLogAudio();
 			std::string discID = g_paramSFO.GetDiscID();
-			std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+			std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 			INFO_LOG(COMMON, "Restarted audio recording to: %s", audio_file_name.c_str());
-			if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
-				PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
-			PFile::CreateEmptyFile(audio_file_name);
+			if (!File::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
+				File::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
+			File::CreateEmptyFile(audio_file_name);
 			__StartLogAudio(audio_file_name);
 		}
 		if (!m_logAudio) {
-			if (g_PConfig.bDumpAudio) {
+			if (g_Config.bDumpAudio) {
 				// Use gameID_EmulatedTimestamp for filename
 				std::string discID = g_paramSFO.GetDiscID();
-				std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+				std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 				INFO_LOG(COMMON,"Recording audio to: %s", audio_file_name.c_str());
 				// Create the path just in case it doesn't exist
-				if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
-					PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
-				PFile::CreateEmptyFile(audio_file_name);
+				if (!File::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
+					File::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
+				File::CreateEmptyFile(audio_file_name);
 				__StartLogAudio(audio_file_name);
 			}
 		} else {
-			if (g_PConfig.bDumpAudio) {
+			if (g_Config.bDumpAudio) {
 				for (int i = 0; i < hwBlockSize * 2; i++) {
 					clampedMixBuffer[i] = clamp_s16(mixBuffer[i]);
 				}
@@ -482,9 +457,8 @@ int __AudioMix(short *outstereo, int numFrames, int sampleRate) {
 	return resampler.Mix(outstereo, numFrames, false, sampleRate);
 }
 
-const AudioDebugStats *__AudioGetDebugStats() {
-	resampler.GetAudioDebugStats(&g_AudioDebugStats);
-	return &g_AudioDebugStats;
+void __AudioGetDebugStats(char *buf, size_t bufSize) {
+	resampler.GetAudioDebugStats(buf, bufSize);
 }
 
 void __PushExternalAudio(const s32 *audio, int numSamples) {

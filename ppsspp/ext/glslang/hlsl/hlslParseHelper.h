@@ -42,7 +42,7 @@
 
 #include <array>
 
-namespace Pglslang {
+namespace glslang {
 
 class TFunctionDeclarator;
 
@@ -105,10 +105,10 @@ public:
     void builtInOpCheck(const TSourceLoc&, const TFunction&, TIntermOperator&);
     TFunction* makeConstructorCall(const TSourceLoc&, const TType&);
     void handleSemantic(TSourceLoc, TQualifier&, TBuiltInVariable, const TString& upperCase);
-    void handlePackOffset(const TSourceLoc&, TQualifier&, const Pglslang::TString& location,
-                          const Pglslang::TString* component);
-    void handleRegister(const TSourceLoc&, TQualifier&, const Pglslang::TString* profile, const Pglslang::TString& desc,
-                        int subComponent, const Pglslang::TString*);
+    void handlePackOffset(const TSourceLoc&, TQualifier&, const glslang::TString& location,
+                          const glslang::TString* component);
+    void handleRegister(const TSourceLoc&, TQualifier&, const glslang::TString* profile, const glslang::TString& desc,
+                        int subComponent, const glslang::TString*);
     TIntermTyped* convertConditionalExpression(const TSourceLoc&, TIntermTyped*, bool mustBeScalar = true);
     TIntermAggregate* handleSamplerTextureCombine(const TSourceLoc& loc, TIntermTyped* argTex, TIntermTyped* argSampler);
 
@@ -509,6 +509,6 @@ protected:
 // require changing the scanner.
 #define BUILTIN_PREFIX "__BI_"
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // HLSL_PARSE_INCLUDED_

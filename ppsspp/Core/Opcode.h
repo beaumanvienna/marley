@@ -21,7 +21,7 @@
 
 // Broken out of MemMap.h to avoid a bad include dependency.
 
-namespace Memory_P {
+namespace Memory {
 
 struct Opcode {
 	Opcode() {

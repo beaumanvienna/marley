@@ -46,7 +46,7 @@
 // Default include class for normal include convention of search backward
 // through the stack of active include paths (for nested includes).
 // Can be overridden to customize.
-class DirStackFileIncluder : public Pglslang::TShader::Includer {
+class DirStackFileIncluder : public glslang::TShader::Includer {
 public:
     DirStackFileIncluder() : externalLocalDirectoryCount(0) { }
 

@@ -34,7 +34,7 @@
 
 #include "TestFixture.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 
 std::string FileNameAsCustomTestSuffix(
     const ::testing::TestParamInfo<std::string>& info)
@@ -177,4 +177,4 @@ std::string GetSuffix(const std::string& name)
     return (pos == std::string::npos) ? "" : name.substr(name.rfind('.') + 1);
 }
 
-}  // namespace Pglslangtest
+}  // namespace glslangtest

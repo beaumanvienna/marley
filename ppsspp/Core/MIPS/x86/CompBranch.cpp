@@ -20,8 +20,9 @@
 
 #include "profiler/profiler.h"
 
-#include "Core/Reporting.h"
 #include "Core/Config.h"
+#include "Core/Core.h"
+#include "Core/Reporting.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/HLETables.h"
 #include "Core/Host.h"
@@ -75,7 +76,7 @@ using namespace MIPSAnalyst;
 
 namespace MIPSComp
 {
-using namespace PGen;
+using namespace Gen;
 
 static void JitBranchLog(MIPSOpcode op, u32 pc) {
 	currentMIPS->pc = pc;
@@ -120,16 +121,16 @@ void Jit::BranchLogExit(MIPSOpcode op, u32 dest, bool useEAX)
 {
 	OpArg destArg = useEAX ? R(EAX) : Imm32(dest);
 
-	PCMP(32, MIPSSTATE_VAR(intBranchExit), destArg);
-	FixupBranch skip = PJ_CC(CC_E);
+	CMP(32, MIPSSTATE_VAR(intBranchExit), destArg);
+	FixupBranch skip = J_CC(CC_E);
 
-	PMOV(32, MIPSSTATE_VAR(jitBranchExit), destArg);
+	MOV(32, MIPSSTATE_VAR(jitBranchExit), destArg);
 	ABI_CallFunctionCC(thunks.ProtectFunction(&JitBranchLogMismatch), op.encoding, GetCompilerPC());
 	// Restore EAX, we probably ruined it.
 	if (useEAX)
-		PMOV(32, R(EAX), MIPSSTATE_VAR(jitBranchExit));
+		MOV(32, R(EAX), MIPSSTATE_VAR(jitBranchExit));
 
-	PSetJumpTarget(skip);
+	SetJumpTarget(skip);
 }
 
 CCFlags Jit::FlipCCFlag(CCFlags flag)
@@ -205,18 +206,18 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 		if (predictTakeBranch)
 			cc = FlipCCFlag(cc);
 
-		PGen::FixupBranch ptr;
+		Gen::FixupBranch ptr;
 		RegCacheState state;
 		if (!likely)
 		{
 			if (!delaySlotIsNice)
 				CompileDelaySlot(DELAYSLOT_SAFE);
-			ptr = PJ_CC(cc, true);
+			ptr = J_CC(cc, true);
 			GetStateAndFlushAll(state);
 		}
 		else
 		{
-			ptr = PJ_CC(cc, true);
+			ptr = J_CC(cc, true);
 			if (predictTakeBranch)
 				GetStateAndFlushAll(state);
 			else
@@ -235,7 +236,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 			WriteExit(notTakenAddr, js.nextExit++);
 
 			// Now our taken path.  Bring the regs back, we didn't flush 'em after all.
-			PSetJumpTarget(ptr);
+			SetJumpTarget(ptr);
 			RestoreState(state);
 			CONDITIONAL_LOG_EXIT(targetAddr);
 
@@ -256,7 +257,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 			WriteExit(targetAddr, js.nextExit++);
 
 			// Not taken
-			PSetJumpTarget(ptr);
+			SetJumpTarget(ptr);
 			RestoreState(state);
 			CONDITIONAL_LOG_EXIT(notTakenAddr);
 
@@ -268,19 +269,19 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 	}
 	else
 	{
-		PGen::FixupBranch ptr;
+		Gen::FixupBranch ptr;
 		if (!likely)
 		{
 			if (!delaySlotIsNice)
 				CompileDelaySlot(DELAYSLOT_SAFE_FLUSH);
 			else
 				FlushAll();
-			ptr = PJ_CC(cc, true);
+			ptr = J_CC(cc, true);
 		}
 		else
 		{
 			FlushAll();
-			ptr = PJ_CC(cc, true);
+			ptr = J_CC(cc, true);
 			CompileDelaySlot(DELAYSLOT_FLUSH);
 		}
 
@@ -289,7 +290,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 		WriteExit(targetAddr, js.nextExit++);
 
 		// Not taken
-		PSetJumpTarget(ptr);
+		SetJumpTarget(ptr);
 		CONDITIONAL_LOG_EXIT(notTakenAddr);
 		WriteExit(notTakenAddr, js.nextExit++);
 		js.compiling = false;
@@ -311,7 +312,7 @@ void Jit::CompBranchExit(bool taken, u32 targetAddr, u32 notTakenAddr, bool dela
 	js.compiling = false;
 }
 
-void Jit::BranchRSRTComp(MIPSOpcode op, PGen::CCFlags cc, bool likely)
+void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -335,7 +336,7 @@ void Jit::BranchRSRTComp(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 		{
 		case CC_E: immBranchNotTaken = rsImm == rtImm; break;
 		case CC_NE: immBranchNotTaken = rsImm != rtImm; break;
-		default: immBranchNotTaken = false; _dbg_assert_msg_(JIT, false, "Bad cc flag in BranchRSRTComp().");
+		default: immBranchNotTaken = false; _dbg_assert_msg_(false, "Bad cc flag in BranchRSRTComp().");
 		}
 		immBranch = true;
 		immBranchTaken = !immBranchNotTaken;
@@ -375,19 +376,19 @@ void Jit::BranchRSRTComp(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 		if (gpr.IsImm(rt) && gpr.GetImm(rt) == 0)
 		{
 			gpr.KillImmediate(rs, true, false);
-			PCMP(32, gpr.R(rs), Imm32(0));
+			CMP(32, gpr.R(rs), Imm32(0));
 		}
 		else
 		{
 			gpr.MapReg(rs, true, false);
-			PCMP(32, gpr.R(rs), gpr.R(rt));
+			CMP(32, gpr.R(rs), gpr.R(rt));
 		}
 
 		CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, false);
 	}
 }
 
-void Jit::BranchRSZeroComp(MIPSOpcode op, PGen::CCFlags cc, bool andLink, bool likely)
+void Jit::BranchRSZeroComp(MIPSOpcode op, Gen::CCFlags cc, bool andLink, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -411,7 +412,7 @@ void Jit::BranchRSZeroComp(MIPSOpcode op, PGen::CCFlags cc, bool andLink, bool l
 		case CC_GE: immBranchNotTaken = imm >= 0; break;
 		case CC_L: immBranchNotTaken = imm < 0; break;
 		case CC_LE: immBranchNotTaken = imm <= 0; break;
-		default: immBranchNotTaken = false; _dbg_assert_msg_(JIT, false, "Bad cc flag in BranchRSZeroComp().");
+		default: immBranchNotTaken = false; _dbg_assert_msg_(false, "Bad cc flag in BranchRSZeroComp().");
 		}
 		immBranch = true;
 		immBranchTaken = !immBranchNotTaken;
@@ -454,7 +455,7 @@ void Jit::BranchRSZeroComp(MIPSOpcode op, PGen::CCFlags cc, bool andLink, bool l
 			CompileDelaySlot(DELAYSLOT_NICE);
 
 		gpr.MapReg(rs, true, false);
-		PCMP(32, gpr.R(rs), Imm32(0));
+		CMP(32, gpr.R(rs), Imm32(0));
 
 		CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, andLink);
 	}
@@ -478,7 +479,7 @@ void Jit::Comp_RelBranch(MIPSOpcode op)
 	case 23: BranchRSZeroComp(op, CC_LE, false, true); break;//bgtzl
 
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to compile instruction that can't be compiled");
+		_dbg_assert_msg_(false,"Trying to compile instruction that can't be compiled");
 		break;
 	}
 }
@@ -496,14 +497,14 @@ void Jit::Comp_RelBranchRI(MIPSOpcode op)
 	case 18: BranchRSZeroComp(op, CC_GE, true, true);  break; //R(MIPS_REG_RA) = PC + 8; if ((s32)R(rs) <  0) DelayBranchTo(addr); else SkipLikely(); break;//bltzall
 	case 19: BranchRSZeroComp(op, CC_L, true, true);   break; //R(MIPS_REG_RA) = PC + 8; if ((s32)R(rs) >= 0) DelayBranchTo(addr); else SkipLikely(); break;//bgezall
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to compile instruction that can't be compiled");
+		_dbg_assert_msg_(false,"Trying to compile instruction that can't be compiled");
 		break;
 	}
 }
 
 
 // If likely is set, discard the branch slot if NOT taken.
-void Jit::BranchFPFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
+void Jit::BranchFPFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -520,7 +521,7 @@ void Jit::BranchFPFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 		CompileDelaySlot(DELAYSLOT_NICE);
 
 	gpr.KillImmediate(MIPS_REG_FPCOND, true, false);
-	P_TEST(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
+	TEST(32, gpr.R(MIPS_REG_FPCOND), Imm32(1));
 
 	CompBranchExits(cc, targetAddr, GetCompilerPC() + 8, delaySlotIsNice, likely, false);
 }
@@ -535,13 +536,13 @@ void Jit::Comp_FPUBranch(MIPSOpcode op)
 	case 2: BranchFPFlag(op, CC_NZ, true);	break; //bc1fl
 	case 3: BranchFPFlag(op, CC_Z,	true);	break; //bc1tl
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+		_dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 		break;
 	}
 }
 
 // If likely is set, discard the branch slot if NOT taken.
-void Jit::BranchVFPUFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
+void Jit::BranchVFPUFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -570,7 +571,7 @@ void Jit::BranchVFPUFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 	int imm3 = (op >> 18) & 7;
 
 	gpr.KillImmediate(MIPS_REG_VFPUCC, true, false);
-	P_TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << imm3));
+	TEST(32, gpr.R(MIPS_REG_VFPUCC), Imm32(1 << imm3));
 
 	u32 notTakenTarget = GetCompilerPC() + (delaySlotIsBranch ? 4 : 8);
 	CompBranchExits(cc, targetAddr, notTakenTarget, delaySlotIsNice, likely, false);
@@ -586,9 +587,13 @@ void Jit::Comp_VBranch(MIPSOpcode op)
 	case 2: BranchVFPUFlag(op, CC_NZ, true);	break; //bvfl
 	case 3: BranchVFPUFlag(op, CC_Z,	true);	break; //bvtl
 	default:
-		_dbg_assert_msg_(CPU,0,"Comp_VBranch: Invalid instruction");
+		_dbg_assert_msg_(false,"Comp_VBranch: Invalid instruction");
 		break;
 	}
+}
+
+static void HitInvalidJump(uint32_t dest) {
+	Core_ExecException(dest, currentMIPS->pc - 8, ExecExceptionType::JUMP);
 }
 
 void Jit::Comp_Jump(MIPSOpcode op) {
@@ -601,13 +606,19 @@ void Jit::Comp_Jump(MIPSOpcode op) {
 	u32 targetAddr = (GetCompilerPC() & 0xF0000000) | off;
 
 	// Might be a stubbed address or something?
-	if (!Memory_P::IsValidAddress(targetAddr)) {
+	if (!Memory::IsValidAddress(targetAddr)) {
 		if (js.nextExit == 0) {
 			ERROR_LOG_REPORT(JIT, "Jump to invalid address: %08x PC %08x LR %08x", targetAddr, GetCompilerPC(), currentMIPS->r[MIPS_REG_RA]);
 		} else {
 			js.compiling = false;
 		}
 		// TODO: Mark this block dirty or something?  May be indication it will be changed by imports.
+
+		CompileDelaySlot(DELAYSLOT_NICE);
+		FlushAll();
+		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 8));
+		ABI_CallFunctionC(&HitInvalidJump, targetAddr);
+		WriteSyscallExit();
 		return;
 	}
 
@@ -654,7 +665,7 @@ void Jit::Comp_Jump(MIPSOpcode op) {
 		break;
 
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to compile instruction that can't be compiled");
+		_dbg_assert_msg_(false,"Trying to compile instruction that can't be compiled");
 		break;
 	}
 	js.compiling = false;
@@ -682,13 +693,13 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 	{
 		// If this is a syscall, write the pc (for thread switching and other good reasons.)
 		gpr.MapReg(rs, true, false);
-		PMOV(32, MIPSSTATE_VAR(pc), gpr.R(rs));
+		MOV(32, MIPSSTATE_VAR(pc), gpr.R(rs));
 		if (andLink)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_FLUSH);
 
 		// Syscalls write the exit code for us.
-		_dbg_assert_msg_(JIT, !js.compiling, "Expected syscall to write an exit code.");
+		_dbg_assert_msg_(!js.compiling, "Expected syscall to write an exit code.");
 		return;
 	}
 	else if (delaySlotIsNice)
@@ -697,7 +708,7 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
 
-		if (!andLink && rs == MIPS_REG_RA && g_PConfig.bDiscardRegsOnJRRA) {
+		if (!andLink && rs == MIPS_REG_RA && g_Config.bDiscardRegsOnJRRA) {
 			// According to the MIPS ABI, there are some regs we don't need to preserve.
 			// Let's discard them so we don't need to write them back.
 			// NOTE: Not all games follow the MIPS ABI! Tekken 6, for example, will crash
@@ -722,17 +733,17 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 		if (gpr.R(rs).IsSimpleReg()) {
 			destReg = gpr.R(rs).GetSimpleReg();
 		} else {
-			PMOV(32, R(EAX), gpr.R(rs));
+			MOV(32, R(EAX), gpr.R(rs));
 		}
 		FlushAll();
 	} else {
 		// Latch destination now - save it in memory.
 		gpr.MapReg(rs, true, false);
-		PMOV(32, MIPSSTATE_VAR(savedPC), gpr.R(rs));
+		MOV(32, MIPSSTATE_VAR(savedPC), gpr.R(rs));
 		if (andLink)
 			gpr.SetImm(rd, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
-		PMOV(32, R(EAX), MIPSSTATE_VAR(savedPC));
+		MOV(32, R(EAX), MIPSSTATE_VAR(savedPC));
 		FlushAll();
 	}
 
@@ -742,7 +753,7 @@ void Jit::Comp_JumpReg(MIPSOpcode op)
 	case 9: //jalr
 		break;
 	default:
-		_dbg_assert_msg_(CPU,0,"Trying to compile instruction that can't be compiled");
+		_dbg_assert_msg_(false,"Trying to compile instruction that can't be compiled");
 		break;
 	}
 
@@ -757,7 +768,7 @@ void Jit::Comp_Syscall(MIPSOpcode op)
 		WARN_LOG(JIT, "Encountered bad syscall instruction at %08x (%08x)", js.compilerPC, op.encoding);
 	}
 
-	if (!g_PConfig.bSkipDeadbeefFilling)
+	if (!g_Config.bSkipDeadbeefFilling)
 	{
 		// All of these will be overwritten with DEADBEEF anyway.
 		gpr.DiscardR(MIPS_REG_COMPILER_SCRATCH);
@@ -781,7 +792,7 @@ void Jit::Comp_Syscall(MIPSOpcode op)
 	js.downcountAmount = -offset;
 
 	if (!js.inDelaySlot) {
-		PMOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 4));
+		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC() + 4));
 	}
 
 #ifdef USE_PROFILER

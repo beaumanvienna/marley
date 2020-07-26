@@ -33,7 +33,7 @@ std::string GetCPUString()
 	std::string line, marker = "Hardware\t: ";
 	std::string cpu_string = "Unknown";
 	std::fstream file;
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return cpu_string;
 	
 	while (std::getline(file, line))
@@ -54,7 +54,7 @@ unsigned char GetCPUImplementer()
 	unsigned char implementer = 0;
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 
 	while (std::getline(file, line))
@@ -76,7 +76,7 @@ unsigned short GetCPUPart()
 	unsigned short part = 0;
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 
 	while (std::getline(file, line))
@@ -97,7 +97,7 @@ bool CheckCPUASE(const std::string& ase)
 	std::string line, marker = "ASEs implemented\t: ";
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 	
 	while (std::getline(file, line))
@@ -123,7 +123,7 @@ int GetCoreCount()
 	int cores = 1;
 	std::fstream file;
 
-	if (PFile::OpenCPPFile(file, syscpupresentfile, std::ios::in))
+	if (File::OpenCPPFile(file, syscpupresentfile, std::ios::in))
 	{
 		int low, high, found;
 		std::getline(file, line);
@@ -134,7 +134,7 @@ int GetCoreCount()
 			return high - low + 1;
 	}
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 1;
 	
 	while (std::getline(file, line))
@@ -189,9 +189,9 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = PStringFromFormat("%s, %i core", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
 	else
-		sum = PStringFromFormat("%s, %i cores", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
 	if (bXBurst1) sum += ", XBurst1";
 	if (bXBurst2) sum += ", XBurst2";
 	if (CPU64bit) sum += ", 64-bit";

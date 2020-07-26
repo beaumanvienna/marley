@@ -14,9 +14,40 @@
 #include <thread>
 #include <atomic>
 
+#ifndef _MSC_VER
 #include <jni.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
+#elif !defined(JNIEXPORT)
+// Just for better highlighting in MSVC if opening this file.
+// Not having types makes it get confused and say everything is wrong.
+struct JavaVM;
+typedef void *jmethodID;
+typedef void *jfieldID;
+
+typedef uint8_t jboolean;
+typedef int8_t jbyte;
+typedef int16_t jshort;
+typedef int32_t jint;
+typedef int64_t jlong;
+typedef jint jsize;
+typedef float jfloat;
+typedef double jdouble;
+
+class _jobject {};
+class _jclass : public _jobject {};
+typedef _jobject *jobject;
+typedef _jclass *jclass;
+typedef jobject jstring;
+typedef jobject jbyteArray;
+
+struct JNIEnv {};
+
+#define JNIEXPORT
+#define JNICALL
+// Just a random value to make MSVC highlighting happy.
+#define JNI_VERSION_1_6 16
+#endif
 
 #include "base/basictypes.h"
 #include "base/stringutil.h"
@@ -46,6 +77,8 @@
 #include "Core/ConfigValues.h"
 #include "Core/Loaders.h"
 #include "Core/System.h"
+#include "Core/HLE/sceUsbCam.h"
+#include "Core/HLE/sceUsbGps.h"
 #include "Common/CPUDetect.h"
 #include "Common/Log.h"
 #include "UI/GameInfoCache.h"
@@ -116,11 +149,17 @@ JavaVM* gJvm = nullptr;
 static jobject gClassLoader;
 static jmethodID gFindClassMethod;
 
+static float g_safeInsetLeft = 0.0;
+static float g_safeInsetRight = 0.0;
+static float g_safeInsetTop = 0.0;
+static float g_safeInsetBottom = 0.0;
 
 static jmethodID postCommand;
 static jobject nativeActivity;
 static volatile bool exitRenderLoop;
 static bool renderLoopRunning;
+static int inputBoxSequence = 1;
+std::map<int, std::function<void(bool, const std::string &)>> inputBoxCallbacks;
 
 static float dp_xscale = 1.0f;
 static float dp_yscale = 1.0f;
@@ -301,8 +340,23 @@ int System_GetPropertyInt(SystemProperty prop) {
 		return optimalSampleRate;
 	case SYSPROP_AUDIO_OPTIMAL_FRAMES_PER_BUFFER:
 		return optimalFramesPerBuffer;
+	default:
+		return -1;
+	}
+}
+
+float System_GetPropertyFloat(SystemProperty prop) {
+	switch (prop) {
 	case SYSPROP_DISPLAY_REFRESH_RATE:
-		return (int)(display_hz * 1000.0);
+		return display_hz;
+	case SYSPROP_DISPLAY_SAFE_INSET_LEFT:
+		return g_safeInsetLeft;
+	case SYSPROP_DISPLAY_SAFE_INSET_RIGHT:
+		return g_safeInsetRight;
+	case SYSPROP_DISPLAY_SAFE_INSET_TOP:
+		return g_safeInsetTop;
+	case SYSPROP_DISPLAY_SAFE_INSET_BOTTOM:
+		return g_safeInsetBottom;
 	default:
 		return -1;
 	}
@@ -376,6 +430,64 @@ extern "C" jstring Java_org_ppsspp_ppsspp_NativeApp_queryConfig
 	return jresult;
 }
 
+static void parse_args(std::vector<std::string> &args, const std::string value) {
+	// Simple argument parser so we can take args from extra params.
+	const char *p = value.c_str();
+
+	while (*p != '\0') {
+		while (isspace(*p)) {
+			p++;
+		}
+		if (*p == '\0') {
+			break;
+		}
+
+		bool done = false;
+		bool quote = false;
+		std::string arg;
+
+		while (!done) {
+			size_t sz = strcspn(p, "\"\\ \r\n\t");
+			arg += std::string(p, sz);
+			p += sz;
+
+			switch (*p) {
+			case '"':
+				quote = !quote;
+				p++;
+				break;
+
+			case '\\':
+				p++;
+				arg += std::string(p, 1);
+				p++;
+				break;
+
+			case '\0':
+				done = true;
+				break;
+
+			default:
+				// If it's not the above, it's whitespace.
+				if (!quote) {
+					done = true;
+				} else {
+					sz = strspn(p, " \r\n\t");
+					arg += std::string(p, sz);
+					p += sz;
+				}
+				break;
+			}
+		}
+
+		args.push_back(arg);
+
+		while (isspace(*p)) {
+			p++;
+		}
+	}
+}
+
 extern "C" void Java_org_ppsspp_ppsspp_NativeApp_init
 	(JNIEnv *env, jclass, jstring jmodel, jint jdeviceType, jstring jlangRegion, jstring japkpath,
 		jstring jdataDir, jstring jexternalDir, jstring jlibraryDir, jstring jcacheDir, jstring jshortcutParam,
@@ -432,23 +544,27 @@ extern "C" void Java_org_ppsspp_ppsspp_NativeApp_init
 
 	NativeGetAppInfo(&app_name, &app_nice_name, &landscape, &version);
 
-	// If shortcut_param is not empty, pass it as additional varargs argument to NativeInit() method.
+	// If shortcut_param is not empty, pass it as additional arguments to the NativeInit() method.
 	// NativeInit() is expected to treat extra argument as boot_filename, which in turn will start game immediately.
 	// NOTE: Will only work if ppsspp started from Activity.onCreate(). Won't work if ppsspp app start from onResume().
 
-	if (shortcut_param.empty()) {
-		const char *argv[2] = {app_name.c_str(), 0};
-		NativeInit(1, argv, user_data_path.c_str(), externalDir.c_str(), cacheDir.c_str());
-	} else {
-		const char *argv[3] = {app_name.c_str(), shortcut_param.c_str(), 0};
-		NativeInit(2, argv, user_data_path.c_str(), externalDir.c_str(), cacheDir.c_str());
+	std::vector<const char *> args;
+	std::vector<std::string> temp;
+	args.push_back(app_name.c_str());
+	if (!shortcut_param.empty()) {
+		parse_args(temp, shortcut_param);
+		for (const auto &arg : temp) {
+			args.push_back(arg.c_str());
+		}
 	}
+
+	NativeInit((int)args.size(), &args[0], user_data_path.c_str(), externalDir.c_str(), cacheDir.c_str());
 
 retry:
 	// Now that we've loaded config, set javaGL.
 	javaGL = NativeQueryConfig("androidJavaGL") == "true";
 
-	switch (g_PConfig.iGPUBackend) {
+	switch (g_Config.iGPUBackend) {
 	case (int)GPUBackend::OPENGL:
 		useCPUThread = true;
 		if (javaGL) {
@@ -466,7 +582,7 @@ retry:
 		AndroidVulkanContext *ctx = new AndroidVulkanContext();
 		if (!ctx->InitAPI()) {
 			ILOG("Failed to initialize Vulkan, switching to OpenGL");
-			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
+			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
 			SetGPUBackend(GPUBackend::OPENGL);
 			goto retry;
 		} else {
@@ -475,8 +591,8 @@ retry:
 		break;
 	}
 	default:
-		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_PConfig.iGPUBackend);
-		g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
+		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_Config.iGPUBackend);
+		g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
 		goto retry;
 		// Crash();
 	}
@@ -563,6 +679,7 @@ extern "C" void Java_org_ppsspp_ppsspp_NativeApp_shutdown(JNIEnv *, jclass) {
 		ILOG("Not shutting down renderer - not initialized");
 	}
 
+	inputBoxCallbacks.clear();
 	NativeShutdown();
 	VFSShutdown();
 	while (frameCommands.size())
@@ -658,6 +775,41 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_backbufferResize(JNIEnv
 	}
 }
 
+void System_InputBoxGetString(const std::string &title, const std::string &defaultValue, std::function<void(bool, const std::string &)> cb) {
+	int seq = inputBoxSequence++;
+	inputBoxCallbacks[seq] = cb;
+
+	std::string serialized = StringFromFormat("%d:@:%s:@:%s", seq, title.c_str(), defaultValue.c_str());
+	System_SendMessage("inputbox", serialized.c_str());
+}
+
+extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendInputBox(JNIEnv *env, jclass, jstring jseqID, jboolean result, jstring jvalue) {
+	std::string seqID = GetJavaString(env, jseqID);
+	std::string value = GetJavaString(env, jvalue);
+
+	static std::string lastSeqID = "";
+	if (lastSeqID == seqID) {
+		// We send this on dismiss, so twice in many cases.
+		DLOG("Ignoring duplicate sendInputBox");
+		return;
+	}
+	lastSeqID = seqID;
+
+	int seq = 0;
+	if (!TryParse(seqID, &seq)) {
+		ELOG("Invalid inputbox seqID value: %s", seqID.c_str());
+		return;
+	}
+
+	auto entry = inputBoxCallbacks.find(seq);
+	if (entry == inputBoxCallbacks.end()) {
+		ELOG("Did not find inputbox callback for %s, shutdown?", seqID.c_str());
+		return;
+	}
+
+	NativeInputBoxReceived(entry->second, result, value);
+}
+
 void UpdateRunLoopAndroid(JNIEnv *env) {
 	NativeUpdate();
 
@@ -680,7 +832,7 @@ extern "C" void Java_org_ppsspp_ppsspp_NativeRenderer_displayRender(JNIEnv *env,
 		hasSetThreadName = true;
 		setCurrentThreadName("AndroidRender");
 	}
-	
+
 	if (useCPUThread) {
 		// This is the "GPU thread".
 		if (graphicsContext)
@@ -776,7 +928,7 @@ extern "C" jboolean Java_org_ppsspp_ppsspp_NativeApp_joystickAxis(
 	axis.deviceId = deviceId;
 	axis.value = value;
 
-	float sensitivity = g_PConfig.fXInputAnalogSensitivity;
+	float sensitivity = g_Config.fXInputAnalogSensitivity;
 	axis.value *= sensitivity;
 
 	return NativeAxis(axis);
@@ -836,6 +988,16 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendMessage(JNIEnv *env
 		permissions[SYSTEM_PERMISSION_STORAGE] = PERMISSION_STATUS_GRANTED;
 	} else if (msg == "sustained_perf_supported") {
 		sustainedPerfSupported = true;
+	} else if (msg == "safe_insets") {
+		ILOG("Got insets: %s", prm.c_str());
+		// We don't bother with supporting exact rectangular regions. Safe insets are good enough.
+		int left, right, top, bottom;
+		if (4 == sscanf(prm.c_str(), "%d:%d:%d:%d", &left, &right, &top, &bottom)) {
+			g_safeInsetLeft = (float)left * g_dpi_scale_x;
+			g_safeInsetRight = (float)right * g_dpi_scale_x;
+			g_safeInsetTop = (float)top * g_dpi_scale_y;
+			g_safeInsetBottom = (float)bottom * g_dpi_scale_y;
+		}
 	}
 
 	// Ensures that the receiver can handle it on a sensible thread.
@@ -899,14 +1061,21 @@ void getDesiredBackbufferSize(int &sz_x, int &sz_y) {
 
 extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_setDisplayParameters(JNIEnv *, jclass, jint xres, jint yres, jint dpi, jfloat refreshRate) {
 	ILOG("NativeApp.setDisplayParameters(%d x %d, dpi=%d, refresh=%0.2f)", xres, yres, dpi, refreshRate);
-	display_xres = xres;
-	display_yres = yres;
-	display_dpi_x = dpi;
-	display_dpi_y = dpi;
-	display_hz = refreshRate;
+	bool changed = false;
+	changed = changed || display_xres != xres || display_yres != yres;
+	changed = changed || display_dpi_x != dpi || display_dpi_y != dpi;
+	changed = changed || display_hz != refreshRate;
 
-	recalculateDpi();
-	NativeResized();
+	if (changed) {
+		display_xres = xres;
+		display_yres = yres;
+		display_dpi_x = dpi;
+		display_dpi_y = dpi;
+		display_hz = refreshRate;
+
+		recalculateDpi();
+		NativeResized();
+	}
 }
 
 extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_computeDesiredBackbufferDimensions() {
@@ -921,18 +1090,50 @@ extern "C" jint JNICALL Java_org_ppsspp_ppsspp_NativeApp_getDesiredBackbufferHei
 	return desiredBackbufferSizeY;
 }
 
-extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_pushNewGpsData(JNIEnv *, jclass,
-		jfloat latitude, jfloat longitude, jfloat altitude, jfloat speed, jfloat bearing, jlong time) {
-	PushNewGpsData(latitude, longitude, altitude, speed, bearing, time);
+std::vector<std::string> __cameraGetDeviceList() {
+	jclass cameraClass = findClass("org/ppsspp/ppsspp/CameraHelper");
+	jmethodID deviceListMethod = getEnv()->GetStaticMethodID(cameraClass, "getDeviceList", "()Ljava/util/ArrayList;");
+	jobject deviceListObject = getEnv()->CallStaticObjectMethod(cameraClass, deviceListMethod);
+	jclass arrayListClass = getEnv()->FindClass("java/util/ArrayList");
+	jmethodID arrayListSize = getEnv()->GetMethodID(arrayListClass, "size", "()I");
+	jmethodID arrayListGet = getEnv()->GetMethodID(arrayListClass, "get", "(I)Ljava/lang/Object;");
+
+	jint arrayListObjectLen = getEnv()->CallIntMethod(deviceListObject, arrayListSize);
+	std::vector<std::string> deviceListVector;
+
+	for (int i=0; i < arrayListObjectLen; i++) {
+		jstring dev = static_cast<jstring>(getEnv()->CallObjectMethod(deviceListObject, arrayListGet, i));
+		const char* cdev = getEnv()->GetStringUTFChars(dev, nullptr);
+		deviceListVector.push_back(cdev);
+		getEnv()->ReleaseStringUTFChars(dev, cdev);
+		getEnv()->DeleteLocalRef(dev);
+	}
+	return deviceListVector;
 }
 
-extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_pushCameraImage(JNIEnv *env, jclass,
+extern "C" jint Java_org_ppsspp_ppsspp_NativeApp_getSelectedCamera(JNIEnv *, jclass) {
+	int cameraId = 0;
+	sscanf(g_Config.sCameraDevice.c_str(), "%d:", &cameraId);
+	return cameraId;
+}
+
+extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_setGpsDataAndroid(JNIEnv *, jclass,
+       jlong time, jfloat hdop, jfloat latitude, jfloat longitude, jfloat altitude, jfloat speed, jfloat bearing) {
+	GPS::setGpsData(time, hdop, latitude, longitude, altitude, speed, bearing);
+}
+
+extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_setSatInfoAndroid(JNIEnv *, jclass,
+	   jshort index, jshort id, jshort elevation, jshort azimuth, jshort snr, jshort good) {
+	GPS::setSatInfo(index, id, elevation, azimuth, snr, good);
+}
+
+extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_pushCameraImageAndroid(JNIEnv *env, jclass,
 		jbyteArray image) {
 
 	if (image != NULL) {
 		jlong size = env->GetArrayLength(image);
 		jbyte* buffer = env->GetByteArrayElements(image, NULL);
-		PushCameraImage(size, (unsigned char *)buffer);
+		Camera::pushCameraImage(size, (unsigned char *)buffer);
 		env->ReleaseByteArrayElements(image, buffer, JNI_ABORT);
 	}
 }
@@ -971,32 +1172,32 @@ extern "C" bool JNICALL Java_org_ppsspp_ppsspp_NativeActivity_runEGLRenderLoop(J
 		return false;
 	}
 
-retry:
+	auto tryInit = [&]() {
+		if (graphicsContext->InitFromRenderThread(wnd, desiredBackbufferSizeX, desiredBackbufferSizeY, backbuffer_format, androidVersion)) {
+			return true;
+		}
 
-	bool vulkan = g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN;
-
-	int tries = 0;
-
-	if (!graphicsContext->InitFromRenderThread(wnd, desiredBackbufferSizeX, desiredBackbufferSizeY, backbuffer_format, androidVersion)) {
 		ELOG("Failed to initialize graphics context.");
+		return false;
+	};
 
-		if (!exitRenderLoop && (vulkan && tries < 2)) {
+	bool initSuccess = tryInit();
+	if (!initSuccess) {
+		if (!exitRenderLoop && g_Config.iGPUBackend == (int)GPUBackend::VULKAN) {
 			ILOG("Trying again, this time with OpenGL.");
-			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
-			SetGPUBackend((GPUBackend)g_PConfig.iGPUBackend);
-			// If we were still supporting EGL for GL:
-			// tries++;
-			// goto retry;
+			SetGPUBackend(GPUBackend::OPENGL);
+			g_Config.iGPUBackend = (int)GetGPUBackend();
+
+			// If we were still supporting EGL for GL, we'd retry here:
+			//initSuccess = tryInit();
+		}
+
+		if (!initSuccess) {
 			delete graphicsContext;
 			graphicsContext = nullptr;
 			renderLoopRunning = false;
 			return false;
 		}
-
-		delete graphicsContext;
-		graphicsContext = nullptr;
-		renderLoopRunning = false;
-		return false;
 	}
 
 	if (!exitRenderLoop) {

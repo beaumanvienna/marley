@@ -80,7 +80,7 @@
 // This namespace has various generic functions related to files and paths.
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!
-namespace PFile
+namespace File
 {
 
 FILE *OpenCFile(const std::string &filename, const char *mode)
@@ -329,7 +329,7 @@ bool CreateFullPath(const std::string &path)
 	int panicCounter = 100;
 	VERBOSE_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
 		
-	if (PFile::Exists(fullPath)) {
+	if (File::Exists(fullPath)) {
 		DEBUG_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
 		return true;
 	}
@@ -349,13 +349,13 @@ bool CreateFullPath(const std::string &path)
 		// we're done, yay!
 		if (position == fullPath.npos)
 		{
-			if (!PFile::Exists(fullPath))
-				return PFile::CreateDir(fullPath);
+			if (!File::Exists(fullPath))
+				return File::CreateDir(fullPath);
 			return true;
 		}
 		std::string subPath = fullPath.substr(0, position);
-		if (position != 0 && !PFile::Exists(subPath))
-			PFile::CreateDir(subPath);
+		if (position != 0 && !File::Exists(subPath))
+			File::CreateDir(subPath);
 
 		// A safety check
 		panicCounter--;
@@ -375,7 +375,7 @@ bool DeleteDir(const std::string &filename)
 	INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
 
 	// check if a directory
-	if (!PFile::IsDirectory(filename))
+	if (!File::IsDirectory(filename))
 	{
 		ERROR_LOG(COMMON, "DeleteDir: Not a directory %s", filename.c_str());
 		return false;
@@ -702,7 +702,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		}
 		else
 		{
-			if (!PFile::Delete(newPath))
+			if (!File::Delete(newPath))
 			{
 #ifndef _WIN32
 				closedir(dirp);
@@ -720,7 +720,7 @@ bool DeleteDirRecursively(const std::string &directory)
 	}
 	closedir(dirp);
 #endif
-	return PFile::DeleteDir(directory);
+	return File::DeleteDir(directory);
 }
 
 
@@ -729,8 +729,8 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 {
 #ifndef _WIN32
 	if (source_path == dest_path) return;
-	if (!PFile::Exists(source_path)) return;
-	if (!PFile::Exists(dest_path)) PFile::CreateFullPath(dest_path);
+	if (!File::Exists(source_path)) return;
+	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
 
 	struct dirent *result = NULL;
 	DIR *dirp = opendir(source_path.c_str());
@@ -752,10 +752,10 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 		{
 			source += '/';
 			dest += '/';
-			if (!PFile::Exists(dest)) PFile::CreateFullPath(dest);
+			if (!File::Exists(dest)) File::CreateFullPath(dest);
 			CopyDir(source, dest);
 		}
-		else if (!PFile::Exists(dest)) PFile::Copy(source, dest);
+		else if (!File::Exists(dest)) File::Copy(source, dest);
 	}
 	closedir(dirp);
 #else
@@ -763,7 +763,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 #endif
 }
 
-void openPIniFile(const std::string& fileName) {
+void openIniFile(const std::string& fileName) {
 #if defined(_WIN32)
 #if PPSSPP_PLATFORM(UWP)
 	// Do nothing.
@@ -792,12 +792,23 @@ const std::string &GetExeDirectory()
 
 	if (ExePath.empty()) {
 #ifdef _WIN32
-		TCHAR program_path[4096] = {0};
-		GetModuleFileName(NULL, program_path, ARRAY_SIZE(program_path) - 1);
-		program_path[ARRAY_SIZE(program_path) - 1] = '\0';
-		TCHAR *last_slash = _tcsrchr(program_path, '\\');
-		if (last_slash != NULL)
-			*(last_slash + 1) = '\0';
+#ifdef UNICODE
+		std::wstring program_path;
+#else
+		std::string program_path;
+#endif
+		size_t sz;
+		do {
+			program_path.resize(program_path.size() + MAX_PATH);
+			// On failure, this will return the same value as passed in, but success will always be one lower.
+			sz = GetModuleFileName(nullptr, &program_path[0], (DWORD)program_path.size());
+		} while (sz >= program_path.size());
+
+		TCHAR *last_slash = _tcsrchr(&program_path[0], '\\');
+		if (last_slash != nullptr)
+			program_path.resize(last_slash - &program_path[0] + 1);
+		else
+			program_path.resize(sz);
 #ifdef UNICODE
 		ExePath = ConvertWStringToUTF8(program_path);
 #else
@@ -867,7 +878,7 @@ IOFile::~IOFile()
 bool IOFile::Open(const std::string& filename, const char openmode[])
 {
 	Close();
-	m_file = PFile::OpenCFile(filename, openmode);
+	m_file = File::OpenCFile(filename, openmode);
 	m_good = IsOpen();
 	return m_good;
 }
@@ -898,7 +909,7 @@ void IOFile::SetHandle(std::FILE* file)
 u64 IOFile::GetSize()
 {
 	if (IsOpen())
-		return PFile::GetFileSize(m_file);
+		return File::GetFileSize(m_file);
 	else
 		return 0;
 }

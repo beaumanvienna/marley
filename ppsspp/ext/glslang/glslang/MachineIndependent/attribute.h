@@ -40,7 +40,7 @@
 #include "../Include/Common.h"
 #include "../Include/ConstantUnion.h"
 
-namespace Pglslang {
+namespace glslang {
 
     enum TAttributeType {
         EatNone,
@@ -144,6 +144,6 @@ namespace Pglslang {
 
     typedef TList<TAttributeArgs> TAttributes;
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _ATTRIBUTE_INCLUDED_

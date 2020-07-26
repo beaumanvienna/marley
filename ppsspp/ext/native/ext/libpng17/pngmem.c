@@ -12,8 +12,8 @@
  *
  * This file provides a location for all memory allocation.  Users who
  * need special memory handling are expected to supply replacement
- * functions for Ppng_malloc() and Ppng_free(), and to use
- * Ppng_create_read_struct_2() and Ppng_create_write_struct_2() to
+ * functions for png_malloc() and png_free(), and to use
+ * png_create_read_struct_2() and png_create_write_struct_2() to
  * identify the replacement functions.
  */
 
@@ -26,16 +26,16 @@ png_destroy_png_struct(png_structrp png_ptr)
 {
    if (png_ptr != NULL)
    {
-      /* Ppng_free might call Ppng_error and may certainly call
-       * Ppng_get_mem_ptr, so fake a temporary png_struct to support this.
+      /* png_free might call png_error and may certainly call
+       * png_get_mem_ptr, so fake a temporary png_struct to support this.
        */
       png_struct dummy_struct = *png_ptr;
       memset(png_ptr, 0, (sizeof *png_ptr));
-      Ppng_free(&dummy_struct, png_ptr);
+      png_free(&dummy_struct, png_ptr);
 
 #     ifdef PNG_SETJMP_SUPPORTED
          /* We may have a jmp_buf left to deallocate. */
-         Ppng_free_jmpbuf(&dummy_struct);
+         png_free_jmpbuf(&dummy_struct);
 #     endif
    }
 }
@@ -47,11 +47,11 @@ png_destroy_png_struct(png_structrp png_ptr)
  * have the ability to do that.
  */
 PNG_FUNCTION(png_voidp,PNGAPI
-Ppng_calloc,(png_const_structrp png_ptr, png_alloc_size_t size),PNG_ALLOCATED)
+png_calloc,(png_const_structrp png_ptr, png_alloc_size_t size),PNG_ALLOCATED)
 {
    png_voidp ret;
 
-   ret = Ppng_malloc(png_ptr, size);
+   ret = png_malloc(png_ptr, size);
 
    if (ret != NULL)
       memset(ret, 0, size);
@@ -59,16 +59,16 @@ Ppng_calloc,(png_const_structrp png_ptr, png_alloc_size_t size),PNG_ALLOCATED)
    return ret;
 }
 
-/* Ppng_malloc_base, an internal function added at libpng 1.6.0, does the work of
+/* png_malloc_base, an internal function added at libpng 1.6.0, does the work of
  * allocating memory, taking into account limits and PNG_USER_MEM_SUPPORTED.
  * Checking and error handling must happen outside this routine; it returns NULL
  * if the allocation cannot be done (for any reason.)
  */
 PNG_FUNCTION(png_voidp /* PRIVATE */,
-Ppng_malloc_base,(png_const_structrp png_ptr, png_alloc_size_t size),
+png_malloc_base,(png_const_structrp png_ptr, png_alloc_size_t size),
    PNG_ALLOCATED)
 {
-   /* Moved to Ppng_malloc_base from Ppng_malloc_default in 1.6.0; the DOS
+   /* Moved to png_malloc_base from png_malloc_default in 1.6.0; the DOS
     * allocators have also been removed in 1.6.0, so any 16-bit system now has
     * to implement a user memory handler.  This checks to be sure it isn't
     * called with big numbers.
@@ -100,29 +100,29 @@ Ppng_malloc_base,(png_const_structrp png_ptr, png_alloc_size_t size),
    defined(PNG_STORE_UNKNOWN_CHUNKS_SUPPORTED)
 /* This is really here only to work round a spurious warning in GCC 4.6 and 4.7
  * that arises because of the checks in png_realloc_array that are repeated in
- * Ppng_malloc_array.
+ * png_malloc_array.
  */
 static png_voidp
-Ppng_malloc_array_checked(png_const_structrp png_ptr, int nelements,
+png_malloc_array_checked(png_const_structrp png_ptr, int nelements,
    size_t element_size)
 {
    png_alloc_size_t req = nelements; /* known to be > 0 */
 
    if (req <= PNG_SIZE_MAX/element_size)
-      return Ppng_malloc_base(png_ptr, req * element_size);
+      return png_malloc_base(png_ptr, req * element_size);
 
    /* The failure case when the request is too large */
    return NULL;
 }
 
 PNG_FUNCTION(png_voidp /* PRIVATE */,
-Ppng_malloc_array,(png_const_structrp png_ptr, int nelements,
+png_malloc_array,(png_const_structrp png_ptr, int nelements,
    size_t element_size),PNG_ALLOCATED)
 {
    if (nelements <= 0 || element_size == 0)
-      Ppng_error(png_ptr, "internal error: array alloc");
+      png_error(png_ptr, "internal error: array alloc");
 
-   return Ppng_malloc_array_checked(png_ptr, nelements, element_size);
+   return png_malloc_array_checked(png_ptr, nelements, element_size);
 }
 
 PNG_FUNCTION(png_voidp /* PRIVATE */,
@@ -132,19 +132,19 @@ png_realloc_array,(png_structrp png_ptr, png_const_voidp old_array,
    /* These are internal errors: */
    if (add_elements <= 0 || element_size == 0 || old_elements < 0 ||
       (old_array == NULL && old_elements > 0))
-      Ppng_error(png_ptr, "internal error: array realloc");
+      png_error(png_ptr, "internal error: array realloc");
 
    /* Check for overflow on the elements count (so the caller does not have to
     * check.)
     */
    if (add_elements <= INT_MAX - old_elements)
    {
-      png_voidp new_array = Ppng_malloc_array_checked(png_ptr,
+      png_voidp new_array = png_malloc_array_checked(png_ptr,
          old_elements+add_elements, element_size);
 
       if (new_array != NULL)
       {
-         /* Because Ppng_malloc_array worked the size calculations below cannot
+         /* Because png_malloc_array worked the size calculations below cannot
           * overflow.
           */
          if (old_elements > 0)
@@ -171,51 +171,51 @@ png_realloc_array,(png_structrp png_ptr, png_const_voidp old_array,
 #endif /* TEXT || sPLT || STORE_UNKNOWN_CHUNKS */
 
 /* Various functions that have different error handling are derived from this.
- * Ppng_malloc always exists, but if PNG_USER_MEM_SUPPORTED is defined a separate
- * function Ppng_malloc_default is also provided.
+ * png_malloc always exists, but if PNG_USER_MEM_SUPPORTED is defined a separate
+ * function png_malloc_default is also provided.
  */
 PNG_FUNCTION(png_voidp,PNGAPI
-Ppng_malloc,(png_const_structrp png_ptr, png_alloc_size_t size),PNG_ALLOCATED)
+png_malloc,(png_const_structrp png_ptr, png_alloc_size_t size),PNG_ALLOCATED)
 {
    png_voidp ret;
 
    if (png_ptr == NULL)
       return NULL;
 
-   ret = Ppng_malloc_base(png_ptr, size);
+   ret = png_malloc_base(png_ptr, size);
 
    if (ret == NULL)
-       Ppng_error(png_ptr, "Out of memory");
+       png_error(png_ptr, "Out of memory");
 
    return ret;
 }
 
-/* This function was added at libpng version 1.2.3.  The Ppng_malloc_warn()
- * function will issue a Ppng_warning and return NULL instead of issuing a
- * Ppng_error, if it fails to allocate the requested memory.
+/* This function was added at libpng version 1.2.3.  The png_malloc_warn()
+ * function will issue a png_warning and return NULL instead of issuing a
+ * png_error, if it fails to allocate the requested memory.
  */
 PNG_FUNCTION(png_voidp,PNGAPI
-Ppng_malloc_warn,(png_const_structrp png_ptr, png_alloc_size_t size),
+png_malloc_warn,(png_const_structrp png_ptr, png_alloc_size_t size),
    PNG_ALLOCATED)
 {
    if (png_ptr != NULL)
    {
-      png_voidp ret = Ppng_malloc_base(png_ptr, size);
+      png_voidp ret = png_malloc_base(png_ptr, size);
 
       if (ret != NULL)
          return ret;
 
-      Ppng_warning(png_ptr, "Out of memory");
+      png_warning(png_ptr, "Out of memory");
    }
 
    return NULL;
 }
 
-/* Free a pointer allocated by Ppng_malloc().  If ptr is NULL, return
+/* Free a pointer allocated by png_malloc().  If ptr is NULL, return
  * without taking any action.
  */
 void PNGAPI
-Ppng_free(png_const_structrp png_ptr, png_voidp ptr)
+png_free(png_const_structrp png_ptr, png_voidp ptr)
 {
    if (png_ptr == NULL || ptr == NULL)
       return;
@@ -234,8 +234,8 @@ Ppng_free(png_const_structrp png_ptr, png_voidp ptr)
  * of allocating and freeing memory.
  */
 void PNGAPI
-Ppng_set_mem_fn(png_structrp png_ptr, png_voidp mem_ptr, Ppng_malloc_ptr
-  malloc_fn, Ppng_free_ptr free_fn)
+png_set_mem_fn(png_structrp png_ptr, png_voidp mem_ptr, png_malloc_ptr
+  malloc_fn, png_free_ptr free_fn)
 {
    if (png_ptr != NULL)
    {
@@ -250,7 +250,7 @@ Ppng_set_mem_fn(png_structrp png_ptr, png_voidp mem_ptr, Ppng_malloc_ptr
  * pointer before png_write_destroy and png_read_destroy are called.
  */
 png_voidp PNGAPI
-Ppng_get_mem_ptr(png_const_structrp png_ptr)
+png_get_mem_ptr(png_const_structrp png_ptr)
 {
    if (png_ptr == NULL)
       return NULL;

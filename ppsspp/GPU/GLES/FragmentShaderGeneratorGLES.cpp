@@ -211,7 +211,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, uint64_t *uniform
 	}
 
 	if (enableAlphaTest || enableColorTest) {
-		if (g_PConfig.bFragmentTestCache) {
+		if (g_Config.bFragmentTestCache) {
 			WRITE(p, "uniform sampler2D testtex;\n");
 		} else {
 			*uniformMask |= DIRTY_ALPHACOLORREF;
@@ -251,7 +251,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, uint64_t *uniform
 		WRITE(p, "%s %s vec3 v_texcoord;\n", varying, highpTexcoord ? "highp" : "mediump");
 	}
 
-	if (!g_PConfig.bFragmentTestCache) {
+	if (!g_Config.bFragmentTestCache) {
 		if (enableAlphaTest && !alphaTestAgainstZero) {
 			if (bitwiseOps) {
 				WRITE(p, "int roundAndScaleTo255i(in float x) { return int(floor(x * 255.0 + 0.5)); }\n");
@@ -525,7 +525,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, uint64_t *uniform
 		// Texture access is at half texels [0.5/256, 255.5/256], but colors are normalized [0, 255].
 		// So we have to scale to account for the difference.
 		std::string alphaTestXCoord = "0";
-		if (g_PConfig.bFragmentTestCache) {
+		if (g_Config.bFragmentTestCache) {
 			if (enableColorTest && !colorTestAgainstZero) {
 				WRITE(p, "  vec4 vScale256 = v * %f + %f;\n", 255.0 / 256.0, 0.5 / 256.0);
 				alphaTestXCoord = "vScale256.a";
@@ -551,7 +551,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, uint64_t *uniform
 					// Maybe we could discard the drawcall, but it's pretty rare.  Let's just statically discard here.
 					WRITE(p, "  %s\n", discardStatement);
 				}
-			} else if (g_PConfig.bFragmentTestCache) {
+			} else if (g_Config.bFragmentTestCache) {
 				WRITE(p, "  float aResult = %s(testtex, vec2(%s, 0)).a;\n", texture, alphaTestXCoord.c_str());
 				WRITE(p, "  if (aResult < 0.5) %s\n", discardStatement);
 			} else {
@@ -588,7 +588,7 @@ bool GenerateFragmentShader(const FShaderID &id, char *buffer, uint64_t *uniform
 					// Maybe we could discard the drawcall, but it's pretty rare.  Let's just statically discard here.
 					WRITE(p, "  %s\n", discardStatement);
 				}
-			} else if (g_PConfig.bFragmentTestCache) {
+			} else if (g_Config.bFragmentTestCache) {
 				WRITE(p, "  float rResult = %s(testtex, vec2(vScale256.r, 0)).r;\n", texture);
 				WRITE(p, "  float gResult = %s(testtex, vec2(vScale256.g, 0)).g;\n", texture);
 				WRITE(p, "  float bResult = %s(testtex, vec2(vScale256.b, 0)).b;\n", texture);

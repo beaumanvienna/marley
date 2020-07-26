@@ -171,7 +171,7 @@ namespace MIPSComp {
 	}
 
 	void Arm64Jit::ApplyPrefixD(const u8 *vregs, VectorSize sz) {
-		_assert_msg_(JIT, js.prefixDFlag & JitState::PREFIX_KNOWN, "Unexpected unknown prefix!");
+		_assert_msg_(js.prefixDFlag & JitState::PREFIX_KNOWN, "Unexpected unknown prefix!");
 		if (!js.prefixD)
 			return;
 
@@ -211,9 +211,9 @@ namespace MIPSComp {
 
 		std::vector<FixupBranch> skips;
 		switch (op >> 26) {
-		case 50: //lv.s  // VI(vt) = Memory_P::PRead_U32(addr);
+		case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
 		{
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
 				gpr.MapRegAsPointer(rs);
 				fpr.MapRegV(vt, MAP_NOINIT | MAP_DIRTY);
 				fp.LDR(32, INDEX_UNSIGNED, fpr.V(vt), gpr.RPtr(rs), offset);
@@ -231,7 +231,7 @@ namespace MIPSComp {
 				gpr.SetRegImm(SCRATCH1, addr);
 			} else {
 				gpr.MapReg(rs);
-				if (g_PConfig.bFastMemory) {
+				if (g_Config.bFastMemory) {
 					SetScratch1ToEffectiveAddress(rs, offset);
 				} else {
 					skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
@@ -244,9 +244,9 @@ namespace MIPSComp {
 		}
 			break;
 
-		case 58: //sv.s   // Memory_P::PWrite_U32(VI(vt), addr);
+		case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
 		{
-			if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
+			if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset >= 0 && offset < 16384) {
 				gpr.MapRegAsPointer(rs);
 				fpr.MapRegV(vt, 0);
 				fp.STR(32, INDEX_UNSIGNED, fpr.V(vt), gpr.RPtr(rs), offset);
@@ -264,7 +264,7 @@ namespace MIPSComp {
 				gpr.SetRegImm(SCRATCH1, addr);
 			} else {
 				gpr.MapReg(rs);
-				if (g_PConfig.bFastMemory) {
+				if (g_Config.bFastMemory) {
 					SetScratch1ToEffectiveAddress(rs, offset);
 				} else {
 					skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
@@ -307,16 +307,16 @@ namespace MIPSComp {
 #else
 					u32 addr = imm + gpr.GetImm(rs);
 #endif
-					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory_P::base);
+					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetScratch1ToEffectiveAddress(rs, imm);
 					} else {
 						skips = SetScratch1ForSafeAddress(rs, imm, SCRATCH2);
 					}
 					if (jo.enablePointerify) {
-						MOVK(SCRATCH1_64, ((uint64_t)Memory_P::base) >> 32, SHIFT_32);
+						MOVK(SCRATCH1_64, ((uint64_t)Memory::base) >> 32, SHIFT_32);
 					} else {
 						ADD(SCRATCH1_64, SCRATCH1_64, MEMBASEREG);
 					}
@@ -344,16 +344,16 @@ namespace MIPSComp {
 #else
 					u32 addr = imm + gpr.GetImm(rs);
 #endif
-					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory_P::base);
+					gpr.SetRegImm(SCRATCH1_64, addr + (uintptr_t)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetScratch1ToEffectiveAddress(rs, imm);
 					} else {
 						skips = SetScratch1ForSafeAddress(rs, imm, SCRATCH2);
 					}
 					if (jo.enablePointerify) {
-						MOVK(SCRATCH1_64, ((uint64_t)Memory_P::base) >> 32, SHIFT_32);
+						MOVK(SCRATCH1_64, ((uint64_t)Memory::base) >> 32, SHIFT_32);
 					} else {
 						ADD(SCRATCH1_64, SCRATCH1_64, MEMBASEREG);
 					}
@@ -435,7 +435,7 @@ namespace MIPSComp {
 			fp.FMOV(fpr.V(dregs[3]), (vd & 3) == 3 ? S1 : S0);
 			break;
 		default:
-			_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( 0, "Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 
@@ -1069,7 +1069,7 @@ namespace MIPSComp {
 				}
 			} else {
 				//ERROR
-				_dbg_assert_msg_(CPU, 0, "mtv - invalid register");
+				_dbg_assert_msg_( 0, "mtv - invalid register");
 			}
 			break;
 

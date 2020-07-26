@@ -40,7 +40,7 @@ void FragmentTestCacheGLES::DeviceRestore(Draw::DrawContext *draw) {
 }
 
 void FragmentTestCacheGLES::BindTestTexture(int slot) {
-	if (!g_PConfig.bFragmentTestCache) {
+	if (!g_Config.bFragmentTestCache) {
 		return;
 	}
 
@@ -145,7 +145,7 @@ GLRTexture *FragmentTestCacheGLES::CreateTestTexture(const GEComparison funcs[4]
 	}
 
 	GLRTexture *tex = render_->CreateTexture(GL_TEXTURE_2D);
-	render_->TextureImage(tex, 0, 256, 1, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	render_->TextureImage(tex, 0, 256, 1, Draw::DataFormat::R8G8B8A8_UNORM, data);
 	return tex;
 }
 

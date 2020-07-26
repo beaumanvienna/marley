@@ -53,7 +53,7 @@
 #include "../Include/intermediate.h"
 #include "Initialize.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // TODO: ARB_Compatability: do full extension support
 const bool ARBCompatibility = true;
@@ -8889,4 +8889,4 @@ void TBuiltIns::identifyBuiltIns(int version, EProfile profile, const SpvVersion
 #endif
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

@@ -38,18 +38,12 @@ PFNGLISVERTEXARRAYOESPROC glIsVertexArrayOES;
 
 GLExtensions gl_extensions;
 std::string g_all_gl_extensions;
-std::set<std::string> g_set_gl_extensions;
+static std::set<std::string> g_set_gl_extensions;
 std::string g_all_egl_extensions;
-std::set<std::string> g_set_egl_extensions;
+static std::set<std::string> g_set_egl_extensions;
 
 static bool extensionsDone = false;
 static bool useCoreContext = false;
-
-void gpu_features_reset(void)
-{
-    extensionsDone = false;
-    useCoreContext = false;
-}
 
 static void ParseExtensionsString(const std::string& str, std::set<std::string> &output) {
 	output.clear();
@@ -321,7 +315,7 @@ void CheckGLExtensions() {
 		ParseExtensionsString(g_all_gl_extensions, g_set_gl_extensions);
 	}
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__LIBRETRO__)
 	const char *wglString = 0;
 	if (wglGetExtensionsStringEXT)
 		wglString = wglGetExtensionsStringEXT();
@@ -561,16 +555,22 @@ void CheckGLExtensions() {
 
 }
 
-void SetGLCoreContext(bool flag) 
-{
+void SetGLCoreContext(bool flag) {
 	if (extensionsDone)
-    {
 		FLOG("SetGLCoreContext() after CheckGLExtensions()");
-    }
 
 	useCoreContext = flag;
 	// For convenience, it'll get reset later.
 	gl_extensions.IsCoreContext = useCoreContext;
+}
+
+void ResetGLExtensions() {
+	extensionsDone = false;
+
+	gl_extensions = {};
+	gl_extensions.IsCoreContext = useCoreContext;
+	g_all_gl_extensions.clear();
+	g_all_egl_extensions.clear();
 }
 
 static const char *glsl_fragment_prelude =
@@ -584,7 +584,7 @@ std::string ApplyGLSLPrelude(const std::string &source, uint32_t stage) {
 	std::string version = "";
 	if (!gl_extensions.IsGLES && gl_extensions.IsCoreContext) {
 		// We need to add a corresponding #version.  Apple drivers fail without an exact match.
-		version = PStringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
+		version = StringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
 	}
 	if (stage == GL_FRAGMENT_SHADER) {
 		temp = version + glsl_fragment_prelude + source;

@@ -459,7 +459,8 @@ public:
 
 	// Store strings.
 	void Do(std::string &x);
-	void Do(std::wstring &x);
+	void Do(std::wstring &x);  // DEPRECATED, do not save wstrings
+	void Do(std::u16string &x);
 
 	void Do(tm &t);
 
@@ -702,5 +703,5 @@ private:
 
 	static Error LoadFile(const std::string &filename, std::string *gitVersion, u8 *&buffer, size_t &sz, std::string *failureReason);
 	static Error SaveFile(const std::string &filename, const std::string &title, const char *gitVersion, u8 *buffer, size_t sz);
-	static Error LoadFileHeader(PFile::IOFile &pFile, SChunkHeader &header, std::string *title);
+	static Error LoadFileHeader(File::IOFile &pFile, SChunkHeader &header, std::string *title);
 };

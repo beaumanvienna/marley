@@ -78,7 +78,7 @@ namespace { // anonymous namespace for file-local functions and symbols
 // Shared global; access should be protected by a global mutex/critical section.
 int NumberOfClients = 0;
 
-using namespace Pglslang;
+using namespace glslang;
 
 // Create a language specific version of parseables.
 TBuiltInParseables* CreateBuiltInParseables(TInfoSink& infoSink, EShSource source)
@@ -422,7 +422,7 @@ void SetupBuiltinSymbolTable(int version, EProfile profile, const SpvVersion& sp
     TInfoSink infoSink;
 
     // Make sure only one thread tries to do this at a time
-    Pglslang::GetGlobalLock();
+    glslang::GetGlobalLock();
 
     // See if it's already been done for this version/profile combination
     int versionIndex = MapVersionToIndex(version);
@@ -430,7 +430,7 @@ void SetupBuiltinSymbolTable(int version, EProfile profile, const SpvVersion& sp
     int profileIndex = MapProfileToIndex(profile);
     int sourceIndex = MapSourceToIndex(source);
     if (CommonSymbolTable[versionIndex][spvVersionIndex][profileIndex][sourceIndex][EPcGeneral]) {
-        Pglslang::ReleaseGlobalLock();
+        glslang::ReleaseGlobalLock();
 
         return;
     }
@@ -481,7 +481,7 @@ void SetupBuiltinSymbolTable(int version, EProfile profile, const SpvVersion& sp
     delete builtInPoolAllocator;
     SetThreadPoolAllocator(&previousAllocator);
 
-    Pglslang::ReleaseGlobalLock();
+    glslang::ReleaseGlobalLock();
 }
 
 // Function to Print all builtins
@@ -858,7 +858,7 @@ bool ProcessDeferred(
     // First, without using the preprocessor or parser, find the #version, so we know what
     // symbol tables, processing rules, etc. to set up.  This does not need the extra strings
     // outlined above, just the user shader, after the system and user preambles.
-    Pglslang::TInputScanner userInput(numStrings, &strings[numPre], &lengths[numPre]);
+    glslang::TInputScanner userInput(numStrings, &strings[numPre], &lengths[numPre]);
     int version = 0;
     EProfile profile = ENoProfile;
     bool versionNotFirstToken = false;
@@ -955,7 +955,7 @@ bool ProcessDeferred(
     TPpContext ppContext(*parseContext, names[numPre] ? names[numPre] : "", includer);
 
     // only GLSL (bison triggered, really) needs an externally set scan context
-    Pglslang::TScanContext scanContext(*parseContext);
+    glslang::TScanContext scanContext(*parseContext);
     if (source == EShSourceGlsl)
         parseContext->setScanContext(&scanContext);
 
@@ -1081,7 +1081,7 @@ struct DoPreprocessing {
         // This is a list of tokens that do not require a space before or after.
         static const std::string unNeededSpaceTokens = ";()[]";
         static const std::string noSpaceBeforeTokens = ",";
-        Pglslang::TPpToken ppToken;
+        glslang::TPpToken ppToken;
 
         parseContext.setScanner(&input);
         ppContext.setInput(input, versionWillBeError);
@@ -1137,7 +1137,7 @@ struct DoPreprocessing {
             });
 
         parseContext.setPragmaCallback([&lineSync, &outputBuffer](
-            int line, const Pglslang::TVector<Pglslang::TString>& ops) {
+            int line, const glslang::TVector<glslang::TString>& ops) {
                 lineSync.syncToLine(line);
                 outputBuffer += "#pragma ";
                 for(size_t i = 0; i < ops.size(); ++i) {
@@ -1306,25 +1306,25 @@ bool CompileDeferred(
 } // end anonymous namespace for local functions
 
 //
-// PShInitialize() should be called exactly once per process, not per thread.
+// ShInitialize() should be called exactly once per process, not per thread.
 //
-int PShInitialize()
+int ShInitialize()
 {
-    Pglslang::InitGlobalLock();
+    glslang::InitGlobalLock();
 
     if (! InitProcess())
         return 0;
 
-    Pglslang::GetGlobalLock();
+    glslang::GetGlobalLock();
     ++NumberOfClients;
-    Pglslang::ReleaseGlobalLock();
+    glslang::ReleaseGlobalLock();
 
     if (PerProcessGPA == nullptr)
         PerProcessGPA = new TPoolAllocator();
 
-    Pglslang::TScanContext::fillInKeywordMap();
+    glslang::TScanContext::fillInKeywordMap();
 #ifdef ENABLE_HLSL
-    Pglslang::HlslScanContext::fillInKeywordMap();
+    glslang::HlslScanContext::fillInKeywordMap();
 #endif
 
     return 1;
@@ -1335,37 +1335,37 @@ int PShInitialize()
 // objects.
 //
 
-ShHandle PShConstructCompiler(const EShLanguage language, int debugOptions)
+ShHandle ShConstructCompiler(const EShLanguage language, int debugOptions)
 {
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructCompiler(language, debugOptions));
+    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructCompiler(language, debugOptions));
 
     return reinterpret_cast<void*>(base);
 }
 
-ShHandle PShConstructLinker(const EShExecutable executable, int debugOptions)
+ShHandle ShConstructLinker(const EShExecutable executable, int debugOptions)
 {
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructLinker(executable, debugOptions));
+    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructLinker(executable, debugOptions));
 
     return reinterpret_cast<void*>(base);
 }
 
-ShHandle PShConstructUniformMap()
+ShHandle ShConstructUniformMap()
 {
     if (!InitThread())
         return 0;
 
-    TShHandleBase* base = static_cast<TShHandleBase*>(PConstructUniformMap());
+    TShHandleBase* base = static_cast<TShHandleBase*>(ConstructUniformMap());
 
     return reinterpret_cast<void*>(base);
 }
 
-void PShDestruct(ShHandle handle)
+void ShDestruct(ShHandle handle)
 {
     if (handle == 0)
         return;
@@ -1373,23 +1373,23 @@ void PShDestruct(ShHandle handle)
     TShHandleBase* base = static_cast<TShHandleBase*>(handle);
 
     if (base->getAsCompiler())
-        PDeleteCompiler(base->getAsCompiler());
+        DeleteCompiler(base->getAsCompiler());
     else if (base->getAsLinker())
-        PDeleteLinker(base->getAsLinker());
+        DeleteLinker(base->getAsLinker());
     else if (base->getAsUniformMap())
-        PDeleteUniformMap(base->getAsUniformMap());
+        DeleteUniformMap(base->getAsUniformMap());
 }
 
 //
 // Cleanup symbol tables
 //
-int PShFinalize()
+int ShFinalize()
 {
-    Pglslang::GetGlobalLock();
+    glslang::GetGlobalLock();
     --NumberOfClients;
     assert(NumberOfClients >= 0);
     bool finalize = NumberOfClients == 0;
-    Pglslang::ReleaseGlobalLock();
+    glslang::ReleaseGlobalLock();
     if (! finalize)
         return 1;
 
@@ -1424,9 +1424,9 @@ int PShFinalize()
         PerProcessGPA = nullptr;
     }
 
-    Pglslang::TScanContext::deleteKeywordMap();
+    glslang::TScanContext::deleteKeywordMap();
 #ifdef ENABLE_HLSL
-    Pglslang::HlslScanContext::deleteKeywordMap();
+    glslang::HlslScanContext::deleteKeywordMap();
 #endif
 
     return 1;
@@ -1440,7 +1440,7 @@ int PShFinalize()
 // Return:  The return value is really boolean, indicating
 // success (1) or failure (0).
 //
-int PShCompile(
+int ShCompile(
     const ShHandle handle,
     const char* const shaderStrings[],
     const int numStrings,
@@ -1494,7 +1494,7 @@ int PShCompile(
 // Return:  The return value of is really boolean, indicating
 // success or failure.
 //
-int PShLinkExt(
+int ShLinkExt(
     const ShHandle linkHandle,
     const ShHandle compHandles[],
     const int numHandles)
@@ -1546,7 +1546,7 @@ int PShLinkExt(
 // ShSetEncrpytionMethod is a place-holder for specifying
 // how source code is encrypted.
 //
-void PShSetEncryptionMethod(ShHandle handle)
+void ShSetEncryptionMethod(ShHandle handle)
 {
     if (handle == 0)
         return;
@@ -1555,7 +1555,7 @@ void PShSetEncryptionMethod(ShHandle handle)
 //
 // Return any compiler/linker/uniformmap log of messages for the application.
 //
-const char* PShGetInfoLog(const ShHandle handle)
+const char* ShGetInfoLog(const ShHandle handle)
 {
     if (handle == 0)
         return 0;
@@ -1578,7 +1578,7 @@ const char* PShGetInfoLog(const ShHandle handle)
 // Return the resulting binary code from the link process.  Structure
 // is machine dependent.
 //
-const void* PShGetExecutable(const ShHandle handle)
+const void* ShGetExecutable(const ShHandle handle)
 {
     if (handle == 0)
         return 0;
@@ -1600,7 +1600,7 @@ const void* PShGetExecutable(const ShHandle handle)
 // Return:  The return value of is really boolean, indicating
 // success or failure.
 //
-int PShSetVirtualAttributeBindings(const ShHandle handle, const ShBindingTable* table)
+int ShSetVirtualAttributeBindings(const ShHandle handle, const ShBindingTable* table)
 {
     if (handle == 0)
         return 0;
@@ -1619,7 +1619,7 @@ int PShSetVirtualAttributeBindings(const ShHandle handle, const ShBindingTable* 
 //
 // Let the linker know where the predefined attributes have to live.
 //
-int PShSetFixedAttributeBindings(const ShHandle handle, const ShBindingTable* table)
+int ShSetFixedAttributeBindings(const ShHandle handle, const ShBindingTable* table)
 {
     if (handle == 0)
         return 0;
@@ -1637,7 +1637,7 @@ int PShSetFixedAttributeBindings(const ShHandle handle, const ShBindingTable* ta
 //
 // Some attribute locations are off-limits to the linker...
 //
-int PShExcludeAttributes(const ShHandle handle, int *attributes, int count)
+int ShExcludeAttributes(const ShHandle handle, int *attributes, int count)
 {
     if (handle == 0)
         return 0;
@@ -1658,7 +1658,7 @@ int PShExcludeAttributes(const ShHandle handle, int *attributes, int count)
 // Return:  The return value of is really boolean, indicating
 // success or failure.
 //
-int PShGetUniformLocation(const ShHandle handle, const char* name)
+int ShGetUniformLocation(const ShHandle handle, const char* name)
 {
     if (handle == 0)
         return -1;
@@ -1682,7 +1682,7 @@ int PShGetUniformLocation(const ShHandle handle, const char* name)
 // See more detailed comment in ShaderLang.h
 //
 
-namespace Pglslang {
+namespace glslang {
 
 #include "../Include/revision.h"
 
@@ -1706,12 +1706,12 @@ int GetKhronosToolId()
 
 bool InitializeProcess()
 {
-    return PShInitialize() != 0;
+    return ShInitialize() != 0;
 }
 
 void FinalizeProcess()
 {
-    PShFinalize();
+    ShFinalize();
 }
 
 class TDeferredCompiler : public TCompiler {
@@ -2001,17 +2001,17 @@ bool TProgram::linkStage(EShLanguage stage, EShMessages messages)
     }
 
     if (messages & EShMsgAST)
-        infoSink->info << "\nLinked " << PStageName(stage) << " stage:\n\n";
+        infoSink->info << "\nLinked " << StageName(stage) << " stage:\n\n";
 
     if (stages[stage].size() > 1) {
         std::list<TShader*>::const_iterator it;
         for (it = stages[stage].begin(); it != stages[stage].end(); ++it)
-            intermediate[stage]->Pmerge(*infoSink, *(*it)->intermediate);
+            intermediate[stage]->merge(*infoSink, *(*it)->intermediate);
     }
 #else
     intermediate[stage] = stages[stage].front()->intermediate;
 #endif
-    intermediate[stage]->PfinalCheck(*infoSink, (messages & EShMsgKeepUncalled) != 0);
+    intermediate[stage]->finalCheck(*infoSink, (messages & EShMsgKeepUncalled) != 0);
 
     if (messages & EShMsgAST)
         intermediate[stage]->output(*infoSink, true);
@@ -2113,4 +2113,4 @@ bool TProgram::mapIO(TIoMapResolver* pResolver, TIoMapper* pIoMapper)
 
 #endif // GLSLANG_WEB
 
-} // end namespace Pglslang
+} // end namespace glslang

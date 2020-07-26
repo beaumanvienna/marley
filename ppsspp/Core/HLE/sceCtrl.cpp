@@ -87,6 +87,12 @@ static std::mutex ctrlMutex;
 
 static int ctrlTimer = -1;
 
+static u16 leftVibration = 0;
+static u16 rightVibration = 0;
+// The higher the dropout, the longer Vibration will run
+static u8 vibrationLeftDropout = 160;
+static u8 vibrationRightDropout = 160;
+
 // STATE END
 //////////////////////////////////////////////////////////////////////////
 
@@ -101,7 +107,7 @@ const u32 CTRL_EMU_RAPIDFIRE_MASK = CTRL_UP | CTRL_DOWN | CTRL_LEFT | CTRL_RIGHT
 static void __CtrlUpdateLatch()
 {
 	std::lock_guard<std::mutex> guard(ctrlMutex);
-	u64 t = CoreTiming_P::GetGlobalTimeUs();
+	u64 t = CoreTiming::GetGlobalTimeUs();
 
 	u32 buttons = ctrlCurrent.buttons;
 	if (emuRapidFire && (emuRapidFireFrames % 10) < 5)
@@ -200,6 +206,11 @@ void __CtrlSetRapidFire(bool state)
 	emuRapidFire = state;
 }
 
+bool __CtrlGetRapidFire()
+{
+	return emuRapidFire;
+}
+
 static int __CtrlReadSingleBuffer(PSPPointer<CtrlData> data, bool negative)
 {
 	if (data.IsValid())
@@ -283,6 +294,10 @@ static void __CtrlVblank()
 {
 	emuRapidFireFrames++;
 
+	// Reduce gamepad Vibration by set % each frame
+	leftVibration *= (float)vibrationLeftDropout / 256.0f;
+	rightVibration *= (float)vibrationRightDropout / 256.0f;
+
 	// This always runs, so make sure we're in vblank mode.
 	if (ctrlCycle == 0)
 		__CtrlDoSample();
@@ -291,16 +306,16 @@ static void __CtrlVblank()
 static void __CtrlTimerUpdate(u64 userdata, int cyclesLate)
 {
 	// This only runs in timer mode (ctrlCycle > 0.)
-	_dbg_assert_msg_(SCECTRL, ctrlCycle > 0, "Ctrl: sampling cycle should be > 0");
+	_dbg_assert_msg_(ctrlCycle > 0, "Ctrl: sampling cycle should be > 0");
 
-	CoreTiming_P::ScheduleEvent(usToCycles(ctrlCycle) - cyclesLate, ctrlTimer, 0);
+	CoreTiming::ScheduleEvent(usToCycles(ctrlCycle) - cyclesLate, ctrlTimer, 0);
 
 	__CtrlDoSample();
 }
 
 void __CtrlInit()
 {
-	ctrlTimer = CoreTiming_P::RegisterEvent("CtrlSampleTimer", __CtrlTimerUpdate);
+	ctrlTimer = CoreTiming::RegisterEvent("CtrlSampleTimer", __CtrlTimerUpdate);
 	__DisplayListenVblank(__CtrlVblank);
 
 	ctrlIdleReset = -1;
@@ -362,7 +377,7 @@ void __CtrlDoState(PointerWrap &p)
 	p.Do(waitingThreads, dv);
 
 	p.Do(ctrlTimer);
-	CoreTiming_P::RestoreRegisterEvent(ctrlTimer, "CtrlSampleTimer", __CtrlTimerUpdate);
+	CoreTiming::RestoreRegisterEvent(ctrlTimer, "CtrlSampleTimer", __CtrlTimerUpdate);
 }
 
 void __CtrlShutdown()
@@ -384,9 +399,9 @@ static u32 sceCtrlSetSamplingCycle(u32 cycle)
 	ctrlCycle = cycle;
 
 	if (prev > 0)
-		CoreTiming_P::UnscheduleEvent(ctrlTimer, 0);
+		CoreTiming::UnscheduleEvent(ctrlTimer, 0);
 	if (cycle > 0)
-		CoreTiming_P::ScheduleEvent(usToCycles(ctrlCycle), ctrlTimer, 0);
+		CoreTiming::ScheduleEvent(usToCycles(ctrlCycle), ctrlTimer, 0);
 
 	return prev;
 }
@@ -394,8 +409,8 @@ static u32 sceCtrlSetSamplingCycle(u32 cycle)
 static int sceCtrlGetSamplingCycle(u32 cyclePtr)
 {
 	DEBUG_LOG(SCECTRL, "sceCtrlGetSamplingCycle(%08x)", cyclePtr);
-	if (Memory_P::IsValidAddress(cyclePtr))
-		Memory_P::PWrite_U32(ctrlCycle, cyclePtr);
+	if (Memory::IsValidAddress(cyclePtr))
+		Memory::Write_U32(ctrlCycle, cyclePtr);
 	return 0;
 }
 
@@ -417,8 +432,8 @@ static int sceCtrlGetSamplingMode(u32 modePtr)
 	u32 retVal = analogEnabled == true ? CTRL_MODE_ANALOG : CTRL_MODE_DIGITAL;
 	DEBUG_LOG(SCECTRL, "%d=sceCtrlGetSamplingMode(%08x)", retVal, modePtr);
 
-	if (Memory_P::IsValidAddress(modePtr))
-		Memory_P::PWrite_U32(retVal, modePtr);
+	if (Memory::IsValidAddress(modePtr))
+		Memory::Write_U32(retVal, modePtr);
 
 	return 0;
 }
@@ -439,15 +454,15 @@ static int sceCtrlGetIdleCancelThreshold(u32 idleResetPtr, u32 idleBackPtr)
 {
 	DEBUG_LOG(SCECTRL, "sceCtrlSetIdleCancelThreshold(%08x, %08x)", idleResetPtr, idleBackPtr);
 
-	if (idleResetPtr && !Memory_P::IsValidAddress(idleResetPtr))
+	if (idleResetPtr && !Memory::IsValidAddress(idleResetPtr))
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
-	if (idleBackPtr && !Memory_P::IsValidAddress(idleBackPtr))
+	if (idleBackPtr && !Memory::IsValidAddress(idleBackPtr))
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 
 	if (idleResetPtr)
-		Memory_P::PWrite_U32(ctrlIdleReset, idleResetPtr);
+		Memory::Write_U32(ctrlIdleReset, idleResetPtr);
 	if (idleBackPtr)
-		Memory_P::PWrite_U32(ctrlIdleBack, idleBackPtr);
+		Memory::Write_U32(ctrlIdleBack, idleBackPtr);
 
 	return 0;
 }
@@ -557,4 +572,27 @@ void Register_sceCtrl()
 void Register_sceCtrl_driver()
 {
 	RegisterModule("sceCtrl_driver", ARRAY_SIZE(sceCtrl), sceCtrl);
+}
+
+u16 sceCtrlGetRightVibration() {
+	return rightVibration;
+}
+
+u16 sceCtrlGetLeftVibration() {
+	return leftVibration;
+}
+
+namespace SceCtrl {
+	void SetRightVibration(u16 rVibration) {
+		rightVibration = rVibration;
+	}
+	void SetLeftVibration(u16 lVibration) {
+		leftVibration = lVibration;
+	}
+	void SetVibrationRightDropout(u8 vibrationRDropout) {
+		vibrationRightDropout = vibrationRDropout;
+	}
+	void SetVibrationLeftDropout(u8 vibrationLDropout) {
+		vibrationLeftDropout = vibrationLDropout;
+	}
 }

@@ -44,7 +44,7 @@
 #include <list>
 #include <unordered_set>
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // The traverser: mostly pass through, except
@@ -135,4 +135,4 @@ private:
     TLiveTraverser& operator=(TLiveTraverser&);
 };
 
-} // namespace Pglslang
+} // namespace glslang

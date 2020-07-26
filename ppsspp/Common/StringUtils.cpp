@@ -49,7 +49,7 @@ long parseLong(std::string s) {
 	return value;
 }
 
-bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
+bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
 	int writtenCount = vsnprintf(out, outsize, format, args);
 
@@ -65,7 +65,7 @@ bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list a
 	}
 }
 
-bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
+bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
 {
 	if (full_path.empty())
 		return false;

@@ -48,7 +48,7 @@
 #include "doc.h"
 #include "SpvTools.h"
 
-namespace Pspv {
+namespace spv {
     extern "C" {
         // Include C-based headers that don't have a namespace
         #include "GLSL.std.450.h"
@@ -56,9 +56,9 @@ namespace Pspv {
         #include "GLSL.ext.NV.h"
     }
 }
-const char* GlslStd450DebugNames[Pspv::GLSLstd450Count];
+const char* GlslStd450DebugNames[spv::GLSLstd450Count];
 
-namespace Pspv {
+namespace spv {
 
 static const char* GLSLextAMDGetDebugNames(const char*, unsigned);
 static const char* GLSLextNVGetDebugNames(const char*, unsigned);
@@ -482,17 +482,17 @@ void SpirvStream::disassembleInstruction(Id resultId, Id /*typeId*/, Op opCode, 
                 const char* name = idDescriptor[stream[word - 2]].c_str();
                 if (0 == memcmp("OpenCL", name, 6)) {
                     extInstSet = OpenCLExtInst;
-                } else if (strcmp(Pspv::E_SPV_AMD_shader_ballot, name) == 0 ||
-                           strcmp(Pspv::E_SPV_AMD_shader_trinary_minmax, name) == 0 ||
-                           strcmp(Pspv::E_SPV_AMD_shader_explicit_vertex_parameter, name) == 0 ||
-                           strcmp(Pspv::E_SPV_AMD_gcn_shader, name) == 0) {
+                } else if (strcmp(spv::E_SPV_AMD_shader_ballot, name) == 0 ||
+                           strcmp(spv::E_SPV_AMD_shader_trinary_minmax, name) == 0 ||
+                           strcmp(spv::E_SPV_AMD_shader_explicit_vertex_parameter, name) == 0 ||
+                           strcmp(spv::E_SPV_AMD_gcn_shader, name) == 0) {
                     extInstSet = GLSLextAMDInst;
-                } else if (strcmp(Pspv::E_SPV_NV_sample_mask_override_coverage, name) == 0 ||
-                          strcmp(Pspv::E_SPV_NV_geometry_shader_passthrough, name) == 0 ||
-                          strcmp(Pspv::E_SPV_NV_viewport_array2, name) == 0 ||
-                          strcmp(Pspv::E_SPV_NVX_multiview_per_view_attributes, name) == 0 || 
-                          strcmp(Pspv::E_SPV_NV_fragment_shader_barycentric, name) == 0 ||
-                          strcmp(Pspv::E_SPV_NV_mesh_shader, name) == 0) {
+                } else if (strcmp(spv::E_SPV_NV_sample_mask_override_coverage, name) == 0 ||
+                          strcmp(spv::E_SPV_NV_geometry_shader_passthrough, name) == 0 ||
+                          strcmp(spv::E_SPV_NV_viewport_array2, name) == 0 ||
+                          strcmp(spv::E_SPV_NVX_multiview_per_view_attributes, name) == 0 || 
+                          strcmp(spv::E_SPV_NV_fragment_shader_barycentric, name) == 0 ||
+                          strcmp(spv::E_SPV_NV_mesh_shader, name) == 0) {
                     extInstSet = GLSLextNVInst;
                 }
                 unsigned entrypoint = stream[word - 1];
@@ -630,7 +630,7 @@ static void GLSLstd450GetDebugNames(const char** names)
 
 static const char* GLSLextAMDGetDebugNames(const char* name, unsigned entrypoint)
 {
-    if (strcmp(name, Pspv::E_SPV_AMD_shader_ballot) == 0) {
+    if (strcmp(name, spv::E_SPV_AMD_shader_ballot) == 0) {
         switch (entrypoint) {
         case SwizzleInvocationsAMD:         return "SwizzleInvocationsAMD";
         case SwizzleInvocationsMaskedAMD:   return "SwizzleInvocationsMaskedAMD";
@@ -638,7 +638,7 @@ static const char* GLSLextAMDGetDebugNames(const char* name, unsigned entrypoint
         case MbcntAMD:                      return "MbcntAMD";
         default:                            return "Bad";
         }
-    } else if (strcmp(name, Pspv::E_SPV_AMD_shader_trinary_minmax) == 0) {
+    } else if (strcmp(name, spv::E_SPV_AMD_shader_trinary_minmax) == 0) {
         switch (entrypoint) {
         case FMin3AMD:      return "FMin3AMD";
         case UMin3AMD:      return "UMin3AMD";
@@ -651,13 +651,13 @@ static const char* GLSLextAMDGetDebugNames(const char* name, unsigned entrypoint
         case SMid3AMD:      return "SMid3AMD";
         default:            return "Bad";
         }
-    } else if (strcmp(name, Pspv::E_SPV_AMD_shader_explicit_vertex_parameter) == 0) {
+    } else if (strcmp(name, spv::E_SPV_AMD_shader_explicit_vertex_parameter) == 0) {
         switch (entrypoint) {
         case InterpolateAtVertexAMD:    return "InterpolateAtVertexAMD";
         default:                        return "Bad";
         }
     }
-    else if (strcmp(name, Pspv::E_SPV_AMD_gcn_shader) == 0) {
+    else if (strcmp(name, spv::E_SPV_AMD_gcn_shader) == 0) {
         switch (entrypoint) {
         case CubeFaceIndexAMD:      return "CubeFaceIndexAMD";
         case CubeFaceCoordAMD:      return "CubeFaceCoordAMD";
@@ -672,14 +672,14 @@ static const char* GLSLextAMDGetDebugNames(const char* name, unsigned entrypoint
 
 static const char* GLSLextNVGetDebugNames(const char* name, unsigned entrypoint)
 {
-    if (strcmp(name, Pspv::E_SPV_NV_sample_mask_override_coverage) == 0 ||
-        strcmp(name, Pspv::E_SPV_NV_geometry_shader_passthrough) == 0 ||
-        strcmp(name, Pspv::E_ARB_shader_viewport_layer_array) == 0 ||
-        strcmp(name, Pspv::E_SPV_NV_viewport_array2) == 0 ||
-        strcmp(name, Pspv::E_SPV_NVX_multiview_per_view_attributes) == 0 ||
-        strcmp(name, Pspv::E_SPV_NV_fragment_shader_barycentric) == 0 ||
-        strcmp(name, Pspv::E_SPV_NV_mesh_shader) == 0 ||
-        strcmp(name, Pspv::E_SPV_NV_shader_image_footprint) == 0) {
+    if (strcmp(name, spv::E_SPV_NV_sample_mask_override_coverage) == 0 ||
+        strcmp(name, spv::E_SPV_NV_geometry_shader_passthrough) == 0 ||
+        strcmp(name, spv::E_ARB_shader_viewport_layer_array) == 0 ||
+        strcmp(name, spv::E_SPV_NV_viewport_array2) == 0 ||
+        strcmp(name, spv::E_SPV_NVX_multiview_per_view_attributes) == 0 ||
+        strcmp(name, spv::E_SPV_NV_fragment_shader_barycentric) == 0 ||
+        strcmp(name, spv::E_SPV_NV_mesh_shader) == 0 ||
+        strcmp(name, spv::E_SPV_NV_shader_image_footprint) == 0) {
         switch (entrypoint) {
         // NV builtins
         case BuiltInViewportMaskNV:                 return "ViewportMaskNV";
@@ -727,10 +727,10 @@ static const char* GLSLextNVGetDebugNames(const char* name, unsigned entrypoint)
 void Disassemble(std::ostream& out, const std::vector<unsigned int>& stream)
 {
     SpirvStream SpirvStream(out, stream);
-    Pspv::Parameterize();
+    spv::Parameterize();
     GLSLstd450GetDebugNames(GlslStd450DebugNames);
     SpirvStream.validate();
     SpirvStream.processInstructions();
 }
 
-}; // end namespace Pspv
+}; // end namespace spv

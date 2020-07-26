@@ -586,7 +586,7 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 			if (poweredDiffuse) {
 				// pow(0.0, 0.0) may be undefined, but the PSP seems to treat it as 1.0.
 				// Seen in Tales of the World: Radiant Mythology (#2424.)
-				WRITE(p, "  if (u_matspecular.a == 0.0) {\n");
+				WRITE(p, "  if (u_matspecular.a <= 0.0) {\n");
 				WRITE(p, "    ldot = 1.0;\n");
 				WRITE(p, "  } else {\n");
 				WRITE(p, "    ldot = pow(max(ldot, 0.0), u_matspecular.a);\n");
@@ -607,7 +607,7 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 			case GE_LIGHTTYPE_UNKNOWN:
 				WRITE(p, "  angle = length(u_lightdir%i) == 0.0 ? 0.0 : dot(normalize(u_lightdir%i), toLight);\n", i, i);
 				WRITE(p, "  if (angle >= u_lightangle_spotCoef%i.x) {\n", i);
-				WRITE(p, "    lightScale = clamp(1.0 / dot(u_lightatt%i, float3(1.0, distance, distance*distance)), 0.0, 1.0) * (u_lightangle_spotCoef%i.y == 0.0 ? 1.0 : pow(angle, u_lightangle_spotCoef%i.y));\n", i, i, i);
+				WRITE(p, "    lightScale = clamp(1.0 / dot(u_lightatt%i, float3(1.0, distance, distance*distance)), 0.0, 1.0) * (u_lightangle_spotCoef%i.y <= 0.0 ? 1.0 : pow(angle, u_lightangle_spotCoef%i.y));\n", i, i, i);
 				WRITE(p, "  } else {\n");
 				WRITE(p, "    lightScale = 0.0;\n");
 				WRITE(p, "  }\n");
@@ -621,7 +621,7 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 			if (doSpecular) {
 				WRITE(p, "  if (ldot >= 0.0) {\n");
 				WRITE(p, "    ldot = dot(normalize(toLight + float3(0.0, 0.0, 1.0)), worldnormal);\n");
-				WRITE(p, "    if (u_matspecular.a == 0.0) {\n");
+				WRITE(p, "    if (u_matspecular.a <= 0.0) {\n");
 				WRITE(p, "      ldot = 1.0;\n");
 				WRITE(p, "    } else {\n");
 				WRITE(p, "      ldot = pow(max(ldot, 0.0), u_matspecular.a);\n");
@@ -697,7 +697,7 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 					case GE_PROJMAP_UV:  // Use unscaled UV as source
 						{
 							if (hasTexcoord) {
-								temp_tc = PStringFromFormat("float4(In.texcoord.xy, 0.0, 1.0)");
+								temp_tc = StringFromFormat("float4(In.texcoord.xy, 0.0, 1.0)");
 							} else {
 								temp_tc = "float4(0.0, 0.0, 0.0, 1.0)";
 							}
@@ -723,8 +723,8 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 
 			case GE_TEXMAP_ENVIRONMENT_MAP:  // Shade mapping - use dots from light sources.
 				{
-					std::string lightFactor0 = PStringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls0, ls0);
-					std::string lightFactor1 = PStringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls1, ls1);
+					std::string lightFactor0 = StringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls0, ls0);
+					std::string lightFactor1 = StringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls1, ls1);
 					WRITE(p, "  Out.v_texcoord = float3(u_uvscaleoffset.xy * float2(1.0 + %s, 1.0 + %s) * 0.5, 1.0);\n", lightFactor0.c_str(), lightFactor1.c_str());
 				}
 				break;

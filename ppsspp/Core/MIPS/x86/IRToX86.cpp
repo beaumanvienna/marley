@@ -10,15 +10,15 @@ namespace MIPSComp {
 // Later tries may go across multiple blocks and a different representation.
 
 struct GPRMapping {
-	PGen::OpArg dest;
-	PGen::OpArg src1;
-	PGen::OpArg src2;
+	Gen::OpArg dest;
+	Gen::OpArg src1;
+	Gen::OpArg src2;
 };
 
 struct FPRMapping {
-	PGen::OpArg dest;
-	PGen::OpArg src1;
-	PGen::OpArg src2;
+	Gen::OpArg dest;
+	Gen::OpArg src1;
+	Gen::OpArg src2;
 };
 
 
@@ -57,7 +57,7 @@ FPRMapping GreedyRegallocFPR::Map(IRInst inst, const IRMeta &meta) {
 // This requires that ThreeOpToTwoOp has been run as the last pass.
 void IRToX86::ConvertIRToNative(const IRInst *instructions, int count, const u32 *constants) {
 	// Set up regcaches
-	using namespace PGen;
+	using namespace Gen;
 
 	GreedyRegallocGPR gprAlloc;
 	GreedyRegallocFPR fprAlloc;

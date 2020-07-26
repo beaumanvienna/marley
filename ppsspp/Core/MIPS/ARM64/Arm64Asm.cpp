@@ -101,12 +101,12 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	BeginWrite();
 
 	if (jo.useStaticAlloc) {
-		saveStaticRegisters = PAlignCode16();
+		saveStaticRegisters = AlignCode16();
 		STR(INDEX_UNSIGNED, DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount));
 		gpr.EmitSaveStaticRegisters();
 		RET();
 
-		loadStaticRegisters = PAlignCode16();
+		loadStaticRegisters = AlignCode16();
 		gpr.EmitLoadStaticRegisters();
 		LDR(INDEX_UNSIGNED, DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount));
 		RET();
@@ -117,7 +117,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		loadStaticRegisters = nullptr;
 	}
 
-	restoreRoundingMode = PAlignCode16(); {
+	restoreRoundingMode = AlignCode16(); {
 		MRS(SCRATCH2_64, FIELD_FPCR);
 		// We are not in flush-to-zero mode outside the JIT, so let's turn it off.
 		uint32_t mask = ~(4 << 22);
@@ -128,7 +128,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	applyRoundingMode = PAlignCode16(); {
+	applyRoundingMode = AlignCode16(); {
 		LDR(INDEX_UNSIGNED, SCRATCH2, CTXREG, offsetof(MIPSState, fcr31));
 		TSTI2R(SCRATCH2, 1 << 24);
 		ANDI2R(SCRATCH2, SCRATCH2, 3);
@@ -167,7 +167,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	updateRoundingMode = PAlignCode16(); {
+	updateRoundingMode = AlignCode16(); {
 		LDR(INDEX_UNSIGNED, SCRATCH2, CTXREG, offsetof(MIPSState, fcr31));
 
 		// Set SCRATCH2 to FZ:RM (FZ is bit 24, and RM are lowest 2 bits.)
@@ -186,14 +186,14 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		RET();
 	}
 
-	enterDispatcher = PAlignCode16();
+	enterDispatcher = AlignCode16();
 
 	uint32_t regs_to_save = Arm64Gen::ALL_CALLEE_SAVED;
 	uint32_t regs_to_save_fp = Arm64Gen::ALL_CALLEE_SAVED_FP;
 	fp.ABI_PushRegisters(regs_to_save, regs_to_save_fp);
 
 	// Fixed registers, these are always kept when in Jit context.
-	MOVP2R(MEMBASEREG, Memory_P::base);
+	MOVP2R(MEMBASEREG, Memory::base);
 	MOVP2R(CTXREG, mips_);
 	MOVP2R(JITBASEREG, GetBasePtr());
 
@@ -204,7 +204,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 	outerLoop = GetCodePtr();
 		SaveStaticRegisters();  // Advance can change the downcount, so must save/restore
 		RestoreRoundingMode(true);
-		QuickCallFunction(SCRATCH1_64, &CoreTiming_P::Advance);
+		QuickCallFunction(SCRATCH1_64, &CoreTiming::Advance);
 		ApplyRoundingMode(true);
 		LoadStaticRegisters();
 		FixupBranch skipToCoreStateCheck = B();  //skip the downcount check
@@ -277,6 +277,7 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 		CMP(SCRATCH1, 0);
 		B(CC_EQ, outerLoop);
 
+	const uint8_t *quitLoop = GetCodePtr();
 	SetJumpTarget(badCoreState);
 
 	SaveStaticRegisters();
@@ -286,11 +287,17 @@ void Arm64Jit::GenerateFixedCode(const JitOptions &jo) {
 
 	RET();
 
+	crashHandler = GetCodePtr();
+	MOVP2R(SCRATCH1_64, &coreState);
+	MOVI2R(SCRATCH2, CORE_RUNTIME_ERROR);
+	STR(INDEX_UNSIGNED, SCRATCH2, SCRATCH1_64, 0);
+	B(quitLoop);
+
 	// Generate some integer conversion funcs.
 	// MIPS order!
 	static const RoundingMode roundModes[8] = { ROUND_N, ROUND_Z, ROUND_P, ROUND_M, ROUND_N, ROUND_Z, ROUND_P, ROUND_M };
 	for (size_t i = 0; i < ARRAY_SIZE(roundModes); ++i) {
-		convertS0ToSCRATCH1[i] = PAlignCode16();
+		convertS0ToSCRATCH1[i] = AlignCode16();
 
 		fp.FCMP(S0, S0);  // Detect NaN
 		fp.FCVTS(S0, S0, roundModes[i]);

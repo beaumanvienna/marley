@@ -44,20 +44,20 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 
-    std::unique_ptr<Pglslangtest::GlslangInitializer> initializer(
-        new Pglslangtest::GlslangInitializer);
+    std::unique_ptr<glslangtest::GlslangInitializer> initializer(
+        new glslangtest::GlslangInitializer);
 
-    Pglslangtest::GlobalTestSettings.initializer = initializer.get();
+    glslangtest::GlobalTestSettings.initializer = initializer.get();
 
     for (int i = 1; i < argc; ++i) {
         if (std::string("--update-mode") == argv[i]) {
-            Pglslangtest::GlobalTestSettings.updateMode = true;
+            glslangtest::GlobalTestSettings.updateMode = true;
         }
         if (std::string("--test-root") == argv[i]) {
             // Allow the user set the test root directory.  This is useful
             // for testing with files from another source tree.
             if (i + 1 < argc) {
-                Pglslangtest::GlobalTestSettings.testRoot = argv[i + 1];
+                glslangtest::GlobalTestSettings.testRoot = argv[i + 1];
                 i++;
             } else {
                 printf("error: --test-root requires an argument\n");
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
     const int result = RUN_ALL_TESTS();
 
-    Pglslangtest::GlobalTestSettings.initializer = nullptr;
+    glslangtest::GlobalTestSettings.initializer = nullptr;
 
     return result;
 }

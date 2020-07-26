@@ -10,13 +10,13 @@
 
 static const u8 *prevStart = NULL;
 
-bool CheckLast(PGen::XEmitter &emit, const char *comp) {
+bool CheckLast(Gen::XEmitter &emit, const char *comp) {
 	auto vec = DisassembleX86(prevStart, emit.GetCodePointer() - prevStart);
 	EXPECT_EQ_STR(vec[0], std::string(comp));
 	return true;
 }
 
-void PrintLast(PGen::XEmitter &emit) {
+void PrintLast(Gen::XEmitter &emit) {
 	for (const u8 *p = prevStart; p < emit.GetCodePointer(); p++) {
 		printf("%02x ", *p);
 	}
@@ -24,7 +24,7 @@ void PrintLast(PGen::XEmitter &emit) {
 }
 
 bool TestX64Emitter() {
-	using namespace PGen;
+	using namespace Gen;
 
 	u32 code[512];
 	XEmitter emitter((u8 *)code);

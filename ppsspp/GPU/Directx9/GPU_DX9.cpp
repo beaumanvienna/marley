@@ -58,8 +58,6 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 		drawEngine_(draw) {
 	device_ = (LPDIRECT3DDEVICE9)draw->GetNativeObject(Draw::NativeObject::DEVICE);
 	deviceEx_ = (LPDIRECT3DDEVICE9EX)draw->GetNativeObject(Draw::NativeObject::DEVICE_EX);
-	lastVsync_ = g_PConfig.bVSync ? 1 : 0;
-	dxstate.SetVSyncInterval(g_PConfig.bVSync);
 
 	shaderManagerDX9_ = new ShaderManagerDX9(draw, device_);
 	framebufferManagerDX9_ = new FramebufferManagerDX9(draw);
@@ -72,10 +70,10 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	drawEngine_.SetShaderManager(shaderManagerDX9_);
 	drawEngine_.SetTextureCache(textureCacheDX9_);
 	drawEngine_.SetFramebufferManager(framebufferManagerDX9_);
-	framebufferManagerDX9_->Init();
 	framebufferManagerDX9_->SetTextureCache(textureCacheDX9_);
 	framebufferManagerDX9_->SetShaderManager(shaderManagerDX9_);
 	framebufferManagerDX9_->SetDrawEngine(&drawEngine_);
+	framebufferManagerDX9_->Init();
 	textureCacheDX9_->SetFramebufferManager(framebufferManagerDX9_);
 	textureCacheDX9_->SetDepalShaderCache(&depalShaderCache_);
 	textureCacheDX9_->SetShaderManager(shaderManagerDX9_);
@@ -97,11 +95,10 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	dxstate.Restore();
 	textureCache_->NotifyConfigChanged();
 
-	if (g_PConfig.bHardwareTessellation) {
+	if (g_Config.bHardwareTessellation) {
 		// Disable hardware tessellation bacause DX9 is still unsupported.
-		g_PConfig.bHardwareTessellation = false;
 		ERROR_LOG(G3D, "Hardware Tessellation is unsupported, falling back to software tessellation");
-		I18NCategory *gr = GetI18NCategory("Graphics");
+		auto gr = GetI18NCategory("Graphics");
 		host->NotifyUserMessage(gr->T("Turn off Hardware Tessellation - unsupported"), 2.5f, 0xFF3030FF);
 	}
 }
@@ -170,12 +167,12 @@ void GPU_DX9::CheckGPUFeatures() {
 	features |= GPU_SUPPORTS_TEXTURE_LOD_CONTROL;
 	features |= GPU_PREFER_CPU_DOWNLOAD;
 
-	auto vendor = draw_->GetDeviceCaps().vendor;
-	// Accurate depth is required on AMD/nVidia (for reverse Z) so we ignore the compat flag to disable it on those. See #9545
-	if (!PSP_CoreParameter().compat.flags().DisableAccurateDepth || vendor == Draw::GPUVendor::VENDOR_AMD || vendor == Draw::GPUVendor::VENDOR_NVIDIA) {
-		features |= GPU_SUPPORTS_ACCURATE_DEPTH;
-	}
+	// Accurate depth is required because the Direct3D API does not support inverse Z.
+	// So we cannot incorrectly use the viewport transform as the depth range on Direct3D.
+	// TODO: Breaks text in PaRappa for some reason?
+	features |= GPU_SUPPORTS_ACCURATE_DEPTH;
 
+	auto vendor = draw_->GetDeviceCaps().vendor;
 	if (!PSP_CoreParameter().compat.flags().DepthRangeHack) {
 		// VS range culling (killing triangles in the vertex shader using NaN) causes problems on Intel.
 		// Also causes problems on old NVIDIA.
@@ -212,7 +209,7 @@ void GPU_DX9::CheckGPUFeatures() {
 			features |= GPU_SUPPORTS_OES_TEXTURE_NPOT;
 	}
 
-	if (!g_PConfig.bHighQualityDepth) {
+	if (!g_Config.bHighQualityDepth) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 		// Assume we always have a 24-bit depth buffer.
@@ -258,8 +255,7 @@ void GPU_DX9::DeviceRestore() {
 }
 
 void GPU_DX9::InitClear() {
-	bool useNonBufferedRendering = g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE;
-	if (useNonBufferedRendering) {
+	if (!framebufferManager_->UseBufferedRendering()) {
 		dxstate.depthWrite.set(true);
 		dxstate.colorMask.set(true, true, true, true);
 		device_->Clear(0, NULL, D3DCLEAR_STENCIL|D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.f, 0);
@@ -285,17 +281,8 @@ void GPU_DX9::ReapplyGfxState() {
 }
 
 void GPU_DX9::BeginFrame() {
-	// Turn off vsync when unthrottled
-	int desiredVSyncInterval = g_PConfig.bVSync ? 1 : 0;
-	if (PSP_CoreParameter().unthrottle || PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL)
-		desiredVSyncInterval = 0;
-	if (desiredVSyncInterval != lastVsync_) {
-		dxstate.SetVSyncInterval(desiredVSyncInterval);
-		lastVsync_ = desiredVSyncInterval;
-	}
-
 	textureCacheDX9_->StartFrame();
-	drawEngine_.DecimateTrackedVertexArrays();
+	drawEngine_.BeginFrame();
 	depalShaderCache_.Decimate();
 	// fragmentTestCache_.Decimate();
 
@@ -310,13 +297,13 @@ void GPU_DX9::SetDisplayFramebuffer(u32 framebuf, u32 stride, GEBufferFormat for
 	framebufferManagerDX9_->SetDisplayFramebuffer(framebuf, stride, format);
 }
 
-void GPU_DX9::CopyDisplayToOutput() {
+void GPU_DX9::CopyDisplayToOutput(bool reallyDirty) {
 	dxstate.depthWrite.set(true);
 	dxstate.colorMask.set(true, true, true, true);
 
 	drawEngine_.Flush();
 
-	framebufferManagerDX9_->CopyDisplayToOutput();
+	framebufferManagerDX9_->CopyDisplayToOutput(reallyDirty);
 	framebufferManagerDX9_->EndFrame();
 
 	// shaderManager_->EndFrame();
@@ -409,11 +396,12 @@ void GPU_DX9::DoState(PointerWrap &p) {
 	// TODO: Some of these things may not be necessary.
 	// None of these are necessary when saving.
 	if (p.mode == p.MODE_READ && !PSP_CoreParameter().frozen) {
-		textureCacheDX9_->Clear(true);
+		textureCache_->Clear(true);
+		depalShaderCache_.Clear();
 		drawEngine_.ClearTrackedVertexArrays();
 
 		gstate_c.Dirty(DIRTY_TEXTURE_IMAGE);
-		framebufferManagerDX9_->DestroyAllFBOs();
+		framebufferManager_->DestroyAllFBOs();
 	}
 }
 

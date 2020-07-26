@@ -86,9 +86,9 @@ static int sceSslGetUsedMemoryMax(u32 maxMemPtr)
 		return ERROR_SSL_NOT_INIT;
 	}
 
-	if (Memory_P::IsValidAddress(maxMemPtr))
+	if (Memory::IsValidAddress(maxMemPtr))
 	{
-		Memory_P::PWrite_U32(maxMemSize, maxMemPtr);
+		Memory::Write_U32(maxMemSize, maxMemPtr);
 	}
 	return 0;
 }
@@ -101,9 +101,9 @@ static int sceSslGetUsedMemoryCurrent(u32 currentMemPtr)
 		return ERROR_SSL_NOT_INIT;
 	}
 
-	if (Memory_P::IsValidAddress(currentMemPtr))
+	if (Memory::IsValidAddress(currentMemPtr))
 	{
-		Memory_P::PWrite_U32(currentMemSize, currentMemPtr);
+		Memory::Write_U32(currentMemSize, currentMemPtr);
 	}
 	return 0;
 }

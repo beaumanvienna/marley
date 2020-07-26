@@ -35,7 +35,7 @@
 #ifndef __OSINCLUDE_H
 #define __OSINCLUDE_H
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Thread Local Storage Operations
@@ -58,6 +58,6 @@ void OS_CleanupThreadData(void);
 
 void OS_DumpMemoryCounters();
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // __OSINCLUDE_H

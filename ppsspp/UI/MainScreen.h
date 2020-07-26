@@ -24,18 +24,32 @@
 #include "ui/viewgroup.h"
 #include "UI/MiscScreens.h"
 
-class GameBrowser : public PUI::LinearLayout {
+enum GameBrowserFlags {
+	FLAG_HOMEBREWSTOREBUTTON = 1
+};
+
+enum class BrowseFlags {
+	NONE = 0,
+	NAVIGATE = 1,
+	ARCHIVES = 2,
+	PIN = 4,
+	HOMEBREW_STORE = 8,
+	STANDARD = 1 | 2 | 4,
+};
+ENUM_CLASS_BITOPS(BrowseFlags);
+
+class GameBrowser : public UI::LinearLayout {
 public:
-	GameBrowser(std::string path, bool allowBrowsing, bool *gridStyle_, std::string lastText, std::string lastLink, int flags = 0, PUI::LayoutParams *layoutParams = 0);
+	GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, ScreenManager *screenManager, std::string lastText, std::string lastLink, UI::LayoutParams *layoutParams = nullptr);
 
-	PUI::Event OnChoice;
-	PUI::Event OnHoldChoice;
-	PUI::Event OnHighlight;
-
-	PUI::Choice *HomebrewStoreButton() { return homebrewStoreButton_; }
+	UI::Event OnChoice;
+	UI::Event OnHoldChoice;
+	UI::Event OnHighlight;
 
 	void FocusGame(const std::string &gamePath);
 	void SetPath(const std::string &path);
+	void Draw(UIContext &dc) override;
+	void Update() override;
 
 protected:
 	virtual bool DisplayTopBar();
@@ -48,24 +62,29 @@ private:
 	const std::vector<std::string> GetPinnedPaths();
 	const std::string GetBaseName(const std::string &path);
 
-	PUI::EventReturn GameButtonClick(PUI::EventParams &e);
-	PUI::EventReturn GameButtonHoldClick(PUI::EventParams &e);
-	PUI::EventReturn GameButtonHighlight(PUI::EventParams &e);
-	PUI::EventReturn NavigateClick(PUI::EventParams &e);
-	PUI::EventReturn LayoutChange(PUI::EventParams &e);
-	PUI::EventReturn LastClick(PUI::EventParams &e);
-	PUI::EventReturn HomeClick(PUI::EventParams &e);
-	PUI::EventReturn PinToggleClick(PUI::EventParams &e);
+	UI::EventReturn GameButtonClick(UI::EventParams &e);
+	UI::EventReturn GameButtonHoldClick(UI::EventParams &e);
+	UI::EventReturn GameButtonHighlight(UI::EventParams &e);
+	UI::EventReturn NavigateClick(UI::EventParams &e);
+	UI::EventReturn LayoutChange(UI::EventParams &e);
+	UI::EventReturn LastClick(UI::EventParams &e);
+	UI::EventReturn HomeClick(UI::EventParams &e);
+	UI::EventReturn PinToggleClick(UI::EventParams &e);
+	UI::EventReturn GridSettingsClick(UI::EventParams &e);
+	UI::EventReturn OnRecentClear(UI::EventParams &e);
+	UI::EventReturn OnHomebrewStore(UI::EventParams &e);
 
-	PUI::ViewGroup *gameList_;
+	UI::ViewGroup *gameList_ = nullptr;
 	PathBrowser path_;
-	bool *gridStyle_;
-	bool allowBrowsing_;
+	bool *gridStyle_ = nullptr;
+	BrowseFlags browseFlags_;
 	std::string lastText_;
 	std::string lastLink_;
-	int flags_;
-	PUI::Choice *homebrewStoreButton_;
 	std::string focusGamePath_;
+	bool listingPending_ = false;
+	float lastScale_ = 1.0f;
+	bool lastLayoutWasGrid_ = true;
+	ScreenManager *screenManager_;
 };
 
 class RemoteISOBrowseScreen;
@@ -90,35 +109,33 @@ protected:
 	bool UseVerticalLayout() const;
 	bool DrawBackgroundFor(UIContext &dc, const std::string &gamePath, float progress);
 
-	PUI::EventReturn OnGameSelected(PUI::EventParams &e);
-	PUI::EventReturn OnGameSelectedInstant(PUI::EventParams &e);
-	PUI::EventReturn OnGameHighlight(PUI::EventParams &e);
+	UI::EventReturn OnGameSelected(UI::EventParams &e);
+	UI::EventReturn OnGameSelectedInstant(UI::EventParams &e);
+	UI::EventReturn OnGameHighlight(UI::EventParams &e);
 	// Event handlers
-	PUI::EventReturn OnLoadFile(PUI::EventParams &e);
-	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
-	PUI::EventReturn OnRecentChange(PUI::EventParams &e);
-	PUI::EventReturn OnCredits(PUI::EventParams &e);
-	PUI::EventReturn OnSupport(PUI::EventParams &e);
-	PUI::EventReturn OnPPSSPPOrg(PUI::EventParams &e);
-	PUI::EventReturn OnForums(PUI::EventParams &e);
-	PUI::EventReturn OnExit(PUI::EventParams &e);
-	PUI::EventReturn OnDownloadUpgrade(PUI::EventParams &e);
-	PUI::EventReturn OnDismissUpgrade(PUI::EventParams &e);
-	PUI::EventReturn OnHomebrewStore(PUI::EventParams &e);
-	PUI::EventReturn OnAllowStorage(PUI::EventParams &e);
+	UI::EventReturn OnLoadFile(UI::EventParams &e);
+	UI::EventReturn OnGameSettings(UI::EventParams &e);
+	UI::EventReturn OnCredits(UI::EventParams &e);
+	UI::EventReturn OnSupport(UI::EventParams &e);
+	UI::EventReturn OnPPSSPPOrg(UI::EventParams &e);
+	UI::EventReturn OnForums(UI::EventParams &e);
+	UI::EventReturn OnExit(UI::EventParams &e);
+	UI::EventReturn OnDownloadUpgrade(UI::EventParams &e);
+	UI::EventReturn OnDismissUpgrade(UI::EventParams &e);
+	UI::EventReturn OnAllowStorage(UI::EventParams &e);
 
-	PUI::LinearLayout *upgradeBar_;
-	PUI::TabHolder *tabHolder_;
+	UI::LinearLayout *upgradeBar_ = nullptr;
+	UI::TabHolder *tabHolder_ = nullptr;
 
 	std::string restoreFocusGamePath_;
 	std::vector<GameBrowser *> gameBrowsers_;
 
 	std::string highlightedGamePath_;
 	std::string prevHighlightedGamePath_;
-	float highlightProgress_;
-	float prevHighlightProgress_;
-	bool backFromStore_;
-	bool lockBackgroundAudio_;
+	float highlightProgress_ = 0.0f;
+	float prevHighlightProgress_ = 0.0f;
+	bool backFromStore_ = false;
+	bool lockBackgroundAudio_ = false;
 	bool lastVertical_;
 	bool confirmedTemporary_ = false;
 
@@ -135,9 +152,23 @@ protected:
 	//virtual void sendMessage(const char *message, const char *value);
 
 private:
-	PUI::EventReturn OnGameSelected(PUI::EventParams &e);
-	PUI::EventReturn OnGameSelectedInstant(PUI::EventParams &e);
+	UI::EventReturn OnGameSelected(UI::EventParams &e);
+	UI::EventReturn OnGameSelectedInstant(UI::EventParams &e);
 
-	PUI::EventReturn OnCancel(PUI::EventParams &e);
-	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
+	UI::EventReturn OnCancel(UI::EventParams &e);
+	UI::EventReturn OnGameSettings(UI::EventParams &e);
+};
+
+class GridSettingsScreen : public PopupScreen {
+public:
+	GridSettingsScreen(std::string label) : PopupScreen(label) {}
+	void CreatePopupContents(UI::ViewGroup *parent) override;
+	UI::Event OnRecentChanged;
+
+private:
+	UI::EventReturn GridPlusClick(UI::EventParams &e);
+	UI::EventReturn GridMinusClick(UI::EventParams &e);
+	UI::EventReturn OnRecentClearClick(UI::EventParams &e);
+	const float MAX_GAME_GRID_SCALE = 3.0f;
+	const float MIN_GAME_GRID_SCALE = 0.8f;
 };

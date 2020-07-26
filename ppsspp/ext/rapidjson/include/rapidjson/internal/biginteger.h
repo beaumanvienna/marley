@@ -23,7 +23,7 @@
 #endif
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 class BigInteger {
 public:
@@ -284,7 +284,7 @@ private:
     size_t count_;
 };
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #endif // RAPIDJSON_BIGINTEGER_H_

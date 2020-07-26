@@ -69,7 +69,7 @@ bool PointerWrap::ExpectVoid(void *data, int size) {
 	case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
 	case MODE_VERIFY:
 		for (int i = 0; i < size; i++)
-			_dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]);
+			_dbg_assert_msg_(((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]);
 		break;
 	default: break;  // throw an error?
 	}
@@ -84,7 +84,7 @@ void PointerWrap::DoVoid(void *data, int size) {
 	case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
 	case MODE_VERIFY:
 		for (int i = 0; i < size; i++)
-			_dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]);
+			_dbg_assert_msg_(((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]);
 		break;
 	default: break;  // throw an error?
 	}
@@ -99,7 +99,7 @@ void PointerWrap::Do(std::string &x) {
 	case MODE_READ:		x = (char*)*ptr; break;
 	case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
 	case MODE_MEASURE: break;
-	case MODE_VERIFY: _dbg_assert_msg_(COMMON, !strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (char*)*ptr, ptr); break;
+	case MODE_VERIFY: _dbg_assert_msg_(!strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (char*)*ptr, ptr); break;
 	}
 	(*ptr) += stringLen;
 }
@@ -112,7 +112,20 @@ void PointerWrap::Do(std::wstring &x) {
 	case MODE_READ:		x = (wchar_t*)*ptr; break;
 	case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
 	case MODE_MEASURE: break;
-	case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%ls\" != \"%ls\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
+	case MODE_VERIFY: _dbg_assert_msg_(x == (wchar_t*)*ptr, "Savestate verification failure: \"%ls\" != \"%ls\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
+	}
+	(*ptr) += stringLen;
+}
+
+void PointerWrap::Do(std::u16string &x) {
+	int stringLen = sizeof(char16_t) * ((int)x.length() + 1);
+	Do(stringLen);
+
+	switch (mode) {
+	case MODE_READ: x = (char16_t*)*ptr; break;
+	case MODE_WRITE: memcpy(*ptr, x.c_str(), stringLen); break;
+	case MODE_MEASURE: break;
+	case MODE_VERIFY: _dbg_assert_msg_(x == (char16_t*)*ptr, "Savestate verification failure: (at %p).\n", x.c_str()); break;
 	}
 	(*ptr) += stringLen;
 }
@@ -155,7 +168,7 @@ void PointerWrap::DoMarker(const char *prevName, u32 arbitraryNumber) {
 	u32 cookie = arbitraryNumber;
 	Do(cookie);
 	if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber) {
-		PanicAlert("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...", prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
+		_assert_msg_(false, "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...", prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
 		SetError(ERROR_FAILURE);
 	}
 }
@@ -166,7 +179,7 @@ PointerWrapSection::~PointerWrapSection() {
 	}
 }
 
-CChunkFileReader::Error CChunkFileReader::LoadFileHeader(PFile::IOFile &pFile, SChunkHeader &header, std::string *title) {
+CChunkFileReader::Error CChunkFileReader::LoadFileHeader(File::IOFile &pFile, SChunkHeader &header, std::string *title) {
 	if (!pFile) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: Can't open file for reading");
 		return ERROR_BAD_FILE;
@@ -215,24 +228,24 @@ CChunkFileReader::Error CChunkFileReader::LoadFileHeader(PFile::IOFile &pFile, S
 }
 
 CChunkFileReader::Error CChunkFileReader::GetFileTitle(const std::string &filename, std::string *title) {
-	if (!PFile::Exists(filename)) {
+	if (!File::Exists(filename)) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: File doesn't exist");
 		return ERROR_BAD_FILE;
 	}
 
-	PFile::IOFile pFile(filename, "rb");
+	File::IOFile pFile(filename, "rb");
 	SChunkHeader header;
 	return LoadFileHeader(pFile, header, title);
 }
 
 CChunkFileReader::Error CChunkFileReader::LoadFile(const std::string &filename, std::string *gitVersion, u8 *&_buffer, size_t &sz, std::string *failureReason) {
-	if (!PFile::Exists(filename)) {
+	if (!File::Exists(filename)) {
 		*failureReason = "LoadStateDoesntExist";
 		ERROR_LOG(SAVESTATE, "ChunkReader: File doesn't exist");
 		return ERROR_BAD_FILE;
 	}
 
-	PFile::IOFile pFile(filename, "rb");
+	File::IOFile pFile(filename, "rb");
 	SChunkHeader header;
 	Error err = LoadFileHeader(pFile, header, nullptr);
 	if (err != ERROR_NONE) {
@@ -285,7 +298,7 @@ CChunkFileReader::Error CChunkFileReader::LoadFile(const std::string &filename, 
 CChunkFileReader::Error CChunkFileReader::SaveFile(const std::string &filename, const std::string &title, const char *gitVersion, u8 *buffer, size_t sz) {
 	INFO_LOG(SAVESTATE, "ChunkReader: Writing %s", filename.c_str());
 
-	PFile::IOFile pFile(filename, "wb");
+	File::IOFile pFile(filename, "wb");
 	if (!pFile) {
 		ERROR_LOG(SAVESTATE, "ChunkReader: Error opening file for write");
 		free(buffer);

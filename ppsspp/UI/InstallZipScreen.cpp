@@ -20,7 +20,6 @@
 #include "ui/ui.h"
 #include "ui/view.h"
 #include "ui/viewgroup.h"
-#include "UI/ui_atlas.h"
 #include "file/file_util.h"
 
 #include "Common/StringUtils.h"
@@ -29,13 +28,13 @@
 #include "UI/MainScreen.h"
 
 void InstallZipScreen::CreateViews() {
-	using namespace PUI;
+	using namespace UI;
 
 	FileInfo fileInfo;
 	bool success = getFileInfo(zipPath_.c_str(), &fileInfo);
 
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *iz = GetI18NCategory("InstallZip");
+	auto di = GetI18NCategory("Dialog");
+	auto iz = GetI18NCategory("InstallZip");
 
 	Margins actionMenuMargins(0, 100, 15, 0);
 
@@ -82,6 +81,9 @@ void InstallZipScreen::CreateViews() {
 		returnToHomebrew_ = false;
 	} else {
 		leftColumn->Add(new TextView(iz->T("Zip file does not contain PSP software"), ALIGN_LEFT, false, new AnchorLayoutParams(10, 10, NONE, NONE)));
+		doneView_ = nullptr;
+		progressBar_ = nullptr;
+		installChoice_ = nullptr;
 		backChoice_ = rightColumnItems->Add(new Choice(di->T("Back")));
 	}
 
@@ -97,18 +99,20 @@ bool InstallZipScreen::key(const KeyInput &key) {
 	return false;
 }
 
-PUI::EventReturn InstallZipScreen::OnInstall(PUI::EventParams &params) {
+UI::EventReturn InstallZipScreen::OnInstall(UI::EventParams &params) {
 	if (g_GameManager.InstallGameOnThread(zipPath_, zipPath_, deleteZipFile_)) {
 		installStarted_ = true;
-		installChoice_->SetEnabled(false);
+		if (installChoice_) {
+			installChoice_->SetEnabled(false);
+		}
 	}
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 void InstallZipScreen::update() {
-	I18NCategory *iz = GetI18NCategory("InstallZip");
+	auto iz = GetI18NCategory("InstallZip");
 
-	using namespace PUI;
+	using namespace UI;
 	if (g_GameManager.GetState() != GameManagerState::IDLE) {
 		if (progressBar_) {
 			progressBar_->SetVisibility(V_VISIBLE);

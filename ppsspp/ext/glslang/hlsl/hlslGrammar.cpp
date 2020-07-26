@@ -55,7 +55,7 @@
 #include "hlslGrammar.h"
 #include "hlslAttributes.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Root entry point to this recursive decent parser.
 // Return true if compilation unit was successfully accepted.
@@ -4174,4 +4174,4 @@ const char* HlslGrammar::getTypeString(EHlslTokenClass tokenClass) const
     }
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

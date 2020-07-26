@@ -7,7 +7,6 @@
 #include "base/display.h"
 #include "gfx_es2/gpu_features.h"
 #include "thin3d/thin3d_create.h"
-#include "../../include/gui.h"
 
 #if defined(USING_EGL)
 #include "EGL/egl.h"
@@ -24,6 +23,7 @@ static EGLSurface               g_eglSurface    = nullptr;
 static EGLNativeDisplayType     g_Display       = nullptr;
 static bool                     g_XDisplayOpen  = false;
 static EGLNativeWindowType      g_Window        = (EGLNativeWindowType)nullptr;
+static bool useEGLSwap = false;
 
 int CheckEGLErrors(const char *file, int line) {
 	EGLenum error;
@@ -301,7 +301,6 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		int major;
 		int minor;
 	};
-
 	GLVersionPair attemptVersions[] = {
 #ifdef USING_GLES2
 		{3, 2}, {3, 1}, {3, 0}, {2, 0},
@@ -316,8 +315,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 	mode |= SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
 
 	SDL_GLContext glContext = nullptr;
-	for (size_t i = 0; i < ARRAY_SIZE(attemptVersions); ++i) 
-    {
+	for (size_t i = 0; i < ARRAY_SIZE(attemptVersions); ++i) {
 		const auto &ver = attemptVersions[i];
 		// Make sure to request a somewhat modern GL context at least - the
 		// latest supported by MacOS X (really, really sad...)
@@ -330,9 +328,8 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SetGLCoreContext(true);
 #endif
-        #warning "JC: modified"
-        window = gWindow;
-		//window = SDL_CreateWindow("PPSSPP", x,y, pixel_xres, pixel_yres, mode);
+
+		window = SDL_CreateWindow("PPSSPP", x, y, pixel_xres, pixel_yres, mode);
 		if (!window) {
 			// Definitely don't shutdown here: we'll keep trying more GL versions.
 			fprintf(stderr, "SDL_CreateWindow failed for GL %d.%d: %s\n", ver.major, ver.minor, SDL_GetError());
@@ -351,18 +348,17 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		SDL_DestroyWindow(window);
 	}
 
-	if (glContext == nullptr) 
-    {
+	if (glContext == nullptr) {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 		SetGLCoreContext(false);
 
-		window = SDL_CreateWindow("PPSSPP", x,y, pixel_xres, pixel_yres, mode);
+		window = SDL_CreateWindow("PPSSPP", x, y, pixel_xres, pixel_yres, mode);
 		if (window == nullptr) {
 			NativeShutdown();
 			fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
-			//SDL_Quit();
+			SDL_Quit();
 			return 2;
 		}
 
@@ -370,7 +366,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 		if (glContext == nullptr) {
 			NativeShutdown();
 			fprintf(stderr, "SDL_GL_CreateContext failed: %s\n", SDL_GetError());
-			//SDL_Quit();
+			SDL_Quit();
 			return 2;
 		}
 	}
@@ -381,11 +377,10 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 #ifdef USING_EGL
 	if (EGL_Open(window) != 0) {
 		printf("EGL_Open() failed\n");
-		return 1;
-	}
-	if (EGL_Init(window) != 0) {
+	} else if (EGL_Init(window) != 0) {
 		printf("EGL_Init() failed\n");
-		return 1;
+	} else {
+		useEGLSwap = true;
 	}
 #endif
 
@@ -420,13 +415,25 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 	assert(success);
 	renderManager_->SetSwapFunction([&]() {
 #ifdef USING_EGL
-		eglSwapBuffers(g_eglDisplay, g_eglSurface);
+		if (useEGLSwap)
+			eglSwapBuffers(g_eglDisplay, g_eglSurface);
+		else
+			SDL_GL_SwapWindow(window_);
 #else
 		SDL_GL_SwapWindow(window_);
 #endif
 	});
+
+	renderManager_->SetSwapIntervalFunction([&](int interval) {
+		ILOG("SDL SwapInterval: %d", interval);
+		SDL_GL_SetSwapInterval(interval);
+	});
 	window_ = window;
 	return 0;
+}
+
+void SDLGLGraphicsContext::SwapInterval(int interval) {
+	renderManager_->SwapInterval(interval);
 }
 
 void SDLGLGraphicsContext::Shutdown() {
@@ -438,7 +445,6 @@ void SDLGLGraphicsContext::ShutdownFromRenderThread() {
 
 #ifdef USING_EGL
 	EGL_Close();
-#else
-	SDL_GL_DeleteContext(glContext);
 #endif
+	SDL_GL_DeleteContext(glContext);
 }

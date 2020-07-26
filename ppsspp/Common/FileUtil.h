@@ -33,7 +33,7 @@ inline struct tm* localtime_r(const time_t *clock, struct tm *result) {
 }
 #endif
 
-namespace PFile {
+namespace File {
 
 // FileSystem tree node/ 
 struct FSTEntry
@@ -117,7 +117,7 @@ std::string GetCurrentDir();
 void CopyDir(const std::string &source_path, const std::string &dest_path);
 
 // Opens ini file (cheats, texture replacements etc.)
-void openPIniFile(const std::string& fileName);
+void openIniFile(const std::string& fileName);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string &directory);

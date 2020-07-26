@@ -69,7 +69,7 @@
 #include "../Include/intermediate.h"
 #include "../Include/InfoSink.h"
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Symbol base class.  (Can build functions or variables out of these...)
@@ -880,6 +880,6 @@ protected:
     unsigned int adoptedLevels;
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _SYMBOL_TABLE_INCLUDED_

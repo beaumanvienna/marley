@@ -37,21 +37,22 @@ public:
 	ReportScreen(const std::string &gamePath);
 
 protected:
+	void postRender() override;
 	void update() override;
 	void resized() override;
 	void CreateViews() override;
 	void UpdateSubmit();
 	void UpdateOverallDescription();
 
-	PUI::EventReturn HandleChoice(PUI::EventParams &e);
-	PUI::EventReturn HandleSubmit(PUI::EventParams &e);
-	PUI::EventReturn HandleBrowser(PUI::EventParams &e);
-	PUI::EventReturn HandleReportingChange(PUI::EventParams &e);
+	UI::EventReturn HandleChoice(UI::EventParams &e);
+	UI::EventReturn HandleSubmit(UI::EventParams &e);
+	UI::EventReturn HandleBrowser(UI::EventParams &e);
+	UI::EventReturn HandleReportingChange(UI::EventParams &e);
 
-	PUI::Choice *submit_ = nullptr;
-	PUI::View *screenshot_ = nullptr;
-	PUI::TextView *reportingNotice_ = nullptr;
-	PUI::TextView *overallDescription_ = nullptr;
+	UI::Choice *submit_ = nullptr;
+	UI::View *screenshot_ = nullptr;
+	UI::TextView *reportingNotice_ = nullptr;
+	UI::TextView *overallDescription_ = nullptr;
 	std::string screenshotFilename_;
 
 	ReportingOverallScore overall_ = ReportingOverallScore::INVALID;
@@ -60,6 +61,7 @@ protected:
 	int gameplay_ = -1;
 	bool enableReporting_;
 	bool ratingEnabled_;
+	bool tookScreenshot_ = false;
 	bool includeScreenshot_ = true;
 };
 
@@ -72,10 +74,10 @@ protected:
 	void CreateViews() override;
 	void ShowSuggestions();
 
-	PUI::EventReturn HandleViewFeedback(PUI::EventParams &e);
+	UI::EventReturn HandleViewFeedback(UI::EventParams &e);
 
-	PUI::TextView *resultNotice_ = nullptr;
-	PUI::LinearLayout *resultItems_ = nullptr;
+	UI::TextView *resultNotice_ = nullptr;
+	UI::LinearLayout *resultItems_ = nullptr;
 	ReportingOverallScore score_;
 	bool setStatus_ = false;
 };

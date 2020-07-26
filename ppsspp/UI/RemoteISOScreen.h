@@ -33,13 +33,14 @@ protected:
 	void update() override;
 	void CreateViews() override;
 
-	PUI::EventReturn HandleStartServer(PUI::EventParams &e);
-	PUI::EventReturn HandleStopServer(PUI::EventParams &e);
-	PUI::EventReturn HandleBrowse(PUI::EventParams &e);
-	PUI::EventReturn HandleSettings(PUI::EventParams &e);
+	UI::EventReturn HandleStartServer(UI::EventParams &e);
+	UI::EventReturn HandleStopServer(UI::EventParams &e);
+	UI::EventReturn HandleBrowse(UI::EventParams &e);
+	UI::EventReturn HandleSettings(UI::EventParams &e);
 
-	bool serverRunning_;
-	bool serverStopping_;
+	UI::TextView *firewallWarning_ = nullptr;
+	bool serverRunning_ = false;
+	bool serverStopping_ = false;
 };
 
 enum class ScanStatus {
@@ -63,25 +64,29 @@ protected:
 	ScanStatus GetStatus();
 	void ExecuteScan();
 	void ExecuteLoad();
+	bool FindServer(std::string &resultHost, int &resultPort);
 
-	PUI::TextView *statusView_;
+	UI::TextView *statusView_;
 
-	ScanStatus status_;
-	double nextRetry_;
+	ScanStatus status_ = ScanStatus::SCANNING;
+	std::string statusMessage_;
+	double nextRetry_ = 0.0;
 	std::thread *scanThread_;
 	std::mutex statusLock_;
 	std::string host_;
 	int port_;
+	std::string url_;
 	std::vector<std::string> games_;
 };
 
 class RemoteISOBrowseScreen : public MainScreen {
 public:
-	RemoteISOBrowseScreen(const std::vector<std::string> &games);
+	RemoteISOBrowseScreen(const std::string &url, const std::vector<std::string> &games);
 
 protected:
 	void CreateViews() override;
 
+	std::string url_;
 	std::vector<std::string> games_;
 };
 
@@ -89,14 +94,14 @@ class RemoteISOSettingsScreen : public UIDialogScreenWithBackground {
 public:
 	RemoteISOSettingsScreen();
 
-	PUI::EventReturn OnClickRemoteISOSubdir(PUI::EventParams &e);
-	PUI::EventReturn OnClickRemoteServer(PUI::EventParams &e);
+	UI::EventReturn OnClickRemoteISOSubdir(UI::EventParams &e);
+	UI::EventReturn OnClickRemoteServer(UI::EventParams &e);
 protected:
 
 	void update() override;
 	void CreateViews() override;
 
-	PUI::EventReturn OnChangeRemoteISOSubdir(PUI::EventParams &e);
+	UI::EventReturn OnChangeRemoteISOSubdir(UI::EventParams &e);
 
 	bool serverRunning_ = false;
 };

@@ -554,7 +554,7 @@ typedef ptrdiff_t png_ptrdiff_t;
 /* libpng needs to know the maximum value of 'size_t' and this controls the
  * definition of png_alloc_size_t, below.  This maximum value of size_t limits
  * but does not control the maximum allocations the library makes - there is
- * direct application control of this through Ppng_set_user_limits().
+ * direct application control of this through png_set_user_limits().
  */
 #ifndef PNG_SMALL_SIZE_T
    /* Compiler specific tests for systems where size_t is known to be less than

@@ -304,7 +304,7 @@ void MIPSState::DoState(PointerWrap &p) {
 void MIPSState::SingleStep() {
 	int cycles = MIPS_SingleStep();
 	currentMIPS->downcount -= cycles;
-	CoreTiming_P::Advance();
+	CoreTiming::Advance();
 }
 
 // returns 1 if reached ticks limit

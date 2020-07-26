@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <numeric>
 
-using namespace Pspv;
+using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
@@ -8063,7 +8063,7 @@ void CompilerMSL::analyze_sampled_image_usage()
 	}
 }
 
-bool CompilerMSL::SampledImageScanner::handle(Pspv::Op opcode, const uint32_t *args, uint32_t length)
+bool CompilerMSL::SampledImageScanner::handle(spv::Op opcode, const uint32_t *args, uint32_t length)
 {
 	switch (opcode)
 	{

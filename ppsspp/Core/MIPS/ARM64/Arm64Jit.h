@@ -52,6 +52,8 @@ public:
 	void Compile(u32 em_address) override;	// Compiles a block at current MIPS PC
 	const u8 *DoJit(u32 em_address, JitBlock *b);
 
+	const u8 *GetCrashHandler() const override { return crashHandler; }
+	bool CodeInRange(const u8 *ptr) const override { return IsInSpace(ptr); }
 	bool DescribeCodePtr(const u8 *ptr, std::string &name) override;
 	MIPSOpcode GetOriginalOp(MIPSOpcode op) override;
 
@@ -168,8 +170,8 @@ public:
 
 	int Replace_fabsf() override;
 
-	PJitBlockCache *GetBlockCache() override { return &blocks; }
-	PJitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
+	JitBlockCache *GetBlockCache() override { return &blocks; }
+	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
 
 	std::vector<u32> SaveAndClearEmuHackOps() override { return blocks.SaveAndClearEmuHackOps(); }
 	void RestoreSavedEmuHackOps(std::vector<u32> saved) override { blocks.RestoreSavedEmuHackOps(saved); }
@@ -249,7 +251,7 @@ private:
 	std::vector<Arm64Gen::FixupBranch> SetScratch1ForSafeAddress(MIPSGPReg rs, s16 offset, Arm64Gen::ARM64Reg tempReg);
 	void Comp_ITypeMemLR(MIPSOpcode op, bool load);
 
-	PJitBlockCache blocks;
+	JitBlockCache blocks;
 	JitOptions jo;
 	JitState js;
 
@@ -280,6 +282,8 @@ public:
 	const u8 *restoreRoundingMode;
 	const u8 *applyRoundingMode;
 	const u8 *updateRoundingMode;
+
+	const u8 *crashHandler;
 
 	int jitStartOffset;
 

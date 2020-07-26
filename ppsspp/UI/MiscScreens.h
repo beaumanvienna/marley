@@ -58,7 +58,7 @@ protected:
 	void DrawBackground(UIContext &dc) override;
 	void sendMessage(const char *message, const char *value) override;
 
-	void AddStandardBack(PUI::ViewGroup *parent);
+	void AddStandardBack(UI::ViewGroup *parent);
 };
 
 class UIDialogScreenWithGameBackground : public UIDialogScreenWithBackground {
@@ -81,8 +81,8 @@ public:
 	void TriggerFinish(DialogResult result) override;
 
 private:
-	PUI::EventReturn OnYes(PUI::EventParams &e);
-	PUI::EventReturn OnNo(PUI::EventParams &e);
+	UI::EventReturn OnYes(UI::EventParams &e);
+	UI::EventReturn OnNo(UI::EventParams &e);
 
 	std::string message_;
 	std::string yesButtonText_;
@@ -114,8 +114,8 @@ private:
 
 class LogoScreen : public UIScreen {
 public:
-	LogoScreen()
-		: frames_(0), switched_(false) {}
+	LogoScreen(bool gotoGameSettings = false)
+		: gotoGameSettings_(gotoGameSettings) {}
 	bool key(const KeyInput &key) override;
 	bool touch(const TouchInput &touch) override;
 	void update() override;
@@ -125,8 +125,9 @@ public:
 
 private:
 	void Next();
-	int frames_;
-	bool switched_;
+	int frames_ = 0;
+	bool switched_ = false;
+	bool gotoGameSettings_ = false;
 };
 
 class CreditsScreen : public UIDialogScreenWithBackground {
@@ -138,15 +139,15 @@ public:
 	void CreateViews() override;
 
 private:
-	PUI::EventReturn OnOK(PUI::EventParams &e);
+	UI::EventReturn OnOK(UI::EventParams &e);
 
-	PUI::EventReturn OnSupport(PUI::EventParams &e);
-	PUI::EventReturn OnPPSSPPOrg(PUI::EventParams &e);
-	PUI::EventReturn OnPrivacy(PUI::EventParams &e);
-	PUI::EventReturn OnForums(PUI::EventParams &e);
-	PUI::EventReturn OnDiscord(PUI::EventParams &e);
-	PUI::EventReturn OnShare(PUI::EventParams &e);
-	PUI::EventReturn OnTwitter(PUI::EventParams &e);
+	UI::EventReturn OnSupport(UI::EventParams &e);
+	UI::EventReturn OnPPSSPPOrg(UI::EventParams &e);
+	UI::EventReturn OnPrivacy(UI::EventParams &e);
+	UI::EventReturn OnForums(UI::EventParams &e);
+	UI::EventReturn OnDiscord(UI::EventParams &e);
+	UI::EventReturn OnShare(UI::EventParams &e);
+	UI::EventReturn OnTwitter(UI::EventParams &e);
 
 	int frames_;
 };

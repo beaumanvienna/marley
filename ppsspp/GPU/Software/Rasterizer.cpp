@@ -38,7 +38,7 @@
 #include <emmintrin.h>
 #endif
 
-namespace PRasterizer {
+namespace Rasterizer {
 
 // Only OK on x64 where our stack is aligned
 #if defined(_M_SSE) && !defined(_M_IX86)
@@ -268,7 +268,7 @@ static inline u32 GetPixelColor(int x, int y)
 		return fb.Get32(x, y, gstate.FrameBufStride());
 
 	case GE_FORMAT_INVALID:
-		_dbg_assert_msg_(G3D, false, "Software: invalid framebuf format.");
+		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 	}
 	return 0;
 }
@@ -293,7 +293,7 @@ static inline void SetPixelColor(int x, int y, u32 value)
 		break;
 
 	case GE_FORMAT_INVALID:
-		_dbg_assert_msg_(G3D, false, "Software: invalid framebuf format.");
+		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 	}
 }
 
@@ -545,7 +545,7 @@ static inline u32 ApplyLogicOp(GELogicOp op, u32 old_color, u32 new_color) {
 	return new_color;
 }
 
-static inline Vec4<int> GetTextureFunctionOutput(const Vec4<int>& prim_color, const Vec4<int>& texcolor)
+Vec4<int> GetTextureFunctionOutput(const Vec4<int>& prim_color, const Vec4<int>& texcolor)
 {
 	Vec3<int> out_rgb;
 	int out_a;
@@ -779,7 +779,8 @@ static inline Vec3<int> GetDestFactor(const Vec4<int>& source, const Vec4<int>& 
 	}
 }
 
-static inline Vec3<int> AlphaBlendingResult(const Vec4<int> &source, const Vec4<int> &dst)
+// Removed inline here - it was never chosen to be inlined by the compiler anyway, too complex.
+Vec3<int> AlphaBlendingResult(const Vec4<int> &source, const Vec4<int> &dst)
 {
 	// Note: These factors cannot go below 0, but they can go above 255 when doubling.
 	Vec3<int> srcfactor = GetSourceFactor(source, dst);
@@ -935,7 +936,11 @@ inline void DrawSinglePixel(const DrawingCoords &p, u16 z, u8 fog, const Vec4<in
 	SetPixelColor(p.x, p.y, new_color);
 }
 
-static inline void ApplyTexturing(PSampler::Funcs sampler, Vec4<int> &prim_color, float s, float t, int texlevel, int frac_texlevel, bool bilinear, u8 *texptr[], int texbufw[]) {
+void DrawSinglePixelNonClear(const DrawingCoords &p, u16 z, u8 fog, const Vec4<int> &color_in) {
+	DrawSinglePixel<false>(p, z, fog, color_in);
+}
+
+static inline void ApplyTexturing(Sampler::Funcs sampler, Vec4<int> &prim_color, float s, float t, int texlevel, int frac_texlevel, bool bilinear, u8 *texptr[], int texbufw[]) {
 	int u[8] = {0}, v[8] = {0};   // 1.23.8 fixed point
 	int frac_u[2], frac_v[2];
 
@@ -1029,16 +1034,16 @@ static inline void CalculateSamplingParams(const float ds, const float dt, const
 		levelFrac = 0;
 	}
 
-	if (g_PConfig.iTexFiltering == TEX_FILTER_LINEAR) {
+	if (g_Config.iTexFiltering == TEX_FILTER_LINEAR) {
 		filt = true;
-	} else if (g_PConfig.iTexFiltering == TEX_FILTER_NEAREST) {
+	} else if (g_Config.iTexFiltering == TEX_FILTER_NEAREST) {
 		filt = false;
 	} else {
 		filt = detail > 0 ? gstate.isMinifyFilteringEnabled() : gstate.isMagnifyFilteringEnabled();
 	}
 }
 
-static inline void ApplyTexturing(PSampler::Funcs sampler, Vec4<int> *prim_color, const Vec4<float> &s, const Vec4<float> &t, int maxTexLevel, u8 *texptr[], int texbufw[]) {
+static inline void ApplyTexturing(Sampler::Funcs sampler, Vec4<int> *prim_color, const Vec4<float> &s, const Vec4<float> &t, int maxTexLevel, u8 *texptr[], int texbufw[]) {
 	float ds = s[1] - s[0];
 	float dt = t[2] - t[0];
 
@@ -1152,8 +1157,8 @@ void DrawTriangleSlice(
 		for (int i = 0; i <= maxTexLevel; i++) {
 			u32 texaddr = gstate.getTextureAddress(i);
 			texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-			if (Memory_P::IsValidAddress(texaddr))
-				texptr[i] = Memory_P::GetPointerUnchecked(texaddr);
+			if (Memory::IsValidAddress(texaddr))
+				texptr[i] = Memory::GetPointerUnchecked(texaddr);
 			else
 				texptr[i] = 0;
 		}
@@ -1164,10 +1169,10 @@ void DrawTriangleSlice(
 	TriangleEdge e2;
 
 	if (byY) {
-		maxY = std::min(maxY, minY + h2 * 16 * 2);
+		maxY = std::min(maxY, minY + h2 * 16 * 2) - 1;
 		minY += h1 * 16 * 2;
 	} else {
-		maxX = std::min(maxX, minX + h2 * 16 * 2);
+		maxX = std::min(maxX, minX + h2 * 16 * 2) - 1;
 		minX += h1 * 16 * 2;
 	}
 
@@ -1180,9 +1185,9 @@ void DrawTriangleSlice(
 	// This is common, and when we interpolate, we lose accuracy.
 	const bool flatZ = v0.screenpos.z == v1.screenpos.z && v0.screenpos.z == v2.screenpos.z;
 
-	PSampler::Funcs sampler = PSampler::GetFuncs();
+	Sampler::Funcs sampler = Sampler::GetFuncs();
 
-	for (pprime.y = minY; pprime.y < maxY; pprime.y += 32,
+	for (pprime.y = minY; pprime.y <= maxY; pprime.y += 32,
 										w0_base = e0.StepY(w0_base),
 										w1_base = e1.StepY(w1_base),
 										w2_base = e2.StepY(w2_base)) {
@@ -1192,7 +1197,7 @@ void DrawTriangleSlice(
 
 		// TODO: Maybe we can clip the edges instead?
 		int scissorYPlus1 = pprime.y + 16 > maxY ? -1 : 0;
-		Vec4<int> scissor_mask = Vec4<int>(0, maxX - minX - 1, scissorYPlus1, (maxX - minX - 1) | scissorYPlus1);
+		Vec4<int> scissor_mask = Vec4<int>(0, maxX - minX, scissorYPlus1, (maxX - minX) | scissorYPlus1);
 		Vec4<int> scissor_step = Vec4<int>(0, -32, 0, -32);
 
 		pprime.x = minX;
@@ -1362,7 +1367,7 @@ void DrawPoint(const VertexData &v0)
 
 	bool clearMode = gstate.isModeClear();
 
-	PSampler::Funcs sampler = PSampler::GetFuncs();
+	Sampler::Funcs sampler = Sampler::GetFuncs();
 
 	if (gstate.isTextureMapEnabled() && !clearMode) {
 		int texbufw[8] = {0};
@@ -1380,8 +1385,8 @@ void DrawPoint(const VertexData &v0)
 			for (int i = 0; i <= maxTexLevel; i++) {
 				u32 texaddr = gstate.getTextureAddress(i);
 				texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-				if (Memory_P::IsValidAddress(texaddr))
-					texptr[i] = Memory_P::GetPointerUnchecked(texaddr);
+				if (Memory::IsValidAddress(texaddr))
+					texptr[i] = Memory::GetPointerUnchecked(texaddr);
 				else
 					texptr[i] = 0;
 			}
@@ -1434,9 +1439,9 @@ void ClearRectangle(const VertexData &v0, const VertexData &v1)
 	DrawingCoords scissorTL(gstate.getScissorX1(), gstate.getScissorY1(), 0);
 	DrawingCoords scissorBR(gstate.getScissorX2(), gstate.getScissorY2(), 0);
 	minX = std::max(minX, (int)TransformUnit::DrawingToScreen(scissorTL).x);
-	maxX = std::max(0, std::min(maxX, (int)TransformUnit::DrawingToScreen(scissorBR).x));
+	maxX = std::max(0, std::min(maxX, (int)TransformUnit::DrawingToScreen(scissorBR).x + 16));
 	minY = std::max(minY, (int)TransformUnit::DrawingToScreen(scissorTL).y);
-	maxY = std::max(0, std::min(maxY, (int)TransformUnit::DrawingToScreen(scissorBR).y));
+	maxY = std::max(0, std::min(maxY, (int)TransformUnit::DrawingToScreen(scissorBR).y + 16));
 
 	const int w = (maxX - minX) / 16;
 	if (w <= 0)
@@ -1493,7 +1498,7 @@ void ClearRectangle(const VertexData &v0, const VertexData &v1)
 		break;
 
 	case GE_FORMAT_INVALID:
-		_dbg_assert_msg_(G3D, false, "Software: invalid framebuf format.");
+		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 		break;
 	}
 
@@ -1591,11 +1596,11 @@ void DrawLine(const VertexData &v0, const VertexData &v1)
 		for (int i = 0; i <= maxTexLevel; i++) {
 			u32 texaddr = gstate.getTextureAddress(i);
 			texbufw[i] = GetTextureBufw(i, texaddr, texfmt);
-			texptr[i] = Memory_P::GetPointer(texaddr);
+			texptr[i] = Memory::GetPointer(texaddr);
 		}
 	}
 
-	PSampler::Funcs sampler = PSampler::GetFuncs();
+	Sampler::Funcs sampler = Sampler::GetFuncs();
 
 	float x = a.x > b.x ? a.x - 1 : a.x;
 	float y = a.y > b.y ? a.y - 1 : a.y;
@@ -1711,14 +1716,14 @@ bool GetCurrentTexture(GPUDebugBuffer &buffer, int level)
 	int w = gstate.getTextureWidth(level);
 	int h = gstate.getTextureHeight(level);
 
-	if (!texaddr || !Memory_P::IsValidRange(texaddr, (textureBitsPerPixel[texfmt] * texbufw * h) / 8))
+	if (!texaddr || !Memory::IsValidRange(texaddr, (textureBitsPerPixel[texfmt] * texbufw * h) / 8))
 		return false;
 
 	buffer.Allocate(w, h, GE_FORMAT_8888, false);
 
-	PSampler::Funcs sampler = PSampler::GetFuncs();
+	Sampler::Funcs sampler = Sampler::GetFuncs();
 
-	u8 *texptr = Memory_P::GetPointer(texaddr);
+	u8 *texptr = Memory::GetPointer(texaddr);
 	u32 *row = (u32 *)buffer.GetData();
 	for (int y = 0; y < h; ++y) {
 		for (int x = 0; x < w; ++x) {

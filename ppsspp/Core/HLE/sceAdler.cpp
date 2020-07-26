@@ -27,13 +27,13 @@
 #include "Core/HLE/FunctionWrappers.h"
 
 static u32 sceAdler32(u32 adler, u32 data, u32 datalen) {
-	if (!Memory_P::IsValidAddress(data) || !Memory_P::IsValidAddress(data + datalen - 1)) {
+	if (!Memory::IsValidAddress(data) || !Memory::IsValidAddress(data + datalen - 1)) {
 		ERROR_LOG(SCEMISC, "sceAdler32(adler=%08x, data=%08x, datalen=%08x) - bad address(es)", adler, data, datalen);
 		return -1;
 	}
 	INFO_LOG(SCEMISC, "sceAdler32(adler=%08x, data=%08x, datalen=%08x)", adler, data, datalen);
 
-	u8 *buf = Memory_P::GetPointerUnchecked(data);
+	u8 *buf = Memory::GetPointerUnchecked(data);
 	u32 ret = adler32(adler, buf, datalen);
 
 	return ret;

@@ -325,7 +325,7 @@ public:
 	}
 
 	void Take(GLDeleter &other) {
-		_assert_msg_(G3D, IsEmpty(), "Deleter already has stuff");
+		_assert_msg_(IsEmpty(), "Deleter already has stuff");
 		shaders = std::move(other.shaders);
 		programs = std::move(other.programs);
 		buffers = std::move(other.buffers);
@@ -437,7 +437,7 @@ public:
 		step.create_program.program->queries_ = queries;
 		step.create_program.program->initialize_ = initalizers;
 		step.create_program.support_dual_source = supportDualSource;
-		_assert_msg_(G3D, shaders.size() > 0, "Can't create a program with zero shaders");
+		_assert_msg_(shaders.size() > 0, "Can't create a program with zero shaders");
 		for (size_t i = 0; i < shaders.size(); i++) {
 			step.create_program.shaders[i] = shaders[i];
 		}
@@ -501,21 +501,38 @@ public:
 		pushbuffer->End();
 	}
 
-	void BindFramebufferAsRenderTarget(GLRFramebuffer *fb, GLRRenderPassAction color, GLRRenderPassAction depth, GLRRenderPassAction stencil, uint32_t clearColor, float clearDepth, uint8_t clearStencil);
-	void BindFramebufferAsTexture(GLRFramebuffer *fb, int binding, int aspectBit, int attachment);
-	bool CopyFramebufferToMemorySync(GLRFramebuffer *src, int aspectBits, int x, int y, int w, int h, Draw::DataFormat destFormat, uint8_t *pixels, int pixelStride);
-	void CopyImageToMemorySync(GLRTexture *texture, int mipLevel, int x, int y, int w, int h, Draw::DataFormat destFormat, uint8_t *pixels, int pixelStride);
+	// This starts a new step (like a "render pass" in Vulkan).
+	//
+	// After a "CopyFramebuffer" or the other functions that start "steps", you need to call this beforce
+	// making any new render state changes or draw calls.
+	//
+	// The following state needs to be reset by the caller after calling this (and will thus not safely carry over from
+	// the previous one):
+	//   * Viewport/Scissor
+	//   * Depth/stencil
+	//   * Blend
+	//   * Raster state like primitive, culling, etc.
+	//
+	// It can be useful to use GetCurrentStepId() to figure out when you need to send all this state again, if you're
+	// not keeping track of your calls to this function on your own.
+	void BindFramebufferAsRenderTarget(GLRFramebuffer *fb, GLRRenderPassAction color, GLRRenderPassAction depth, GLRRenderPassAction stencil, uint32_t clearColor, float clearDepth, uint8_t clearStencil, const char *tag);
 
-	void CopyFramebuffer(GLRFramebuffer *src, GLRect2D srcRect, GLRFramebuffer *dst, GLOffset2D dstPos, int aspectMask);
-	void BlitFramebuffer(GLRFramebuffer *src, GLRect2D srcRect, GLRFramebuffer *dst, GLRect2D dstRect, int aspectMask, bool filter);
+	// Binds a framebuffer as a texture, for the following draws.
+	void BindFramebufferAsTexture(GLRFramebuffer *fb, int binding, int aspectBit, int attachment);
+
+	bool CopyFramebufferToMemorySync(GLRFramebuffer *src, int aspectBits, int x, int y, int w, int h, Draw::DataFormat destFormat, uint8_t *pixels, int pixelStride, const char *tag);
+	void CopyImageToMemorySync(GLRTexture *texture, int mipLevel, int x, int y, int w, int h, Draw::DataFormat destFormat, uint8_t *pixels, int pixelStride, const char *tag);
+
+	void CopyFramebuffer(GLRFramebuffer *src, GLRect2D srcRect, GLRFramebuffer *dst, GLOffset2D dstPos, int aspectMask, const char *tag);
+	void BlitFramebuffer(GLRFramebuffer *src, GLRect2D srcRect, GLRFramebuffer *dst, GLRect2D dstRect, int aspectMask, bool filter, const char *tag);
 
 	// Takes ownership of data if deleteData = true.
 	void BufferSubdata(GLRBuffer *buffer, size_t offset, size_t size, uint8_t *data, bool deleteData = true) {
 		// TODO: Maybe should be a render command instead of an init command? When possible it's better as
 		// an init command, that's for sure.
 		GLRInitStep step{ GLRInitStepType::BUFFER_SUBDATA };
-		_dbg_assert_(G3D, offset >= 0);
-		_dbg_assert_(G3D, offset <= buffer->size_ - size);
+		_dbg_assert_(offset >= 0);
+		_dbg_assert_(offset <= buffer->size_ - size);
 		step.buffer_subdata.buffer = buffer;
 		step.buffer_subdata.offset = (int)offset;
 		step.buffer_subdata.size = (int)size;
@@ -525,13 +542,11 @@ public:
 	}
 
 	// Takes ownership over the data pointer and delete[]-s it.
-	void TextureImage(GLRTexture *texture, int level, int width, int height, GLenum internalFormat, GLenum format, GLenum type, uint8_t *data, GLRAllocType allocType = GLRAllocType::NEW, bool linearFilter = false) {
+	void TextureImage(GLRTexture *texture, int level, int width, int height, Draw::DataFormat format, uint8_t *data, GLRAllocType allocType = GLRAllocType::NEW, bool linearFilter = false) {
 		GLRInitStep step{ GLRInitStepType::TEXTURE_IMAGE };
 		step.texture_image.texture = texture;
 		step.texture_image.data = data;
-		step.texture_image.internalFormat = internalFormat;
 		step.texture_image.format = format;
-		step.texture_image.type = type;
 		step.texture_image.level = level;
 		step.texture_image.width = width;
 		step.texture_image.height = height;
@@ -540,13 +555,12 @@ public:
 		initSteps_.push_back(step);
 	}
 
-	void TextureSubImage(GLRTexture *texture, int level, int x, int y, int width, int height, GLenum format, GLenum type, uint8_t *data, GLRAllocType allocType = GLRAllocType::NEW) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void TextureSubImage(GLRTexture *texture, int level, int x, int y, int width, int height, Draw::DataFormat format, uint8_t *data, GLRAllocType allocType = GLRAllocType::NEW) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData _data{ GLRRenderCommand::TEXTURE_SUBIMAGE };
 		_data.texture_subimage.texture = texture;
 		_data.texture_subimage.data = data;
 		_data.texture_subimage.format = format;
-		_data.texture_subimage.type = type;
 		_data.texture_subimage.level = level;
 		_data.texture_subimage.x = x;
 		_data.texture_subimage.y = y;
@@ -565,18 +579,18 @@ public:
 	}
 
 	void BindTexture(int slot, GLRTexture *tex) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BINDTEXTURE };
-		_dbg_assert_(G3D, slot < 16);
+		_dbg_assert_(slot < 16);
 		data.texture.slot = slot;
 		data.texture.texture = tex;
 		curRenderStep_->commands.push_back(data);
 	}
 
 	void BindProgram(GLRProgram *program) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BINDPROGRAM };
-		_dbg_assert_(G3D, program != nullptr);
+		_dbg_assert_(program != nullptr);
 		data.program.program = program;
 		curRenderStep_->commands.push_back(data);
 #ifdef _DEBUG
@@ -585,7 +599,7 @@ public:
 	}
 
 	void BindPixelPackBuffer(GLRBuffer *buffer) {  // Want to support an offset but can't in ES 2.0. We supply an offset when binding the buffers instead.
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BIND_BUFFER };
 		data.bind_buffer.buffer = buffer;
 		data.bind_buffer.target = GL_PIXEL_PACK_BUFFER;
@@ -593,7 +607,7 @@ public:
 	}
 
 	void BindIndexBuffer(GLRBuffer *buffer) {  // Want to support an offset but can't in ES 2.0. We supply an offset when binding the buffers instead.
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BIND_BUFFER};
 		data.bind_buffer.buffer = buffer;
 		data.bind_buffer.target = GL_ELEMENT_ARRAY_BUFFER;
@@ -601,7 +615,7 @@ public:
 	}
 
 	void BindVertexBuffer(GLRInputLayout *inputLayout, GLRBuffer *buffer, size_t offset) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		assert(inputLayout);
 		GLRRenderData data{ GLRRenderCommand::BIND_VERTEX_BUFFER };
 		data.bindVertexBuffer.inputLayout = inputLayout;
@@ -611,7 +625,7 @@ public:
 	}
 
 	void SetDepth(bool enabled, bool write, GLenum func) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::DEPTH };
 		data.depth.enabled = enabled;
 		data.depth.write = write;
@@ -620,21 +634,21 @@ public:
 	}
 
 	void SetViewport(const GLRViewport &vp) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::VIEWPORT };
 		data.viewport.vp = vp;
 		curRenderStep_->commands.push_back(data);
 	}
 
 	void SetScissor(const GLRect2D &rc) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::SCISSOR };
 		data.scissor.rc = rc;
 		curRenderStep_->commands.push_back(data);
 	}
 
-	void SetUniformI(GLint *loc, int count, const int *udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void SetUniformI(const GLint *loc, int count, const int *udata) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -645,8 +659,8 @@ public:
 		curRenderStep_->commands.push_back(data);
 	}
 
-	void SetUniformI1(GLint *loc, int udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void SetUniformI1(const GLint *loc, int udata) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -657,8 +671,8 @@ public:
 		curRenderStep_->commands.push_back(data);
 	}
 
-	void SetUniformF(GLint *loc, int count, const float *udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void SetUniformF(const GLint *loc, int count, const float *udata) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -669,8 +683,8 @@ public:
 		curRenderStep_->commands.push_back(data);
 	}
 
-	void SetUniformF1(GLint *loc, const float udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void SetUniformF1(const GLint *loc, const float udata) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -682,7 +696,7 @@ public:
 	}
 
 	void SetUniformF(const char *name, int count, const float *udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -693,8 +707,8 @@ public:
 		curRenderStep_->commands.push_back(data);
 	}
 
-	void SetUniformM4x4(GLint *loc, const float *udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+	void SetUniformM4x4(const GLint *loc, const float *udata) {
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -705,7 +719,7 @@ public:
 	}
 
 	void SetUniformM4x4(const char *name, const float *udata) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 #ifdef _DEBUG
 		assert(curProgram_);
 #endif
@@ -716,7 +730,7 @@ public:
 	}
 
 	void SetBlendAndMask(int colorMask, bool blendEnabled, GLenum srcColor, GLenum dstColor, GLenum srcAlpha, GLenum dstAlpha, GLenum funcColor, GLenum funcAlpha) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BLEND };
 		data.blend.mask = colorMask;
 		data.blend.enabled = blendEnabled;
@@ -730,7 +744,7 @@ public:
 	}
 
 	void SetNoBlendAndMask(int colorMask) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BLEND };
 		data.blend.mask = colorMask;
 		data.blend.enabled = false;
@@ -739,7 +753,7 @@ public:
 
 #ifndef USING_GLES2
 	void SetLogicOp(bool enabled, GLenum logicOp) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::LOGICOP };
 		data.logic.enabled = enabled;
 		data.logic.logicOp = logicOp;
@@ -748,7 +762,7 @@ public:
 #endif
 
 	void SetStencilFunc(bool enabled, GLenum func, uint8_t refValue, uint8_t compareMask) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::STENCILFUNC };
 		data.stencilFunc.enabled = enabled;
 		data.stencilFunc.func = func;
@@ -758,7 +772,7 @@ public:
 	}
 
 	void SetStencilOp(uint8_t writeMask, GLenum sFail, GLenum zFail, GLenum pass) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::STENCILOP };
 		data.stencilOp.writeMask = writeMask;
 		data.stencilOp.sFail = sFail;
@@ -768,7 +782,7 @@ public:
 	}
 
 	void SetStencilDisabled() {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data;
 		data.cmd = GLRRenderCommand::STENCILFUNC;
 		data.stencilFunc.enabled = false;
@@ -776,14 +790,14 @@ public:
 	}
 
 	void SetBlendFactor(const float color[4]) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::BLENDCOLOR };
 		CopyFloat4(data.blendColor.color, color);
 		curRenderStep_->commands.push_back(data);
 	}
 
 	void SetRaster(GLboolean cullEnable, GLenum frontFace, GLenum cullFace, GLboolean ditherEnable) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::RASTER };
 		data.raster.cullEnable = cullEnable;
 		data.raster.frontFace = frontFace;
@@ -794,7 +808,7 @@ public:
 	
 	// Modifies the current texture as per GL specs, not global state.
 	void SetTextureSampler(int slot, GLenum wrapS, GLenum wrapT, GLenum magFilter, GLenum minFilter, float anisotropy) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::TEXTURESAMPLER };
 		data.textureSampler.slot = slot;
 		data.textureSampler.wrapS = wrapS;
@@ -806,7 +820,7 @@ public:
 	}
 
 	void SetTextureLod(int slot, float minLod, float maxLod, float lodBias) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::TEXTURELOD};
 		data.textureLod.slot = slot;
 		data.textureLod.minLod = minLod;
@@ -815,9 +829,9 @@ public:
 		curRenderStep_->commands.push_back(data);
 	}
 
-	// If scissorW == 0, no scissor is applied.
+	// If scissorW == 0, no scissor is applied (the whole render target is cleared).
 	void Clear(uint32_t clearColor, float clearZ, int clearStencil, int clearMask, int colorMask, int scissorX, int scissorY, int scissorW, int scissorH) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		if (!clearMask)
 			return;
 		GLRRenderData data{ GLRRenderCommand::CLEAR };
@@ -834,14 +848,14 @@ public:
 	}
 
 	void Invalidate(int invalidateMask) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::INVALIDATE };
 		data.clear.clearMask = invalidateMask;
 		curRenderStep_->commands.push_back(data);
 	}
 
 	void Draw(GLenum mode, int first, int count) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::DRAW };
 		data.draw.mode = mode;
 		data.draw.first = first;
@@ -852,7 +866,7 @@ public:
 	}
 
 	void DrawIndexed(GLenum mode, int count, GLenum indexType, void *indices, int instances = 1) {
-		_dbg_assert_(G3D, curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
+		_dbg_assert_(curRenderStep_ && curRenderStep_->stepType == GLRStepType::RENDER);
 		GLRRenderData data{ GLRRenderCommand::DRAW_INDEXED };
 		data.drawIndexed.mode = mode;
 		data.drawIndexed.count = count;
@@ -864,6 +878,10 @@ public:
 	}
 
 	enum { MAX_INFLIGHT_FRAMES = 3 };
+
+	void SetInflightFrames(int f) {
+		newInflightFrames_ = f < 1 || f > MAX_INFLIGHT_FRAMES ? MAX_INFLIGHT_FRAMES : f;
+	}
 
 	int GetCurFrame() const {
 		return curFrame_;
@@ -919,6 +937,12 @@ public:
 		skipGLCalls_ = true;
 	}
 
+	// Gets a frame-unique ID of the current step being recorded. Can be used to figure out
+	// when the current step has changed, which means the caller will need to re-record its state.
+	int GetCurrentStepId() const {
+		return renderStepOffset_ + (int)steps_.size();
+	}
+
 private:
 	void BeginSubmitFrame(int frame);
 	void EndSubmitFrame(int frame);
@@ -965,6 +989,8 @@ private:
 
 	// Submission time state
 	bool insideFrame_ = false;
+	// This is the offset within this frame, in case of a mid-frame sync.
+	int renderStepOffset_ = 0;
 	GLRStep *curRenderStep_ = nullptr;
 	std::vector<GLRStep *> steps_;
 	std::vector<GLRInitStep> initSteps_;
@@ -990,6 +1016,9 @@ private:
 	std::function<void()> swapFunction_;
 	std::function<void(int)> swapIntervalFunction_;
 	GLBufferStrategy bufferStrategy_ = GLBufferStrategy::SUBDATA;
+
+	int inflightFrames_ = MAX_INFLIGHT_FRAMES;
+	int newInflightFrames_ = -1;
 
 	int swapInterval_ = 0;
 	bool swapIntervalChanged_ = true;

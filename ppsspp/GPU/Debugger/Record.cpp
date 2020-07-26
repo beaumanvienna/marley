@@ -68,16 +68,16 @@ static std::string GenRecordingFilename() {
 	const std::string dumpDir = GetSysDirectory(DIRECTORY_DUMP);
 	const std::string prefix = dumpDir + g_paramSFO.GetDiscID();
 
-	PFile::CreateFullPath(dumpDir);
+	File::CreateFullPath(dumpDir);
 
 	for (int n = 1; n < 10000; ++n) {
-		std::string filename = PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
-		if (!PFile::Exists(filename)) {
+		std::string filename = StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
+		if (!File::Exists(filename)) {
 			return filename;
 		}
 	}
 
-	return PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
+	return StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
 }
 
 static void BeginRecording() {
@@ -114,7 +114,7 @@ static std::string WriteRecording() {
 
 	NOTICE_LOG(G3D, "Recording filename: %s", filename.c_str());
 
-	FILE *fp = PFile::OpenCFile(filename, "wb");
+	FILE *fp = File::OpenCFile(filename, "wb");
 	fwrite(HEADER, 8, 1, fp);
 	fwrite(&VERSION, sizeof(VERSION), 1, fp);
 
@@ -155,30 +155,43 @@ static void GetVertDataSizes(int vcount, const void *indices, u32 &vbytes, u32 &
 	}
 }
 
-static const u8 *mymemmem(const u8 *haystack, size_t hlen, const u8 *needle, size_t nlen) {
+static const u8 *mymemmem(const u8 *haystack, size_t off, size_t hlen, const u8 *needle, size_t nlen, uintptr_t align) {
 	if (!nlen) {
 		return nullptr;
 	}
 
 	const u8 *last_possible = haystack + hlen - nlen;
 	int first = *needle;
-	const u8 *p = haystack;
+	const u8 *p = haystack + off;
+
+	const uintptr_t align_mask = align - 1;
+	auto poffset = [&]() {
+		return ((uintptr_t)(p - haystack) & align_mask);
+	};
+	auto alignp = [&]() {
+		uintptr_t offset = poffset();
+		if (offset != 0)
+			p += align - offset;
+	};
+
+	alignp();
 	while (p <= last_possible) {
 		p = (const u8 *)memchr(p, first, last_possible - p + 1);
 		if (!p) {
 			return nullptr;
 		}
-		if (!memcmp(p, needle, nlen)) {
+		if (poffset() == 0 && !memcmp(p, needle, nlen)) {
 			return p;
 		}
 
 		p++;
+		alignp();
 	}
 
 	return nullptr;
 }
 
-static Command EmitCommandWithRAM(CommandType t, const void *p, u32 sz) {
+static Command EmitCommandWithRAM(CommandType t, const void *p, u32 sz, u32 align) {
 	FlushRegisters();
 
 	Command cmd{t, sz, 0};
@@ -189,10 +202,10 @@ static Command EmitCommandWithRAM(CommandType t, const void *p, u32 sz) {
 		const size_t NEAR_WINDOW = std::max((int)sz * 2, 1024 * 10);
 		// Let's try nearby first... it will often be nearby.
 		if (pushbuf.size() > NEAR_WINDOW) {
-			prev = mymemmem(pushbuf.data() + pushbuf.size() - NEAR_WINDOW, NEAR_WINDOW, (const u8 *)p, sz);
+			prev = mymemmem(pushbuf.data(), pushbuf.size() - NEAR_WINDOW, pushbuf.size(), (const u8 *)p, sz, align);
 		}
 		if (!prev) {
-			prev = mymemmem(pushbuf.data(), pushbuf.size(), (const u8 *)p, sz);
+			prev = mymemmem(pushbuf.data(), 0, pushbuf.size(), (const u8 *)p, sz, align);
 		}
 
 		if (prev) {
@@ -200,8 +213,8 @@ static Command EmitCommandWithRAM(CommandType t, const void *p, u32 sz) {
 		} else {
 			cmd.ptr = (u32)pushbuf.size();
 			int pad = 0;
-			if (cmd.ptr & 0xF) {
-				pad = 0x10 - (cmd.ptr & 0xF);
+			if (cmd.ptr & (align - 1)) {
+				pad = align - (cmd.ptr & (align - 1));
 				cmd.ptr += pad;
 			}
 			pushbuf.resize(pushbuf.size() + sz + pad);
@@ -227,11 +240,11 @@ static void EmitTextureData(int level, u32 texaddr) {
 	const bool isTarget = lastRenderTargets.find(texaddr) != lastRenderTargets.end();
 
 	CommandType type = CommandType((int)CommandType::TEXTURE0 + level);
-	const u8 *p = Memory_P::GetPointerUnchecked(texaddr);
-	u32 bytes = Memory_P::ValidSize(texaddr, sizeInRAM);
+	const u8 *p = Memory::GetPointerUnchecked(texaddr);
+	u32 bytes = Memory::ValidSize(texaddr, sizeInRAM);
 	std::vector<u8> framebufData;
 
-	if (Memory_P::IsVRAMAddress(texaddr)) {
+	if (Memory::IsVRAMAddress(texaddr)) {
 		struct FramebufData {
 			u32 addr;
 			int bufw;
@@ -269,7 +282,7 @@ static void EmitTextureData(int level, u32 texaddr) {
 		}
 
 		// Not there, gotta emit anew.
-		Command cmd = EmitCommandWithRAM(type, p, bytes);
+		Command cmd = EmitCommandWithRAM(type, p, bytes, 16);
 		lastTextures.push_back(cmd.ptr);
 	}
 }
@@ -291,10 +304,10 @@ static void FlushPrimState(int vcount) {
 		}
 	}
 
-	const void *verts = Memory_P::GetPointer(gstate_c.vertexAddr);
+	const void *verts = Memory::GetPointer(gstate_c.vertexAddr);
 	const void *indices = nullptr;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		indices = Memory_P::GetPointer(gstate_c.indexAddr);
+		indices = Memory::GetPointer(gstate_c.indexAddr);
 	}
 
 	u32 ibytes = 0;
@@ -302,10 +315,10 @@ static void FlushPrimState(int vcount) {
 	GetVertDataSizes(vcount, indices, vbytes, ibytes);
 
 	if (indices && ibytes > 0) {
-		EmitCommandWithRAM(CommandType::INDICES, indices, ibytes);
+		EmitCommandWithRAM(CommandType::INDICES, indices, ibytes, 4);
 	}
 	if (verts && vbytes > 0) {
-		EmitCommandWithRAM(CommandType::VERTICES, verts, vbytes);
+		EmitCommandWithRAM(CommandType::VERTICES, verts, vbytes, 4);
 	}
 }
 
@@ -313,7 +326,7 @@ static void EmitTransfer(u32 op) {
 	FlushRegisters();
 
 	// This may not make a lot of sense right now, unless it's to a framebuf...
-	if (!Memory_P::IsVRAMAddress(gstate.getTransferDstAddress())) {
+	if (!Memory::IsVRAMAddress(gstate.getTransferDstAddress())) {
 		// Skip, not VRAM, so can't affect drawing (we flush textures each prim.)
 		return;
 	}
@@ -327,10 +340,10 @@ static void EmitTransfer(u32 op) {
 	int bpp = gstate.getTransferBpp();
 
 	u32 srcBytes = ((srcY + height - 1) * srcStride + (srcX + width)) * bpp;
-	srcBytes = Memory_P::ValidSize(srcBasePtr, srcBytes);
+	srcBytes = Memory::ValidSize(srcBasePtr, srcBytes);
 
 	if (srcBytes != 0) {
-		EmitCommandWithRAM(CommandType::TRANSFERSRC, Memory_P::GetPointerUnchecked(srcBasePtr), srcBytes);
+		EmitCommandWithRAM(CommandType::TRANSFERSRC, Memory::GetPointerUnchecked(srcBasePtr), srcBytes, 16);
 	}
 
 	lastRegisters.push_back(op);
@@ -339,10 +352,10 @@ static void EmitTransfer(u32 op) {
 static void EmitClut(u32 op) {
 	u32 addr = gstate.getClutAddress();
 	u32 bytes = (op & 0x3F) * 32;
-	bytes = Memory_P::ValidSize(addr, bytes);
+	bytes = Memory::ValidSize(addr, bytes);
 
 	if (bytes != 0) {
-		EmitCommandWithRAM(CommandType::CLUT, Memory_P::GetPointerUnchecked(addr), bytes);
+		EmitCommandWithRAM(CommandType::CLUT, Memory::GetPointerUnchecked(addr), bytes, 16);
 	}
 
 	lastRegisters.push_back(op);
@@ -403,7 +416,7 @@ void NotifyCommand(u32 pc) {
 		return;
 	}
 
-	const u32 op = Memory_P::PRead_U32(pc);
+	const u32 op = Memory::Read_U32(pc);
 	const GECommand cmd = GECommand(op >> 24);
 
 	switch (cmd) {
@@ -455,15 +468,15 @@ void NotifyMemcpy(u32 dest, u32 src, u32 sz) {
 	if (!active) {
 		return;
 	}
-	if (Memory_P::IsVRAMAddress(dest)) {
+	if (Memory::IsVRAMAddress(dest)) {
 		FlushRegisters();
 		Command cmd{CommandType::MEMCPYDEST, sizeof(dest), (u32)pushbuf.size()};
 		pushbuf.resize(pushbuf.size() + sizeof(dest));
 		memcpy(pushbuf.data() + cmd.ptr, &dest, sizeof(dest));
 
-		sz = Memory_P::ValidSize(dest, sz);
+		sz = Memory::ValidSize(dest, sz);
 		if (sz != 0) {
-			EmitCommandWithRAM(CommandType::MEMCPYDATA, Memory_P::GetPointer(dest), sz);
+			EmitCommandWithRAM(CommandType::MEMCPYDATA, Memory::GetPointer(dest), sz, 1);
 		}
 	}
 }
@@ -478,8 +491,8 @@ void NotifyMemset(u32 dest, int v, u32 sz) {
 		u32 sz;
 	};
 
-	if (Memory_P::IsVRAMAddress(dest)) {
-		sz = Memory_P::ValidSize(dest, sz);
+	if (Memory::IsVRAMAddress(dest)) {
+		sz = Memory::ValidSize(dest, sz);
 		MemsetCommand data{dest, v, sz};
 
 		FlushRegisters();

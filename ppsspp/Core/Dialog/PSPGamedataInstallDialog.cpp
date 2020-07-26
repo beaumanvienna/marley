@@ -86,10 +86,10 @@ int PSPGamedataInstallDialog::Init(u32 paramAddr) {
 		return -1;
 	}
 
-	int size = Memory_P::PRead_U32(paramAddr);
+	int size = Memory::Read_U32(paramAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different request format
-	Memory_P::Memcpy(&request, paramAddr, size);
+	Memory::Memcpy(&request, paramAddr, size);
 
 	ChangeStatusInit(GAMEDATA_INIT_DELAY_US);
 	return 0;
@@ -117,7 +117,7 @@ int PSPGamedataInstallDialog::Update(int animSpeed) {
 		// TODO: What is this?  Should one of these update per file or anything?
 		request.unknownResult1 = readFiles;
 		request.unknownResult2 = readFiles;
-		Memory_P::WriteStruct(param.ptr, &request);
+		Memory::WriteStruct(param.ptr, &request);
 
 		ChangeStatus(SCE_UTILITY_STATUS_FINISHED, 0);
 	}
@@ -129,18 +129,20 @@ void PSPGamedataInstallDialog::OpenNextFile() {
 	std::string outputFileName = GetGameDataInstallFileName(&request, inFileNames[readFiles]);
 
 	currentInputFile = pspFileSystem.OpenFile(inputFileName, FILEACCESS_READ);
-	if (!currentInputFile) {
+	if (currentInputFile < 0) {
 		// TODO: Generate an error code?
 		ERROR_LOG_REPORT(SCEUTILITY, "Unable to read from install file: %s", inFileNames[readFiles].c_str());
 		++readFiles;
+		currentInputFile = 0;
 		return;
 	}
 	currentOutputFile = pspFileSystem.OpenFile(outputFileName, (FileAccess)(FILEACCESS_WRITE | FILEACCESS_CREATE | FILEACCESS_TRUNCATE));
-	if (!currentOutputFile) {
+	if (currentOutputFile < 0) {
 		// TODO: Generate an error code?
 		ERROR_LOG(SCEUTILITY, "Unable to write to install file: %s", inFileNames[readFiles].c_str());
 		pspFileSystem.CloseFile(currentInputFile);
 		currentInputFile = 0;
+		currentOutputFile = 0;
 		++readFiles;
 		return;
 	}
@@ -172,10 +174,12 @@ void PSPGamedataInstallDialog::CopyCurrentFileData() {
 }
 
 void PSPGamedataInstallDialog::CloseCurrentFile() {
-	pspFileSystem.CloseFile(currentOutputFile);
+	if (currentOutputFile >= 0)
+		pspFileSystem.CloseFile(currentOutputFile);
 	currentOutputFile = 0;
 
-	pspFileSystem.CloseFile(currentInputFile);
+	if (currentInputFile >= 0)
+		pspFileSystem.CloseFile(currentInputFile);
 	currentInputFile = 0;
 
 	++readFiles;
@@ -207,8 +211,8 @@ void PSPGamedataInstallDialog::WriteSfoFile() {
 	size_t sfoSize;
 	sfoFile.WriteSFO(&sfoData,&sfoSize);
 
-	u32 handle = pspFileSystem.OpenFile(sfopath, (FileAccess)(FILEACCESS_WRITE | FILEACCESS_CREATE | FILEACCESS_TRUNCATE));
-	if (handle != 0) {
+	int handle = pspFileSystem.OpenFile(sfopath, (FileAccess)(FILEACCESS_WRITE | FILEACCESS_CREATE | FILEACCESS_TRUNCATE));
+	if (handle >= 0) {
 		pspFileSystem.WriteFile(handle, sfoData, sfoSize);
 		pspFileSystem.CloseFile(handle);
 	}
@@ -246,7 +250,7 @@ void PSPGamedataInstallDialog::UpdateProgress() {
 	else 
 		progressValue = 100;
 	request.progress = progressValue;
-	Memory_P::WriteStruct(param.ptr, &request);
+	Memory::WriteStruct(param.ptr, &request);
 }
 
 void PSPGamedataInstallDialog::DoState(PointerWrap &p) {

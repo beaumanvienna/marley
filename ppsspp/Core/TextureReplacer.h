@@ -25,7 +25,7 @@
 #include "Common/MemoryUtil.h"
 #include "GPU/ge_constants.h"
 
-class PIniFile;
+class IniFile;
 class TextureCacheCommon;
 class TextureReplacer;
 
@@ -191,7 +191,7 @@ public:
 
 protected:
 	bool LoadIni();
-	bool LoadIniValues(PIniFile &ini, bool isOverride = false);
+	bool LoadIniValues(IniFile &ini, bool isOverride = false);
 	void ParseHashRange(const std::string &key, const std::string &value);
 	bool LookupHashRange(u32 addr, int &w, int &h);
 	std::string LookupHashFile(u64 cachekey, u32 hash, int level);
@@ -203,6 +203,7 @@ protected:
 	bool allowVideo_ = false;
 	bool ignoreAddress_ = false;
 	bool reduceHash_ = false;
+	bool ignoreMipmap_ = false;
 	std::string gameID_;
 	std::string basePath_;
 	ReplacedTextureHash hash_ = ReplacedTextureHash::QUICK;

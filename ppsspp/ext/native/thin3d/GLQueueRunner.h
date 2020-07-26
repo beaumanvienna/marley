@@ -6,6 +6,7 @@
 
 #include "gfx/gl_common.h"
 #include "thin3d/DataFormat.h"
+#include "util/tiny_set.h"
 
 struct GLRViewport {
 	float x, y, w, h, minZ, maxZ;
@@ -116,13 +117,13 @@ struct GLRRenderData {
 		} drawIndexed;
 		struct {
 			const char *name;  // if null, use loc
-			GLint *loc; // NOTE: This is a pointer so we can immediately use things that are "queried" during program creation.
+			const GLint *loc; // NOTE: This is a pointer so we can immediately use things that are "queried" during program creation.
 			GLint count;
 			float v[4];
 		} uniform4;
 		struct {
 			const char *name;  // if null, use loc
-			GLint *loc;
+			const GLint *loc;
 			float m[16];
 		} uniformMatrix4;
 		struct {
@@ -142,8 +143,7 @@ struct GLRRenderData {
 		} texture;
 		struct {
 			GLRTexture *texture;
-			GLenum format;
-			GLenum type;
+			Draw::DataFormat format;
 			int level;
 			int x;
 			int y;
@@ -254,9 +254,7 @@ struct GLRInitStep {
 		} buffer_subdata;
 		struct {
 			GLRTexture *texture;
-			GLenum internalFormat;
-			GLenum format;
-			GLenum type;
+			Draw::DataFormat format;
 			int level;
 			int width;
 			int height;
@@ -278,6 +276,7 @@ enum class GLRStepType : uint8_t {
 	BLIT,
 	READBACK,
 	READBACK_IMAGE,
+	RENDER_SKIP,
 };
 
 enum class GLRRenderPassAction {
@@ -298,9 +297,15 @@ struct GLRStep {
 	GLRStep(GLRStepType _type) : stepType(_type) {}
 	GLRStepType stepType;
 	std::vector<GLRRenderData> commands;
+	TinySet<const GLRFramebuffer *, 8> dependencies;
+	const char *tag;
 	union {
 		struct {
 			GLRFramebuffer *framebuffer;
+			GLRRenderPassAction color;
+			GLRRenderPassAction depth;
+			GLRRenderPassAction stencil;
+			// Note: not accurate.
 			int numDraws;
 		} render;
 		struct {
@@ -368,7 +373,7 @@ private:
 	void InitCreateFramebuffer(const GLRInitStep &step);
 
 	void PerformBindFramebufferAsRenderTarget(const GLRStep &pass);
-	void PerformRenderPass(const GLRStep &pass);
+	void PerformRenderPass(const GLRStep &pass, bool first, bool last);
 	void PerformCopy(const GLRStep &pass);
 	void PerformBlit(const GLRStep &pass);
 	void PerformReadback(const GLRStep &pass);
@@ -416,4 +421,5 @@ private:
 	std::unordered_map<int, std::string> glStrings_;
 
 	bool sawOutOfMemory_ = false;
+	bool useDebugGroups_ = false;
 };

@@ -65,7 +65,7 @@ BreakAction MemCheck::Action(u32 addr, bool write, int size, u32 pc) {
 	int mask = write ? MEMCHECK_WRITE : MEMCHECK_READ;
 	if (cond & mask) {
 		Log(addr, write, size, pc);
-		if (result & BREAK_ACTION_PAUSE) {
+		if ((result & BREAK_ACTION_PAUSE) && coreState != CORE_POWERUP) {
 			Core_EnableStepping(true);
 			host->SetDebugMode(true);
 		}
@@ -364,7 +364,7 @@ BreakAction CBreakPoints::ExecBreakPoint(u32 addr) {
 				NOTICE_LOG(JIT, "BKP PC=%08x: %s", addr, formatted.c_str());
 			}
 		}
-		if (info.result & BREAK_ACTION_PAUSE) {
+		if ((info.result & BREAK_ACTION_PAUSE) && coreState != CORE_POWERUP) {
 			Core_EnableStepping(true);
 			host->SetDebugMode(true);
 		}
@@ -583,12 +583,12 @@ void CBreakPoints::ExecMemCheckJitCleanup()
 void CBreakPoints::SetSkipFirst(u32 pc)
 {
 	breakSkipFirstAt_ = pc;
-	breakSkipFirstTicks_ = CoreTiming_P::GetTicks();
+	breakSkipFirstTicks_ = CoreTiming::GetTicks();
 }
 u32 CBreakPoints::CheckSkipFirst()
 {
 	u32 pc = breakSkipFirstAt_;
-	if (breakSkipFirstTicks_ == CoreTiming_P::GetTicks())
+	if (breakSkipFirstTicks_ == CoreTiming::GetTicks())
 		return pc;
 	return 0;
 }

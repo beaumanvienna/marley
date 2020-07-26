@@ -34,8 +34,8 @@
 
 #pragma once
 
-namespace Pglslang {
+namespace glslang {
 
 void RemoveAllTreeNodes(TIntermNode*);
 
-} // end namespace Pglslang
+} // end namespace glslang

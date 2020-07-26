@@ -251,7 +251,7 @@ static const unsigned char md5_padding[64] =
 /*
  * MD5 final digest
  */
-void md5_Pfinish( md5_context *ctx, unsigned char output[16] )
+void md5_finish( md5_context *ctx, unsigned char output[16] )
 {
     unsigned long last, padn;
     unsigned long high, low;
@@ -285,7 +285,7 @@ void md5( unsigned char *input, int ilen, unsigned char output[16] )
 
     md5_starts( &ctx );
     md5_update( &ctx, input, ilen );
-    md5_Pfinish( &ctx, output );
+    md5_finish( &ctx, output );
 
     memset( &ctx, 0, sizeof( md5_context ) );
 }
@@ -335,11 +335,11 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
 {
     unsigned char tmpbuf[16];
 
-    md5_Pfinish( ctx, tmpbuf );
+    md5_finish( ctx, tmpbuf );
     md5_starts( ctx );
     md5_update( ctx, ctx->opad, 64 );
     md5_update( ctx, tmpbuf, 16 );
-    md5_Pfinish( ctx, output );
+    md5_finish( ctx, output );
 
     memset( tmpbuf, 0, sizeof( tmpbuf ) );
 }

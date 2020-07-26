@@ -163,7 +163,7 @@ void ReplayExecuteBlob(const std::vector<u8> &data) {
 bool ReplayExecuteFile(const std::string &filename) {
 	ReplayAbort();
 
-	FILE *fp = PFile::OpenCFile(filename, "rb");
+	FILE *fp = File::OpenCFile(filename, "rb");
 	if (!fp) {
 		DEBUG_LOG(SYSTEM, "Failed to open replay file: %s", filename.c_str());
 		return false;
@@ -172,7 +172,7 @@ bool ReplayExecuteFile(const std::string &filename) {
 	std::vector<u8> data;
 	auto loadData = [&]() {
 		// TODO: Maybe stream instead.
-		size_t sz = PFile::GetFileSize(fp);
+		size_t sz = File::GetFileSize(fp);
 		if (sz <= sizeof(ReplayFileHeader)) {
 			ERROR_LOG(SYSTEM, "Empty replay data");
 			return false;
@@ -261,7 +261,7 @@ void ReplayFlushBlob(std::vector<u8> *data) {
 }
 
 bool ReplayFlushFile(const std::string &filename) {
-	FILE *fp = PFile::OpenCFile(filename, replaySaveWroteHeader ? "ab" : "wb");
+	FILE *fp = File::OpenCFile(filename, replaySaveWroteHeader ? "ab" : "wb");
 	if (!fp) {
 		ERROR_LOG(SYSTEM, "Failed to open replay file: %s", filename.c_str());
 		return false;

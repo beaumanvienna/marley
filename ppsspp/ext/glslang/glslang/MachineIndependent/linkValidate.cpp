@@ -40,36 +40,36 @@
 //
 // Basic model is that during compilation, each compilation unit (shader) is
 // compiled into one TIntermediate instance.  Then, at link time, multiple
-// units for the same stage can be merged together, which can generate Perrors.
+// units for the same stage can be merged together, which can generate errors.
 // Then, after all merging, a single instance of TIntermediate represents
-// the whole stage.  A final Perror check can be done on the resulting stage,
+// the whole stage.  A final error check can be done on the resulting stage,
 // even if no merging was done (i.e., the stage was only one compilation unit).
 //
 
 #include "localintermediate.h"
 #include "../Include/InfoSink.h"
 
-namespace Pglslang {
+namespace glslang {
 
 //
-// Link-time Perror emitter.
+// Link-time error emitter.
 //
-void TIntermediate::Perror(TInfoSink& infoSink, const char* message)
+void TIntermediate::error(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixError);
-    infoSink.info << "Linking " << PStageName(language) << " stage: " << message << "\n";
+    infoSink.info << "Linking " << StageName(language) << " stage: " << message << "\n";
 #endif
 
     ++numErrors;
 }
 
 // Link-time warning.
-void TIntermediate::Pwarn(TInfoSink& infoSink, const char* message)
+void TIntermediate::warn(TInfoSink& infoSink, const char* message)
 {
 #ifndef GLSLANG_WEB
     infoSink.info.prefix(EPrefixWarning);
-    infoSink.info << "Linking " << PStageName(language) << " stage: " << message << "\n";
+    infoSink.info << "Linking " << StageName(language) << " stage: " << message << "\n";
 #endif
 }
 
@@ -80,7 +80,7 @@ void TIntermediate::Pwarn(TInfoSink& infoSink, const char* message)
 //
 // Merge the information from 'unit' into 'this'
 //
-void TIntermediate::Pmerge(TInfoSink& infoSink, TIntermediate& unit)
+void TIntermediate::merge(TInfoSink& infoSink, TIntermediate& unit)
 {
 #ifndef GLSLANG_WEB
     mergeCallGraphs(infoSink, unit);
@@ -93,7 +93,7 @@ void TIntermediate::mergeCallGraphs(TInfoSink& infoSink, TIntermediate& unit)
 {
     if (unit.getNumEntryPoints() > 0) {
         if (getNumEntryPoints() > 0)
-            Perror(infoSink, "can't handle multiple entry points per stage");
+            error(infoSink, "can't handle multiple entry points per stage");
         else {
             entryPointName = unit.getEntryPointName();
             entryPointMangledName = unit.getEntryPointMangledName();
@@ -112,12 +112,12 @@ void TIntermediate::mergeCallGraphs(TInfoSink& infoSink, TIntermediate& unit)
 void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
 {
     if (language != unit.language)
-        Perror(infoSink, "stages must match when linking into a single stage");
+        error(infoSink, "stages must match when linking into a single stage");
 
     if (getSource() == EShSourceNone)
         setSource(unit.getSource());
     if (getSource() != unit.getSource())
-        Perror(infoSink, "can't link compilation units from different source languages");
+        error(infoSink, "can't link compilation units from different source languages");
 
     if (treeRoot == nullptr) {
         profile = unit.profile;
@@ -125,7 +125,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         requestedExtensions = unit.requestedExtensions;
     } else {
         if ((isEsProfile()) != (unit.isEsProfile()))
-            Perror(infoSink, "Cannot cross link ES and desktop profiles");
+            error(infoSink, "Cannot cross link ES and desktop profiles");
         else if (unit.profile == ECompatibilityProfile)
             profile = ECompatibilityProfile;
         version = std::max(version, unit.version);
@@ -144,16 +144,16 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         if (invocations == TQualifier::layoutNotSet)
             invocations = unit.invocations;
         else if (invocations != unit.invocations)
-            Perror(infoSink, "number of invocations must match between compilation units");
+            error(infoSink, "number of invocations must match between compilation units");
     }
 
     if (vertices == TQualifier::layoutNotSet)
         vertices = unit.vertices;
     else if (vertices != unit.vertices) {
         if (language == EShLangGeometry || language == EShLangMeshNV)
-            Perror(infoSink, "Contradictory layout max_vertices values");
+            error(infoSink, "Contradictory layout max_vertices values");
         else if (language == EShLangTessControl)
-            Perror(infoSink, "Contradictory layout vertices values");
+            error(infoSink, "Contradictory layout vertices values");
         else
             assert(0);
     }
@@ -161,7 +161,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         primitives = unit.primitives;
     else if (primitives != unit.primitives) {
         if (language == EShLangMeshNV)
-            Perror(infoSink, "Contradictory layout max_primitives values");
+            error(infoSink, "Contradictory layout max_primitives values");
         else
             assert(0);
     }
@@ -169,25 +169,25 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
     if (inputPrimitive == ElgNone)
         inputPrimitive = unit.inputPrimitive;
     else if (inputPrimitive != unit.inputPrimitive)
-        Perror(infoSink, "Contradictory input layout primitives");
+        error(infoSink, "Contradictory input layout primitives");
 
     if (outputPrimitive == ElgNone)
         outputPrimitive = unit.outputPrimitive;
     else if (outputPrimitive != unit.outputPrimitive)
-        Perror(infoSink, "Contradictory output layout primitives");
+        error(infoSink, "Contradictory output layout primitives");
 
     if (originUpperLeft != unit.originUpperLeft || pixelCenterInteger != unit.pixelCenterInteger)
-        Perror(infoSink, "gl_FragCoord redeclarations must match across shaders");
+        error(infoSink, "gl_FragCoord redeclarations must match across shaders");
 
     if (vertexSpacing == EvsNone)
         vertexSpacing = unit.vertexSpacing;
     else if (vertexSpacing != unit.vertexSpacing)
-        Perror(infoSink, "Contradictory input vertex spacing");
+        error(infoSink, "Contradictory input vertex spacing");
 
     if (vertexOrder == EvoNone)
         vertexOrder = unit.vertexOrder;
     else if (vertexOrder != unit.vertexOrder)
-        Perror(infoSink, "Contradictory triangle ordering");
+        error(infoSink, "Contradictory triangle ordering");
 
     MERGE_TRUE(pointMode);
 
@@ -197,12 +197,12 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
             localSizeNotDefault[i] = true;
         }
         else if (localSize[i] != unit.localSize[i])
-            Perror(infoSink, "Contradictory local size");
+            error(infoSink, "Contradictory local size");
 
         if (localSizeSpecId[i] == TQualifier::layoutNotSet)
             localSizeSpecId[i] = unit.localSizeSpecId[i];
         else if (localSizeSpecId[i] != unit.localSizeSpecId[i])
-            Perror(infoSink, "Contradictory local size specialization ids");
+            error(infoSink, "Contradictory local size specialization ids");
     }
 
     MERGE_TRUE(earlyFragmentTests);
@@ -211,7 +211,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
     if (depthLayout == EldNone)
         depthLayout = unit.depthLayout;
     else if (depthLayout != unit.depthLayout)
-        Perror(infoSink, "Contradictory depth layouts");
+        error(infoSink, "Contradictory depth layouts");
 
     MERGE_TRUE(depthReplacing);
     MERGE_TRUE(hlslFunctionality1);
@@ -224,7 +224,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         if (xfbBuffers[b].stride == TQualifier::layoutXfbStrideEnd)
             xfbBuffers[b].stride = unit.xfbBuffers[b].stride;
         else if (xfbBuffers[b].stride != unit.xfbBuffers[b].stride)
-            Perror(infoSink, "Contradictory xfb_stride");
+            error(infoSink, "Contradictory xfb_stride");
         xfbBuffers[b].implicitStride = std::max(xfbBuffers[b].implicitStride, unit.xfbBuffers[b].implicitStride);
         if (unit.xfbBuffers[b].contains64BitType)
             xfbBuffers[b].contains64BitType = true;
@@ -294,8 +294,8 @@ void TIntermediate::mergeTrees(TInfoSink& infoSink, TIntermediate& unit)
     TIntermSequence& unitGlobals = unit.treeRoot->getAsAggregate()->getSequence();
 
     // Get the linker-object lists
-    TIntermSequence& linkerObjects = PfindLinkerObjects()->getSequence();
-    const TIntermSequence& unitLinkerObjects = unit.PfindLinkerObjects()->getSequence();
+    TIntermSequence& linkerObjects = findLinkerObjects()->getSequence();
+    const TIntermSequence& unitLinkerObjects = unit.findLinkerObjects()->getSequence();
 
     // Map by global name to unique ID to rationalize the same object having
     // differing IDs in different trees.
@@ -304,8 +304,8 @@ void TIntermediate::mergeTrees(TInfoSink& infoSink, TIntermediate& unit)
     seedIdMap(idMap, maxId);
     remapIds(idMap, maxId + 1, unit);
 
-    PmergeBodies(infoSink, globals, unitGlobals);
-    PmergeLinkerObjects(infoSink, linkerObjects, unitLinkerObjects);
+    mergeBodies(infoSink, globals, unitGlobals);
+    mergeLinkerObjects(infoSink, linkerObjects, unitLinkerObjects);
     ioAccessed.insert(unit.ioAccessed.begin(), unit.ioAccessed.end());
 }
 
@@ -365,7 +365,7 @@ void TIntermediate::seedIdMap(TMap<TString, int>& idMap, int& maxId)
 
     // user variables in the linker object list need to align on ids
     TUserIdTraverser userIdTraverser(idMap);
-    PfindLinkerObjects()->traverse(&userIdTraverser);
+    findLinkerObjects()->traverse(&userIdTraverser);
 }
 
 // Traverser to map an AST ID to what was known from the seeding AST.
@@ -409,7 +409,7 @@ void TIntermediate::remapIds(const TMap<TString, int>& idMap, int idShift, TInte
 // Merge the function bodies and global-level initializers from unitGlobals into globals.
 // Will error check duplication of function bodies for the same signature.
 //
-void TIntermediate::PmergeBodies(TInfoSink& infoSink, TIntermSequence& globals, const TIntermSequence& unitGlobals)
+void TIntermediate::mergeBodies(TInfoSink& infoSink, TIntermSequence& globals, const TIntermSequence& unitGlobals)
 {
     // TODO: link-time performance: Processing in alphabetical order will be faster
 
@@ -419,7 +419,7 @@ void TIntermediate::PmergeBodies(TInfoSink& infoSink, TIntermSequence& globals, 
             TIntermAggregate* body = globals[child]->getAsAggregate();
             TIntermAggregate* unitBody = unitGlobals[unitChild]->getAsAggregate();
             if (body && unitBody && body->getOp() == EOpFunction && unitBody->getOp() == EOpFunction && body->getName() == unitBody->getName()) {
-                Perror(infoSink, "Multiple function bodies in multiple compilation units for the same signature in the same stage:");
+                error(infoSink, "Multiple function bodies in multiple compilation units for the same signature in the same stage:");
                 infoSink.info << "    " << globals[child]->getAsAggregate()->getName() << "\n";
             }
         }
@@ -433,7 +433,7 @@ void TIntermediate::PmergeBodies(TInfoSink& infoSink, TIntermSequence& globals, 
 // Merge the linker objects from unitLinkerObjects into linkerObjects.
 // Duplication is expected and filtered out, but contradictions are an error.
 //
-void TIntermediate::PmergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects)
+void TIntermediate::mergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects)
 {
     // Error check and merge the linker objects (duplicates should not be created)
     std::size_t initialNumLinkerObjects = linkerObjects.size();
@@ -457,10 +457,10 @@ void TIntermediate::PmergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& li
                     symbol->getQualifier().layoutBinding = unitSymbol->getQualifier().layoutBinding;
 
                 // Update implicit array sizes
-                PmergeImplicitArraySizes(symbol->getWritableType(), unitSymbol->getType());
+                mergeImplicitArraySizes(symbol->getWritableType(), unitSymbol->getType());
 
                 // Check for consistent types/qualification/initializers etc.
-                PmergeErrorCheck(infoSink, *symbol, *unitSymbol, false);
+                mergeErrorCheck(infoSink, *symbol, *unitSymbol, false);
             }
         }
         if (merge)
@@ -471,7 +471,7 @@ void TIntermediate::PmergeLinkerObjects(TInfoSink& infoSink, TIntermSequence& li
 // TODO 4.5 link functionality: cull distance array size checking
 
 // Recursively merge the implicit array sizes through the objects' respective type trees.
-void TIntermediate::PmergeImplicitArraySizes(TType& type, const TType& unitType)
+void TIntermediate::mergeImplicitArraySizes(TType& type, const TType& unitType)
 {
     if (type.isUnsizedArray()) {
         if (unitType.isUnsizedArray()) {
@@ -487,7 +487,7 @@ void TIntermediate::PmergeImplicitArraySizes(TType& type, const TType& unitType)
         return;
 
     for (int i = 0; i < (int)type.getStruct()->size(); ++i)
-        PmergeImplicitArraySizes(*(*type.getStruct())[i].type, *(*unitType.getStruct())[i].type);
+        mergeImplicitArraySizes(*(*type.getStruct())[i].type, *(*unitType.getStruct())[i].type);
 }
 
 //
@@ -496,7 +496,7 @@ void TIntermediate::PmergeImplicitArraySizes(TType& type, const TType& unitType)
 //
 // This function only does one of intra- or cross-stage matching per call.
 //
-void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& symbol, const TIntermSymbol& unitSymbol, bool crossStage)
+void TIntermediate::mergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& symbol, const TIntermSymbol& unitSymbol, bool crossStage)
 {
 #ifndef GLSLANG_WEB
     bool writeTypeComparison = false;
@@ -507,7 +507,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         if (! (symbol.getType().isArray() && unitSymbol.getType().isArray() &&
                 symbol.getType().sameElementType(unitSymbol.getType()) &&
                 (symbol.getType().isUnsizedArray() || unitSymbol.getType().isUnsizedArray()))) {
-            Perror(infoSink, "Types must match:");
+            error(infoSink, "Types must match:");
             writeTypeComparison = true;
         }
     }
@@ -516,25 +516,25 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
 
     // Storage...
     if (symbol.getQualifier().storage != unitSymbol.getQualifier().storage) {
-        Perror(infoSink, "Storage qualifiers must match:");
+        error(infoSink, "Storage qualifiers must match:");
         writeTypeComparison = true;
     }
 
     // Precision...
     if (symbol.getQualifier().precision != unitSymbol.getQualifier().precision) {
-        Perror(infoSink, "Precision qualifiers must match:");
+        error(infoSink, "Precision qualifiers must match:");
         writeTypeComparison = true;
     }
 
     // Invariance...
     if (! crossStage && symbol.getQualifier().invariant != unitSymbol.getQualifier().invariant) {
-        Perror(infoSink, "Presence of invariant qualifier must match:");
+        error(infoSink, "Presence of invariant qualifier must match:");
         writeTypeComparison = true;
     }
 
     // Precise...
     if (! crossStage && symbol.getQualifier().isNoContraction() != unitSymbol.getQualifier().isNoContraction()) {
-        Perror(infoSink, "Presence of precise qualifier must match:");
+        error(infoSink, "Presence of precise qualifier must match:");
         writeTypeComparison = true;
     }
 
@@ -545,7 +545,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().isSample()!= unitSymbol.getQualifier().isSample() ||
         symbol.getQualifier().isPatch() != unitSymbol.getQualifier().isPatch() ||
         symbol.getQualifier().isNonPerspective() != unitSymbol.getQualifier().isNonPerspective()) {
-        Perror(infoSink, "Interpolation and auxiliary storage qualifiers must match:");
+        error(infoSink, "Interpolation and auxiliary storage qualifiers must match:");
         writeTypeComparison = true;
     }
 
@@ -560,7 +560,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().restrict          != unitSymbol.getQualifier().restrict ||
         symbol.getQualifier().readonly          != unitSymbol.getQualifier().readonly ||
         symbol.getQualifier().writeonly         != unitSymbol.getQualifier().writeonly) {
-        Perror(infoSink, "Memory qualifiers must match:");
+        error(infoSink, "Memory qualifiers must match:");
         writeTypeComparison = true;
     }
 
@@ -575,7 +575,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
         symbol.getQualifier().layoutIndex     != unitSymbol.getQualifier().layoutIndex ||
         symbol.getQualifier().layoutBinding   != unitSymbol.getQualifier().layoutBinding ||
         (symbol.getQualifier().hasBinding() && (symbol.getQualifier().layoutOffset != unitSymbol.getQualifier().layoutOffset))) {
-        Perror(infoSink, "Layout qualification must match:");
+        error(infoSink, "Layout qualification must match:");
         writeTypeComparison = true;
     }
 
@@ -583,7 +583,7 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
     if (! writeTypeComparison) {
         if (! symbol.getConstArray().empty() && ! unitSymbol.getConstArray().empty()) {
             if (symbol.getConstArray() != unitSymbol.getConstArray()) {
-                Perror(infoSink, "Initializers must match:");
+                error(infoSink, "Initializers must match:");
                 infoSink.info << "    " << symbol.getName() << "\n";
             }
         }
@@ -601,42 +601,42 @@ void TIntermediate::PmergeErrorCheck(TInfoSink& infoSink, const TIntermSymbol& s
 //
 // Also, lock in defaults of things not set, including array sizes.
 //
-void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
+void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
 {
     if (getTreeRoot() == nullptr)
         return;
 
     if (numEntryPoints < 1) {
         if (getSource() == EShSourceGlsl)
-            Perror(infoSink, "Missing entry point: Each stage requires one entry point");
+            error(infoSink, "Missing entry point: Each stage requires one entry point");
         else
-            Pwarn(infoSink, "Entry point not found");
+            warn(infoSink, "Entry point not found");
     }
 
     // recursion and missing body checking
-    PcheckCallGraphCycles(infoSink);
-    PcheckCallGraphBodies(infoSink, keepUncalled);
+    checkCallGraphCycles(infoSink);
+    checkCallGraphBodies(infoSink, keepUncalled);
 
     // overlap/alias/missing I/O, etc.
-    PinOutLocationCheck(infoSink);
+    inOutLocationCheck(infoSink);
 
 #ifndef GLSLANG_WEB
     if (getNumPushConstants() > 1)
-        Perror(infoSink, "Only one push_constant block is allowed per stage");
+        error(infoSink, "Only one push_constant block is allowed per stage");
 
     // invocations
     if (invocations == TQualifier::layoutNotSet)
         invocations = 1;
 
     if (inIoAccessed("gl_ClipDistance") && inIoAccessed("gl_ClipVertex"))
-        Perror(infoSink, "Can only use one of gl_ClipDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
+        error(infoSink, "Can only use one of gl_ClipDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
     if (inIoAccessed("gl_CullDistance") && inIoAccessed("gl_ClipVertex"))
-        Perror(infoSink, "Can only use one of gl_CullDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
+        error(infoSink, "Can only use one of gl_CullDistance or gl_ClipVertex (gl_ClipDistance is preferred)");
 
-    if (PuserOutputUsed() && (inIoAccessed("gl_FragColor") || inIoAccessed("gl_FragData")))
-        Perror(infoSink, "Cannot use gl_FragColor or gl_FragData when using user-defined outputs");
+    if (userOutputUsed() && (inIoAccessed("gl_FragColor") || inIoAccessed("gl_FragData")))
+        error(infoSink, "Cannot use gl_FragColor or gl_FragData when using user-defined outputs");
     if (inIoAccessed("gl_FragColor") && inIoAccessed("gl_FragData"))
-        Perror(infoSink, "Cannot use both gl_FragColor and gl_FragData");
+        error(infoSink, "Cannot use both gl_FragColor and gl_FragData");
 
     for (size_t b = 0; b < xfbBuffers.size(); ++b) {
         if (xfbBuffers[b].contains64BitType)
@@ -651,7 +651,7 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // in different compilation units. While xfb_stride can be declared multiple times for the same buffer, it is a
         // compile-time or link-time error to have different values specified for the stride for the same buffer."
         if (xfbBuffers[b].stride != TQualifier::layoutXfbStrideEnd && xfbBuffers[b].implicitStride > xfbBuffers[b].stride) {
-            Perror(infoSink, "xfb_stride is too small to hold all buffer entries:");
+            error(infoSink, "xfb_stride is too small to hold all buffer entries:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << ", minimum stride needed: " << xfbBuffers[b].implicitStride << "\n";
         }
@@ -662,18 +662,18 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // outputs with double-precision or 64-bit integer components, the stride must be a multiple of 8, otherwise it must be a
         // multiple of 4, or a compile-time or link-time error results."
         if (xfbBuffers[b].contains64BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 8)) {
-            Perror(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double or 64-bit integer:");
+            error(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double or 64-bit integer:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         } else if (xfbBuffers[b].contains32BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 4)) {
-            Perror(infoSink, "xfb_stride must be multiple of 4:");
+            error(infoSink, "xfb_stride must be multiple of 4:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         }
         // "If the buffer is capturing any
         // outputs with half-precision or 16-bit integer components, the stride must be a multiple of 2"
         else if (xfbBuffers[b].contains16BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 2)) {
-            Perror(infoSink, "xfb_stride must be multiple of 2 for buffer holding a half float or 16-bit integer:");
+            error(infoSink, "xfb_stride must be multiple of 2 for buffer holding a half float or 16-bit integer:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         }
@@ -681,7 +681,7 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         // "The resulting stride (implicit or explicit), when divided by 4, must be less than or equal to the
         // implementation-dependent constant gl_MaxTransformFeedbackInterleavedComponents."
         if (xfbBuffers[b].stride > (unsigned int)(4 * resources.maxTransformFeedbackInterleavedComponents)) {
-            Perror(infoSink, "xfb_stride is too large:");
+            error(infoSink, "xfb_stride is too large:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", components (1/4 stride) needed are " << xfbBuffers[b].stride/4 << ", gl_MaxTransformFeedbackInterleavedComponents is " << resources.maxTransformFeedbackInterleavedComponents << "\n";
         }
@@ -692,12 +692,12 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         break;
     case EShLangTessControl:
         if (vertices == TQualifier::layoutNotSet)
-            Perror(infoSink, "At least one shader must specify an output layout(vertices=...)");
+            error(infoSink, "At least one shader must specify an output layout(vertices=...)");
         break;
     case EShLangTessEvaluation:
         if (getSource() == EShSourceGlsl) {
             if (inputPrimitive == ElgNone)
-                Perror(infoSink, "At least one shader must specify an input layout primitive");
+                error(infoSink, "At least one shader must specify an input layout primitive");
             if (vertexSpacing == EvsNone)
                 vertexSpacing = EvsEqual;
             if (vertexOrder == EvoNone)
@@ -706,18 +706,18 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
         break;
     case EShLangGeometry:
         if (inputPrimitive == ElgNone)
-            Perror(infoSink, "At least one shader must specify an input layout primitive");
+            error(infoSink, "At least one shader must specify an input layout primitive");
         if (outputPrimitive == ElgNone)
-            Perror(infoSink, "At least one shader must specify an output layout primitive");
+            error(infoSink, "At least one shader must specify an output layout primitive");
         if (vertices == TQualifier::layoutNotSet)
-            Perror(infoSink, "At least one shader must specify a layout(max_vertices = value)");
+            error(infoSink, "At least one shader must specify a layout(max_vertices = value)");
         break;
     case EShLangFragment:
         // for GL_ARB_post_depth_coverage, EarlyFragmentTest is set automatically in 
         // ParseHelper.cpp. So if we reach here, this must be GL_EXT_post_depth_coverage 
         // requiring explicit early_fragment_tests
         if (getPostDepthCoverage() && !getEarlyFragmentTests())
-            Perror(infoSink, "post_depth_coverage requires early_fragment_tests");
+            error(infoSink, "post_depth_coverage requires early_fragment_tests");
         break;
     case EShLangCompute:
         break;
@@ -728,33 +728,33 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
     case EShLangMissNV:
     case EShLangCallableNV:
         if (numShaderRecordNVBlocks > 1)
-            Perror(infoSink, "Only one shaderRecordNV buffer block is allowed per stage");
+            error(infoSink, "Only one shaderRecordNV buffer block is allowed per stage");
         break;
     case EShLangMeshNV:
         // NV_mesh_shader doesn't allow use of both single-view and per-view builtins.
         if (inIoAccessed("gl_Position") && inIoAccessed("gl_PositionPerViewNV"))
-            Perror(infoSink, "Can only use one of gl_Position or gl_PositionPerViewNV");
+            error(infoSink, "Can only use one of gl_Position or gl_PositionPerViewNV");
         if (inIoAccessed("gl_ClipDistance") && inIoAccessed("gl_ClipDistancePerViewNV"))
-            Perror(infoSink, "Can only use one of gl_ClipDistance or gl_ClipDistancePerViewNV");
+            error(infoSink, "Can only use one of gl_ClipDistance or gl_ClipDistancePerViewNV");
         if (inIoAccessed("gl_CullDistance") && inIoAccessed("gl_CullDistancePerViewNV"))
-            Perror(infoSink, "Can only use one of gl_CullDistance or gl_CullDistancePerViewNV");
+            error(infoSink, "Can only use one of gl_CullDistance or gl_CullDistancePerViewNV");
         if (inIoAccessed("gl_Layer") && inIoAccessed("gl_LayerPerViewNV"))
-            Perror(infoSink, "Can only use one of gl_Layer or gl_LayerPerViewNV");
+            error(infoSink, "Can only use one of gl_Layer or gl_LayerPerViewNV");
         if (inIoAccessed("gl_ViewportMask") && inIoAccessed("gl_ViewportMaskPerViewNV"))
-            Perror(infoSink, "Can only use one of gl_ViewportMask or gl_ViewportMaskPerViewNV");
+            error(infoSink, "Can only use one of gl_ViewportMask or gl_ViewportMaskPerViewNV");
         if (outputPrimitive == ElgNone)
-            Perror(infoSink, "At least one shader must specify an output layout primitive");
+            error(infoSink, "At least one shader must specify an output layout primitive");
         if (vertices == TQualifier::layoutNotSet)
-            Perror(infoSink, "At least one shader must specify a layout(max_vertices = value)");
+            error(infoSink, "At least one shader must specify a layout(max_vertices = value)");
         if (primitives == TQualifier::layoutNotSet)
-            Perror(infoSink, "At least one shader must specify a layout(max_primitives = value)");
+            error(infoSink, "At least one shader must specify a layout(max_primitives = value)");
         // fall through
     case EShLangTaskNV:
         if (numTaskNVBlocks > 1)
-            Perror(infoSink, "Only one taskNV interface block is allowed per shader");
+            error(infoSink, "Only one taskNV interface block is allowed per shader");
         break;
     default:
-        Perror(infoSink, "Unknown Stage.");
+        error(infoSink, "Unknown Stage.");
         break;
     }
 
@@ -781,7 +781,7 @@ void TIntermediate::PfinalCheck(TInfoSink& infoSink, bool keepUncalled)
 // See if the call graph contains any static recursion, which is disallowed
 // by the specification.
 //
-void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
+void TIntermediate::checkCallGraphCycles(TInfoSink& infoSink)
 {
     // Clear fields we'll use for this.
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
@@ -835,7 +835,7 @@ void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
                     if (child->currentPath) {
                         // Then, we found a back edge
                         if (! child->errorGiven) {
-                            Perror(infoSink, "Recursion detected:");
+                            error(infoSink, "Recursion detected:");
                             infoSink.info << "    " << call->callee << " calling " << child->callee << "\n";
                             child->errorGiven = true;
                             recursive = true;
@@ -863,7 +863,7 @@ void TIntermediate::PcheckCallGraphCycles(TInfoSink& infoSink)
 // Reachable ones with missing bodies are errors.
 // Unreachable bodies are dead code.
 //
-void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled)
+void TIntermediate::checkCallGraphBodies(TInfoSink& infoSink, bool keepUncalled)
 {
     // Clear fields we'll use for this.
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
@@ -878,8 +878,8 @@ void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled
     TIntermSequence &functionSequence = getTreeRoot()->getAsAggregate()->getSequence();
     std::vector<bool> reachable(functionSequence.size(), true); // so that non-functions are reachable
     for (int f = 0; f < (int)functionSequence.size(); ++f) {
-        Pglslang::TIntermAggregate* node = functionSequence[f]->getAsAggregate();
-        if (node && (node->getOp() == Pglslang::EOpFunction)) {
+        glslang::TIntermAggregate* node = functionSequence[f]->getAsAggregate();
+        if (node && (node->getOp() == glslang::EOpFunction)) {
             if (node->getName().compare(getEntryPointMangledName().c_str()) != 0)
                 reachable[f] = false; // so that function bodies are unreachable, until proven otherwise
             for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
@@ -918,7 +918,7 @@ void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled
     for (TGraph::iterator call = callGraph.begin(); call != callGraph.end(); ++call) {
         if (call->visited) {
             if (call->calleeBodyPosition == -1) {
-                Perror(infoSink, "No function definition (body) found: ");
+                error(infoSink, "No function definition (body) found: ");
                 infoSink.info << "    " << call->callee << "\n";
             } else
                 reachable[call->calleeBodyPosition] = true;
@@ -940,7 +940,7 @@ void TIntermediate::PcheckCallGraphBodies(TInfoSink& infoSink, bool keepUncalled
 //
 // Satisfy rules for location qualifiers on inputs and outputs
 //
-void TIntermediate::PinOutLocationCheck(TInfoSink& infoSink)
+void TIntermediate::inOutLocationCheck(TInfoSink& infoSink)
 {
     // ES 3.0 requires all outputs to have location qualifiers if there is more than one output
     bool fragOutWithNoLocation = false;
@@ -948,7 +948,7 @@ void TIntermediate::PinOutLocationCheck(TInfoSink& infoSink)
 
     // TODO: linker functionality: location collision checking
 
-    TIntermSequence& linkObjects = PfindLinkerObjects()->getSequence();
+    TIntermSequence& linkObjects = findLinkerObjects()->getSequence();
     for (size_t i = 0; i < linkObjects.size(); ++i) {
         const TType& type = linkObjects[i]->getAsTyped()->getType();
         const TQualifier& qualifier = type.getQualifier();
@@ -963,11 +963,11 @@ void TIntermediate::PinOutLocationCheck(TInfoSink& infoSink)
 
     if (isEsProfile()) {
         if (numFragOut > 1 && fragOutWithNoLocation)
-            Perror(infoSink, "when more than one fragment shader output, all must have location qualifiers");
+            error(infoSink, "when more than one fragment shader output, all must have location qualifiers");
     }
 }
 
-TIntermAggregate* TIntermediate::PfindLinkerObjects() const
+TIntermAggregate* TIntermediate::findLinkerObjects() const
 {
     // Get the top-level globals
     TIntermSequence& globals = treeRoot->getAsAggregate()->getSequence();
@@ -981,9 +981,9 @@ TIntermAggregate* TIntermediate::PfindLinkerObjects() const
 // See if a variable was both a user-declared output and used.
 // Note: the spec discusses writing to one, but this looks at read or write, which
 // is more useful, and perhaps the spec should be changed to reflect that.
-bool TIntermediate::PuserOutputUsed() const
+bool TIntermediate::userOutputUsed() const
 {
-    const TIntermSequence& linkerObjects = PfindLinkerObjects()->getSequence();
+    const TIntermSequence& linkerObjects = findLinkerObjects()->getSequence();
 
     bool found = false;
     for (size_t i = 0; i < linkerObjects.size(); ++i) {
@@ -1007,7 +1007,7 @@ bool TIntermediate::PuserOutputUsed() const
 // typeCollision is set to true if there is no direct collision, but the types in the same location
 // are different.
 //
-int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& type, bool& typeCollision)
+int TIntermediate::addUsedLocation(const TQualifier& qualifier, const TType& type, bool& typeCollision)
 {
     typeCollision = false;
 
@@ -1033,9 +1033,9 @@ int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& ty
         // Strip off the outer array dimension for those having an extra one.
         if (type.isArray() && qualifier.isArrayedIo(language)) {
             TType elementType(type, 0);
-            size = PcomputeTypeLocationSize(elementType, language);
+            size = computeTypeLocationSize(elementType, language);
         } else
-            size = PcomputeTypeLocationSize(type, language);
+            size = computeTypeLocationSize(type, language);
     }
 
     // Locations, and components within locations.
@@ -1067,7 +1067,7 @@ int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& ty
         TIoRange range(locationRange, componentRange, type.getBasicType(), 0);
 
         // check for collisions
-        collision = PcheckLocationRange(set, range, type, typeCollision);
+        collision = checkLocationRange(set, range, type, typeCollision);
         if (collision < 0) {
             usedIo[set].push_back(range);
 
@@ -1077,7 +1077,7 @@ int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& ty
             TIoRange range2(locationRange2, componentRange2, type.getBasicType(), 0);
 
             // check for collisions
-            collision = PcheckLocationRange(set, range2, type, typeCollision);
+            collision = checkLocationRange(set, range2, type, typeCollision);
             if (collision < 0)
                 usedIo[set].push_back(range2);
         }
@@ -1101,7 +1101,7 @@ int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& ty
 
         // check for collisions, except for vertex inputs on desktop targeting OpenGL
         if (! (!isEsProfile() && language == EShLangVertex && qualifier.isPipeInput()) || spvVersion.vulkan > 0)
-            collision = PcheckLocationRange(set, range, type, typeCollision);
+            collision = checkLocationRange(set, range, type, typeCollision);
 
         if (collision < 0)
             usedIo[set].push_back(range);
@@ -1115,7 +1115,7 @@ int TIntermediate::PaddUsedLocation(const TQualifier& qualifier, const TType& ty
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::PcheckLocationRange(int set, const TIoRange& range, const TType& type, bool& typeCollision)
+int TIntermediate::checkLocationRange(int set, const TIoRange& range, const TType& type, bool& typeCollision)
 {
     for (size_t r = 0; r < usedIo[set].size(); ++r) {
         if (range.overlap(usedIo[set][r])) {
@@ -1136,7 +1136,7 @@ int TIntermediate::PcheckLocationRange(int set, const TIoRange& range, const TTy
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::PaddUsedOffsets(int binding, int offset, int numOffsets)
+int TIntermediate::addUsedOffsets(int binding, int offset, int numOffsets)
 {
     TRange bindingRange(binding, binding);
     TRange offsetRange(offset, offset + numOffsets - 1);
@@ -1158,7 +1158,7 @@ int TIntermediate::PaddUsedOffsets(int binding, int offset, int numOffsets)
 // Accumulate used constant_id values.
 //
 // Return false is one was already used.
-bool TIntermediate::PaddUsedConstantId(int id)
+bool TIntermediate::addUsedConstantId(int id)
 {
     if (usedConstantId.find(id) != usedConstantId.end())
         return false;
@@ -1170,7 +1170,7 @@ bool TIntermediate::PaddUsedConstantId(int id)
 
 // Recursively figure out how many locations are used up by an input or output type.
 // Return the size of type, as measured by "locations".
-int TIntermediate::PcomputeTypeLocationSize(const TType& type, EShLanguage stage)
+int TIntermediate::computeTypeLocationSize(const TType& type, EShLanguage stage)
 {
     // "If the declared input is an array of size n and each element takes m locations, it will be assigned m * n
     // consecutive locations..."
@@ -1179,13 +1179,13 @@ int TIntermediate::PcomputeTypeLocationSize(const TType& type, EShLanguage stage
         // TODO: are there valid cases of having an unsized array with a location?  If so, running this code too early.
         TType elementType(type, 0);
         if (type.isSizedArray() && !type.getQualifier().isPerView())
-            return type.getOuterArraySize() * PcomputeTypeLocationSize(elementType, stage);
+            return type.getOuterArraySize() * computeTypeLocationSize(elementType, stage);
         else {
 #ifndef GLSLANG_WEB
             // unset perViewNV attributes for arrayed per-view outputs: "perviewNV vec4 v[MAX_VIEWS][3];"
             elementType.getQualifier().perViewNV = false;
 #endif
-            return PcomputeTypeLocationSize(elementType, stage);
+            return computeTypeLocationSize(elementType, stage);
         }
     }
 
@@ -1195,7 +1195,7 @@ int TIntermediate::PcomputeTypeLocationSize(const TType& type, EShLanguage stage
         int size = 0;
         for (int member = 0; member < (int)type.getStruct()->size(); ++member) {
             TType memberType(type, member);
-            size += PcomputeTypeLocationSize(memberType, stage);
+            size += computeTypeLocationSize(memberType, stage);
         }
         return size;
     }
@@ -1222,15 +1222,15 @@ int TIntermediate::PcomputeTypeLocationSize(const TType& type, EShLanguage stage
     // for an n-element array of m-component vectors..."
     if (type.isMatrix()) {
         TType columnType(type, 0);
-        return type.getMatrixCols() * PcomputeTypeLocationSize(columnType, stage);
+        return type.getMatrixCols() * computeTypeLocationSize(columnType, stage);
     }
 
     assert(0);
     return 1;
 }
 
-// Same as PcomputeTypeLocationSize but for uniforms
-int TIntermediate::PcomputeTypeUniformLocationSize(const TType& type)
+// Same as computeTypeLocationSize but for uniforms
+int TIntermediate::computeTypeUniformLocationSize(const TType& type)
 {
     // "Individual elements of a uniform array are assigned
     // consecutive locations with the first element taking location
@@ -1239,10 +1239,10 @@ int TIntermediate::PcomputeTypeUniformLocationSize(const TType& type)
         // TODO: perf: this can be flattened by using getCumulativeArraySize(), and a deref that discards all arrayness
         TType elementType(type, 0);
         if (type.isSizedArray()) {
-            return type.getOuterArraySize() * PcomputeTypeUniformLocationSize(elementType);
+            return type.getOuterArraySize() * computeTypeUniformLocationSize(elementType);
         } else {
             // TODO: are there valid cases of having an implicitly-sized array with a location?  If so, running this code too early.
-            return PcomputeTypeUniformLocationSize(elementType);
+            return computeTypeUniformLocationSize(elementType);
         }
     }
 
@@ -1252,7 +1252,7 @@ int TIntermediate::PcomputeTypeUniformLocationSize(const TType& type)
         int size = 0;
         for (int member = 0; member < (int)type.getStruct()->size(); ++member) {
             TType memberType(type, member);
-            size += PcomputeTypeUniformLocationSize(memberType);
+            size += computeTypeUniformLocationSize(memberType);
         }
         return size;
     }
@@ -1266,7 +1266,7 @@ int TIntermediate::PcomputeTypeUniformLocationSize(const TType& type)
 //
 // Returns < 0 if no collision, >= 0 if collision and the value returned is a colliding value.
 //
-int TIntermediate::PaddXfbBufferOffset(const TType& type)
+int TIntermediate::addXfbBufferOffset(const TType& type)
 {
     const TQualifier& qualifier = type.getQualifier();
 
@@ -1386,7 +1386,7 @@ const int baseAlignmentVec4Std140 = 16;
 // Return the size and alignment of a component of the given type.
 // The size is returned in the 'size' parameter
 // Return value is the alignment..
-int TIntermediate::PgetBaseAlignmentScalar(const TType& type, int& size)
+int TIntermediate::getBaseAlignmentScalar(const TType& type, int& size)
 {
 #ifdef GLSLANG_WEB
     size = 4; return 4;
@@ -1424,7 +1424,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 {
     int alignment;
 
-    bool std140 = layoutPacking == Pglslang::ElpStd140;
+    bool std140 = layoutPacking == glslang::ElpStd140;
     // When using the std140 storage layout, structures will be laid out in buffer
     // storage with its members stored in monotonically increasing order based on their
     // location in the declaration. A structure and each structure member have a base
@@ -1525,11 +1525,11 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 
     // rule 1
     if (type.isScalar())
-        return PgetBaseAlignmentScalar(type, size);
+        return getBaseAlignmentScalar(type, size);
 
     // rules 2 and 3
     if (type.isVector()) {
-        int scalarAlign = PgetBaseAlignmentScalar(type, size);
+        int scalarAlign = getBaseAlignmentScalar(type, size);
         switch (type.getVectorSize()) {
         case 1: // HLSL has this, GLSL does not
             return scalarAlign;
@@ -1566,7 +1566,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, T
 }
 
 // To aid the basic HLSL rule about crossing vec4 boundaries.
-bool TIntermediate::PimproperStraddle(const TType& type, int size, int offset)
+bool TIntermediate::improperStraddle(const TType& type, int size, int offset)
 {
     if (! type.isVector() || type.isArray())
         return false;
@@ -1613,10 +1613,10 @@ int TIntermediate::getScalarAlignment(const TType& type, int& size, int& stride,
     }
 
     if (type.isScalar())
-        return PgetBaseAlignmentScalar(type, size);
+        return getBaseAlignmentScalar(type, size);
 
     if (type.isVector()) {
-        int scalarAlign = PgetBaseAlignmentScalar(type, size);
+        int scalarAlign = getBaseAlignmentScalar(type, size);
         
         size *= type.getVectorSize();
         return scalarAlign;
@@ -1643,7 +1643,7 @@ int TIntermediate::getScalarAlignment(const TType& type, int& size, int& stride,
 
 int TIntermediate::getMemberAlignment(const TType& type, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor)
 {
-    if (layoutPacking == Pglslang::ElpScalar) {
+    if (layoutPacking == glslang::ElpScalar) {
         return getScalarAlignment(type, size, stride, rowMajor);
     } else {
         return getBaseAlignment(type, size, stride, layoutPacking, rowMajor);
@@ -1720,4 +1720,4 @@ int TIntermediate::computeBufferReferenceTypeSize(const TType& type)
     return size;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

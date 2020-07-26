@@ -50,11 +50,11 @@ void DebuggerRequest::Flush() {
 }
 
 static bool U32FromString(const char *str, uint32_t *out, bool allowFloat) {
-	if (PTryParse(str, out))
+	if (TryParse(str, out))
 		return true;
 
 	// Now let's try signed (the above parses only positive.)
-	if (str[0] == '-' && PTryParse(&str[1], out)) {
+	if (str[0] == '-' && TryParse(&str[1], out)) {
 		*out = static_cast<uint32_t>(-static_cast<int>(*out));
 		return true;
 	}
@@ -65,7 +65,7 @@ static bool U32FromString(const char *str, uint32_t *out, bool allowFloat) {
 			uint32_t u;
 			float f;
 		} bits;
-		if (PTryParse(str, &bits.f)) {
+		if (TryParse(str, &bits.f)) {
 			*out = bits.u;
 			return true;
 		}
@@ -103,7 +103,7 @@ bool DebuggerRequest::ParamU32(const char *name, uint32_t *out, bool allowFloatB
 	const JsonNode *node = data.get(name);
 	if (!node) {
 		if (required)
-			Fail(PStringFromFormat("Missing '%s' parameter", name));
+			Fail(StringFromFormat("Missing '%s' parameter", name));
 		return !required;
 	}
 
@@ -115,9 +115,9 @@ bool DebuggerRequest::ParamU32(const char *name, uint32_t *out, bool allowFloatB
 			// JSON doesn't give a great way to differentiate ints and floats.
 			// Let's play it safe and require a string.
 			if (allowFloatBits)
-				Fail(PStringFromFormat("Could not parse '%s' parameter: use a string for non integer values", name));
+				Fail(StringFromFormat("Could not parse '%s' parameter: use a string for non integer values", name));
 			else
-				Fail(PStringFromFormat("Could not parse '%s' parameter: integer required", name));
+				Fail(StringFromFormat("Could not parse '%s' parameter: integer required", name));
 			return false;
 		} else if (!isInteger && allowFloatBits) {
 			union {
@@ -141,14 +141,14 @@ bool DebuggerRequest::ParamU32(const char *name, uint32_t *out, bool allowFloatB
 		}
 
 		if (allowFloatBits)
-			Fail(PStringFromFormat("Could not parse '%s' parameter: outside 32 bit range (use string for float)", name));
+			Fail(StringFromFormat("Could not parse '%s' parameter: outside 32 bit range (use string for float)", name));
 		else
-			Fail(PStringFromFormat("Could not parse '%s' parameter: outside 32 bit range", name));
+			Fail(StringFromFormat("Could not parse '%s' parameter: outside 32 bit range", name));
 		return false;
 	}
 	if (tag != JSON_STRING) {
 		if (type == DebuggerParamType::REQUIRED || tag != JSON_NULL) {
-			Fail(PStringFromFormat("Invalid '%s' parameter type", name));
+			Fail(StringFromFormat("Invalid '%s' parameter type", name));
 			return false;
 		}
 		return true;
@@ -158,9 +158,9 @@ bool DebuggerRequest::ParamU32(const char *name, uint32_t *out, bool allowFloatB
 		return true;
 
 	if (allowFloatBits)
-		Fail(PStringFromFormat("Could not parse '%s' parameter: number expected", name));
+		Fail(StringFromFormat("Could not parse '%s' parameter: number expected", name));
 	else
-		Fail(PStringFromFormat("Could not parse '%s' parameter: integer required", name));
+		Fail(StringFromFormat("Could not parse '%s' parameter: integer required", name));
 	return false;
 }
 
@@ -171,7 +171,7 @@ bool DebuggerRequest::ParamBool(const char *name, bool *out, DebuggerParamType t
 	const JsonNode *node = data.get(name);
 	if (!node) {
 		if (required)
-			Fail(PStringFromFormat("Missing '%s' parameter", name));
+			Fail(StringFromFormat("Missing '%s' parameter", name));
 		return !required;
 	}
 
@@ -183,7 +183,7 @@ bool DebuggerRequest::ParamBool(const char *name, bool *out, DebuggerParamType t
 			return true;
 		}
 
-		Fail(PStringFromFormat("Could not parse '%s' parameter: should be true/1 or false/0", name));
+		Fail(StringFromFormat("Could not parse '%s' parameter: should be true/1 or false/0", name));
 		return false;
 	}
 	if (tag == JSON_TRUE) {
@@ -196,7 +196,7 @@ bool DebuggerRequest::ParamBool(const char *name, bool *out, DebuggerParamType t
 	}
 	if (tag != JSON_STRING) {
 		if (type == DebuggerParamType::REQUIRED || tag != JSON_NULL) {
-			Fail(PStringFromFormat("Invalid '%s' parameter type", name));
+			Fail(StringFromFormat("Invalid '%s' parameter type", name));
 			return false;
 		}
 		return true;
@@ -217,7 +217,7 @@ bool DebuggerRequest::ParamBool(const char *name, bool *out, DebuggerParamType t
 		return true;
 	}
 
-	Fail(PStringFromFormat("Could not parse '%s' parameter: boolean required", name));
+	Fail(StringFromFormat("Could not parse '%s' parameter: boolean required", name));
 	return false;
 }
 
@@ -228,7 +228,7 @@ bool DebuggerRequest::ParamString(const char *name, std::string *out, DebuggerPa
 	const JsonNode *node = data.get(name);
 	if (!node) {
 		if (required)
-			Fail(PStringFromFormat("Missing '%s' parameter", name));
+			Fail(StringFromFormat("Missing '%s' parameter", name));
 		return !required;
 	}
 
@@ -238,7 +238,7 @@ bool DebuggerRequest::ParamString(const char *name, std::string *out, DebuggerPa
 		return true;
 	} else if (!allowLoose) {
 		if (required || tag != JSON_NULL) {
-			Fail(PStringFromFormat("Invalid '%s' parameter type", name));
+			Fail(StringFromFormat("Invalid '%s' parameter type", name));
 			return false;
 		}
 		return true;
@@ -258,10 +258,10 @@ bool DebuggerRequest::ParamString(const char *name, std::string *out, DebuggerPa
 		return true;
 	} else if (tag == JSON_NUMBER) {
 		// Will have a decimal place, though.
-		*out = PStringFromFormat("%f", node->value.toNumber());
+		*out = StringFromFormat("%f", node->value.toNumber());
 		return true;
 	}
 
-	Fail(PStringFromFormat("Invalid '%s' parameter type", name));
+	Fail(StringFromFormat("Invalid '%s' parameter type", name));
 	return false;
 }

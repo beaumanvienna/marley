@@ -49,14 +49,14 @@
 
 #if defined(_MSC_VER) && _MSC_VER >= 1900
     #pragma warning(disable : 4464) // relative include path contains '..'
-    #pragma warning(disable : 5026) // 'Pglslang::TIntermUnary': move constructor was implicitly defined as deleted
+    #pragma warning(disable : 5026) // 'glslang::TIntermUnary': move constructor was implicitly defined as deleted
 #endif
 
 #include "../Include/Common.h"
 #include "../Include/Types.h"
 #include "../Include/ConstantUnion.h"
 
-namespace Pglslang {
+namespace glslang {
 
 class TIntermediate;
 
@@ -1017,7 +1017,7 @@ class TIntermMethod;
 class TIntermSymbol;
 class TIntermLoop;
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 //
 // Base class for the tree nodes
@@ -1026,46 +1026,46 @@ class TIntermLoop;
 //
 class TIntermNode {
 public:
-    POOL_ALLOCATOR_NEW_DELETE(Pglslang::GetThreadPoolAllocator())
+    POOL_ALLOCATOR_NEW_DELETE(glslang::GetThreadPoolAllocator())
 
     TIntermNode() { loc.init(); }
-    virtual const Pglslang::TSourceLoc& getLoc() const { return loc; }
-    virtual void setLoc(const Pglslang::TSourceLoc& l) { loc = l; }
-    virtual void traverse(Pglslang::TIntermTraverser*) = 0;
-    virtual       Pglslang::TIntermTyped*         getAsTyped()               { return 0; }
-    virtual       Pglslang::TIntermOperator*      getAsOperator()            { return 0; }
-    virtual       Pglslang::TIntermConstantUnion* getAsConstantUnion()       { return 0; }
-    virtual       Pglslang::TIntermAggregate*     getAsAggregate()           { return 0; }
-    virtual       Pglslang::TIntermUnary*         getAsUnaryNode()           { return 0; }
-    virtual       Pglslang::TIntermBinary*        getAsBinaryNode()          { return 0; }
-    virtual       Pglslang::TIntermSelection*     getAsSelectionNode()       { return 0; }
-    virtual       Pglslang::TIntermSwitch*        getAsSwitchNode()          { return 0; }
-    virtual       Pglslang::TIntermMethod*        getAsMethodNode()          { return 0; }
-    virtual       Pglslang::TIntermSymbol*        getAsSymbolNode()          { return 0; }
-    virtual       Pglslang::TIntermBranch*        getAsBranchNode()          { return 0; }
-    virtual       Pglslang::TIntermLoop*          getAsLoopNode()            { return 0; }
+    virtual const glslang::TSourceLoc& getLoc() const { return loc; }
+    virtual void setLoc(const glslang::TSourceLoc& l) { loc = l; }
+    virtual void traverse(glslang::TIntermTraverser*) = 0;
+    virtual       glslang::TIntermTyped*         getAsTyped()               { return 0; }
+    virtual       glslang::TIntermOperator*      getAsOperator()            { return 0; }
+    virtual       glslang::TIntermConstantUnion* getAsConstantUnion()       { return 0; }
+    virtual       glslang::TIntermAggregate*     getAsAggregate()           { return 0; }
+    virtual       glslang::TIntermUnary*         getAsUnaryNode()           { return 0; }
+    virtual       glslang::TIntermBinary*        getAsBinaryNode()          { return 0; }
+    virtual       glslang::TIntermSelection*     getAsSelectionNode()       { return 0; }
+    virtual       glslang::TIntermSwitch*        getAsSwitchNode()          { return 0; }
+    virtual       glslang::TIntermMethod*        getAsMethodNode()          { return 0; }
+    virtual       glslang::TIntermSymbol*        getAsSymbolNode()          { return 0; }
+    virtual       glslang::TIntermBranch*        getAsBranchNode()          { return 0; }
+    virtual       glslang::TIntermLoop*          getAsLoopNode()            { return 0; }
 
-    virtual const Pglslang::TIntermTyped*         getAsTyped()         const { return 0; }
-    virtual const Pglslang::TIntermOperator*      getAsOperator()      const { return 0; }
-    virtual const Pglslang::TIntermConstantUnion* getAsConstantUnion() const { return 0; }
-    virtual const Pglslang::TIntermAggregate*     getAsAggregate()     const { return 0; }
-    virtual const Pglslang::TIntermUnary*         getAsUnaryNode()     const { return 0; }
-    virtual const Pglslang::TIntermBinary*        getAsBinaryNode()    const { return 0; }
-    virtual const Pglslang::TIntermSelection*     getAsSelectionNode() const { return 0; }
-    virtual const Pglslang::TIntermSwitch*        getAsSwitchNode()    const { return 0; }
-    virtual const Pglslang::TIntermMethod*        getAsMethodNode()    const { return 0; }
-    virtual const Pglslang::TIntermSymbol*        getAsSymbolNode()    const { return 0; }
-    virtual const Pglslang::TIntermBranch*        getAsBranchNode()    const { return 0; }
-    virtual const Pglslang::TIntermLoop*          getAsLoopNode()      const { return 0; }
+    virtual const glslang::TIntermTyped*         getAsTyped()         const { return 0; }
+    virtual const glslang::TIntermOperator*      getAsOperator()      const { return 0; }
+    virtual const glslang::TIntermConstantUnion* getAsConstantUnion() const { return 0; }
+    virtual const glslang::TIntermAggregate*     getAsAggregate()     const { return 0; }
+    virtual const glslang::TIntermUnary*         getAsUnaryNode()     const { return 0; }
+    virtual const glslang::TIntermBinary*        getAsBinaryNode()    const { return 0; }
+    virtual const glslang::TIntermSelection*     getAsSelectionNode() const { return 0; }
+    virtual const glslang::TIntermSwitch*        getAsSwitchNode()    const { return 0; }
+    virtual const glslang::TIntermMethod*        getAsMethodNode()    const { return 0; }
+    virtual const glslang::TIntermSymbol*        getAsSymbolNode()    const { return 0; }
+    virtual const glslang::TIntermBranch*        getAsBranchNode()    const { return 0; }
+    virtual const glslang::TIntermLoop*          getAsLoopNode()      const { return 0; }
     virtual ~TIntermNode() { }
 
 protected:
     TIntermNode(const TIntermNode&);
     TIntermNode& operator=(const TIntermNode&);
-    Pglslang::TSourceLoc loc;
+    glslang::TSourceLoc loc;
 };
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // This is just to help yacc.
@@ -1705,7 +1705,7 @@ enum TVisit
 //
 class TIntermTraverser {
 public:
-    POOL_ALLOCATOR_NEW_DELETE(Pglslang::GetThreadPoolAllocator())
+    POOL_ALLOCATOR_NEW_DELETE(glslang::GetThreadPoolAllocator())
     TIntermTraverser(bool preVisit = true, bool inVisit = false, bool postVisit = false, bool rightToLeft = false) :
             preVisit(preVisit),
             inVisit(inVisit),
@@ -1768,6 +1768,6 @@ inline bool SameSpecializationConstants(TIntermTyped* node1, TIntermTyped* node2
            node1->getAsSymbolNode()->getId() == node2->getAsSymbolNode()->getId();
 }
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // __INTERMEDIATE_H

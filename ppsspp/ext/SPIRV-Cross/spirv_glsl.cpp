@@ -29,7 +29,7 @@
 #endif
 #include <locale.h>
 
-using namespace Pspv;
+using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
@@ -916,7 +916,7 @@ string CompilerGLSL::layout_for_member(const SPIRType &type, uint32_t index)
 	return res;
 }
 
-const char *CompilerGLSL::format_to_glsl(Pspv::ImageFormat format)
+const char *CompilerGLSL::format_to_glsl(spv::ImageFormat format)
 {
 	if (options.es && is_desktop_only_format(format))
 		SPIRV_CROSS_THROW("Attempting to use image format not supported in ES profile.");
@@ -4236,25 +4236,25 @@ string CompilerGLSL::legacy_tex_op(const std::string &op, const SPIRType &imgtyp
 	const char *type;
 	switch (imgtype.image.dim)
 	{
-	case Pspv::Dim1D:
+	case spv::Dim1D:
 		type = (imgtype.image.arrayed && !options.es) ? "1DArray" : "1D";
 		break;
-	case Pspv::Dim2D:
+	case spv::Dim2D:
 		type = (imgtype.image.arrayed && !options.es) ? "2DArray" : "2D";
 		break;
-	case Pspv::Dim3D:
+	case spv::Dim3D:
 		type = "3D";
 		break;
-	case Pspv::DimCube:
+	case spv::DimCube:
 		type = "Cube";
 		break;
-	case Pspv::DimRect:
+	case spv::DimRect:
 		type = "2DRect";
 		break;
-	case Pspv::DimBuffer:
+	case spv::DimBuffer:
 		type = "Buffer";
 		break;
-	case Pspv::DimSubpassData:
+	case spv::DimSubpassData:
 		type = "2D";
 		break;
 	default:
@@ -4664,19 +4664,19 @@ void CompilerGLSL::emit_texture_op(const Instruction &i)
 	uint32_t coord_components = 0;
 	switch (imgtype.image.dim)
 	{
-	case Pspv::Dim1D:
+	case spv::Dim1D:
 		coord_components = 1;
 		break;
-	case Pspv::Dim2D:
+	case spv::Dim2D:
 		coord_components = 2;
 		break;
-	case Pspv::Dim3D:
+	case spv::Dim3D:
 		coord_components = 3;
 		break;
-	case Pspv::DimCube:
+	case spv::DimCube:
 		coord_components = 3;
 		break;
-	case Pspv::DimBuffer:
+	case spv::DimBuffer:
 		coord_components = 1;
 		break;
 	default:
@@ -9505,7 +9505,7 @@ void CompilerGLSL::emit_instruction(const Instruction &instruction)
 		uint32_t result_type = ops[0];
 		uint32_t id = ops[1];
 
-		if (type.image.dim == Pspv::DimSubpassData)
+		if (type.image.dim == spv::DimSubpassData)
 		{
 			emit_unary_func_op(result_type, id, ops[2], "fragmentMaskFetchAMD");
 		}
@@ -9524,7 +9524,7 @@ void CompilerGLSL::emit_instruction(const Instruction &instruction)
 		uint32_t result_type = ops[0];
 		uint32_t id = ops[1];
 
-		if (type.image.dim == Pspv::DimSubpassData)
+		if (type.image.dim == spv::DimSubpassData)
 		{
 			emit_binary_func_op(result_type, id, ops[2], ops[4], "fragmentFetchAMD");
 		}

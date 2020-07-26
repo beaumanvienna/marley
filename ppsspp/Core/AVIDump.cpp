@@ -92,7 +92,7 @@ bool AVIDump::CreateAVI() {
 
 	// Use gameID_EmulatedTimestamp for filename
 	std::string discID = g_paramSFO.GetDiscID();
-	std::string video_file_name = PStringFromFormat("%s%s_%s.avi", GetSysDirectory(DIRECTORY_VIDEO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+	std::string video_file_name = StringFromFormat("%s%s_%s.avi", GetSysDirectory(DIRECTORY_VIDEO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 
 	s_format_context = avformat_alloc_context();
 	std::stringstream s_file_index_str;
@@ -101,19 +101,19 @@ bool AVIDump::CreateAVI() {
 	snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s", s_file_index_str.str().c_str());
 	INFO_LOG(COMMON, "Recording Video to: %s", s_format_context->filename);
 	// Make sure that the path exists
-	if (!PFile::Exists(GetSysDirectory(DIRECTORY_VIDEO)))
-		PFile::CreateDir(GetSysDirectory(DIRECTORY_VIDEO));
+	if (!File::Exists(GetSysDirectory(DIRECTORY_VIDEO)))
+		File::CreateDir(GetSysDirectory(DIRECTORY_VIDEO));
 
-	if (PFile::Exists(s_format_context->filename))
-		PFile::Delete(s_format_context->filename);
+	if (File::Exists(s_format_context->filename))
+		File::Delete(s_format_context->filename);
 
 	if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) || !(s_stream = avformat_new_stream(s_format_context, codec)))
 	{
 		return false;
 	}
 
-	s_stream->codec->codec_id = g_PConfig.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
-	if (!g_PConfig.bUseFFV1)
+	s_stream->codec->codec_id = g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
+	if (!g_Config.bUseFFV1)
 		s_stream->codec->codec_tag = MKTAG('X', 'V', 'I', 'D');  // Force XVID FourCC for better compatibility
 	s_stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_stream->codec->bit_rate = 400000;
@@ -122,7 +122,7 @@ bool AVIDump::CreateAVI() {
 	s_stream->codec->time_base.num = 1001;
 	s_stream->codec->time_base.den = 60000;
 	s_stream->codec->gop_size = 12;
-	s_stream->codec->pix_fmt = g_PConfig.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
+	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
 	if (!(codec = avcodec_find_encoder(s_stream->codec->codec_id)) || (avcodec_open2(s_stream->codec, codec, nullptr) < 0))
 	{
@@ -171,7 +171,7 @@ void AVIDump::AddFrame()
 {
 	u32 w = 0;
 	u32 h = 0;
-	if (g_PConfig.bDumpVideoOutput) {
+	if (g_Config.bDumpVideoOutput) {
 		gpuDebug->GetOutputFramebuffer(buf);
 		w = buf.GetStride();
 		h = buf.GetHeight();

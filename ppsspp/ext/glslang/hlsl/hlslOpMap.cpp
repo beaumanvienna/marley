@@ -38,7 +38,7 @@
 
 #include "hlslOpMap.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Map parsing tokens that could be assignments into assignment operators.
 TOperator HlslOpMap::assignment(EHlslTokenClass op)
@@ -170,4 +170,4 @@ PrecedenceLevel HlslOpMap::precedenceLevel(TOperator op)
     }
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

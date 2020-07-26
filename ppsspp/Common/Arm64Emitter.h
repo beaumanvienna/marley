@@ -68,7 +68,7 @@ enum ARM64Reg
 	Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23,
 	Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31,
 
-	// For PRFM(PPREFETCH memory) encoding
+	// For PRFM(prefetch memory) encoding
 	// This is encoded in the Rt register
 	// Data preload
 	PLDL1KEEP = 0, PLDL1STRM,
@@ -162,7 +162,8 @@ enum RoundingMode {
 
 struct FixupBranch
 {
-	u8* ptr;
+	// Pointer to executable code address.
+	const u8 *ptr;
 	// Type defines
 	// 0 = CBZ (32bit)
 	// 1 = CBNZ (32bit)
@@ -328,7 +329,7 @@ public:
 				       (m_shift << 10);
 			break;
 			default:
-				_dbg_assert_msg_(DYNA_REC, false, "Invalid type in GetData");
+				_dbg_assert_msg_(false, "Invalid type in GetData");
 			break;
 		}
 		return 0;
@@ -338,11 +339,12 @@ public:
 class ARM64XEmitter
 {
 	friend class ARM64FloatEmitter;
+	friend class ARM64CodeBlock;
 
 private:
-	u8* m_code;
-	u8* m_startcode;
-	u8* m_lastCacheFlushEnd;
+	const u8 *m_code = nullptr;
+	u8 *m_writable = nullptr;
+	const u8 *m_lastCacheFlushEnd = nullptr;
 
 	void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
 	void EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr);
@@ -376,38 +378,34 @@ private:
 protected:
 	inline void Write32(u32 value)
 	{
-		*(u32*)m_code = value;
+		*(u32 *)m_writable = value;
 		m_code += 4;
+		m_writable += 4;
 	}
 
 public:
 	ARM64XEmitter()
-		: m_code(nullptr), m_startcode(nullptr), m_lastCacheFlushEnd(nullptr)
 	{
 	}
 
-	ARM64XEmitter(u8* code_ptr) {
-		m_code = code_ptr;
-		m_lastCacheFlushEnd = code_ptr;
-		m_startcode = code_ptr;
-	}
+	ARM64XEmitter(const u8 *codePtr, u8 *writablePtr);
 
 	virtual ~ARM64XEmitter()
 	{
 	}
 
-	void SetCodePointer(u8* ptr);
+	void SetCodePointer(const u8 *ptr, u8 *writePtr);
 	const u8* GetCodePointer() const;
 
-	void PReserveCodeSpace(u32 bytes);
-	const u8* PAlignCode16();
-	const u8* PAlignCodePage();
+	void ReserveCodeSpace(u32 bytes);
+	const u8* AlignCode16();
+	const u8* AlignCodePage();
 	void FlushIcache();
-	void FlushIcacheSection(u8* start, u8* end);
-	u8* PGetWritableCodePtr();
+	void FlushIcacheSection(const u8* start, const u8* end);
+	u8* GetWritableCodePtr();
 
 	// FixupBranch branching
-	void PSetJumpTarget(FixupBranch const& branch);
+	void SetJumpTarget(FixupBranch const& branch);
 	FixupBranch CBZ(ARM64Reg Rt);
 	FixupBranch CBNZ(ARM64Reg Rt);
 	FixupBranch B(CCFlags cond);
@@ -699,7 +697,7 @@ public:
 	void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);
 	template <class P>
 	void MOVP2R(ARM64Reg Rd, P *ptr) {
-		_assert_msg_(JIT, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
+		_assert_msg_(Is64Bit(Rd), "Can't store pointers in 32-bit registers");
 		MOVI2R(Rd, (uintptr_t)ptr);
 	}
 

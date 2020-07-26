@@ -162,7 +162,7 @@ namespace {
             const std::string &filename = *it;
             std::vector<SpvWord> spv;
             read(spv, filename, verbosity);
-            Pspv::spirvbin_t(verbosity).remap(spv, opts);
+            spv::spirvbin_t(verbosity).remap(spv, opts);
 
             const std::string outfile = outputDir + path_sep_char() + basename(filename);
 
@@ -183,7 +183,7 @@ namespace {
             usage(argv[0]);
 
         verbosity  = 0;
-        options    = Pspv::spirvbin_t::NONE;
+        options    = spv::spirvbin_t::NONE;
 
         // Parse command line.
         // boost::program_options would be quite a bit nicer, but we don't want to
@@ -235,14 +235,14 @@ namespace {
                     inputFile.push_back(argv[a]);
             } else if (arg == "--do-everything") {
                 ++a;
-                options = options | Pspv::spirvbin_t::DO_EVERYTHING;
+                options = options | spv::spirvbin_t::DO_EVERYTHING;
             } else if (arg == "--strip-all" || arg == "-s") {
                 ++a;
-                options = options | Pspv::spirvbin_t::STRIP;
+                options = options | spv::spirvbin_t::STRIP;
             } else if (arg == "--strip") {
                 ++a;
                 if (strncmp(argv[a], "all", 3) == 0) {
-                    options = options | Pspv::spirvbin_t::STRIP;
+                    options = options | spv::spirvbin_t::STRIP;
                     ++a;
                 }
             } else if (arg == "--dce") {
@@ -250,16 +250,16 @@ namespace {
                 ++a;
                 for (const char* c = argv[a]; *c; ++c) {
                     if (strncmp(c, "all", 3) == 0) {
-                        options = (options | Pspv::spirvbin_t::DCE_ALL);
+                        options = (options | spv::spirvbin_t::DCE_ALL);
                         c += 3;
                     } else if (strncmp(c, "*", 1) == 0) {
-                        options = (options | Pspv::spirvbin_t::DCE_ALL);
+                        options = (options | spv::spirvbin_t::DCE_ALL);
                         c += 1;
                     } else if (strncmp(c, "funcs", 5) == 0) {
-                        options = (options | Pspv::spirvbin_t::DCE_FUNCS);
+                        options = (options | spv::spirvbin_t::DCE_FUNCS);
                         c += 5;
                     } else if (strncmp(c, "types", 5) == 0) {
-                        options = (options | Pspv::spirvbin_t::DCE_TYPES);
+                        options = (options | spv::spirvbin_t::DCE_TYPES);
                         c += 5;
                     }
                 }
@@ -269,19 +269,19 @@ namespace {
                 ++a;
                 for (const char* c = argv[a]; *c; ++c) {
                     if (strncmp(c, "all", 3) == 0) {
-                        options = (options | Pspv::spirvbin_t::MAP_ALL);
+                        options = (options | spv::spirvbin_t::MAP_ALL);
                         c += 3;
                     } else if (strncmp(c, "*", 1) == 0) {
-                        options = (options | Pspv::spirvbin_t::MAP_ALL);
+                        options = (options | spv::spirvbin_t::MAP_ALL);
                         c += 1;
                     } else if (strncmp(c, "types", 5) == 0) {
-                        options = (options | Pspv::spirvbin_t::MAP_TYPES);
+                        options = (options | spv::spirvbin_t::MAP_TYPES);
                         c += 5;
                     } else if (strncmp(c, "names", 5) == 0) {
-                        options = (options | Pspv::spirvbin_t::MAP_NAMES);
+                        options = (options | spv::spirvbin_t::MAP_NAMES);
                         c += 5;
                     } else if (strncmp(c, "funcs", 5) == 0) {
-                        options = (options | Pspv::spirvbin_t::MAP_FUNCS);
+                        options = (options | spv::spirvbin_t::MAP_FUNCS);
                         c += 5;
                     }
                 }
@@ -290,13 +290,13 @@ namespace {
                 ++a;
                 for (const char* c = argv[a]; *c; ++c) {
                     if (strncmp(c, "all", 3) == 0) {
-                        options = (options | Pspv::spirvbin_t::OPT_ALL);
+                        options = (options | spv::spirvbin_t::OPT_ALL);
                         c += 3;
                     } else if (strncmp(c, "*", 1) == 0) {
-                        options = (options | Pspv::spirvbin_t::OPT_ALL);
+                        options = (options | spv::spirvbin_t::OPT_ALL);
                         c += 1;
                     } else if (strncmp(c, "loadstore", 9) == 0) {
-                        options = (options | Pspv::spirvbin_t::OPT_LOADSTORE);
+                        options = (options | spv::spirvbin_t::OPT_LOADSTORE);
                         c += 9;
                     }
                 }
@@ -320,10 +320,10 @@ int main(int argc, char** argv)
 
 #ifdef use_cpp11
     // handle errors by exiting
-    Pspv::spirvbin_t::registerErrorHandler(errHandler);
+    spv::spirvbin_t::registerErrorHandler(errHandler);
 
     // Log messages to std::cout
-    Pspv::spirvbin_t::registerLogHandler(logHandler);
+    spv::spirvbin_t::registerLogHandler(logHandler);
 #endif
 
     if (argc < 2)

@@ -6,7 +6,7 @@
 #include "base/timeutil.h"
 #include "ui/view.h"
 
-namespace PUI {
+namespace UI {
 
 // This is the class to use in Update().
 class Tween {

@@ -37,7 +37,7 @@
 
 #include "TestFixture.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 namespace {
 
 struct FileNameEntryPointPair {
@@ -70,14 +70,14 @@ using HlslLegalDebugTest = GlslangTest<::testing::TestWithParam<FileNameEntryPoi
 TEST_P(HlslCompileTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam().fileName,
-                            Source::HLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0,  Pglslang::EShTargetSpv_1_0,
+                            Source::HLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0,  glslang::EShTargetSpv_1_0,
                             Target::BothASTAndSpv, true, GetParam().entryPoint);
 }
 
 TEST_P(HlslVulkan1_1CompileTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam().fileName,
-                            Source::HLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_1, Pglslang::EShTargetSpv_1_3,
+                            Source::HLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_1, glslang::EShTargetSpv_1_3,
                             Target::BothASTAndSpv, true, GetParam().entryPoint);
 }
 
@@ -93,7 +93,7 @@ TEST_P(HlslCompileAndFlattenTest, FromFile)
 TEST_P(HlslLegalizeTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam().fileName,
-                            Source::HLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0,  Pglslang::EShTargetSpv_1_0,
+                            Source::HLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0,  glslang::EShTargetSpv_1_0,
                             Target::Spv, true, GetParam().entryPoint,
                             "/baseLegalResults/", true);
 }
@@ -103,7 +103,7 @@ TEST_P(HlslLegalizeTest, FromFile)
 TEST_P(HlslDebugTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam().fileName,
-                            Source::HLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
+                            Source::HLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
                             Target::Spv, true, GetParam().entryPoint,
                             "/baseResults/", false, true);
 }
@@ -111,7 +111,7 @@ TEST_P(HlslDebugTest, FromFile)
 TEST_P(HlslDX9CompatibleTest, FromFile)
 {
     loadFileCompileAndCheckWithOptions(GlobalTestSettings.testRoot, GetParam().fileName, Source::HLSL,
-                                       Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
+                                       Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
                                        Target::BothASTAndSpv, true,
                                        GetParam().entryPoint, "/baseResults/",
                                        EShMessages::EShMsgHlslDX9Compatible);
@@ -123,7 +123,7 @@ TEST_P(HlslDX9CompatibleTest, FromFile)
 TEST_P(HlslLegalDebugTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam().fileName,
-                            Source::HLSL, Semantics::Vulkan, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
+                            Source::HLSL, Semantics::Vulkan, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
                             Target::Spv, true, GetParam().entryPoint,
                             "/baseResults/", true, true);
 }
@@ -504,4 +504,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace Pglslangtest
+}  // namespace glslangtest

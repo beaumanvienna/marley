@@ -187,7 +187,7 @@ public:
 
 	void SetTexture(bool force = false);
 	void ApplyTexture();
-	bool SetOffsetTexture(u32 offset);
+	bool SetOffsetTexture(u32 yOffset);
 	void Invalidate(u32 addr, int size, GPUInvalidationType type);
 	void InvalidateAll(GPUInvalidationType type);
 	void ClearNextFrame();
@@ -267,9 +267,9 @@ protected:
 		}
 
 		const u32 sizeInRAM = (textureBitsPerPixel[format] * bufw * h) / 8;
-		const u32 *checkp = (const u32 *)Memory_P::GetPointer(addr);
+		const u32 *checkp = (const u32 *)Memory::GetPointer(addr);
 
-		if (Memory_P::IsValidAddress(addr + sizeInRAM)) {
+		if (Memory::IsValidAddress(addr + sizeInRAM)) {
 			return DoQuickTexHash(checkp, sizeInRAM);
 		} else {
 			return 0;

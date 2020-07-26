@@ -60,32 +60,32 @@ public:
     virtual int getLocation(const char*) { return 0; }
 };
 
-TShHandleBase* PConstructLinker(EShExecutable executable, int debugOptions)
+TShHandleBase* ConstructLinker(EShExecutable executable, int debugOptions)
 {
     return new TGenericLinker(executable, debugOptions);
 }
 
-void PDeleteLinker(TShHandleBase* linker)
+void DeleteLinker(TShHandleBase* linker)
 {
     delete linker;
 }
 
-TUniformMap* PConstructUniformMap()
+TUniformMap* ConstructUniformMap()
 {
     return new TUniformLinkedMap();
 }
 
-void PDeleteUniformMap(TUniformMap* map)
+void DeleteUniformMap(TUniformMap* map)
 {
     delete map;
 }
 
-TShHandleBase* PConstructBindings()
+TShHandleBase* ConstructBindings()
 {
     return 0;
 }
 
-void PDeleteBindingList(TShHandleBase* bindingList)
+void DeleteBindingList(TShHandleBase* bindingList)
 {
     delete bindingList;
 }

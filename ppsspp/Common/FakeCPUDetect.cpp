@@ -45,6 +45,6 @@ void CPUInfo::Detect()
 std::string CPUInfo::Summarize()
 {
 	std::string sum;
-	sum = PStringFromFormat("%s, %i core", cpu_string, num_cores);
+	sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
 	return sum;
 }

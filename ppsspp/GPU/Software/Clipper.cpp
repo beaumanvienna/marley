@@ -21,10 +21,11 @@
 
 #include "GPU/Software/Clipper.h"
 #include "GPU/Software/Rasterizer.h"
+#include "GPU/Software/RasterizerRectangle.h"
 
 #include "profiler/profiler.h"
 
-namespace PClipper {
+namespace Clipper {
 
 enum {
 	SKIP_FLAG = -1,
@@ -49,39 +50,36 @@ static inline int CalcClipMask(const ClipCoords& v)
 	return mask;
 }
 
-#define AddInterpolatedVertex(t, out, in, numVertices) \
-{ \
-	Vertices[numVertices]->Lerp(t, *Vertices[out], *Vertices[in]); \
-	numVertices++; \
+inline bool different_signs(float x, float y) {
+	return ((x <= 0 && y > 0) || (x > 0 && y <= 0));
 }
 
-#define DIFFERENT_SIGNS(x,y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
-
-#define CLIP_DOTPROD(I, A, B, C, D) \
-	(Vertices[I]->clippos.x * A + Vertices[I]->clippos.y * B + Vertices[I]->clippos.z * C + Vertices[I]->clippos.w * D)
+inline float clip_dotprod(const VertexData &vert, float A, float B, float C, float D) {
+	return (vert.clippos.x * A + vert.clippos.y * B + vert.clippos.z * C + vert.clippos.w * D);
+}
 
 #define POLY_CLIP( PLANE_BIT, A, B, C, D )							\
 {																	\
 	if (mask & PLANE_BIT) {											\
 		int idxPrev = inlist[0];									\
-		float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D );			\
+		float dpPrev = clip_dotprod(*Vertices[idxPrev], A, B, C, D );\
 		int outcount = 0;											\
 																	\
 		inlist[n] = inlist[0];										\
 		for (int j = 1; j <= n; j++) { 								\
 			int idx = inlist[j];									\
-			float dp = CLIP_DOTPROD(idx, A, B, C, D );				\
+			float dp = clip_dotprod(*Vertices[idx], A, B, C, D );	\
 			if (dpPrev >= 0) {										\
 				outlist[outcount++] = idxPrev;						\
 			}														\
 																	\
-			if (DIFFERENT_SIGNS(dp, dpPrev)) {						\
+			if (different_signs(dp, dpPrev)) {						\
 				if (dp < 0) {										\
 					float t = dp / (dp - dpPrev);					\
-					AddInterpolatedVertex(t, idx, idxPrev, numVertices);		\
+					Vertices[numVertices++]->Lerp(t, *Vertices[idx], *Vertices[idxPrev]);		\
 				} else {											\
 					float t = dpPrev / (dpPrev - dp);				\
-					AddInterpolatedVertex(t, idxPrev, idx, numVertices);		\
+					Vertices[numVertices++]->Lerp(t, *Vertices[idxPrev], *Vertices[idx]);		\
 				}													\
 				outlist[outcount++] = numVertices - 1;				\
 			}														\
@@ -104,25 +102,23 @@ static inline int CalcClipMask(const ClipCoords& v)
 
 #define CLIP_LINE(PLANE_BIT, A, B, C, D)						\
 {																\
-	if (mask & PLANE_BIT) {											\
-		float dp0 = CLIP_DOTPROD(0, A, B, C, D );				\
-		float dp1 = CLIP_DOTPROD(1, A, B, C, D );				\
-		int i = 0;												\
+	if (mask & PLANE_BIT) {										\
+		float dp0 = clip_dotprod(*Vertices[0], A, B, C, D );	\
+		float dp1 = clip_dotprod(*Vertices[1], A, B, C, D );	\
+		int numVertices = 0;												\
 																\
 		if (mask0 & PLANE_BIT) {								\
 			if (dp0 < 0) {										\
 				float t = dp1 / (dp1 - dp0);					\
-				i = 0;											\
-				AddInterpolatedVertex(t, 1, 0, i);				\
+				Vertices[0]->Lerp(t, *Vertices[1], *Vertices[0]); \
 			}													\
 		}														\
-		dp0 = CLIP_DOTPROD(0, A, B, C, D );						\
+		dp0 = clip_dotprod(*Vertices[0], A, B, C, D );			\
 																\
 		if (mask1 & PLANE_BIT) {								\
 			if (dp1 < 0) {										\
 				float t = dp1 / (dp1- dp0);						\
-				i = 1;											\
-				AddInterpolatedVertex(t, 1, 0, i);				\
+				Vertices[1]->Lerp(t, *Vertices[1], *Vertices[0]);	\
 			}													\
 		}														\
 	}															\
@@ -182,6 +178,11 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 		ProcessTriangle(*topleft, *bottomleft, *bottomright, buf[3]);
 	} else {
 		// through mode handling
+
+		if (Rasterizer::RectangleFastPath(v0, v1)) {
+			return;
+		}
+
 		VertexData buf[4];
 		buf[0].screenpos = ScreenCoords(v0.screenpos.x, v0.screenpos.y, v1.screenpos.z);
 		buf[0].texturecoords = v0.texturecoords;
@@ -196,7 +197,7 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 
 		// Color and depth values of second vertex are used for the whole rectangle
 		buf[0].color0 = buf[1].color0 = buf[2].color0 = buf[3].color0;
-		buf[0].color1 = buf[1].color1 = buf[2].color1 = buf[3].color1;
+		buf[0].color1 = buf[1].color1 = buf[2].color1 = buf[3].color1;  // is color1 ever used in through mode?
 		buf[0].clippos.w = buf[1].clippos.w = buf[2].clippos.w = buf[3].clippos.w = 1.0f;
 		buf[0].fogdepth = buf[1].fogdepth = buf[2].fogdepth = buf[3].fogdepth = 1.0f;
 
@@ -220,13 +221,13 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 		RotateUVThrough(v0, v1, *topright, *bottomleft);
 
 		if (gstate.isModeClear()) {
-			PRasterizer::ClearRectangle(v0, v1);
+			Rasterizer::ClearRectangle(v0, v1);
 		} else {
 			// Four triangles to do backfaces as well. Two of them will get backface culled.
-			PRasterizer::DrawTriangle(*topleft, *topright, *bottomright);
-			PRasterizer::DrawTriangle(*bottomright, *topright, *topleft);
-			PRasterizer::DrawTriangle(*bottomright, *bottomleft, *topleft);
-			PRasterizer::DrawTriangle(*topleft, *bottomleft, *bottomright);
+			Rasterizer::DrawTriangle(*topleft, *topright, *bottomright);
+			Rasterizer::DrawTriangle(*bottomright, *topright, *topleft);
+			Rasterizer::DrawTriangle(*bottomright, *bottomleft, *topleft);
+			Rasterizer::DrawTriangle(*topleft, *bottomleft, *bottomright);
 		}
 	}
 }
@@ -234,14 +235,14 @@ void ProcessRect(const VertexData& v0, const VertexData& v1)
 void ProcessPoint(VertexData& v0)
 {
 	// Points need no clipping. Will be bounds checked in the rasterizer (which seems backwards?)
-	PRasterizer::DrawPoint(v0);
+	Rasterizer::DrawPoint(v0);
 }
 
 void ProcessLine(VertexData& v0, VertexData& v1)
 {
 	if (gstate.isModeThrough()) {
 		// Actually, should clip this one too so we don't need to do bounds checks in the rasterizer.
-		PRasterizer::DrawLine(v0, v1);
+		Rasterizer::DrawLine(v0, v1);
 		return;
 	}
 
@@ -268,7 +269,7 @@ void ProcessLine(VertexData& v0, VertexData& v1)
 	VertexData data[2] = { *Vertices[0], *Vertices[1] };
 	data[0].screenpos = TransformUnit::ClipToScreen(data[0].clippos);
 	data[1].screenpos = TransformUnit::ClipToScreen(data[1].clippos);
-	PRasterizer::DrawLine(data[0], data[1]);
+	Rasterizer::DrawLine(data[0], data[1]);
 }
 
 void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const VertexData &provoking) {
@@ -278,9 +279,9 @@ void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const Verte
 			VertexData corrected2 = v2;
 			corrected2.color0 = provoking.color0;
 			corrected2.color1 = provoking.color1;
-			PRasterizer::DrawTriangle(v0, v1, corrected2);
+			Rasterizer::DrawTriangle(v0, v1, corrected2);
 		} else {
-			PRasterizer::DrawTriangle(v0, v1, v2);
+			Rasterizer::DrawTriangle(v0, v1, v2);
 		}
 		return;
 	}
@@ -359,7 +360,7 @@ void ProcessTriangle(VertexData& v0, VertexData& v1, VertexData& v2, const Verte
 				data[2].color1 = provoking.color1;
 			}
 
-			PRasterizer::DrawTriangle(data[0], data[1], data[2]);
+			Rasterizer::DrawTriangle(data[0], data[1], data[2]);
 		}
 	}
 }

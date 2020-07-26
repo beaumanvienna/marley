@@ -78,13 +78,13 @@ bool RefCountedObject::Release() {
 		}
 	}
 	else {
-		_dbg_assert_msg_(G3D, false, "Refcount (%d) invalid for object %p - corrupt?", refcount_, this);
+		_dbg_assert_msg_(false, "Refcount (%d) invalid for object %p - corrupt?", refcount_, this);
 	}
 	return false;
 }
 
 bool RefCountedObject::ReleaseAssertLast() {
-	_dbg_assert_msg_(G3D, refcount_ == 1, "RefCountedObject: Expected to be the last reference, but isn't!");
+	_dbg_assert_msg_(refcount_ == 1, "RefCountedObject: Expected to be the last reference, but isn't!");
 	if (refcount_ > 0 && refcount_ < 10000) {
 		refcount_--;
 		if (refcount_ == 0) {
@@ -140,9 +140,53 @@ static const std::vector<ShaderSource> fsTexCol = {
 	"#extension GL_ARB_shading_language_420pack : enable\n"
 	"layout(location = 0) in vec4 oColor0;\n"
 	"layout(location = 1) in vec2 oTexCoord0;\n"
-	"layout(location = 0) out vec4 fragColor0\n;"
+	"layout(location = 0) out vec4 fragColor0;\n"
 	"layout(set = 0, binding = 1) uniform sampler2D Sampler0;\n"
 	"void main() { fragColor0 = texture(Sampler0, oTexCoord0) * oColor0; }\n"
+	}
+};
+
+static const std::vector<ShaderSource> fsTexColRBSwizzle = {
+	{ShaderLanguage::GLSL_ES_200,
+	"#ifdef GL_ES\n"
+	"precision lowp float;\n"
+	"#endif\n"
+	"#if __VERSION__ >= 130\n"
+	"#define varying in\n"
+	"#define texture2D texture\n"
+	"#define gl_FragColor fragColor0\n"
+	"out vec4 fragColor0;\n"
+	"#endif\n"
+	"varying vec4 oColor0;\n"
+	"varying vec2 oTexCoord0;\n"
+	"uniform sampler2D Sampler0;\n"
+	"void main() { gl_FragColor = texture2D(Sampler0, oTexCoord0).zyxw * oColor0; }\n"
+	},
+	{ShaderLanguage::HLSL_D3D9,
+	"struct PS_INPUT { float4 color : COLOR0; float2 uv : TEXCOORD0; };\n"
+	"sampler2D Sampler0 : register(s0);\n"
+	"float4 main(PS_INPUT input) : COLOR0 {\n"
+	"  return input.color * tex2D(Sampler0, input.uv).zyxw;\n"
+	"}\n"
+	},
+	{ShaderLanguage::HLSL_D3D11,
+	"struct PS_INPUT { float4 color : COLOR0; float2 uv : TEXCOORD0; };\n"
+	"SamplerState samp : register(s0);\n"
+	"Texture2D<float4> tex : register(t0);\n"
+	"float4 main(PS_INPUT input) : SV_Target {\n"
+	"  float4 col = input.color * tex.Sample(samp, input.uv).bgra;\n"
+	"  return col;\n"
+	"}\n"
+	},
+	{ShaderLanguage::GLSL_VULKAN,
+	"#version 140\n"
+	"#extension GL_ARB_separate_shader_objects : enable\n"
+	"#extension GL_ARB_shading_language_420pack : enable\n"
+	"layout(location = 0) in vec4 oColor0;\n"
+	"layout(location = 1) in vec2 oTexCoord0;\n"
+	"layout(location = 0) out vec4 fragColor0\n;"
+	"layout(set = 0, binding = 1) uniform sampler2D Sampler0;\n"
+	"void main() { fragColor0 = texture(Sampler0, oTexCoord0).bgra * oColor0; }\n"
 	}
 };
 
@@ -176,7 +220,7 @@ static const std::vector<ShaderSource> fsCol = {
 	"#extension GL_ARB_separate_shader_objects : enable\n"
 	"#extension GL_ARB_shading_language_420pack : enable\n"
 	"layout(location = 0) in vec4 oColor0;\n"
-	"layout(location = 0) out vec4 fragColor0\n;"
+	"layout(location = 0) out vec4 fragColor0;\n"
 	"void main() { fragColor0 = oColor0; }\n"
 	}
 };
@@ -218,7 +262,7 @@ static const std::vector<ShaderSource> vsCol = {
 	"};\n"
 	"VS_OUTPUT main(VS_INPUT input) {\n"
 	"  VS_OUTPUT output;\n"
-	"  output.Position = mul(float4(input.Position, 1.0), WorldViewProj);\n"
+	"  output.Position = mul(WorldViewProj, float4(input.Position, 1.0));\n"
 	"  output.Color0 = input.Color0;\n"
 	"  return output;\n"
 	"}\n"
@@ -330,8 +374,9 @@ bool DrawContext::CreatePresets() {
 
 	fsPresets_[FS_TEXTURE_COLOR_2D] = CreateShader(this, ShaderStage::FRAGMENT, fsTexCol);
 	fsPresets_[FS_COLOR_2D] = CreateShader(this, ShaderStage::FRAGMENT, fsCol);
+	fsPresets_[FS_TEXTURE_COLOR_2D_RB_SWIZZLE] = CreateShader(this, ShaderStage::FRAGMENT, fsTexColRBSwizzle);
 
-	return vsPresets_[VS_TEXTURE_COLOR_2D] && vsPresets_[VS_COLOR_2D] && fsPresets_[FS_TEXTURE_COLOR_2D] && fsPresets_[FS_COLOR_2D];
+	return vsPresets_[VS_TEXTURE_COLOR_2D] && vsPresets_[VS_COLOR_2D] && fsPresets_[FS_TEXTURE_COLOR_2D] && fsPresets_[FS_COLOR_2D] && fsPresets_[FS_TEXTURE_COLOR_2D_RB_SWIZZLE];
 }
 
 void DrawContext::DestroyPresets() {

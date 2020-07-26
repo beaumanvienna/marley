@@ -110,7 +110,7 @@ static std::vector<int> ParseCPUList(const std::string &filename) {
 
 	if (readFileToString(true, filename.c_str(), data)) {
 		std::vector<std::string> ranges;
-		PSplitString(data, ',', ranges);
+		SplitString(data, ',', ranges);
 		for (auto range : ranges) {
 			int low = 0, high = 0;
 			int parts = sscanf(range.c_str(), "%d-%d", &low, &high);
@@ -361,7 +361,7 @@ void CPUInfo::Detect() {
 	// This seems to be the count per core.  Hopefully all cores are the same, but we counted each above.
 	logical_cpu_count /= num_cores;
 #elif PPSSPP_PLATFORM(LINUX)
-	if (PFile::Exists("/sys/devices/system/cpu/present")) {
+	if (File::Exists("/sys/devices/system/cpu/present")) {
 		// This may not count unplugged cores, but at least it's a best guess.
 		// Also, this assumes the CPU cores are heterogeneous (e.g. all cores could be active simultaneously.)
 		num_cores = 0;
@@ -377,7 +377,7 @@ void CPUInfo::Detect() {
 				counted_cores.insert(id);
 
 				// Also count any thread siblings as counted.
-				auto threads = ParseCPUList(PStringFromFormat("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", id));
+				auto threads = ParseCPUList(StringFromFormat("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", id));
 				for (int mark_id : threads) {
 					counted_cores.insert(mark_id);
 				}
@@ -405,11 +405,11 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = PStringFromFormat("%s, %d core", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %d core", cpu_string, num_cores);
 	else
 	{
-		sum = PStringFromFormat("%s, %d cores", cpu_string, num_cores);
-		if (HTT) sum += PStringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
+		sum = StringFromFormat("%s, %d cores", cpu_string, num_cores);
+		if (HTT) sum += StringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";

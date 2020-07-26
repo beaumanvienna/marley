@@ -39,7 +39,7 @@
 
 #include "../glslang/Include/ResourceLimits.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // These are the default resources for TBuiltInResources, used for both
 //  - parsing this string for the case where the user didn't supply one,
@@ -52,6 +52,6 @@ std::string GetDefaultTBuiltInResourceString();
 // Decodes the resource limits from |config| to |resources|.
 void DecodeResourceLimits(TBuiltInResource* resources, char* config);
 
-}  // end namespace Pglslang
+}  // end namespace glslang
 
 #endif  // _STAND_ALONE_RESOURCE_LIMITS_INCLUDED_

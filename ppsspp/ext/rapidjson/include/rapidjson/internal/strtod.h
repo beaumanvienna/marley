@@ -23,15 +23,15 @@
 #include <limits>
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 inline double FastPath(double significand, int exp) {
     if (exp < -308)
         return 0.0;
     else if (exp >= 0)
-        return significand * Pinternal::Pow10(exp);
+        return significand * internal::Pow10(exp);
     else
-        return significand / Pinternal::Pow10(-exp);
+        return significand / internal::Pow10(-exp);
 }
 
 inline double StrtodNormalPrecision(double d, int p) {
@@ -115,7 +115,7 @@ inline bool StrtodFast(double d, int p, double* result) {
     // see http://www.exploringbinary.com/fast-path-decimal-to-floating-point-conversion/
     if (p > 22  && p < 22 + 16) {
         // Fast Path Cases In Disguise
-        d *= Pinternal::Pow10(p - 22);
+        d *= internal::Pow10(p - 22);
         p = 22;
     }
 
@@ -284,7 +284,7 @@ inline double StrtodFullPrecision(double d, int p, const char* decimals, size_t 
     return StrtodBigInteger(result, decimals, dLen, dExp);
 }
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #endif // RAPIDJSON_STRTOD_

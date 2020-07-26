@@ -33,7 +33,7 @@
 #include "Core/MIPS/JitCommon/JitCommon.h"
 #include "Core/MIPS/x86/Jit.h"
 
-using namespace PGen;
+using namespace Gen;
 using namespace X64JitConstants;
 
 extern volatile CoreState coreState;
@@ -66,153 +66,163 @@ void ImHere() {
 }
 
 void Jit::GenerateFixedCode(JitOptions &jo) {
-	const u8 *start = PAlignCodePage();
+	const u8 *start = AlignCodePage();
 	BeginWrite();
 
-	restoreRoundingMode = PAlignCode16(); {
+	restoreRoundingMode = AlignCode16(); {
 		STMXCSR(MIPSSTATE_VAR(temp));
 		// Clear the rounding mode and flush-to-zero bits back to 0.
-		P_AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
+		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));
 		LDMXCSR(MIPSSTATE_VAR(temp));
-		PRET();
+		RET();
 	}
 
-	applyRoundingMode = PAlignCode16(); {
-		PMOV(32, R(EAX), MIPSSTATE_VAR(fcr31));
-		P_AND(32, R(EAX), Imm32(0x01000003));
+	applyRoundingMode = AlignCode16(); {
+		MOV(32, R(EAX), MIPSSTATE_VAR(fcr31));
+		AND(32, R(EAX), Imm32(0x01000003));
 
 		// If it's 0 (nearest + no flush0), we don't actually bother setting - we cleared the rounding
 		// mode out in restoreRoundingMode anyway. This is the most common.
-		FixupBranch skip = PJ_CC(CC_Z);
+		FixupBranch skip = J_CC(CC_Z);
 		STMXCSR(MIPSSTATE_VAR(temp));
 
 		// The MIPS bits don't correspond exactly, so we have to adjust.
 		// 0 -> 0 (skip2), 1 -> 3, 2 -> 2 (skip2), 3 -> 1
-		P_TEST(8, R(AL), Imm8(1));
-		FixupBranch skip2 = PJ_CC(CC_Z);
-		P_XOR(32, R(EAX), Imm8(2));
-		PSetJumpTarget(skip2);
+		TEST(8, R(AL), Imm8(1));
+		FixupBranch skip2 = J_CC(CC_Z);
+		XOR(32, R(EAX), Imm8(2));
+		SetJumpTarget(skip2);
 
 		// Adjustment complete, now reconstruct MXCSR
 		SHL(32, R(EAX), Imm8(13));
 		// Before setting new bits, we must clear the old ones.
-		P_AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));   // Clearing bits 13-14 (rounding mode) and 15 (flush to zero)
-		P_OR(32, MIPSSTATE_VAR(temp), R(EAX));
+		AND(32, MIPSSTATE_VAR(temp), Imm32(~(7 << 13)));   // Clearing bits 13-14 (rounding mode) and 15 (flush to zero)
+		OR(32, MIPSSTATE_VAR(temp), R(EAX));
 
-		P_TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
-		FixupBranch skip3 = PJ_CC(CC_Z);
-		P_OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
-		PSetJumpTarget(skip3);
+		TEST(32, MIPSSTATE_VAR(fcr31), Imm32(1 << 24));
+		FixupBranch skip3 = J_CC(CC_Z);
+		OR(32, MIPSSTATE_VAR(temp), Imm32(1 << 15));
+		SetJumpTarget(skip3);
 
 		LDMXCSR(MIPSSTATE_VAR(temp));
-		PSetJumpTarget(skip);
-		PRET();
+		SetJumpTarget(skip);
+		RET();
 	}
 
-	enterDispatcher = PAlignCode16();
+	enterDispatcher = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 #ifdef _M_X64
 	// Two statically allocated registers.
-	PMOV(64, R(MEMBASEREG), ImmPtr(Memory_P::base));
+	MOV(64, R(MEMBASEREG), ImmPtr(Memory::base));
 	uintptr_t jitbase = (uintptr_t)GetBasePtr();
 	if (jitbase > 0x7FFFFFFFULL) {
-		PMOV(64, R(JITBASEREG), ImmPtr(GetBasePtr()));
+		MOV(64, R(JITBASEREG), ImmPtr(GetBasePtr()));
 		jo.reserveR15ForAsm = true;
 	}
 #endif
 	// From the start of the FP reg, a single byte offset can reach all GPR + all FPR (but no VFPUR)
-	PMOV(PTRBITS, R(CTXREG), ImmPtr(&mips_->f[0]));
+	MOV(PTRBITS, R(CTXREG), ImmPtr(&mips_->f[0]));
 
 	outerLoop = GetCodePtr();
 		RestoreRoundingMode(true);
-		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming_P::Advance));
+		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		ApplyRoundingMode(true);
-		FixupBranch skipToCoreStateCheck = PJ();  //skip the downcount check
+		FixupBranch skipToCoreStateCheck = J();  //skip the downcount check
 
 		dispatcherCheckCoreState = GetCodePtr();
 
 		// The result of slice decrementation should be in flags if somebody jumped here
 		// IMPORTANT - We jump on negative, not carry!!!
-		FixupBranch bailCoreState = PJ_CC(CC_S, true);
+		FixupBranch bailCoreState = J_CC(CC_S, true);
 
-		PSetJumpTarget(skipToCoreStateCheck);
+		SetJumpTarget(skipToCoreStateCheck);
 		if (RipAccessible((const void *)&coreState)) {
-			PCMP(32, M(&coreState), Imm32(0));  // rip accessible
+			CMP(32, M(&coreState), Imm32(0));  // rip accessible
 		} else {
-			PMOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
-			PCMP(32, MatR(RAX), Imm32(0));
+			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
+			CMP(32, MatR(RAX), Imm32(0));
 		}
-		FixupBranch badCoreState = PJ_CC(CC_NZ, true);
-		FixupBranch skipToRealDispatch2 = PJ(); //skip the sync and compare first time
+		FixupBranch badCoreState = J_CC(CC_NZ, true);
+		FixupBranch skipToRealDispatch2 = J(); //skip the sync and compare first time
 
 		dispatcher = GetCodePtr();
 
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
-			FixupBranch bail = PJ_CC(CC_S, true);
+			FixupBranch bail = J_CC(CC_S, true);
 
-			PSetJumpTarget(skipToRealDispatch2);
+			SetJumpTarget(skipToRealDispatch2);
 
 			dispatcherNoCheck = GetCodePtr();
 
-			PMOV(32, R(EAX), MIPSSTATE_VAR(pc));
+			MOV(32, R(EAX), MIPSSTATE_VAR(pc));
 			dispatcherInEAXNoCheck = GetCodePtr();
 
 #ifdef MASKED_PSP_MEMORY
-			P_AND(32, R(EAX), Imm32(Memory_P::MEMVIEW32_MASK));
+			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
 #endif
 
 #ifdef _M_IX86
-			_assert_msg_(CPU, Memory_P::base != 0, "Memory base bogus");
-			PMOV(32, R(EAX), MDisp(EAX, (u32)Memory_P::base));
+			_assert_msg_( Memory::base != 0, "Memory base bogus");
+			MOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
 #elif _M_X64
-			PMOV(32, R(EAX), MComplex(MEMBASEREG, RAX, SCALE_1, 0));
+			MOV(32, R(EAX), MComplex(MEMBASEREG, RAX, SCALE_1, 0));
 #endif
-			PMOV(32, R(EDX), R(EAX));
-			_assert_msg_(JIT, MIPS_JITBLOCK_MASK == 0xFF000000, "Hardcoded assumption of emuhack mask");
+			MOV(32, R(EDX), R(EAX));
+			_assert_msg_(MIPS_JITBLOCK_MASK == 0xFF000000, "Hardcoded assumption of emuhack mask");
 			SHR(32, R(EDX), Imm8(24));
-			PCMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
-			FixupBranch notfound = PJ_CC(CC_NE);
+			CMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
+			FixupBranch notfound = J_CC(CC_NE);
 				if (enableDebug) {
-					PADD(32, MIPSSTATE_VAR(debugCount), Imm8(1));
+					ADD(32, MIPSSTATE_VAR(debugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-				P_AND(32, R(EAX), Imm32(MIPS_EMUHACK_VALUE_MASK));
+				AND(32, R(EAX), Imm32(MIPS_EMUHACK_VALUE_MASK));
 #ifdef _M_IX86
-				PADD(32, R(EAX), ImmPtr(GetBasePtr()));
+				ADD(32, R(EAX), ImmPtr(GetBasePtr()));
 #elif _M_X64
 				if (jo.reserveR15ForAsm)
-					PADD(64, R(RAX), R(JITBASEREG));
+					ADD(64, R(RAX), R(JITBASEREG));
 				else
-					PADD(64, R(EAX), Imm32(jitbase));
+					ADD(64, R(EAX), Imm32(jitbase));
 #endif
-				PJMPptr(R(EAX));
-			PSetJumpTarget(notfound);
+				JMPptr(R(EAX));
+			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
 			RestoreRoundingMode(true);
 			ABI_CallFunction(&MIPSComp::JitAt);
 			ApplyRoundingMode(true);
-			PJMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
+			JMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
 
-		PSetJumpTarget(bail);
-		PSetJumpTarget(bailCoreState);
+		SetJumpTarget(bail);
+		SetJumpTarget(bailCoreState);
 
 		if (RipAccessible((const void *)&coreState)) {
-			PCMP(32, M(&coreState), Imm32(0));  // rip accessible
+			CMP(32, M(&coreState), Imm32(0));  // rip accessible
 		} else {
-			PMOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
-			PCMP(32, MatR(RAX), Imm32(0));
+			MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
+			CMP(32, MatR(RAX), Imm32(0));
 		}
-		PJ_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outerLoop, true);
 
-	PSetJumpTarget(badCoreState);
+	const uint8_t *quitLoop = GetCodePtr();
+	SetJumpTarget(badCoreState);
 	RestoreRoundingMode(true);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	PRET();
+	RET();
+
+	crashHandler = GetCodePtr();
+	if (RipAccessible((const void *)&coreState)) {
+		MOV(32, M(&coreState), Imm32(CORE_RUNTIME_ERROR));
+	} else {
+		MOV(PTRBITS, R(RAX), ImmPtr((const void *)&coreState));
+		MOV(32, MatR(RAX), Imm32(CORE_RUNTIME_ERROR));
+	}
+	JMP(quitLoop, true);
 
 	// Let's spare the pre-generated code from unprotect-reprotect.
-	endOfPregeneratedCode = PAlignCodePage();
+	endOfPregeneratedCode = AlignCodePage();
 	EndWrite();
 }
 

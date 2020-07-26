@@ -30,10 +30,10 @@
 #include "Timer.h"
 #include "StringUtils.h"
 
-namespace PCommon
+namespace Common
 {
 
-u32 PTimer::PGetTimeMs()
+u32 Timer::GetTimeMs()
 {
 #if defined(_WIN32)
 #if PPSSPP_PLATFORM(UWP)
@@ -54,10 +54,10 @@ u32 PTimer::PGetTimeMs()
 // --------------------------------------------
 
 // Set initial values for the class
-PTimer::PTimer()
+Timer::Timer()
 	: m_LastTime(0), m_StartTime(0), m_Running(false)
 {
-	PUpdate();
+	Update();
 
 #ifdef _WIN32
 	QueryPerformanceFrequency((LARGE_INTEGER*)&m_frequency);
@@ -65,24 +65,24 @@ PTimer::PTimer()
 }
 
 // Write the starting time
-void PTimer::PStart()
+void Timer::Start()
 {
-	m_StartTime = PGetTimeMs();
+	m_StartTime = GetTimeMs();
 	m_Running = true;
 }
 
 // Stop the timer
-void PTimer::PStop()
+void Timer::Stop()
 {
 	// Write the final time
-	m_LastTime = PGetTimeMs();
+	m_LastTime = GetTimeMs();
 	m_Running = false;
 }
 
 // Update the last time variable
-void PTimer::PUpdate()
+void Timer::Update()
 {
-	m_LastTime = PGetTimeMs();
+	m_LastTime = GetTimeMs();
 	//TODO(ector) - QPF
 }
 
@@ -91,26 +91,26 @@ void PTimer::PUpdate()
 // -------------------------------------
 
 // Get the number of milliseconds since the last Update()
-u64 PTimer::GetTimeDifference() const
+u64 Timer::GetTimeDifference() const
 {
-	return PGetTimeMs() - m_LastTime;
+	return GetTimeMs() - m_LastTime;
 }
 
 // Add the time difference since the last Update() to the starting time.
 // This is used to compensate for a paused game.
-void PTimer::PAddTimeDifference()
+void Timer::AddTimeDifference()
 {
 	m_StartTime += GetTimeDifference();
 }
 
 // Wind back the starting time to a custom time
-void PTimer::WindBackStartingTime(u64 WindBack)
+void Timer::WindBackStartingTime(u64 WindBack)
 {
 	m_StartTime += WindBack;
 }
 
 // Get the time elapsed since the Start()
-u64 PTimer::GetTimeElapsed() const
+u64 Timer::GetTimeElapsed() const
 {
 	// If we have not started yet, return 1 (because then I don't
 	// have to change the FPS calculation in CoreRerecording.cpp .
@@ -119,11 +119,11 @@ u64 PTimer::GetTimeElapsed() const
 	// Return the final timer time if the timer is stopped
 	if (!m_Running) return (m_LastTime - m_StartTime);
 
-	return (PGetTimeMs() - m_StartTime);
+	return (GetTimeMs() - m_StartTime);
 }
 
 // Get the formatted time elapsed since the Start()
-std::string PTimer::PGetTimeElapsedFormatted() const
+std::string Timer::GetTimeElapsedFormatted() const
 {
 	// If we have not started yet, return zero
 	if (m_StartTime == 0)
@@ -133,7 +133,7 @@ std::string PTimer::PGetTimeElapsedFormatted() const
 	// Use a different value if the timer is stopped.
 	u64 Milliseconds;
 	if (m_Running)
-		Milliseconds = PGetTimeMs() - m_StartTime;
+		Milliseconds = GetTimeMs() - m_StartTime;
 	else
 		Milliseconds = m_LastTime - m_StartTime;
 	// Seconds
@@ -143,20 +143,20 @@ std::string PTimer::PGetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = PStringFromFormat("%02d:%02d:%02d:%03d",
+	std::string TmpStr = StringFromFormat("%02d:%02d:%02d:%03d",
 		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }
 
 // Get current time
-void PTimer::PIncreaseResolution()
+void Timer::IncreaseResolution()
 {
 #if defined(USING_WIN_UI)
 	timeBeginPeriod(1);
 #endif
 }
 
-void PTimer::PRestoreResolution()
+void Timer::RestoreResolution()
 {
 #if defined(USING_WIN_UI)
 	timeEndPeriod(1);
@@ -164,14 +164,14 @@ void PTimer::PRestoreResolution()
 }
 
 // Get the number of seconds since January 1 1970
-u64 PTimer::PGetTimeSinceJan1970()
+u64 Timer::GetTimeSinceJan1970()
 {
 	time_t ltime;
 	time(&ltime);
 	return((u64)ltime);
 }
 
-u64 PTimer::PGetLocalTimeSinceJan1970()
+u64 Timer::GetLocalTimeSinceJan1970()
 {
 	time_t sysTime, tzDiff, tzDST;
 	struct tm * gmTime;
@@ -194,7 +194,7 @@ u64 PTimer::PGetLocalTimeSinceJan1970()
 
 // Return the current time formatted as Minutes:Seconds:Milliseconds
 // in the form 00:00:000.
-void PTimer::GetTimeFormatted(char formattedTime[13])
+void Timer::GetTimeFormatted(char formattedTime[13])
 {
 	time_t sysTime;
 	struct tm * gmTime;
@@ -219,7 +219,7 @@ void PTimer::GetTimeFormatted(char formattedTime[13])
 
 // Returns a timestamp with decimals for precise time comparisons
 // ----------------
-double PTimer::PGetDoubleTime()
+double Timer::GetDoubleTime()
 {
 #ifdef _WIN32
 	struct timeb tp;
@@ -229,7 +229,7 @@ double PTimer::PGetDoubleTime()
 	(void)gettimeofday(&t, NULL);
 #endif
 	// Get continuous timestamp
-	u64 TmpSeconds = PCommon::PTimer::PGetTimeSinceJan1970();
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
 
 	// Remove a few years. We only really want enough seconds to make
 	// sure that we are detecting actual actions, perhaps 60 seconds is
@@ -249,4 +249,4 @@ double PTimer::PGetDoubleTime()
 	return TmpTime;
 }
 
-} // Namespace PCommon
+} // Namespace Common

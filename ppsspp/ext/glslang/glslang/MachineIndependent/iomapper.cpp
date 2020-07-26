@@ -58,7 +58,7 @@
 //    c. implicit dead bindings are left un-bound.
 //
 
-namespace Pglslang {
+namespace glslang {
 
 class TVarGatherTraverser : public TLiveTraverser {
 public:
@@ -494,7 +494,7 @@ int TDefaultIoResolverBase::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
         return ent.newLocation = location;
     }
     location = nextUniformLocation;
-    nextUniformLocation += TIntermediate::PcomputeTypeUniformLocationSize(type);
+    nextUniformLocation += TIntermediate::computeTypeUniformLocationSize(type);
     return ent.newLocation = location;
 }
 
@@ -527,7 +527,7 @@ int TDefaultIoResolverBase::resolveInOutLocation(EShLanguage stage, TVarEntryInf
     int typeLocationSize;
     // Don’t take into account the outer-most array if the stage’s
     // interface is automatically an array.
-    typeLocationSize = PcomputeTypeLocationSize(type, stage);
+    typeLocationSize = computeTypeLocationSize(type, stage);
     nextLocation += typeLocationSize;
     return ent.newLocation = location;
 }
@@ -538,21 +538,21 @@ int TDefaultIoResolverBase::resolveInOutComponent(EShLanguage /*stage*/, TVarEnt
 
 int TDefaultIoResolverBase::resolveInOutIndex(EShLanguage /*stage*/, TVarEntryInfo& ent) { return ent.newIndex = -1; }
 
-uint32_t TDefaultIoResolverBase::PcomputeTypeLocationSize(const TType& type, EShLanguage stage) {
+uint32_t TDefaultIoResolverBase::computeTypeLocationSize(const TType& type, EShLanguage stage) {
     int typeLocationSize;
     // Don’t take into account the outer-most array if the stage’s
     // interface is automatically an array.
     if (type.getQualifier().isArrayedIo(stage)) {
         TType elementType(type, 0);
-        typeLocationSize = TIntermediate::PcomputeTypeLocationSize(elementType, stage);
+        typeLocationSize = TIntermediate::computeTypeLocationSize(elementType, stage);
     } else {
-        typeLocationSize = TIntermediate::PcomputeTypeLocationSize(type, stage);
+        typeLocationSize = TIntermediate::computeTypeLocationSize(type, stage);
     }
     return typeLocationSize;
 }
 
 //TDefaultGlslIoResolver
-TResourceType TDefaultGlslIoResolver::getResourceType(const Pglslang::TType& type) {
+TResourceType TDefaultGlslIoResolver::getResourceType(const glslang::TType& type) {
     if (isImageType(type)) {
         return EResImage;
     }
@@ -608,7 +608,7 @@ int TDefaultGlslIoResolver::resolveInOutLocation(EShLanguage stage, TVarEntryInf
             return ent.newLocation = -1;
         }
     }
-    int typeLocationSize = PcomputeTypeLocationSize(type, stage);
+    int typeLocationSize = computeTypeLocationSize(type, stage);
     int location = type.getQualifier().layoutLocation;
     bool hasLocation = false;
     EShLanguage keyStage(EShLangCount);
@@ -698,7 +698,7 @@ int TDefaultGlslIoResolver::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
         return ent.newLocation = location;
     }
 
-    int size = TIntermediate::PcomputeTypeUniformLocationSize(type);
+    int size = TIntermediate::computeTypeUniformLocationSize(type);
 
     // The uniform in current stage is not declared with location, but it is possible declared
     // with explicit location in other stages, find the storageSlotMap firstly to check whether
@@ -725,7 +725,7 @@ int TDefaultGlslIoResolver::resolveUniformLocation(EShLanguage /*stage*/, TVarEn
             //
             // vs:    uniform vec4 a;
             // fs:    uniform vec4 a;
-            location = getFreeSlot(resourceKey, 0, PcomputeTypeLocationSize(type, currentStage));
+            location = getFreeSlot(resourceKey, 0, computeTypeLocationSize(type, currentStage));
             storageSlotMap[resourceKey][name] = location;
         }
     } else {
@@ -834,7 +834,7 @@ void TDefaultGlslIoResolver::reserverStorageSlot(TVarEntryInfo& ent, TInfoSink& 
             TVarSlotMap& varSlotMap = storageSlotMap[storageKey];
             TVarSlotMap::iterator iter = varSlotMap.find(name);
             if (iter == varSlotMap.end()) {
-                int numLocations = TIntermediate::PcomputeTypeUniformLocationSize(type);
+                int numLocations = TIntermediate::computeTypeUniformLocationSize(type);
                 reserveSlot(storageKey, location, numLocations);
                 varSlotMap[name] = location;
             } else {
@@ -860,7 +860,7 @@ void TDefaultGlslIoResolver::reserverStorageSlot(TVarEntryInfo& ent, TInfoSink& 
             TVarSlotMap& varSlotMap = storageSlotMap[storageKey];
             TVarSlotMap::iterator iter = varSlotMap.find(name);
             if (iter == varSlotMap.end()) {
-                int numLocations = TIntermediate::PcomputeTypeUniformLocationSize(type);
+                int numLocations = TIntermediate::computeTypeUniformLocationSize(type);
                 reserveSlot(storageKey, location, numLocations);
                 varSlotMap[name] = location;
             } else {
@@ -910,7 +910,7 @@ void TDefaultGlslIoResolver::reserverResourceSlot(TVarEntryInfo& ent, TInfoSink&
 //TDefaultGlslIoResolver end
 
 /*
- * Basic implementation of Pglslang::TIoMapResolver that replaces the
+ * Basic implementation of glslang::TIoMapResolver that replaces the
  * previous offset behavior.
  * It does the same, uses the offsets for the corresponding uniform
  * types. Also respects the EOptionAutoMapBindings flag and binds
@@ -924,7 +924,7 @@ struct TDefaultIoResolver : public TDefaultIoResolverBase {
 
     bool validateBinding(EShLanguage /*stage*/, TVarEntryInfo& /*ent*/) override { return true; }
 
-    TResourceType getResourceType(const Pglslang::TType& type) override {
+    TResourceType getResourceType(const glslang::TType& type) override {
         if (isImageType(type)) {
             return EResImage;
         }
@@ -1012,7 +1012,7 @@ struct TDefaultHlslIoResolver : public TDefaultIoResolverBase {
 
     bool validateBinding(EShLanguage /*stage*/, TVarEntryInfo& /*ent*/) override { return true; }
 
-    TResourceType getResourceType(const Pglslang::TType& type) override {
+    TResourceType getResourceType(const glslang::TType& type) override {
         if (isUavType(type)) {
             return EResUav;
         }
@@ -1262,6 +1262,6 @@ bool TGlslIoMapper::doMap(TIoMapResolver* resolver, TInfoSink& infoSink) {
     }
 }
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // GLSLANG_WEB

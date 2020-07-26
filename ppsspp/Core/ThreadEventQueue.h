@@ -94,7 +94,7 @@ struct ThreadEventQueue : public B {
 				for (Event ev = GetNextEvent(); EventType(ev) != EVENT_INVALID; ev = GetNextEvent()) {
 					ProcessEventIfApplicable(ev, globalticks);
 				}
-			} while (CoreTiming_P::GetTicks() < globalticks);
+			} while (CoreTiming::GetTicks() < globalticks);
 			return;
 		}
 
@@ -115,7 +115,7 @@ struct ThreadEventQueue : public B {
 				ProcessEventIfApplicable(ev, globalticks);
 				guard.lock();
 			}
-		} while (CoreTiming_P::GetTicks() < globalticks);
+		} while (CoreTiming::GetTicks() < globalticks);
 
 		// This will force the waiter to check coreState, even if we didn't actually drain.
 		NotifyDrain();
@@ -139,7 +139,7 @@ struct ThreadEventQueue : public B {
 
 		// Don't run if it's not running, but wait for startup.
 		if (!eventsRunning_) {
-			if (eventsHaveRun_ || coreState == CORE_ERROR || coreState == CORE_POWERDOWN) {
+			if (eventsHaveRun_ || coreState == CORE_BOOT_ERROR || coreState == CORE_RUNTIME_ERROR || coreState == CORE_POWERDOWN) {
 				return false;
 			}
 		}

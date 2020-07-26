@@ -90,7 +90,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "PpContext.h"
 #include "PpTokens.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Handle #define
 int TPpContext::CPPdefine(TPpToken* ppToken)
@@ -1320,4 +1320,4 @@ MacroExpandResult TPpContext::MacroExpand(TPpToken* ppToken, bool expandUndef, b
     return MacroExpandStarted;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

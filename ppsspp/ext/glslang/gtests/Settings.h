@@ -37,7 +37,7 @@
 
 #include <string>
 
-namespace Pglslangtest {
+namespace glslangtest {
 
 class GlslangInitializer;
 
@@ -53,6 +53,6 @@ struct GTestSettings {
 
 extern GTestSettings GlobalTestSettings;
 
-}  // namespace Pglslangtest
+}  // namespace glslangtest
 
 #endif  // GLSLANG_GTESTS_SETTINGS_H

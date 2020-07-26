@@ -248,7 +248,7 @@ void WebSocketHLEFuncAdd(DebuggerRequest &req) {
 	if (!req.ParamString("name", &name, DebuggerParamType::OPTIONAL))
 		return;
 	if (name.empty())
-		name = PStringFromFormat("z_un_%08x", addr);
+		name = StringFromFormat("z_un_%08x", addr);
 
 	u32 prevBegin = g_symbolMap->GetFunctionStart(addr);
 	u32 endBegin = size == -1 ? prevBegin : g_symbolMap->GetFunctionStart(addr + size - 1);
@@ -284,7 +284,7 @@ void WebSocketHLEFuncAdd(DebuggerRequest &req) {
 	MIPSAnalyst::UpdateHashMap();
 	MIPSAnalyst::ApplyHashMap();
 
-	if (g_PConfig.bFuncReplacements) {
+	if (g_Config.bFuncReplacements) {
 		MIPSAnalyst::ReplaceFunctions();
 	}
 
@@ -341,7 +341,7 @@ void WebSocketHLEFuncRemove(DebuggerRequest &req) {
 	MIPSAnalyst::UpdateHashMap();
 	MIPSAnalyst::ApplyHashMap();
 
-	if (g_PConfig.bFuncReplacements) {
+	if (g_Config.bFuncReplacements) {
 		MIPSAnalyst::ReplaceFunctions();
 	}
 
@@ -388,7 +388,7 @@ void WebSocketHLEFuncRename(DebuggerRequest &req) {
 	MIPSAnalyst::RegisterFunction(funcBegin, funcSize, name.c_str());
 	MIPSAnalyst::UpdateHashMap();
 	MIPSAnalyst::ApplyHashMap();
-	if (g_PConfig.bFuncReplacements) {
+	if (g_Config.bFuncReplacements) {
 		MIPSAnalyst::ReplaceFunctions();
 	}
 

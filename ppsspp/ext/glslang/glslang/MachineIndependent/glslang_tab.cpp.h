@@ -37,7 +37,7 @@
 # define YYDEBUG 1
 #endif
 #if YYDEBUG
-extern int Pyydebug;
+extern int yydebug;
 #endif
 
 /* Token type.  */
@@ -464,9 +464,9 @@ union YYSTYPE
 #line 96 "MachineIndependent/glslang.y" /* yacc.c:1909  */
 
     struct {
-        Pglslang::TSourceLoc loc;
+        glslang::TSourceLoc loc;
         union {
-            Pglslang::TString *string;
+            glslang::TString *string;
             int i;
             unsigned int u;
             long long i64;
@@ -474,27 +474,27 @@ union YYSTYPE
             bool b;
             double d;
         };
-        Pglslang::TSymbol* symbol;
+        glslang::TSymbol* symbol;
     } lex;
     struct {
-        Pglslang::TSourceLoc loc;
-        Pglslang::TOperator op;
+        glslang::TSourceLoc loc;
+        glslang::TOperator op;
         union {
             TIntermNode* intermNode;
-            Pglslang::TIntermNodePair nodePair;
-            Pglslang::TIntermTyped* intermTypedNode;
-            Pglslang::TAttributes* attributes;
+            glslang::TIntermNodePair nodePair;
+            glslang::TIntermTyped* intermTypedNode;
+            glslang::TAttributes* attributes;
         };
         union {
-            Pglslang::TPublicType type;
-            Pglslang::TFunction* function;
-            Pglslang::TParameter param;
-            Pglslang::TTypeLoc typeLine;
-            Pglslang::TTypeList* typeList;
-            Pglslang::TArraySizes* arraySizes;
-            Pglslang::TIdentifierList* identifierList;
+            glslang::TPublicType type;
+            glslang::TFunction* function;
+            glslang::TParameter param;
+            glslang::TTypeLoc typeLine;
+            glslang::TTypeList* typeList;
+            glslang::TArraySizes* arraySizes;
+            glslang::TIdentifierList* identifierList;
         };
-        Pglslang::TArraySizes* typeParameters;
+        glslang::TArraySizes* typeParameters;
     } interm;
 
 #line 501 "MachineIndependent/glslang_tab.cpp.h" /* yacc.c:1909  */
@@ -507,6 +507,6 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int yyparse (Pglslang::TParseContext* pParseContext);
+int yyparse (glslang::TParseContext* pParseContext);
 
 #endif /* !YY_YY_MACHINEINDEPENDENT_GLSLANG_TAB_CPP_H_INCLUDED  */

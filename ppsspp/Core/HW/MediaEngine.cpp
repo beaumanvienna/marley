@@ -693,13 +693,13 @@ inline void writeVideoLineABGR4444(void *destp, const void *srcp, int width) {
 }
 
 int MediaEngine::writeVideoImage(u32 bufferPtr, int frameWidth, int videoPixelMode) {
-	if (!Memory_P::IsValidAddress(bufferPtr) || frameWidth > 2048) {
+	if (!Memory::IsValidAddress(bufferPtr) || frameWidth > 2048) {
 		// Clearly invalid values.  Let's just not.
 		ERROR_LOG_REPORT(ME, "Ignoring invalid video decode address %08x/%x", bufferPtr, frameWidth);
 		return 0;
 	}
 
-	u8 *buffer = Memory_P::GetPointer(bufferPtr);
+	u8 *buffer = Memory::GetPointer(bufferPtr);
 
 #ifdef USE_FFMPEG
 	if (!m_pFrame || !m_pFrameRGB)
@@ -725,7 +725,7 @@ int MediaEngine::writeVideoImage(u32 bufferPtr, int frameWidth, int videoPixelMo
 
 	int videoImageSize = videoLineSize * height;
 
-	bool swizzle = Memory_P::IsVRAMAddress(bufferPtr) && (bufferPtr & 0x00200000) == 0x00200000;
+	bool swizzle = Memory::IsVRAMAddress(bufferPtr) && (bufferPtr & 0x00200000) == 0x00200000;
 	if (swizzle) {
 		imgbuf = new u8[videoImageSize];
 	}
@@ -783,13 +783,13 @@ int MediaEngine::writeVideoImage(u32 bufferPtr, int frameWidth, int videoPixelMo
 
 int MediaEngine::writeVideoImageWithRange(u32 bufferPtr, int frameWidth, int videoPixelMode,
 	                             int xpos, int ypos, int width, int height) {
-	if (!Memory_P::IsValidAddress(bufferPtr) || frameWidth > 2048) {
+	if (!Memory::IsValidAddress(bufferPtr) || frameWidth > 2048) {
 		// Clearly invalid values.  Let's just not.
 		ERROR_LOG_REPORT(ME, "Ignoring invalid video decode address %08x/%x", bufferPtr, frameWidth);
 		return 0;
 	}
 
-	u8 *buffer = Memory_P::GetPointer(bufferPtr);
+	u8 *buffer = Memory::GetPointer(bufferPtr);
 
 #ifdef USE_FFMPEG
 	if (!m_pFrame || !m_pFrameRGB)
@@ -812,7 +812,7 @@ int MediaEngine::writeVideoImageWithRange(u32 bufferPtr, int frameWidth, int vid
 	}
 
 	int videoImageSize = videoLineSize * height;
-	bool swizzle = Memory_P::IsVRAMAddress(bufferPtr) && (bufferPtr & 0x00200000) == 0x00200000;
+	bool swizzle = Memory::IsVRAMAddress(bufferPtr) && (bufferPtr & 0x00200000) == 0x00200000;
 	if (swizzle) {
 		imgbuf = new u8[videoImageSize];
 	}
@@ -926,11 +926,11 @@ int MediaEngine::getNextAudioFrame(u8 **buf, int *headerCode1, int *headerCode2)
 }
 
 int MediaEngine::getAudioSamples(u32 bufferPtr) {
-	if (!Memory_P::IsValidAddress(bufferPtr)) {
+	if (!Memory::IsValidAddress(bufferPtr)) {
 		ERROR_LOG_REPORT(ME, "Ignoring bad audio decode address %08x during video playback", bufferPtr);
 	}
 
-	u8 *buffer = Memory_P::GetPointer(bufferPtr);
+	u8 *buffer = Memory::GetPointer(bufferPtr);
 	if (!m_demux) {
 		return 0;
 	}
@@ -968,6 +968,10 @@ bool MediaEngine::IsNoAudioData() {
 	// Let's double check.  Here should be a safe enough place to demux.
 	m_demux->demux(m_audioStream);
 	return !m_demux->hasNextAudioFrame(NULL, NULL, NULL, NULL);
+}
+
+bool MediaEngine::IsActuallyPlayingAudio() {
+	return getAudioTimeStamp() >= 0;
 }
 
 s64 MediaEngine::getVideoTimeStamp() {

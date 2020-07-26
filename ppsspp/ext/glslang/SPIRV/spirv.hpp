@@ -29,8 +29,8 @@
 //   C, C++, C++11, JSON, Lua, Python, C#, D
 // 
 // - C will have tokens with a "Spv" prefix, e.g.: SpvSourceLanguageGLSL
-// - C++ will have tokens in the "spv" name space, e.g.: Pspv::SourceLanguageGLSL
-// - C++11 will use enum classes in the spv namespace, e.g.: Pspv::SourceLanguage::GLSL
+// - C++ will have tokens in the "spv" name space, e.g.: spv::SourceLanguageGLSL
+// - C++11 will use enum classes in the spv namespace, e.g.: spv::SourceLanguage::GLSL
 // - Lua will use tables, e.g.: spv.SourceLanguage.GLSL
 // - Python will use dictionaries, e.g.: spv['SourceLanguage']['GLSL']
 // - C# will use enum classes in the Specification class located in the "Spv" namespace,
@@ -45,7 +45,7 @@
 #ifndef spirv_HPP
 #define spirv_HPP
 
-namespace Pspv {
+namespace spv {
 
 typedef unsigned int Id;
 
@@ -1975,7 +1975,7 @@ inline MemorySemanticsMask operator|(MemorySemanticsMask a, MemorySemanticsMask 
 inline MemoryAccessMask operator|(MemoryAccessMask a, MemoryAccessMask b) { return MemoryAccessMask(unsigned(a) | unsigned(b)); }
 inline KernelProfilingInfoMask operator|(KernelProfilingInfoMask a, KernelProfilingInfoMask b) { return KernelProfilingInfoMask(unsigned(a) | unsigned(b)); }
 
-}  // end namespace Pspv
+}  // end namespace spv
 
 #endif  // #ifndef spirv_HPP
 

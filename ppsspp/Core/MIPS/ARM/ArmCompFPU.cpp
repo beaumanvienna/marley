@@ -103,8 +103,8 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 	bool doCheck = false;
 	switch(op >> 26)
 	{
-	case 49: //FI(ft) = Memory_P::PRead_U32(addr); break; //lwc1
-		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+	case 49: //FI(ft) = Memory::Read_U32(addr); break; //lwc1
+		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
 			VLDR(fpr.R(ft), gpr.RPtr(rs), offset);
@@ -115,10 +115,10 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
 		if (gpr.IsImm(rs)) {
 			u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-			gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+			gpr.SetRegImm(R0, addr + (u32)Memory::base);
 		} else {
 			gpr.MapReg(rs);
-			if (g_PConfig.bFastMemory) {
+			if (g_Config.bFastMemory) {
 				SetR0ToEffectiveAddress(rs, offset);
 			} else {
 				SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
@@ -147,8 +147,8 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.ReleaseSpillLocksAndDiscardTemps();
 		break;
 
-	case 57: //Memory_P::PWrite_U32(FI(ft), addr); break; //swc1
-		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+	case 57: //Memory::Write_U32(FI(ft), addr); break; //swc1
+		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, 0);
 			VSTR(fpr.R(ft), gpr.RPtr(rs), offset);
@@ -158,10 +158,10 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.MapReg(ft);
 		if (gpr.IsImm(rs)) {
 			u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-			gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+			gpr.SetRegImm(R0, addr + (u32)Memory::base);
 		} else {
 			gpr.MapReg(rs);
-			if (g_PConfig.bFastMemory) {
+			if (g_Config.bFastMemory) {
 				SetR0ToEffectiveAddress(rs, offset);
 			} else {
 				SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);

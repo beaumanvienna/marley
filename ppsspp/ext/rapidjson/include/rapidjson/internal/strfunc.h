@@ -19,7 +19,7 @@
 #include <cwchar>
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 //! Custom strlen() which works on different character types.
 /*! \tparam Ch Character type (e.g. char, wchar_t, short)
@@ -63,7 +63,7 @@ bool CountStringCodePoint(const typename Encoding::Ch* s, SizeType length, SizeT
     return true;
 }
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #endif // RAPIDJSON_INTERNAL_STRFUNC_H_

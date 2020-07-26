@@ -17,25 +17,6 @@
 
 #pragma once
 
-#include <thread>
-#include <mutex>
-
-#include "base/timeutil.h"
-#include "net/resolve.h"
-#include "Common/ChunkFile.h"
-
-#include "Core/Config.h"
-#include "Core/CoreTiming.h"
-#include "Core/MemMap.h"
-#include "Core/HLE/HLE.h"
-#include "Core/HLE/sceNetAdhoc.h"
-#include "Core/HLE/sceKernelThread.h"
-#include "Core/HLE/sceKernel.h"
-#include "Core/HLE/sceKernelMutex.h"
-#include "Core/HLE/sceUtility.h"
-
-class PointerWrap;
-
 // Net stuff
 #if defined(_WIN32)
 #include <WS2tcpip.h>
@@ -57,6 +38,24 @@ class PointerWrap;
 #define PACK __attribute__((packed))
 #endif
 
+#include <thread>
+#include <mutex>
+
+#include "base/timeutil.h"
+#include "net/resolve.h"
+#include "Common/ChunkFile.h"
+
+#include "Core/Config.h"
+#include "Core/CoreTiming.h"
+#include "Core/MemMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HLE/HLEHelperThread.h"
+#include "Core/HLE/sceNetAdhoc.h"
+#include "Core/HLE/sceKernelThread.h"
+#include "Core/HLE/sceKernel.h"
+#include "Core/HLE/sceKernelMutex.h"
+#include "Core/HLE/sceUtility.h"
+
 #ifdef _WIN32
 #undef errno
 #undef ECONNABORTED
@@ -66,6 +65,7 @@ class PointerWrap;
 #undef EINPROGRESS
 #undef EISCONN
 #undef EALREADY
+#undef ETIMEDOUT
 #define errno WSAGetLastError()
 #define ECONNABORTED WSAECONNABORTED
 #define ECONNRESET WSAECONNRESET
@@ -74,12 +74,13 @@ class PointerWrap;
 #define EINPROGRESS WSAEWOULDBLOCK
 #define EISCONN WSAEISCONN
 #define EALREADY WSAEALREADY
-inline bool connectInProgress(int errcode){ return (errcode == WSAEWOULDBLOCK || errcode == WSAEINVAL || errcode == WSAEALREADY); }
+#define ETIMEDOUT WSAETIMEDOUT
+inline bool connectInProgress(int errcode){ return (errcode == WSAEWOULDBLOCK || errcode == WSAEINPROGRESS || errcode == WSAEALREADY); }
 #else
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
 #define closesocket close
-inline bool connectInProgress(int errcode){ return (errcode == EINPROGRESS || errcode == EALREADY); }
+inline bool connectInProgress(int errcode){ return (errcode == EAGAIN || errcode == EWOULDBLOCK || errcode == EINPROGRESS || errcode == EALREADY); }
 #endif
 
 #ifndef POLL_ERR
@@ -96,25 +97,42 @@ inline bool connectInProgress(int errcode){ return (errcode == EINPROGRESS || er
 #define POLLPRI POLL_PRI
 #endif
 
+#ifndef SD_BOTH
+#define SD_BOTH 0x02
+#endif
+
 #define IsMatch(buf1, buf2)	(memcmp(&buf1, &buf2, sizeof(buf1)) == 0)
 
 // Server Listening Port
 #define SERVER_PORT 27312
 
 // psp strutcs and definitions
-#define ADHOCCTL_MODE_ADHOC 0
+#define ADHOCCTL_MODE_NONE -1
+#define ADHOCCTL_MODE_ADHOC 0 //ADHOCCTL_MODE_NORMAL
 #define ADHOCCTL_MODE_GAMEMODE 1
 
 // Event Types for Event Handler
+#define ADHOCCTL_EVENT_ERROR 0
 #define ADHOCCTL_EVENT_CONNECT 1
 #define ADHOCCTL_EVENT_DISCONNECT 2
 #define ADHOCCTL_EVENT_SCAN 3
+#define ADHOCCTL_EVENT_GAME 4
+#define ADHOCCTL_EVENT_DISCOVER 5
+#define ADHOCCTL_EVENT_WOL 6
+#define ADHOCCTL_EVENT_WOL_INTERRUPT 7
 
 // Internal Thread States
 #define ADHOCCTL_STATE_DISCONNECTED 0
 #define ADHOCCTL_STATE_CONNECTED 1
 #define ADHOCCTL_STATE_SCANNING 2
 #define ADHOCCTL_STATE_GAMEMODE 3
+#define ADHOCCTL_STATE_DISCOVER 4
+#define ADHOCCTL_STATE_WOL 5
+
+// ProductType ( extracted from SSID along with ProductId & GroupName, Pattern = "PSP_([AXS])(.........)_([LG])_(.*)" )
+#define PSP_ADHOCCTL_TYPE_COMMERCIAL 0
+#define PSP_ADHOCCTL_TYPE_DEBUG 1
+#define PSP_ADHOCCTL_TYPE_SYSTEM 2
 
 // Kernel Utility Netconf Adhoc Types
 #define UTILITY_NETCONF_TYPE_CONNECT_ADHOC 2
@@ -187,8 +205,8 @@ extern uint8_t broadcastMAC[ETHER_ADDR_LEN];
 
 // Malloc Pool Information
 typedef struct SceNetMallocStat {
-	s32_le pool; // Pointer to the pool?
-	s32_le maximum; // Maximum size of the pool?
+	s32_le pool; // Pointer to the pool? // This should be the poolSize isn't?
+	s32_le maximum; // Maximum size of the pool? Maximum usage (ie. pool- free) ?
 	s32_le free; // How much memory is free
 } PACK SceNetMallocStat;
 
@@ -228,10 +246,10 @@ typedef struct SceNetAdhocctlNickname {
   uint8_t data[ADHOCCTL_NICKNAME_LEN];
 } PACK SceNetAdhocctlNickname;
 
-// Active Virtual Network Information
+// Active Virtual Network Information (Adhoc Group Host/Creator's device info, similar to AP?)
 typedef struct SceNetAdhocctlParameter {
   s32_le channel;
-  SceNetAdhocctlGroupName group_name;
+  SceNetAdhocctlGroupName group_name; // This group name is probably similar to SSID name on AP
   SceNetAdhocctlBSSId bssid;
   SceNetAdhocctlNickname nickname;
 } PACK SceNetAdhocctlParameter;
@@ -243,7 +261,7 @@ typedef struct SceNetAdhocctlPeerInfo {
   SceNetEtherAddr mac_addr;
   u32_le ip_addr;
   uint8_t padding[2];
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocctlPeerInfo;
 
 // Peer Information with u32 pointers
@@ -253,7 +271,7 @@ typedef struct SceNetAdhocctlPeerInfoEmu {
   SceNetEtherAddr mac_addr;
   u32_le ip_addr; //jpcsp wrote 6bytes of 0x11 for this & padding
   u16 padding; // Changed the padding to u16
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocctlPeerInfoEmu;
 
 // Member Information
@@ -310,7 +328,7 @@ typedef struct SceNetAdhocPtpStat {
 typedef struct SceNetAdhocGameModeOptData {
   u32_le size;
   u32_le flag;
-  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le last_recv; // Need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } PACK SceNetAdhocGameModeOptData;
 
 // Gamemode Buffer Status
@@ -322,9 +340,6 @@ typedef struct SceNetAdhocGameModeBufferStat {
   u32_le master;
   SceNetAdhocGameModeOptData opt;
 } PACK SceNetAdhocGameModeBufferStat;
-#ifdef _MSC_VER 
-#pragma pack(pop)
-#endif
 
 // Adhoc ID (Game Product Key)
 #define ADHOCCTL_ADHOCID_LEN 9
@@ -332,7 +347,11 @@ typedef struct SceNetAdhocctlAdhocId {
 	s32_le type;
 	uint8_t data[ADHOCCTL_ADHOCID_LEN];
 	uint8_t padding[3];
-} SceNetAdhocctlAdhocId; // should this be packed?
+} PACK SceNetAdhocctlAdhocId; // should this be packed?
+#ifdef _MSC_VER 
+#pragma pack(pop)
+#endif
+
 
 // Internal Matching Peer Information
 typedef struct SceNetAdhocMatchingMemberInternal {
@@ -349,7 +368,7 @@ typedef struct SceNetAdhocMatchingMemberInternal {
   s32_le sending;
 
   // Last Heartbeat
-  u64_le lastping; // May need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming_P::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
+  u64_le lastping; // May need to use the same method with sceKernelGetSystemTimeWide (ie. CoreTiming::GetGlobalTimeUsScaled) to prevent timing issue (ie. in game timeout)
 } SceNetAdhocMatchingMemberInternal;
 
 
@@ -444,7 +463,7 @@ typedef struct SceNetAdhocMatchingContext {
   SceNetAdhocMatchingHandler handler;
 
   // Event Handler Args
-  u32_le handlerArgs[6]; // actual arguments only 5, the 6th one is just for borrowing a space to store the callback address to use later
+  u32_le handlerArgs[6]; //MatchingArgs handlerArgs; // actual arguments only 5, the 6th one is just for borrowing a space to store the callback address to use later
   //SceNetAdhocMatchingHandlerArgs handlerArgs;
 
   // Hello Data Length
@@ -460,16 +479,18 @@ typedef struct SceNetAdhocMatchingContext {
   u64_le timeout;
 
   // Helper Thread (fake PSP Thread) needed to execute callback
-  //HLEHelperThread *matchingThread;
-  //SceUID matching_thid;
+  HLEHelperThread *matchingThread;
+  SceUID matching_thid;
 
   // Event Caller Thread
-  std::thread eventThread; // s32_le event_thid;
+  std::thread eventThread;
+  //s32_le event_thid;
   bool eventRunning = false;
   bool IsMatchingInCB = false;
 
   // IO Handler Thread
-  std::thread inputThread; // s32_le input_thid;
+  std::thread inputThread;
+  //s32_le input_thid;
   bool inputRunning = false;
 
   // Event Caller Thread Message Stack
@@ -705,10 +726,11 @@ typedef struct {
   SceNetAdhocctlGroupName group;
 } PACK SceNetAdhocctlConnectPacketC2S;
 
+#define ADHOCCTL_MESSAGE_LEN 64
 // C2S Chat Packet
 typedef struct {
   SceNetAdhocctlPacketBase base;
-  char message[64];
+  char message[ADHOCCTL_MESSAGE_LEN];
 } PACK SceNetAdhocctlChatPacketC2S;
 
 // S2C Connect Packet
@@ -764,29 +786,58 @@ typedef struct {
 #pragma pack(pop)
 #endif
 
-class AfterMatchingMipsCall : public Action {
+class PointerWrap;
+
+class AfterAdhocMipsCall : public PSPAction {
+public:
+	AfterAdhocMipsCall() {}
+	static PSPAction* Create() { return new AfterAdhocMipsCall(); }
+	void DoState(PointerWrap& p) override {
+		auto s = p.Section("AfterAdhocMipsCall", 3, 4);
+		if (!s)
+			return;
+
+		p.Do(HandlerID);
+		p.Do(EventID);
+		p.Do(argsAddr);
+	}
+	void run(MipsCall& call) override;
+	void SetData(int handlerID, int eventId, u32_le argsAddr);
+
+private:
+	int HandlerID = -1;
+	int EventID = -1;
+	u32_le argsAddr = 0;
+};
+
+class AfterMatchingMipsCall : public PSPAction {
 public:
 	AfterMatchingMipsCall() {}
-	static Action *Create() { return new AfterMatchingMipsCall(); }
+	static PSPAction *Create() { return new AfterMatchingMipsCall(); }
 	void DoState(PointerWrap &p) override {
-		auto s = p.Section("AfterMatchingMipsCall", 1, 2);
+		auto s = p.Section("AfterMatchingMipsCall", 1, 4);
 		if (!s)
 			return;
 
 		p.Do(EventID);
+		if (s >= 4) {
+			p.Do(contextID);
+			p.Do(bufAddr);
+		}
 		//context = NULL;
 	}
 	void run(MipsCall &call) override;
-	void SetContextID(u32 ContextID, u32 eventId);
-	void SetContext(SceNetAdhocMatchingContext *Context, u32 eventId) { context = Context; EventID = eventId; }
+	void SetData(int ContextID, int eventId, u32_le BufAddr);
 
 private:
-	u32 EventID;
-	SceNetAdhocMatchingContext *context;
+	int contextID = -1;
+	int EventID = -1;
+	u32_le bufAddr = 0;
+	SceNetAdhocMatchingContext* context = nullptr;
 };
 
+extern int actionAfterAdhocMipsCall;
 extern int actionAfterMatchingMipsCall;
-extern bool IsAdhocctlInCB;
 
 // Aux vars
 extern int metasocket;
@@ -796,9 +847,15 @@ extern std::thread friendFinderThread;
 extern std::recursive_mutex peerlock;
 extern SceNetAdhocPdpStat * pdp[255];
 extern SceNetAdhocPtpStat * ptp[255];
-extern std::map<int, AdhocctlHandler> adhocctlHandlers;
 
 extern uint16_t portOffset;
+extern uint32_t minSocketTimeoutUS;
+extern bool isOriPort;
+extern bool isLocalServer;
+extern sockaddr LocalhostIP; // Used to differentiate localhost IP on multiple-instance
+extern sockaddr LocalIP; // IP of Network Adapter used to connect to Adhoc Server (LAN/WAN)
+extern int defaultWlanChannel; // Default WLAN Channel for Auto, JPCSP uses 11
+
 extern uint32_t fakePoolSize;
 extern SceNetAdhocMatchingContext * contexts;
 extern int one;                 
@@ -810,27 +867,33 @@ extern int threadStatus;
 
 // Check if Matching callback is running
 bool IsMatchingInCallback(SceNetAdhocMatchingContext * context);
+bool SetMatchingInCallback(SceNetAdhocMatchingContext* context, bool IsInCB);
+
+int IsAdhocctlInCallback();
+int SetAdhocctlInCallback(bool IsInCB);
 
 /**
  * Local MAC Check
  * @param saddr To-be-checked MAC Address
  * @return 1 if valid or... 0
  */
-int isLocalMAC(const SceNetEtherAddr * addr);
+bool isLocalMAC(const SceNetEtherAddr * addr);
 
 /**
  * PDP Port Check
  * @param port To-be-checked Port
  * @return 1 if in use or... 0
  */
-int isPDPPortInUse(uint16_t port);
+bool isPDPPortInUse(uint16_t port);
 
 /**
  * Check whether PTP Port is in use or not
  * @param port To-be-checked Port Number
  * @return 1 if in use or... 0
  */
-int isPTPPortInUse(uint16_t port);
+bool isPTPPortInUse(uint16_t port);
+
+std::string mac2str(SceNetEtherAddr* mac);
 
 /*
  * Matching Members
@@ -846,6 +909,16 @@ SceNetAdhocMatchingMemberInternal* addMember(SceNetAdhocMatchingContext * contex
  * @param packet Friend Information
  */
 void addFriend(SceNetAdhocctlConnectPacketS2C * packet);
+
+/**
+* Send chat or get that
+* @param std::string ChatString 
+*/
+void sendChat(std::string chatString);
+std::vector<std::string> getChatLog();
+extern bool chatScreenVisible;
+extern bool updateChatScreen;
+extern int newChat;
 
 /*
  * Find a Peer/Friend by MAC address
@@ -878,12 +951,12 @@ void freeGroupsRecursive(SceNetAdhocctlScanInfo * node);
 /**
  * Closes & Deletes all PDP Sockets
  */
-void deleteAllPDP(void);
+void deleteAllPDP();
 
 /**
  * Closes & Deletes all PTP sockets
  */
-void deleteAllPTP(void);
+void deleteAllPTP();
 
 /**
  * Delete Friend from Local List
@@ -895,7 +968,9 @@ void deleteFriendByIP(uint32_t ip);
  * Recursive Memory Freeing-Helper for Friend-Structures
  * @param node Current Node in List
  */
-void freeFriendsRecursive(SceNetAdhocctlPeerInfo * node);
+void freeFriendsRecursive(SceNetAdhocctlPeerInfo * node, int32_t* count);
+
+void timeoutFriendsRecursive(SceNetAdhocctlPeerInfo * node, int32_t* count);
 
 /**
  * Friend Finder Thread (Receives Peer Information)
@@ -909,7 +984,7 @@ int friendFinder();
 * Find Free Matching ID
 * @return First unoccupied Matching ID
 */
-int findFreeMatchingID(void);
+int findFreeMatchingID();
 
 /**
 * Find Internal Matching Context for Matching ID
@@ -921,7 +996,7 @@ SceNetAdhocMatchingContext * findMatchingContext(int id);
 /*
 * Notify Matching Event Handler
 */
-void notifyMatchingHandler(SceNetAdhocMatchingContext * context, ThreadMessage * msg, void * opt, u32 &bufAddr, u32 &bufLen, u32_le * args);
+void notifyMatchingHandler(SceNetAdhocMatchingContext * context, ThreadMessage * msg, void * opt, u32_le &bufAddr, u32_le &bufLen, u32_le * args);
 // Notifiy Adhocctl Handlers
 void notifyAdhocctlHandlers(u32 flag, u32 error);
 
@@ -1018,14 +1093,14 @@ void sendDeathMessage(SceNetAdhocMatchingContext * context, SceNetAdhocMatchingM
 * @param context Matching Context Pointer
 * @return Number of Children
 */
-s32_le countChildren(SceNetAdhocMatchingContext * context);
+s32_le countChildren(SceNetAdhocMatchingContext * context, const bool excludeTimedout = false);
 
 /**
 * Delete Peer from List
 * @param context Matching Context Pointer
 * @param peer Internal Peer Reference
 */
-void deletePeer(SceNetAdhocMatchingContext * context, SceNetAdhocMatchingMemberInternal * peer);
+void deletePeer(SceNetAdhocMatchingContext * context, SceNetAdhocMatchingMemberInternal *& peer);
 
 /**
 * Find Peer in Context by MAC
@@ -1047,14 +1122,14 @@ SceNetAdhocMatchingMemberInternal * findParent(SceNetAdhocMatchingContext * cont
 * @param context Matching Context Pointer
 * @return Internal Peer Reference or... NULL
 */
-SceNetAdhocMatchingMemberInternal * findP2P(SceNetAdhocMatchingContext * context);
+SceNetAdhocMatchingMemberInternal * findP2P(SceNetAdhocMatchingContext * context, const bool excludeTimedout = false);
 
 /**
 * Return Number of Connected Peers
 * @param context Matching Context Pointer
 * @return Number of Connected Peers
 */
-uint32_t countConnectedPeers(SceNetAdhocMatchingContext * context);
+uint32_t countConnectedPeers(SceNetAdhocMatchingContext * context, const bool excludeTimedout = false);
 
 /**
 * Spawn Local Event for Event Thread
@@ -1081,14 +1156,24 @@ void spawnLocalEvent(SceNetAdhocMatchingContext * context, int event, SceNetEthe
  * Return Number of active Peers in the same Network as the Local Player
  * @return Number of active Peers
  */
-int getActivePeerCount(void);
+int getActivePeerCount(const bool excludeTimedout = true);
 
 /**
- * Returns the locall Ip of this machine, TODO: Implement the linux version
+ * Returns the locall Ip of this machine
  * @param SocketAddres OUT: local ip
  */
 int getLocalIp(sockaddr_in * SocketAddress);
 uint32_t getLocalIp(int sock);
+
+/*
+ * Check if an IP (big-endian/network order) is Private or Public IP
+ */
+bool isPrivateIP(uint32_t ip);
+
+/*
+ * Get UDP Socket Max Message Size
+ */
+int getSockMaxSize(int udpsock);
 
 /*
  * Get Socket Buffer Size (opt = SO_RCVBUF/SO_SNDBUF)
@@ -1099,6 +1184,26 @@ int getSockBufferSize(int sock, int opt);
 * Set Socket Buffer Size (opt = SO_RCVBUF/SO_SNDBUF)
 */
 int setSockBufferSize(int sock, int opt, int size);
+
+/*
+* Set Socket TimeOut (opt = SO_SNDTIMEO/SO_RCVTIMEO)
+*/
+int setSockTimeout(int sock, int opt, unsigned long timeout_usec);
+
+/*
+ * Get TCP Socket TCP_NODELAY (Nagle Algo)
+ */
+int getSockNoDelay(int tcpsock);
+
+/*
+* Set TCP Socket TCP_NODELAY (Nagle Algo)
+*/
+int setSockNoDelay(int tcpsock, int flag);
+
+/*
+* Set Socket KeepAlive (opt = SO_KEEPALIVE)
+*/
+int setSockKeepAlive(int sock, bool keepalive, const int keepinvl = 60, const int keepcnt = 20, const int keepidle = 180);
 
 /**
 * Return the Number of Players with the chosen Nickname in the Local Users current Network
@@ -1140,13 +1245,13 @@ uint16_t getLocalPort(int sock);
 * PDP Socket Counter
 * @return Number of internal PDP Sockets
 */
-int getPDPSocketCount(void);
+int getPDPSocketCount();
 
 /**
  * PTP Socket Counter
  * @return Number of internal PTP Sockets
  */
-int getPTPSocketCount(void);
+int getPTPSocketCount();
 
 /**
  * Initialize Networking Components for Adhocctl Emulator

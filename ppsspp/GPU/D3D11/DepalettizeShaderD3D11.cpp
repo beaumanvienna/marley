@@ -94,7 +94,7 @@ ID3D11ShaderResourceView *DepalShaderCacheD3D11::GetClutTexture(GEPaletteFormat 
 			ConvertRGBA5551ToRGBA8888(expanded, (const uint16_t *)rawClut, texturePixels);
 			break;
 		case GE_CMODE_16BIT_BGR5650:
-			ConvertRGBA565ToRGBA8888(expanded, (const uint16_t *)rawClut, texturePixels);
+			ConvertRGB565ToRGBA8888(expanded, (const uint16_t *)rawClut, texturePixels);
 			break;
 		}
 		rawClut = expanded;
@@ -192,7 +192,7 @@ ID3D11PixelShader *DepalShaderCacheD3D11::GetDepalettizePixelShader(uint32_t clu
 std::vector<std::string> DepalShaderCacheD3D11::DebugGetShaderIDs(DebugShaderType type) {
 	std::vector<std::string> ids;
 	for (auto &iter : cache_) {
-		ids.push_back(PStringFromFormat("%08x", iter.first));
+		ids.push_back(StringFromFormat("%08x", iter.first));
 	}
 	return ids;
 }

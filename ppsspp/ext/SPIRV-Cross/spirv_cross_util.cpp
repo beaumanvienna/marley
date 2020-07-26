@@ -17,7 +17,7 @@
 #include "spirv_cross_util.hpp"
 #include "spirv_common.hpp"
 
-using namespace Pspv;
+using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 
 namespace spirv_cross_util
@@ -27,10 +27,10 @@ void rename_interface_variable(Compiler &compiler, const SmallVector<Resource> &
 {
 	for (auto &v : resources)
 	{
-		if (!compiler.has_decoration(v.id, Pspv::DecorationLocation))
+		if (!compiler.has_decoration(v.id, spv::DecorationLocation))
 			continue;
 
-		auto loc = compiler.get_decoration(v.id, Pspv::DecorationLocation);
+		auto loc = compiler.get_decoration(v.id, spv::DecorationLocation);
 		if (loc != location)
 			continue;
 
@@ -54,16 +54,16 @@ void inherit_combined_sampler_bindings(Compiler &compiler)
 	auto &samplers = compiler.get_combined_image_samplers();
 	for (auto &s : samplers)
 	{
-		if (compiler.has_decoration(s.image_id, Pspv::DecorationDescriptorSet))
+		if (compiler.has_decoration(s.image_id, spv::DecorationDescriptorSet))
 		{
-			uint32_t set = compiler.get_decoration(s.image_id, Pspv::DecorationDescriptorSet);
-			compiler.set_decoration(s.combined_id, Pspv::DecorationDescriptorSet, set);
+			uint32_t set = compiler.get_decoration(s.image_id, spv::DecorationDescriptorSet);
+			compiler.set_decoration(s.combined_id, spv::DecorationDescriptorSet, set);
 		}
 
-		if (compiler.has_decoration(s.image_id, Pspv::DecorationBinding))
+		if (compiler.has_decoration(s.image_id, spv::DecorationBinding))
 		{
-			uint32_t binding = compiler.get_decoration(s.image_id, Pspv::DecorationBinding);
-			compiler.set_decoration(s.combined_id, Pspv::DecorationBinding, binding);
+			uint32_t binding = compiler.get_decoration(s.image_id, spv::DecorationBinding);
+			compiler.set_decoration(s.combined_id, spv::DecorationBinding, binding);
 		}
 	}
 }

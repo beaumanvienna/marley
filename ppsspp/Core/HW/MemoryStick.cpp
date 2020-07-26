@@ -34,7 +34,7 @@ MemStickState MemoryStick_State() {
 }
 
 MemStickFatState MemoryStick_FatState() {
-	if (memStickNeedsAssign && CoreTiming_P::GetTicks() > memStickInsertedAt + msToCycles(500)) {
+	if (memStickNeedsAssign && CoreTiming::GetTicks() > memStickInsertedAt + msToCycles(500)) {
 		// It's been long enough for us to be done mounting the memory stick.
 		memStickFatState = PSP_FAT_MEMORYSTICK_STATE_ASSIGNED;
 		memStickNeedsAssign = false;
@@ -69,13 +69,13 @@ void MemoryStick_SetState(MemStickState state) {
 	if (state == PSP_MEMORYSTICK_STATE_NOT_INSERTED) {
 		MemoryStick_SetFatState(PSP_FAT_MEMORYSTICK_STATE_UNASSIGNED);
 	} else {
-		memStickInsertedAt = CoreTiming_P::GetTicks();
+		memStickInsertedAt = CoreTiming::GetTicks();
 		memStickNeedsAssign = true;
 	}
 }
 
 void MemoryStick_Init() {
-	if (g_PConfig.bMemStickInserted) {
+	if (g_Config.bMemStickInserted) {
 		memStickState = PSP_MEMORYSTICK_STATE_INSERTED;
 		memStickFatState = PSP_FAT_MEMORYSTICK_STATE_ASSIGNED;
 	} else {

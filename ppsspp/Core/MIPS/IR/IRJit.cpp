@@ -44,7 +44,7 @@ IRJit::IRJit(MIPSState *mips) : frontend_(mips->HasDefaultPrefix()), mips_(mips)
 	InitIR();
 
 	IROptions opts{};
-	opts.disableFlags = g_PConfig.uJitDisableFlags;
+	opts.disableFlags = g_Config.uJitDisableFlags;
 	opts.unalignedLoadStore = opts.disableFlags & (uint32_t)JitDisable::LSU_UNALIGNED;
 	frontend_.SetOptions(opts);
 }
@@ -71,7 +71,7 @@ void IRJit::InvalidateCacheAt(u32 em_address, int length) {
 void IRJit::Compile(u32 em_address) {
 	PROFILE_THIS_SCOPE("jitc");
 
-	if (g_PConfig.bPreloadFunctions) {
+	if (g_Config.bPreloadFunctions) {
 		// Look to see if we've preloaded this block.
 		int block_num = blocks_.FindPreloadBlock(em_address);
 		if (block_num != -1) {
@@ -104,7 +104,7 @@ void IRJit::Compile(u32 em_address) {
 bool IRJit::CompileBlock(u32 em_address, std::vector<IRInst> &instructions, u32 &mipsBytes, bool preload) {
 	frontend_.DoJit(em_address, instructions, mipsBytes, preload);
 	if (instructions.empty()) {
-		_dbg_assert_(JIT, preload);
+		_dbg_assert_(preload);
 		// We return true when preloading so it doesn't abort.
 		return preload;
 	}
@@ -146,7 +146,7 @@ void IRJit::CompileFunction(u32 start_address, u32 length) {
 		pendingAddresses.pop_back();
 
 		// To be safe, also check if a real block is there.  This can be a runtime module load.
-		u32 inst = Memory_P::ReadUnchecked_U32(em_address);
+		u32 inst = Memory::ReadUnchecked_U32(em_address);
 		if (MIPS_IS_RUNBLOCK(inst) || doneAddresses.find(em_address) != doneAddresses.end()) {
 			// Already compiled this address.
 			continue;
@@ -212,18 +212,22 @@ void IRJit::RunLoopUntil(u64 globalticks) {
 	
 	while (true) {
 		// RestoreRoundingMode(true);
-		CoreTiming_P::Advance();
+		CoreTiming::Advance();
 		// ApplyRoundingMode(true);
 		if (coreState != 0) {
 			break;
 		}
 		while (mips_->downcount >= 0) {
-			u32 inst = Memory_P::ReadUnchecked_U32(mips_->pc);
+			u32 inst = Memory::ReadUnchecked_U32(mips_->pc);
 			u32 opcode = inst & 0xFF000000;
 			if (opcode == MIPS_EMUHACK_OPCODE) {
 				u32 data = inst & 0xFFFFFF;
 				IRBlock *block = blocks_.GetBlock(data);
 				mips_->pc = IRInterpret(mips_, block->GetInstructions(), block->GetNumInstructions());
+				if (!Memory::IsValidAddress(mips_->pc)) {
+					Core_ExecException(mips_->pc, mips_->pc, ExecExceptionType::JUMP);
+					break;
+				}
 			} else {
 				// RestoreRoundingMode(true);
 				Compile(mips_->pc);
@@ -362,7 +366,7 @@ JitBlockDebugInfo IRBlockCache::GetBlockDebugInfo(int blockNum) const {
 
 	for (u32 addr = start; addr < start + size; addr += 4) {
 		char temp[256];
-		MIPSDisAsm(Memory_P::Read_Instruction(addr), addr, temp, true);
+		MIPSDisAsm(Memory::Read_Instruction(addr), addr, temp, true);
 		std::string mipsDis = temp;
 		debugInfo.origDisasm.push_back(mipsDis);
 	}
@@ -429,13 +433,13 @@ int IRBlockCache::GetBlockNumberFromStartAddress(u32 em_address, bool realBlocks
 }
 
 bool IRBlock::HasOriginalFirstOp() const {
-	return Memory_P::ReadUnchecked_U32(origAddr_) == origFirstOpcode_.encoding;
+	return Memory::ReadUnchecked_U32(origAddr_) == origFirstOpcode_.encoding;
 }
 
 bool IRBlock::RestoreOriginalFirstOp(int number) {
 	const u32 emuhack = MIPS_EMUHACK_OPCODE | number;
-	if (Memory_P::ReadUnchecked_U32(origAddr_) == emuhack) {
-		Memory_P::Write_Opcode_JIT(origAddr_, origFirstOpcode_);
+	if (Memory::ReadUnchecked_U32(origAddr_) == emuhack) {
+		Memory::Write_Opcode_JIT(origAddr_, origFirstOpcode_);
 		return true;
 	}
 	return false;
@@ -445,17 +449,17 @@ void IRBlock::Finalize(int number) {
 	// Check it wasn't invalidated, in case this is after preload.
 	// TODO: Allow reusing blocks when the code matches hash_ again, instead.
 	if (origAddr_) {
-		origFirstOpcode_ = Memory_P::Read_Opcode_JIT(origAddr_);
+		origFirstOpcode_ = Memory::Read_Opcode_JIT(origAddr_);
 		MIPSOpcode opcode = MIPSOpcode(MIPS_EMUHACK_OPCODE | number);
-		Memory_P::Write_Opcode_JIT(origAddr_, opcode);
+		Memory::Write_Opcode_JIT(origAddr_, opcode);
 	}
 }
 
 void IRBlock::Destroy(int number) {
 	if (origAddr_) {
 		MIPSOpcode opcode = MIPSOpcode(MIPS_EMUHACK_OPCODE | number);
-		if (Memory_P::ReadUnchecked_U32(origAddr_) == opcode.encoding)
-			Memory_P::Write_Opcode_JIT(origAddr_, origFirstOpcode_);
+		if (Memory::ReadUnchecked_U32(origAddr_) == opcode.encoding)
+			Memory::Write_Opcode_JIT(origAddr_, origFirstOpcode_);
 
 		// Let's mark this invalid so we don't try to clear it again.
 		origAddr_ = 0;
@@ -470,7 +474,7 @@ u64 IRBlock::CalculateHash() const {
 		size_t pos = 0;
 		for (u32 off = 0; off < origSize_; off += 4) {
 			// Let's actually hash the replacement, if any.
-			MIPSOpcode instr = Memory_P::ReadUnchecked_Instruction(origAddr_ + off, false);
+			MIPSOpcode instr = Memory::ReadUnchecked_Instruction(origAddr_ + off, false);
 			buffer[pos++] = instr.encoding;
 		}
 

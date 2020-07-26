@@ -57,6 +57,10 @@ enum {
 	VIRTKEY_TEXTURE_DUMP = 0x40000019,
 	VIRTKEY_TEXTURE_REPLACE = 0x4000001A,
 	VIRTKEY_SCREENSHOT = 0x4000001B,
+	VIRTKEY_MUTE_TOGGLE = 0x4000001C,
+	VIRTKEY_OPENCHAT = 0x4000001D,
+	VIRTKEY_ANALOG_ROTATE_CW = 0x4000001E,
+	VIRTKEY_ANALOG_ROTATE_CCW = 0x4000001F,
 	VIRTKEY_LAST,
 	VIRTKEY_COUNT = VIRTKEY_LAST - VIRTKEY_FIRST
 };
@@ -86,7 +90,7 @@ typedef std::map<int, std::vector<KeyDef>> KeyMapping;
 //
 // Then have KeyMap transform those into psp buttons.
 
-class PIniFile;
+class IniFile;
 
 namespace KeyMap {
 	extern KeyMapping g_controllerMap;
@@ -127,8 +131,8 @@ namespace KeyMap {
 	bool AxisFromPspButton(int btn, int *deviceId, int *axisId, int *direction);
 	std::string NamePspButtonFromAxis(int deviceId, int axisId, int direction);
 
-	void LoadFromIni(PIniFile &iniFile);
-	void SaveToIni(PIniFile &iniFile);
+	void LoadFromIni(IniFile &iniFile);
+	void SaveToIni(IniFile &iniFile);
 
 	void SetDefaultKeyMap(DefaultMaps dmap, bool replace);
 

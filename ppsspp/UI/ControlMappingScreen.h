@@ -18,8 +18,9 @@
 #pragma once
 
 #include <functional>
-#include <vector>
+#include <memory>
 #include <mutex>
+#include <vector>
 
 #include "i18n/i18n.h"
 #include "ui/view.h"
@@ -38,20 +39,20 @@ public:
 protected:
 	virtual void CreateViews() override;
 private:
-	PUI::EventReturn OnDefaultMapping(PUI::EventParams &params);
-	PUI::EventReturn OnClearMapping(PUI::EventParams &params);
-	PUI::EventReturn OnAutoConfigure(PUI::EventParams &params);
-	PUI::EventReturn OnTestAnalogs(PUI::EventParams &params);
+	UI::EventReturn OnDefaultMapping(UI::EventParams &params);
+	UI::EventReturn OnClearMapping(UI::EventParams &params);
+	UI::EventReturn OnAutoConfigure(UI::EventParams &params);
+	UI::EventReturn OnTestAnalogs(UI::EventParams &params);
 
 	virtual void dialogFinished(const Screen *dialog, DialogResult result) override;
 
-	PUI::ScrollView *rightScroll_;
+	UI::ScrollView *rightScroll_;
 	std::vector<ControlMapper *> mappers_;
 };
 
 class KeyMappingNewKeyDialog : public PopupScreen {
 public:
-	explicit KeyMappingNewKeyDialog(int btn, bool replace, std::function<void(KeyDef)> callback, I18NCategory *i18n)
+	explicit KeyMappingNewKeyDialog(int btn, bool replace, std::function<void(KeyDef)> callback, std::shared_ptr<I18NCategory> i18n)
 		: PopupScreen(i18n->T("Map Key"), "Cancel", ""), callback_(callback), mapped_(false) {
 		pspBtn_ = btn;
 	}
@@ -60,7 +61,7 @@ public:
 	virtual bool axis(const AxisInput &axis) override;
 
 protected:
-	void CreatePopupContents(PUI::ViewGroup *parent) override;
+	void CreatePopupContents(UI::ViewGroup *parent) override;
 
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return true; }
@@ -74,7 +75,7 @@ private:
 
 class KeyMappingNewMouseKeyDialog : public PopupScreen {
 public:
-	explicit KeyMappingNewMouseKeyDialog(int btn, bool replace, std::function<void(KeyDef)> callback, I18NCategory *i18n)
+	explicit KeyMappingNewMouseKeyDialog(int btn, bool replace, std::function<void(KeyDef)> callback, std::shared_ptr<I18NCategory> i18n)
 		: PopupScreen(i18n->T("Map Mouse"), "", ""), callback_(callback), mapped_(false) {
 		pspBtn_ = btn;
 	}
@@ -83,7 +84,7 @@ public:
 	virtual bool axis(const AxisInput &axis) override;
 
 protected:
-	void CreatePopupContents(PUI::ViewGroup *parent) override;
+	void CreatePopupContents(UI::ViewGroup *parent) override;
 
 	virtual bool FillVertical() const override { return false; }
 	virtual bool ShowButtons() const override { return true; }
@@ -105,8 +106,8 @@ public:
 protected:
 	virtual void CreateViews() override;
 
-	PUI::TextView *lastKeyEvent_ = nullptr;
-	PUI::TextView *lastLastKeyEvent_ = nullptr;
+	UI::TextView *lastKeyEvent_ = nullptr;
+	UI::TextView *lastLastKeyEvent_ = nullptr;
 };
 
 class TouchTestScreen : public UIDialogScreenWithBackground {
@@ -131,6 +132,9 @@ protected:
 	};
 	TrackedTouch touches_[MAX_TOUCH_POINTS]{};
 
-	virtual void CreateViews() override;
-	PUI::EventReturn OnImmersiveModeChange(PUI::EventParams &e);
+	void CreateViews() override;
+
+	UI::EventReturn OnImmersiveModeChange(UI::EventParams &e);
+	UI::EventReturn OnRenderingBackend(UI::EventParams &e);
+	UI::EventReturn OnRecreateActivity(UI::EventParams &e);
 };

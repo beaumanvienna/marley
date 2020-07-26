@@ -23,15 +23,15 @@
 
 namespace X64JitConstants {
 #ifdef _M_X64
-	const PGen::X64Reg MEMBASEREG = PGen::RBX;
-	const PGen::X64Reg CTXREG = PGen::R14;
-	const PGen::X64Reg JITBASEREG = PGen::R15;
+	const Gen::X64Reg MEMBASEREG = Gen::RBX;
+	const Gen::X64Reg CTXREG = Gen::R14;
+	const Gen::X64Reg JITBASEREG = Gen::R15;
 #else
-	const PGen::X64Reg CTXREG = PGen::EBP;
+	const Gen::X64Reg CTXREG = Gen::EBP;
 #endif
 
 		// This must be one of EAX, EBX, ECX, EDX as they have 8-bit subregisters.
-	const PGen::X64Reg TEMPREG = PGen::EAX;
+	const Gen::X64Reg TEMPREG = Gen::EAX;
 	const int NUM_MIPS_GPRS = 36;
 
 #ifdef _M_X64
@@ -42,7 +42,7 @@ namespace X64JitConstants {
 }
 
 struct MIPSCachedReg {
-	PGen::OpArg location;
+	Gen::OpArg location;
 	bool away;  // value not in source register
 	bool locked;
 };
@@ -73,14 +73,14 @@ public:
 
 	void DiscardRegContentsIfCached(MIPSGPReg preg);
 	void DiscardR(MIPSGPReg preg);
-	void SetEmitter(PGen::XEmitter *emitter) {emit = emitter;}
+	void SetEmitter(Gen::XEmitter *emitter) {emit = emitter;}
 
-	void FlushR(PGen::X64Reg reg); 
-	void FlushLockX(PGen::X64Reg reg) {
+	void FlushR(Gen::X64Reg reg); 
+	void FlushLockX(Gen::X64Reg reg) {
 		FlushR(reg);
 		LockX(reg);
 	}
-	void FlushLockX(PGen::X64Reg reg1, PGen::X64Reg reg2) {
+	void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2) {
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
@@ -96,15 +96,15 @@ public:
 	void MapReg(MIPSGPReg preg, bool doLoad = true, bool makeDirty = true);
 	void StoreFromRegister(MIPSGPReg preg);
 
-	const PGen::OpArg &R(MIPSGPReg preg) const {return regs[preg].location;}
-	PGen::X64Reg RX(MIPSGPReg preg) const
+	const Gen::OpArg &R(MIPSGPReg preg) const {return regs[preg].location;}
+	Gen::X64Reg RX(MIPSGPReg preg) const
 	{
 		if (regs[preg].away && regs[preg].location.IsSimpleReg()) 
 			return regs[preg].location.GetSimpleReg(); 
-		PanicAlert("Not so simple - %i", preg); 
-		return (PGen::X64Reg)-1;
+		_assert_msg_(false, "Not so simple - %d", preg); 
+		return (Gen::X64Reg)-1;
 	}
-	PGen::OpArg GetDefaultLocation(MIPSGPReg reg) const;
+	Gen::OpArg GetDefaultLocation(MIPSGPReg reg) const;
 
 	// Register locking.
 	void Lock(MIPSGPReg p1, MIPSGPReg p2 = MIPS_REG_INVALID, MIPSGPReg p3 = MIPS_REG_INVALID, MIPSGPReg p4 = MIPS_REG_INVALID);
@@ -122,14 +122,14 @@ public:
 	MIPSState *mips;
 
 private:
-	PGen::X64Reg GetFreeXReg();
-	PGen::X64Reg FindBestToSpill(bool unusedOnly, bool *clobbered);
-	const PGen::X64Reg *GetAllocationOrder(int &count);
+	Gen::X64Reg GetFreeXReg();
+	Gen::X64Reg FindBestToSpill(bool unusedOnly, bool *clobbered);
+	const Gen::X64Reg *GetAllocationOrder(int &count);
 
 	MIPSCachedReg regs[X64JitConstants::NUM_MIPS_GPRS];
 	X64CachedReg xregs[X64JitConstants::NUM_X_REGS];
 
-	PGen::XEmitter *emit;
+	Gen::XEmitter *emit;
 	MIPSComp::JitState *js_;
 	MIPSComp::JitOptions *jo_;
 };

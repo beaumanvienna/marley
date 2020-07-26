@@ -23,6 +23,9 @@
 #include <ShlObj.h>
 #include <string>
 #include <codecvt>
+#if !PPSSPP_PLATFORM(UWP)
+#include "Windows/W32Util/ShellUtil.h"
+#endif
 #endif
 
 #include <thread>
@@ -36,7 +39,7 @@
 #include "util/text/utf8.h"
 
 #include "Common/GraphicsContext.h"
-#include "Core/MemMap.h"
+#include "Core/MemFault.h"
 #include "Core/HDRemaster.h"
 #include "Core/MIPS/MIPS.h"
 #include "Core/MIPS/MIPSAnalyst.h"
@@ -59,6 +62,7 @@
 #include "Core/ELF/ParamSFO.h"
 #include "Core/SaveState.h"
 #include "Common/LogManager.h"
+#include "Common/ExceptionHandlerSetup.h"
 #include "Core/HLE/sceAudiocodec.h"
 
 #include "GPU/GPUState.h"
@@ -94,12 +98,18 @@ bool coreCollectDebugStatsForced = false;
 
 // This can be read and written from ANYWHERE.
 volatile CoreState coreState = CORE_STEPPING;
-// Note: intentionally not used for CORE_NEXTFRAME.
+// If true, core state has been changed, but JIT has probably not noticed yet.
 volatile bool coreStatePending = false;
+
 static volatile CPUThreadState cpuThreadState = CPU_THREAD_NOT_RUNNING;
 
 static GPUBackend gpuBackend;
 static std::string gpuBackendDevice;
+
+// Ugly!
+static bool pspIsInited = false;
+static bool pspIsIniting = false;
+static bool pspIsQuitting = false;
 
 void ResetUIState() {
 	globalUIState = UISTATE_MENU;
@@ -174,7 +184,7 @@ bool CPU_HasPendingAction() {
 
 void CPU_Shutdown();
 
-void CPU_Init() {
+bool CPU_Init() {
 	coreState = CORE_POWERUP;
 	currentMIPS = &mipsr4k;
 
@@ -182,16 +192,16 @@ void CPU_Init() {
 
 	// Default memory settings
 	// Seems to be the safest place currently..
-	Memory_P::g_MemorySize = Memory_P::RAM_NORMAL_SIZE; // 32 MB of ram by default
+	Memory::g_MemorySize = Memory::RAM_NORMAL_SIZE; // 32 MB of ram by default
 
 	g_RemasterMode = false;
 	g_DoubleTextureCoordinates = false;
-	Memory_P::g_PSPModel = g_PConfig.iPSPModel;
+	Memory::g_PSPModel = g_Config.iPSPModel;
 
 	std::string filename = coreParameter.fileToStart;
 	loadedFile = ResolveFileLoaderTarget(ConstructFileLoader(filename));
 #ifdef _M_X64
-	if (g_PConfig.bCacheFullIsoInRam) {
+	if (g_Config.bCacheFullIsoInRam) {
 		loadedFile = new RamCachingFileLoader(loadedFile);
 	}
 #endif
@@ -217,6 +227,12 @@ void CPU_Init() {
 		// ERROR_LOG(LOADER, "PBP directory resolution failed.");
 		InitMemoryForGamePBP(loadedFile);
 		break;
+	case IdentifiedFileType::PSP_ELF:
+		if (Memory::g_PSPModel != PSP_MODEL_FAT) {
+			INFO_LOG(LOADER, "ELF, using full PSP-2000 memory access");
+			Memory::g_MemorySize = Memory::RAM_DOUBLE_SIZE;
+		}
+		break;
 	default:
 		break;
 	}
@@ -227,7 +243,10 @@ void CPU_Init() {
 	std::string discID = g_paramSFO.GetDiscID();
 	coreParameter.compat.Load(discID);
 
-	Memory_P::Init();
+	if (!Memory::Init()) {
+		// We're screwed.
+		return false;
+	}
 	mipsr4k.Reset();
 
 	host->AttemptLoadSymbolMap();
@@ -236,7 +255,7 @@ void CPU_Init() {
 		Audio_Init();
 	}
 
-	CoreTiming_P::Init();
+	CoreTiming::Init();
 
 	// Init all the HLE modules
 	HLEInit();
@@ -248,13 +267,15 @@ void CPU_Init() {
 	if (!LoadFile(&loadedFile, &coreParameter.errorString)) {
 		CPU_Shutdown();
 		coreParameter.fileToStart = "";
-		return;
+		return false;
 	}
-
 
 	if (coreParameter.updateRecent) {
-		g_PConfig.AddRecent(filename);
+		g_Config.AddRecent(filename);
 	}
+
+	InstallExceptionHandler(&Memory::HandleFault);
+	return true;
 }
 
 PSP_LoadingLock::PSP_LoadingLock() {
@@ -266,16 +287,19 @@ PSP_LoadingLock::~PSP_LoadingLock() {
 }
 
 void CPU_Shutdown() {
+	UninstallExceptionHandler();
+
 	// Since we load on a background thread, wait for startup to complete.
 	PSP_LoadingLock lock;
+	PSPLoaders_Shutdown();
 
-	if (g_PConfig.bAutoSaveSymbolMap) {
+	if (g_Config.bAutoSaveSymbolMap) {
 		host->SaveSymbolMap();
 	}
 
 	Replacement_Shutdown();
 
-	CoreTiming_P::Shutdown();
+	CoreTiming::Shutdown();
 	__KernelShutdown();
 	HLEShutdown();
 	if (coreParameter.enableSound) {
@@ -283,7 +307,7 @@ void CPU_Shutdown() {
 	}
 	pspFileSystem.Shutdown();
 	mipsr4k.Shutdown();
-	Memory_P::Shutdown();
+	Memory::Shutdown();
 
 	delete loadedFile;
 	loadedFile = nullptr;
@@ -318,11 +342,6 @@ void Core_UpdateDebugStats(bool collectStats) {
 	gpuStats.ResetFrame();
 }
 
-// Ugly!
-static bool pspIsInited = false;
-static bool pspIsIniting = false;
-static bool pspIsQuitting = false;
-
 bool PSP_InitStart(const CoreParameter &coreParam, std::string *error_string) {
 	if (pspIsIniting || pspIsQuitting) {
 		return false;
@@ -346,7 +365,15 @@ bool PSP_InitStart(const CoreParameter &coreParam, std::string *error_string) {
 	pspIsIniting = true;
 	PSP_SetLoading("Loading game...");
 
-	CPU_Init();
+	if (!CPU_Init()) {
+		*error_string = "Failed initializing CPU/Memory";
+		return false;
+	}
+
+	// Compat flags get loaded in CPU_Init (which is a bit of a misnomer) so we check for SW renderer here.
+	if (g_Config.bSoftwareRendering || PSP_CoreParameter().compat.flags().ForceSoftwareRenderer) {
+		coreParameter.gpuCore = GPUCORE_SOFTWARE;
+	}
 
 	*error_string = coreParameter.errorString;
 	bool success = coreParameter.fileToStart != "";
@@ -418,10 +445,10 @@ void PSP_Shutdown() {
 	// Make sure things know right away that PSP memory, etc. is going away.
 	pspIsQuitting = true;
 	if (coreState == CORE_RUNNING)
-		Core_UpdateState(CORE_ERROR);
+		Core_UpdateState(CORE_POWERDOWN);
 
 #ifndef MOBILE_DEVICE
-	if (g_PConfig.bFuncHashMap) {
+	if (g_Config.bFuncHashMap) {
 		MIPSAnalyst::StoreHashMap();
 	}
 #endif
@@ -437,7 +464,7 @@ void PSP_Shutdown() {
 	pspIsInited = false;
 	pspIsIniting = false;
 	pspIsQuitting = false;
-	g_PConfig.unloadGameConfig();
+	g_Config.unloadGameConfig();
 	Core_NotifyLifecycle(CoreLifecycle::STOPPED);
 }
 
@@ -471,7 +498,7 @@ void PSP_RunLoopWhileState() {
 
 void PSP_RunLoopUntil(u64 globalticks) {
 	SaveState::Process();
-	if (coreState == CORE_POWERDOWN || coreState == CORE_ERROR) {
+	if (coreState == CORE_POWERDOWN || coreState == CORE_BOOT_ERROR || coreState == CORE_RUNTIME_ERROR) {
 		return;
 	} else if (coreState == CORE_STEPPING) {
 		Core_ProcessStepping();
@@ -483,7 +510,7 @@ void PSP_RunLoopUntil(u64 globalticks) {
 }
 
 void PSP_RunLoopFor(int cycles) {
-	PSP_RunLoopUntil(CoreTiming_P::GetTicks() + cycles);
+	PSP_RunLoopUntil(CoreTiming::GetTicks() + cycles);
 }
 
 void PSP_SetLoading(const std::string &reason) {
@@ -503,65 +530,65 @@ CoreParameter &PSP_CoreParameter() {
 std::string GetSysDirectory(PSPDirectories directoryType) {
 	switch (directoryType) {
 	case DIRECTORY_CHEATS:
-		return g_PConfig.memStickDirectory + "PSP/Cheats/";
+		return g_Config.memStickDirectory + "PSP/Cheats/";
 	case DIRECTORY_GAME:
-		return g_PConfig.memStickDirectory + "PSP/GAME/";
+		return g_Config.memStickDirectory + "PSP/GAME/";
 	case DIRECTORY_SAVEDATA:
-		return g_PConfig.memStickDirectory + "PSP/SAVEDATA/";
+		return g_Config.memStickDirectory + "PSP/SAVEDATA/";
 	case DIRECTORY_SCREENSHOT:
-		return g_PConfig.memStickDirectory + "PSP/SCREENSHOT/";
+		return g_Config.memStickDirectory + "PSP/SCREENSHOT/";
 	case DIRECTORY_SYSTEM:
-		return g_PConfig.memStickDirectory + "PSP/SYSTEM/";
+		return g_Config.memStickDirectory + "PSP/SYSTEM/";
 	case DIRECTORY_PAUTH:
-		return g_PConfig.memStickDirectory + "PAUTH/";
+		return g_Config.memStickDirectory + "PAUTH/";
 	case DIRECTORY_DUMP:
-		return g_PConfig.memStickDirectory + "PSP/SYSTEM/DUMP/";
+		return g_Config.memStickDirectory + "PSP/SYSTEM/DUMP/";
 	case DIRECTORY_SAVESTATE:
-		return g_PConfig.memStickDirectory + "PSP/PPSSPP_STATE/";
+		return g_Config.memStickDirectory + "PSP/PPSSPP_STATE/";
 	case DIRECTORY_CACHE:
-		return g_PConfig.memStickDirectory + "PSP/SYSTEM/CACHE/";
+		return g_Config.memStickDirectory + "PSP/SYSTEM/CACHE/";
 	case DIRECTORY_TEXTURES:
-		return g_PConfig.memStickDirectory + "PSP/TEXTURES/";
+		return g_Config.memStickDirectory + "PSP/TEXTURES/";
 	case DIRECTORY_APP_CACHE:
-		if (!g_PConfig.appCacheDirectory.empty()) {
-			return g_PConfig.appCacheDirectory;
+		if (!g_Config.appCacheDirectory.empty()) {
+			return g_Config.appCacheDirectory;
 		}
-		return g_PConfig.memStickDirectory + "PSP/SYSTEM/CACHE/";
+		return g_Config.memStickDirectory + "PSP/SYSTEM/CACHE/";
 	case DIRECTORY_VIDEO:
-		return g_PConfig.memStickDirectory + "PSP/VIDEO/";
+		return g_Config.memStickDirectory + "PSP/VIDEO/";
 	case DIRECTORY_AUDIO:
-		return g_PConfig.memStickDirectory + "PSP/AUDIO/";
+		return g_Config.memStickDirectory + "PSP/AUDIO/";
 	// Just return the memory stick root if we run into some sort of problem.
 	default:
 		ERROR_LOG(FILESYS, "Unknown directory type.");
-		return g_PConfig.memStickDirectory;
+		return g_Config.memStickDirectory;
 	}
 }
 
 #if defined(_WIN32)
 // Run this at startup time. Please use GetSysDirectory if you need to query where folders are.
 void InitSysDirectories() {
-	if (!g_PConfig.memStickDirectory.empty() && !g_PConfig.flash0Directory.empty())
+	if (!g_Config.memStickDirectory.empty() && !g_Config.flash0Directory.empty())
 		return;
 
-	const std::string path = PFile::GetExeDirectory();
+	const std::string path = File::GetExeDirectory();
 
 	// Mount a filesystem
-	g_PConfig.flash0Directory = path + "assets/flash0/";
+	g_Config.flash0Directory = path + "assets/flash0/";
 
 	// Detect the "My Documents"(XP) or "Documents"(on Vista/7/8) folder.
 #if PPSSPP_PLATFORM(UWP)
-	// We set g_PConfig.memStickDirectory outside.
+	// We set g_Config.memStickDirectory outside.
 
 #else
-	wchar_t myDocumentsPath[MAX_PATH];
-	const HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, myDocumentsPath);
-	const std::string myDocsPath = ConvertWStringToUTF8(myDocumentsPath) + "/PPSSPP/";
+	// Caller sets this to the Documents folder.
+	const std::string rootMyDocsPath = g_Config.internalDataDirectory;
+	const std::string myDocsPath = rootMyDocsPath + "/PPSSPP/";
 	const std::string installedFile = path + "installed.txt";
-	const bool installed = PFile::Exists(installedFile);
+	const bool installed = File::Exists(installedFile);
 
 	// If installed.txt exists(and we can determine the Documents directory)
-	if (installed && (result == S_OK))	{
+	if (installed && rootMyDocsPath.size() > 0) {
 #if defined(_WIN32) && defined(__MINGW32__)
 		std::ifstream inputFile(installedFile);
 #else
@@ -577,51 +604,51 @@ void InitSysDirectories() {
 			if (tempString.substr(0, 3) == "\xEF\xBB\xBF")
 				tempString = tempString.substr(3);
 
-			g_PConfig.memStickDirectory = tempString;
+			g_Config.memStickDirectory = tempString;
 		}
 		inputFile.close();
 
 		// Check if the file is empty first, before appending the slash.
-		if (g_PConfig.memStickDirectory.empty())
-			g_PConfig.memStickDirectory = myDocsPath;
+		if (g_Config.memStickDirectory.empty())
+			g_Config.memStickDirectory = myDocsPath;
 
-		size_t lastSlash = g_PConfig.memStickDirectory.find_last_of("/");
-		if (lastSlash != (g_PConfig.memStickDirectory.length() - 1))
-			g_PConfig.memStickDirectory.append("/");
+		size_t lastSlash = g_Config.memStickDirectory.find_last_of("/");
+		if (lastSlash != (g_Config.memStickDirectory.length() - 1))
+			g_Config.memStickDirectory.append("/");
 	} else {
-		g_PConfig.memStickDirectory = path + "memstick/";
+		g_Config.memStickDirectory = path + "memstick/";
 	}
 
 	// Create the memstickpath before trying to write to it, and fall back on Documents yet again
 	// if we can't make it.
-	if (!PFile::Exists(g_PConfig.memStickDirectory)) {
-		if (!PFile::CreateDir(g_PConfig.memStickDirectory))
-			g_PConfig.memStickDirectory = myDocsPath;
-		INFO_LOG(COMMON, "Memstick directory not present, creating at '%s'", g_PConfig.memStickDirectory.c_str());
+	if (!File::Exists(g_Config.memStickDirectory)) {
+		if (!File::CreateDir(g_Config.memStickDirectory))
+			g_Config.memStickDirectory = myDocsPath;
+		INFO_LOG(COMMON, "Memstick directory not present, creating at '%s'", g_Config.memStickDirectory.c_str());
 	}
 
-	const std::string testFile = g_PConfig.memStickDirectory + "/_writable_test.$$$";
+	const std::string testFile = g_Config.memStickDirectory + "_writable_test.$$$";
 
 	// If any directory is read-only, fall back to the Documents directory.
 	// We're screwed anyway if we can't write to Documents, or can't detect it.
-	if (!PFile::CreateEmptyFile(testFile))
-		g_PConfig.memStickDirectory = myDocsPath;
+	if (!File::CreateEmptyFile(testFile))
+		g_Config.memStickDirectory = myDocsPath;
 
 	// Clean up our mess.
-	if (PFile::Exists(testFile))
-		PFile::Delete(testFile);
+	if (File::Exists(testFile))
+		File::Delete(testFile);
 #endif
 
 	// Create the default directories that a real PSP creates. Good for homebrew so they can
 	// expect a standard environment. Skipping THEME though, that's pointless.
-	PFile::CreateDir(g_PConfig.memStickDirectory + "PSP");
-	PFile::CreateDir(g_PConfig.memStickDirectory + "PSP/COMMON");
-	PFile::CreateDir(GetSysDirectory(DIRECTORY_GAME));
-	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVEDATA));
-	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVESTATE));
+	File::CreateDir(g_Config.memStickDirectory + "PSP");
+	File::CreateDir(g_Config.memStickDirectory + "PSP/COMMON");
+	File::CreateDir(GetSysDirectory(DIRECTORY_GAME));
+	File::CreateDir(GetSysDirectory(DIRECTORY_SAVEDATA));
+	File::CreateDir(GetSysDirectory(DIRECTORY_SAVESTATE));
 
-	if (g_PConfig.currentDirectory.empty()) {
-		g_PConfig.currentDirectory = GetSysDirectory(DIRECTORY_GAME);
+	if (g_Config.currentDirectory.empty()) {
+		g_Config.currentDirectory = GetSysDirectory(DIRECTORY_GAME);
 	}
 }
 #endif

@@ -41,5 +41,5 @@ private:
 	Draw::Pipeline *drawTestDepthGreater_ = nullptr;
 
 	Draw::SamplerState *samplerNearest_ = nullptr;
-	PUI::TabHolder *tabHolder_ = nullptr;
+	UI::TabHolder *tabHolder_ = nullptr;
 };

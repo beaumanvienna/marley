@@ -37,7 +37,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-namespace Pinternal
+namespace internal
 {
 // Adaptor helpers to adapt GLSL access chain syntax to C++.
 // Don't bother with arrays of arrays on uniforms ...
@@ -236,54 +236,54 @@ struct spirv_cross_shader
 	}
 
 	template <typename U>
-	void register_resource(const Pinternal::Resource<U> &value, unsigned set, unsigned binding)
+	void register_resource(const internal::Resource<U> &value, unsigned set, unsigned binding)
 	{
 		assert(set < SPIRV_CROSS_NUM_DESCRIPTOR_SETS);
 		assert(binding < SPIRV_CROSS_NUM_DESCRIPTOR_BINDINGS);
 		assert(!resources[set][binding].ptr);
 
 		resources[set][binding].ptr = (void **)&value.ptr;
-		resources[set][binding].size = Pinternal::Resource<U>::Size;
-		resources[set][binding].pre_dereference = Pinternal::Resource<U>::PreDereference;
+		resources[set][binding].size = internal::Resource<U>::Size;
+		resources[set][binding].pre_dereference = internal::Resource<U>::PreDereference;
 	}
 
 	template <typename U>
-	void register_stage_input(const Pinternal::StageInput<U> &value, unsigned location)
+	void register_stage_input(const internal::StageInput<U> &value, unsigned location)
 	{
 		assert(location < SPIRV_CROSS_NUM_STAGE_INPUTS);
 		assert(!stage_inputs[location].ptr);
 
 		stage_inputs[location].ptr = (void **)&value.ptr;
-		stage_inputs[location].size = Pinternal::StageInput<U>::Size;
+		stage_inputs[location].size = internal::StageInput<U>::Size;
 	}
 
 	template <typename U>
-	void register_stage_output(const Pinternal::StageOutput<U> &value, unsigned location)
+	void register_stage_output(const internal::StageOutput<U> &value, unsigned location)
 	{
 		assert(location < SPIRV_CROSS_NUM_STAGE_OUTPUTS);
 		assert(!stage_outputs[location].ptr);
 
 		stage_outputs[location].ptr = (void **)&value.ptr;
-		stage_outputs[location].size = Pinternal::StageOutput<U>::Size;
+		stage_outputs[location].size = internal::StageOutput<U>::Size;
 	}
 
 	template <typename U>
-	void register_uniform_constant(const Pinternal::UniformConstant<U> &value, unsigned location)
+	void register_uniform_constant(const internal::UniformConstant<U> &value, unsigned location)
 	{
 		assert(location < SPIRV_CROSS_NUM_UNIFORM_CONSTANTS);
 		assert(!uniform_constants[location].ptr);
 
 		uniform_constants[location].ptr = (void **)&value.ptr;
-		uniform_constants[location].size = Pinternal::UniformConstant<U>::Size;
+		uniform_constants[location].size = internal::UniformConstant<U>::Size;
 	}
 
 	template <typename U>
-	void register_push_constant(const Pinternal::PushConstant<U> &value)
+	void register_push_constant(const internal::PushConstant<U> &value)
 	{
 		assert(!push_constant.ptr);
 
 		push_constant.ptr = (void **)&value.ptr;
-		push_constant.size = Pinternal::PushConstant<U>::Size;
+		push_constant.size = internal::PushConstant<U>::Size;
 	}
 
 	void set_stage_input(unsigned location, void *data, size_t size)
@@ -349,7 +349,7 @@ struct BaseShader : spirv_cross_shader
 
 struct FragmentResources
 {
-	Pinternal::StageOutput<glm::vec4> gl_FragCoord;
+	internal::StageOutput<glm::vec4> gl_FragCoord;
 	void init(spirv_cross_shader &s)
 	{
 		s.register_builtin(SPIRV_CROSS_BUILTIN_FRAG_COORD, gl_FragCoord);
@@ -377,7 +377,7 @@ struct FragmentShader : BaseShader<FragmentShader<T, Res>>
 
 struct VertexResources
 {
-	Pinternal::StageOutput<glm::vec4> gl_Position;
+	internal::StageOutput<glm::vec4> gl_Position;
 	void init(spirv_cross_shader &s)
 	{
 		s.register_builtin(SPIRV_CROSS_BUILTIN_POSITION, gl_Position);
@@ -480,8 +480,8 @@ struct GeometryShader : BaseShader<GeometryShader<T, Res>>
 
 struct ComputeResources
 {
-	Pinternal::StageInput<glm::uvec3> gl_WorkGroupID__;
-	Pinternal::StageInput<glm::uvec3> gl_NumWorkGroups__;
+	internal::StageInput<glm::uvec3> gl_WorkGroupID__;
+	internal::StageInput<glm::uvec3> gl_NumWorkGroups__;
 	void init(spirv_cross_shader &s)
 	{
 		s.register_builtin(SPIRV_CROSS_BUILTIN_WORK_GROUP_ID, gl_WorkGroupID__);

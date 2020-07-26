@@ -21,7 +21,7 @@
 #include "base/NativeApp.h"
 #include "input/input_state.h"
 
-namespace PUI {
+namespace UI {
 	class View;
 }
 
@@ -147,7 +147,6 @@ private:
 	void switchToNext();
 	void processFinishDialog();
 
-	Screen *nextScreen_;
 	UIContext *uiContext_;
 	Draw::DrawContext *thin3DContext_;
 
@@ -160,10 +159,11 @@ private:
 	struct Layer {
 		Screen *screen;
 		int flags;  // From LAYER_ enum above
-		PUI::View *focusedView;  // TODO: save focus here. Going for quick solution now to reset focus.
+		UI::View *focusedView;  // TODO: save focus here. Going for quick solution now to reset focus.
 	};
 
 	// Dialog stack. These are shown "on top" of base screens and the Android back button works as expected.
 	// Used for options, in-game menus and other things you expect to be able to back out from onto something.
 	std::vector<Layer> stack_;
+	std::vector<Layer> nextStack_;
 };

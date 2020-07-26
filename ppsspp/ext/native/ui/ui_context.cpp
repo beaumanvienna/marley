@@ -3,6 +3,8 @@
 #include <algorithm>
 
 #include "base/display.h"
+#include "base/NativeApp.h"
+#include "base/logging.h"
 #include "ui/ui.h"
 #include "ui/view.h"
 #include "ui/ui_context.h"
@@ -11,10 +13,8 @@
 
 #include "Common/Log.h"
 
-#define PPSSPP_ASSETS "ppsspp/assets/"
-
 UIContext::UIContext() {
-	fontStyle_ = new PUI::FontStyle();
+	fontStyle_ = new UI::FontStyle();
 	bounds_ = Bounds(0, 0, dp_xres, dp_yres);
 }
 
@@ -37,11 +37,8 @@ void UIContext::Init(Draw::DrawContext *thin3d, Draw::Pipeline *uipipe, Draw::Pi
 
 void UIContext::BeginFrame() {
 	if (!uitexture_) {
-		uitexture_ = CreateTextureFromFile(draw_,PPSSPP_ASSETS "ui_atlas.zim", ImageFileType::ZIM, false);
-		if (!uitexture_) {
-			PanicAlert("Failed to load ui_atlas.zim.\n\nPlace it in the directory \"assets\" under your PPSSPP directory.");
-			FLOG("Failed to load ui_atlas.zim");
-		}
+		uitexture_ = CreateTextureFromFile(draw_, "ui_atlas.zim", ImageFileType::ZIM, false);
+		_dbg_assert_msg_(uitexture_, "Failed to load ui_atlas.zim.\n\nPlace it in the directory \"assets\" under your PPSSPP directory.");
 	}
 	uidrawbufferTop_->SetCurZ(0.0f);
 	uidrawbuffer_->SetCurZ(0.0f);
@@ -49,9 +46,7 @@ void UIContext::BeginFrame() {
 }
 
 void UIContext::Begin() {
-	draw_->BindSamplerStates(0, 1, &sampler_);
-	draw_->BindTexture(0, uitexture_->GetTexture());
-	UIBegin(ui_pipeline_);
+	BeginPipeline(ui_pipeline_, sampler_);
 }
 
 void UIContext::BeginNoTex() {
@@ -60,13 +55,14 @@ void UIContext::BeginNoTex() {
 }
 
 void UIContext::BeginPipeline(Draw::Pipeline *pipeline, Draw::SamplerState *samplerState) {
-	draw_->BindSamplerStates(0, 1, &sampler_);
-	draw_->BindTexture(0, uitexture_->GetTexture());
+	draw_->BindSamplerStates(0, 1, &samplerState);
+	RebindTexture();
 	UIBegin(pipeline);
 }
 
 void UIContext::RebindTexture() const {
-	draw_->BindTexture(0, uitexture_->GetTexture());
+	if (uitexture_)
+		draw_->BindTexture(0, uitexture_->GetTexture());
 }
 
 void UIContext::Flush() {
@@ -108,6 +104,25 @@ Bounds UIContext::GetScissorBounds() {
 		return bounds_;
 }
 
+Bounds UIContext::GetLayoutBounds() const {
+	Bounds bounds = GetBounds();
+
+	float left = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_LEFT);
+	float right = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_RIGHT);
+	float top = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_TOP);
+	float bottom = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_BOTTOM);
+
+	// ILOG("Insets: %f %f %f %f", left, right, top, bottom);
+
+	// Adjust left edge to compensate for cutouts (notches) if any.
+	bounds.x += left;
+	bounds.w -= (left + right);
+	bounds.y += top;
+	bounds.h -= (top + bottom);
+
+	return bounds;
+}
+
 void UIContext::ActivateTopScissor() {
 	Bounds bounds;
 	if (scissorStack_.size()) {
@@ -130,7 +145,7 @@ void UIContext::SetFontScale(float scaleX, float scaleY) {
 	fontScaleY_ = scaleY;
 }
 
-void UIContext::SetFontStyle(const PUI::FontStyle &fontStyle) {
+void UIContext::SetFontStyle(const UI::FontStyle &fontStyle) {
 	*fontStyle_ = fontStyle;
 	if (textDrawer_) {
 		textDrawer_->SetFontScale(fontScaleX_, fontScaleY_);
@@ -138,11 +153,11 @@ void UIContext::SetFontStyle(const PUI::FontStyle &fontStyle) {
 	}
 }
 
-void UIContext::MeasureText(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align) const {
+void UIContext::MeasureText(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align) const {
 	MeasureTextCount(style, scaleX, scaleY, str, (int)strlen(str), x, y, align);
 }
 
-void UIContext::MeasureTextCount(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align) const {
+void UIContext::MeasureTextCount(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
 		float sizeFactor = (float)style.sizePts / 24.0f;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
@@ -155,7 +170,7 @@ void UIContext::MeasureTextCount(const PUI::FontStyle &style, float scaleX, floa
 	}
 }
 
-void UIContext::MeasureTextRect(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align) const {
+void UIContext::MeasureTextRect(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
 		float sizeFactor = (float)style.sizePts / 24.0f;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
@@ -201,28 +216,30 @@ void UIContext::DrawTextRect(const char *str, const Bounds &bounds, uint32_t col
 	}
 }
 
-void UIContext::FillRect(const PUI::Drawable &drawable, const Bounds &bounds) {
+void UIContext::FillRect(const UI::Drawable &drawable, const Bounds &bounds) {
 	// Only draw if alpha is non-zero.
 	if ((drawable.color & 0xFF000000) == 0)
 		return;
 
 	switch (drawable.type) {
-	case PUI::DRAW_SOLID_COLOR:
+	case UI::DRAW_SOLID_COLOR:
 		uidrawbuffer_->DrawImageStretch(theme->whiteImage, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case PUI::DRAW_4GRID:
+	case UI::DRAW_4GRID:
 		uidrawbuffer_->DrawImage4Grid(drawable.image, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case PUI::DRAW_STRETCH_IMAGE:
+	case UI::DRAW_STRETCH_IMAGE:
 		uidrawbuffer_->DrawImageStretch(drawable.image, bounds.x, bounds.y, bounds.x2(), bounds.y2(), drawable.color);
 		break;
-	case PUI::DRAW_NOTHING:
+	case UI::DRAW_NOTHING:
 		break;
 	} 
 }
 
 void UIContext::PushTransform(const UITransform &transform) {
 	Flush();
+
+	using namespace Lin;
 
 	Matrix4x4 m = Draw()->GetDrawMatrix();
 	const Vec3 &t = transform.translate;

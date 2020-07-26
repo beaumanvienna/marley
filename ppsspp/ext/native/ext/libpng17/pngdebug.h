@@ -17,11 +17,11 @@
  * only been added since version 0.95 so it is not implemented throughout
  * libpng yet, but more support will be added as needed.
  *
- * Ppng_debug[1-2]?(level, message ,arg{0-2})
+ * png_debug[1-2]?(level, message ,arg{0-2})
  *   Expands to a statement (either a simple expression or a compound
  *   do..while(0) statement) that outputs a message with parameter
  *   substitution if PNG_DEBUG is defined to 2 or more.  If PNG_DEBUG
- *   is undefined, 0 or 1 every Ppng_debug expands to a simple expression
+ *   is undefined, 0 or 1 every png_debug expands to a simple expression
  *   (actually ((void)0)).
  *
  *   level: level of detail of message, starting at 0.  A level 'n'
@@ -57,14 +57,14 @@
 #        ifndef _DEBUG
 #          define _DEBUG
 #        endif
-#        ifndef Ppng_debug
-#          define Ppng_debug(l,m)  _RPT0(_CRT_WARN,m PNG_STRING_NEWLINE)
+#        ifndef png_debug
+#          define png_debug(l,m)  _RPT0(_CRT_WARN,m PNG_STRING_NEWLINE)
 #        endif
-#        ifndef Ppng_debug1
-#          define Ppng_debug1(l,m,p1)  _RPT1(_CRT_WARN,m PNG_STRING_NEWLINE,p1)
+#        ifndef png_debug1
+#          define png_debug1(l,m,p1)  _RPT1(_CRT_WARN,m PNG_STRING_NEWLINE,p1)
 #        endif
-#        ifndef Ppng_debug2
-#          define Ppng_debug2(l,m,p1,p2) \
+#        ifndef png_debug2
+#          define png_debug2(l,m,p1,p2) \
              _RPT2(_CRT_WARN,m PNG_STRING_NEWLINE,p1,p2)
 #        endif
 #      endif
@@ -78,24 +78,24 @@
 
 #      if (PNG_DEBUG > 1)
 #        ifdef __STDC__
-#          ifndef Ppng_debug
-#            define Ppng_debug(l,m) \
+#          ifndef png_debug
+#            define png_debug(l,m) \
        do { \
        int num_tabs=l; \
        fprintf(PNG_DEBUG_FILE,"%s" m PNG_STRING_NEWLINE,(num_tabs==1 ? "   " : \
          (num_tabs==2 ? "      " : (num_tabs>2 ? "         " : "")))); \
        } while (0)
 #          endif
-#          ifndef Ppng_debug1
-#            define Ppng_debug1(l,m,p1) \
+#          ifndef png_debug1
+#            define png_debug1(l,m,p1) \
        do { \
        int num_tabs=l; \
        fprintf(PNG_DEBUG_FILE,"%s" m PNG_STRING_NEWLINE,(num_tabs==1 ? "   " : \
          (num_tabs==2 ? "      " : (num_tabs>2 ? "         " : ""))),p1); \
        } while (0)
 #          endif
-#          ifndef Ppng_debug2
-#            define Ppng_debug2(l,m,p1,p2) \
+#          ifndef png_debug2
+#            define png_debug2(l,m,p1,p2) \
        do { \
        int num_tabs=l; \
        fprintf(PNG_DEBUG_FILE,"%s" m PNG_STRING_NEWLINE,(num_tabs==1 ? "   " : \
@@ -103,8 +103,8 @@
        } while (0)
 #          endif
 #        else /* __STDC __ */
-#          ifndef Ppng_debug
-#            define Ppng_debug(l,m) \
+#          ifndef png_debug
+#            define png_debug(l,m) \
        do { \
        int num_tabs=l; \
        char format[256]; \
@@ -114,8 +114,8 @@
        fprintf(PNG_DEBUG_FILE,format); \
        } while (0)
 #          endif
-#          ifndef Ppng_debug1
-#            define Ppng_debug1(l,m,p1) \
+#          ifndef png_debug1
+#            define png_debug1(l,m,p1) \
        do { \
        int num_tabs=l; \
        char format[256]; \
@@ -125,8 +125,8 @@
        fprintf(PNG_DEBUG_FILE,format,p1); \
        } while (0)
 #          endif
-#          ifndef Ppng_debug2
-#            define Ppng_debug2(l,m,p1,p2) \
+#          ifndef png_debug2
+#            define png_debug2(l,m,p1,p2) \
        do { \
        int num_tabs=l; \
        char format[256]; \
@@ -142,13 +142,13 @@
 #    endif /* _MSC_VER */
 #  endif /* (PNG_DEBUG > 0) */
 #endif /* PNG_DEBUG */
-#ifndef Ppng_debug
-#  define Ppng_debug(l, m) ((void)0)
+#ifndef png_debug
+#  define png_debug(l, m) ((void)0)
 #endif
-#ifndef Ppng_debug1
-#  define Ppng_debug1(l, m, p1) ((void)0)
+#ifndef png_debug1
+#  define png_debug1(l, m, p1) ((void)0)
 #endif
-#ifndef Ppng_debug2
-#  define Ppng_debug2(l, m, p1, p2) ((void)0)
+#ifndef png_debug2
+#  define png_debug2(l, m, p1, p2) ((void)0)
 #endif
 #endif /* PNGDEBUG_H */

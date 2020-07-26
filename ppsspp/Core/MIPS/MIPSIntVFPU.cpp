@@ -213,7 +213,7 @@ namespace MIPSInt
 			{
 				if (addr & 0x3)
 				{
-					_dbg_assert_msg_(CPU, 0, "Misaligned lvX.q");
+					_dbg_assert_msg_( 0, "Misaligned lvX.q at %08x (pc = %08x)", addr, PC);
 				}
 				float d[4];
 				ReadVector(d, V_Quad, vt);
@@ -223,7 +223,7 @@ namespace MIPSInt
 					// It's an LVL
 					for (int i = 0; i < offset + 1; i++)
 					{
-						d[3 - i] = Memory_P::Read_Float(addr - 4 * i);
+						d[3 - i] = Memory::Read_Float(addr - 4 * i);
 					}
 				}
 				else
@@ -231,7 +231,7 @@ namespace MIPSInt
 					// It's an LVR
 					for (int i = 0; i < (3 - offset) + 1; i++)
 					{
-						d[i] = Memory_P::Read_Float(addr + 4 * i);
+						d[i] = Memory::Read_Float(addr + 4 * i);
 					}
 				}
 				WriteVector(d, V_Quad, vt);
@@ -241,17 +241,17 @@ namespace MIPSInt
 		case 54: //lv.q
 			if (addr & 0xF)
 			{
-				_dbg_assert_msg_(CPU, 0, "Misaligned lv.q");
+				_dbg_assert_msg_( 0, "Misaligned lv.q at %08x (pc = %08x)", addr, PC);
 			}
 #ifndef COMMON_BIG_ENDIAN
-			WriteVector((const float*)Memory_P::GetPointer(addr), V_Quad, vt);
+			WriteVector((const float*)Memory::GetPointer(addr), V_Quad, vt);
 #else
 			float lvqd[4];
 
-			lvqd[0] = Memory_P::Read_Float(addr);
-			lvqd[1] = Memory_P::Read_Float(addr + 4);
-			lvqd[2] = Memory_P::Read_Float(addr + 8);
-			lvqd[3] = Memory_P::Read_Float(addr + 12);
+			lvqd[0] = Memory::Read_Float(addr);
+			lvqd[1] = Memory::Read_Float(addr + 4);
+			lvqd[2] = Memory::Read_Float(addr + 8);
+			lvqd[3] = Memory::Read_Float(addr + 12);
 
 			WriteVector(lvqd, V_Quad, vt);
 #endif
@@ -261,7 +261,7 @@ namespace MIPSInt
 			{
 				if (addr & 0x3)
 				{
-					_dbg_assert_msg_(CPU, 0, "Misaligned svX.q");
+					_dbg_assert_msg_( 0, "Misaligned svX.q at %08x (pc = %08x)", addr, PC);
 				}
 				float d[4];
 				ReadVector(d, V_Quad, vt);
@@ -271,7 +271,7 @@ namespace MIPSInt
 					// It's an SVL
 					for (int i = 0; i < offset + 1; i++)
 					{
-						Memory_P::Write_Float(d[3 - i], addr - i * 4);
+						Memory::Write_Float(d[3 - i], addr - i * 4);
 					}
 				}
 				else
@@ -279,7 +279,7 @@ namespace MIPSInt
 					// It's an SVR
 					for (int i = 0; i < (3 - offset) + 1; i++)
 					{
-						Memory_P::Write_Float(d[i], addr + 4 * i);
+						Memory::Write_Float(d[i], addr + 4 * i);
 					}
 				}
 				break;
@@ -288,23 +288,23 @@ namespace MIPSInt
 		case 62: //sv.q
 			if (addr & 0xF)
 			{
-				_dbg_assert_msg_(CPU, 0, "Misaligned sv.q");
+				_dbg_assert_msg_( 0, "Misaligned sv.q at %08x (pc = %08x)", addr, PC);
 			}
 #ifndef COMMON_BIG_ENDIAN
-			ReadVector(reinterpret_cast<float *>(Memory_P::GetPointer(addr)), V_Quad, vt);
+			ReadVector(reinterpret_cast<float *>(Memory::GetPointer(addr)), V_Quad, vt);
 #else
 			float svqd[4];
 			ReadVector(svqd, V_Quad, vt);
 
-			Memory_P::Write_Float(svqd[0], addr);
-			Memory_P::Write_Float(svqd[1], addr + 4);
-			Memory_P::Write_Float(svqd[2], addr + 8);
-			Memory_P::Write_Float(svqd[3], addr + 12);
+			Memory::Write_Float(svqd[0], addr);
+			Memory::Write_Float(svqd[1], addr + 4);
+			Memory::Write_Float(svqd[2], addr + 8);
+			Memory::Write_Float(svqd[3], addr + 12);
 #endif
 			break;
 
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret VQ instruction that can't be interpreted");
+			_dbg_assert_msg_(false,"Trying to interpret VQ instruction that can't be interpreted");
 			break;
 		}
 		PC += 4;
@@ -338,7 +338,7 @@ namespace MIPSInt
 		case 6: m=zero; break;             // vmzero
 		case 7: m=one; break;              // vmone
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 			PC += 4;
 			EatPrefixes();
 			return;
@@ -369,7 +369,7 @@ namespace MIPSInt
 				sprefixAdd = VFPU_MAKE_CONSTANTS(VFPUConst::ONE, VFPUConst::ONE, VFPUConst::ONE, VFPUConst::ONE);
 				break;
 			default:
-				_dbg_assert_msg_(CPU, 0, "Unknown matrix init op");
+				_dbg_assert_msg_( 0, "Unknown matrix init op");
 				break;
 			}
 			ApplyPrefixST(&prefixed[off * 4], VFPURewritePrefix(VFPU_CTRL_SPREFIX, sprefixRemove, sprefixAdd), V_Quad);
@@ -393,7 +393,7 @@ namespace MIPSInt
 		case 6: constant = VFPUConst::ZERO; break;  //vzero
 		case 7: constant = VFPUConst::ONE; break;   //vone
 		default:
-			_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( 0, "Trying to interpret instruction that can't be interpreted");
 			PC += 4;
 			EatPrefixes();
 			return;
@@ -422,7 +422,7 @@ namespace MIPSInt
 		} else if (type == 7) {
 			f[0] = Float16ToFloat32((u16)uimm16);   // vfim
 		} else {
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( 0, "Invalid Viim opcode type %d", type);
 			f[0] = 0;
 		}
 		
@@ -634,7 +634,7 @@ namespace MIPSInt
 			case 26: { d[i] = -vfpu_sin(s[i]); } break; // vnsin
 			case 28: d[i] = 1.0f / powf(2.0, s[i]); break; // vrexp2
 			default:
-				_dbg_assert_msg_(CPU,0,"Trying to interpret VV2Op instruction that can't be interpreted");
+				_dbg_assert_msg_( false, "Invalid VV2Op op type %d", optype);
 				break;
 			}
 		}
@@ -993,7 +993,7 @@ namespace MIPSInt
 			break;
 
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( false, "Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 
@@ -1051,7 +1051,7 @@ namespace MIPSInt
 			case V_Pair: oz = V_Single; break;
 			case V_Single: oz = V_Single; break;
 			default:
-				_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+				_dbg_assert_msg_( false, "Trying to interpret instruction that can't be interpreted");
 				oz = V_Single;
 				break;
 			}
@@ -1070,13 +1070,13 @@ namespace MIPSInt
 			case V_Pair: oz = V_Single; break;
 			case V_Single: oz = V_Single; break;
 			default:
-				_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+				_dbg_assert_msg_( 0, "Trying to interpret instruction that can't be interpreted");
 				oz = V_Single;
 				break;
 			}
 			break;
 		default:
-			_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( 0, "Trying to interpret instruction that can't be interpreted");
 			oz = V_Single;
 			break;
 		}
@@ -1550,7 +1550,7 @@ namespace MIPSInt
 			case 1: d.u[i] = currentMIPS->rng.R32(); break;  // vrndi
 			case 2: d.f[i] = 1.0f + ((float)currentMIPS->rng.R32() / 0xFFFFFFFF); break; // vrndf1   TODO: make more accurate
 			case 3: d.f[i] = 2.0f + 2 * ((float)currentMIPS->rng.R32() / 0xFFFFFFFF); break; // vrndf2   TODO: make more accurate
-			default: _dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			default: _dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 			}
 		}
 		// D prefix is broken and applies to the last element only (mask and sat.)
@@ -1718,13 +1718,13 @@ namespace MIPSInt
 		switch (op >> 26)
 		{
 		case 50: //lv.s
-			VI(vt) = Memory_P::PRead_U32(addr);
+			VI(vt) = Memory::Read_U32(addr);
 			break;
 		case 58: //sv.s
-			Memory_P::PWrite_U32(VI(vt), addr);
+			Memory::Write_U32(VI(vt), addr);
 			break;
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 		PC += 4;
@@ -1746,7 +1746,7 @@ namespace MIPSInt
 					R(rt) = currentMIPS->vfpuCtrl[imm - 128];
 				} else {
 					//ERROR - maybe need to make this value too an "interlock" value?
-					_dbg_assert_msg_(CPU,0,"mfv - invalid register");
+					_dbg_assert_msg_(false,"mfv - invalid register");
 				}
 			}
 			break;
@@ -1761,12 +1761,12 @@ namespace MIPSInt
 				}
 			} else {
 				//ERROR
-				_dbg_assert_msg_(CPU,0,"mtv - invalid register");
+				_dbg_assert_msg_(false,"mtv - invalid register");
 			}
 			break;
 
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 		PC += 4;
@@ -1853,7 +1853,7 @@ namespace MIPSInt
 			case VC_NS: c = !(my_isnanorinf(s[i])); break;   // How about t[i] ?
 
 			default:
-				_dbg_assert_msg_(CPU,0,"Unsupported vcmp condition code %d", cond);
+				_dbg_assert_msg_(false,"Unsupported vcmp condition code %d", cond);
 				PC += 4;
 				EatPrefixes();
 				return;
@@ -1920,7 +1920,7 @@ namespace MIPSInt
 			}
 			break;
 		default:
-			_dbg_assert_msg_(CPU,0,"unknown min/max op %d", cond);
+			_dbg_assert_msg_(false,"unknown min/max op %d", cond);
 			PC += 4;
 			EatPrefixes();
 			return;
@@ -2075,7 +2075,7 @@ namespace MIPSInt
 			break;
 		default:
 		bad:
-			_dbg_assert_msg_(CPU, 0, "Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_( 0, "Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 

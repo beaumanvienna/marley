@@ -27,7 +27,7 @@
 #define PNG_ERROR_MODE      8
 
 void PNGAPI
-Ppng_process_data(png_structrp png_ptr, png_inforp info_ptr,
+png_process_data(png_structrp png_ptr, png_inforp info_ptr,
     png_bytep buffer, png_size_t buffer_size)
 {
    if (png_ptr == NULL || info_ptr == NULL)
@@ -42,7 +42,7 @@ Ppng_process_data(png_structrp png_ptr, png_inforp info_ptr,
 }
 
 png_size_t PNGAPI
-Ppng_process_data_pause(png_structrp png_ptr, int save)
+png_process_data_pause(png_structrp png_ptr, int save)
 {
    if (png_ptr != NULL)
    {
@@ -69,27 +69,27 @@ Ppng_process_data_pause(png_structrp png_ptr, int save)
 }
 
 png_uint_32 PNGAPI
-Ppng_process_data_skip(png_structrp png_ptr)
+png_process_data_skip(png_structrp png_ptr)
 {
    png_uint_32 remaining = 0;
 
    if (png_ptr != NULL && png_ptr->process_mode == PNG_SKIP_MODE &&
       png_ptr->skip_length > 0)
    {
-      /* At the end of Ppng_process_data the buffer size must be 0 (see the loop
+      /* At the end of png_process_data the buffer size must be 0 (see the loop
        * above) so we can detect a broken call here:
        */
       if (png_ptr->buffer_size != 0)
-         Ppng_error(png_ptr,
-            "Ppng_process_data_skip called inside Ppng_process_data");
+         png_error(png_ptr,
+            "png_process_data_skip called inside png_process_data");
 
       /* If is impossible for there to be a saved buffer at this point -
        * otherwise we could not be in SKIP mode.  This will also happen if
-       * png_process_skip is called inside Ppng_process_data (but only very
+       * png_process_skip is called inside png_process_data (but only very
        * rarely.)
        */
       if (png_ptr->save_buffer_size != 0)
-         Ppng_error(png_ptr, "Ppng_process_data_skip called with saved data");
+         png_error(png_ptr, "png_process_data_skip called with saved data");
 
       remaining = png_ptr->skip_length;
       png_ptr->skip_length = 0;
@@ -163,14 +163,14 @@ png_push_read_sig(png_structrp png_ptr, png_inforp info_ptr)
        num_to_check);
    png_ptr->sig_bytes = (png_byte)(png_ptr->sig_bytes + num_to_check);
 
-   if (Ppng_sig_cmp(info_ptr->signature, num_checked, num_to_check))
+   if (png_sig_cmp(info_ptr->signature, num_checked, num_to_check))
    {
       if (num_checked < 4 &&
-          Ppng_sig_cmp(info_ptr->signature, num_checked, num_to_check - 4))
-         Ppng_error(png_ptr, "Not a PNG file");
+          png_sig_cmp(info_ptr->signature, num_checked, num_to_check - 4))
+         png_error(png_ptr, "Not a PNG file");
 
       else
-         Ppng_error(png_ptr, "PNG file corrupted by ASCII conversion");
+         png_error(png_ptr, "PNG file corrupted by ASCII conversion");
    }
    else
    {
@@ -207,7 +207,7 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
       }
 
       png_push_fill_buffer(png_ptr, chunk_length, 4);
-      png_ptr->push_length = Ppng_get_uint_31(png_ptr, chunk_length);
+      png_ptr->push_length = png_get_uint_31(png_ptr, chunk_length);
       png_reset_crc(png_ptr);
       png_crc_read(png_ptr, chunk_tag, 4);
       png_ptr->chunk_name = PNG_CHUNK_FROM_STRING(chunk_tag);
@@ -227,11 +227,11 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
        * is called after the image has been read - we have an error).
        */
       if (!(png_ptr->mode & PNG_HAVE_IHDR))
-         Ppng_error(png_ptr, "Missing IHDR before IDAT");
+         png_error(png_ptr, "Missing IHDR before IDAT");
 
       else if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE &&
           !(png_ptr->mode & PNG_HAVE_PLTE))
-         Ppng_error(png_ptr, "Missing PLTE before IDAT");
+         png_error(png_ptr, "Missing PLTE before IDAT");
 
       png_ptr->mode |= PNG_HAVE_IDAT;
       png_ptr->process_mode = PNG_READ_IDAT_MODE;
@@ -241,13 +241,13 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
             return;
 
       if (png_ptr->mode & PNG_AFTER_IDAT)
-         Ppng_benign_error(png_ptr, "Too many IDATs found[p]");
+         png_benign_error(png_ptr, "Too many IDATs found[p]");
    }
 
    if (chunk_name == png_IHDR)
    {
       if (png_ptr->push_length != 13)
-         Ppng_error(png_ptr, "Invalid IHDR length");
+         png_error(png_ptr, "Invalid IHDR length");
 
       if (png_ptr->push_length + 4 > png_ptr->buffer_size)
       {
@@ -684,22 +684,22 @@ png_push_save_buffer(png_structrp png_ptr)
       if (png_ptr->save_buffer_size > PNG_SIZE_MAX -
           (png_ptr->current_buffer_size + 256))
       {
-         Ppng_error(png_ptr, "Potential overflow of save_buffer");
+         png_error(png_ptr, "Potential overflow of save_buffer");
       }
 
       new_max = png_ptr->save_buffer_size + png_ptr->current_buffer_size + 256;
       old_buffer = png_ptr->save_buffer;
-      png_ptr->save_buffer = (png_bytep)Ppng_malloc_warn(png_ptr,
+      png_ptr->save_buffer = (png_bytep)png_malloc_warn(png_ptr,
           (png_size_t)new_max);
 
       if (png_ptr->save_buffer == NULL)
       {
-         Ppng_free(png_ptr, old_buffer);
-         Ppng_error(png_ptr, "Insufficient memory for save_buffer");
+         png_free(png_ptr, old_buffer);
+         png_error(png_ptr, "Insufficient memory for save_buffer");
       }
 
       memcpy(png_ptr->save_buffer, old_buffer, png_ptr->save_buffer_size);
-      Ppng_free(png_ptr, old_buffer);
+      png_free(png_ptr, old_buffer);
       png_ptr->save_buffer_max = new_max;
    }
    if (png_ptr->current_buffer_size)
@@ -739,7 +739,7 @@ png_push_read_IDAT(png_structrp png_ptr)
       }
 
       png_push_fill_buffer(png_ptr, chunk_length, 4);
-      png_ptr->push_length = Ppng_get_uint_31(png_ptr, chunk_length);
+      png_ptr->push_length = png_get_uint_31(png_ptr, chunk_length);
       png_reset_crc(png_ptr);
       png_crc_read(png_ptr, chunk_tag, 4);
       png_ptr->chunk_name = PNG_CHUNK_FROM_STRING(chunk_tag);
@@ -750,7 +750,7 @@ png_push_read_IDAT(png_structrp png_ptr)
          png_ptr->process_mode = PNG_READ_CHUNK_MODE;
 
          if (!(png_ptr->flags & PNG_FLAG_ZSTREAM_ENDED))
-            Ppng_error(png_ptr, "Not enough compressed data");
+            png_error(png_ptr, "Not enough compressed data");
 
          return;
       }
@@ -831,7 +831,7 @@ png_process_IDAT_data(png_structrp png_ptr, png_bytep buffer,
 {
    /* The caller checks for a non-zero buffer length. */
    if (!(buffer_length > 0) || buffer == NULL)
-      Ppng_error(png_ptr, "No IDAT data (internal error)");
+      png_error(png_ptr, "No IDAT data (internal error)");
 
    /* This routine must process all the data it has been given
     * before returning, calling the row callback as required to
@@ -884,10 +884,10 @@ png_process_IDAT_data(png_structrp png_ptr, png_bytep buffer,
           */
          if (png_ptr->row_number >= png_ptr->num_rows ||
              png_ptr->pass > 6)
-            Ppng_warning(png_ptr, "Truncated compressed data in IDAT");
+            png_warning(png_ptr, "Truncated compressed data in IDAT");
 
          else
-            Ppng_error(png_ptr, "Decompression error in IDAT");
+            png_error(png_ptr, "Decompression error in IDAT");
 
          /* Skip the check on unprocessed input */
          return;
@@ -904,7 +904,7 @@ png_process_IDAT_data(png_structrp png_ptr, png_bytep buffer,
              png_ptr->pass > 6)
          {
             /* Extra data. */
-            Ppng_warning(png_ptr, "Extra compressed data in IDAT");
+            png_warning(png_ptr, "Extra compressed data in IDAT");
             png_ptr->flags |= PNG_FLAG_ZSTREAM_ENDED;
             png_ptr->zowner = 0;
 
@@ -929,7 +929,7 @@ png_process_IDAT_data(png_structrp png_ptr, png_bytep buffer,
     * after the zlib end code.
     */
    if (png_ptr->zstream.avail_in > 0)
-      Ppng_warning(png_ptr, "Extra compression data in IDAT");
+      png_warning(png_ptr, "Extra compression data in IDAT");
 }
 
 void /* PRIVATE */
@@ -951,7 +951,7 @@ png_push_process_row(png_structrp png_ptr)
          png_read_filter_row(png_ptr, &row_info, png_ptr->row_buf + 1,
             png_ptr->prev_row + 1, png_ptr->row_buf[0]);
       else
-         Ppng_error(png_ptr, "bad adaptive filter value");
+         png_error(png_ptr, "bad adaptive filter value");
    }
 
    /* libpng 1.5.6: the following line was copying png_ptr->rowbytes before
@@ -971,11 +971,11 @@ png_push_process_row(png_structrp png_ptr)
    {
       png_ptr->transformed_pixel_depth = row_info.pixel_depth;
       if (row_info.pixel_depth > png_ptr->maximum_pixel_depth)
-         Ppng_error(png_ptr, "progressive row overflow");
+         png_error(png_ptr, "progressive row overflow");
    }
 
    else if (png_ptr->transformed_pixel_depth != row_info.pixel_depth)
-      Ppng_error(png_ptr, "internal progressive row size calculation error");
+      png_error(png_ptr, "internal progressive row size calculation error");
 
 
 #ifdef PNG_READ_INTERLACING_SUPPORTED
@@ -1251,7 +1251,7 @@ png_push_have_row(png_structrp png_ptr, png_bytep row)
 
 #ifdef PNG_READ_INTERLACING_SUPPORTED
 void PNGAPI
-Ppng_progressive_combine_row(png_const_structrp png_ptr, png_bytep old_row,
+png_progressive_combine_row(png_const_structrp png_ptr, png_bytep old_row,
     png_const_bytep new_row)
 {
    if (png_ptr == NULL)
@@ -1267,7 +1267,7 @@ Ppng_progressive_combine_row(png_const_structrp png_ptr, png_bytep old_row,
 #endif /* PNG_READ_INTERLACING_SUPPORTED */
 
 void PNGAPI
-Ppng_set_progressive_read_fn(png_structrp png_ptr, png_voidp progressive_ptr,
+png_set_progressive_read_fn(png_structrp png_ptr, png_voidp progressive_ptr,
     png_progressive_info_ptr info_fn, png_progressive_row_ptr row_fn,
     png_progressive_end_ptr end_fn)
 {
@@ -1278,11 +1278,11 @@ Ppng_set_progressive_read_fn(png_structrp png_ptr, png_voidp progressive_ptr,
    png_ptr->row_fn = row_fn;
    png_ptr->end_fn = end_fn;
 
-   Ppng_set_read_fn(png_ptr, progressive_ptr, png_push_fill_buffer);
+   png_set_read_fn(png_ptr, progressive_ptr, png_push_fill_buffer);
 }
 
 png_voidp PNGAPI
-Ppng_get_progressive_ptr(png_const_structrp png_ptr)
+png_get_progressive_ptr(png_const_structrp png_ptr)
 {
    if (png_ptr == NULL)
       return (NULL);

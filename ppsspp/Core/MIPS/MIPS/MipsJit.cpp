@@ -112,7 +112,7 @@ void MipsJit::CompileDelaySlot(int flags)
 	//	Save flags here
 
 	js.inDelaySlot = true;
-	MIPSOpcode op = Memory_P::Read_Opcode_JIT(js.compilerPC + 4);
+	MIPSOpcode op = Memory::Read_Opcode_JIT(js.compilerPC + 4);
 	MIPSCompileOp(op, this);
 	js.inDelaySlot = false;
 
@@ -171,7 +171,7 @@ const u8 *MipsJit::DoJit(u32 em_address, JitBlock *b)
 	js.numInstructions = 0;
 	while (js.compiling)
 	{
-		MIPSOpcode inst = Memory_P::Read_Opcode_JIT(js.compilerPC);
+		MIPSOpcode inst = Memory::Read_Opcode_JIT(js.compilerPC);
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst, this);
@@ -180,7 +180,7 @@ const u8 *MipsJit::DoJit(u32 em_address, JitBlock *b)
 		js.numInstructions++;
 
 		// Safety check, in case we get a bunch of really large jit ops without a lot of branching.
-		if (GetSpaceLeft() < 0x800 || js.numInstructions >= PJitBlockCache::MAX_BLOCK_INSTRUCTIONS)
+		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS)
 		{
 			FlushAll();
 			WriteExit(js.compilerPC, js.nextExit++);
@@ -295,7 +295,7 @@ void MipsJit::WriteExit(u32 destination, int exit_num)
 	//WriteDownCount();
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = PGetWritableCodePtr();
+	b->exitPtrs[exit_num] = GetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);

@@ -114,10 +114,10 @@ void __PowerInit() {
 	volatileMemLocked = false;
 	volatileWaitingThreads.clear();
 
-	if (g_PConfig.iLockedCPUSpeed > 0) {
-		pllFreq = PowerPllMhzToHz(g_PConfig.iLockedCPUSpeed);
+	if (g_Config.iLockedCPUSpeed > 0) {
+		pllFreq = PowerPllMhzToHz(g_Config.iLockedCPUSpeed);
 		busFreq = PowerBusMhzToHz(pllFreq / 2000000);
-		CoreTiming_P::SetClockFrequencyHz(PowerCpuMhzToHz(g_PConfig.iLockedCPUSpeed, pllFreq));
+		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
 	} else {
 		pllFreq = PowerPllMhzToHz(222);
 		busFreq = PowerBusMhzToHz(111);
@@ -143,10 +143,10 @@ void __PowerDoState(PointerWrap &p) {
 		RealpllFreq = PowerPllMhzToHz(222);
 		RealbusFreq = PowerBusMhzToHz(111);
 	}
-	if (g_PConfig.iLockedCPUSpeed > 0) {
-		pllFreq = PowerPllMhzToHz(g_PConfig.iLockedCPUSpeed);
+	if (g_Config.iLockedCPUSpeed > 0) {
+		pllFreq = PowerPllMhzToHz(g_Config.iLockedCPUSpeed);
 		busFreq = PowerBusMhzToHz(pllFreq / 2000000);
-		CoreTiming_P::SetClockFrequencyHz(PowerCpuMhzToHz(g_PConfig.iLockedCPUSpeed, pllFreq));
+		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
 	} else {
 		pllFreq = RealpllFreq;
 		busFreq = RealbusFreq;
@@ -294,11 +294,11 @@ static int __KernelVolatileMemLock(int type, u32 paddr, u32 psize) {
 	// Volatile RAM is always at 0x08400000 and is of size 0x00400000.
 	// It's always available in the emu.
 	// TODO: Should really reserve this properly!
-	if (Memory_P::IsValidAddress(paddr)) {
-		Memory_P::PWrite_U32(0x08400000, paddr);
+	if (Memory::IsValidAddress(paddr)) {
+		Memory::Write_U32(0x08400000, paddr);
 	}
-	if (Memory_P::IsValidAddress(psize)) {
-		Memory_P::PWrite_U32(0x00400000, psize);
+	if (Memory::IsValidAddress(psize)) {
+		Memory::Write_U32(0x00400000, psize);
 	}
 	volatileMemLocked = true;
 
@@ -399,16 +399,16 @@ static int sceKernelVolatileMemLock(int type, u32 paddr, u32 psize) {
 	case SCE_KERNEL_ERROR_CAN_NOT_WAIT:
 		{
 			WARN_LOG(HLE, "sceKernelVolatileMemLock(%i, %08x, %08x): dispatch disabled", type, paddr, psize);
-			Memory_P::PWrite_U32(0x08400000, paddr);
-			Memory_P::PWrite_U32(0x00400000, psize);
+			Memory::Write_U32(0x08400000, paddr);
+			Memory::Write_U32(0x00400000, psize);
 		}
 		break;
 
 	case SCE_KERNEL_ERROR_ILLEGAL_CONTEXT:
 		{
 			WARN_LOG(HLE, "sceKernelVolatileMemLock(%i, %08x, %08x): in interrupt", type, paddr, psize);
-			Memory_P::PWrite_U32(0x08400000, paddr);
-			Memory_P::PWrite_U32(0x00400000, psize);
+			Memory::Write_U32(0x08400000, paddr);
+			Memory::Write_U32(0x00400000, psize);
 		}
 		break;
 
@@ -433,8 +433,8 @@ static u32 scePowerSetClockFrequency(u32 pllfreq, u32 cpufreq, u32 busfreq) {
 		return hleLogWarning(SCEMISC, SCE_KERNEL_ERROR_INVALID_VALUE, "invalid bus frequency");
 	}
 	// TODO: More restrictions.
-	if (g_PConfig.iLockedCPUSpeed > 0) {
-		INFO_LOG(HLE, "scePowerSetClockFrequency(%i,%i,%i): locked by user config at %i, %i, %i", pllfreq, cpufreq, busfreq, g_PConfig.iLockedCPUSpeed, g_PConfig.iLockedCPUSpeed, busFreq);
+	if (g_Config.iLockedCPUSpeed > 0) {
+		INFO_LOG(HLE, "scePowerSetClockFrequency(%i,%i,%i): locked by user config at %i, %i, %i", pllfreq, cpufreq, busfreq, g_Config.iLockedCPUSpeed, g_Config.iLockedCPUSpeed, busFreq);
 	} else {
 		INFO_LOG(HLE, "scePowerSetClockFrequency(%i,%i,%i)", pllfreq, cpufreq, busfreq);
 	}
@@ -445,10 +445,10 @@ static u32 scePowerSetClockFrequency(u32 pllfreq, u32 cpufreq, u32 busfreq) {
 
 		RealpllFreq = PowerPllMhzToHz(pllfreq);
 		RealbusFreq = PowerBusMhzToHz(RealpllFreq / 2000000);
-		if (g_PConfig.iLockedCPUSpeed <= 0) {
+		if (g_Config.iLockedCPUSpeed <= 0) {
 			pllFreq = RealpllFreq;
 			busFreq = RealbusFreq;
-			CoreTiming_P::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+			CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 		}
 
 		// The delay depends on the source and destination frequency, most are 150ms.
@@ -461,8 +461,8 @@ static u32 scePowerSetClockFrequency(u32 pllfreq, u32 cpufreq, u32 busfreq) {
 
 		return hleDelayResult(0, "scepower set clockFrequency", usec);
 	}
-	if (g_PConfig.iLockedCPUSpeed <= 0)
-		CoreTiming_P::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+	if (g_Config.iLockedCPUSpeed <= 0)
+		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 	return 0;
 }
 
@@ -470,10 +470,10 @@ static u32 scePowerSetCpuClockFrequency(u32 cpufreq) {
 	if (cpufreq == 0 || cpufreq > 333) {
 		return hleLogWarning(SCEMISC, SCE_KERNEL_ERROR_INVALID_VALUE, "invalid frequency");
 	}
-	if (g_PConfig.iLockedCPUSpeed > 0) {
-		return hleLogDebug(SCEMISC, 0, "locked by user config at %i", g_PConfig.iLockedCPUSpeed);
+	if (g_Config.iLockedCPUSpeed > 0) {
+		return hleLogDebug(SCEMISC, 0, "locked by user config at %i", g_Config.iLockedCPUSpeed);
 	}
-	CoreTiming_P::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+	CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 	return hleLogSuccessI(SCEMISC, 0);
 }
 
@@ -481,8 +481,8 @@ static u32 scePowerSetBusClockFrequency(u32 busfreq) {
 	if (busfreq == 0 || busfreq > 111) {
 		return hleLogWarning(SCEMISC, SCE_KERNEL_ERROR_INVALID_VALUE, "invalid frequency");
 	}
-	if (g_PConfig.iLockedCPUSpeed > 0) {
-		return hleLogDebug(SCEMISC, 0, "locked by user config at %i", g_PConfig.iLockedCPUSpeed / 2);
+	if (g_Config.iLockedCPUSpeed > 0) {
+		return hleLogDebug(SCEMISC, 0, "locked by user config at %i", g_Config.iLockedCPUSpeed / 2);
 	}
 
 	// The value passed is validated, but then doesn't seem to matter for the result.
@@ -503,7 +503,7 @@ static u32 scePowerSetBusClockFrequency(u32 busfreq) {
 }
 
 static u32 scePowerGetCpuClockFrequencyInt() {
-	int cpuFreq = CoreTiming_P::GetClockFrequencyHz() / 1000000;
+	int cpuFreq = CoreTiming::GetClockFrequencyHz() / 1000000;
 	return hleLogSuccessI(SCEMISC, cpuFreq);
 }
 
@@ -516,7 +516,7 @@ static u32 scePowerGetBusClockFrequencyInt() {
 }
 
 static float scePowerGetCpuClockFrequencyFloat() {
-	float cpuFreq = CoreTiming_P::GetClockFrequencyHz() / 1000000.0f;
+	float cpuFreq = CoreTiming::GetClockFrequencyHz() / 1000000.0f;
 	DEBUG_LOG(SCEMISC, "%f=scePowerGetCpuClockFrequencyFloat()", (float)cpuFreq);
 	return cpuFreq;
 }
@@ -539,9 +539,9 @@ static int scePowerTick() {
 
 
 static u32 IsPSPNonFat() {
-	DEBUG_LOG(SCEMISC, "%d=scePower_a85880d0_IsPSPNonFat()", g_PConfig.iPSPModel);
+	DEBUG_LOG(SCEMISC, "%d=scePower_a85880d0_IsPSPNonFat()", g_Config.iPSPModel);
 
-	return g_PConfig.iPSPModel;  
+	return g_Config.iPSPModel;  
 }
 
 static const HLEFunction scePower[] = {

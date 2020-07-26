@@ -59,7 +59,7 @@ enum class DestroyType {
 struct JitBlock {
 	bool ContainsAddress(u32 em_address);
 
-	u8 *checkedEntry;  // not const, may need to write through this to unlink
+	const u8 *checkedEntry;  // const, we have to translate to writable.
 	const u8 *normalEntry;
 
 	u8 *exitPtrs[MAX_JIT_BLOCK_EXITS];      // to be able to rewrite the exit jump
@@ -100,20 +100,20 @@ struct JitBlockDebugInfo {
 	std::vector<std::string> targetDisasm;
 };
 
-class PJitBlockCacheDebugInterface {
+class JitBlockCacheDebugInterface {
 public:
 	virtual int GetNumBlocks() const = 0;
 	virtual int GetBlockNumberFromStartAddress(u32 em_address, bool realBlocksOnly = true) const = 0;
 	virtual JitBlockDebugInfo GetBlockDebugInfo(int blockNum) const = 0;
 	virtual void ComputeStats(BlockCacheStats &bcStats) const = 0;
 
-	virtual ~PJitBlockCacheDebugInterface() {}
+	virtual ~JitBlockCacheDebugInterface() {}
 };
 
-class PJitBlockCache : public PJitBlockCacheDebugInterface {
+class JitBlockCache : public JitBlockCacheDebugInterface {
 public:
-	PJitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
-	~PJitBlockCache();
+	JitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
+	~JitBlockCache();
 
 	int AllocateBlock(u32 em_address);
 	// When a proxy block is invalidated, the block located at the rootAddress is invalidated too.

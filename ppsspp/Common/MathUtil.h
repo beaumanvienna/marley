@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace PMathUtil
+namespace MathUtil
 {
 
 #define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))

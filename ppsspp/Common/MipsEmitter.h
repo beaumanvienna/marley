@@ -79,18 +79,18 @@ public:
 	}
 
 	void SetCodePtr(u8 *ptr);
-	void PReserveCodeSpace(u32 bytes);
-	const u8 *PAlignCode16();
-	const u8 *PAlignCodePage();
+	void ReserveCodeSpace(u32 bytes);
+	const u8 *AlignCode16();
+	const u8 *AlignCodePage();
 	const u8 *GetCodePtr() const;
-	u8 *PGetWritableCodePtr();
+	u8 *GetWritableCodePtr();
 	void FlushIcache();
 	void FlushIcacheSection(u8 *start, u8 *end);
 
 	// 20 bits valid in code.
 	void BREAK(u32 code);
 
-	void PNOP() {
+	void NOP() {
 		SLL(R_ZERO, R_ZERO, 0);
 	}
 
@@ -100,7 +100,7 @@ public:
 	//
 	// Example:                        Translates to:
 	//    J(&myFunc);                  J(&myFunc);
-	//    ADDU(V0, V0, V1);            PNOP();
+	//    ADDU(V0, V0, V1);            NOP();
 	//                                 ADDU(V0, V0, V1);
 	//
 	//    J(&myFunc, [&] {             J(&myFunc);
@@ -151,7 +151,7 @@ public:
 	FixupBranch BGTZ(MIPSReg rs, std::function<void ()> delaySlot = nullptr);
 	void BGTZ(MIPSReg rs, const void *func, std::function<void ()> delaySlot = nullptr);
 
-	void PSetJumpTarget(const FixupBranch &branch);
+	void SetJumpTarget(const FixupBranch &branch);
 	bool BInRange(const void *func);
 	bool JInRange(const void *func);
 
@@ -254,7 +254,7 @@ protected:
 		*code32_++ = (v1 << pos1) | (v2 << pos2) | (v3 << pos3) | (v4 << pos5) | (v5 << pos5) | (v6 << pos6);
 	}
 
-	static void PSetJumpTarget(const FixupBranch &branch, const void *dst);
+	static void SetJumpTarget(const FixupBranch &branch, const void *dst);
 	static bool BInRange(const void *src, const void *dst);
 	static bool JInRange(const void *src, const void *dst);
 	FixupBranch MakeFixupBranch(FixupBranchType type);

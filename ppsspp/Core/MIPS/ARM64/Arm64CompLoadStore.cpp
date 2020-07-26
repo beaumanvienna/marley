@@ -137,7 +137,7 @@ namespace MIPSComp {
 		u32 iaddr = gpr.IsImm(rs) ? offset + gpr.GetImm(rs) : 0xFFFFFFFF;
 		std::vector<FixupBranch> skips;
 
-		if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
+		if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
 #ifdef MASKED_PSP_MEMORY
 			u32 addr = iaddr & 0x3FFFFFFF;
 #else
@@ -180,7 +180,7 @@ namespace MIPSComp {
 			return;
 		}
 
-		_dbg_assert_msg_(JIT, !gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
+		_dbg_assert_msg_(!gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
 		if (load) {
 			gpr.MapDirtyIn(rt, rs, false);
 		} else {
@@ -192,7 +192,7 @@ namespace MIPSComp {
 		ARM64Reg LR_SCRATCH3 = gpr.GetAndLockTempR();
 		ARM64Reg LR_SCRATCH4 = o == 42 || o == 46 ? gpr.GetAndLockTempR() : INVALID_REG;
 
-		if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
+		if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
 			skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
 		} else {
 			SetScratch1ToEffectiveAddress(rs, offset);
@@ -311,7 +311,7 @@ namespace MIPSComp {
 		case 40: //sb
 		case 41: //sh
 		case 43: //sw
-			if (jo.cachePointers && g_PConfig.bFastMemory) {
+			if (jo.cachePointers && g_Config.bFastMemory) {
 				// ARM has smaller load/store immediate displacements than MIPS, 12 bits - and some memory ops only have 8 bits.
 				int offsetRange = 0x3ff;
 				if (o == 41 || o == 33 || o == 37 || o == 32)
@@ -345,7 +345,7 @@ namespace MIPSComp {
 
 			if (!load && gpr.IsImm(rt) && gpr.TryMapTempImm(rt) != INVALID_REG) {
 				// We're storing an immediate value, let's see if we can optimize rt.
-				if (!gpr.IsImm(rs) || !Memory_P::IsValidAddress(iaddr) || offset == 0) {
+				if (!gpr.IsImm(rs) || !Memory::IsValidAddress(iaddr) || offset == 0) {
 					// In this case, we're always going to need rs mapped, which may flush the temp imm.
 					// We handle that in the cases below since targetReg is INVALID_REG.
 					gpr.MapIn(rs);
@@ -354,7 +354,7 @@ namespace MIPSComp {
 				targetReg = gpr.TryMapTempImm(rt);
 			}
 
-			if (gpr.IsImm(rs) && Memory_P::IsValidAddress(iaddr)) {
+			if (gpr.IsImm(rs) && Memory::IsValidAddress(iaddr)) {
 #ifdef MASKED_PSP_MEMORY
 				u32 addr = iaddr & 0x3FFFFFFF;
 #else
@@ -380,7 +380,7 @@ namespace MIPSComp {
 				// This gets hit in a few games, as a result of never-taken delay slots (some branch types
 				// conditionally execute the delay slot instructions). Ignore in those cases.
 				if (!js.inDelaySlot) {
-					_dbg_assert_msg_(JIT, !gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
+					_dbg_assert_msg_(!gpr.IsImm(rs), "Invalid immediate address %08x?  CPU bug?", iaddr);
 				}
 
 				// If we already have a targetReg, we optimized an imm, and rs is already mapped.
@@ -393,7 +393,7 @@ namespace MIPSComp {
 					targetReg = gpr.R(rt);
 				}
 
-				if (!g_PConfig.bFastMemory && rs != MIPS_REG_SP) {
+				if (!g_Config.bFastMemory && rs != MIPS_REG_SP) {
 					skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
 				} else {
 					SetScratch1ToEffectiveAddress(rs, offset);

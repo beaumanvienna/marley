@@ -27,178 +27,177 @@
 #include <dlfcn.h>
 #endif
 
-PFN_PvkCreateInstance PvkCreateInstance;
-PFN_PvkDestroyInstance PvkDestroyInstance;
-PFN_PvkEnumeratePhysicalDevices PvkEnumeratePhysicalDevices;
-PFN_PvkGetPhysicalDeviceFeatures PvkGetPhysicalDeviceFeatures;
-PFN_PvkGetPhysicalDeviceFormatProperties PvkGetPhysicalDeviceFormatProperties;
-PFN_PvkGetPhysicalDeviceImageFormatProperties PvkGetPhysicalDeviceImageFormatProperties;
-PFN_PvkGetPhysicalDeviceProperties PvkGetPhysicalDeviceProperties;
-PFN_PvkGetPhysicalDeviceQueueFamilyProperties PvkGetPhysicalDeviceQueueFamilyProperties;
-PFN_PvkGetPhysicalDeviceMemoryProperties PvkGetPhysicalDeviceMemoryProperties;
-PFN_PvkGetInstanceProcAddr PvkGetInstanceProcAddr;
-PFN_PvkGetDeviceProcAddr PvkGetDeviceProcAddr;
-PFN_PvkCreateDevice PvkCreateDevice;
-PFN_PvkDestroyDevice PvkDestroyDevice;
-PFN_PvkEnumerateInstanceExtensionProperties PvkEnumerateInstanceExtensionProperties;
-PFN_PvkEnumerateDeviceExtensionProperties PvkEnumerateDeviceExtensionProperties;
-PFN_PvkEnumerateInstanceLayerProperties PvkEnumerateInstanceLayerProperties;
-PFN_PvkEnumerateDeviceLayerProperties PvkEnumerateDeviceLayerProperties;
-PFN_PvkGetDeviceQueue PvkGetDeviceQueue;
-PFN_PvkQueueSubmit PvkQueueSubmit;
-PFN_PvkQueueWaitIdle PvkQueueWaitIdle;
-PFN_PvkDeviceWaitIdle PvkDeviceWaitIdle;
-PFN_PvkAllocateMemory PvkAllocateMemory;
-PFN_PvkFreeMemory PvkFreeMemory;
-PFN_PvkMapMemory PvkMapMemory;
-PFN_PvkUnmapMemory PvkUnmapMemory;
-PFN_PvkFlushMappedMemoryRanges PvkFlushMappedMemoryRanges;
-PFN_PvkInvalidateMappedMemoryRanges PvkInvalidateMappedMemoryRanges;
-PFN_PvkGetDeviceMemoryCommitment PvkGetDeviceMemoryCommitment;
-PFN_PvkBindBufferMemory PvkBindBufferMemory;
-PFN_PvkBindImageMemory PvkBindImageMemory;
-PFN_PvkGetBufferMemoryRequirements PvkGetBufferMemoryRequirements;
-PFN_PvkGetImageMemoryRequirements PvkGetImageMemoryRequirements;
-PFN_PvkGetImageSparseMemoryRequirements PvkGetImageSparseMemoryRequirements;
-PFN_PvkGetPhysicalDeviceSparseImageFormatProperties PvkGetPhysicalDeviceSparseImageFormatProperties;
-PFN_PvkQueueBindSparse PvkQueueBindSparse;
-PFN_PvkCreateFence PvkCreateFence;
-PFN_PvkDestroyFence PvkDestroyFence;
-PFN_PvkGetFenceStatus PvkGetFenceStatus;
-PFN_PvkCreateSemaphore PvkCreateSemaphore;
-PFN_PvkDestroySemaphore PvkDestroySemaphore;
-PFN_PvkCreateEvent PvkCreateEvent;
-PFN_PvkDestroyEvent PvkDestroyEvent;
-PFN_PvkGetEventStatus PvkGetEventStatus;
-PFN_PvkSetEvent PvkSetEvent;
-PFN_PvkResetEvent PvkResetEvent;
-PFN_PvkCreateQueryPool PvkCreateQueryPool;
-PFN_PvkDestroyQueryPool PvkDestroyQueryPool;
-PFN_PvkGetQueryPoolResults PvkGetQueryPoolResults;
-PFN_PvkCreateBuffer PvkCreateBuffer;
-PFN_PvkDestroyBuffer PvkDestroyBuffer;
-PFN_PPvkCreateBufferView PPvkCreateBufferView;
-PFN_PPvkDestroyBufferView PPvkDestroyBufferView;
-PFN_PvkCreateImage PvkCreateImage;
-PFN_PvkDestroyImage PvkDestroyImage;
-PFN_PvkGetImageSubresourceLayout PvkGetImageSubresourceLayout;
-PFN_PPvkCreateImageView PPvkCreateImageView;
-PFN_PPvkDestroyImageView PPvkDestroyImageView;
-PFN_PvkCreateShaderModule PvkCreateShaderModule;
-PFN_PvkDestroyShaderModule PvkDestroyShaderModule;
-PFN_PvkCreatePipelineCache PvkCreatePipelineCache;
-PFN_PPvkDestroyPipelineCache PPvkDestroyPipelineCache;
-PFN_PvkGetPipelineCacheData PvkGetPipelineCacheData;
-PFN_PvkMergePipelineCaches PvkMergePipelineCaches;
-PFN_PvkCreateGraphicsPipelines PvkCreateGraphicsPipelines;
-PFN_PvkCreateComputePipelines PvkCreateComputePipelines;
-PFN_PvkDestroyPipeline PvkDestroyPipeline;
-PFN_PvkCreatePipelineLayout PvkCreatePipelineLayout;
-PFN_PPvkDestroyPipelineLayout PPvkDestroyPipelineLayout;
-PFN_PvkCreateSampler PvkCreateSampler;
-PFN_PvkDestroySampler PvkDestroySampler;
-PFN_PvkCreateDescriptorSetLayout PvkCreateDescriptorSetLayout;
-PFN_PvkDestroyDescriptorSetLayout PvkDestroyDescriptorSetLayout;
-PFN_PvkCreateDescriptorPool PvkCreateDescriptorPool;
-PFN_PvkDestroyDescriptorPool PvkDestroyDescriptorPool;
-PFN_PvkResetDescriptorPool PvkResetDescriptorPool;
-PFN_PvkAllocateDescriptorSets PvkAllocateDescriptorSets;
-PFN_PvkFreeDescriptorSets PvkFreeDescriptorSets;
-PFN_PvkUpdateDescriptorSets PvkUpdateDescriptorSets;
-PFN_PvkCreateFramebuffer PvkCreateFramebuffer;
-PFN_PvkDestroyFramebuffer PvkDestroyFramebuffer;
-PFN_PvkCreateRenderPass PvkCreateRenderPass;
-PFN_PvkDestroyRenderPass PvkDestroyRenderPass;
-PFN_PvkGetRenderAreaGranularity PvkGetRenderAreaGranularity;
-PFN_PvkCreateCommandPool PvkCreateCommandPool;
-PFN_PvkDestroyCommandPool PvkDestroyCommandPool;
-PFN_PvkResetCommandPool PvkResetCommandPool;
-PFN_PvkAllocateCommandBuffers PvkAllocateCommandBuffers;
-PFN_PvkFreeCommandBuffers PvkFreeCommandBuffers;
+PFN_vkCreateInstance vkCreateInstance;
+PFN_vkDestroyInstance vkDestroyInstance;
+PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties;
+PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatProperties;
+PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
+PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
+PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
+PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+PFN_vkCreateDevice vkCreateDevice;
+PFN_vkDestroyDevice vkDestroyDevice;
+PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
+PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
+PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties;
+PFN_vkEnumerateDeviceLayerProperties vkEnumerateDeviceLayerProperties;
+PFN_vkGetDeviceQueue vkGetDeviceQueue;
+PFN_vkQueueSubmit vkQueueSubmit;
+PFN_vkQueueWaitIdle vkQueueWaitIdle;
+PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
+PFN_vkAllocateMemory vkAllocateMemory;
+PFN_vkFreeMemory vkFreeMemory;
+PFN_vkMapMemory vkMapMemory;
+PFN_vkUnmapMemory vkUnmapMemory;
+PFN_vkFlushMappedMemoryRanges vkFlushMappedMemoryRanges;
+PFN_vkInvalidateMappedMemoryRanges vkInvalidateMappedMemoryRanges;
+PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
+PFN_vkBindBufferMemory vkBindBufferMemory;
+PFN_vkBindImageMemory vkBindImageMemory;
+PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
+PFN_vkGetImageSparseMemoryRequirements vkGetImageSparseMemoryRequirements;
+PFN_vkGetPhysicalDeviceSparseImageFormatProperties vkGetPhysicalDeviceSparseImageFormatProperties;
+PFN_vkQueueBindSparse vkQueueBindSparse;
+PFN_vkCreateFence vkCreateFence;
+PFN_vkDestroyFence vkDestroyFence;
+PFN_vkGetFenceStatus vkGetFenceStatus;
+PFN_vkCreateSemaphore vkCreateSemaphore;
+PFN_vkDestroySemaphore vkDestroySemaphore;
+PFN_vkCreateEvent vkCreateEvent;
+PFN_vkDestroyEvent vkDestroyEvent;
+PFN_vkGetEventStatus vkGetEventStatus;
+PFN_vkSetEvent vkSetEvent;
+PFN_vkResetEvent vkResetEvent;
+PFN_vkCreateQueryPool vkCreateQueryPool;
+PFN_vkDestroyQueryPool vkDestroyQueryPool;
+PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
+PFN_vkCreateBuffer vkCreateBuffer;
+PFN_vkDestroyBuffer vkDestroyBuffer;
+PFN_vkCreateBufferView vkCreateBufferView;
+PFN_vkDestroyBufferView vkDestroyBufferView;
+PFN_vkCreateImage vkCreateImage;
+PFN_vkDestroyImage vkDestroyImage;
+PFN_vkGetImageSubresourceLayout vkGetImageSubresourceLayout;
+PFN_vkCreateImageView vkCreateImageView;
+PFN_vkDestroyImageView vkDestroyImageView;
+PFN_vkCreateShaderModule vkCreateShaderModule;
+PFN_vkDestroyShaderModule vkDestroyShaderModule;
+PFN_vkCreatePipelineCache vkCreatePipelineCache;
+PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
+PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+PFN_vkMergePipelineCaches vkMergePipelineCaches;
+PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+PFN_vkCreateComputePipelines vkCreateComputePipelines;
+PFN_vkDestroyPipeline vkDestroyPipeline;
+PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
+PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
+PFN_vkCreateSampler vkCreateSampler;
+PFN_vkDestroySampler vkDestroySampler;
+PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
+PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
+PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+PFN_vkResetDescriptorPool vkResetDescriptorPool;
+PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
+PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
+PFN_vkCreateFramebuffer vkCreateFramebuffer;
+PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
+PFN_vkCreateRenderPass vkCreateRenderPass;
+PFN_vkDestroyRenderPass vkDestroyRenderPass;
+PFN_vkGetRenderAreaGranularity vkGetRenderAreaGranularity;
+PFN_vkCreateCommandPool vkCreateCommandPool;
+PFN_vkDestroyCommandPool vkDestroyCommandPool;
+PFN_vkResetCommandPool vkResetCommandPool;
+PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
+PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
 
 // Used frequently together
-PFN_PvkCmdBindPipeline PvkCmdBindPipeline;
-PFN_PvkCmdSetViewport PvkCmdSetViewport;
-PFN_PvkCmdSetScissor PvkCmdSetScissor;
-PFN_PvkCmdSetBlendConstants PvkCmdSetBlendConstants;
-PFN_PvkCmdSetStencilCompareMask PvkCmdSetStencilCompareMask;
-PFN_PvkCmdSetStencilWriteMask PvkCmdSetStencilWriteMask;
-PFN_PvkCmdSetStencilReference PvkCmdSetStencilReference;
-PFN_PvkCmdBindDescriptorSets PvkCmdBindDescriptorSets;
-PFN_PvkCmdBindIndexBuffer PvkCmdBindIndexBuffer;
-PFN_PvkCmdBindVertexBuffers PvkCmdBindVertexBuffers;
-PFN_PvkCmdDraw PvkCmdDraw;
-PFN_PPvkCmdDrawIndexed PPvkCmdDrawIndexed;
-PFN_PvkCmdPipelineBarrier PvkCmdPipelineBarrier;
-PFN_PvkCmdPushConstants PvkCmdPushConstants;
+PFN_vkCmdBindPipeline vkCmdBindPipeline;
+PFN_vkCmdSetViewport vkCmdSetViewport;
+PFN_vkCmdSetScissor vkCmdSetScissor;
+PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
+PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask;
+PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
+PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
+PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
+PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
+PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
+PFN_vkCmdDraw vkCmdDraw;
+PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+PFN_vkCmdPushConstants vkCmdPushConstants;
 
 // Every frame to a few times per frame
-PFN_PvkWaitForFences PvkWaitForFences;
-PFN_PvkResetFences PvkResetFences;
-PFN_PvkBeginCommandBuffer PvkBeginCommandBuffer;
-PFN_PvkEndCommandBuffer PvkEndCommandBuffer;
-PFN_PvkResetCommandBuffer PvkResetCommandBuffer;
-PFN_PvkCmdClearAttachments PvkCmdClearAttachments;
-PFN_PvkCmdSetEvent PvkCmdSetEvent;
-PFN_PvkCmdResetEvent PvkCmdResetEvent;
-PFN_PvkCmdWaitEvents PvkCmdWaitEvents;
-PFN_PvkCmdBeginRenderPass PvkCmdBeginRenderPass;
-PFN_PvkCmdEndRenderPass PvkCmdEndRenderPass;
-PFN_PvkCmdCopyBuffer PvkCmdCopyBuffer;
-PFN_PvkCmdCopyImage PvkCmdCopyImage;
-PFN_PvkCmdBlitImage PvkCmdBlitImage;
-PFN_PPvkCmdCopyBufferToImage PPvkCmdCopyBufferToImage;
-PFN_PPvkCmdCopyImageToBuffer PPvkCmdCopyImageToBuffer;
+PFN_vkWaitForFences vkWaitForFences;
+PFN_vkResetFences vkResetFences;
+PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+PFN_vkEndCommandBuffer vkEndCommandBuffer;
+PFN_vkResetCommandBuffer vkResetCommandBuffer;
+PFN_vkCmdClearAttachments vkCmdClearAttachments;
+PFN_vkCmdSetEvent vkCmdSetEvent;
+PFN_vkCmdResetEvent vkCmdResetEvent;
+PFN_vkCmdWaitEvents vkCmdWaitEvents;
+PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
+PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+PFN_vkCmdCopyImage vkCmdCopyImage;
+PFN_vkCmdBlitImage vkCmdBlitImage;
+PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 
 // Rare or not used
-PFN_PvkCmdSetDepthBounds PvkCmdSetDepthBounds;
-PFN_PvkCmdSetLineWidth PvkCmdSetLineWidth;
-PFN_PvkCmdSetDepthBias PvkCmdSetDepthBias;
-PFN_PPvkCmdDrawIndirect PPvkCmdDrawIndirect;
-PFN_PPPvkCmdDrawIndexedIndirect PPPvkCmdDrawIndexedIndirect;
-PFN_PvkCmdDispatch PvkCmdDispatch;
-PFN_PPvkCmdDispatchIndirect PPvkCmdDispatchIndirect;
-PFN_PvkCmdUpdateBuffer PvkCmdUpdateBuffer;
-PFN_PvkCmdFillBuffer PvkCmdFillBuffer;
-PFN_PvkCmdClearColorImage PvkCmdClearColorImage;
-PFN_PvkCmdClearDepthStencilImage PvkCmdClearDepthStencilImage;
-PFN_PvkCmdResolveImage PvkCmdResolveImage;
-PFN_PvkCmdBeginQuery PvkCmdBeginQuery;
-PFN_PvkCmdEndQuery PvkCmdEndQuery;
-PFN_PvkCmdResetQueryPool PvkCmdResetQueryPool;
-PFN_PvkCmdWriteTimestamp PvkCmdWriteTimestamp;
-PFN_PvkCmdCopyQueryPoolResults PvkCmdCopyQueryPoolResults;
-PFN_PvkCmdNextSubpass PvkCmdNextSubpass;
-PFN_PvkCmdExecuteCommands PvkCmdExecuteCommands;
+PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds;
+PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
+PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
+PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
+PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
+PFN_vkCmdDispatch vkCmdDispatch;
+PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect;
+PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
+PFN_vkCmdFillBuffer vkCmdFillBuffer;
+PFN_vkCmdClearColorImage vkCmdClearColorImage;
+PFN_vkCmdClearDepthStencilImage vkCmdClearDepthStencilImage;
+PFN_vkCmdResolveImage vkCmdResolveImage;
+PFN_vkCmdBeginQuery vkCmdBeginQuery;
+PFN_vkCmdEndQuery vkCmdEndQuery;
+PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
+PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
+PFN_vkCmdCopyQueryPoolResults vkCmdCopyQueryPoolResults;
+PFN_vkCmdNextSubpass vkCmdNextSubpass;
+PFN_vkCmdExecuteCommands vkCmdExecuteCommands;
 
 #ifdef __ANDROID__
 PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
 #elif defined(_WIN32)
 PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
+#endif
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
-PFN_PvkCreateXlibSurfaceKHR PvkCreateXlibSurfaceKHR;
+PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 #endif
 #if defined(VK_USE_PLATFORM_WAYLAND_KHR)
 PFN_vkCreateWaylandSurfaceKHR vkCreateWaylandSurfaceKHR;
 #endif
 
-PFN_PvkDestroySurfaceKHR PvkDestroySurfaceKHR;
+PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
 
 // WSI extension.
-PFN_PvkGetPhysicalDeviceSurfaceSupportKHR PvkGetPhysicalDeviceSurfaceSupportKHR;
-PFN_PvkGetPhysicalDeviceSurfaceCapabilitiesKHR PvkGetPhysicalDeviceSurfaceCapabilitiesKHR;
-PFN_PvkGetPhysicalDeviceSurfaceFormatsKHR PvkGetPhysicalDeviceSurfaceFormatsKHR;
-PFN_PvkGetPhysicalDeviceSurfacePresentModesKHR PvkGetPhysicalDeviceSurfacePresentModesKHR;
-PFN_PvkCreateSwapchainKHR PvkCreateSwapchainKHR;
-PFN_PvkDestroySwapchainKHR PvkDestroySwapchainKHR;
-PFN_PvkGetSwapchainImagesKHR PvkGetSwapchainImagesKHR;
-PFN_PvkAcquireNextImageKHR PvkAcquireNextImageKHR;
-PFN_PvkQueuePresentKHR PvkQueuePresentKHR;
-
-// And the DEBUG_REPORT extension. We dynamically load this.
-PFN_PvkCreateDebugReportCallbackEXT PvkCreateDebugReportCallbackEXT;
-PFN_PvkDestroyDebugReportCallbackEXT PvkDestroyDebugReportCallbackEXT;
+PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
+PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
+PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
+PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+PFN_vkQueuePresentKHR vkQueuePresentKHR;
 
 PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT	 vkDestroyDebugUtilsMessengerEXT;
@@ -209,10 +208,10 @@ PFN_vkSetDebugUtilsObjectNameEXT     vkSetDebugUtilsObjectNameEXT;
 PFN_vkSetDebugUtilsObjectTagEXT      vkSetDebugUtilsObjectTagEXT;
 
 PFN_vkGetMemoryHostPointerPropertiesEXT vkGetMemoryHostPointerPropertiesEXT;
-PFN_PvkGetBufferMemoryRequirements2KHR PvkGetBufferMemoryRequirements2KHR;
-PFN_PvkGetImageMemoryRequirements2KHR PvkGetImageMemoryRequirements2KHR;
-PFN_PvkGetPhysicalDeviceProperties2KHR PvkGetPhysicalDeviceProperties2KHR;
-PFN_PvkGetPhysicalDeviceFeatures2KHR PvkGetPhysicalDeviceFeatures2KHR;
+PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR;
+PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
+PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
+PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
 
 #ifdef _WIN32
 static HINSTANCE vulkanLibrary;
@@ -225,20 +224,25 @@ const char *VulkanResultToString(VkResult res);
 bool g_vulkanAvailabilityChecked = false;
 bool g_vulkanMayBeAvailable = false;
 
-#define LOAD_INSTANCE_FUNC(instance, x) x = (PFN_ ## x)PvkGetInstanceProcAddr(instance, #x); if (!x) {ILOG("Missing (instance): %s", #x);}
-#define LOAD_DEVICE_FUNC(instance, x) x = (PFN_ ## x)PvkGetDeviceProcAddr(instance, #x); if (!x) {ILOG("Missing (device): %s", #x);}
+#define LOAD_INSTANCE_FUNC(instance, x) x = (PFN_ ## x)vkGetInstanceProcAddr(instance, #x); if (!x) {ILOG("Missing (instance): %s", #x);}
+#define LOAD_DEVICE_FUNC(instance, x) x = (PFN_ ## x)vkGetDeviceProcAddr(instance, #x); if (!x) {ILOG("Missing (device): %s", #x);}
 #define LOAD_GLOBAL_FUNC(x) x = (PFN_ ## x)dlsym(vulkanLibrary, #x); if (!x) {ILOG("Missing (global): %s", #x);}
 
 #define LOAD_GLOBAL_FUNC_LOCAL(lib, x) (PFN_ ## x)dlsym(lib, #x);
 
 static const char *device_name_blacklist[] = {
 	"NVIDIA:SHIELD Tablet K1",
+	"SDL:Horizon",
 };
 
 static const char *so_names[] = {
+#if defined(__APPLE__)
+	"libMoltenVK.dylib",
+#else
 	"libvulkan.so",
 #if !defined(__ANDROID__)
 	"libvulkan.so.1",
+#endif
 #endif
 };
 
@@ -255,20 +259,20 @@ bool VulkanMayBeAvailable() {
 	std::string name = System_GetProperty(SYSPROP_NAME);
 	for (const char *blacklisted_name : device_name_blacklist) {
 		if (!strcmp(name.c_str(), blacklisted_name)) {
-			//ILOG("VulkanMayBeAvailable: Device blacklisted ('%s')", name.c_str());
+			ILOG("VulkanMayBeAvailable: Device blacklisted ('%s')", name.c_str());
 			g_vulkanAvailabilityChecked = true;
 			g_vulkanMayBeAvailable = false;
 			return false;
 		}
 	}
-	//ILOG("VulkanMayBeAvailable: Device allowed ('%s')", name.c_str());
+	ILOG("VulkanMayBeAvailable: Device allowed ('%s')", name.c_str());
 
 #ifndef _WIN32
 	void *lib = nullptr;
 	for (int i = 0; i < ARRAY_SIZE(so_names); i++) {
 		lib = dlopen(so_names[i], RTLD_NOW | RTLD_LOCAL);
 		if (lib) {
-			//ILOG("VulkanMayBeAvailable: Library loaded ('%s')", so_names[i]);
+			ILOG("VulkanMayBeAvailable: Library loaded ('%s')", so_names[i]);
 			break;
 		}
 	}
@@ -285,11 +289,11 @@ bool VulkanMayBeAvailable() {
 
 	// Do a hyper minimal initialization and teardown to figure out if there's any chance
 	// that any sort of Vulkan will be usable.
-	PFN_PvkEnumerateInstanceExtensionProperties localEnumerateInstanceExtensionProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkEnumerateInstanceExtensionProperties);
-	PFN_PvkCreateInstance localCreateInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkCreateInstance);
-	PFN_PvkEnumeratePhysicalDevices localEnumerate = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkEnumeratePhysicalDevices);
-	PFN_PvkDestroyInstance localDestroyInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkDestroyInstance);
-	PFN_PvkGetPhysicalDeviceProperties localGetPhysicalDeviceProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkGetPhysicalDeviceProperties);
+	PFN_vkEnumerateInstanceExtensionProperties localEnumerateInstanceExtensionProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, vkEnumerateInstanceExtensionProperties);
+	PFN_vkCreateInstance localCreateInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, vkCreateInstance);
+	PFN_vkEnumeratePhysicalDevices localEnumerate = LOAD_GLOBAL_FUNC_LOCAL(lib, vkEnumeratePhysicalDevices);
+	PFN_vkDestroyInstance localDestroyInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, vkDestroyInstance);
+	PFN_vkGetPhysicalDeviceProperties localGetPhysicalDeviceProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, vkGetPhysicalDeviceProperties);
 
 	// Need to predeclare all this because of the gotos...
 	VkInstanceCreateInfo ci{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
@@ -310,12 +314,14 @@ bool VulkanMayBeAvailable() {
 	const char * const platformSurfaceExtension = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
 #elif defined(__ANDROID__)
 	const char *platformSurfaceExtension = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+#elif defined(VK_USE_PLATFORM_METAL_EXT)
+	const char * const platformSurfaceExtension = VK_EXT_METAL_SURFACE_EXTENSION_NAME;
 #else
 	const char *platformSurfaceExtension = 0;
 #endif
 
 	if (!localEnumerateInstanceExtensionProperties || !localCreateInstance || !localEnumerate || !localDestroyInstance || !localGetPhysicalDeviceProperties) {
-		//WLOG("VulkanMayBeAvailable: Function pointer missing, bailing");
+		WLOG("VulkanMayBeAvailable: Function pointer missing, bailing");
 		goto bail;
 	}
 
@@ -376,7 +382,7 @@ bool VulkanMayBeAvailable() {
 	info.pEngineName = "VulkanCheckerEngine";
 	ci.pApplicationInfo = &info;
 	ci.flags = 0;
-	ILOG("VulkanMayBeAvailable: Calling PvkCreateInstance");
+	ILOG("VulkanMayBeAvailable: Calling vkCreateInstance");
 	res = localCreateInstance(&ci, nullptr, &instance);
 	if (res != VK_SUCCESS) {
 		instance = nullptr;
@@ -461,14 +467,14 @@ bool VulkanLoad() {
 		}
 	}
 
-	LOAD_GLOBAL_FUNC(PvkCreateInstance);
-	LOAD_GLOBAL_FUNC(PvkGetInstanceProcAddr);
-	LOAD_GLOBAL_FUNC(PvkGetDeviceProcAddr);
+	LOAD_GLOBAL_FUNC(vkCreateInstance);
+	LOAD_GLOBAL_FUNC(vkGetInstanceProcAddr);
+	LOAD_GLOBAL_FUNC(vkGetDeviceProcAddr);
 
-	LOAD_GLOBAL_FUNC(PvkEnumerateInstanceExtensionProperties);
-	LOAD_GLOBAL_FUNC(PvkEnumerateInstanceLayerProperties);
+	LOAD_GLOBAL_FUNC(vkEnumerateInstanceExtensionProperties);
+	LOAD_GLOBAL_FUNC(vkEnumerateInstanceLayerProperties);
 
-	if (PvkCreateInstance && PvkGetInstanceProcAddr && PvkGetDeviceProcAddr && PvkEnumerateInstanceExtensionProperties && PvkEnumerateInstanceLayerProperties) {
+	if (vkCreateInstance && vkGetInstanceProcAddr && vkGetDeviceProcAddr && vkEnumerateInstanceExtensionProperties && vkEnumerateInstanceLayerProperties) {
 		WLOG("VulkanLoad: Base functions loaded.");
 		return true;
 	} else {
@@ -485,54 +491,51 @@ bool VulkanLoad() {
 
 void VulkanLoadInstanceFunctions(VkInstance instance, const VulkanDeviceExtensions &enabledExtensions) {
 	// OK, let's use the above functions to get the rest.
-	LOAD_INSTANCE_FUNC(instance, PvkDestroyInstance);
-	LOAD_INSTANCE_FUNC(instance, PvkEnumeratePhysicalDevices);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceFeatures);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceFormatProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceImageFormatProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceQueueFamilyProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceMemoryProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkCreateDevice);
-	LOAD_INSTANCE_FUNC(instance, PvkDestroyDevice);
-	LOAD_INSTANCE_FUNC(instance, PvkEnumerateDeviceExtensionProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkEnumerateDeviceLayerProperties);
-	LOAD_INSTANCE_FUNC(instance, PvkGetDeviceQueue);
-	LOAD_INSTANCE_FUNC(instance, PvkDeviceWaitIdle);
+	LOAD_INSTANCE_FUNC(instance, vkDestroyInstance);
+	LOAD_INSTANCE_FUNC(instance, vkEnumeratePhysicalDevices);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceFeatures);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceFormatProperties);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceImageFormatProperties);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceProperties);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceQueueFamilyProperties);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceMemoryProperties);
+	LOAD_INSTANCE_FUNC(instance, vkCreateDevice);
+	LOAD_INSTANCE_FUNC(instance, vkDestroyDevice);
+	LOAD_INSTANCE_FUNC(instance, vkEnumerateDeviceExtensionProperties);
+	LOAD_INSTANCE_FUNC(instance, vkEnumerateDeviceLayerProperties);
+	LOAD_INSTANCE_FUNC(instance, vkGetDeviceQueue);
+	LOAD_INSTANCE_FUNC(instance, vkDeviceWaitIdle);
 
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceSurfaceSupportKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceSurfaceFormatsKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceSurfacePresentModesKHR);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceSurfaceSupportKHR);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
+	LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
 
-	LOAD_INSTANCE_FUNC(instance, PvkCreateSwapchainKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkDestroySwapchainKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkGetSwapchainImagesKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkAcquireNextImageKHR);
-	LOAD_INSTANCE_FUNC(instance, PvkQueuePresentKHR);
+	LOAD_INSTANCE_FUNC(instance, vkCreateSwapchainKHR);
+	LOAD_INSTANCE_FUNC(instance, vkDestroySwapchainKHR);
+	LOAD_INSTANCE_FUNC(instance, vkGetSwapchainImagesKHR);
+	LOAD_INSTANCE_FUNC(instance, vkAcquireNextImageKHR);
+	LOAD_INSTANCE_FUNC(instance, vkQueuePresentKHR);
 
 #ifdef _WIN32
 	LOAD_INSTANCE_FUNC(instance, vkCreateWin32SurfaceKHR);
 #elif defined(__ANDROID__)
 	LOAD_INSTANCE_FUNC(instance, vkCreateAndroidSurfaceKHR);
+#elif defined(VK_USE_PLATFORM_METAL_EXT)
+	LOAD_INSTANCE_FUNC(instance, vkCreateMetalSurfaceEXT);
 #endif
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
-	LOAD_INSTANCE_FUNC(instance, PvkCreateXlibSurfaceKHR);
+	LOAD_INSTANCE_FUNC(instance, vkCreateXlibSurfaceKHR);
 #endif
 #if defined(VK_USE_PLATFORM_WAYLAND_KHR)
 	LOAD_INSTANCE_FUNC(instance, vkCreateWaylandSurfaceKHR);
 #endif
 
-	LOAD_INSTANCE_FUNC(instance, PvkDestroySurfaceKHR);
+	LOAD_INSTANCE_FUNC(instance, vkDestroySurfaceKHR);
 
 	if (enabledExtensions.KHR_get_physical_device_properties2) {
-		LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceProperties2KHR);
-		LOAD_INSTANCE_FUNC(instance, PvkGetPhysicalDeviceFeatures2KHR);
-	}
-
-	if (enabledExtensions.EXT_debug_report) {
-		LOAD_INSTANCE_FUNC(instance, PvkCreateDebugReportCallbackEXT);
-		LOAD_INSTANCE_FUNC(instance, PvkDestroyDebugReportCallbackEXT);
+		LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceProperties2KHR);
+		LOAD_INSTANCE_FUNC(instance, vkGetPhysicalDeviceFeatures2KHR);
 	}
 
 	if (enabledExtensions.EXT_debug_utils) {
@@ -548,137 +551,137 @@ void VulkanLoadInstanceFunctions(VkInstance instance, const VulkanDeviceExtensio
 	WLOG("Vulkan instance functions loaded.");
 }
 
-// On some implementations, loading functions (that have Device as their first parameter) via PvkGetDeviceProcAddr may
+// On some implementations, loading functions (that have Device as their first parameter) via vkGetDeviceProcAddr may
 // increase performance - but then these function pointers will only work on that specific device. Thus, this loader is not very
 // good for multi-device - not likely we'll ever try that anyway though.
 void VulkanLoadDeviceFunctions(VkDevice device, const VulkanDeviceExtensions &enabledExtensions) {
 	WLOG("Vulkan device functions loaded.");
 
-	LOAD_DEVICE_FUNC(device, PvkQueueSubmit);
-	LOAD_DEVICE_FUNC(device, PvkQueueWaitIdle);
-	LOAD_DEVICE_FUNC(device, PvkAllocateMemory);
-	LOAD_DEVICE_FUNC(device, PvkFreeMemory);
-	LOAD_DEVICE_FUNC(device, PvkMapMemory);
-	LOAD_DEVICE_FUNC(device, PvkUnmapMemory);
-	LOAD_DEVICE_FUNC(device, PvkFlushMappedMemoryRanges);
-	LOAD_DEVICE_FUNC(device, PvkInvalidateMappedMemoryRanges);
-	LOAD_DEVICE_FUNC(device, PvkGetDeviceMemoryCommitment);
-	LOAD_DEVICE_FUNC(device, PvkBindBufferMemory);
-	LOAD_DEVICE_FUNC(device, PvkBindImageMemory);
-	LOAD_DEVICE_FUNC(device, PvkGetBufferMemoryRequirements);
-	LOAD_DEVICE_FUNC(device, PvkGetImageMemoryRequirements);
-	LOAD_DEVICE_FUNC(device, PvkGetImageSparseMemoryRequirements);
-	LOAD_DEVICE_FUNC(device, PvkGetPhysicalDeviceSparseImageFormatProperties);
-	LOAD_DEVICE_FUNC(device, PvkQueueBindSparse);
-	LOAD_DEVICE_FUNC(device, PvkCreateFence);
-	LOAD_DEVICE_FUNC(device, PvkDestroyFence);
-	LOAD_DEVICE_FUNC(device, PvkResetFences);
-	LOAD_DEVICE_FUNC(device, PvkGetFenceStatus);
-	LOAD_DEVICE_FUNC(device, PvkWaitForFences);
-	LOAD_DEVICE_FUNC(device, PvkCreateSemaphore);
-	LOAD_DEVICE_FUNC(device, PvkDestroySemaphore);
-	LOAD_DEVICE_FUNC(device, PvkCreateEvent);
-	LOAD_DEVICE_FUNC(device, PvkDestroyEvent);
-	LOAD_DEVICE_FUNC(device, PvkGetEventStatus);
-	LOAD_DEVICE_FUNC(device, PvkSetEvent);
-	LOAD_DEVICE_FUNC(device, PvkResetEvent);
-	LOAD_DEVICE_FUNC(device, PvkCreateQueryPool);
-	LOAD_DEVICE_FUNC(device, PvkDestroyQueryPool);
-	LOAD_DEVICE_FUNC(device, PvkGetQueryPoolResults);
-	LOAD_DEVICE_FUNC(device, PvkCreateBuffer);
-	LOAD_DEVICE_FUNC(device, PvkDestroyBuffer);
-	LOAD_DEVICE_FUNC(device, PPvkCreateBufferView);
-	LOAD_DEVICE_FUNC(device, PPvkDestroyBufferView);
-	LOAD_DEVICE_FUNC(device, PvkCreateImage);
-	LOAD_DEVICE_FUNC(device, PvkDestroyImage);
-	LOAD_DEVICE_FUNC(device, PvkGetImageSubresourceLayout);
-	LOAD_DEVICE_FUNC(device, PPvkCreateImageView);
-	LOAD_DEVICE_FUNC(device, PPvkDestroyImageView);
-	LOAD_DEVICE_FUNC(device, PvkCreateShaderModule);
-	LOAD_DEVICE_FUNC(device, PvkDestroyShaderModule);
-	LOAD_DEVICE_FUNC(device, PvkCreatePipelineCache);
-	LOAD_DEVICE_FUNC(device, PPvkDestroyPipelineCache);
-	LOAD_DEVICE_FUNC(device, PvkGetPipelineCacheData);
-	LOAD_DEVICE_FUNC(device, PvkMergePipelineCaches);
-	LOAD_DEVICE_FUNC(device, PvkCreateGraphicsPipelines);
-	LOAD_DEVICE_FUNC(device, PvkCreateComputePipelines);
-	LOAD_DEVICE_FUNC(device, PvkDestroyPipeline);
-	LOAD_DEVICE_FUNC(device, PvkCreatePipelineLayout);
-	LOAD_DEVICE_FUNC(device, PPvkDestroyPipelineLayout);
-	LOAD_DEVICE_FUNC(device, PvkCreateSampler);
-	LOAD_DEVICE_FUNC(device, PvkDestroySampler);
-	LOAD_DEVICE_FUNC(device, PvkCreateDescriptorSetLayout);
-	LOAD_DEVICE_FUNC(device, PvkDestroyDescriptorSetLayout);
-	LOAD_DEVICE_FUNC(device, PvkCreateDescriptorPool);
-	LOAD_DEVICE_FUNC(device, PvkDestroyDescriptorPool);
-	LOAD_DEVICE_FUNC(device, PvkResetDescriptorPool);
-	LOAD_DEVICE_FUNC(device, PvkAllocateDescriptorSets);
-	LOAD_DEVICE_FUNC(device, PvkFreeDescriptorSets);
-	LOAD_DEVICE_FUNC(device, PvkUpdateDescriptorSets);
-	LOAD_DEVICE_FUNC(device, PvkCreateFramebuffer);
-	LOAD_DEVICE_FUNC(device, PvkDestroyFramebuffer);
-	LOAD_DEVICE_FUNC(device, PvkCreateRenderPass);
-	LOAD_DEVICE_FUNC(device, PvkDestroyRenderPass);
-	LOAD_DEVICE_FUNC(device, PvkGetRenderAreaGranularity);
-	LOAD_DEVICE_FUNC(device, PvkCreateCommandPool);
-	LOAD_DEVICE_FUNC(device, PvkDestroyCommandPool);
-	LOAD_DEVICE_FUNC(device, PvkResetCommandPool);
-	LOAD_DEVICE_FUNC(device, PvkAllocateCommandBuffers);
-	LOAD_DEVICE_FUNC(device, PvkFreeCommandBuffers);
-	LOAD_DEVICE_FUNC(device, PvkBeginCommandBuffer);
-	LOAD_DEVICE_FUNC(device, PvkEndCommandBuffer);
-	LOAD_DEVICE_FUNC(device, PvkResetCommandBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdBindPipeline);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetViewport);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetScissor);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetLineWidth);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetDepthBias);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetBlendConstants);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetDepthBounds);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetStencilCompareMask);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetStencilWriteMask);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetStencilReference);
-	LOAD_DEVICE_FUNC(device, PvkCmdBindDescriptorSets);
-	LOAD_DEVICE_FUNC(device, PvkCmdBindIndexBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdBindVertexBuffers);
-	LOAD_DEVICE_FUNC(device, PvkCmdDraw);
-	LOAD_DEVICE_FUNC(device, PPvkCmdDrawIndexed);
-	LOAD_DEVICE_FUNC(device, PPvkCmdDrawIndirect);
-	LOAD_DEVICE_FUNC(device, PPPvkCmdDrawIndexedIndirect);
-	LOAD_DEVICE_FUNC(device, PvkCmdDispatch);
-	LOAD_DEVICE_FUNC(device, PPvkCmdDispatchIndirect);
-	LOAD_DEVICE_FUNC(device, PvkCmdCopyBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdCopyImage);
-	LOAD_DEVICE_FUNC(device, PvkCmdBlitImage);
-	LOAD_DEVICE_FUNC(device, PPvkCmdCopyBufferToImage);
-	LOAD_DEVICE_FUNC(device, PPvkCmdCopyImageToBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdUpdateBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdFillBuffer);
-	LOAD_DEVICE_FUNC(device, PvkCmdClearColorImage);
-	LOAD_DEVICE_FUNC(device, PvkCmdClearDepthStencilImage);
-	LOAD_DEVICE_FUNC(device, PvkCmdClearAttachments);
-	LOAD_DEVICE_FUNC(device, PvkCmdResolveImage);
-	LOAD_DEVICE_FUNC(device, PvkCmdSetEvent);
-	LOAD_DEVICE_FUNC(device, PvkCmdResetEvent);
-	LOAD_DEVICE_FUNC(device, PvkCmdWaitEvents);
-	LOAD_DEVICE_FUNC(device, PvkCmdPipelineBarrier);
-	LOAD_DEVICE_FUNC(device, PvkCmdBeginQuery);
-	LOAD_DEVICE_FUNC(device, PvkCmdEndQuery);
-	LOAD_DEVICE_FUNC(device, PvkCmdResetQueryPool);
-	LOAD_DEVICE_FUNC(device, PvkCmdWriteTimestamp);
-	LOAD_DEVICE_FUNC(device, PvkCmdCopyQueryPoolResults);
-	LOAD_DEVICE_FUNC(device, PvkCmdPushConstants);
-	LOAD_DEVICE_FUNC(device, PvkCmdBeginRenderPass);
-	LOAD_DEVICE_FUNC(device, PvkCmdNextSubpass);
-	LOAD_DEVICE_FUNC(device, PvkCmdEndRenderPass);
-	LOAD_DEVICE_FUNC(device, PvkCmdExecuteCommands);
+	LOAD_DEVICE_FUNC(device, vkQueueSubmit);
+	LOAD_DEVICE_FUNC(device, vkQueueWaitIdle);
+	LOAD_DEVICE_FUNC(device, vkAllocateMemory);
+	LOAD_DEVICE_FUNC(device, vkFreeMemory);
+	LOAD_DEVICE_FUNC(device, vkMapMemory);
+	LOAD_DEVICE_FUNC(device, vkUnmapMemory);
+	LOAD_DEVICE_FUNC(device, vkFlushMappedMemoryRanges);
+	LOAD_DEVICE_FUNC(device, vkInvalidateMappedMemoryRanges);
+	LOAD_DEVICE_FUNC(device, vkGetDeviceMemoryCommitment);
+	LOAD_DEVICE_FUNC(device, vkBindBufferMemory);
+	LOAD_DEVICE_FUNC(device, vkBindImageMemory);
+	LOAD_DEVICE_FUNC(device, vkGetBufferMemoryRequirements);
+	LOAD_DEVICE_FUNC(device, vkGetImageMemoryRequirements);
+	LOAD_DEVICE_FUNC(device, vkGetImageSparseMemoryRequirements);
+	LOAD_DEVICE_FUNC(device, vkGetPhysicalDeviceSparseImageFormatProperties);
+	LOAD_DEVICE_FUNC(device, vkQueueBindSparse);
+	LOAD_DEVICE_FUNC(device, vkCreateFence);
+	LOAD_DEVICE_FUNC(device, vkDestroyFence);
+	LOAD_DEVICE_FUNC(device, vkResetFences);
+	LOAD_DEVICE_FUNC(device, vkGetFenceStatus);
+	LOAD_DEVICE_FUNC(device, vkWaitForFences);
+	LOAD_DEVICE_FUNC(device, vkCreateSemaphore);
+	LOAD_DEVICE_FUNC(device, vkDestroySemaphore);
+	LOAD_DEVICE_FUNC(device, vkCreateEvent);
+	LOAD_DEVICE_FUNC(device, vkDestroyEvent);
+	LOAD_DEVICE_FUNC(device, vkGetEventStatus);
+	LOAD_DEVICE_FUNC(device, vkSetEvent);
+	LOAD_DEVICE_FUNC(device, vkResetEvent);
+	LOAD_DEVICE_FUNC(device, vkCreateQueryPool);
+	LOAD_DEVICE_FUNC(device, vkDestroyQueryPool);
+	LOAD_DEVICE_FUNC(device, vkGetQueryPoolResults);
+	LOAD_DEVICE_FUNC(device, vkCreateBuffer);
+	LOAD_DEVICE_FUNC(device, vkDestroyBuffer);
+	LOAD_DEVICE_FUNC(device, vkCreateBufferView);
+	LOAD_DEVICE_FUNC(device, vkDestroyBufferView);
+	LOAD_DEVICE_FUNC(device, vkCreateImage);
+	LOAD_DEVICE_FUNC(device, vkDestroyImage);
+	LOAD_DEVICE_FUNC(device, vkGetImageSubresourceLayout);
+	LOAD_DEVICE_FUNC(device, vkCreateImageView);
+	LOAD_DEVICE_FUNC(device, vkDestroyImageView);
+	LOAD_DEVICE_FUNC(device, vkCreateShaderModule);
+	LOAD_DEVICE_FUNC(device, vkDestroyShaderModule);
+	LOAD_DEVICE_FUNC(device, vkCreatePipelineCache);
+	LOAD_DEVICE_FUNC(device, vkDestroyPipelineCache);
+	LOAD_DEVICE_FUNC(device, vkGetPipelineCacheData);
+	LOAD_DEVICE_FUNC(device, vkMergePipelineCaches);
+	LOAD_DEVICE_FUNC(device, vkCreateGraphicsPipelines);
+	LOAD_DEVICE_FUNC(device, vkCreateComputePipelines);
+	LOAD_DEVICE_FUNC(device, vkDestroyPipeline);
+	LOAD_DEVICE_FUNC(device, vkCreatePipelineLayout);
+	LOAD_DEVICE_FUNC(device, vkDestroyPipelineLayout);
+	LOAD_DEVICE_FUNC(device, vkCreateSampler);
+	LOAD_DEVICE_FUNC(device, vkDestroySampler);
+	LOAD_DEVICE_FUNC(device, vkCreateDescriptorSetLayout);
+	LOAD_DEVICE_FUNC(device, vkDestroyDescriptorSetLayout);
+	LOAD_DEVICE_FUNC(device, vkCreateDescriptorPool);
+	LOAD_DEVICE_FUNC(device, vkDestroyDescriptorPool);
+	LOAD_DEVICE_FUNC(device, vkResetDescriptorPool);
+	LOAD_DEVICE_FUNC(device, vkAllocateDescriptorSets);
+	LOAD_DEVICE_FUNC(device, vkFreeDescriptorSets);
+	LOAD_DEVICE_FUNC(device, vkUpdateDescriptorSets);
+	LOAD_DEVICE_FUNC(device, vkCreateFramebuffer);
+	LOAD_DEVICE_FUNC(device, vkDestroyFramebuffer);
+	LOAD_DEVICE_FUNC(device, vkCreateRenderPass);
+	LOAD_DEVICE_FUNC(device, vkDestroyRenderPass);
+	LOAD_DEVICE_FUNC(device, vkGetRenderAreaGranularity);
+	LOAD_DEVICE_FUNC(device, vkCreateCommandPool);
+	LOAD_DEVICE_FUNC(device, vkDestroyCommandPool);
+	LOAD_DEVICE_FUNC(device, vkResetCommandPool);
+	LOAD_DEVICE_FUNC(device, vkAllocateCommandBuffers);
+	LOAD_DEVICE_FUNC(device, vkFreeCommandBuffers);
+	LOAD_DEVICE_FUNC(device, vkBeginCommandBuffer);
+	LOAD_DEVICE_FUNC(device, vkEndCommandBuffer);
+	LOAD_DEVICE_FUNC(device, vkResetCommandBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdBindPipeline);
+	LOAD_DEVICE_FUNC(device, vkCmdSetViewport);
+	LOAD_DEVICE_FUNC(device, vkCmdSetScissor);
+	LOAD_DEVICE_FUNC(device, vkCmdSetLineWidth);
+	LOAD_DEVICE_FUNC(device, vkCmdSetDepthBias);
+	LOAD_DEVICE_FUNC(device, vkCmdSetBlendConstants);
+	LOAD_DEVICE_FUNC(device, vkCmdSetDepthBounds);
+	LOAD_DEVICE_FUNC(device, vkCmdSetStencilCompareMask);
+	LOAD_DEVICE_FUNC(device, vkCmdSetStencilWriteMask);
+	LOAD_DEVICE_FUNC(device, vkCmdSetStencilReference);
+	LOAD_DEVICE_FUNC(device, vkCmdBindDescriptorSets);
+	LOAD_DEVICE_FUNC(device, vkCmdBindIndexBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdBindVertexBuffers);
+	LOAD_DEVICE_FUNC(device, vkCmdDraw);
+	LOAD_DEVICE_FUNC(device, vkCmdDrawIndexed);
+	LOAD_DEVICE_FUNC(device, vkCmdDrawIndirect);
+	LOAD_DEVICE_FUNC(device, vkCmdDrawIndexedIndirect);
+	LOAD_DEVICE_FUNC(device, vkCmdDispatch);
+	LOAD_DEVICE_FUNC(device, vkCmdDispatchIndirect);
+	LOAD_DEVICE_FUNC(device, vkCmdCopyBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdCopyImage);
+	LOAD_DEVICE_FUNC(device, vkCmdBlitImage);
+	LOAD_DEVICE_FUNC(device, vkCmdCopyBufferToImage);
+	LOAD_DEVICE_FUNC(device, vkCmdCopyImageToBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdUpdateBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdFillBuffer);
+	LOAD_DEVICE_FUNC(device, vkCmdClearColorImage);
+	LOAD_DEVICE_FUNC(device, vkCmdClearDepthStencilImage);
+	LOAD_DEVICE_FUNC(device, vkCmdClearAttachments);
+	LOAD_DEVICE_FUNC(device, vkCmdResolveImage);
+	LOAD_DEVICE_FUNC(device, vkCmdSetEvent);
+	LOAD_DEVICE_FUNC(device, vkCmdResetEvent);
+	LOAD_DEVICE_FUNC(device, vkCmdWaitEvents);
+	LOAD_DEVICE_FUNC(device, vkCmdPipelineBarrier);
+	LOAD_DEVICE_FUNC(device, vkCmdBeginQuery);
+	LOAD_DEVICE_FUNC(device, vkCmdEndQuery);
+	LOAD_DEVICE_FUNC(device, vkCmdResetQueryPool);
+	LOAD_DEVICE_FUNC(device, vkCmdWriteTimestamp);
+	LOAD_DEVICE_FUNC(device, vkCmdCopyQueryPoolResults);
+	LOAD_DEVICE_FUNC(device, vkCmdPushConstants);
+	LOAD_DEVICE_FUNC(device, vkCmdBeginRenderPass);
+	LOAD_DEVICE_FUNC(device, vkCmdNextSubpass);
+	LOAD_DEVICE_FUNC(device, vkCmdEndRenderPass);
+	LOAD_DEVICE_FUNC(device, vkCmdExecuteCommands);
 
 	if (enabledExtensions.EXT_external_memory_host) {
 		LOAD_DEVICE_FUNC(device, vkGetMemoryHostPointerPropertiesEXT);
 	}
 	if (enabledExtensions.KHR_dedicated_allocation) {
-		LOAD_DEVICE_FUNC(device, PvkGetBufferMemoryRequirements2KHR);
-		LOAD_DEVICE_FUNC(device, PvkGetImageMemoryRequirements2KHR);
+		LOAD_DEVICE_FUNC(device, vkGetBufferMemoryRequirements2KHR);
+		LOAD_DEVICE_FUNC(device, vkGetImageMemoryRequirements2KHR);
 	}
 }
 

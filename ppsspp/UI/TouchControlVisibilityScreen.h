@@ -17,16 +17,17 @@
 
 #pragma once
 
+#include "gfx/texture_atlas.h"
 #include "MiscScreens.h"
 
-namespace PUI {
+namespace UI {
 	class CheckBox;
 }
 
 struct TouchButtonToggle {
 	const char *key;
 	bool *show;
-	int img;
+	ImageID img;
 };
 
 class TouchControlVisibilityScreen : public UIDialogScreenWithBackground {
@@ -35,9 +36,15 @@ public:
 	void onFinish(DialogResult result) override;
 
 protected:
-	PUI::EventReturn OnToggleAll(PUI::EventParams &e);
+	UI::EventReturn OnToggleAll(UI::EventParams &e);
+	UI::EventReturn RightAnalogBindScreen(UI::EventParams &e);
 
 private:
 	std::vector<TouchButtonToggle> toggles_;
 	bool nextToggleAll_ = true;
+};
+
+class RightAnalogMappingScreen : public UIDialogScreenWithBackground {
+public:
+	void CreateViews() override;
 };

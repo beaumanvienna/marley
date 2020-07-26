@@ -75,7 +75,7 @@ void ArmJit::GenerateFixedCode() {
 	BeginWrite();
 
 	// LR == SCRATCHREG2 on ARM32 so it needs to be pushed.
-	restoreRoundingMode = PAlignCode16(); {
+	restoreRoundingMode = AlignCode16(); {
 		PUSH(1, R_LR);
 		VMRS(SCRATCHREG2);
 		// Outside the JIT we run with round-to-nearest and flush0 off.
@@ -85,7 +85,7 @@ void ArmJit::GenerateFixedCode() {
 	}
 
 	// Must preserve SCRATCHREG1 (R0), destroys SCRATCHREG2 (LR)
-	applyRoundingMode = PAlignCode16(); {
+	applyRoundingMode = AlignCode16(); {
 		PUSH(2, SCRATCHREG1, R_LR);
 		LDR(SCRATCHREG2, CTXREG, offsetof(MIPSState, fcr31));
 
@@ -125,7 +125,7 @@ void ArmJit::GenerateFixedCode() {
 
 	FlushLitPool();
 
-	enterDispatcher = PAlignCode16();
+	enterDispatcher = AlignCode16();
 
 	DEBUG_LOG(JIT, "Base: %08x", (u32)Memory::base);
 
@@ -161,7 +161,7 @@ void ArmJit::GenerateFixedCode() {
 	outerLoop = GetCodePtr();
 		SaveDowncount();
 		RestoreRoundingMode(true);
-		QuickCallFunction(R0, &CoreTiming_P::Advance);
+		QuickCallFunction(R0, &CoreTiming::Advance);
 		ApplyRoundingMode(true);
 		RestoreDowncount();
 		FixupBranch skipToCoreStateCheck = B(); //skip the downcount check
@@ -237,6 +237,7 @@ void ArmJit::GenerateFixedCode() {
 		CMP(R0, 0);
 		B_CC(CC_EQ, outerLoop);
 
+	const uint8_t *quitLoop = GetCodePtr();
 	SetJumpTarget(badCoreState);
 
 	SaveDowncount();
@@ -250,6 +251,12 @@ void ArmJit::GenerateFixedCode() {
 	ADD(R_SP, R_SP, 4);
 
 	POP(9, R4, R5, R6, R7, R8, R9, R10, R11, R_PC);  // Returns
+
+	crashHandler = GetCodePtr();
+	MOVP2R(R0, &coreState);
+	MOVI2R(R1, CORE_RUNTIME_ERROR);
+	STR(R1, R0, 0);
+	B(quitLoop);
 
 	// Uncomment if you want to see the output...
 	if (disasm) {

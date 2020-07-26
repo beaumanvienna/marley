@@ -21,7 +21,7 @@
 #ifdef USING_QT_UI
 #include <QtGui/QImage>
 #else
-#include <libpng17/png.h>
+#include <png.h>
 #include "ext/jpge/jpge.h"
 #endif
 
@@ -41,7 +41,7 @@ class JPEGFileStream : public jpge::output_stream
 {
 public:
 	JPEGFileStream(const char *filename) {
-		fp_ = PFile::OpenCFile(filename, "wb");
+		fp_ = File::OpenCFile(filename, "wb");
 	}
 	~JPEGFileStream() override {
 		if (fp_ ) {
@@ -104,13 +104,13 @@ static bool WriteScreenshotToJPEG(const char *filename, int width, int height, i
 }
 
 static bool WriteScreenshotToPNG(png_imagep image, const char *filename, int convert_to_8bit, const void *buffer, png_int_32 row_stride, const void *colormap) {
-	FILE *fp = PFile::OpenCFile(filename, "wb");
+	FILE *fp = File::OpenCFile(filename, "wb");
 	if (!fp) {
 		ERROR_LOG(SYSTEM, "Unable to open screenshot file for writing.");
 		return false;
 	}
 
-	if (Ppng_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
+	if (png_image_write_to_stdio(image, fp, convert_to_8bit, buffer, row_stride, colormap)) {
 		if (fclose(fp) != 0) {
 			ERROR_LOG(SYSTEM, "Screenshot file write failed.");
 			return false;
@@ -229,7 +229,7 @@ static bool ConvertPixelTo8888RGBA(GPUDebugBufferFormat fmt, u8 &r, u8 &g, u8 &b
 		a = (src >> 8) & 0xFF;
 		break;
 	default:
-		_assert_msg_(SYSTEM, false, "Unsupported framebuffer format for screenshot: %d", fmt);
+		_assert_msg_(false, "Unsupported framebuffer format for screenshot: %d", fmt);
 		return false;
 	}
 
@@ -365,7 +365,7 @@ bool Save888RGBScreenshot(const char *filename, ScreenshotFormat fmt, const u8 *
 		png.width = w;
 		png.height = h;
 		bool success = WriteScreenshotToPNG(&png, filename, 0, bufferRGB888, w * 3, nullptr);
-		Ppng_image_free(&png);
+		png_image_free(&png);
 
 		if (png.warning_or_error >= 2) {
 			ERROR_LOG(SYSTEM, "Saving screenshot to PNG produced errors.");
@@ -394,7 +394,7 @@ bool Save8888RGBAScreenshot(const char *filename, const u8 *buffer, int w, int h
 	png.width = w;
 	png.height = h;
 	bool success = WriteScreenshotToPNG(&png, filename, 0, buffer, w * 4, nullptr);
-	Ppng_image_free(&png);
+	png_image_free(&png);
 
 	if (png.warning_or_error >= 2) {
 		ERROR_LOG(SYSTEM, "Saving screenshot to PNG produced errors.");

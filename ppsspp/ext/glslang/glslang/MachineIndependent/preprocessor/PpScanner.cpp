@@ -90,7 +90,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "PpTokens.h"
 #include "../Scan.h"
 
-namespace Pglslang {
+namespace glslang {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Floating point constants: /////////////////////////////////
@@ -1242,4 +1242,4 @@ void TPpContext::missingEndifCheck()
         parseContext.ppError(parseContext.getCurrentLoc(), "missing #endif", "", "");
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

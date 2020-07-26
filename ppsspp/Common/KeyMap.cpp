@@ -108,9 +108,6 @@ static const DefMappingStruct defaultAzertyKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
-    {VIRTKEY_SAVE_STATE, NKCODE_F5},
-    {VIRTKEY_LOAD_STATE, NKCODE_F7},
-    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
@@ -141,9 +138,6 @@ static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
-    {VIRTKEY_SAVE_STATE, NKCODE_F5},
-    {VIRTKEY_LOAD_STATE, NKCODE_F7},
-    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct default360KeyMap[] = {
@@ -306,8 +300,8 @@ void UpdateNativeMenuKeys() {
 	std::vector<KeyDef> tabLeft, tabRight;
 	std::vector<KeyDef> upKeys, downKeys, leftKeys, rightKeys;
 
-	int confirmKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
-	int cancelKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
+	int confirmKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
+	int cancelKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
 
 	// Mouse mapping might be problematic in UI, so let's ignore mouse for UI
 	KeyFromPspButton(confirmKey, &confirmKeys, true);
@@ -345,6 +339,7 @@ void UpdateNativeMenuKeys() {
 		KeyDef(DEVICE_ID_KEYBOARD, NKCODE_ESCAPE),
 		KeyDef(DEVICE_ID_ANY, NKCODE_BACK),
 		KeyDef(DEVICE_ID_ANY, NKCODE_BUTTON_B),
+		KeyDef(DEVICE_ID_MOUSE, NKCODE_EXT_MOUSEBUTTON_4),
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(hardcodedCancelKeys); i++) {
@@ -357,23 +352,16 @@ void UpdateNativeMenuKeys() {
 	SetTabLeftRightKeys(tabLeft, tabRight);
 }
 
-static void SetDefaultKeyMap(int deviceId, const DefMappingStruct *array, size_t count, bool replace) 
-{
-	for (size_t i = 0; i < count; i++) 
-    {
+static void SetDefaultKeyMap(int deviceId, const DefMappingStruct *array, size_t count, bool replace) {
+	for (size_t i = 0; i < count; i++) {
 		if (array[i].direction == 0)
-        {
 			SetKeyMapping(array[i].pspKey, KeyDef(deviceId, array[i].key), replace);
-        }
 		else
-        {
 			SetAxisMapping(array[i].pspKey, deviceId, array[i].key, array[i].direction, replace);
-        }
 	}
 }
 
-void SetDefaultKeyMap(DefaultMaps dmap, bool replace) 
-{
+void SetDefaultKeyMap(DefaultMaps dmap, bool replace) {
 	switch (dmap) {
 	case DEFAULT_MAPPING_KEYBOARD:
 		{
@@ -705,12 +693,16 @@ const KeyMap_IntStrPair psp_button_names[] = {
 	{VIRTKEY_AXIS_RIGHT_Y_MIN, "RightAn.Down"},
 	{VIRTKEY_AXIS_RIGHT_X_MIN, "RightAn.Left"},
 	{VIRTKEY_AXIS_RIGHT_X_MAX, "RightAn.Right"},
+	{VIRTKEY_OPENCHAT, "OpenChat" },
 
 	{VIRTKEY_AXIS_SWAP, "AxisSwap"},
 	{VIRTKEY_DEVMENU, "DevMenu"},
 	{VIRTKEY_TEXTURE_DUMP, "Texture Dumping"},
 	{VIRTKEY_TEXTURE_REPLACE, "Texture Replacement"},
 	{VIRTKEY_SCREENSHOT, "Screenshot"},
+	{VIRTKEY_MUTE_TOGGLE, "Mute toggle"},
+	{VIRTKEY_ANALOG_ROTATE_CW, "Rotate Analog (CW)"},
+	{VIRTKEY_ANALOG_ROTATE_CCW, "Rotate Analog (CCW)"},
 
 	{CTRL_HOME, "Home"},
 	{CTRL_HOLD, "Hold"},
@@ -728,7 +720,7 @@ static std::string FindName(int key, const KeyMap_IntStrPair list[], size_t size
 	for (size_t i = 0; i < size; i++)
 		if (list[i].key == key)
 			return list[i].name;
-	return PStringFromFormat("%02x?", key);
+	return StringFromFormat("%02x?", key);
 }
 
 std::string GetKeyName(int keyCode) {
@@ -753,8 +745,7 @@ std::string GetAxisName(int axisId) {
 	return FindName(axisId, axis_names, ARRAY_SIZE(axis_names));
 }
 
-std::string GetPspButtonName(int btn) 
-{
+std::string GetPspButtonName(int btn) {
 	return FindName(btn, psp_button_names, ARRAY_SIZE(psp_button_names));
 }
 
@@ -865,8 +856,7 @@ void RemoveButtonMapping(int btn) {
 	}
 }
 
-void SetKeyMapping(int btn, KeyDef key, bool replace) 
-{
+void SetKeyMapping(int btn, KeyDef key, bool replace) {
 	if (key.keyCode < 0)
 		return;
 	if (replace) {
@@ -920,13 +910,13 @@ void RestoreDefault() {
 }
 
 // TODO: Make the ini format nicer.
-void LoadFromIni(PIniFile &file) {
+void LoadFromIni(IniFile &file) {
 	RestoreDefault();
 	if (!file.HasSection("ControlMapping")) {
 		return;
 	}
 
-	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::string value;
 		controls->Get(psp_button_names[i].name, &value, "");
@@ -937,11 +927,11 @@ void LoadFromIni(PIniFile &file) {
 			continue;
 
 		std::vector<std::string> mappings;
-		PSplitString(value, ',', mappings);
+		SplitString(value, ',', mappings);
 
 		for (size_t j = 0; j < mappings.size(); j++) {
 			std::vector<std::string> parts;
-			PSplitString(mappings[j], '-', parts);
+			SplitString(mappings[j], '-', parts);
 			int deviceId = atoi(parts[0].c_str());
 			int keyCode = atoi(parts[1].c_str());
 
@@ -952,8 +942,8 @@ void LoadFromIni(PIniFile &file) {
 	UpdateNativeMenuKeys();
 }
 
-void SaveToIni(PIniFile &file) {
-	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+void SaveToIni(IniFile &file) {
+	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::vector<KeyDef> keys;

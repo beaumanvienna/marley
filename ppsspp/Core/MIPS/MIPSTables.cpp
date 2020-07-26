@@ -948,7 +948,7 @@ void MIPSInterpret(MIPSOpcode op) {
 		// Try to disassemble it
 		char disasm[256];
 		MIPSDisAsm(op, currentMIPS->pc, disasm);
-		_dbg_assert_msg_(CPU, 0, "%s", disasm);
+		_dbg_assert_msg_( 0, "%s", disasm);
 		currentMIPS->pc += 4;
 	}
 }
@@ -964,7 +964,7 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 	MIPSState *curMips = currentMIPS;
 	while (coreState == CORE_RUNNING)
 	{
-		CoreTiming_P::Advance();
+		CoreTiming::Advance();
 		u32 lastPC = 0;
 
 		// NEVER stop in a delay slot!
@@ -973,8 +973,8 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 			// int cycles = 0;
 			{
 				again:
-				MIPSOpcode op = MIPSOpcode(Memory_P::PRead_U32(curMips->pc));
-				//MIPSOpcode op = Memory_P::Read_Opcode_JIT(mipsr4k.pc);
+				MIPSOpcode op = MIPSOpcode(Memory::Read_U32(curMips->pc));
+				//MIPSOpcode op = Memory::Read_Opcode_JIT(mipsr4k.pc);
 				/*
 				// Choke on VFPU
 				MIPSInfo info = MIPSGetInfo(op);
@@ -1019,21 +1019,22 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 
 				if (curMips->inDelaySlot)
 				{
+					curMips->downcount -= 1;
 					// The reason we have to check this is the delay slot hack in Int_Syscall.
 					if (wasInDelaySlot)
 					{
 						curMips->pc = curMips->nextPC;
 						curMips->inDelaySlot = false;
+						continue;
 					}
-					curMips->downcount -= 1;
 					goto again;
 				}
 			}
 
 			curMips->downcount -= 1;
-			if (CoreTiming_P::GetTicks() > globalTicks)
+			if (CoreTiming::GetTicks() > globalTicks)
 			{
-				// DEBUG_LOG(CPU, "Hit the max ticks, bailing 1 : %llu, %llu", globalTicks, CoreTiming_P::GetTicks());
+				// DEBUG_LOG(CPU, "Hit the max ticks, bailing 1 : %llu, %llu", globalTicks, CoreTiming::GetTicks());
 				return 1;
 			}
 		}
@@ -1083,6 +1084,6 @@ int MIPSGetInstructionCycleEstimate(MIPSOpcode op)
 
 const char *MIPSDisasmAt(u32 compilerPC) {
 	static char temp[256];
-	MIPSDisAsm(Memory_P::Read_Instruction(compilerPC), 0, temp);
+	MIPSDisAsm(Memory::Read_Instruction(compilerPC), 0, temp);
 	return temp;
 }

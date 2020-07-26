@@ -15,7 +15,7 @@
  * arguments as this and performs a similar function, but that possibly
  * has a different input method.  Note that you shouldn't change this
  * function, but rather write a replacement function and then make
- * libpng use it at run time with Ppng_set_read_fn(...).
+ * libpng use it at run time with png_set_read_fn(...).
  */
 
 #include "pngpriv.h"
@@ -31,19 +31,19 @@
 void /* PRIVATE */
 png_read_data(png_structrp png_ptr, png_bytep data, png_size_t length)
 {
-   Ppng_debug1(4, "reading %d bytes", (int)length);
+   png_debug1(4, "reading %d bytes", (int)length);
 
    if (png_ptr->read_data_fn != NULL)
       (*(png_ptr->read_data_fn))(png_ptr, data, length);
 
    else
-      Ppng_error(png_ptr, "Call to NULL read function");
+      png_error(png_ptr, "Call to NULL read function");
 }
 
 #ifdef PNG_STDIO_SUPPORTED
 /* This is the function that does the actual reading of data.  If you are
  * not reading from a standard C stream, you should create a replacement
- * read_data function and use it at run time with Ppng_set_read_fn(), rather
+ * read_data function and use it at run time with png_set_read_fn(), rather
  * than changing the library.
  */
 void PNGCBAPI
@@ -60,7 +60,7 @@ png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
    check = fread(data, 1, length, png_voidcast(png_FILE_p, png_ptr->io_ptr));
 
    if (check != length)
-      Ppng_error(png_ptr, "Read Error");
+      png_error(png_ptr, "Read Error");
 }
 #endif
 
@@ -79,12 +79,12 @@ png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
  *                a location where input data can be stored, and a 32-bit
  *                unsigned int that is the number of bytes to be read.
  *                To exit and output any fatal error messages the new write
- *                function should call Ppng_error(png_ptr, "Error msg").
+ *                function should call png_error(png_ptr, "Error msg").
  *                May be NULL, in which case libpng's default function will
  *                be used.
  */
 void PNGAPI
-Ppng_set_read_fn(png_structrp png_ptr, png_voidp io_ptr,
+png_set_read_fn(png_structrp png_ptr, png_voidp io_ptr,
    png_rw_ptr read_data_fn)
 {
    if (png_ptr == NULL)
@@ -107,7 +107,7 @@ Ppng_set_read_fn(png_structrp png_ptr, png_voidp io_ptr,
    if (png_ptr->write_data_fn != NULL)
    {
       png_ptr->write_data_fn = NULL;
-      Ppng_warning(png_ptr,
+      png_warning(png_ptr,
           "Can't set both read_data_fn and write_data_fn in the"
           " same structure");
    }

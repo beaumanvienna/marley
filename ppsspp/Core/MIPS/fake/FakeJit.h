@@ -125,7 +125,7 @@ public:
 
 	int Replace_fabsf() { return 0; }
 
-	PJitBlockCache *GetBlockCache() { return &blocks; }
+	JitBlockCache *GetBlockCache() { return &blocks; }
 
 	void ClearCache();
 	void InvalidateCacheAt(u32 em_address, int length = 4);
@@ -154,7 +154,7 @@ private:
 	void WriteExitDestInR(FakeReg Reg);
 	void WriteSyscallExit();
 
-	PJitBlockCache blocks;
+	JitBlockCache blocks;
 	JitOptions jo;
 	JitState js;
 

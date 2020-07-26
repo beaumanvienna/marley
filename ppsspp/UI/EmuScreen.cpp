@@ -24,11 +24,13 @@
 #include "base/timeutil.h"
 #include "profiler/profiler.h"
 
+#include "gfx/texture_atlas.h"
 #include "gfx_es2/gpu_features.h"
 #include "gfx_es2/draw_text.h"
 
 #include "input/input_state.h"
 #include "math/curves.h"
+#include "ui/root.h"
 #include "ui/ui.h"
 #include "ui/ui_context.h"
 #include "ui/ui_tween.h"
@@ -61,8 +63,8 @@
 #include "Core/SaveState.h"
 #include "Core/MIPS/MIPS.h"
 #include "Core/HLE/__sceAudio.h"
+#include "Core/HLE/proAdhoc.h"
 
-#include "UI/ui_atlas.h"
 #include "UI/BackgroundAudio.h"
 #include "UI/OnScreenDisplay.h"
 #include "UI/GamepadEmu.h"
@@ -78,14 +80,17 @@
 #include "UI/InstallZipScreen.h"
 #include "UI/ProfilerDraw.h"
 #include "UI/DiscordIntegration.h"
+#include "UI/ChatScreen.h"
 
-#if defined(_WIN32) && !PPSSPP_PLATFORM(UWP)
+#if PPSSPP_PLATFORM(WINDOWS) && !PPSSPP_PLATFORM(UWP)
 #include "Windows/MainWindow.h"
 #endif
 
 #ifndef MOBILE_DEVICE
 static AVIDump avi;
 #endif
+
+UI::ChoiceWithValueDisplay *chatButtons;
 
 static bool frameStep_;
 static int lastNumFlips;
@@ -95,7 +100,7 @@ extern bool g_TakeScreenshot;
 
 static void __EmuScreenVblank()
 {
-	I18NCategory *sy = GetI18NCategory("System");
+	auto sy = GetI18NCategory("System");
 
 	if (frameStep_ && lastNumFlips != gpuStats.numFlips)
 	{
@@ -104,17 +109,17 @@ static void __EmuScreenVblank()
 		lastNumFlips = gpuStats.numFlips;
 	}
 #ifndef MOBILE_DEVICE
-	if (g_PConfig.bDumpFrames && !startDumping)
+	if (g_Config.bDumpFrames && !startDumping)
 	{
 		avi.Start(PSP_CoreParameter().renderWidth, PSP_CoreParameter().renderHeight);
 		osm.Show(sy->T("AVI Dump started."), 0.5f);
 		startDumping = true;
 	}
-	if (g_PConfig.bDumpFrames && startDumping)
+	if (g_Config.bDumpFrames && startDumping)
 	{
 		avi.AddFrame();
 	}
-	else if (!g_PConfig.bDumpFrames && startDumping)
+	else if (!g_Config.bDumpFrames && startDumping)
 	{
 		avi.Stop();
 		osm.Show(sy->T("AVI Dump stopped."), 1.0f);
@@ -131,11 +136,14 @@ EmuScreen::EmuScreen(const std::string &filename)
 	frameStep_ = false;
 	lastNumFlips = gpuStats.numFlips;
 	startDumping = false;
+
 	// Make sure we don't leave it at powerdown after the last game.
+	// TODO: This really should be handled elsewhere if it isn't.
 	if (coreState == CORE_POWERDOWN)
 		coreState = CORE_STEPPING;
 
 	OnDevMenu.Handle(this, &EmuScreen::OnDevTools);
+	OnChatMenu.Handle(this, &EmuScreen::OnChat);
 }
 
 bool EmuScreen::bootAllowStorage(const std::string &filename) {
@@ -192,7 +200,7 @@ void EmuScreen::bootGame(const std::string &filename) {
 	if (!bootAllowStorage(filename))
 		return;
 
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 	invalid_ = true;
 
@@ -202,7 +210,7 @@ void EmuScreen::bootGame(const std::string &filename) {
 		return;
 
 	if (!info->id.empty()) {
-		g_PConfig.loadGameConfig(info->id, info->GetTitle());
+		g_Config.loadGameConfig(info->id, info->GetTitle());
 		// Reset views in case controls are in a different place.
 		RecreateViews();
 
@@ -212,7 +220,7 @@ void EmuScreen::bootGame(const std::string &filename) {
 	}
 
 	CoreParameter coreParam{};
-	coreParam.cpuCore = (CPUCore)g_PConfig.iCpuCore;
+	coreParam.cpuCore = (CPUCore)g_Config.iCpuCore;
 	coreParam.gpuCore = GPUCORE_GLES;
 	switch (GetGPUBackend()) {
 	case GPUBackend::DIRECT3D11:
@@ -232,30 +240,27 @@ void EmuScreen::bootGame(const std::string &filename) {
 		break;
 #endif
 	}
-	if (g_PConfig.bSoftwareRendering) {
-		coreParam.gpuCore = GPUCORE_SOFTWARE;
-	}
 
 	// Preserve the existing graphics context.
 	coreParam.graphicsContext = PSP_CoreParameter().graphicsContext;
-	coreParam.enableSound = g_PConfig.bEnableSound;
+	coreParam.enableSound = g_Config.bEnableSound;
 	coreParam.fileToStart = filename;
 	coreParam.mountIso = "";
 	coreParam.mountRoot = "";
-	coreParam.startBreak = !g_PConfig.bAutoRun;
+	coreParam.startBreak = !g_Config.bAutoRun;
 	coreParam.printfEmuLog = false;
 	coreParam.headLess = false;
 
 	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 
-	if (g_PConfig.iInternalResolution == 0) {
+	if (g_Config.iInternalResolution == 0) {
 		coreParam.renderWidth = pixel_xres;
 		coreParam.renderHeight = pixel_yres;
 	} else {
-		if (g_PConfig.iInternalResolution < 0)
-			g_PConfig.iInternalResolution = 1;
-		coreParam.renderWidth = 480 * g_PConfig.iInternalResolution;
-		coreParam.renderHeight = 272 * g_PConfig.iInternalResolution;
+		if (g_Config.iInternalResolution < 0)
+			g_Config.iInternalResolution = 1;
+		coreParam.renderWidth = 480 * g_Config.iInternalResolution;
+		coreParam.renderHeight = 272 * g_Config.iInternalResolution;
 	}
 	coreParam.pixelWidth = pixel_xres;
 	coreParam.pixelHeight = pixel_yres;
@@ -269,23 +274,23 @@ void EmuScreen::bootGame(const std::string &filename) {
 		System_SendMessage("event", "failstartgame");
 	}
 
-	if (PSP_CoreParameter().compat.flags().RequireBufferedRendering && g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE) {
-		I18NCategory *gr = GetI18NCategory("Graphics");
+	if (PSP_CoreParameter().compat.flags().RequireBufferedRendering && g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
+		auto gr = GetI18NCategory("Graphics");
 		host->NotifyUserMessage(gr->T("BufferedRenderingRequired", "Warning: This game requires Rendering Mode to be set to Buffered."), 15.0f);
 	}
 
-	if (PSP_CoreParameter().compat.flags().RequireBlockTransfer && g_PConfig.bBlockTransferGPU == false) {
-		I18NCategory *gr = GetI18NCategory("Graphics");
+	if (PSP_CoreParameter().compat.flags().RequireBlockTransfer && g_Config.bBlockTransferGPU == false) {
+		auto gr = GetI18NCategory("Graphics");
 		host->NotifyUserMessage(gr->T("BlockTransferRequired", "Warning: This game requires Simulate Block Transfer Mode to be set to On."), 15.0f);
 	}
 
-	if (PSP_CoreParameter().compat.flags().RequireDefaultCPUClock && g_PConfig.iLockedCPUSpeed != 0) {
-		I18NCategory *gr = GetI18NCategory("Graphics");
+	if (PSP_CoreParameter().compat.flags().RequireDefaultCPUClock && g_Config.iLockedCPUSpeed != 0) {
+		auto gr = GetI18NCategory("Graphics");
 		host->NotifyUserMessage(gr->T("DefaultCPUClockRequired", "Warning: This game requires the CPU clock to be set to default."), 15.0f);
 	}
 
 	loadingViewColor_->Divert(0xFFFFFFFF, 0.75f);
-	loadingViewVisible_->Divert(PUI::V_VISIBLE, 0.75f);
+	loadingViewVisible_->Divert(UI::V_VISIBLE, 0.75f);
 }
 
 void EmuScreen::bootComplete() {
@@ -296,10 +301,10 @@ void EmuScreen::bootComplete() {
 	NOTICE_LOG(BOOT, "Loading %s...", PSP_CoreParameter().fileToStart.c_str());
 	autoLoad();
 
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 #ifndef MOBILE_DEVICE
-	if (g_PConfig.bFirstRun) {
+	if (g_Config.bFirstRun) {
 		osm.Show(sc->T("PressESC", "Press ESC to open the pause menu"), 3.0f);
 	}
 #endif
@@ -314,14 +319,14 @@ void EmuScreen::bootComplete() {
 			osm.Show(sc->T("GLToolsWarning", "WARNING: GLTools detected, may cause problems"), 10.0f, 0xFF30a0FF, -1, true);
 		}
 
-		if (g_PConfig.bGfxDebugOutput) {
+		if (g_Config.bGfxDebugOutput) {
 			osm.Show("WARNING: GfxDebugOutput is enabled via ppsspp.ini. Things may be slow.", 10.0f, 0xFF30a0FF, -1, true);
 		}
 	}
 #endif
 
 	if (Core_GetPowerSaving()) {
-		I18NCategory *sy = GetI18NCategory("System");
+		auto sy = GetI18NCategory("System");
 #ifdef __ANDROID__
 		osm.Show(sy->T("WARNING: Android battery save mode is on"), 2.0f, 0xFFFFFF, -1, true, "core_powerSaving");
 #else
@@ -334,7 +339,7 @@ void EmuScreen::bootComplete() {
 	saveStateSlot_ = SaveState::GetCurrentSlot();
 
 	loadingViewColor_->Divert(0x00FFFFFF, 0.2f);
-	loadingViewVisible_->Divert(PUI::V_INVISIBLE, 0.2f);
+	loadingViewVisible_->Divert(UI::V_INVISIBLE, 0.2f);
 }
 
 EmuScreen::~EmuScreen() {
@@ -343,7 +348,7 @@ EmuScreen::~EmuScreen() {
 		PSP_Shutdown();
 	}
 #ifndef MOBILE_DEVICE
-	if (g_PConfig.bDumpFrames && startDumping)
+	if (g_Config.bDumpFrames && startDumping)
 	{
 		avi.Stop();
 		osm.Show("AVI Dump stopped.", 1.0f);
@@ -370,7 +375,7 @@ void EmuScreen::dialogFinished(const Screen *dialog, DialogResult result) {
 }
 
 static void AfterSaveStateAction(SaveState::Status status, const std::string &message, void *) {
-	if (!message.empty() && (!g_PConfig.bDumpFrames || !g_PConfig.bDumpVideoOutput)) {
+	if (!message.empty() && (!g_Config.bDumpFrames || !g_Config.bDumpVideoOutput)) {
 		osm.Show(message, status == SaveState::Status::SUCCESS ? 2.0 : 5.0);
 	}
 }
@@ -409,7 +414,7 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 	} else if (!strcmp(message, "boot")) {
 		const char *ext = strrchr(value, '.');
 		if (ext != nullptr && !strcmp(ext, ".ppst")) {
-			SaveState::Load(value, &AfterStateBoot);
+			SaveState::Load(value, -1, &AfterStateBoot);
 		} else {
 			PSP_Shutdown();
 			bootPending_ = true;
@@ -433,7 +438,7 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 	} else if (!strcmp(message, "clear jit")) {
 		currentMIPS->ClearJitCache();
 		if (PSP_IsInited()) {
-			currentMIPS->UpdateCore((CPUCore)g_PConfig.iCpuCore);
+			currentMIPS->UpdateCore((CPUCore)g_Config.iCpuCore);
 		}
 	} else if (!strcmp(message, "window minimized")) {
 		if (!strcmp(value, "true")) {
@@ -441,13 +446,31 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 		} else {
 			gstate_c.skipDrawReason &= ~SKIPDRAW_WINDOW_MINIMIZED;
 		}
+	} else if (!strcmp(message, "chat screen")) {
+
+#if defined(USING_WIN_UI)
+		//temporary workaround for hotkey its freeze the ui when open chat screen using hotkey and native keyboard is enable
+		if (g_Config.bBypassOSKWithKeyboard) {
+			osm.Show("Disable windows native keyboard options to use ctrl + c hotkey", 2.0f);
+		} else {
+			if (g_Config.bEnableNetworkChat) {
+				UI::EventParams e{};
+				OnChatMenu.Trigger(e);
+			}
+		}
+#else
+		if (g_Config.bEnableNetworkChat) {
+			UI::EventParams e{};
+			OnChatMenu.Trigger(e);
+		}
+#endif
 	}
 }
 
 //tiltInputCurve implements a smooth deadzone as described here:
 //http://www.gamasutra.com/blogs/JoshSutphin/20130416/190541/Doing_Thumbstick_Dead_Zones_Right.php
 inline float tiltInputCurve(float x) {
-	const float deadzone = g_PConfig.fDeadzoneRadius;
+	const float deadzone = g_Config.fDeadzoneRadius;
 	const float factor = 1.0f / (1.0f - deadzone);
 
 	if (x > deadzone) {
@@ -477,7 +500,7 @@ bool EmuScreen::touch(const TouchInput &touch) {
 }
 
 void EmuScreen::onVKeyDown(int virtualKeyCode) {
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 	switch (virtualKeyCode) {
 	case VIRTKEY_UNTHROTTLE:
@@ -489,10 +512,10 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 
 	case VIRTKEY_SPEED_TOGGLE:
 		// Cycle through enabled speeds.
-		if (PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && g_PConfig.iFpsLimit1 >= 0) {
+		if (PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && g_Config.iFpsLimit1 >= 0) {
 			PSP_CoreParameter().fpsLimit = FPSLimit::CUSTOM1;
 			osm.Show(sc->T("fixed", "Speed: alternate"), 1.0);
-		} else if (PSP_CoreParameter().fpsLimit != FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 >= 0) {
+		} else if (PSP_CoreParameter().fpsLimit != FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 >= 0) {
 			PSP_CoreParameter().fpsLimit = FPSLimit::CUSTOM2;
 			osm.Show(sc->T("SpeedCustom2", "Speed: alternate 2"), 1.0);
 		} else if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL) {
@@ -531,13 +554,20 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 		}
 		break;
 
+	case VIRTKEY_OPENCHAT:
+		if (g_Config.bEnableNetworkChat) {
+			UI::EventParams e{};
+			OnChatMenu.Trigger(e);
+		}
+		break;
+
 	case VIRTKEY_AXIS_SWAP:
 		KeyMap::SwapAxis();
 		break;
 
 	case VIRTKEY_DEVMENU:
 	{
-		PUI::EventParams e{};
+		UI::EventParams e{};
 		OnDevMenu.Trigger(e);
 		break;
 	}
@@ -545,19 +575,19 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 #ifndef MOBILE_DEVICE
 	case VIRTKEY_RECORD:
 	{
-		if (g_PConfig.bDumpFrames == g_PConfig.bDumpAudio) {
-			g_PConfig.bDumpFrames = !g_PConfig.bDumpFrames;
-			g_PConfig.bDumpAudio = !g_PConfig.bDumpAudio;
+		if (g_Config.bDumpFrames == g_Config.bDumpAudio) {
+			g_Config.bDumpFrames = !g_Config.bDumpFrames;
+			g_Config.bDumpAudio = !g_Config.bDumpAudio;
 		} else { 
 			// This hotkey should always toggle both audio and video together.
 			// So let's make sure that's the only outcome even if video OR audio was already being dumped.
-			if (g_PConfig.bDumpFrames) {
+			if (g_Config.bDumpFrames) {
 				AVIDump::Stop();
 				AVIDump::Start(PSP_CoreParameter().renderWidth, PSP_CoreParameter().renderHeight);
-				g_PConfig.bDumpAudio = true;
+				g_Config.bDumpAudio = true;
 			} else {
 				WAVDump::Reset();
-				g_PConfig.bDumpFrames = true;
+				g_Config.bDumpFrames = true;
 			}
 		}
 		break;
@@ -597,10 +627,10 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 		}
 		break;
 	case VIRTKEY_SAVE_STATE:
-		SaveState::SaveSlot(gamePath_, g_PConfig.iCurrentStateSlot, &AfterSaveStateAction);
+		SaveState::SaveSlot(gamePath_, g_Config.iCurrentStateSlot, &AfterSaveStateAction);
 		break;
 	case VIRTKEY_LOAD_STATE:
-		SaveState::LoadSlot(gamePath_, g_PConfig.iCurrentStateSlot, &AfterSaveStateAction);
+		SaveState::LoadSlot(gamePath_, g_Config.iCurrentStateSlot, &AfterSaveStateAction);
 		break;
 	case VIRTKEY_NEXT_SLOT:
 		SaveState::NextSlot();
@@ -615,8 +645,8 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 		break;
 
 	case VIRTKEY_TEXTURE_DUMP:
-		g_PConfig.bSaveNewTextures = !g_PConfig.bSaveNewTextures;
-		if (g_PConfig.bSaveNewTextures) {
+		g_Config.bSaveNewTextures = !g_Config.bSaveNewTextures;
+		if (g_Config.bSaveNewTextures) {
 			osm.Show(sc->T("saveNewTextures_true", "Textures will now be saved to your storage"), 2.0);
 			NativeMessageReceived("gpu_clearCache", "");
 		} else {
@@ -624,18 +654,32 @@ void EmuScreen::onVKeyDown(int virtualKeyCode) {
 		}
 		break;
 	case VIRTKEY_TEXTURE_REPLACE:
-		g_PConfig.bReplaceTextures = !g_PConfig.bReplaceTextures;
-		if (g_PConfig.bReplaceTextures)
+		g_Config.bReplaceTextures = !g_Config.bReplaceTextures;
+		if (g_Config.bReplaceTextures)
 			osm.Show(sc->T("replaceTextures_true", "Texture replacement enabled"), 2.0);
 		else
 			osm.Show(sc->T("replaceTextures_false", "Textures no longer are being replaced"), 2.0);
 		NativeMessageReceived("gpu_clearCache", "");
 		break;
+	case VIRTKEY_RAPID_FIRE:
+		__CtrlSetRapidFire(true);
+		break;
+	case VIRTKEY_MUTE_TOGGLE:
+		g_Config.bEnableSound = !g_Config.bEnableSound;
+		break;
+	case VIRTKEY_ANALOG_ROTATE_CW:
+		autoRotatingAnalogCW_ = true;
+		autoRotatingAnalogCCW_ = false;
+		break;
+	case VIRTKEY_ANALOG_ROTATE_CCW:
+		autoRotatingAnalogCW_ = false;
+		autoRotatingAnalogCCW_ = true;
+		break;
 	}
 }
 
 void EmuScreen::onVKeyUp(int virtualKeyCode) {
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 	switch (virtualKeyCode) {
 	case VIRTKEY_UNTHROTTLE:
@@ -680,6 +724,22 @@ void EmuScreen::onVKeyUp(int virtualKeyCode) {
 		setVKeyAnalogY(CTRL_STICK_RIGHT, VIRTKEY_AXIS_RIGHT_Y_MIN, VIRTKEY_AXIS_RIGHT_Y_MAX);
 		break;
 
+	case VIRTKEY_RAPID_FIRE:
+		__CtrlSetRapidFire(false);
+		break;
+
+	case VIRTKEY_ANALOG_ROTATE_CW:
+		autoRotatingAnalogCW_ = false;
+		__CtrlSetAnalogX(0.0f, 0);
+		__CtrlSetAnalogY(0.0f, 0);
+		break;
+
+	case VIRTKEY_ANALOG_ROTATE_CCW:
+		autoRotatingAnalogCCW_ = false;
+		__CtrlSetAnalogX(0.0f, 0);
+		__CtrlSetAnalogY(0.0f, 0);
+		break;
+
 	default:
 		break;
 	}
@@ -687,7 +747,7 @@ void EmuScreen::onVKeyUp(int virtualKeyCode) {
 
 // Handles control rotation due to internal screen rotation.
 static void SetPSPAxis(char axis, float value, int stick) {
-	switch (g_PConfig.iInternalScreenRotation) {
+	switch (g_Config.iInternalScreenRotation) {
 	case ROTATION_LOCKED_HORIZONTAL:
 		// Standard rotation.
 		break;
@@ -712,7 +772,7 @@ static void SetPSPAxis(char axis, float value, int stick) {
 }
 
 inline void EmuScreen::setVKeyAnalogX(int stick, int virtualKeyMin, int virtualKeyMax) {
-	const float value = virtKeys[VIRTKEY_ANALOG_LIGHTLY - VIRTKEY_FIRST] ? g_PConfig.fAnalogLimiterDeadzone : 1.0f;
+	const float value = virtKeys[VIRTKEY_ANALOG_LIGHTLY - VIRTKEY_FIRST] ? g_Config.fAnalogLimiterDeadzone : 1.0f;
 	float axis = 0.0f;
 	// The down events can repeat, so just trust the virtKeys array.
 	if (virtKeys[virtualKeyMin - VIRTKEY_FIRST])
@@ -723,7 +783,7 @@ inline void EmuScreen::setVKeyAnalogX(int stick, int virtualKeyMin, int virtualK
 }
 
 inline void EmuScreen::setVKeyAnalogY(int stick, int virtualKeyMin, int virtualKeyMax) {
-	const float value = virtKeys[VIRTKEY_ANALOG_LIGHTLY - VIRTKEY_FIRST] ? g_PConfig.fAnalogLimiterDeadzone : 1.0f;
+	const float value = virtKeys[VIRTKEY_ANALOG_LIGHTLY - VIRTKEY_FIRST] ? g_Config.fAnalogLimiterDeadzone : 1.0f;
 	float axis = 0.0f;
 	if (virtKeys[virtualKeyMin - VIRTKEY_FIRST])
 		axis -= value;
@@ -770,7 +830,7 @@ static int RotatePSPKeyCode(int x) {
 
 void EmuScreen::pspKey(int pspKeyCode, int flags) {
 	int rotations = 0;
-	switch (g_PConfig.iInternalScreenRotation) {
+	switch (g_Config.iInternalScreenRotation) {
 	case ROTATION_LOCKED_HORIZONTAL180:
 		rotations = 2;
 		break;
@@ -918,9 +978,9 @@ void EmuScreen::processAxis(const AxisInput &axis, int direction) {
 	}
 }
 
-class GameInfoBGView : public PUI::InertView {
+class GameInfoBGView : public UI::InertView {
 public:
-	GameInfoBGView(const std::string &gamePath, PUI::LayoutParams *layoutParams) : InertView(layoutParams), gamePath_(gamePath) {
+	GameInfoBGView(const std::string &gamePath, UI::LayoutParams *layoutParams) : InertView(layoutParams), gamePath_(gamePath) {
 	}
 
 	void Draw(UIContext &dc) {
@@ -953,17 +1013,57 @@ protected:
 };
 
 void EmuScreen::CreateViews() {
-	using namespace PUI;
+	using namespace UI;
 
-	I18NCategory *sc = GetI18NCategory("Screen");
-	I18NCategory *dev = GetI18NCategory("Developer");
+	auto dev = GetI18NCategory("Developer");
+	auto n = GetI18NCategory("Networking");
+	auto sc = GetI18NCategory("Screen");
 
-	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
+	const Bounds &bounds = screenManager()->getUIContext()->GetLayoutBounds();
 	InitPadLayout(bounds.w, bounds.h);
 	root_ = CreatePadLayout(bounds.w, bounds.h, &pauseTrigger_);
-	if (g_PConfig.bShowDeveloperMenu) {
+	if (g_Config.bShowDeveloperMenu) {
 		root_->Add(new Button(dev->T("DevMenu")))->OnClick.Handle(this, &EmuScreen::OnDevTools);
 	}
+
+	cardboardDisableButton_ = root_->Add(new Button(sc->T("Cardboard VR OFF"), new AnchorLayoutParams(bounds.centerX(), NONE, NONE, 30, true)));
+	cardboardDisableButton_->OnClick.Handle(this, &EmuScreen::OnDisableCardboard);
+	cardboardDisableButton_->SetVisibility(V_GONE);
+
+	if (g_Config.bEnableNetworkChat) {
+		switch (g_Config.iChatButtonPosition) {
+		case 0:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, 80, NONE, NONE, 50, true));
+			break;
+		case 1:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, bounds.centerX(), NONE, NONE, 50, true));
+			break;
+		case 2:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, NONE, NONE, 80, 50, true));
+			break;
+		case 3:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, 80, 50, NONE, NONE, true));
+			break;
+		case 4:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, bounds.centerX(), 50, NONE, NONE, true));
+			break;
+		case 5:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, NONE, 50, 80, NONE, true));
+			break;
+		case 6:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, 80, bounds.centerY(), NONE, NONE, true));
+			break;
+		case 7:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, NONE, bounds.centerY(), 80, NONE, true));
+			break;
+		default:
+			chatButtons = new ChoiceWithValueDisplay(&newChat, n->T("Chat"), new AnchorLayoutParams(130, WRAP_CONTENT, 80, NONE, NONE, 50, true));
+			break;
+		}
+
+		root_->Add(chatButtons)->OnClick.Handle(this, &EmuScreen::OnChat);
+	}
+
 	saveStatePreview_ = new AsyncImageFileView("", IS_FIXED, nullptr, new AnchorLayoutParams(bounds.centerX(), 100, NONE, NONE, true));
 	saveStatePreview_->SetFixedSize(160, 90);
 	saveStatePreview_->SetColor(0x90FFFFFF);
@@ -976,12 +1076,13 @@ void EmuScreen::CreateViews() {
 	TextView *loadingTextView = root_->Add(new TextView(sc->T(PSP_GetLoading()), new AnchorLayoutParams(bounds.centerX(), NONE, NONE, 40, true)));
 	loadingTextView_ = loadingTextView;
 
-	static const int symbols[4] = {
-		I_CROSS,
-		I_CIRCLE,
-		I_SQUARE,
-		I_TRIANGLE
+	static const ImageID symbols[4] = {
+		ImageID("I_CROSS"),
+		ImageID("I_CIRCLE"),
+		ImageID("I_SQUARE"),
+		ImageID("I_TRIANGLE"),
 	};
+
 	Spinner *loadingSpinner = root_->Add(new Spinner(symbols, ARRAY_SIZE(symbols), new AnchorLayoutParams(NONE, NONE, 45, 45, true)));
 	loadingSpinner_ = loadingSpinner;
 
@@ -1003,7 +1104,7 @@ void EmuScreen::CreateViews() {
 	loadingViewColor_->Persist();
 
 	// We start invisible here, in case of recreated views.
-	loadingViewVisible_ = loadingSpinner->AddTween(new VisibilityTween(PUI::V_INVISIBLE, PUI::V_INVISIBLE, 0.2f, &bezierEaseInOut));
+	loadingViewVisible_ = loadingSpinner->AddTween(new VisibilityTween(UI::V_INVISIBLE, UI::V_INVISIBLE, 0.2f, &bezierEaseInOut));
 	loadingViewVisible_->Persist();
 	loadingViewVisible_->Finish.Add([loadingBG, loadingSpinner](EventParams &p) {
 		loadingBG->SetVisibility(p.v->GetVisibility());
@@ -1020,16 +1121,28 @@ void EmuScreen::CreateViews() {
 	});
 }
 
-PUI::EventReturn EmuScreen::OnDevTools(PUI::EventParams &params) {
-	I18NCategory *dev = GetI18NCategory("Developer");
+UI::EventReturn EmuScreen::OnDevTools(UI::EventParams &params) {
+	auto dev = GetI18NCategory("Developer");
 	DevMenu *devMenu = new DevMenu(dev);
 	if (params.v)
 		devMenu->SetPopupOrigin(params.v);
 	screenManager()->push(devMenu);
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
+}
+
+UI::EventReturn EmuScreen::OnDisableCardboard(UI::EventParams &params) {
+	g_Config.bEnableCardboardVR = false;
+	return UI::EVENT_DONE;
+}
+
+UI::EventReturn EmuScreen::OnChat(UI::EventParams& params) {
+	if (chatButtons->GetVisibility() == UI::V_VISIBLE) chatButtons->SetVisibility(UI::V_GONE);
+	screenManager()->push(new ChatMenu());
+	return UI::EVENT_DONE;
 }
 
 void EmuScreen::update() {
+
 	UIScreen::update();
 
 	if (bootPending_)
@@ -1045,7 +1158,7 @@ void EmuScreen::update() {
 	PSP_CoreParameter().pixelHeight = pixel_yres * bounds.h / dp_yres;
 #endif
 
-	if (!invalid_) {
+	if (!invalid_ && coreState != CORE_RUNTIME_ERROR) {
 		UpdateUIState(UISTATE_INGAME);
 	}
 
@@ -1058,7 +1171,7 @@ void EmuScreen::update() {
 			quit_ = true;
 			return;
 		}
-		I18NCategory *err = GetI18NCategory("Error");
+		auto err = GetI18NCategory("Error");
 		std::string errLoadingFile = gamePath_ + "\n";
 		errLoadingFile.append(err->T("Error loading file", "Could not load game"));
 		errLoadingFile.append(" ");
@@ -1073,8 +1186,16 @@ void EmuScreen::update() {
 	if (invalid_)
 		return;
 
-	// Virtual keys.
-	__CtrlSetRapidFire(virtKeys[VIRTKEY_RAPID_FIRE - VIRTKEY_FIRST]);
+	if (autoRotatingAnalogCW_) {
+		const float now = time_now_d();
+		// Clamp to a square
+		__CtrlSetAnalogX(std::min(1.0f, std::max(-1.0f, 1.42f*cosf(now*-g_Config.fAnalogAutoRotSpeed))), 0);
+		__CtrlSetAnalogY(std::min(1.0f, std::max(-1.0f, 1.42f*sinf(now*-g_Config.fAnalogAutoRotSpeed))), 0);
+	} else if (autoRotatingAnalogCCW_) {
+		const float now = time_now_d();
+		__CtrlSetAnalogX(std::min(1.0f, std::max(-1.0f, 1.42f*cosf(now*g_Config.fAnalogAutoRotSpeed))), 0);
+		__CtrlSetAnalogY(std::min(1.0f, std::max(-1.0f, 1.42f*sinf(now*g_Config.fAnalogAutoRotSpeed))), 0);
+	}
 
 	// This is here to support the iOS on screen back button.
 	if (pauseTrigger_) {
@@ -1094,23 +1215,24 @@ void EmuScreen::update() {
 
 			saveStatePreview_->SetFilename(fn);
 			if (!fn.empty()) {
-				saveStatePreview_->SetVisibility(PUI::V_VISIBLE);
+				saveStatePreview_->SetVisibility(UI::V_VISIBLE);
 				saveStatePreviewShownTime_ = time_now_d();
 			} else {
-				saveStatePreview_->SetVisibility(PUI::V_GONE);
+				saveStatePreview_->SetVisibility(UI::V_GONE);
 			}
 		}
 
-		if (saveStatePreview_->GetVisibility() == PUI::V_VISIBLE) {
+		if (saveStatePreview_->GetVisibility() == UI::V_VISIBLE) {
 			double endTime = saveStatePreviewShownTime_ + 2.0;
 			float alpha = clamp_value((endTime - time_now_d()) * 4.0, 0.0, 1.0);
 			saveStatePreview_->SetColor(colorAlpha(0x00FFFFFF, alpha));
 
 			if (time_now_d() - saveStatePreviewShownTime_ > 2) {
-				saveStatePreview_->SetVisibility(PUI::V_GONE);
+				saveStatePreview_->SetVisibility(UI::V_GONE);
 			}
 		}
 	}
+
 }
 
 void EmuScreen::checkPowerDown() {
@@ -1125,44 +1247,101 @@ void EmuScreen::checkPowerDown() {
 	}
 }
 
-static void DrawDebugStats(DrawBuffer *draw2d) {
+static void DrawDebugStats(DrawBuffer *draw2d, const Bounds &bounds) {
+	FontID ubuntu24("UBUNTU24");
+
+	float left = std::max(bounds.w / 2 - 20.0f, 550.0f);
+	float right = bounds.w - left - 20.0f;
+
 	char statbuf[4096];
 	__DisplayGetDebugStats(statbuf, sizeof(statbuf));
 	draw2d->SetFontScale(.7f, .7f);
-	draw2d->DrawText(UBUNTU24, statbuf, 11, 31, 0xc0000000, FLAG_DYNAMIC_ASCII);
-	draw2d->DrawText(UBUNTU24, statbuf, 10, 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + 11, bounds.y + 31, left, bounds.h - 30, 0xc0000000, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + 10, bounds.y + 30, left, bounds.h - 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
 
 	__SasGetDebugStats(statbuf, sizeof(statbuf));
-	draw2d->DrawText(UBUNTU24, statbuf, PSP_CoreParameter().pixelWidth / 2 + 11, 31, 0xc0000000, FLAG_DYNAMIC_ASCII);
-	draw2d->DrawText(UBUNTU24, statbuf, PSP_CoreParameter().pixelWidth / 2 + 10, 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + left + 21, bounds.y + 31, right, bounds.h - 30, 0xc0000000, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + left + 20, bounds.y + 30, right, bounds.h - 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
 	draw2d->SetFontScale(1.0f, 1.0f);
 }
 
-static void DrawAudioDebugStats(DrawBuffer *draw2d) {
-	char statbuf[1024] = { 0 };
-	const AudioDebugStats *stats = __AudioGetDebugStats();
-	snprintf(statbuf, sizeof(statbuf),
-		"Audio buffer: %d/%d (low watermark: %d)\n"
-		"Underruns: %d\n"
-		"Overruns: %d\n"
-		"Sample rate: %d\n"
-		"Push size: %d\n",
-		stats->buffered, stats->bufsize, stats->watermark,
-		stats->underrunCount,
-		stats->overrunCount,
-		stats->instantSampleRate,
-		stats->lastPushSize);
+static void DrawCrashDump(DrawBuffer *draw2d) {
+	const ExceptionInfo &info = Core_GetExceptionInfo();
+
+	FontID ubuntu24("UBUNTU24");
+	char statbuf[4096];
+	char versionString[256];
+	snprintf(versionString, sizeof(versionString), "%s", PPSSPP_GIT_VERSION);
+
+	// TODO: Draw a lot more information. Full register set, and so on.
+
+#ifdef _DEBUG
+	char build[] = "Debug";
+#else
+	char build[] = "Release";
+#endif
+	snprintf(statbuf, sizeof(statbuf), R"(%s
+Game ID (Title): %s (%s)
+PPSSPP build: %s (%s)
+ABI: %s
+)",
+		ExceptionTypeAsString(info.type),
+		g_paramSFO.GetDiscID().c_str(),
+		g_paramSFO.GetValueString("TITLE").c_str(),
+		versionString,
+		build,
+		GetCompilerABI()
+	);
+
+	draw2d->SetFontScale(.7f, .7f);
+	int x = 20;
+	int y = 50;
+	draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
+	y += 100;
+
+	if (info.type == ExceptionType::MEMORY) {
+		snprintf(statbuf, sizeof(statbuf), R"(
+Access: %s at %08x
+PC: %08x
+%s)",
+			MemoryExceptionTypeAsString(info.memory_type),
+			info.address,
+			info.pc,
+			info.info.c_str());
+		draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
+		y += 180;
+	} else if (info.type == ExceptionType::BAD_EXEC_ADDR) {
+		snprintf(statbuf, sizeof(statbuf), R"(
+Destination: %s to %08x
+PC: %08x)",
+			ExecExceptionTypeAsString(info.exec_type),
+			info.address,
+			info.pc);
+		draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
+		y += 120;
+	}
+
+	std::string kernelState = __KernelStateSummary();
+
+	draw2d->DrawTextShadow(ubuntu24, kernelState.c_str(), x, y, 0xFFFFFFFF);
+}
+
+static void DrawAudioDebugStats(DrawBuffer *draw2d, const Bounds &bounds) {
+	FontID ubuntu24("UBUNTU24");
+	char statbuf[4096] = { 0 };
+	__AudioGetDebugStats(statbuf, sizeof(statbuf));
 	draw2d->SetFontScale(0.7f, 0.7f);
-	draw2d->DrawText(UBUNTU24, statbuf, 11, 31, 0xc0000000, FLAG_DYNAMIC_ASCII);
-	draw2d->DrawText(UBUNTU24, statbuf, 10, 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + 11, bounds.y + 31, bounds.w - 20, bounds.h - 30, 0xc0000000, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
+	draw2d->DrawTextRect(ubuntu24, statbuf, bounds.x + 10, bounds.y + 30, bounds.w - 20, bounds.h - 30, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII | FLAG_WRAP_TEXT);
 	draw2d->SetFontScale(1.0f, 1.0f);
 }
 
 static void DrawFPS(DrawBuffer *draw2d, const Bounds &bounds) {
+	FontID ubuntu24("UBUNTU24");
 	float vps, fps, actual_fps;
 	__DisplayGetFPS(&vps, &fps, &actual_fps);
 	char fpsbuf[256];
-	switch (g_PConfig.iShowFPSCounter) {
+	switch (g_Config.iShowFPSCounter) {
 	case 1:
 		snprintf(fpsbuf, sizeof(fpsbuf), "Speed: %0.1f%%", vps / (59.94f / 100.0f)); break;
 	case 2:
@@ -1174,9 +1353,38 @@ static void DrawFPS(DrawBuffer *draw2d, const Bounds &bounds) {
 	}
 
 	draw2d->SetFontScale(0.7f, 0.7f);
-	draw2d->DrawText(UBUNTU24, fpsbuf, bounds.x2() - 8, 12, 0xc0000000, ALIGN_TOPRIGHT | FLAG_DYNAMIC_ASCII);
-	draw2d->DrawText(UBUNTU24, fpsbuf, bounds.x2() - 10, 10, 0xFF3fFF3f, ALIGN_TOPRIGHT | FLAG_DYNAMIC_ASCII);
+	draw2d->DrawText(ubuntu24, fpsbuf, bounds.x2() - 8, 12, 0xc0000000, ALIGN_TOPRIGHT | FLAG_DYNAMIC_ASCII);
+	draw2d->DrawText(ubuntu24, fpsbuf, bounds.x2() - 10, 10, 0xFF3fFF3f, ALIGN_TOPRIGHT | FLAG_DYNAMIC_ASCII);
 	draw2d->SetFontScale(1.0f, 1.0f);
+}
+
+static void DrawFrameTimes(UIContext *ctx, const Bounds &bounds) {
+	FontID ubuntu24("UBUNTU24");
+	int valid, pos;
+	double *sleepHistory;
+	double *history = __DisplayGetFrameTimes(&valid, &pos, &sleepHistory);
+	int scale = 7000;
+	int width = 600;
+
+	ctx->Flush();
+	ctx->BeginNoTex();
+	int bottom = bounds.y2();
+	for (int i = 0; i < valid; ++i) {
+		double activeTime = history[i] - sleepHistory[i];
+		ctx->Draw()->vLine(bounds.x + i, bottom, bottom - activeTime * scale, 0xFF3FFF3F);
+		ctx->Draw()->vLine(bounds.x + i, bottom - activeTime * scale, bottom - history[i] * scale, 0x7F3FFF3F);
+	}
+	ctx->Draw()->vLine(bounds.x + pos, bottom, bottom - 512, 0xFFff3F3f);
+
+	ctx->Draw()->hLine(bounds.x, bottom - 0.0333 * scale, bounds.x + width, 0xFF3f3Fff);
+	ctx->Draw()->hLine(bounds.x, bottom - 0.0167 * scale, bounds.x + width, 0xFF3f3Fff);
+
+	ctx->Flush();
+	ctx->Begin();
+	ctx->Draw()->SetFontScale(0.5f, 0.5f);
+	ctx->Draw()->DrawText(ubuntu24, "33.3ms", bounds.x + width, bottom - 0.0333 * scale, 0xFF3f3Fff, ALIGN_BOTTOMLEFT | FLAG_DYNAMIC_ASCII);
+	ctx->Draw()->DrawText(ubuntu24, "16.7ms", bounds.x + width, bottom - 0.0167 * scale, 0xFF3f3Fff, ALIGN_BOTTOMLEFT | FLAG_DYNAMIC_ASCII);
+	ctx->Draw()->SetFontScale(1.0f, 1.0f);
 }
 
 void EmuScreen::preRender() {
@@ -1190,13 +1398,13 @@ void EmuScreen::preRender() {
 	// We only bind it in FramebufferManager::CopyDisplayToOutput (unless non-buffered)...
 	// We do, however, start the frame in other ways.
 
-	bool useBufferedRendering = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
-	if ((!useBufferedRendering && !g_PConfig.bSoftwareRendering) || Core_IsStepping()) {
+	bool useBufferedRendering = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	if ((!useBufferedRendering && !g_Config.bSoftwareRendering) || Core_IsStepping()) {
 		// We need to clear here already so that drawing during the frame is done on a clean slate.
 		if (Core_IsStepping() && gpuStats.numFlips != 0) {
-			draw->BindFramebufferAsRenderTarget(nullptr, { RPAction::KEEP, RPAction::DONT_CARE, RPAction::DONT_CARE });
+			draw->BindFramebufferAsRenderTarget(nullptr, { RPAction::KEEP, RPAction::DONT_CARE, RPAction::DONT_CARE }, "EmuScreen_BackBuffer");
 		} else {
-			draw->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR, 0xFF000000 });
+			draw->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR, 0xFF000000 }, "EmuScreen_BackBuffer");
 		}
 
 		Viewport viewport;
@@ -1229,13 +1437,13 @@ void EmuScreen::render() {
 
 	if (invalid_) {
 		// Loading, or after shutdown?
-		if (loadingTextView_->GetVisibility() == PUI::V_VISIBLE)
+		if (loadingTextView_->GetVisibility() == UI::V_VISIBLE)
 			loadingTextView_->SetText(PSP_GetLoading());
 
 		// It's possible this might be set outside PSP_RunLoopFor().
 		// In this case, we need to double check it here.
 		checkPowerDown();
-		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR });
+		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR }, "EmuScreen_Invalid");
 		renderUI();
 		return;
 	}
@@ -1251,30 +1459,46 @@ void EmuScreen::render() {
 		}
 	}
 
-	Core_UpdateDebugStats(g_PConfig.bShowDebugStats || g_PConfig.bLogFrameDrops);
+	Core_UpdateDebugStats(g_Config.bShowDebugStats || g_Config.bLogFrameDrops);
 
 	PSP_BeginHostFrame();
 
 	PSP_RunLoopWhileState();
 
 	// Hopefully coreState is now CORE_NEXTFRAME
-	if (coreState == CORE_NEXTFRAME) {
-		// set back to running for the next frame
+	switch (coreState) {
+	case CORE_NEXTFRAME:
+		// Reached the end of the frame, all good. Set back to running for the next frame
 		coreState = CORE_RUNNING;
-	} else if (coreState == CORE_STEPPING) {
-		// If we're stepping, it's convenient not to clear the screen entirely, so we copy display to output.
-		// This won't work in non-buffered, but that's fine.
-		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::DONT_CARE, RPAction::DONT_CARE });
-		// Just to make sure.
-		if (PSP_IsInited()) {
-			gpu->CopyDisplayToOutput();
+		break;
+	case CORE_STEPPING:
+	case CORE_RUNTIME_ERROR:
+	{
+		// If there's an exception, display information.
+		const ExceptionInfo &info = Core_GetExceptionInfo();
+		if (info.type != ExceptionType::NONE) {
+			// Clear to blue background screen
+			thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::DONT_CARE, RPAction::DONT_CARE, 0xFF900000 }, "EmuScreen_RuntimeError");
+			// The info is drawn later in renderUI
+		} else {
+			// If we're stepping, it's convenient not to clear the screen entirely, so we copy display to output.
+			// This won't work in non-buffered, but that's fine.
+			thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::DONT_CARE, RPAction::DONT_CARE }, "EmuScreen_Stepping");
+			// Just to make sure.
+			if (PSP_IsInited()) {
+				gpu->CopyDisplayToOutput(true);
+			}
 		}
-	} else {
+		break;
+	}
+	default:
 		// Didn't actually reach the end of the frame, ran out of the blockTicks cycles.
 		// In this case we need to bind and wipe the backbuffer, at least.
 		// It's possible we never ended up outputted anything - make sure we have the backbuffer cleared
-		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR });
+		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::CLEAR, RPAction::CLEAR, RPAction::CLEAR }, "EmuScreen_NoFrame");
+		break;
 	}
+
 	checkPowerDown();
 
 	PSP_EndHostFrame();
@@ -1282,6 +1506,9 @@ void EmuScreen::render() {
 		return;
 
 	if (hasVisibleUI()) {
+		// In most cases, this should already be bound and a no-op.
+		thin3d->BindFramebufferAsRenderTarget(nullptr, { RPAction::KEEP, RPAction::DONT_CARE, RPAction::DONT_CARE }, "EmuScreen_UI");
+		cardboardDisableButton_->SetVisibility(g_Config.bEnableCardboardVR ? UI::V_VISIBLE : UI::V_GONE);
 		screenManager()->getUIContext()->BeginFrame();
 		renderUI();
 	}
@@ -1306,14 +1533,20 @@ void EmuScreen::render() {
 
 bool EmuScreen::hasVisibleUI() {
 	// Regular but uncommon UI.
-	if (saveStatePreview_->GetVisibility() != PUI::V_GONE || loadingSpinner_->GetVisibility() == PUI::V_VISIBLE)
+	if (saveStatePreview_->GetVisibility() != UI::V_GONE || loadingSpinner_->GetVisibility() == UI::V_VISIBLE)
 		return true;
-	if (!osm.IsEmpty() || g_PConfig.bShowTouchControls || g_PConfig.iShowFPSCounter != 0)
+	if (!osm.IsEmpty() || g_Config.bShowTouchControls || g_Config.iShowFPSCounter != 0)
+		return true;
+	if (g_Config.bEnableCardboardVR)
+		return true;
+	// Debug UI.
+	if (g_Config.bShowDebugStats || g_Config.bShowDeveloperMenu || g_Config.bShowAudioDebug || g_Config.bShowFrameProfiler)
 		return true;
 
-	// Debug UI.
-	if (g_PConfig.bShowDebugStats || g_PConfig.bShowDeveloperMenu || g_PConfig.bShowAudioDebug || g_PConfig.bShowFrameProfiler)
+	// Exception information.
+	if (coreState == CORE_RUNTIME_ERROR || coreState == CORE_STEPPING) {
 		return true;
+	}
 
 	return false;
 }
@@ -1338,38 +1571,50 @@ void EmuScreen::renderUI() {
 
 	DrawBuffer *draw2d = ctx->Draw();
 	if (root_) {
-		PUI::LayoutViewHierarchy(*ctx, root_);
+		UI::LayoutViewHierarchy(*ctx, root_, false);
 		root_->Draw(*ctx);
 	}
 
-	if (g_PConfig.bShowDebugStats && !invalid_) {
-		DrawDebugStats(draw2d);
+	if (g_Config.bShowDebugStats && !invalid_) {
+		DrawDebugStats(draw2d, ctx->GetLayoutBounds());
 	}
 
-	if (g_PConfig.bShowAudioDebug && !invalid_) {
-		DrawAudioDebugStats(draw2d);
+	if (g_Config.bShowAudioDebug && !invalid_) {
+		DrawAudioDebugStats(draw2d, ctx->GetLayoutBounds());
 	}
 
-	if (g_PConfig.iShowFPSCounter && !invalid_) {
-		DrawFPS(draw2d, ctx->GetBounds());
+	if (g_Config.iShowFPSCounter && !invalid_) {
+		DrawFPS(draw2d, ctx->GetLayoutBounds());
+	}
+
+	if (g_Config.bDrawFrameGraph && !invalid_) {
+		DrawFrameTimes(ctx, ctx->GetLayoutBounds());
 	}
 
 #if !PPSSPP_PLATFORM(UWP)
-	if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN && g_PConfig.bShowAllocatorDebug) {
+	if (g_Config.iGPUBackend == (int)GPUBackend::VULKAN && g_Config.bShowAllocatorDebug) {
 		DrawAllocatorVis(ctx, gpu);
 	}
 
-	if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN && g_PConfig.bShowGpuProfile) {
+	if (g_Config.iGPUBackend == (int)GPUBackend::VULKAN && g_Config.bShowGpuProfile) {
 		DrawProfilerVis(ctx, gpu);
 	}
 
 #endif
 
 #ifdef USE_PROFILER
-	if (g_PConfig.bShowFrameProfiler && !invalid_) {
+	if (g_Config.bShowFrameProfiler && !invalid_) {
 		DrawProfile(*ctx);
 	}
 #endif
+
+	if (coreState == CORE_RUNTIME_ERROR || coreState == CORE_STEPPING) {
+		const ExceptionInfo &info = Core_GetExceptionInfo();
+		if (info.type != ExceptionType::NONE) {
+			DrawCrashDump(draw2d);
+		}
+	}
+
 	ctx->Flush();
 }
 
@@ -1377,7 +1622,7 @@ void EmuScreen::autoLoad() {
 	int autoSlot = -1;
 
 	//check if save state has save, if so, load
-	switch (g_PConfig.iAutoLoadSaveState) {
+	switch (g_Config.iAutoLoadSaveState) {
 	case (int)AutoLoadSaveState::OFF: // "AutoLoad Off"
 		return;
 	case (int)AutoLoadSaveState::OLDEST: // "Oldest Save"
@@ -1387,13 +1632,13 @@ void EmuScreen::autoLoad() {
 		autoSlot = SaveState::GetNewestSlot(gamePath_);
 		break;
 	default: // try the specific save state slot specified
-		autoSlot = (SaveState::HasSaveInSlot(gamePath_, g_PConfig.iAutoLoadSaveState - 3)) ? (g_PConfig.iAutoLoadSaveState - 3) : -1;
+		autoSlot = (SaveState::HasSaveInSlot(gamePath_, g_Config.iAutoLoadSaveState - 3)) ? (g_Config.iAutoLoadSaveState - 3) : -1;
 		break;
 	}
 
-	if (g_PConfig.iAutoLoadSaveState && autoSlot != -1) {
+	if (g_Config.iAutoLoadSaveState && autoSlot != -1) {
 		SaveState::LoadSlot(gamePath_, autoSlot, &AfterSaveStateAction);
-		g_PConfig.iCurrentStateSlot = autoSlot;
+		g_Config.iCurrentStateSlot = autoSlot;
 	}
 }
 

@@ -53,7 +53,7 @@
 
 #include "ParseHelper.h"
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // The inductive loop-body traverser.
@@ -197,4 +197,4 @@ void TParseContext::constantIndexExpressionCheck(TIntermNode* index)
 #endif
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

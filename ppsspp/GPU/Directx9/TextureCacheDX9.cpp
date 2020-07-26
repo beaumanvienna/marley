@@ -180,7 +180,7 @@ void TextureCacheDX9::UpdateSamplingParams(TexCacheEntry &entry, bool force) {
 	D3DTEXTUREFILTERTYPE mipf = (D3DTEXTUREFILTERTYPE)MipFilt[minFilt];
 	D3DTEXTUREFILTERTYPE magf = (D3DTEXTUREFILTERTYPE)MagFilt[magFilt];
 
-	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_PConfig.iAnisotropyLevel > 0 && minf == D3DTEXF_LINEAR) {
+	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_Config.iAnisotropyLevel > 0 && minf == D3DTEXF_LINEAR) {
 		minf = D3DTEXF_ANISOTROPIC;
 	}
 
@@ -234,7 +234,7 @@ void TextureCacheDX9::StartFrame() {
 	}
 
 	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY)) {
-		DWORD aniso = 1 << g_PConfig.iAnisotropyLevel;
+		DWORD aniso = 1 << g_Config.iAnisotropyLevel;
 		DWORD anisotropyLevel = aniso > maxAnisotropyLevel ? maxAnisotropyLevel : aniso;
 		device_->SetSamplerState(0, D3DSAMP_MAXANISOTROPY, anisotropyLevel);
 	}
@@ -418,7 +418,7 @@ protected:
 void TextureCacheDX9::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFramebuffer *framebuffer) {
 	LPDIRECT3DPIXELSHADER9 pshader = nullptr;
 	uint32_t clutMode = gstate.clutformat & 0xFFFFFF;
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
 		pshader = depalShaderCache_->GetDepalettizePixelShader(clutMode, framebuffer->drawnFormat);
 	}
 
@@ -427,7 +427,7 @@ void TextureCacheDX9::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFrame
 		LPDIRECT3DTEXTURE9 clutTexture = depalShaderCache_->GetClutTexture(clutFormat, clutHash_, clutBuf_);
 
 		Draw::Framebuffer *depalFBO = framebufferManagerDX9_->GetTempFBO(TempFBO::DEPAL, framebuffer->renderWidth, framebuffer->renderHeight, Draw::FBO_8888);
-		draw_->BindFramebufferAsRenderTarget(depalFBO, { Draw::RPAction::DONT_CARE, Draw::RPAction::DONT_CARE, Draw::RPAction::DONT_CARE });
+		draw_->BindFramebufferAsRenderTarget(depalFBO, { Draw::RPAction::DONT_CARE, Draw::RPAction::DONT_CARE, Draw::RPAction::DONT_CARE }, "Depal");
 		shaderManager_->DirtyLastShader();
 
 		float xoff = -0.5f / framebuffer->renderWidth;
@@ -466,7 +466,7 @@ void TextureCacheDX9::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFrame
 		gstate_c.SetTextureFullAlpha(gstate.getTextureFormat() == GE_TFMT_5650);
 	}
 
-	framebufferManagerDX9_->RebindFramebuffer();
+	framebufferManagerDX9_->RebindFramebuffer("RebindFramebuffer - ApplyTextureFromFramebuffer");
 	SetFramebufferSamplingParams(framebuffer->bufferWidth, framebuffer->bufferHeight);
 
 	InvalidateLastTexture();

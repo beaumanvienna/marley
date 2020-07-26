@@ -289,7 +289,7 @@ bool GetUncompressedLength(const char* start, size_t n, size_t* result) {
   }
 }
 
-namespace Pinternal {
+namespace internal {
 uint16* WorkingMemory::GetHashTable(size_t input_size, int* table_size) {
   // Use smaller hash table when input.size() is smaller, since we
   // fill the table, incurring O(hash table size) overhead for
@@ -315,7 +315,7 @@ uint16* WorkingMemory::GetHashTable(size_t input_size, int* table_size) {
   memset(table, 0, htsize * sizeof(*table));
   return table;
 }
-}  // end namespace Pinternal
+}  // end namespace internal
 
 // For 0 <= offset <= 4, GetUint32AtOffset(GetEightBytesAt(p), offset) will
 // equal UNALIGNED_LOAD32(p + offset).  Motivation: On x86-64 hardware we have
@@ -371,7 +371,7 @@ static inline uint32 GetUint32AtOffset(const char* v, int offset) {
 //
 // Returns an "end" pointer into "op" buffer.
 // "end - op" is the compressed size of "input".
-namespace Pinternal {
+namespace internal {
 char* CompressFragment(const char* input,
                        size_t input_size,
                        char* op,
@@ -497,7 +497,7 @@ char* CompressFragment(const char* input,
 
   return op;
 }
-}  // end namespace Pinternal
+}  // end namespace internal
 
 // Signature of output types needed by decompression code.
 // The decompression code is templatized on a type that obeys this
@@ -925,7 +925,7 @@ size_t Compress(Source* reader, Sink* writer) {
   writer->Append(ulength, p-ulength);
   written += (p - ulength);
 
-  Pinternal::WorkingMemory wmem;
+  internal::WorkingMemory wmem;
   char* scratch = NULL;
   char* scratch_output = NULL;
 
@@ -983,7 +983,7 @@ size_t Compress(Source* reader, Sink* writer) {
       // scratch_output[] region is big enough for this iteration.
     }
     char* dest = writer->GetAppendBuffer(max_output, scratch_output);
-    char* end = Pinternal::CompressFragment(fragment, fragment_size,
+    char* end = internal::CompressFragment(fragment, fragment_size,
                                            dest, table, table_size);
     writer->Append(dest, end - dest);
     written += (end - dest);

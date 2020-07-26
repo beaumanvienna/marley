@@ -237,9 +237,9 @@ namespace MIPSComp
 		bool doCheck = false;
 		switch (op >> 26)
 		{
-		case 50: //lv.s  // VI(vt) = Memory_P::PRead_U32(addr);
+		case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
 			{
-				if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
 					fpr.MapRegV(vt, MAP_NOINIT | MAP_DIRTY);
 					VLDR(fpr.V(vt), gpr.RPtr(rs), offset);
@@ -250,10 +250,10 @@ namespace MIPSComp
 				fpr.MapRegV(vt, MAP_DIRTY | MAP_NOINIT);
 				if (gpr.IsImm(rs)) {
 					u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, offset);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
@@ -282,9 +282,9 @@ namespace MIPSComp
 			}
 			break;
 
-		case 58: //sv.s   // Memory_P::PWrite_U32(VI(vt), addr);
+		case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
 			{
-				if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
+				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
 					fpr.MapRegV(vt, 0);
 					VSTR(fpr.V(vt), gpr.RPtr(rs), offset);
@@ -295,10 +295,10 @@ namespace MIPSComp
 				fpr.MapRegV(vt);
 				if (gpr.IsImm(rs)) {
 					u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, offset);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, offset, SCRATCHREG2);
@@ -353,10 +353,10 @@ namespace MIPSComp
 
 				if (gpr.IsImm(rs)) {
 					u32 addr = (imm + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, imm);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, imm, SCRATCHREG2);
@@ -418,10 +418,10 @@ namespace MIPSComp
 
 				if (gpr.IsImm(rs)) {
 					u32 addr = (imm + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory_P::base);
+					gpr.SetRegImm(R0, addr + (u32)Memory::base);
 				} else {
 					gpr.MapReg(rs);
-					if (g_PConfig.bFastMemory) {
+					if (g_Config.bFastMemory) {
 						SetR0ToEffectiveAddress(rs, imm);
 					} else {
 						SetCCAndR0ForSafeAddress(rs, imm, SCRATCHREG2);
@@ -543,7 +543,7 @@ namespace MIPSComp
 			VMOV(fpr.V(dregs[3]), (vd&3)==3 ? S1 : S0);
 			break;
 		default:
-			_dbg_assert_msg_(CPU,0,"Trying to interpret instruction that can't be interpreted");
+			_dbg_assert_msg_(false,"Trying to interpret instruction that can't be interpreted");
 			break;
 		}
 		
@@ -1320,7 +1320,7 @@ namespace MIPSComp
 				}
 			} else {
 				//ERROR
-				_dbg_assert_msg_(CPU,0,"mtv - invalid register");
+				_dbg_assert_msg_(false,"mtv - invalid register");
 			}
 			break;
 

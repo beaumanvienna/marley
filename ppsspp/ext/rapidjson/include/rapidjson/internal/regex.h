@@ -42,7 +42,7 @@ RAPIDJSON_DIAG_OFF(implicit-fallthrough)
 #endif
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 ///////////////////////////////////////////////////////////////////////////////
 // DecodedStream
@@ -670,7 +670,7 @@ private:
                 if (!anchorBegin)
                     AddState(*next, regex_.root_);
             }
-            Pinternal::Swap(current, next);
+            internal::Swap(current, next);
         }
 
         return matched;
@@ -718,7 +718,7 @@ private:
 typedef GenericRegex<UTF8<> > Regex;
 typedef GenericRegexSearch<Regex> RegexSearch;
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #ifdef __GNUC__

@@ -68,7 +68,7 @@ std::string GetCPUString() {
 	std::string cpu_string;
 	std::fstream file;
 
-	if (PFile::OpenCPPFile(file, procfile, std::ios::in)) {
+	if (File::OpenCPPFile(file, procfile, std::ios::in)) {
 		std::string line, marker = "Hardware\t: ";
 		while (std::getline(file, line)) {
 			if (line.find(marker) != std::string::npos) {
@@ -89,7 +89,7 @@ std::string GetCPUBrandString() {
 	std::string brand_string;
 	std::fstream file;
 
-	if (PFile::OpenCPPFile(file, procfile, std::ios::in)) {
+	if (File::OpenCPPFile(file, procfile, std::ios::in)) {
 		std::string line, marker = "Processor\t: ";
 		while (std::getline(file, line)) {
 			if (line.find(marker) != std::string::npos) {
@@ -115,7 +115,7 @@ unsigned char GetCPUImplementer()
 	unsigned char implementer = 0;
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 
 	while (std::getline(file, line))
@@ -137,7 +137,7 @@ unsigned short GetCPUPart()
 	unsigned short part = 0;
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 
 	while (std::getline(file, line))
@@ -158,7 +158,7 @@ bool CheckCPUFeature(const std::string& feature)
 	std::string line, marker = "Features\t: ";
 	std::fstream file;
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 0;
 
 	while (std::getline(file, line))
@@ -184,7 +184,7 @@ int GetCoreCount()
 	int cores = 1;
 	std::fstream file;
 
-	if (PFile::OpenCPPFile(file, syscpupresentfile, std::ios::in))
+	if (File::OpenCPPFile(file, syscpupresentfile, std::ios::in))
 	{
 		int low, high, found;
 		std::getline(file, line);
@@ -195,7 +195,7 @@ int GetCoreCount()
 			return high - low + 1;
 	}
 
-	if (!PFile::OpenCPPFile(file, procfile, std::ios::in))
+	if (!File::OpenCPPFile(file, procfile, std::ios::in))
 		return 1;
 	
 	while (std::getline(file, line))
@@ -308,9 +308,9 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = PStringFromFormat("%s, %d core", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %d core", cpu_string, num_cores);
 	else
-		sum = PStringFromFormat("%s, %d cores", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %d cores", cpu_string, num_cores);
 	if (bSwp) sum += ", SWP";
 	if (bHalf) sum += ", Half";
 	if (bThumb) sum += ", Thumb";

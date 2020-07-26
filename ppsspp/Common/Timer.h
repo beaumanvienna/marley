@@ -20,33 +20,33 @@
 #include "Common.h"
 #include <string>
 
-namespace PCommon
+namespace Common
 {
-class PTimer
+class Timer
 {
 public:
-	PTimer();
+	Timer();
 
-	void PStart();
-	void PStop();
-	void PUpdate();
+	void Start();
+	void Stop();
+	void Update();
 
 	// The time difference is always returned in milliseconds, regardless of alternative internal representation
 	u64 GetTimeDifference() const;
-	void PAddTimeDifference();
+	void AddTimeDifference();
 	void WindBackStartingTime(u64 WindBack);
 
-	static void PIncreaseResolution();
-	static void PRestoreResolution();
-	static u64 PGetTimeSinceJan1970();
-	static u64 PGetLocalTimeSinceJan1970();
-	static double PGetDoubleTime();
+	static void IncreaseResolution();
+	static void RestoreResolution();
+	static u64 GetTimeSinceJan1970();
+	static u64 GetLocalTimeSinceJan1970();
+	static double GetDoubleTime();
 
   static void GetTimeFormatted(char formattedTime[13]);
-	std::string PGetTimeElapsedFormatted() const;
+	std::string GetTimeElapsedFormatted() const;
 	u64 GetTimeElapsed() const;
 
-	static u32 PGetTimeMs();
+	static u32 GetTimeMs();
 
 private:
 	u64 m_LastTime;
@@ -57,4 +57,4 @@ private:
 	bool m_Running;
 };
 
-} // Namespace PCommon
+} // Namespace Common

@@ -59,11 +59,11 @@ op_agent_t agent;
 
 const u32 INVALID_EXIT = 0xFFFFFFFF;
 
-PJitBlockCache::PJitBlockCache(MIPSState *mips, CodeBlockCommon *codeBlock) :
+JitBlockCache::JitBlockCache(MIPSState *mips, CodeBlockCommon *codeBlock) :
 	codeBlock_(codeBlock), blocks_(nullptr), num_blocks_(0) {
 }
 
-PJitBlockCache::~PJitBlockCache() {
+JitBlockCache::~JitBlockCache() {
 	Shutdown();
 }
 
@@ -73,11 +73,11 @@ bool JitBlock::ContainsAddress(u32 em_address) {
 	return (em_address >= originalAddress && em_address < originalAddress + 4 * originalSize);
 }
 
-bool PJitBlockCache::IsFull() const {
+bool JitBlockCache::IsFull() const {
 	return num_blocks_ >= MAX_NUM_BLOCKS - 1;
 }
 
-void PJitBlockCache::Init() {
+void JitBlockCache::Init() {
 #if defined USE_OPROFILE && USE_OPROFILE
 	agent = op_open_agent();
 #endif
@@ -85,7 +85,7 @@ void PJitBlockCache::Init() {
 	Clear();
 }
 
-void PJitBlockCache::Shutdown() {
+void JitBlockCache::Shutdown() {
 	Clear(); // Make sure proxy block links are deleted
 	delete [] blocks_;
 	blocks_ = 0;
@@ -101,7 +101,7 @@ void PJitBlockCache::Shutdown() {
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 // is full and when saving and loading states.
-void PJitBlockCache::Clear() {
+void JitBlockCache::Clear() {
 	block_map_.clear();
 	proxyBlockMap_.clear();
 	for (int i = 0; i < num_blocks_; i++)
@@ -114,20 +114,20 @@ void PJitBlockCache::Clear() {
 	blockMemRanges_[JITBLOCK_RANGE_RAMTOP] = std::make_pair(0xFFFFFFFF, 0x00000000);
 }
 
-void PJitBlockCache::Reset() {
+void JitBlockCache::Reset() {
 	Shutdown();
 	Init();
 }
 
-JitBlock *PJitBlockCache::GetBlock(int no) {
+JitBlock *JitBlockCache::GetBlock(int no) {
 	return &blocks_[no];
 }
 
-const JitBlock *PJitBlockCache::GetBlock(int no) const {
+const JitBlock *JitBlockCache::GetBlock(int no) const {
 	return &blocks_[no];
 }
 
-int PJitBlockCache::AllocateBlock(u32 startAddress) {
+int JitBlockCache::AllocateBlock(u32 startAddress) {
 	JitBlock &b = blocks_[num_blocks_];
 
 	b.proxyFor = 0;
@@ -158,7 +158,7 @@ int PJitBlockCache::AllocateBlock(u32 startAddress) {
 	return num_blocks_ - 1;
 }
 
-void PJitBlockCache::ProxyBlock(u32 rootAddress, u32 startAddress, u32 size, const u8 *codePtr) {
+void JitBlockCache::ProxyBlock(u32 rootAddress, u32 startAddress, u32 size, const u8 *codePtr) {
 	// If there's an existing block at the startAddress, add rootAddress as a proxy root of that block
 	// instead of creating a new block.
 	int num = GetBlockNumberFromStartAddress(startAddress, false);
@@ -186,14 +186,14 @@ void PJitBlockCache::ProxyBlock(u32 rootAddress, u32 startAddress, u32 size, con
 
 	// Make binary searches and stuff work ok
 	b.normalEntry = codePtr;
-	b.checkedEntry = (u8 *)codePtr;  // Ugh, casting away const..
+	b.checkedEntry = codePtr;
 	proxyBlockMap_.insert(std::make_pair(startAddress, num_blocks_));
 	AddBlockMap(num_blocks_);
 
 	num_blocks_++; //commit the current block
 }
 
-void PJitBlockCache::AddBlockMap(int block_num) {
+void JitBlockCache::AddBlockMap(int block_num) {
 	const JitBlock &b = blocks_[block_num];
 	// Convert the logical address to a physical address for the block map
 	// Yeah, this'll work fine for PSP too I think.
@@ -201,7 +201,7 @@ void PJitBlockCache::AddBlockMap(int block_num) {
 	block_map_[std::make_pair(pAddr + 4 * b.originalSize, pAddr)] = block_num;
 }
 
-void PJitBlockCache::RemoveBlockMap(int block_num) {
+void JitBlockCache::RemoveBlockMap(int block_num) {
 	const JitBlock &b = blocks_[block_num];
 	if (b.invalid) {
 		return;
@@ -227,12 +227,12 @@ static void ExpandRange(std::pair<u32, u32> &range, u32 newStart, u32 newEnd) {
 	range.second = std::max(range.second, newEnd);
 }
 
-void PJitBlockCache::FinalizeBlock(int block_num, bool block_link) {
+void JitBlockCache::FinalizeBlock(int block_num, bool block_link) {
 	JitBlock &b = blocks_[block_num];
 
-	b.originalFirstOpcode = Memory_P::Read_Opcode_JIT(b.originalAddress);
+	b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
 	MIPSOpcode opcode = GetEmuHackOpForBlock(block_num);
-	Memory_P::Write_Opcode_JIT(b.originalAddress, opcode);
+	Memory::Write_Opcode_JIT(b.originalAddress, opcode);
 
 	AddBlockMap(block_num);
 
@@ -248,7 +248,7 @@ void PJitBlockCache::FinalizeBlock(int block_num, bool block_link) {
 	}
 
 	const u32 blockEnd = b.originalAddress + b.originalSize * 4 - 4;
-	if (Memory_P::IsScratchpadAddress(b.originalAddress)) {
+	if (Memory::IsScratchpadAddress(b.originalAddress)) {
 		ExpandRange(blockMemRanges_[JITBLOCK_RANGE_SCRATCH], b.originalAddress, blockEnd);
 	}
 	const u32 halfUserMemory = (PSP_GetUserMemoryEnd() - PSP_GetUserMemoryBase()) / 2;
@@ -281,7 +281,7 @@ void PJitBlockCache::FinalizeBlock(int block_num, bool block_link) {
 #endif
 }
 
-bool PJitBlockCache::RangeMayHaveEmuHacks(u32 start, u32 end) const {
+bool JitBlockCache::RangeMayHaveEmuHacks(u32 start, u32 end) const {
 	for (int i = 0; i < JITBLOCK_RANGE_COUNT; ++i) {
 		if (end >= blockMemRanges_[i].first && start <= blockMemRanges_[i].second) {
 			return true;
@@ -304,7 +304,7 @@ static int binary_search(JitBlock blocks_[], const u8 *baseoff, int imin, int im
 		return -1;
 }
 
-int PJitBlockCache::GetBlockNumberFromEmuHackOp(MIPSOpcode inst, bool ignoreBad) const {
+int JitBlockCache::GetBlockNumberFromEmuHackOp(MIPSOpcode inst, bool ignoreBad) const {
 	if (!num_blocks_ || !MIPS_IS_EMUHACK(inst)) // definitely not a JIT block
 		return -1;
 	int off = (inst & MIPS_EMUHACK_VALUE_MASK);
@@ -312,7 +312,7 @@ int PJitBlockCache::GetBlockNumberFromEmuHackOp(MIPSOpcode inst, bool ignoreBad)
 	const u8 *baseoff = codeBlock_->GetBasePtr() + off;
 	if (baseoff < codeBlock_->GetBasePtr() || baseoff >= codeBlock_->GetCodePtr()) {
 		if (!ignoreBad) {
-			ERROR_LOG(JIT, "PJitBlockCache: Invalid Emuhack Op %08x", inst.encoding);
+			ERROR_LOG(JIT, "JitBlockCache: Invalid Emuhack Op %08x", inst.encoding);
 		}
 		return -1;
 	}
@@ -325,16 +325,16 @@ int PJitBlockCache::GetBlockNumberFromEmuHackOp(MIPSOpcode inst, bool ignoreBad)
 	}
 }
 
-MIPSOpcode PJitBlockCache::GetEmuHackOpForBlock(int blockNum) const {
+MIPSOpcode JitBlockCache::GetEmuHackOpForBlock(int blockNum) const {
 	int off = (int)(blocks_[blockNum].normalEntry - codeBlock_->GetBasePtr());
 	return MIPSOpcode(MIPS_EMUHACK_OPCODE | off);
 }
 
-int PJitBlockCache::GetBlockNumberFromStartAddress(u32 addr, bool realBlocksOnly) const {
-	if (!blocks_ || !Memory_P::IsValidAddress(addr))
+int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr, bool realBlocksOnly) const {
+	if (!blocks_ || !Memory::IsValidAddress(addr))
 		return -1;
 
-	MIPSOpcode inst = MIPSOpcode(Memory_P::PRead_U32(addr));
+	MIPSOpcode inst = MIPSOpcode(Memory::Read_U32(addr));
 	int bl = GetBlockNumberFromEmuHackOp(inst);
 	if (bl < 0) {
 		if (!realBlocksOnly) {
@@ -355,13 +355,13 @@ int PJitBlockCache::GetBlockNumberFromStartAddress(u32 addr, bool realBlocksOnly
 	return bl;
 }
 
-void PJitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers) {
+void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers) {
 	for (int i = 0; i < num_blocks_; i++)
 		if (blocks_[i].ContainsAddress(em_address))
 			block_numbers->push_back(i);
 }
 
-u32 PJitBlockCache::GetAddressFromBlockPtr(const u8 *ptr) const {
+u32 JitBlockCache::GetAddressFromBlockPtr(const u8 *ptr) const {
 	if (!codeBlock_->IsInSpace(ptr))
 		return (u32)-1;
 
@@ -376,14 +376,14 @@ u32 PJitBlockCache::GetAddressFromBlockPtr(const u8 *ptr) const {
 	return 0;
 }
 
-MIPSOpcode PJitBlockCache::GetOriginalFirstOp(int block_num) {
+MIPSOpcode JitBlockCache::GetOriginalFirstOp(int block_num) {
 	if (block_num >= num_blocks_ || block_num < 0) {
 		return MIPSOpcode(block_num);
 	}
 	return blocks_[block_num].originalFirstOpcode;
 }
 
-void PJitBlockCache::LinkBlockExits(int i) {
+void JitBlockCache::LinkBlockExits(int i) {
 	JitBlock &b = blocks_[i];
 	if (b.invalid) {
 		// This block is dead. Don't relink it.
@@ -411,7 +411,7 @@ void PJitBlockCache::LinkBlockExits(int i) {
 	}
 }
 
-void PJitBlockCache::LinkBlock(int i) {
+void JitBlockCache::LinkBlock(int i) {
 	LinkBlockExits(i);
 	JitBlock &b = blocks_[i];
 	// equal_range(b) returns pair<iterator,iterator> representing the range
@@ -420,12 +420,12 @@ void PJitBlockCache::LinkBlock(int i) {
 	if (ppp.first == ppp.second)
 		return;
 	for (auto iter = ppp.first; iter != ppp.second; ++iter) {
-		// PanicAlert("Linking block %i to block %i", iter->second, i);
+		// INFO_LOG(JIT, "Linking block %i to block %i", iter->second, i);
 		LinkBlockExits(iter->second);
 	}
 }
 
-void PJitBlockCache::UnlinkBlock(int i) {
+void JitBlockCache::UnlinkBlock(int i) {
 	JitBlock &b = blocks_[i];
 	auto ppp = links_to_.equal_range(b.originalAddress);
 	if (ppp.first == ppp.second)
@@ -439,7 +439,7 @@ void PJitBlockCache::UnlinkBlock(int i) {
 	}
 }
 
-std::vector<u32> PJitBlockCache::SaveAndClearEmuHackOps() {
+std::vector<u32> JitBlockCache::SaveAndClearEmuHackOps() {
 	std::vector<u32> result;
 	result.resize(num_blocks_);
 
@@ -449,10 +449,10 @@ std::vector<u32> PJitBlockCache::SaveAndClearEmuHackOps() {
 			continue;
 
 		const u32 emuhack = GetEmuHackOpForBlock(block_num).encoding;
-		if (Memory_P::ReadUnchecked_U32(b.originalAddress) == emuhack)
+		if (Memory::ReadUnchecked_U32(b.originalAddress) == emuhack)
 		{
 			result[block_num] = emuhack;
-			Memory_P::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
+			Memory::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
 		}
 		else
 			result[block_num] = 0;
@@ -461,7 +461,7 @@ std::vector<u32> PJitBlockCache::SaveAndClearEmuHackOps() {
 	return result;
 }
 
-void PJitBlockCache::RestoreSavedEmuHackOps(std::vector<u32> saved) {
+void JitBlockCache::RestoreSavedEmuHackOps(std::vector<u32> saved) {
 	if (num_blocks_ != (int)saved.size()) {
 		ERROR_LOG(JIT, "RestoreSavedEmuHackOps: Wrong saved block size.");
 		return;
@@ -473,12 +473,12 @@ void PJitBlockCache::RestoreSavedEmuHackOps(std::vector<u32> saved) {
 			continue;
 
 		// Only if we restored it, write it back.
-		if (Memory_P::ReadUnchecked_U32(b.originalAddress) == b.originalFirstOpcode.encoding)
-			Memory_P::Write_Opcode_JIT(b.originalAddress, MIPSOpcode(saved[block_num]));
+		if (Memory::ReadUnchecked_U32(b.originalAddress) == b.originalFirstOpcode.encoding)
+			Memory::Write_Opcode_JIT(b.originalAddress, MIPSOpcode(saved[block_num]));
 	}
 }
 
-void PJitBlockCache::DestroyBlock(int block_num, DestroyType type) {
+void JitBlockCache::DestroyBlock(int block_num, DestroyType type) {
 	if (block_num < 0 || block_num >= num_blocks_) {
 		ERROR_LOG_REPORT(JIT, "DestroyBlock: Invalid block number %d", block_num);
 		return;
@@ -524,8 +524,8 @@ void PJitBlockCache::DestroyBlock(int block_num, DestroyType type) {
 
 	b->invalid = true;
 	if (!b->IsPureProxy()) {
-		if (Memory_P::ReadUnchecked_U32(b->originalAddress) == GetEmuHackOpForBlock(block_num).encoding)
-			Memory_P::Write_Opcode_JIT(b->originalAddress, b->originalFirstOpcode);
+		if (Memory::ReadUnchecked_U32(b->originalAddress) == GetEmuHackOpForBlock(block_num).encoding)
+			Memory::Write_Opcode_JIT(b->originalAddress, b->originalFirstOpcode);
 	}
 
 	// It's not safe to set normalEntry to 0 here, since we use a binary search
@@ -541,14 +541,15 @@ void PJitBlockCache::DestroyBlock(int block_num, DestroyType type) {
 	if (b->checkedEntry) {
 		// We can skip this if we're clearing anyway, which cuts down on protect back and forth on WX exclusive.
 		if (type != DestroyType::CLEAR) {
-			MIPSComp::jit->UnlinkBlock(b->checkedEntry, b->originalAddress);
+			u8 *writableEntry = codeBlock_->GetWritablePtrFromCodePtr(b->checkedEntry);
+			MIPSComp::jit->UnlinkBlock(writableEntry, b->originalAddress);
 		}
 	} else {
 		ERROR_LOG(JIT, "Unlinking block with no entry: %08x (%d)", b->originalAddress, block_num);
 	}
 }
 
-void PJitBlockCache::InvalidateICache(u32 address, const u32 length) {
+void JitBlockCache::InvalidateICache(u32 address, const u32 length) {
 	// Convert the logical address to a physical address for the block map
 	const u32 pAddr = address & 0x1FFFFFFF;
 	const u32 pEnd = pAddr + length;
@@ -584,7 +585,7 @@ void PJitBlockCache::InvalidateICache(u32 address, const u32 length) {
 	} while (false);
 }
 
-void PJitBlockCache::InvalidateChangedBlocks() {
+void JitBlockCache::InvalidateChangedBlocks() {
 	// The primary goal of this is to make sure block linking is cleared up.
 	for (int block_num = 0; block_num < num_blocks_; ++block_num) {
 		JitBlock &b = blocks_[block_num];
@@ -592,14 +593,14 @@ void PJitBlockCache::InvalidateChangedBlocks() {
 			continue;
 
 		const u32 emuhack = GetEmuHackOpForBlock(block_num).encoding;
-		if (Memory_P::ReadUnchecked_U32(b.originalAddress) != emuhack) {
+		if (Memory::ReadUnchecked_U32(b.originalAddress) != emuhack) {
 			DEBUG_LOG(JIT, "Invalidating changed block at %08x", b.originalAddress);
 			DestroyBlock(block_num, DestroyType::INVALIDATE);
 		}
 	}
 }
 
-int PJitBlockCache::GetBlockExitSize() {
+int JitBlockCache::GetBlockExitSize() {
 #if defined(ARM)
 	// Will depend on the sequence found to encode the destination address.
 	return 0;
@@ -614,7 +615,7 @@ int PJitBlockCache::GetBlockExitSize() {
 #endif
 }
 
-void PJitBlockCache::ComputeStats(BlockCacheStats &bcStats) const {
+void JitBlockCache::ComputeStats(BlockCacheStats &bcStats) const {
 	double totalBloat = 0.0;
 	double maxBloat = 0.0;
 	double minBloat = 1000000000.0;
@@ -642,13 +643,13 @@ void PJitBlockCache::ComputeStats(BlockCacheStats &bcStats) const {
 	bcStats.avgBloat = totalBloat / (double)num_blocks_;
 }
 
-JitBlockDebugInfo PJitBlockCache::GetBlockDebugInfo(int blockNum) const {
+JitBlockDebugInfo JitBlockCache::GetBlockDebugInfo(int blockNum) const {
 	JitBlockDebugInfo debugInfo{};
 	const JitBlock *block = GetBlock(blockNum);
 	debugInfo.originalAddress = block->originalAddress;
 	for (u32 addr = block->originalAddress; addr <= block->originalAddress + block->originalSize * 4; addr += 4) {
 		char temp[256];
-		MIPSDisAsm(Memory_P::Read_Instruction(addr), addr, temp, true);
+		MIPSDisAsm(Memory::Read_Instruction(addr), addr, temp, true);
 		std::string mipsDis = temp;
 		debugInfo.origDisasm.push_back(mipsDis);
 	}

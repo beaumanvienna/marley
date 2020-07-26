@@ -37,7 +37,7 @@ void NativeRender(GraphicsContext *graphicsContext) { }
 void NativeResized() { }
 
 void System_SendMessage(const char *command, const char *parameter) {}
-bool System_InputBoxGetWString(const wchar_t *title, const std::wstring &defaultvalue, std::wstring &outvalue) { return false; }
+void System_InputBoxGetString(const std::string &title, const std::string &defaultValue, std::function<void(bool, const std::string &)> cb) { cb(false, ""); }
 void System_AskForPermission(SystemPermission permission) {}
 PermissionStatus System_GetPermissionStatus(SystemPermission permission) { return PERMISSION_STATUS_GRANTED; }
 
@@ -79,21 +79,21 @@ static void SetupJitHarness() {
 	// This is pretty much the bare minimum required to setup jit.
 	coreState = CORE_POWERUP;
 	currentMIPS = &mipsr4k;
-	Memory_P::g_MemorySize = Memory_P::RAM_NORMAL_SIZE;
+	Memory::g_MemorySize = Memory::RAM_NORMAL_SIZE;
 	PSP_CoreParameter().cpuCore = CPUCore::INTERPRETER;
 	PSP_CoreParameter().unthrottle = true;
 
-	Memory_P::Init();
+	Memory::Init();
 	mipsr4k.Reset();
-	CoreTiming_P::Init();
+	CoreTiming::Init();
 }
 
 static void DestroyJitHarness() {
 	// Clear our custom module out to be safe.
 	HLEShutdown();
-	CoreTiming_P::Shutdown();
+	CoreTiming::Shutdown();
 	mipsr4k.Shutdown();
-	Memory_P::Shutdown();
+	Memory::Shutdown();
 	coreState = CORE_POWERDOWN;
 	currentMIPS = nullptr;
 }
@@ -102,7 +102,7 @@ bool TestJit() {
 	SetupJitHarness();
 
 	currentMIPS->pc = PSP_GetUserMemoryBase();
-	u32 *p = (u32 *)Memory_P::GetPointer(currentMIPS->pc);
+	u32 *p = (u32 *)Memory::GetPointer(currentMIPS->pc);
 
 	// TODO: Smarter way of seeding in the code sequence.
 	static const char *lines[] = {
@@ -156,7 +156,7 @@ bool TestJit() {
 	addr = currentMIPS->pc;
 	for (size_t j = 0; j < ARRAY_SIZE(lines); ++j) {
 		char line[512];
-		MIPSDisAsm(Memory_P::Read_Instruction(addr), addr, line, true);
+		MIPSDisAsm(Memory::Read_Instruction(addr), addr, line, true);
 		addr += 4;
 		printf("%s\n", line);
 	}
@@ -170,7 +170,7 @@ bool TestJit() {
 		jit_speed = ExecCPUTest();
 
 		// Disassemble
-		PJitBlockCache *cache = MIPSComp::jit->GetBlockCache();
+		JitBlockCache *cache = MIPSComp::jit->GetBlockCache();
 		JitBlock *block = cache->GetBlock(0);  // Should only be one block.
 #if defined(ARM)
 		std::vector<std::string> lines = DisassembleArm2(block->normalEntry, block->codeSize);

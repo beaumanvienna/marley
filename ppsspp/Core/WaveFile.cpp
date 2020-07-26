@@ -9,33 +9,28 @@
 #include "Common/MsgHandler.h"
 #include "Core/Config.h"
 
-constexpr size_t PWaveFileWriter::BUFFER_SIZE;
+constexpr size_t WaveFileWriter::BUFFER_SIZE;
 
-PWaveFileWriter::PWaveFileWriter()
+WaveFileWriter::WaveFileWriter()
 {
 }
 
-PWaveFileWriter::~PWaveFileWriter()
+WaveFileWriter::~WaveFileWriter()
 {
 	Stop();
 }
 
-bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
+bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
 {
 	// Check if the file is already open
-	if (file)
-	{
-		PanicAlert("The file %s was already open, the file header will not be written.",
-			filename.c_str());
+	if (file) {
+		ERROR_LOG(SYSTEM, "The file %s was already open, the file header will not be written.", filename.c_str());
 		return false;
 	}
 
 	file.Open(filename, "wb");
-	if (!file)
-	{
-		PanicAlert("The file %s could not be opened for writing. Please check if it's already opened "
-			"by another program.",
-			filename.c_str());
+	if (!file) {
+		ERROR_LOG(SYSTEM, "The file %s could not be opened for writing. Please check if it's already opened by another program.", filename.c_str());
 		return false;
 	}
 
@@ -61,13 +56,12 @@ bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleR
 	Write(100 * 1000 * 1000 - 32);
 
 	// We are now at offset 44
-	if (file.Tell() != 44)
-		PanicAlert("Wrong offset: %lld", (long long)file.Tell());
-
+	u64 offset = file.Tell();
+	_assert_msg_(offset == 44, "Wrong offset: %lld", (long long)offset);
 	return true;
 }
 
-void PWaveFileWriter::Stop()
+void WaveFileWriter::Stop()
 {
 	// u32 file_size = (u32)ftello(file);
 	file.Seek(4, SEEK_SET);
@@ -79,23 +73,20 @@ void PWaveFileWriter::Stop()
 	file.Close();
 }
 
-void PWaveFileWriter::Write(u32 value)
+void WaveFileWriter::Write(u32 value)
 {
 	file.WriteArray(&value, 1);
 }
 
-void PWaveFileWriter::Write4(const char* ptr)
+void WaveFileWriter::Write4(const char* ptr)
 {
 	file.WriteBytes(ptr, 4);
 }
 
-void PWaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
+void WaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
 {
-	if (!file)
-		PanicAlert("PWaveFileWriter - file not open.");
-
-	if (count > BUFFER_SIZE * 2)
-		PanicAlert("PWaveFileWriter - buffer too small (count = %u).", count);
+	_assert_msg_(file, "WaveFileWriter - file not open.");
+	_assert_msg_(count <= BUFFER_SIZE * 2, "WaveFileWriter - buffer too small (count = %u).", count);
 
 	if (skip_silence)
 	{

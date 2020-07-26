@@ -59,7 +59,6 @@ struct CompatFlags {
 	bool DisableAccurateDepth;
 	bool MGS2AcidHack;
 	bool SonicRivalsHack;
-	bool RenderPassMerge;
 	bool BlockTransferAllowCreateFB;
 	bool YugiohSaveFix;
 	bool ForceUMDDelay;
@@ -67,9 +66,11 @@ struct CompatFlags {
 	bool JitInvalidationHack;
 	bool HideISOFiles;
 	bool MoreAccurateVMMUL;
+	bool ForceSoftwareRenderer;
+	bool DarkStalkersPresentHack;
 };
 
-class PIniFile;
+class IniFile;
 
 class Compatibility {
 public:
@@ -84,8 +85,8 @@ public:
 
 private:
 	void Clear();
-	void CheckSettings(PIniFile &iniFile, const std::string &gameID);
-	void CheckSetting(PIniFile &iniFile, const std::string &gameID, const char *option, bool *flag);
+	void CheckSettings(IniFile &iniFile, const std::string &gameID);
+	void CheckSetting(IniFile &iniFile, const std::string &gameID, const char *option, bool *flag);
 
 	CompatFlags flags_{};
 };

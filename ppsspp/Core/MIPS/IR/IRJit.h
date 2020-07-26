@@ -98,7 +98,7 @@ private:
 	MIPSOpcode origFirstOpcode_ = MIPSOpcode(0x68FFFFFF);
 };
 
-class IRBlockCache : public PJitBlockCacheDebugInterface {
+class IRBlockCache : public JitBlockCacheDebugInterface {
 public:
 	IRBlockCache() {}
 	void Clear();
@@ -149,8 +149,8 @@ public:
 
 	bool DescribeCodePtr(const u8 *ptr, std::string &name) override;
 	// Not using a regular block cache.
-	PJitBlockCache *GetBlockCache() override { return nullptr; }
-	PJitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks_; }
+	JitBlockCache *GetBlockCache() override { return nullptr; }
+	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks_; }
 	MIPSOpcode GetOriginalOp(MIPSOpcode op) override;
 
 	std::vector<u32> SaveAndClearEmuHackOps() override { return blocks_.SaveAndClearEmuHackOps(); }
@@ -160,7 +160,12 @@ public:
 	void InvalidateCacheAt(u32 em_address, int length = 4) override;
 	void UpdateFCR31() override;
 
+	bool CodeInRange(const u8 *ptr) const override {
+		return false;
+	}
+
 	const u8 *GetDispatcher() const override { return nullptr; }
+	const u8 *GetCrashHandler() const override { return nullptr; }
 
 	void LinkBlock(u8 *exitPoint, const u8 *checkedEntry) override;
 	void UnlinkBlock(u8 *checkedEntry, u32 originalAddress) override;

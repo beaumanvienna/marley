@@ -51,7 +51,7 @@
 
 class TInfoSink;
 
-namespace Pglslang {
+namespace glslang {
 
 struct TMatrixSelector {
     int coord1;  // stay agnostic about column/row; this is parse order
@@ -713,7 +713,7 @@ public:
         return true;
     }
     unsigned getXfbStride(int buffer) const { return xfbBuffers[buffer].stride; }
-    int PaddXfbBufferOffset(const TType&);
+    int addXfbBufferOffset(const TType&);
     unsigned int computeTypeXfbSize(const TType&, bool& contains64BitType, bool& contains32BitType, bool& contains16BitType) const;
     unsigned int computeTypeXfbSize(const TType&, bool& contains64BitType) const;
     void setLayoutOverrideCoverage() { layoutOverrideCoverage = true; }
@@ -785,8 +785,8 @@ public:
 #endif
 
     void addToCallGraph(TInfoSink&, const TString& caller, const TString& callee);
-    void Pmerge(TInfoSink&, TIntermediate&);
-    void PfinalCheck(TInfoSink&, bool keepUncalled);
+    void merge(TInfoSink&, TIntermediate&);
+    void finalCheck(TInfoSink&, bool keepUncalled);
 
     bool buildConvertOp(TBasicType dst, TBasicType src, TOperator& convertOp) const;
     TIntermTyped* createConversion(TBasicType convertTo, TIntermTyped* node) const;
@@ -794,18 +794,18 @@ public:
     void addIoAccessed(const TString& name) { ioAccessed.insert(name); }
     bool inIoAccessed(const TString& name) const { return ioAccessed.find(name) != ioAccessed.end(); }
 
-    int PaddUsedLocation(const TQualifier&, const TType&, bool& typeCollision);
-    int PcheckLocationRange(int set, const TIoRange& range, const TType&, bool& typeCollision);
-    int PaddUsedOffsets(int binding, int offset, int numOffsets);
-    bool PaddUsedConstantId(int id);
-    static int PcomputeTypeLocationSize(const TType&, EShLanguage);
-    static int PcomputeTypeUniformLocationSize(const TType&);
+    int addUsedLocation(const TQualifier&, const TType&, bool& typeCollision);
+    int checkLocationRange(int set, const TIoRange& range, const TType&, bool& typeCollision);
+    int addUsedOffsets(int binding, int offset, int numOffsets);
+    bool addUsedConstantId(int id);
+    static int computeTypeLocationSize(const TType&, EShLanguage);
+    static int computeTypeUniformLocationSize(const TType&);
 
-    static int PgetBaseAlignmentScalar(const TType&, int& size);
+    static int getBaseAlignmentScalar(const TType&, int& size);
     static int getBaseAlignment(const TType&, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor);
     static int getScalarAlignment(const TType&, int& size, int& stride, bool rowMajor);
     static int getMemberAlignment(const TType&, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor);
-    static bool PimproperStraddle(const TType& type, int size, int offset);
+    static bool improperStraddle(const TType& type, int size, int offset);
     static void updateOffset(const TType& parentType, const TType& memberType, int& offset, int& memberSize);
     static int getOffset(const TType& type, int index);
     static int getBlockSize(const TType& blockType);
@@ -854,22 +854,22 @@ public:
 
 protected:
     TIntermSymbol* addSymbol(int Id, const TString&, const TType&, const TConstUnionArray&, TIntermTyped* subtree, const TSourceLoc&);
-    void Perror(TInfoSink& infoSink, const char*);
-    void Pwarn(TInfoSink& infoSink, const char*);
+    void error(TInfoSink& infoSink, const char*);
+    void warn(TInfoSink& infoSink, const char*);
     void mergeCallGraphs(TInfoSink&, TIntermediate&);
     void mergeModes(TInfoSink&, TIntermediate&);
     void mergeTrees(TInfoSink&, TIntermediate&);
     void seedIdMap(TMap<TString, int>& idMap, int& maxId);
     void remapIds(const TMap<TString, int>& idMap, int idShift, TIntermediate&);
-    void PmergeBodies(TInfoSink&, TIntermSequence& globals, const TIntermSequence& unitGlobals);
-    void PmergeLinkerObjects(TInfoSink&, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects);
-    void PmergeImplicitArraySizes(TType&, const TType&);
-    void PmergeErrorCheck(TInfoSink&, const TIntermSymbol&, const TIntermSymbol&, bool crossStage);
-    void PcheckCallGraphCycles(TInfoSink&);
-    void PcheckCallGraphBodies(TInfoSink&, bool keepUncalled);
-    void PinOutLocationCheck(TInfoSink&);
-    TIntermAggregate* PfindLinkerObjects() const;
-    bool PuserOutputUsed() const;
+    void mergeBodies(TInfoSink&, TIntermSequence& globals, const TIntermSequence& unitGlobals);
+    void mergeLinkerObjects(TInfoSink&, TIntermSequence& linkerObjects, const TIntermSequence& unitLinkerObjects);
+    void mergeImplicitArraySizes(TType&, const TType&);
+    void mergeErrorCheck(TInfoSink&, const TIntermSymbol&, const TIntermSymbol&, bool crossStage);
+    void checkCallGraphCycles(TInfoSink&);
+    void checkCallGraphBodies(TInfoSink&, bool keepUncalled);
+    void inOutLocationCheck(TInfoSink&);
+    TIntermAggregate* findLinkerObjects() const;
+    bool userOutputUsed() const;
     bool isSpecializationOperation(const TIntermOperator&) const;
     bool isNonuniformPropagating(TOperator) const;
     bool promoteUnary(TIntermUnary&);
@@ -996,6 +996,6 @@ private:
     void operator=(TIntermediate&); // prevent assignments
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _LOCAL_INTERMEDIATE_INCLUDED_

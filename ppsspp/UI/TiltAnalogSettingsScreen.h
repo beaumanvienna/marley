@@ -30,7 +30,7 @@ public:
 	bool axis(const AxisInput &axis) override;
 
 private:
-	PUI::EventReturn OnCalibrate(PUI::EventParams &e);
+	UI::EventReturn OnCalibrate(UI::EventParams &e);
 	float currentTiltX_, currentTiltY_;
 };
 

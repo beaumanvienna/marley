@@ -38,7 +38,7 @@
 #include "../Include/InitializeGlobals.h"
 #include "../OSDependent/osinclude.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Process-wide TLS index
 OS_TLSIndex PoolIndex;
@@ -312,4 +312,4 @@ void TAllocation::checkAllocList() const
         alloc->check();
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

@@ -40,7 +40,7 @@
 #include <iterator>
 #include <sstream>
 
-namespace Pspv {
+namespace spv {
 
 void SpvBuildLogger::tbdFunctionality(const std::string& f)
 {

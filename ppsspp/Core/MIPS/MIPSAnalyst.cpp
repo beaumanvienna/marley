@@ -175,6 +175,7 @@ static const HardHashTableEntry hardcodedHashes[] = {
 	{ 0x3024e961d1811dea, 396, "fmod", },
 	{ 0x3050bfd0e729dfbf, 220, "atvoffroadfuryblazintrails_download_frame", }, // ATV Offroad Fury Blazin' Trails (US)
 	{ 0x30c9c4f420573eb6, 540, "expf", },
+	{ 0x311779b4db21dbf3, 124, "motorstorm_pixel_read" }, // Motorstorm Arctic Edge (US)
 	{ 0x317afeb882ff324a, 212, "memcpy", }, // Mimana (US)
 	{ 0x31ea2e192f5095a1, 52, "vector_add_t", },
 	{ 0x31f523ef18898e0e, 420, "logf", },
@@ -597,7 +598,7 @@ namespace MIPSAnalyst {
 	}
 
 	int OpMemoryAccessSize(u32 pc) {
-		const auto op = Memory_P::Read_Instruction(pc, true);
+		const auto op = Memory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		if ((info & (IN_MEM | OUT_MEM)) == 0) {
 			return 0;
@@ -620,19 +621,19 @@ namespace MIPSAnalyst {
 	}
 
 	bool IsOpMemoryWrite(u32 pc) {
-		const auto op = Memory_P::Read_Instruction(pc, true);
+		const auto op = Memory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		return (info & OUT_MEM) != 0;
 	}
 
 	bool OpHasDelaySlot(u32 pc) {
-		const auto op = Memory_P::Read_Instruction(pc, true);
+		const auto op = Memory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		return (info & DELAYSLOT) != 0;
 	}
 
 	bool OpWouldChangeMemory(u32 pc, u32 addr, u32 size) {
-		const auto op = Memory_P::Read_Instruction(pc, true);
+		const auto op = Memory::Read_Instruction(pc, true);
 
 		// TODO: Trap sc/ll, svl.q, svr.q?
 
@@ -659,26 +660,26 @@ namespace MIPSAnalyst {
 		{
 			MIPSGPReg rt = MIPS_GET_RT(op);
 			writeVal = currentMIPS->r[rt] & gprMask;
-			prevVal = Memory_P::PRead_U32(addr) & gprMask;
+			prevVal = Memory::Read_U32(addr) & gprMask;
 		}
 
 		if (IsSWC1Instr(op)) {
 			int ft = MIPS_GET_FT(op);
 			writeVal = currentMIPS->fi[ft];
-			prevVal = Memory_P::PRead_U32(addr);
+			prevVal = Memory::Read_U32(addr);
 		}
 
 		if (IsSVSInstr(op)) {
 			int vt = ((op >> 16) & 0x1f) | ((op & 3) << 5);
 			writeVal = currentMIPS->vi[voffset[vt]];
-			prevVal = Memory_P::PRead_U32(addr);
+			prevVal = Memory::Read_U32(addr);
 		}
 
 		if (IsSVQInstr(op)) {
 			int vt = (((op >> 16) & 0x1f)) | ((op & 1) << 5);
 			float rd[4];
 			ReadVector(rd, V_Quad, vt);
-			return memcmp(rd, Memory_P::GetPointer(addr), sizeof(float) * 4) != 0;
+			return memcmp(rd, Memory::GetPointer(addr), sizeof(float) * 4) != 0;
 		}
 
 		// TODO: Technically, the break might be for 1 byte in the middle of a sw.
@@ -700,7 +701,7 @@ namespace MIPSAnalyst {
 		}
 
 		for (u32 addr = address, endAddr = address + MAX_ANALYZE; addr <= endAddr; addr += 4) {
-			MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+			MIPSOpcode op = Memory::Read_Instruction(addr, true);
 			MIPSInfo info = MIPSGetInfo(op);
 
 			MIPSGPReg rs = MIPS_GET_RS(op);
@@ -776,7 +777,7 @@ namespace MIPSAnalyst {
 		u32 end = addr + instrs * sizeof(u32);
 		bool canClobber = true;
 		while (addr < end) {
-			const MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+			const MIPSOpcode op = Memory::Read_Instruction(addr, true);
 			const MIPSInfo info = MIPSGetInfo(op);
 
 			// Yes, used.
@@ -825,7 +826,7 @@ namespace MIPSAnalyst {
 		u32 end = addr + instrs * sizeof(u32);
 		bool canClobber = true;
 		while (addr < end) {
-			const MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+			const MIPSOpcode op = Memory::Read_Instruction(addr, true);
 			const MIPSInfo info = MIPSGetInfo(op);
 
 			// Yes, used.
@@ -878,7 +879,7 @@ namespace MIPSAnalyst {
 
 		for (auto iter = functions.begin(), end = functions.end(); iter != end; iter++) {
 			AnalyzedFunction &f = *iter;
-			if (!Memory_P::IsValidRange(f.start, f.end - f.start + 4)) {
+			if (!Memory::IsValidRange(f.start, f.end - f.start + 4)) {
 				continue;
 			}
 
@@ -887,7 +888,7 @@ namespace MIPSAnalyst {
 			size_t pos = 0;
 			for (u32 addr = f.start; addr <= f.end; addr += 4) {
 				u32 validbits = 0xFFFFFFFF;
-				MIPSOpcode instr = Memory_P::ReadUnchecked_Instruction(addr, true);
+				MIPSOpcode instr = Memory::ReadUnchecked_Instruction(addr, true);
 				if (MIPS_IS_EMUHACK(instr)) {
 					f.hasHash = false;
 					goto skip;
@@ -916,7 +917,7 @@ skip:
 	}
 
 	void PrecompileFunctions() {
-		if (!g_PConfig.bPreloadFunctions) {
+		if (!g_Config.bPreloadFunctions) {
 			return;
 		}
 		std::lock_guard<std::recursive_mutex> guard(functions_lock);
@@ -977,7 +978,7 @@ skip:
 		u32 furthestJumpbackAddr = INVALIDTARGET;
 
 		for (u32 ahead = fromAddr; ahead < fromAddr + MAX_AHEAD_SCAN; ahead += 4) {
-			MIPSOpcode aheadOp = Memory_P::Read_Instruction(ahead, true);
+			MIPSOpcode aheadOp = Memory::Read_Instruction(ahead, true);
 			u32 target = GetBranchTargetNoRA(ahead, aheadOp);
 			if (target == INVALIDTARGET && ((aheadOp & 0xFC000000) == 0x08000000)) {
 				target = GetJumpTarget(ahead);
@@ -1001,7 +1002,7 @@ skip:
 
 		if (closestJumpbackAddr != INVALIDTARGET && furthestJumpbackAddr == INVALIDTARGET) {
 			for (u32 behind = closestJumpbackTarget; behind < fromAddr; behind += 4) {
-				MIPSOpcode behindOp = Memory_P::Read_Instruction(behind, true);
+				MIPSOpcode behindOp = Memory::Read_Instruction(behind, true);
 				u32 target = GetBranchTargetNoRA(behind, behindOp);
 				if (target == INVALIDTARGET && ((behindOp & 0xFC000000) == 0x08000000)) {
 					target = GetJumpTarget(behind);
@@ -1021,6 +1022,8 @@ skip:
 	bool ScanForFunctions(u32 startAddr, u32 endAddr, bool insertSymbols) {
 		std::lock_guard<std::recursive_mutex> guard(functions_lock);
 
+		FunctionsVector new_functions;
+
 		AnalyzedFunction currentFunction = {startAddr};
 
 		u32 furthestBranch = 0;
@@ -1031,7 +1034,7 @@ skip:
 
 		u32 addr;
 		for (addr = startAddr; addr <= endAddr; addr += 4) {
-			MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+			MIPSOpcode op = Memory::Read_Instruction(addr, true);
 			u32 target = GetBranchTargetNoRA(addr, op);
 			if (target != INVALIDTARGET) {
 				isStraightLeaf = false;
@@ -1054,7 +1057,7 @@ skip:
 					// If it's a nearby forward jump, and not a stackless leaf, assume not a tail call.
 					if (sureTarget <= addr + MAX_JUMP_FORWARD && decreasedSp) {
 						// But let's check the delay slot.
-						MIPSOpcode op = Memory_P::Read_Instruction(addr + 4, true);
+						MIPSOpcode op = Memory::Read_Instruction(addr + 4, true);
 						// addiu sp, sp, +X
 						if ((op & 0xFFFF8000) != 0x27BD0000) {
 							furthestBranch = sureTarget;
@@ -1141,7 +1144,7 @@ skip:
 					}
 				}
 
-				functions.push_back(currentFunction);
+				new_functions.push_back(currentFunction);
 
 				furthestBranch = 0;
 				addr += 4;
@@ -1156,10 +1159,10 @@ skip:
 
 		if (addr <= endAddr) {
 			currentFunction.end = addr + 4;
-			functions.push_back(currentFunction);
+			new_functions.push_back(currentFunction);
 		}
 
-		for (auto iter = functions.begin(); iter != functions.end(); iter++) {
+		for (auto iter = new_functions.begin(); iter != new_functions.end(); iter++) {
 			iter->size = iter->end - iter->start + 4;
 			if (insertSymbols && !iter->foundInSymbolMap) {
 				char temp[256];
@@ -1167,6 +1170,8 @@ skip:
 			}
 		}
 
+		// Concatenate the new functions to the end of the old ones.
+		functions.insert(functions.end(), new_functions.begin(), new_functions.end());
 		return insertSymbols;
 	}
 
@@ -1174,16 +1179,16 @@ skip:
 		HashFunctions();
 
 		std::string hashMapFilename = GetSysDirectory(DIRECTORY_SYSTEM) + "knownfuncs.ini";
-		if (g_PConfig.bFuncHashMap || g_PConfig.bFuncReplacements) {
+		if (g_Config.bFuncHashMap || g_Config.bFuncReplacements) {
 			LoadBuiltinHashMap();
-			if (g_PConfig.bFuncHashMap) {
+			if (g_Config.bFuncHashMap) {
 				LoadHashMap(hashMapFilename);
 				StoreHashMap(hashMapFilename);
 			}
 			if (insertSymbols) {
 				ApplyHashMap();
 			}
-			if (g_PConfig.bFuncReplacements) {
+			if (g_Config.bFuncReplacements) {
 				ReplaceFunctions();
 			}
 		}
@@ -1313,7 +1318,7 @@ skip:
 			return;
 		}
 
-		FILE *file = PFile::OpenCFile(filename, "wt");
+		FILE *file = File::OpenCFile(filename, "wt");
 		if (!file) {
 			WARN_LOG(LOADER, "Could not store hash map: %s", filename.c_str());
 			return;
@@ -1370,7 +1375,7 @@ skip:
 	}
 
 	void LoadHashMap(const std::string& filename) {
-		FILE *file = PFile::OpenCFile(filename, "rt");
+		FILE *file = File::OpenCFile(filename, "rt");
 		if (!file) {
 			WARN_LOG(LOADER, "Could not load hash map: %s", filename.c_str());
 			return;
@@ -1414,14 +1419,14 @@ skip:
 		MipsOpcodeInfo info;
 		memset(&info, 0, sizeof(info));
 
-		if (!Memory_P::IsValidAddress(address)) {
+		if (!Memory::IsValidAddress(address)) {
 			info.opcodeAddress = address;
 			return info;
 		}
 
 		info.cpu = cpu;
 		info.opcodeAddress = address;
-		info.encodedOpcode = Memory_P::Read_Instruction(address);
+		info.encodedOpcode = Memory::Read_Instruction(address);
 
 		MIPSOpcode op = info.encodedOpcode;
 		MIPSInfo opInfo = MIPSGetInfo(op);

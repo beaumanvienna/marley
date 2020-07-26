@@ -46,10 +46,10 @@
 #include <ostream>
 #endif
 
-#include "../glslang/MachineIndependent/localintermediate.h"
+#include "glslang/MachineIndependent/localintermediate.h"
 #include "Logger.h"
 
-namespace Pglslang {
+namespace glslang {
 
 struct SpvOptions {
     SpvOptions() : generateDebugInfo(false), disableOptimizer(true),
@@ -67,16 +67,16 @@ struct SpvOptions {
 void SpirvToolsDisassemble(std::ostream& out, const std::vector<unsigned int>& spirv);
 
 // Apply the SPIRV-Tools validator to generated SPIR-V.
-void SpirvToolsValidate(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        Pspv::SpvBuildLogger*, bool prelegalization);
+void SpirvToolsValidate(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger*, bool prelegalization);
 
 // Apply the SPIRV-Tools optimizer to generated SPIR-V, for the purpose of
 // legalizing HLSL SPIR-V.
-void SpirvToolsLegalize(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        Pspv::SpvBuildLogger*, const SpvOptions*);
+void SpirvToolsLegalize(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger*, const SpvOptions*);
 
 #endif
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // GLSLANG_SPV_TOOLS_H

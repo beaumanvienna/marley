@@ -18,6 +18,10 @@
 #include <string>
 #include <cstring>
 
+#ifndef _MSC_VER
+#include <strings.h>
+#endif
+
 #include "Core/Debugger/Breakpoints.h"
 #include "Core/Debugger/SymbolMap.h"
 #include "Core/Debugger/DebugInterface.h"
@@ -175,13 +179,13 @@ public:
 		switch (size)
 		{
 		case 1:
-			dest = Memory_P::PRead_U8(address);
+			dest = Memory::Read_U8(address);
 			break;
 		case 2:
-			dest = Memory_P::PRead_U16(address);
+			dest = Memory::Read_U16(address);
 			break;
 		case 4:
-			dest = Memory_P::PRead_U32(address);
+			dest = Memory::Read_U32(address);
 			break;
 		}
 
@@ -197,8 +201,8 @@ private:
 const char *MIPSDebugInterface::disasm(unsigned int address, unsigned int align)
 {
 	static char mojs[256];
-	if (Memory_P::IsValidAddress(address))
-		MIPSDisAsm(Memory_P::Read_Opcode_JIT(address), address, mojs);
+	if (Memory::IsValidAddress(address))
+		MIPSDisAsm(Memory::Read_Opcode_JIT(address), address, mojs);
 	else
 		strcpy(mojs, "-");
 	return mojs;
@@ -206,12 +210,12 @@ const char *MIPSDebugInterface::disasm(unsigned int address, unsigned int align)
 
 unsigned int MIPSDebugInterface::readMemory(unsigned int address)
 {
-	return Memory_P::Read_Instruction(address).encoding;
+	return Memory::Read_Instruction(address).encoding;
 }
 
 bool MIPSDebugInterface::isAlive()
 {
-	return PSP_IsInited() && coreState != CORE_ERROR && coreState != CORE_POWERDOWN;
+	return PSP_IsInited() && coreState != CORE_BOOT_ERROR && coreState != CORE_RUNTIME_ERROR && coreState != CORE_POWERDOWN;
 }
 
 bool MIPSDebugInterface::isBreakpoint(unsigned int address) 

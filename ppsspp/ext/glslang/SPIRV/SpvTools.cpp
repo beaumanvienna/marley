@@ -46,15 +46,15 @@
 #include "spirv-tools/optimizer.hpp"
 #include "spirv-tools/libspirv.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Translate glslang's view of target versioning to what SPIRV-Tools uses.
-spv_target_env MapToSpirvToolsEnv(const SpvVersion& spvVersion, Pspv::SpvBuildLogger* logger)
+spv_target_env MapToSpirvToolsEnv(const SpvVersion& spvVersion, spv::SpvBuildLogger* logger)
 {
     switch (spvVersion.vulkan) {
-    case Pglslang::EShTargetVulkan_1_0:
+    case glslang::EShTargetVulkan_1_0:
         return spv_target_env::SPV_ENV_VULKAN_1_0;
-    case Pglslang::EShTargetVulkan_1_1:
+    case glslang::EShTargetVulkan_1_1:
         switch (spvVersion.spv) {
         case EShTargetSpv_1_0:
         case EShTargetSpv_1_1:
@@ -67,7 +67,7 @@ spv_target_env MapToSpirvToolsEnv(const SpvVersion& spvVersion, Pspv::SpvBuildLo
             logger->missingFunctionality("Target version for SPIRV-Tools validator");
             return spv_target_env::SPV_ENV_VULKAN_1_1;
         }
-    case Pglslang::EShTargetVulkan_1_2:
+    case glslang::EShTargetVulkan_1_2:
         return spv_target_env::SPV_ENV_VULKAN_1_2;
     default:
         break;
@@ -104,8 +104,8 @@ void SpirvToolsDisassemble(std::ostream& out, const std::vector<unsigned int>& s
 }
 
 // Apply the SPIRV-Tools validator to generated SPIR-V.
-void SpirvToolsValidate(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        Pspv::SpvBuildLogger* logger, bool prelegalization)
+void SpirvToolsValidate(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger* logger, bool prelegalization)
 {
     // validate
     spv_context context = spvContextCreate(MapToSpirvToolsEnv(intermediate.getSpv(), logger));
@@ -130,8 +130,8 @@ void SpirvToolsValidate(const Pglslang::TIntermediate& intermediate, std::vector
 
 // Apply the SPIRV-Tools optimizer to generated SPIR-V, for the purpose of
 // legalizing HLSL SPIR-V.
-void SpirvToolsLegalize(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                        Pspv::SpvBuildLogger* logger, const SpvOptions* options)
+void SpirvToolsLegalize(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger* logger, const SpvOptions* options)
 {
     spv_target_env target_env = SPV_ENV_UNIVERSAL_1_2;
 
@@ -212,6 +212,6 @@ void SpirvToolsLegalize(const Pglslang::TIntermediate& intermediate, std::vector
     optimizer.Run(spirv.data(), spirv.size(), &spirv, spvOptOptions);
 }
 
-}; // end namespace Pglslang
+}; // end namespace glslang
 
 #endif

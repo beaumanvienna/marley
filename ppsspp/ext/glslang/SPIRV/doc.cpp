@@ -45,7 +45,7 @@
 #include <cstring>
 #include <algorithm>
 
-namespace Pspv {
+namespace spv {
     extern "C" {
         // Include C-based headers that don't have a namespace
         #include "GLSL.ext.KHR.h"
@@ -55,7 +55,7 @@ namespace Pspv {
     }
 }
 
-namespace Pspv {
+namespace spv {
 
 //
 // Whole set of functions that translate enumerants to their text strings for

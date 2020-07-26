@@ -15,6 +15,7 @@ ifeq ($(TARGET_ARCH_ABI),x86)
 ARCH_FILES := \
   $(SRC)/Common/ABI.cpp \
   $(SRC)/Common/x64Emitter.cpp \
+  $(SRC)/Common/x64Analyzer.cpp \
   $(SRC)/Common/CPUDetect.cpp \
   $(SRC)/Common/Thunk.cpp \
   $(SRC)/Core/MIPS/x86/CompALU.cpp \
@@ -36,6 +37,7 @@ ifeq ($(TARGET_ARCH_ABI),x86_64)
 ARCH_FILES := \
   $(SRC)/Common/ABI.cpp \
   $(SRC)/Common/x64Emitter.cpp \
+  $(SRC)/Common/x64Analyzer.cpp \
   $(SRC)/Common/CPUDetect.cpp \
   $(SRC)/Common/Thunk.cpp \
   $(SRC)/Core/MIPS/x86/CompALU.cpp \
@@ -183,7 +185,6 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/MIPS/IR/IRInterpreter.cpp \
   $(SRC)/Core/MIPS/IR/IRPassSimplify.cpp \
   $(SRC)/Core/MIPS/IR/IRRegCache.cpp \
-  $(SRC)/UI/ui_atlas.cpp \
   $(SRC)/ext/libkirk/AES.c \
   $(SRC)/ext/libkirk/amctrl.c \
   $(SRC)/ext/libkirk/SHA1.c \
@@ -206,6 +207,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Common/Crypto/sha256.cpp \
   $(SRC)/Common/ChunkFile.cpp \
   $(SRC)/Common/ColorConv.cpp \
+  $(SRC)/Common/ExceptionHandlerSetup.cpp \
   $(SRC)/Common/KeyMap.cpp \
   $(SRC)/Common/LogManager.cpp \
   $(SRC)/Common/MemArenaAndroid.cpp \
@@ -226,6 +228,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/GPU/GeDisasm.cpp \
   $(SRC)/GPU/Common/DepalettizeShaderCommon.cpp \
   $(SRC)/GPU/Common/FramebufferCommon.cpp \
+  $(SRC)/GPU/Common/PresentationCommon.cpp \
   $(SRC)/GPU/Common/GPUDebugInterface.cpp \
   $(SRC)/GPU/Common/IndexGenerator.cpp.arm \
   $(SRC)/GPU/Common/ShaderId.cpp.arm \
@@ -265,6 +268,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/GPU/Software/Clipper.cpp \
   $(SRC)/GPU/Software/Lighting.cpp \
   $(SRC)/GPU/Software/Rasterizer.cpp.arm \
+  $(SRC)/GPU/Software/RasterizerRectangle.cpp.arm \
   $(SRC)/GPU/Software/Sampler.cpp \
   $(SRC)/GPU/Software/SoftGpu.cpp \
   $(SRC)/GPU/Software/TransformUnit.cpp \
@@ -274,6 +278,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/ELF/ParamSFO.cpp \
   $(SRC)/Core/HW/SimpleAudioDec.cpp \
   $(SRC)/Core/HW/AsyncIOManager.cpp \
+  $(SRC)/Core/HW/Camera.cpp \
   $(SRC)/Core/HW/MemoryStick.cpp \
   $(SRC)/Core/HW/MpegDemux.cpp.arm \
   $(SRC)/Core/HW/MediaEngine.cpp.arm \
@@ -286,6 +291,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/CoreTiming.cpp \
   $(SRC)/Core/CwCheat.cpp \
   $(SRC)/Core/HDRemaster.cpp \
+  $(SRC)/Core/Instance.cpp \
   $(SRC)/Core/Host.cpp \
   $(SRC)/Core/Loaders.cpp \
   $(SRC)/Core/PSPLoaders.cpp \
@@ -295,6 +301,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/FileLoaders/LocalFileLoader.cpp \
   $(SRC)/Core/FileLoaders/RamCachingFileLoader.cpp \
   $(SRC)/Core/FileLoaders/RetryingFileLoader.cpp \
+  $(SRC)/Core/MemFault.cpp \
   $(SRC)/Core/MemMap.cpp \
   $(SRC)/Core/MemMapFunctions.cpp \
   $(SRC)/Core/Reporting.cpp \
@@ -317,6 +324,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/Debugger/WebSocket/GPURecordSubscriber.cpp \
   $(SRC)/Core/Debugger/WebSocket/HLESubscriber.cpp \
   $(SRC)/Core/Debugger/WebSocket/LogBroadcaster.cpp \
+  $(SRC)/Core/Debugger/WebSocket/MemorySubscriber.cpp \
   $(SRC)/Core/Debugger/WebSocket/SteppingBroadcaster.cpp \
   $(SRC)/Core/Debugger/WebSocket/SteppingSubscriber.cpp \
   $(SRC)/Core/Debugger/WebSocket/WebSocketUtils.cpp \
@@ -359,6 +367,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/HLE/sceKernel.cpp \
   $(SRC)/Core/HLE/sceKernelAlarm.cpp \
   $(SRC)/Core/HLE/sceKernelEventFlag.cpp \
+  $(SRC)/Core/HLE/sceKernelHeap.cpp \
   $(SRC)/Core/HLE/sceKernelInterrupt.cpp \
   $(SRC)/Core/HLE/sceKernelMemory.cpp \
   $(SRC)/Core/HLE/sceKernelModule.cpp \
@@ -413,9 +422,9 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/MIPS/JitCommon/JitBlockCache.cpp \
   $(SRC)/Core/MIPS/JitCommon/JitState.cpp \
   $(SRC)/Core/Util/AudioFormat.cpp \
+  $(SRC)/Core/Util/PortManager.cpp \
   $(SRC)/Core/Util/GameManager.cpp \
   $(SRC)/Core/Util/BlockAllocator.cpp \
-  $(SRC)/Core/Util/ppge_atlas.cpp \
   $(SRC)/Core/Util/PPGeDraw.cpp \
   $(SRC)/git-version.cpp
 
@@ -494,6 +503,7 @@ LOCAL_SRC_FILES := \
   $(SRC)/android/jni/native-audio-so.cpp \
   $(SRC)/UI/BackgroundAudio.cpp \
   $(SRC)/UI/DiscordIntegration.cpp \
+  $(SRC)/UI/ChatScreen.cpp \
   $(SRC)/UI/DevScreens.cpp \
   $(SRC)/UI/DisplayLayoutEditor.cpp \
   $(SRC)/UI/DisplayLayoutScreen.cpp \
@@ -584,6 +594,7 @@ endif
 $(call import-module,libzip)
 $(call import-module,native)
 $(call import-module,glslang-build)
+$(call import-module,miniupnp-build)
 
 ifeq ($(ANDROID_NDK_PROFILER),1)
   $(call import-module,android-ndk-profiler)

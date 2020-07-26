@@ -57,9 +57,9 @@
 #include "preprocessor/PpTokens.h"
 
 // Required to avoid missing prototype warnings for some compilers
-int yylex(YYSTYPE*, Pglslang::TParseContext&);
+int yylex(YYSTYPE*, glslang::TParseContext&);
 
-namespace Pglslang {
+namespace glslang {
 
 // read past any white space
 void TInputScanner::consumeWhiteSpace(bool& foundNonSpaceTab)
@@ -285,12 +285,12 @@ protected:
     TParserToken& operator=(TParserToken&);
 };
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 // This is the function the glslang parser (i.e., bison) calls to get its next token
-int yylex(YYSTYPE* glslangTokenDesc, Pglslang::TParseContext& parseContext)
+int yylex(YYSTYPE* glslangTokenDesc, glslang::TParseContext& parseContext)
 {
-    Pglslang::TParserToken token(*glslangTokenDesc);
+    glslang::TParserToken token(*glslangTokenDesc);
 
     return parseContext.getScanContext()->tokenize(parseContext.getPpContext(), token);
 }
@@ -329,7 +329,7 @@ std::unordered_set<const char*, str_hash, str_eq>* ReservedSet = nullptr;
 
 };
 
-namespace Pglslang {
+namespace glslang {
 
 void TScanContext::fillInKeywordMap()
 {
@@ -1793,4 +1793,4 @@ int TScanContext::secondGenerationImage()
     return identifierOrType();
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

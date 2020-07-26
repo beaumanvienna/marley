@@ -85,7 +85,7 @@ public:
     size_t GetLength() const { return stack_.GetSize() / sizeof(Ch); }
 
     static const size_t kDefaultCapacity = 256;
-    mutable Pinternal::Stack<Allocator> stack_;
+    mutable internal::Stack<Allocator> stack_;
 
 private:
     // Prohibit copy constructor & assignment operator.

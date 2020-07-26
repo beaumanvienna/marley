@@ -34,15 +34,9 @@ public:
 	virtual void ThreadEnd() {}
 	virtual void StopThread() {}
 
+	// Useful for checks that need to be performed every frame.
+	// Should strive to get rid of these.
+	virtual void Poll() {}
+
 	virtual Draw::DrawContext *GetDrawContext() = 0;
-};
-
-class DummyGraphicsContext : public GraphicsContext {
-public:
-	void Shutdown() override {}
-	void SwapInterval(int interval) override {}
-	void SwapBuffers() override {}
-	void Resize() override {}
-
-	Draw::DrawContext *GetDrawContext() override { return nullptr; }
 };

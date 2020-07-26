@@ -24,7 +24,7 @@ RAPIDJSON_DIAG_OFF(c++98-compat)
 #endif
 
 RAPIDJSON_NAMESPACE_BEGIN
-namespace Pinternal {
+namespace internal {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Stack
@@ -87,12 +87,12 @@ public:
 #endif
 
     void Swap(Stack& rhs) RAPIDJSON_NOEXCEPT {
-        Pinternal::Swap(allocator_, rhs.allocator_);
-        Pinternal::Swap(ownAllocator_, rhs.ownAllocator_);
-        Pinternal::Swap(stack_, rhs.stack_);
-        Pinternal::Swap(stackTop_, rhs.stackTop_);
-        Pinternal::Swap(stackEnd_, rhs.stackEnd_);
-        Pinternal::Swap(initialCapacity_, rhs.initialCapacity_);
+        internal::Swap(allocator_, rhs.allocator_);
+        internal::Swap(ownAllocator_, rhs.ownAllocator_);
+        internal::Swap(stack_, rhs.stack_);
+        internal::Swap(stackTop_, rhs.stackTop_);
+        internal::Swap(stackEnd_, rhs.stackEnd_);
+        internal::Swap(initialCapacity_, rhs.initialCapacity_);
     }
 
     void Clear() { stackTop_ = stack_; }
@@ -221,7 +221,7 @@ private:
     size_t initialCapacity_;
 };
 
-} // namespace Pinternal
+} // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #if defined(__clang__)

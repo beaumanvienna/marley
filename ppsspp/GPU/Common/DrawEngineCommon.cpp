@@ -37,6 +37,8 @@ DrawEngineCommon::DrawEngineCommon() : decoderMap_(16) {
 	decJitCache_ = new VertexDecoderJitCache();
 	transformed = (TransformedVertex *)AllocateMemoryPages(TRANSFORMED_VERTEX_BUFFER_SIZE, MEM_PROT_READ | MEM_PROT_WRITE);
 	transformedExpanded = (TransformedVertex *)AllocateMemoryPages(3 * TRANSFORMED_VERTEX_BUFFER_SIZE, MEM_PROT_READ | MEM_PROT_WRITE);
+	useHWTransform_ = g_Config.bHardwareTransform;
+	useHWTessellation_ = UpdateUseHWTessellation(g_Config.bHardwareTessellation);
 }
 
 DrawEngineCommon::~DrawEngineCommon() {
@@ -171,6 +173,9 @@ void DrawEngineCommon::Resized() {
 	});
 	decoderMap_.Clear();
 	ClearTrackedVertexArrays();
+
+	useHWTransform_ = g_Config.bHardwareTransform;
+	useHWTessellation_ = UpdateUseHWTessellation(g_Config.bHardwareTessellation);
 }
 
 u32 DrawEngineCommon::NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, int lowerBound, int upperBound, u32 vertType, int *vertexSize) {
@@ -259,13 +264,13 @@ bool DrawEngineCommon::GetCurrentSimpleVertices(int count, std::vector<GPUDebugV
 	u16 indexLowerBound = 0;
 	u16 indexUpperBound = count - 1;
 
-	if (!Memory_P::IsValidAddress(gstate_c.vertexAddr))
+	if (!Memory::IsValidAddress(gstate_c.vertexAddr))
 		return false;
 
 	bool savedVertexFullAlpha = gstate_c.vertexFullAlpha;
 
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		const u8 *inds = Memory_P::GetPointer(gstate_c.indexAddr);
+		const u8 *inds = Memory::GetPointer(gstate_c.indexAddr);
 		const u16 *inds16 = (const u16 *)inds;
 		const u32 *inds32 = (const u32 *)inds;
 
@@ -305,7 +310,7 @@ bool DrawEngineCommon::GetCurrentSimpleVertices(int count, std::vector<GPUDebugV
 	static std::vector<SimpleVertex> simpleVertices;
 	temp_buffer.resize(std::max((int)indexUpperBound, 8192) * 128 / sizeof(u32));
 	simpleVertices.resize(indexUpperBound + 1);
-	NormalizeVertices((u8 *)(&simpleVertices[0]), (u8 *)(&temp_buffer[0]), Memory_P::GetPointer(gstate_c.vertexAddr), indexLowerBound, indexUpperBound, gstate.vertType);
+	NormalizeVertices((u8 *)(&simpleVertices[0]), (u8 *)(&temp_buffer[0]), Memory::GetPointer(gstate_c.vertexAddr), indexLowerBound, indexUpperBound, gstate.vertType);
 
 	float world[16];
 	float view[16];
@@ -397,7 +402,7 @@ u32 DrawEngineCommon::NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr,
 	};
 
 	// Let's have two separate loops, one for non skinning and one for skinning.
-	if (!g_PConfig.bSoftwareSkinning && (vertType & GE_VTYPE_WEIGHT_MASK) != GE_VTYPE_WEIGHT_NONE) {
+	if (!g_Config.bSoftwareSkinning && (vertType & GE_VTYPE_WEIGHT_MASK) != GE_VTYPE_WEIGHT_NONE) {
 		int numBoneWeights = vertTypeGetNumBoneWeights(vertType);
 		for (int i = lowerBound; i <= upperBound; i++) {
 			reader.Goto(i - lowerBound);
@@ -697,7 +702,7 @@ void DrawEngineCommon::SubmitPrim(void *verts, void *inds, GEPrimitiveType prim,
 	if ((vertexCount < 2 && prim > 0) || (vertexCount < 3 && prim > 2 && prim != GE_PRIM_RECTANGLES))
 		return;
 
-	if (g_PConfig.bVertexCache) {
+	if (g_Config.bVertexCache) {
 		u32 dhash = dcid_;
 		dhash = __rotl(dhash ^ (u32)(uintptr_t)verts, 13);
 		dhash = __rotl(dhash ^ (u32)(uintptr_t)inds, 13);
@@ -725,7 +730,7 @@ void DrawEngineCommon::SubmitPrim(void *verts, void *inds, GEPrimitiveType prim,
 	numDrawCalls++;
 	vertexCountInDrawCalls_ += vertexCount;
 
-	if (g_PConfig.bSoftwareSkinning && (vertTypeID & GE_VTYPE_WEIGHT_MASK)) {
+	if (g_Config.bSoftwareSkinning && (vertTypeID & GE_VTYPE_WEIGHT_MASK)) {
 		DecodeVertsStep(decoded, decodeCounter_, decodedVerts_);
 		decodeCounter_++;
 	}
@@ -735,6 +740,19 @@ void DrawEngineCommon::SubmitPrim(void *verts, void *inds, GEPrimitiveType prim,
 		gstate_c.Dirty(DIRTY_TEXTURE_PARAMS);
 		DispatchFlush();
 	}
+}
+
+bool DrawEngineCommon::CanUseHardwareTransform(int prim) {
+	if (!useHWTransform_)
+		return false;
+	return !gstate.isModeThrough() && prim != GE_PRIM_RECTANGLES;
+}
+
+bool DrawEngineCommon::CanUseHardwareTessellation(GEPatchPrimType prim) {
+	if (useHWTessellation_) {
+		return CanUseHardwareTransform(PatchPrimToPrim(prim));
+	}
+	return false;
 }
 
 void TessellationDataTransfer::CopyControlPoints(float *pos, float *tex, float *col, int posStride, int texStride, int colStride, const SimpleVertex *const *points, int size, u32 vertType) {

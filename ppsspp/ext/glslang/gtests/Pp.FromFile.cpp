@@ -36,7 +36,7 @@
 
 #include "TestFixture.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 namespace {
 
 using PreprocessingTest = GlslangTest<::testing::TestWithParam<std::string>>;
@@ -73,4 +73,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace Pglslangtest
+}  // namespace glslangtest

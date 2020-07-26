@@ -31,7 +31,7 @@ namespace MIPSCodeUtils
 
 	u32 GetJumpTarget(u32 addr)
 	{
-		MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+		MIPSOpcode op = Memory::Read_Instruction(addr, true);
 		if (op != 0)
 		{
 			MIPSInfo info = MIPSGetInfo(op);
@@ -49,7 +49,7 @@ namespace MIPSCodeUtils
 
 	u32 GetBranchTarget(u32 addr)
 	{
-		MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+		MIPSOpcode op = Memory::Read_Instruction(addr, true);
 		if (op != 0)
 		{
 			MIPSInfo info = MIPSGetInfo(op);
@@ -66,7 +66,7 @@ namespace MIPSCodeUtils
 
 	u32 GetBranchTargetNoRA(u32 addr)
 	{
-		MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+		MIPSOpcode op = Memory::Read_Instruction(addr, true);
 		return GetBranchTargetNoRA(addr, op);
 	}
 
@@ -88,7 +88,7 @@ namespace MIPSCodeUtils
 
 	u32 GetSureBranchTarget(u32 addr)
 	{
-		MIPSOpcode op = Memory_P::Read_Instruction(addr, true);
+		MIPSOpcode op = Memory::Read_Instruction(addr, true);
 		if (op != 0)
 		{
 			MIPSInfo info = MIPSGetInfo(op);

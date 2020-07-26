@@ -58,9 +58,9 @@ void __KernelTimeDoState(PointerWrap &p)
 
 int sceKernelGetSystemTime(u32 sysclockPtr)
 {
-	u64 t = CoreTiming_P::GetGlobalTimeUs();
-	if (Memory_P::IsValidAddress(sysclockPtr)) 
-		Memory_P::Write_U64(t, sysclockPtr);
+	u64 t = CoreTiming::GetGlobalTimeUs();
+	if (Memory::IsValidAddress(sysclockPtr)) 
+		Memory::Write_U64(t, sysclockPtr);
 	VERBOSE_LOG(SCEKERNEL, "sceKernelGetSystemTime(out:%16llx)", t);
 	hleEatCycles(265);
 	hleReSchedule("system time");
@@ -70,7 +70,7 @@ int sceKernelGetSystemTime(u32 sysclockPtr)
 u32 sceKernelGetSystemTimeLow()
 {
 	// This clock should tick at 1 Mhz.
-	u64 t = CoreTiming_P::GetGlobalTimeUs();
+	u64 t = CoreTiming::GetGlobalTimeUs();
 	VERBOSE_LOG(SCEKERNEL,"%08x=sceKernelGetSystemTimeLow()",(u32)t);
 	hleEatCycles(165);
 	hleReSchedule("system time");
@@ -79,7 +79,7 @@ u32 sceKernelGetSystemTimeLow()
 
 u64 sceKernelGetSystemTimeWide()
 {
-	u64 t = CoreTiming_P::GetGlobalTimeUsScaled();
+	u64 t = CoreTiming::GetGlobalTimeUsScaled();
 	VERBOSE_LOG(SCEKERNEL,"%i=sceKernelGetSystemTimeWide()",(u32)t);
 	hleEatCycles(250);
 	hleReSchedule("system time");
@@ -89,8 +89,8 @@ u64 sceKernelGetSystemTimeWide()
 int sceKernelUSec2SysClock(u32 usec, u32 clockPtr)
 {
 	VERBOSE_LOG(SCEKERNEL, "sceKernelUSec2SysClock(%i, %08x)", usec, clockPtr);
-	if (Memory_P::IsValidAddress(clockPtr))
-		Memory_P::Write_U64((usec & 0xFFFFFFFFL), clockPtr);
+	if (Memory::IsValidAddress(clockPtr))
+		Memory::Write_U64((usec & 0xFFFFFFFFL), clockPtr);
 	hleEatCycles(165);
 	return 0;
 }
@@ -105,13 +105,13 @@ u64 sceKernelUSec2SysClockWide(u32 usec)
 int sceKernelSysClock2USec(u32 sysclockPtr, u32 highPtr, u32 lowPtr)
 {
 	DEBUG_LOG(SCEKERNEL, "sceKernelSysClock2USec(clock = %08x, lo = %08x, hi = %08x)", sysclockPtr, highPtr, lowPtr);
-	u64 time = Memory_P::PRead_U64(sysclockPtr);
+	u64 time = Memory::Read_U64(sysclockPtr);
 	u32 highResult = (u32)(time / 1000000);
 	u32 lowResult = (u32)(time % 1000000);
-	if (Memory_P::IsValidAddress(highPtr))
-		Memory_P::PWrite_U32(highResult, highPtr);
-	if (Memory_P::IsValidAddress(lowPtr))
-		Memory_P::PWrite_U32(lowResult, lowPtr);
+	if (Memory::IsValidAddress(highPtr))
+		Memory::Write_U32(highResult, highPtr);
+	if (Memory::IsValidAddress(lowPtr))
+		Memory::Write_U32(lowResult, lowPtr);
 	hleEatCycles(415);
 	return 0;
 }
@@ -120,20 +120,20 @@ int sceKernelSysClock2USecWide(u32 lowClock, u32 highClock, u32 lowPtr, u32 high
 {
 	u64 sysClock = lowClock | ((u64)highClock << 32);
 	DEBUG_LOG(SCEKERNEL, "sceKernelSysClock2USecWide(clock = %llu, lo = %08x, hi = %08x)", sysClock, lowPtr, highPtr);
-	if (Memory_P::IsValidAddress(lowPtr)) {
-		Memory_P::PWrite_U32((u32)(sysClock / 1000000), lowPtr);
-		if (Memory_P::IsValidAddress(highPtr)) 
-			Memory_P::PWrite_U32((u32)(sysClock % 1000000), highPtr);
+	if (Memory::IsValidAddress(lowPtr)) {
+		Memory::Write_U32((u32)(sysClock / 1000000), lowPtr);
+		if (Memory::IsValidAddress(highPtr)) 
+			Memory::Write_U32((u32)(sysClock % 1000000), highPtr);
 	} else 
-		if (Memory_P::IsValidAddress(highPtr)) 
-			Memory_P::PWrite_U32((int) sysClock, highPtr);
+		if (Memory::IsValidAddress(highPtr)) 
+			Memory::Write_U32((int) sysClock, highPtr);
 	hleEatCycles(385);
 	return 0;
 }
 
 u32 sceKernelLibcClock()
 {
-	u32 retVal = (u32) CoreTiming_P::GetGlobalTimeUs();
+	u32 retVal = (u32) CoreTiming::GetGlobalTimeUs();
 	DEBUG_LOG(SCEKERNEL, "%i = sceKernelLibcClock", retVal);
 	hleEatCycles(330);
 	hleReSchedule("libc clock");
@@ -142,14 +142,14 @@ u32 sceKernelLibcClock()
 
 u32 sceKernelLibcTime(u32 outPtr)
 {
-	u32 t = (u32) start_time + (u32) (CoreTiming_P::GetGlobalTimeUs() / 1000000ULL);
+	u32 t = (u32) start_time + (u32) (CoreTiming::GetGlobalTimeUs() / 1000000ULL);
 
 	DEBUG_LOG(SCEKERNEL, "%i = sceKernelLibcTime(%08X)", t, outPtr);
 	// The PSP sure takes its sweet time on this function.
 	hleEatCycles(3385);
 
-	if (Memory_P::IsValidAddress(outPtr))
-		Memory_P::PWrite_U32(t, outPtr);
+	if (Memory::IsValidAddress(outPtr))
+		Memory::Write_U32(t, outPtr);
 	else if (outPtr != 0)
 		return 0;
 
@@ -160,9 +160,9 @@ u32 sceKernelLibcTime(u32 outPtr)
 u32 sceKernelLibcGettimeofday(u32 timeAddr, u32 tzAddr)
 {
 	// TODO: tzAddr?
-	if (Memory_P::IsValidAddress(timeAddr))
+	if (Memory::IsValidAddress(timeAddr))
 	{
-		PSPTimeval *tv = (PSPTimeval *)Memory_P::GetPointer(timeAddr);
+		PSPTimeval *tv = (PSPTimeval *)Memory::GetPointer(timeAddr);
 		__RtcTimeOfDay(tv);
 	}
 
@@ -174,7 +174,7 @@ u32 sceKernelLibcGettimeofday(u32 timeAddr, u32 tzAddr)
 }
 
 std::string KernelTimeNowFormatted() {
-	time_t emulatedTime = (time_t)start_time + (u32)(CoreTiming_P::GetGlobalTimeUs() / 1000000ULL);
+	time_t emulatedTime = (time_t)start_time + (u32)(CoreTiming::GetGlobalTimeUs() / 1000000ULL);
 	tm* timePtr = localtime(&emulatedTime);
 	bool DST = timePtr->tm_isdst != 0;
 	u8 seconds = timePtr->tm_sec;
@@ -185,7 +185,7 @@ std::string KernelTimeNowFormatted() {
 	u8 days = timePtr->tm_mday;
 	u8 months = timePtr->tm_mon + 1;
 	u16 years = timePtr->tm_year + 1900;
-	std::string timestamp = PStringFromFormat("%04d-%02d-%02d_%02d-%02d-%02d", years, months, days, hours, minutes, seconds);
+	std::string timestamp = StringFromFormat("%04d-%02d-%02d_%02d-%02d-%02d", years, months, days, hours, minutes, seconds);
 	return timestamp;
 }
 

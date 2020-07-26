@@ -40,21 +40,21 @@
 #endif
 
 #include "SpvTools.h"
-#include "../glslang/Include/intermediate.h"
+#include "glslang/Include/intermediate.h"
 
 #include <string>
 #include <vector>
 
 #include "Logger.h"
 
-namespace Pglslang {
+namespace glslang {
 
 void GetSpirvVersion(std::string&);
 int GetSpirvGeneratorVersion();
-void GlslangToSpv(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+void GlslangToSpv(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
                   SpvOptions* options = nullptr);
-void GlslangToSpv(const Pglslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
-                  Pspv::SpvBuildLogger* logger, SpvOptions* options = nullptr);
+void GlslangToSpv(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                  spv::SpvBuildLogger* logger, SpvOptions* options = nullptr);
 void OutputSpvBin(const std::vector<unsigned int>& spirv, const char* baseName);
 void OutputSpvHex(const std::vector<unsigned int>& spirv, const char* baseName, const char* varName);
 

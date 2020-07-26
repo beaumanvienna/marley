@@ -24,7 +24,7 @@ static const std::vector<Draw::ShaderSource> fsDiscard = {
 	})"
 	},
 	{Draw::ShaderLanguage::GLSL_VULKAN,
-	R"(#version 140
+	R"(#version 450
 	#extension GL_ARB_separate_shader_objects : enable
 	#extension GL_ARB_shading_language_420pack : enable
 	layout(location = 0) in vec4 oColor0;
@@ -77,9 +77,9 @@ GPUDriverTestScreen::~GPUDriverTestScreen() {
 
 void GPUDriverTestScreen::CreateViews() {
 	// Don't bother with views for now.
-	using namespace PUI;
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *cr = GetI18NCategory("PSPCredits");
+	using namespace UI;
+	auto di = GetI18NCategory("Dialog");
+	auto cr = GetI18NCategory("PSPCredits");
 
 	AnchorLayout *anchor = new AnchorLayout();
 	root_ = anchor;
@@ -94,7 +94,7 @@ void GPUDriverTestScreen::CreateViews() {
 }
 
 void GPUDriverTestScreen::DiscardTest() {
-	using namespace PUI;
+	using namespace UI;
 	using namespace Draw;
 	if (!discardWriteDepthStencil_) {
 		DrawContext *draw = screenManager()->getDrawContext();
@@ -232,7 +232,6 @@ void GPUDriverTestScreen::DiscardTest() {
 
 	UIContext &dc = *screenManager()->getUIContext();
 	Draw::DrawContext *draw = dc.GetDrawContext();
-	const Bounds &bounds = dc.GetBounds();
 
 	static const char * const writeModeNames[] = { "Stencil+Depth", "Stencil", "Depth" };
 	Pipeline *writePipelines[] = { discardWriteDepthStencil_, discardWriteStencil_, discardWriteDepth_ };
@@ -263,25 +262,27 @@ void GPUDriverTestScreen::DiscardTest() {
 
 	// If everything is OK, both the background and the text should be OK.
 
+	Bounds layoutBounds = dc.GetLayoutBounds();
+
 	dc.Begin();
 	dc.SetFontScale(1.0f, 1.0f);
 	std::string apiName = screenManager()->getDrawContext()->GetInfoString(InfoField::APINAME);
 	std::string vendor = screenManager()->getDrawContext()->GetInfoString(InfoField::VENDORSTRING);
 	std::string driver = screenManager()->getDrawContext()->GetInfoString(InfoField::DRIVER);
-	dc.DrawText(apiName.c_str(), bounds.centerX(), 20, 0xFFFFFFFF, ALIGN_CENTER);
-	dc.DrawText(vendor.c_str(), bounds.centerX(), 60, 0xFFFFFFFF, ALIGN_CENTER);
-	dc.DrawText(driver.c_str(), bounds.centerX(), 100, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.DrawText(apiName.c_str(), layoutBounds.centerX(), 20, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.DrawText(vendor.c_str(), layoutBounds.centerX(), 60, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.DrawText(driver.c_str(), layoutBounds.centerX(), 100, 0xFFFFFFFF, ALIGN_CENTER);
 	dc.Flush();
 
 	float testW = 170.f;
 	float padding = 20.0f;
-	PUI::Style style = dc.theme->itemStyle;
+	UI::Style style = dc.theme->itemStyle;
 
 	float y = 150;
 	for (int j = 0; j < numWriteModes; j++, y += 120.f + padding) {
-		float x = (dc.GetBounds().w - (float)numTests * testW - (float)(numTests - 1) * padding) / 2.0f;
+		float x = layoutBounds.x + (layoutBounds.w - (float)numTests * testW - (float)(numTests - 1) * padding) / 2.0f;
 		dc.Begin();
-		dc.DrawText(writeModeNames[j], padding, y + 40, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII);
+		dc.DrawText(writeModeNames[j], layoutBounds.x + padding, y + 40, 0xFFFFFFFF, FLAG_DYNAMIC_ASCII);
 		dc.Flush();
 		for (int i = 0; i < numTests; i++, x += testW + padding) {
 			if (!validCombinations[j][i])
@@ -295,7 +296,7 @@ void GPUDriverTestScreen::DiscardTest() {
 			// Draw the rectangle with stencil value 0, depth 0.1f and the text with stencil 0xFF, depth 0.9. Then leave 0xFF as the stencil value and draw the rectangles at depth 0.5.
 			draw->SetStencilRef(0x0);
 			dc.SetCurZ(0.1f);
-			dc.FillRect(PUI::Drawable(bgColorBAD), bounds);
+			dc.FillRect(UI::Drawable(bgColorBAD), bounds);
 			// test bounds
 			dc.Flush();
 
@@ -308,14 +309,14 @@ void GPUDriverTestScreen::DiscardTest() {
 			dc.BeginPipeline(testPipeline1[i], samplerNearest_);
 			draw->SetStencilRef(0xff);
 			dc.SetCurZ(0.5f);
-			dc.FillRect(PUI::Drawable(textColorOK), bounds);
+			dc.FillRect(UI::Drawable(textColorOK), bounds);
 			dc.Flush();
 
 			// Draw rectangle that should result in the bg
 			dc.BeginPipeline(testPipeline2[i], samplerNearest_);
 			draw->SetStencilRef(0xff);
 			dc.SetCurZ(0.5f);
-			dc.FillRect(PUI::Drawable(bgColorOK), bounds);
+			dc.FillRect(UI::Drawable(bgColorOK), bounds);
 			dc.Flush();
 		}
 	}

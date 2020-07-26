@@ -39,6 +39,7 @@
 // We use a simple descriptor set for all rendering: 1 sampler, 1 texture, 1 UBO binding point.
 // binding 0 - uniform data
 // binding 1 - sampler
+// binding 2 - sampler
 //
 // Vertex data lives in a separate namespace (location = 0, 1, etc)
 
@@ -186,7 +187,7 @@ VkShaderStageFlagBits StageToVulkan(ShaderStage stage) {
 // invoke Compile again to recreate the shader then link them together.
 class VKShaderModule : public ShaderModule {
 public:
-	VKShaderModule(ShaderStage stage) : module_(VK_NULL_HANDLE), ok_(false), stage_(stage) {
+	VKShaderModule(ShaderStage stage, const std::string &tag) : stage_(stage), tag_(tag) {
 		vkstage_ = StageToVulkan(stage);
 	}
 	bool Compile(VulkanContext *vulkan, ShaderLanguage language, const uint8_t *data, size_t size);
@@ -203,11 +204,12 @@ public:
 
 private:
 	VulkanContext *vulkan_;
-	VkShaderModule module_;
+	VkShaderModule module_ = VK_NULL_HANDLE;
 	VkShaderStageFlagBits vkstage_;
-	bool ok_;
+	bool ok_ = false;
 	ShaderStage stage_;
 	std::string source_;  // So we can recompile in case of context loss.
+	std::string tag_;
 };
 
 bool VKShaderModule::Compile(VulkanContext *vulkan, ShaderLanguage language, const uint8_t *data, size_t size) {
@@ -250,7 +252,8 @@ public:
 		ubo_ = new uint8_t[uboSize_];
 	}
 	~VKPipeline() {
-		vulkan_->Delete().QueueDeletePipeline(vkpipeline);
+		vulkan_->Delete().QueueDeletePipeline(backbufferPipeline);
+		vulkan_->Delete().QueueDeletePipeline(framebufferPipeline);
 		delete[] ubo_;
 	}
 
@@ -271,7 +274,8 @@ public:
 		return false;
 	}
 
-	VkPipeline vkpipeline;
+	VkPipeline backbufferPipeline = VK_NULL_HANDLE;
+	VkPipeline framebufferPipeline = VK_NULL_HANDLE;
 	int stride[4]{};
 	int dynamicUniformSize = 0;
 
@@ -289,14 +293,20 @@ class VKTexture;
 class VKBuffer;
 class VKSamplerState;
 
+enum {
+	MAX_BOUND_TEXTURES = 2
+};
+
 struct DescriptorSetKey {
-	VKTexture *texture_;
-	VKSamplerState *sampler_;
+	VkImageView imageViews_[MAX_BOUND_TEXTURES];
+	VKSamplerState *samplers_[MAX_BOUND_TEXTURES];
 	VkBuffer buffer_;
 
 	bool operator < (const DescriptorSetKey &other) const {
-		if (texture_ < other.texture_) return true; else if (texture_ > other.texture_) return false;
-		if (sampler_ < other.sampler_) return true; else if (sampler_ > other.sampler_) return false;
+		for (int i = 0; i < MAX_BOUND_TEXTURES; ++i) {
+			if (imageViews_[i] < other.imageViews_[i]) return true; else if (imageViews_[i] > other.imageViews_[i]) return false;
+			if (samplers_[i] < other.samplers_[i]) return true; else if (samplers_[i] > other.samplers_[i]) return false;
+		}
 		if (buffer_ < other.buffer_) return true; else if (buffer_ > other.buffer_) return false;
 		return false;
 	}
@@ -367,7 +377,7 @@ public:
 	SamplerState *CreateSamplerState(const SamplerStateDesc &desc) override;
 	RasterState *CreateRasterState(const RasterStateDesc &desc) override;
 	Pipeline *CreateGraphicsPipeline(const PipelineDesc &desc) override;
-	ShaderModule *CreateShaderModule(ShaderStage stage, ShaderLanguage language, const uint8_t *data, size_t dataSize) override;
+	ShaderModule *CreateShaderModule(ShaderStage stage, ShaderLanguage language, const uint8_t *data, size_t dataSize, const std::string &tag) override;
 
 	Texture *CreateTexture(const TextureDesc &desc) override;
 	Buffer *CreateBuffer(size_t size, uint32_t usageFlags) override;
@@ -375,13 +385,13 @@ public:
 
 	void UpdateBuffer(Buffer *buffer, const uint8_t *data, size_t offset, size_t size, UpdateBufferFlags flags) override;
 
-	void CopyFramebufferImage(Framebuffer *src, int level, int x, int y, int z, Framebuffer *dst, int dstLevel, int dstX, int dstY, int dstZ, int width, int height, int depth, int channelBits) override;
-	bool BlitFramebuffer(Framebuffer *src, int srcX1, int srcY1, int srcX2, int srcY2, Framebuffer *dst, int dstX1, int dstY1, int dstX2, int dstY2, int channelBits, FBBlitFilter filter) override;
-	bool CopyFramebufferToMemorySync(Framebuffer *src, int channelBits, int x, int y, int w, int h, Draw::DataFormat format, void *pixels, int pixelStride) override;
+	void CopyFramebufferImage(Framebuffer *src, int level, int x, int y, int z, Framebuffer *dst, int dstLevel, int dstX, int dstY, int dstZ, int width, int height, int depth, int channelBits, const char *tag) override;
+	bool BlitFramebuffer(Framebuffer *src, int srcX1, int srcY1, int srcX2, int srcY2, Framebuffer *dst, int dstX1, int dstY1, int dstX2, int dstY2, int channelBits, FBBlitFilter filter, const char *tag) override;
+	bool CopyFramebufferToMemorySync(Framebuffer *src, int channelBits, int x, int y, int w, int h, Draw::DataFormat format, void *pixels, int pixelStride, const char *tag) override;
 	DataFormat PreferredFramebufferReadbackFormat(Framebuffer *src) override;
 
 	// These functions should be self explanatory.
-	void BindFramebufferAsRenderTarget(Framebuffer *fbo, const RenderPassInfo &rp) override;
+	void BindFramebufferAsRenderTarget(Framebuffer *fbo, const RenderPassInfo &rp, const char *tag) override;
 	// color must be 0, for now.
 	void BindFramebufferAsTexture(Framebuffer *fbo, int binding, FBChannel channelBit, int attachment) override;
 
@@ -396,8 +406,13 @@ public:
 
 	void BindSamplerStates(int start, int count, SamplerState **state) override;
 	void BindTextures(int start, int count, Texture **textures) override;
+
 	void BindPipeline(Pipeline *pipeline) override {
 		curPipeline_ = (VKPipeline *)pipeline;
+
+		if (!pipeline) {
+			UnbindBoundState();
+		}
 	}
 
 	// TODO: Make VKBuffers proper buffers, and do a proper binding model. This is just silly.
@@ -419,6 +434,7 @@ public:
 	void DrawIndexed(int vertexCount, int offset) override;
 	void DrawUP(const void *vdata, int vertexCount) override;
 
+	void BindCompatiblePipeline();
 	void ApplyDynamicState();
 
 	void Clear(int mask, uint32_t colorval, float depthVal, int stencilVal) override;
@@ -440,7 +456,7 @@ public:
 		case APIVERSION: 
 		{
 			uint32_t ver = vulkan_->GetPhysicalDeviceProperties().properties.apiVersion;
-			return PStringFromFormat("%d.%d.%d", ver >> 22, (ver >> 12) & 0x3ff, ver & 0xfff);
+			return StringFromFormat("%d.%d.%d", ver >> 22, (ver >> 12) & 0x3ff, ver & 0xfff);
 		}
 		default: return "?";
 		}
@@ -451,25 +467,25 @@ public:
 	std::vector<std::string> GetFeatureList() const override;
 	std::vector<std::string> GetExtensionList() const override;
 
-	uintptr_t GetNativeObject(NativeObject obj) override {
+	uint64_t GetNativeObject(NativeObject obj) override {
 		switch (obj) {
 		case NativeObject::FRAMEBUFFER_RENDERPASS:
 			// Return a representative renderpass.
-			return (uintptr_t)renderManager_.GetFramebufferRenderPass();
+			return (uint64_t)renderManager_.GetFramebufferRenderPass();
 		case NativeObject::BACKBUFFER_RENDERPASS:
-			return (uintptr_t)renderManager_.GetBackbufferRenderPass();
+			return (uint64_t)renderManager_.GetBackbufferRenderPass();
 		case NativeObject::COMPATIBLE_RENDERPASS:
-			return (uintptr_t)renderManager_.GetCompatibleRenderPass();
+			return (uint64_t)renderManager_.GetCompatibleRenderPass();
 		case NativeObject::INIT_COMMANDBUFFER:
-			return (uintptr_t)renderManager_.GetInitCmd();
+			return (uint64_t)renderManager_.GetInitCmd();
 		case NativeObject::BOUND_TEXTURE0_IMAGEVIEW:
-			return (uintptr_t)boundImageView_[0];
+			return (uint64_t)boundImageView_[0];
 		case NativeObject::BOUND_TEXTURE1_IMAGEVIEW:
-			return (uintptr_t)boundImageView_[1];
+			return (uint64_t)boundImageView_[1];
 		case NativeObject::RENDER_MANAGER:
-			return (uintptr_t)&renderManager_;
+			return (uint64_t)(uintptr_t)&renderManager_;
 		case NativeObject::NULL_IMAGEVIEW:
-			return (uintptr_t)GetNullTexture()->GetImageView();
+			return (uint64_t)GetNullTexture()->GetImageView();
 		default:
 			Crash();
 			return 0;
@@ -478,7 +494,13 @@ public:
 
 	void HandleEvent(Event ev, int width, int height, void *param1, void *param2) override;
 
+	int GetCurrentStepId() const override {
+		return renderManager_.GetCurrentStepId();
+	}
+
 private:
+	void UnbindBoundState();
+
 	VulkanTexture *GetNullTexture();
 	VulkanContext *vulkan_ = nullptr;
 
@@ -504,7 +526,6 @@ private:
 	int queueFamilyIndex_;
 
 	enum {
-		MAX_BOUND_TEXTURES = 2,
 		MAX_FRAME_COMMAND_BUFFERS = 256,
 	};
 	VKTexture *boundTextures_[MAX_BOUND_TEXTURES]{};
@@ -565,6 +586,8 @@ VkFormat DataFormatToVulkan(DataFormat format) {
 	case DataFormat::R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
 	case DataFormat::R8G8B8A8_UNORM: return VK_FORMAT_R8G8B8A8_UNORM;
 	case DataFormat::R4G4_UNORM_PACK8: return VK_FORMAT_R4G4_UNORM_PACK8;
+
+	// Note: A4R4G4B4_UNORM_PACK16 is not supported.
 	case DataFormat::R4G4B4A4_UNORM_PACK16: return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
 	case DataFormat::B4G4R4A4_UNORM_PACK16: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
 	case DataFormat::R5G5B5A1_UNORM_PACK16: return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
@@ -572,6 +595,7 @@ VkFormat DataFormatToVulkan(DataFormat format) {
 	case DataFormat::R5G6B5_UNORM_PACK16: return VK_FORMAT_R5G6B5_UNORM_PACK16;
 	case DataFormat::B5G6R5_UNORM_PACK16: return VK_FORMAT_B5G6R5_UNORM_PACK16;
 	case DataFormat::A1R5G5B5_UNORM_PACK16: return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+
 	case DataFormat::R32_FLOAT: return VK_FORMAT_R32_SFLOAT;
 	case DataFormat::R32G32_FLOAT: return VK_FORMAT_R32G32_SFLOAT;
 	case DataFormat::R32G32B32_FLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
@@ -641,7 +665,7 @@ public:
 		s.minFilter = desc.minFilter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 		s.mipmapMode = desc.mipFilter == TextureFilter::LINEAR ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		s.maxLod = desc.maxLod;
-		VkResult res = PvkCreateSampler(vulkan_->GetDevice(), &s, nullptr, &sampler_);
+		VkResult res = vkCreateSampler(vulkan_->GetDevice(), &s, nullptr, &sampler_);
 		_assert_(VK_SUCCESS == res);
 	}
 	~VKSamplerState() {
@@ -665,7 +689,7 @@ RasterState *VKContext::CreateRasterState(const RasterStateDesc &desc) {
 
 void VKContext::BindSamplerStates(int start, int count, SamplerState **state) {
 	for (int i = start; i < start + count; i++) {
-		boundSamplers_[i] = (VKSamplerState *)state[i];
+		boundSamplers_[i] = (VKSamplerState *)state[i - start];
 	}
 }
 
@@ -699,6 +723,7 @@ bool VKTexture::Create(VkCommandBuffer cmd, VulkanPushBuffer *push, const Textur
 		// Gonna have to generate some, which requires TRANSFER_SRC
 		usageBits |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	}
+
 	if (!vkTex_->CreateDirect(cmd, alloc, width_, height_, mipLevels_, vulkanFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, usageBits)) {
 		ELOG("Failed to create VulkanTexture: %dx%dx%d fmt %d, %d levels", width_, height_, depth_, (int)vulkanFormat, mipLevels_);
 		return false;
@@ -706,15 +731,24 @@ bool VKTexture::Create(VkCommandBuffer cmd, VulkanPushBuffer *push, const Textur
 	if (desc.initData.size()) {
 		int w = width_;
 		int h = height_;
+		int d = depth_;
 		int i;
 		for (i = 0; i < (int)desc.initData.size(); i++) {
 			uint32_t offset;
 			VkBuffer buf;
-			size_t size = w * h * bytesPerPixel;
-			offset = push->PushAligned((const void *)desc.initData[i], size, 16, &buf);
+			size_t size = w * h * d * bytesPerPixel;
+			if (desc.initDataCallback) {
+				uint8_t *dest = (uint8_t *)push->PushAligned(size, &offset, &buf, 16);
+				if (!desc.initDataCallback(dest, desc.initData[i], w, h, d, w * bytesPerPixel, h * w * bytesPerPixel)) {
+					memcpy(dest, desc.initData[i], size);
+				}
+			} else {
+				offset = push->PushAligned((const void *)desc.initData[i], size, 16, &buf);
+			}
 			vkTex_->UploadMip(cmd, i, w, h, buf, offset, w);
 			w = (w + 1) / 2;
 			h = (h + 1) / 2;
+			d = (d + 1) / 2;
 		}
 		// Generate the rest of the mips automatically.
 		for (; i < mipLevels_; i++) {
@@ -739,7 +773,7 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	caps_.framebufferDepthCopySupported = true;   // Will pretty much always be the case.
 	caps_.preferredDepthBufferFormat = DataFormat::D24_S8;  // TODO: Ask vulkan.
 
-	auto deviceProps = vulkan->GetPhysicalDeviceProperties(vulkan_->GetCurrentPhysicalDevice()).properties;
+	auto deviceProps = vulkan->GetPhysicalDeviceProperties(vulkan_->GetCurrentPhysicalDeviceIndex()).properties;
 	switch (deviceProps.vendorID) {
 	case VULKAN_VENDOR_AMD: caps_.vendor = GPUVendor::VENDOR_AMD; break;
 	case VULKAN_VENDOR_ARM: caps_.vendor = GPUVendor::VENDOR_ARM; break;
@@ -755,8 +789,13 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 		// Adreno 5xx devices, all known driver versions, fail to discard stencil when depth write is off.
 		// See: https://github.com/hrydgard/ppsspp/pull/11684
 		if (deviceProps.deviceID >= 0x05000000 && deviceProps.deviceID < 0x06000000) {
-			bugs_.Infest(Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL);
+			if (deviceProps.driverVersion < 0x80180000) {
+				bugs_.Infest(Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL);
+			}
 		}
+		// Color write mask not masking write in certain scenarios with a depth test, see #10421.
+		// Known still present on driver 0x80180000 and Adreno 5xx (possibly more.)
+		bugs_.Infest(Bugs::COLORWRITEMASK_BROKEN_WITH_DEPTHTEST);
 	} else if (caps_.vendor == GPUVendor::VENDOR_AMD) {
 		// See issue #10074, and also #10065 (AMD) and #10109 for the choice of the driver version to check for.
 		if (deviceProps.driverVersion < 0x00407000) {
@@ -776,7 +815,7 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	VkDescriptorPoolSize dpTypes[2];
 	dpTypes[0].descriptorCount = 200;
 	dpTypes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	dpTypes[1].descriptorCount = 200;
+	dpTypes[1].descriptorCount = 200 * MAX_BOUND_TEXTURES;
 	dpTypes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
 	VkDescriptorPoolCreateInfo dp{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
@@ -792,28 +831,31 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	for (int i = 0; i < VulkanContext::MAX_INFLIGHT_FRAMES; i++) {
 		VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		frame_[i].pushBuffer = new VulkanPushBuffer(vulkan_, 1024 * 1024, usage);
-		VkResult res = PvkCreateDescriptorPool(device_, &dp, nullptr, &frame_[i].descriptorPool);
+		VkResult res = vkCreateDescriptorPool(device_, &dp, nullptr, &frame_[i].descriptorPool);
 		_assert_(res == VK_SUCCESS);
 	}
 
 	// binding 0 - uniform data
-	// binding 1 - combined sampler/image
-	VkDescriptorSetLayoutBinding bindings[2];
+	// binding 1 - combined sampler/image 0
+	// binding 2 - combined sampler/image 1
+	VkDescriptorSetLayoutBinding bindings[MAX_BOUND_TEXTURES + 1];
 	bindings[0].descriptorCount = 1;
 	bindings[0].pImmutableSamplers = nullptr;
 	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings[0].binding = 0;
-	bindings[1].descriptorCount = 1;
-	bindings[1].pImmutableSamplers = nullptr;
-	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings[1].binding = 1;
+	for (int i = 0; i < MAX_BOUND_TEXTURES; ++i) {
+		bindings[i + 1].descriptorCount = 1;
+		bindings[i + 1].pImmutableSamplers = nullptr;
+		bindings[i + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		bindings[i + 1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		bindings[i + 1].binding = i + 1;
+	}
 
 	VkDescriptorSetLayoutCreateInfo dsl = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-	dsl.bindingCount = 2;
+	dsl.bindingCount = ARRAY_SIZE(bindings);
 	dsl.pBindings = bindings;
-	VkResult res = PvkCreateDescriptorSetLayout(device_, &dsl, nullptr, &descriptorSetLayout_);
+	VkResult res = vkCreateDescriptorSetLayout(device_, &dsl, nullptr, &descriptorSetLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkPipelineLayoutCreateInfo pl = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -821,11 +863,11 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	pl.pushConstantRangeCount = 0;
 	pl.setLayoutCount = 1;
 	pl.pSetLayouts = &descriptorSetLayout_;
-	res = PvkCreatePipelineLayout(device_, &pl, nullptr, &pipelineLayout_);
+	res = vkCreatePipelineLayout(device_, &pl, nullptr, &pipelineLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-	res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+	res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 	assert(VK_SUCCESS == res);
 
 	renderManager_.SetSplitSubmit(splitSubmit);
@@ -855,7 +897,7 @@ VKContext::~VKContext() {
 }
 
 void VKContext::BeginFrame() {
-	renderManager_.BeginFrame(g_PConfig.bShowGpuProfile);
+	renderManager_.BeginFrame(g_Config.bShowGpuProfile);
 
 	FrameData &frame = frame_[vulkan_->GetCurFrame()];
 	push_ = frame.pushBuffer;
@@ -866,7 +908,7 @@ void VKContext::BeginFrame() {
 	allocator_->Begin();
 
 	frame.descSets_.clear();
-	VkResult result = PvkResetDescriptorPool(device_, frame.descriptorPool, 0);
+	VkResult result = vkResetDescriptorPool(device_, frame.descriptorPool, 0);
 	_assert_(result == VK_SUCCESS);
 }
 
@@ -878,6 +920,23 @@ void VKContext::EndFrame() {
 	renderManager_.Finish();
 
 	push_ = nullptr;
+
+	// Unbind stuff, to avoid accidentally relying on it across frames (and provide some protection against forgotten unbinds of deleted things).
+	UnbindBoundState();
+}
+
+void VKContext::UnbindBoundState() {
+	curPipeline_ = nullptr;
+
+	for (auto &view : boundImageView_) {
+		view = VK_NULL_HANDLE;
+	}
+	for (auto &sampler : boundSamplers_) {
+		sampler = nullptr;
+	}
+	for (auto &texture : boundTextures_) {
+		texture = nullptr;
+	}
 }
 
 void VKContext::WipeQueue() {
@@ -889,8 +948,10 @@ VkDescriptorSet VKContext::GetOrCreateDescriptorSet(VkBuffer buf) {
 
 	FrameData *frame = &frame_[vulkan_->GetCurFrame()];
 
-	key.texture_ = boundTextures_[0];
-	key.sampler_ = boundSamplers_[0];
+	for (int i = 0; i < MAX_BOUND_TEXTURES; ++i) {
+		key.imageViews_[i] = boundTextures_[i] ? boundTextures_[i]->GetImageView() : boundImageView_[i];
+		key.samplers_[i] = boundSamplers_[i];
+	}
 	key.buffer_ = buf;
 
 	auto iter = frame->descSets_.find(key);
@@ -903,7 +964,7 @@ VkDescriptorSet VKContext::GetOrCreateDescriptorSet(VkBuffer buf) {
 	alloc.descriptorPool = frame->descriptorPool;
 	alloc.pSetLayouts = &descriptorSetLayout_;
 	alloc.descriptorSetCount = 1;
-	VkResult res = PvkAllocateDescriptorSets(device_, &alloc, &descSet);
+	VkResult res = vkAllocateDescriptorSets(device_, &alloc, &descSet);
 	_assert_(VK_SUCCESS == res);
 
 	VkDescriptorBufferInfo bufferDesc;
@@ -911,37 +972,49 @@ VkDescriptorSet VKContext::GetOrCreateDescriptorSet(VkBuffer buf) {
 	bufferDesc.offset = 0;
 	bufferDesc.range = curPipeline_->GetUBOSize();
 
-	VkDescriptorImageInfo imageDesc;
-	imageDesc.imageView = boundTextures_[0] ? boundTextures_[0]->GetImageView() : VK_NULL_HANDLE;
-	imageDesc.sampler = boundSamplers_[0] ? boundSamplers_[0]->GetSampler() : VK_NULL_HANDLE;
+	VkDescriptorImageInfo imageDesc[MAX_BOUND_TEXTURES]{};
+	VkWriteDescriptorSet writes[1 + MAX_BOUND_TEXTURES]{};
+
+	// If handles are NULL for whatever buggy reason, it's best to leave the descriptors
+	// unwritten instead of trying to write a zero, which is not legal.
+
+	int numWrites = 0;
+	if (buf) {
+		writes[numWrites].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writes[numWrites].dstSet = descSet;
+		writes[numWrites].dstArrayElement = 0;
+		writes[numWrites].dstBinding = 0;
+		writes[numWrites].pBufferInfo = &bufferDesc;
+		writes[numWrites].pImageInfo = nullptr;
+		writes[numWrites].pTexelBufferView = nullptr;
+		writes[numWrites].descriptorCount = 1;
+		writes[numWrites].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+		numWrites++;
+	}
+
+	for (int i = 0; i < MAX_BOUND_TEXTURES; ++i) {
+		if (key.imageViews_[i] && key.samplers_[i] && key.samplers_[i]->GetSampler()) {
+			imageDesc[i].imageView = key.imageViews_[i];
+			imageDesc[i].sampler = key.samplers_[i]->GetSampler();
 #ifdef VULKAN_USE_GENERAL_LAYOUT_FOR_COLOR
-	imageDesc.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageDesc[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 #else
-	imageDesc.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageDesc[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 #endif
+			writes[numWrites].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writes[numWrites].dstSet = descSet;
+			writes[numWrites].dstArrayElement = 0;
+			writes[numWrites].dstBinding = i + 1;
+			writes[numWrites].pBufferInfo = nullptr;
+			writes[numWrites].pImageInfo = &imageDesc[i];
+			writes[numWrites].pTexelBufferView = nullptr;
+			writes[numWrites].descriptorCount = 1;
+			writes[numWrites].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			numWrites++;
+		}
+	}
 
-	VkWriteDescriptorSet writes[2] = {};
-	writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[0].dstSet = descSet;
-	writes[0].dstArrayElement = 0;
-	writes[0].dstBinding = 0;
-	writes[0].pBufferInfo = &bufferDesc;
-	writes[0].pImageInfo = nullptr;
-	writes[0].pTexelBufferView = nullptr;
-	writes[0].descriptorCount = 1;
-	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-
-	writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[1].dstSet = descSet;
-	writes[1].dstArrayElement = 0;
-	writes[1].dstBinding = 1;
-	writes[1].pBufferInfo = nullptr;
-	writes[1].pImageInfo = &imageDesc;
-	writes[1].pTexelBufferView = nullptr;
-	writes[1].descriptorCount = 1;
-	writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-	PvkUpdateDescriptorSets(device_, 2, writes, 0, nullptr);
+	vkUpdateDescriptorSets(device_, numWrites, writes, 0, nullptr);
 
 	frame->descSets_[key] = descSet;
 	return descSet;
@@ -999,30 +1072,40 @@ Pipeline *VKContext::CreateGraphicsPipeline(const PipelineDesc &desc) {
 	VkPipelineRasterizationStateCreateInfo rs{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 	raster->ToVulkan(&rs);
 
-	VkGraphicsPipelineCreateInfo info{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-	info.flags = 0;
-	info.stageCount = (uint32_t)stages.size();
-	info.pStages = stages.data();
-	info.pColorBlendState = &blend->info;
-	info.pDepthStencilState = &depth->info;
-	info.pDynamicState = &dynamicInfo;
-	info.pInputAssemblyState = &inputAssembly;
-	info.pTessellationState = nullptr;
-	info.pMultisampleState = &ms;
-	info.pVertexInputState = &input->visc;
-	info.pRasterizationState = &rs;
-	info.pViewportState = &vs;  // Must set viewport and scissor counts even if we set the actual state dynamically.
-	info.layout = pipelineLayout_;
-	info.subpass = 0;
-	info.renderPass = renderManager_.GetBackbufferRenderPass();
+	VkGraphicsPipelineCreateInfo createInfo[2]{};
+	for (auto &info : createInfo) {
+		info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		info.flags = 0;
+		info.stageCount = (uint32_t)stages.size();
+		info.pStages = stages.data();
+		info.pColorBlendState = &blend->info;
+		info.pDepthStencilState = &depth->info;
+		info.pDynamicState = &dynamicInfo;
+		info.pInputAssemblyState = &inputAssembly;
+		info.pTessellationState = nullptr;
+		info.pMultisampleState = &ms;
+		info.pVertexInputState = &input->visc;
+		info.pRasterizationState = &rs;
+		info.pViewportState = &vs;  // Must set viewport and scissor counts even if we set the actual state dynamically.
+		info.layout = pipelineLayout_;
+		info.subpass = 0;
+	}
 
-	// OK, need to create a new pipeline.
-	VkResult result = PvkCreateGraphicsPipelines(device_, pipelineCache_, 1, &info, nullptr, &pipeline->vkpipeline);
+	createInfo[0].renderPass = renderManager_.GetBackbufferRenderPass();
+	createInfo[1].renderPass = renderManager_.GetFramebufferRenderPass();
+
+	// OK, need to create new pipelines.
+	VkPipeline pipelines[2]{};
+	VkResult result = vkCreateGraphicsPipelines(device_, pipelineCache_, 2, createInfo, nullptr, pipelines);
 	if (result != VK_SUCCESS) {
 		ELOG("Failed to create graphics pipeline");
 		delete pipeline;
 		return nullptr;
 	}
+
+	pipeline->backbufferPipeline = pipelines[0];
+	pipeline->framebufferPipeline = pipelines[1];
+
 	if (desc.uniformDesc) {
 		pipeline->dynamicUniformSize = (int)desc.uniformDesc->uniformBufferSize;
 	}
@@ -1054,7 +1137,8 @@ void VKContext::SetViewports(int count, Viewport *viewports) {
 }
 
 void VKContext::SetBlendFactor(float color[4]) {
-	renderManager_.SetBlendFactor(color);
+	uint32_t col = Float4ToUint8x4(color);
+	renderManager_.SetBlendFactor(col);
 }
 
 void VKContext::SetStencilRef(uint8_t stencilRef) {
@@ -1175,13 +1259,13 @@ void VKContext::UpdateBuffer(Buffer *buffer, const uint8_t *data, size_t offset,
 
 void VKContext::BindTextures(int start, int count, Texture **textures) {
 	for (int i = start; i < start + count; i++) {
-		boundTextures_[i] = static_cast<VKTexture *>(textures[i]);
+		boundTextures_[i] = static_cast<VKTexture *>(textures[i - start]);
 		boundImageView_[i] = boundTextures_[i] ? boundTextures_[i]->GetImageView() : GetNullTexture()->GetImageView();
 	}
 }
 
-ShaderModule *VKContext::CreateShaderModule(ShaderStage stage, ShaderLanguage language, const uint8_t *data, size_t size) {
-	VKShaderModule *shader = new VKShaderModule(stage);
+ShaderModule *VKContext::CreateShaderModule(ShaderStage stage, ShaderLanguage language, const uint8_t *data, size_t size, const std::string &tag) {
+	VKShaderModule *shader = new VKShaderModule(stage, tag);
 	if (shader->Compile(vulkan_, language, data, size)) {
 		return shader;
 	} else {
@@ -1223,9 +1307,9 @@ void VKContext::Draw(int vertexCount, int offset) {
 
 	VkDescriptorSet descSet = GetOrCreateDescriptorSet(vulkanUBObuf);
 
-	renderManager_.BindPipeline(curPipeline_->vkpipeline);
+	BindCompatiblePipeline();
 	ApplyDynamicState();
-	renderManager_.Draw(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset, vertexCount);
+	renderManager_.Draw(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset + curVBufferOffsets_[0], vertexCount, offset);
 }
 
 void VKContext::DrawIndexed(int vertexCount, int offset) {
@@ -1239,9 +1323,9 @@ void VKContext::DrawIndexed(int vertexCount, int offset) {
 
 	VkDescriptorSet descSet = GetOrCreateDescriptorSet(vulkanUBObuf);
 
-	renderManager_.BindPipeline(curPipeline_->vkpipeline);
+	BindCompatiblePipeline();
 	ApplyDynamicState();
-	renderManager_.DrawIndexed(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset, vulkanIbuf, (int)ibBindOffset, vertexCount, 1, VK_INDEX_TYPE_UINT32);
+	renderManager_.DrawIndexed(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset + curVBufferOffsets_[0], vulkanIbuf, (int)ibBindOffset + offset * sizeof(uint32_t), vertexCount, 1, VK_INDEX_TYPE_UINT16);
 }
 
 void VKContext::DrawUP(const void *vdata, int vertexCount) {
@@ -1251,9 +1335,18 @@ void VKContext::DrawUP(const void *vdata, int vertexCount) {
 
 	VkDescriptorSet descSet = GetOrCreateDescriptorSet(vulkanUBObuf);
 
-	renderManager_.BindPipeline(curPipeline_->vkpipeline);
+	BindCompatiblePipeline();
 	ApplyDynamicState();
-	renderManager_.Draw(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset, vertexCount);
+	renderManager_.Draw(pipelineLayout_, descSet, 1, &ubo_offset, vulkanVbuf, (int)vbBindOffset + curVBufferOffsets_[0], vertexCount);
+}
+
+void VKContext::BindCompatiblePipeline() {
+	VkRenderPass renderPass = renderManager_.GetCompatibleRenderPass();
+	if (renderPass == renderManager_.GetBackbufferRenderPass()) {
+		renderManager_.BindPipeline(curPipeline_->backbufferPipeline);
+	} else {
+		renderManager_.BindPipeline(curPipeline_->framebufferPipeline);
+	}
 }
 
 void VKContext::Clear(int clearMask, uint32_t colorval, float depthVal, int stencilVal) {
@@ -1333,39 +1426,23 @@ std::vector<std::string> VKContext::GetExtensionList() const {
 }
 
 uint32_t VKContext::GetDataFormatSupport(DataFormat fmt) const {
-	// TODO: Actually do proper checks
-	switch (fmt) {
-	case DataFormat::B8G8R8A8_UNORM:
-		return FMT_RENDERTARGET | FMT_TEXTURE;
-	case DataFormat::B4G4R4A4_UNORM_PACK16:
-		// This is the one that's guaranteed to be supported.
-		// A four-component, 16-bit packed unsigned normalized format that has a 4-bit B component in bits 12..15, a 4-bit
-		// G component in bits 8..11, a 4 - bit R component in bits 4..7, and a 4 - bit A component in bits 0..3
-		return FMT_RENDERTARGET | FMT_TEXTURE;
-	case DataFormat::R4G4B4A4_UNORM_PACK16:
-		return 0;
-	case DataFormat::A4R4G4B4_UNORM_PACK16:
-		return 0;
-
-	case DataFormat::R8G8B8A8_UNORM:
-		return FMT_RENDERTARGET | FMT_TEXTURE | FMT_INPUTLAYOUT;
-
-	case DataFormat::R32_FLOAT:
-	case DataFormat::R32G32_FLOAT:
-	case DataFormat::R32G32B32_FLOAT:
-	case DataFormat::R32G32B32A32_FLOAT:
-		return FMT_INPUTLAYOUT;
-
-	case DataFormat::R8_UNORM:
-		return FMT_TEXTURE;
-
-	case DataFormat::BC1_RGBA_UNORM_BLOCK:
-	case DataFormat::BC2_UNORM_BLOCK:
-	case DataFormat::BC3_UNORM_BLOCK:
-		return FMT_TEXTURE;
-	default:
-		return 0;
+	VkFormat vulkan_format = DataFormatToVulkan(fmt);
+	VkFormatProperties properties;
+	vkGetPhysicalDeviceFormatProperties(vulkan_->GetCurrentPhysicalDevice(), vulkan_format, &properties);
+	uint32_t flags = 0;
+	if (properties.optimalTilingFeatures & VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) {
+		flags |= FMT_RENDERTARGET;
 	}
+	if (properties.optimalTilingFeatures & VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+		flags |= FMT_DEPTHSTENCIL;
+	}
+	if (properties.optimalTilingFeatures & VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
+		flags |= FMT_TEXTURE;
+	}
+	if (properties.bufferFeatures & VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) {
+		flags |= FMT_INPUTLAYOUT;
+	}
+	return flags;
 }
 
 // A VKFramebuffer is a VkFramebuffer (note caps difference) plus all the textures it owns.
@@ -1374,9 +1451,9 @@ uint32_t VKContext::GetDataFormatSupport(DataFormat fmt) const {
 // use this frame's init command buffer.
 class VKFramebuffer : public Framebuffer {
 public:
-	VKFramebuffer(VKRFramebuffer *fb) : buf_(fb) { _assert_msg_(G3D, fb, "Null fb in VKFramebuffer constructor"); }
+	VKFramebuffer(VKRFramebuffer *fb) : buf_(fb) { _assert_msg_(fb, "Null fb in VKFramebuffer constructor"); }
 	~VKFramebuffer() {
-		_assert_msg_(G3D, buf_, "Null buf_ in VKFramebuffer - double delete?");
+		_assert_msg_(buf_, "Null buf_ in VKFramebuffer - double delete?");
 		buf_->vulkan_->Delete().QueueCallback([](void *fb) {
 			VKRFramebuffer *vfb = static_cast<VKRFramebuffer *>(fb);
 			delete vfb;
@@ -1394,7 +1471,7 @@ Framebuffer *VKContext::CreateFramebuffer(const FramebufferDesc &desc) {
 	return new VKFramebuffer(vkrfb);
 }
 
-void VKContext::CopyFramebufferImage(Framebuffer *srcfb, int level, int x, int y, int z, Framebuffer *dstfb, int dstLevel, int dstX, int dstY, int dstZ, int width, int height, int depth, int channelBits) {
+void VKContext::CopyFramebufferImage(Framebuffer *srcfb, int level, int x, int y, int z, Framebuffer *dstfb, int dstLevel, int dstX, int dstY, int dstZ, int width, int height, int depth, int channelBits, const char *tag) {
 	VKFramebuffer *src = (VKFramebuffer *)srcfb;
 	VKFramebuffer *dst = (VKFramebuffer *)dstfb;
 
@@ -1403,10 +1480,10 @@ void VKContext::CopyFramebufferImage(Framebuffer *srcfb, int level, int x, int y
 	if (channelBits & FBChannel::FB_DEPTH_BIT) aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 	if (channelBits & FBChannel::FB_STENCIL_BIT) aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
-	renderManager_.CopyFramebuffer(src->GetFB(), VkRect2D{ {x, y}, {(uint32_t)width, (uint32_t)height } }, dst->GetFB(), VkOffset2D{ dstX, dstY }, aspectMask);
+	renderManager_.CopyFramebuffer(src->GetFB(), VkRect2D{ {x, y}, {(uint32_t)width, (uint32_t)height } }, dst->GetFB(), VkOffset2D{ dstX, dstY }, aspectMask, tag);
 }
 
-bool VKContext::BlitFramebuffer(Framebuffer *srcfb, int srcX1, int srcY1, int srcX2, int srcY2, Framebuffer *dstfb, int dstX1, int dstY1, int dstX2, int dstY2, int channelBits, FBBlitFilter filter) {
+bool VKContext::BlitFramebuffer(Framebuffer *srcfb, int srcX1, int srcY1, int srcX2, int srcY2, Framebuffer *dstfb, int dstX1, int dstY1, int dstX2, int dstY2, int channelBits, FBBlitFilter filter, const char *tag) {
 	VKFramebuffer *src = (VKFramebuffer *)srcfb;
 	VKFramebuffer *dst = (VKFramebuffer *)dstfb;
 
@@ -1415,11 +1492,11 @@ bool VKContext::BlitFramebuffer(Framebuffer *srcfb, int srcX1, int srcY1, int sr
 	if (channelBits & FBChannel::FB_DEPTH_BIT) aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 	if (channelBits & FBChannel::FB_STENCIL_BIT) aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
-	renderManager_.BlitFramebuffer(src->GetFB(), VkRect2D{ {srcX1, srcY1}, {(uint32_t)(srcX2 - srcX1), (uint32_t)(srcY2 - srcY1) } }, dst->GetFB(), VkRect2D{ {dstX1, dstY1}, {(uint32_t)(dstX2 - dstX1), (uint32_t)(dstY2 - dstY1) } }, aspectMask, filter == FB_BLIT_LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST);
+	renderManager_.BlitFramebuffer(src->GetFB(), VkRect2D{ {srcX1, srcY1}, {(uint32_t)(srcX2 - srcX1), (uint32_t)(srcY2 - srcY1) } }, dst->GetFB(), VkRect2D{ {dstX1, dstY1}, {(uint32_t)(dstX2 - dstX1), (uint32_t)(dstY2 - dstY1) } }, aspectMask, filter == FB_BLIT_LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, tag);
 	return true;
 }
 
-bool VKContext::CopyFramebufferToMemorySync(Framebuffer *srcfb, int channelBits, int x, int y, int w, int h, Draw::DataFormat format, void *pixels, int pixelStride) {
+bool VKContext::CopyFramebufferToMemorySync(Framebuffer *srcfb, int channelBits, int x, int y, int w, int h, Draw::DataFormat format, void *pixels, int pixelStride, const char *tag) {
 	VKFramebuffer *src = (VKFramebuffer *)srcfb;
 
 	int aspectMask = 0;
@@ -1427,7 +1504,7 @@ bool VKContext::CopyFramebufferToMemorySync(Framebuffer *srcfb, int channelBits,
 	if (channelBits & FBChannel::FB_DEPTH_BIT) aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 	if (channelBits & FBChannel::FB_STENCIL_BIT) aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
-	return renderManager_.CopyFramebufferToMemorySync(src ? src->GetFB() : nullptr, aspectMask, x, y, w, h, format, (uint8_t *)pixels, pixelStride);
+	return renderManager_.CopyFramebufferToMemorySync(src ? src->GetFB() : nullptr, aspectMask, x, y, w, h, format, (uint8_t *)pixels, pixelStride, tag);
 }
 
 DataFormat VKContext::PreferredFramebufferReadbackFormat(Framebuffer *src) {
@@ -1441,13 +1518,13 @@ DataFormat VKContext::PreferredFramebufferReadbackFormat(Framebuffer *src) {
 	return DrawContext::PreferredFramebufferReadbackFormat(src);
 }
 
-void VKContext::BindFramebufferAsRenderTarget(Framebuffer *fbo, const RenderPassInfo &rp) {
+void VKContext::BindFramebufferAsRenderTarget(Framebuffer *fbo, const RenderPassInfo &rp, const char *tag) {
 	VKFramebuffer *fb = (VKFramebuffer *)fbo;
 	VKRRenderPassAction color = (VKRRenderPassAction)rp.color;
 	VKRRenderPassAction depth = (VKRRenderPassAction)rp.depth;
 	VKRRenderPassAction stencil = (VKRRenderPassAction)rp.stencil;
 
-	renderManager_.BindFramebufferAsRenderTarget(fb ? fb->GetFB() : nullptr, color, depth, stencil, rp.clearColor, rp.clearDepth, rp.clearStencil);
+	renderManager_.BindFramebufferAsRenderTarget(fb ? fb->GetFB() : nullptr, color, depth, stencil, rp.clearColor, rp.clearDepth, rp.clearStencil, tag);
 	curFramebuffer_ = fb;
 }
 
@@ -1464,6 +1541,7 @@ void VKContext::BindFramebufferAsTexture(Framebuffer *fbo, int binding, FBChanne
 	if (channelBit & FBChannel::FB_DEPTH_BIT) aspect |= VK_IMAGE_ASPECT_DEPTH_BIT;
 	if (channelBit & FBChannel::FB_STENCIL_BIT) aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
+	boundTextures_[binding] = nullptr;
 	boundImageView_[binding] = renderManager_.BindFramebufferAsTexture(fb->GetFB(), binding, aspect, attachment);
 }
 

@@ -120,7 +120,7 @@ std::string to_string(const T& val) {
     void operator delete[](void*) { }                                 \
     void operator delete[](void *, void *) { }
 
-namespace Pglslang {
+namespace glslang {
 
     //
     // Pool version of string.
@@ -128,13 +128,13 @@ namespace Pglslang {
     typedef pool_allocator<char> TStringAllocator;
     typedef std::basic_string <char, std::char_traits<char>, TStringAllocator> TString;
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 // Repackage the std::hash for use by unordered map/set with a TString key.
 namespace std {
 
-    template<> struct hash<Pglslang::TString> {
-        std::size_t operator()(const Pglslang::TString& s) const
+    template<> struct hash<glslang::TString> {
+        std::size_t operator()(const glslang::TString& s) const
         {
             const unsigned _FNV_offset_basis = 2166136261U;
             const unsigned _FNV_prime = 16777619U;
@@ -152,7 +152,7 @@ namespace std {
     };
 }
 
-namespace Pglslang {
+namespace glslang {
 
 inline TString* NewPoolTString(const char* s)
 {
@@ -287,6 +287,6 @@ template <class T> bool IsMultipleOfPow2(T number, int powerOf2)
     return ! (number & (powerOf2 - 1));
 }
 
-} // end namespace Pglslang
+} // end namespace glslang
 
 #endif // _COMMON_INCLUDED_

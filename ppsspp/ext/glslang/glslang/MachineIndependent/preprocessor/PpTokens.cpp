@@ -97,7 +97,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "PpContext.h"
 #include "PpTokens.h"
 
-namespace Pglslang {
+namespace glslang {
 
 // Add a token (including backing string) to the end of a macro
 // token stream, for later playback.
@@ -218,4 +218,4 @@ void TPpContext::UngetToken(int token, TPpToken* ppToken)
     pushInput(new tUngotTokenInput(this, token, ppToken));
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

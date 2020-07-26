@@ -89,7 +89,7 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace {
 
-using namespace Pglslang;
+using namespace glslang;
 
 const struct {
     int val;
@@ -151,7 +151,7 @@ const struct {
 
 } // end anonymous namespace
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Initialize the atom table.
@@ -178,4 +178,4 @@ TStringAtomMap::TStringAtomMap()
     nextAtom = PpAtomLast;
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

@@ -48,12 +48,6 @@ namespace Draw {
 
 class VulkanFBO;
 
-struct PostShaderUniforms {
-	float texelDelta[2]; float pixelDelta[2];
-	float time[4];
-	float video;
-};
-
 struct VirtualFramebuffer {
 	int last_frame_used;
 	int last_frame_attached;
@@ -144,7 +138,6 @@ enum BindFramebufferColorFlags {
 enum DrawTextureFlags {
 	DRAWTEX_NEAREST = 0,
 	DRAWTEX_LINEAR = 1,
-	DRAWTEX_KEEP_TEX = 2,
 	DRAWTEX_KEEP_STENCIL_ALPHA = 4,
 	DRAWTEX_TO_BACKBUFFER = 8,
 };
@@ -152,6 +145,11 @@ enum DrawTextureFlags {
 inline DrawTextureFlags operator | (const DrawTextureFlags &lhs, const DrawTextureFlags &rhs) {
 	return DrawTextureFlags((u32)lhs | (u32)rhs);
 }
+
+enum class StencilUpload {
+	NEEDS_CLEAR,
+	STENCIL_IS_ZERO,
+};
 
 enum class TempFBO {
 	DEPAL,
@@ -182,9 +180,10 @@ class DrawContext;
 }
 
 struct GPUDebugBuffer;
-class TextureCacheCommon;
-class ShaderManagerCommon;
 class DrawEngineCommon;
+class PresentationCommon;
+class ShaderManagerCommon;
+class TextureCacheCommon;
 
 class FramebufferManagerCommon {
 public:
@@ -211,21 +210,21 @@ public:
 			FramebufferHeuristicParams inputs;
 			GetFramebufferHeuristicInputs(&inputs, gstate);
 			VirtualFramebuffer *vfb = DoSetRenderFrameBuffer(inputs, skipDrawReason);
-			_dbg_assert_msg_(G3D, vfb, "DoSetRenderFramebuffer must return a valid framebuffer.");
-			_dbg_assert_msg_(G3D, currentRenderVfb_, "DoSetRenderFramebuffer must set a valid framebuffer.");
+			_dbg_assert_msg_(vfb, "DoSetRenderFramebuffer must return a valid framebuffer.");
+			_dbg_assert_msg_(currentRenderVfb_, "DoSetRenderFramebuffer must set a valid framebuffer.");
 			return vfb;
 		}
 	}
-	void RebindFramebuffer();
+	void RebindFramebuffer(const char *tag);
 	std::vector<FramebufferInfo> GetFramebufferList();
 
-	void CopyDisplayToOutput();
+	void CopyDisplayToOutput(bool reallyDirty);
 
 	bool NotifyFramebufferCopy(u32 src, u32 dest, int size, bool isMemset, u32 skipDrawReason);
 	void NotifyVideoUpload(u32 addr, int size, int width, GEBufferFormat fmt);
 	void UpdateFromMemory(u32 addr, int size, bool safe);
 	void ApplyClearToMemory(int x1, int y1, int x2, int y2, u32 clearColor);
-	virtual bool NotifyStencilUpload(u32 addr, int size, bool skipZero = false) = 0;
+	virtual bool NotifyStencilUpload(u32 addr, int size, StencilUpload flags = StencilUpload::NEEDS_CLEAR) = 0;
 	// Returns true if it's sure this is a direct FBO->FBO transfer and it has already handle it.
 	// In that case we hardly need to actually copy the bytes in VRAM, they will be wrong anyway (unless
 	// read framebuffers is on, in which case this should always return false).
@@ -235,7 +234,7 @@ public:
 	void ReadFramebufferToMemory(VirtualFramebuffer *vfb, bool sync, int x, int y, int w, int h);
 
 	void DownloadFramebufferForClut(u32 fb_address, u32 loadBytes);
-	void DrawFramebufferToOutput(const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride, bool applyPostShader);
+	void DrawFramebufferToOutput(const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride);
 
 	void DrawPixels(VirtualFramebuffer *vfb, int dstX, int dstY, const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride, int width, int height);
 
@@ -253,6 +252,10 @@ public:
 	}
 	GEBufferFormat DisplayFramebufFormat() {
 		return displayFramebuf_ ? displayFormat_ : GE_FORMAT_INVALID;
+	}
+
+	bool UseBufferedRendering() {
+		return useBufferedRendering_;
 	}
 
 	bool MayIntersectFramebuffer(u32 start) {
@@ -298,6 +301,7 @@ public:
 	void SetSafeSize(u16 w, u16 h);
 
 	virtual void Resized();
+	virtual void DestroyAllFBOs();
 
 	Draw::Framebuffer *GetTempFBO(TempFBO reason, u16 w, u16 h, Draw::FBColorDepth colorDepth = Draw::FBO_8888);
 
@@ -309,15 +313,12 @@ public:
 
 protected:
 	virtual void PackFramebufferSync_(VirtualFramebuffer *vfb, int x, int y, int w, int h);
-	virtual void SetViewport2D(int x, int y, int w, int h);
-	void CalculatePostShaderUniforms(int bufferWidth, int bufferHeight, int renderWidth, int renderHeight, PostShaderUniforms *uniforms);
-	virtual void MakePixelTexture(const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride, int width, int height, float &u1, float &v1) = 0;
+	void SetViewport2D(int x, int y, int w, int h);
+	Draw::Texture *MakePixelTexture(const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride, int width, int height, float &u1, float &v1);
 	virtual void DrawActiveTexture(float x, float y, float w, float h, float destW, float destH, float u0, float v0, float u1, float v1, int uvRotation, int flags) = 0;
 	virtual void Bind2DShader() = 0;
-	virtual void BindPostShader(const PostShaderUniforms &uniforms) = 0;
 
 	bool UpdateSize();
-	void SetNumExtraFBOs(int num);
 
 	void FlushBeforeCopy();
 	virtual void DecimateFBOs();  // keeping it virtual to let D3D do a little extra
@@ -343,7 +344,7 @@ protected:
 	void DownloadFramebufferOnSwitch(VirtualFramebuffer *vfb);
 	void FindTransferFramebuffers(VirtualFramebuffer *&dstBuffer, VirtualFramebuffer *&srcBuffer, u32 dstBasePtr, int dstStride, int &dstX, int &dstY, u32 srcBasePtr, int srcStride, int &srcX, int &srcY, int &srcWidth, int &srcHeight, int &dstWidth, int &dstHeight, int bpp);
 	VirtualFramebuffer *FindDownloadTempBuffer(VirtualFramebuffer *vfb);
-	virtual bool CreateDownloadTempBuffer(VirtualFramebuffer *nvfb) = 0;
+	virtual bool CreateDownloadTempBuffer(VirtualFramebuffer *nvfb);
 	virtual void UpdateDownloadTempBuffer(VirtualFramebuffer *nvfb) = 0;
 
 	VirtualFramebuffer *CreateRAMFramebuffer(uint32_t fbAddress, int width, int height, int stride, GEBufferFormat format);
@@ -362,6 +363,8 @@ protected:
 			dstBuffer->reallyDirtyAfterDisplay = true;
 	}
 
+	PresentationCommon *presentation_ = nullptr;
+
 	Draw::DrawContext *draw_ = nullptr;
 	TextureCacheCommon *textureCache_ = nullptr;
 	ShaderManagerCommon *shaderManager_ = nullptr;
@@ -371,6 +374,7 @@ protected:
 	u32 displayFramebufPtr_ = 0;
 	u32 displayStride_ = 0;
 	GEBufferFormat displayFormat_;
+	u32 prevDisplayFramebufPtr_ = 0;
 
 	VirtualFramebuffer *displayFramebuf_ = nullptr;
 	VirtualFramebuffer *prevDisplayFramebuf_ = nullptr;
@@ -383,10 +387,8 @@ protected:
 	u32 framebufRangeEnd_ = 0;
 
 	bool useBufferedRendering_ = false;
-	bool usePostShader_ = false;
-	bool postShaderAtOutputResolution_ = false;
 	bool postShaderIsUpscalingFilter_ = false;
-	int postShaderSSAAFilterLevel_ = 0;
+	bool postShaderIsSupersampling_ = false;
 
 	std::vector<VirtualFramebuffer *> vfbs_;
 	std::vector<VirtualFramebuffer *> bvfbs_; // blitting framebuffers (for download)
@@ -400,10 +402,8 @@ protected:
 	int pixelHeight_;
 	int bloomHack_ = 0;
 
-	// Used by post-processing shaders
-	std::vector<Draw::Framebuffer *> extraFBOs_;
-
 	bool needGLESRebinds_ = false;
+	Draw::DataFormat preferredPixelsFormat_ = Draw::DataFormat::R8G8B8A8_UNORM;
 
 	struct TempFBOInfo {
 		Draw::Framebuffer *fbo;
@@ -420,5 +420,3 @@ protected:
 		FBO_OLD_USAGE_FLAG = 15,
 	};
 };
-
-void CenterDisplayOutputRect(float *x, float *y, float *w, float *h, float origW, float origH, float frameW, float frameH, int rotation);

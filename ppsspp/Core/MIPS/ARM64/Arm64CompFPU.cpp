@@ -91,8 +91,8 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 	// u32 addr = R(rs) + offset;
 	std::vector<FixupBranch> skips;
 	switch (op >> 26) {
-	case 49: //FI(ft) = Memory_P::PRead_U32(addr); break; //lwc1
-		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
+	case 49: //FI(ft) = Memory::Read_U32(addr); break; //lwc1
+		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
 			fp.LDR(32, INDEX_UNSIGNED, fpr.R(ft), gpr.RPtr(rs), offset);
@@ -110,7 +110,7 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 			gpr.SetRegImm(SCRATCH1, addr);
 		} else {
 			gpr.MapReg(rs);
-			if (g_PConfig.bFastMemory) {
+			if (g_Config.bFastMemory) {
 				SetScratch1ToEffectiveAddress(rs, offset);
 			} else {
 				skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);
@@ -123,8 +123,8 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 		fpr.ReleaseSpillLocksAndDiscardTemps();
 		break;
 
-	case 57: //Memory_P::PWrite_U32(FI(ft), addr); break; //swc1
-		if (!gpr.IsImm(rs) && jo.cachePointers && g_PConfig.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
+	case 57: //Memory::Write_U32(FI(ft), addr); break; //swc1
+		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset <= 16380 && offset >= 0) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, 0);
 			fp.STR(32, INDEX_UNSIGNED, fpr.R(ft), gpr.RPtr(rs), offset);
@@ -141,7 +141,7 @@ void Arm64Jit::Comp_FPULS(MIPSOpcode op)
 			gpr.SetRegImm(SCRATCH1, addr);
 		} else {
 			gpr.MapReg(rs);
-			if (g_PConfig.bFastMemory) {
+			if (g_Config.bFastMemory) {
 				SetScratch1ToEffectiveAddress(rs, offset);
 			} else {
 				skips = SetScratch1ForSafeAddress(rs, offset, SCRATCH2);

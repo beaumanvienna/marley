@@ -69,7 +69,7 @@ struct hash<SamplerID> {
 
 };
 
-namespace PSampler {
+namespace Sampler {
 
 typedef u32 (*NearestFunc)(int u, int v, const u8 *tptr, int bufw, int level);
 NearestFunc GetNearestFunc();
@@ -98,7 +98,7 @@ class SamplerJitCache : public ArmGen::ARMXCodeBlock {
 #elif PPSSPP_ARCH(ARM64)
 class SamplerJitCache : public Arm64Gen::ARM64CodeBlock {
 #elif PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
-class SamplerJitCache : public PGen::XCodeBlock {
+class SamplerJitCache : public Gen::XCodeBlock {
 #elif PPSSPP_ARCH(MIPS)
 class SamplerJitCache : public MIPSGen::MIPSCodeBlock {
 #else

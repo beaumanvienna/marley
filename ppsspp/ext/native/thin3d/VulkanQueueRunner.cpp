@@ -1,4 +1,6 @@
-#include <map>
+#include <unordered_map>
+
+#include "base/timeutil.h"
 #include "DataFormat.h"
 #include "VulkanQueueRunner.h"
 #include "VulkanRenderManager.h"
@@ -46,10 +48,10 @@ void VulkanQueueRunner::ResizeReadbackBuffer(VkDeviceSize requiredSize) {
 	buf.size = readbackBufferSize_;
 	buf.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-	PvkCreateBuffer(device, &buf, nullptr, &readbackBuffer_);
+	vkCreateBuffer(device, &buf, nullptr, &readbackBuffer_);
 
 	VkMemoryRequirements reqs{};
-	PvkGetBufferMemoryRequirements(device, readbackBuffer_, &reqs);
+	vkGetBufferMemoryRequirements(device, readbackBuffer_, &reqs);
 
 	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	allocInfo.allocationSize = reqs.size;
@@ -72,15 +74,15 @@ void VulkanQueueRunner::ResizeReadbackBuffer(VkDeviceSize requiredSize) {
 	_assert_(successTypeReqs != 0);
 	readbackBufferIsCoherent_ = (successTypeReqs & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
 
-	VkResult res = PvkAllocateMemory(device, &allocInfo, nullptr, &readbackMemory_);
+	VkResult res = vkAllocateMemory(device, &allocInfo, nullptr, &readbackMemory_);
 	if (res != VK_SUCCESS) {
 		readbackMemory_ = VK_NULL_HANDLE;
-		PvkDestroyBuffer(device, readbackBuffer_, nullptr);
+		vkDestroyBuffer(device, readbackBuffer_, nullptr);
 		readbackBuffer_ = VK_NULL_HANDLE;
 		return;
 	}
 	uint32_t offset = 0;
-	PvkBindBufferMemory(device, readbackBuffer_, readbackMemory_, offset);
+	vkBindBufferMemory(device, readbackBuffer_, readbackMemory_, offset);
 }
 
 void VulkanQueueRunner::DestroyDeviceObjects() {
@@ -168,7 +170,7 @@ void VulkanQueueRunner::InitBackbufferRenderPass() {
 	rp_info.dependencyCount = 1;
 	rp_info.pDependencies = &dep;
 
-	VkResult res = PvkCreateRenderPass(vulkan_->GetDevice(), &rp_info, nullptr, &backbufferRenderPass_);
+	VkResult res = vkCreateRenderPass(vulkan_->GetDevice(), &rp_info, nullptr, &backbufferRenderPass_);
 	_assert_(res == VK_SUCCESS);
 }
 
@@ -287,7 +289,7 @@ VkRenderPass VulkanQueueRunner::GetRenderPass(const RPKey &key) {
 		deps[numDeps].srcStageMask |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 		break;
 	default:
-		_dbg_assert_msg_(G3D, false, "GetRenderPass: Unexpected color layout %d", (int)key.prevColorLayout);
+		_dbg_assert_msg_(false, "GetRenderPass: Unexpected color layout %d", (int)key.prevColorLayout);
 		break;
 	}
 
@@ -311,7 +313,7 @@ VkRenderPass VulkanQueueRunner::GetRenderPass(const RPKey &key) {
 		deps[numDeps].srcStageMask |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 		break;
 	default:
-		_dbg_assert_msg_(G3D, false, "PerformBindRT: Unexpected depth layout %d", (int)key.prevDepthLayout);
+		_dbg_assert_msg_(false, "PerformBindRT: Unexpected depth layout %d", (int)key.prevDepthLayout);
 		break;
 	}
 
@@ -344,7 +346,7 @@ VkRenderPass VulkanQueueRunner::GetRenderPass(const RPKey &key) {
 		// Nothing to do.
 		break;
 	default:
-		_dbg_assert_msg_(G3D, false, "GetRenderPass: Unexpected final color layout %d", (int)key.finalColorLayout);
+		_dbg_assert_msg_(false, "GetRenderPass: Unexpected final color layout %d", (int)key.finalColorLayout);
 		break;
 	}
 
@@ -368,14 +370,16 @@ VkRenderPass VulkanQueueRunner::GetRenderPass(const RPKey &key) {
 		rp.pDependencies = deps;
 	}
 
-	VkResult res = PvkCreateRenderPass(vulkan_->GetDevice(), &rp, nullptr, &pass);
+	VkResult res = vkCreateRenderPass(vulkan_->GetDevice(), &rp, nullptr, &pass);
 	_assert_(res == VK_SUCCESS);
 	_assert_(pass != VK_NULL_HANDLE);
 	renderPasses_.Insert(key, pass);
 	return pass;
 }
 
-void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &steps, VkQueryPool queryPool, std::vector<std::string> *timestampDescriptions) {
+void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &steps, QueueProfileContext *profile) {
+	if (profile)
+		profile->cpuStartTime = real_time_now();
 	// Optimizes renderpasses, then sequences them.
 	// Planned optimizations: 
 	//  * Create copies of render target that are rendered to multiple times and textured from in sequence, and push those render passes
@@ -443,8 +447,16 @@ void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &st
 		}
 	}
 
+	bool emitLabels = vulkan_->DeviceExtensions().EXT_debug_utils;
 	for (size_t i = 0; i < steps.size(); i++) {
 		const VKRStep &step = *steps[i];
+
+		if (emitLabels) {
+			VkDebugUtilsLabelEXT labelInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT };
+			labelInfo.pLabelName = step.tag;
+			vkCmdBeginDebugUtilsLabelEXT(cmd, &labelInfo);
+		}
+
 		switch (step.stepType) {
 		case VKRStepType::RENDER:
 			PerformRenderPass(step, cmd);
@@ -465,9 +477,13 @@ void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &st
 			break;
 		}
 
-		if (queryPool) {
-			PvkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, (uint32_t)timestampDescriptions->size());
-			timestampDescriptions->push_back(StepToString(step));
+		if (profile && profile->timestampDescriptions.size() + 1 < MAX_TIMESTAMP_QUERIES) {
+			vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, profile->queryPool, (uint32_t)profile->timestampDescriptions.size());
+			profile->timestampDescriptions.push_back(StepToString(step));
+		}
+
+		if (emitLabels) {
+			vkCmdEndDebugUtilsLabelEXT(cmd);
 		}
 	}
 
@@ -476,6 +492,9 @@ void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &st
 	for (size_t i = 0; i < steps.size(); i++) {
 		delete steps[i];
 	}
+
+	if (profile)
+		profile->cpuEndTime = real_time_now();
 }
 
 void VulkanQueueRunner::ApplyMGSHack(std::vector<VKRStep *> &steps) {
@@ -599,6 +618,8 @@ void VulkanQueueRunner::ApplyMGSHack(std::vector<VKRStep *> &steps) {
 				case VKRRenderCommand::DRAW_INDEXED:
 					steps[i]->commands.push_back(steps[j]->commands[k]);
 					break;
+				default:
+					break;
 				}
 			}
 			steps[j]->stepType = VKRStepType::RENDER_SKIP;
@@ -611,6 +632,8 @@ void VulkanQueueRunner::ApplyMGSHack(std::vector<VKRStep *> &steps) {
 				case VKRRenderCommand::DRAW:
 				case VKRRenderCommand::DRAW_INDEXED:
 					steps[i + 1]->commands.push_back(steps[j]->commands[k]);
+					break;
+				default:
 					break;
 				}
 			}
@@ -710,23 +733,23 @@ std::string VulkanQueueRunner::StepToString(const VKRStep &step) const {
 	{
 		int w = step.render.framebuffer ? step.render.framebuffer->width : vulkan_->GetBackbufferWidth();
 		int h = step.render.framebuffer ? step.render.framebuffer->height : vulkan_->GetBackbufferHeight();
-		snprintf(buffer, sizeof(buffer), "RenderPass (draws: %d, %dx%d, fb: %p, )", step.render.numDraws, w, h, step.render.framebuffer);
+		snprintf(buffer, sizeof(buffer), "RenderPass %s (draws: %d, %dx%d, fb: %p, )", step.tag, step.render.numDraws, w, h, step.render.framebuffer);
 		break;
 	}
 	case VKRStepType::COPY:
-		snprintf(buffer, sizeof(buffer), "Copy (%dx%d)", step.copy.srcRect.extent.width, step.copy.srcRect.extent.height);
+		snprintf(buffer, sizeof(buffer), "Copy '%s' (%dx%d)", step.tag, step.copy.srcRect.extent.width, step.copy.srcRect.extent.height);
 		break;
 	case VKRStepType::BLIT:
-		snprintf(buffer, sizeof(buffer), "Blit (%dx%d->%dx%d)", step.blit.srcRect.extent.width, step.blit.srcRect.extent.height, step.blit.dstRect.extent.width, step.blit.dstRect.extent.height);
+		snprintf(buffer, sizeof(buffer), "Blit '%s' (%dx%d->%dx%d)", step.tag, step.blit.srcRect.extent.width, step.blit.srcRect.extent.height, step.blit.dstRect.extent.width, step.blit.dstRect.extent.height);
 		break;
 	case VKRStepType::READBACK:
-		snprintf(buffer, sizeof(buffer), "Readback (%dx%d, fb: %p)", step.readback.srcRect.extent.width, step.readback.srcRect.extent.height, step.readback.src);
+		snprintf(buffer, sizeof(buffer), "Readback '%s' (%dx%d, fb: %p)", step.tag, step.readback.srcRect.extent.width, step.readback.srcRect.extent.height, step.readback.src);
 		break;
 	case VKRStepType::READBACK_IMAGE:
-		snprintf(buffer, sizeof(buffer), "ReadbackImage (%dx%d)", step.readback_image.srcRect.extent.width, step.readback_image.srcRect.extent.height);
+		snprintf(buffer, sizeof(buffer), "ReadbackImage '%s' (%dx%d)", step.tag, step.readback_image.srcRect.extent.width, step.readback_image.srcRect.extent.height);
 		break;
 	case VKRStepType::RENDER_SKIP:
-		snprintf(buffer, sizeof(buffer), "(SKIPPED RenderPass)");
+		snprintf(buffer, sizeof(buffer), "(SKIPPED RenderPass) %s", step.tag);
 		break;
 	default:
 		buffer[0] = 0;
@@ -741,12 +764,26 @@ std::string VulkanQueueRunner::StepToString(const VKRStep &step) const {
 void VulkanQueueRunner::ApplyRenderPassMerge(std::vector<VKRStep *> &steps) {
 	// First let's count how many times each framebuffer is rendered to.
 	// If it's more than one, let's do our best to merge them. This can help God of War quite a bit.
-	std::map<VKRFramebuffer *, int> counts;
+	std::unordered_map<VKRFramebuffer *, int> counts;
 	for (int i = 0; i < (int)steps.size(); i++) {
 		if (steps[i]->stepType == VKRStepType::RENDER) {
 			counts[steps[i]->render.framebuffer]++;
 		}
 	}
+
+	auto mergeRenderSteps = [](VKRStep *dst, VKRStep *src) {
+		// OK. Now, if it's a render, slurp up all the commands and kill the step.
+		// Also slurp up any pretransitions.
+		dst->preTransitions.insert(dst->preTransitions.end(), src->preTransitions.begin(), src->preTransitions.end());
+		dst->commands.insert(dst->commands.end(), src->commands.begin(), src->commands.end());
+		// So we don't consider it for other things, maybe doesn't matter.
+		src->dependencies.clear();
+		src->stepType = VKRStepType::RENDER_SKIP;
+	};
+	auto renderHasClear = [](const VKRStep *step) {
+		const auto &r = step->render;
+		return r.color == VKRRenderPassAction::CLEAR || r.depth == VKRRenderPassAction::CLEAR || r.stencil == VKRRenderPassAction::CLEAR;
+	};
 
 	// Now, let's go through the steps. If we find one that is rendered to more than once,
 	// we'll scan forward and slurp up any rendering that can be merged across.
@@ -756,45 +793,50 @@ void VulkanQueueRunner::ApplyRenderPassMerge(std::vector<VKRStep *> &steps) {
 			TinySet<VKRFramebuffer *, 8> touchedFramebuffers;  // must be the same fast-size as the dependencies TinySet for annoying reasons.
 			for (int j = i + 1; j < (int)steps.size(); j++) {
 				// If any other passes are reading from this framebuffer as-is, we cancel the scan.
+				if (steps[j]->dependencies.contains(fb)) {
+					// Reading from itself means a KEEP, which is okay.
+					if (steps[j]->stepType != VKRStepType::RENDER || steps[j]->render.framebuffer != fb)
+						break;
+				}
 				switch (steps[j]->stepType) {
 				case VKRStepType::RENDER:
-					if (steps[j]->dependencies.contains(fb)) {
-						goto done_fb;
-					}
-					// Prevent Unknown's example case from https://github.com/hrydgard/ppsspp/pull/12242
-					if (steps[j]->dependencies.contains(touchedFramebuffers)) {
-						goto done_fb;
-					}
 					if (steps[j]->render.framebuffer == fb) {
-						// ok. Now, if it's a render, slurp up all the commands
-						// and kill the step.
-						// Also slurp up any pretransitions.
-						steps[i]->preTransitions.insert(steps[i]->preTransitions.end(), steps[j]->preTransitions.begin(), steps[j]->preTransitions.end());
-						steps[i]->commands.insert(steps[i]->commands.end(), steps[j]->commands.begin(), steps[j]->commands.end());
-						steps[j]->stepType = VKRStepType::RENDER_SKIP;
-					}
-					// Remember the framebuffer this wrote to. We can't merge with later passes that depend on these.
-					if (steps[j]->render.framebuffer != fb) {
+						// Prevent Unknown's example case from https://github.com/hrydgard/ppsspp/pull/12242
+						if (renderHasClear(steps[j]) || steps[j]->dependencies.contains(touchedFramebuffers)) {
+							goto done_fb;
+						} else {
+							// Safe to merge, great.
+							mergeRenderSteps(steps[i], steps[j]);
+						}
+					} else {
+						// Remember the framebuffer this wrote to. We can't merge with later passes that depend on these.
 						touchedFramebuffers.insert(steps[j]->render.framebuffer);
 					}
 					break;
 				case VKRStepType::COPY:
-					if (steps[j]->copy.src == fb || steps[j]->copy.dst == fb) {
+					if (steps[j]->copy.dst == fb) {
+						// Without framebuffer "renaming", we can't merge past a clobbered fb.
 						goto done_fb;
 					}
+					touchedFramebuffers.insert(steps[j]->copy.dst);
 					break;
 				case VKRStepType::BLIT:
-					if (steps[j]->blit.src == fb || steps[j]->blit.dst == fb) {
+					if (steps[j]->blit.dst == fb) {
+						// Without framebuffer "renaming", we can't merge past a clobbered fb.
 						goto done_fb;
 					}
+					touchedFramebuffers.insert(steps[j]->blit.dst);
 					break;
 				case VKRStepType::READBACK:
 					// Not sure this has much effect, when executed READBACK is always the last step
 					// since we stall the GPU and wait immediately after.
-					if (steps[j]->readback.src == fb) {
-						goto done_fb;
-					}
 					break;
+				case VKRStepType::RENDER_SKIP:
+				case VKRStepType::READBACK_IMAGE:
+					break;
+				default:
+					// We added a new step?  Might be unsafe.
+					goto done_fb;
 				}
 			}
 			done_fb:
@@ -831,9 +873,22 @@ void VulkanQueueRunner::LogSteps(const std::vector<VKRStep *> &steps) {
 	}
 }
 
+const char *RenderPassActionName(VKRRenderPassAction a) {
+	switch (a) {
+	case VKRRenderPassAction::CLEAR:
+		return "CLEAR";
+	case VKRRenderPassAction::DONT_CARE:
+		return "DONT_CARE";
+	case VKRRenderPassAction::KEEP:
+		return "KEEP";
+	}
+	return "?";
+}
+
 void VulkanQueueRunner::LogRenderPass(const VKRStep &pass) {
-	int fb = (int)(intptr_t)(pass.render.framebuffer ? pass.render.framebuffer->framebuf : 0);
-	ILOG("RenderPass Begin(%x)", fb);
+	const auto &r = pass.render;
+	int fb = (int)(intptr_t)(r.framebuffer ? r.framebuffer->framebuf : 0);
+	ILOG("RenderPass Begin(%x, %s, %s, %s)", fb, RenderPassActionName(r.color), RenderPassActionName(r.depth), RenderPassActionName(r.stencil));
 	for (auto &cmd : pass.commands) {
 		switch (cmd.cmd) {
 		case VKRRenderCommand::REMOVED:
@@ -844,7 +899,7 @@ void VulkanQueueRunner::LogRenderPass(const VKRStep &pass) {
 			ILOG("  BindPipeline(%x)", (int)(intptr_t)cmd.pipeline.pipeline);
 			break;
 		case VKRRenderCommand::BLEND:
-			ILOG("  Blend(%f, %f, %f, %f)", cmd.blendColor.color[0], cmd.blendColor.color[1], cmd.blendColor.color[2], cmd.blendColor.color[3]);
+			ILOG("  BlendColor(%08x)", cmd.blendColor.color);
 			break;
 		case VKRRenderCommand::CLEAR:
 			ILOG("  Clear");
@@ -921,7 +976,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 				break;
 			default:
-				_assert_msg_(G3D, false, "PerformRenderPass: Unexpected oldLayout: %d", (int)barrier.oldLayout);
+				_assert_msg_(false, "PerformRenderPass: Unexpected oldLayout: %d", (int)barrier.oldLayout);
 				break;
 			}
 			barrier.newLayout = iter.targetLayout;
@@ -931,14 +986,14 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 				break;
 			default:
-				_assert_msg_(G3D, false, "PerformRenderPass: Unexpected newLayout: %d", (int)barrier.newLayout);
+				_assert_msg_(false, "PerformRenderPass: Unexpected newLayout: %d", (int)barrier.newLayout);
 				break;
 			}
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-			PvkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 			iter.fb->color.layout = barrier.newLayout;
 		}
 	}
@@ -962,7 +1017,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		PvkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 
 	// This is supposed to bind a vulkan render pass to the command buffer.
@@ -990,7 +1045,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 
 		case VKRRenderCommand::BIND_PIPELINE:
 			if (c.pipeline.pipeline != lastPipeline) {
-				PvkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.pipeline.pipeline);
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.pipeline.pipeline);
 				lastPipeline = c.pipeline.pipeline;
 				// Reset dynamic state so it gets refreshed with the new pipeline.
 				lastStencilWriteMask = -1;
@@ -1001,7 +1056,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 
 		case VKRRenderCommand::VIEWPORT:
 			if (fb != nullptr) {
-				PvkCmdSetViewport(cmd, 0, 1, &c.viewport.vp);
+				vkCmdSetViewport(cmd, 0, 1, &c.viewport.vp);
 			} else {
 				const VkViewport &vp = c.viewport.vp;
 				DisplayRect<float> rc{ vp.x, vp.y, vp.width, vp.height };
@@ -1013,63 +1068,67 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				final_vp.height = rc.h;
 				final_vp.maxDepth = vp.maxDepth;
 				final_vp.minDepth = vp.minDepth;
-				PvkCmdSetViewport(cmd, 0, 1, &final_vp);
+				vkCmdSetViewport(cmd, 0, 1, &final_vp);
 			}
 			break;
 
 		case VKRRenderCommand::SCISSOR:
 		{
 			if (fb != nullptr) {
-				PvkCmdSetScissor(cmd, 0, 1, &c.scissor.scissor);
+				vkCmdSetScissor(cmd, 0, 1, &c.scissor.scissor);
 			} else {
 				// Rendering to backbuffer. Might need to rotate.
 				const VkRect2D &rc = c.scissor.scissor;
 				DisplayRect<int> rotated_rc{ rc.offset.x, rc.offset.y, (int)rc.extent.width, (int)rc.extent.height };
 				RotateRectToDisplay(rotated_rc, vulkan_->GetBackbufferWidth(), vulkan_->GetBackbufferHeight());
-				_dbg_assert_(G3D, rotated_rc.x >= 0);
-				_dbg_assert_(G3D, rotated_rc.y >= 0);
+				_dbg_assert_(rotated_rc.x >= 0);
+				_dbg_assert_(rotated_rc.y >= 0);
 				VkRect2D finalRect = VkRect2D{ { rotated_rc.x, rotated_rc.y }, { (uint32_t)rotated_rc.w, (uint32_t)rotated_rc.h} };
-				PvkCmdSetScissor(cmd, 0, 1, &finalRect);
+				vkCmdSetScissor(cmd, 0, 1, &finalRect);
 			}
 			break;
 		}
 
 		case VKRRenderCommand::BLEND:
-			PvkCmdSetBlendConstants(cmd, c.blendColor.color);
+		{
+			float bc[4];
+			Uint8x4ToFloat4(bc, c.blendColor.color);
+			vkCmdSetBlendConstants(cmd, bc);
 			break;
+		}
 
 		case VKRRenderCommand::PUSH_CONSTANTS:
-			PvkCmdPushConstants(cmd, c.push.pipelineLayout, c.push.stages, c.push.offset, c.push.size, c.push.data);
+			vkCmdPushConstants(cmd, c.push.pipelineLayout, c.push.stages, c.push.offset, c.push.size, c.push.data);
 			break;
 
 		case VKRRenderCommand::STENCIL:
 			if (lastStencilWriteMask != c.stencil.stencilWriteMask) {
 				lastStencilWriteMask = (int)c.stencil.stencilWriteMask;
-				PvkCmdSetStencilWriteMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilWriteMask);
+				vkCmdSetStencilWriteMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilWriteMask);
 			}
 			if (lastStencilCompareMask != c.stencil.stencilCompareMask) {
 				lastStencilCompareMask = c.stencil.stencilCompareMask;
-				PvkCmdSetStencilCompareMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilCompareMask);
+				vkCmdSetStencilCompareMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilCompareMask);
 			}
 			if (lastStencilReference != c.stencil.stencilRef) {
 				lastStencilReference = c.stencil.stencilRef;
-				PvkCmdSetStencilReference(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilRef);
+				vkCmdSetStencilReference(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilRef);
 			}
 			break;
 
 		case VKRRenderCommand::DRAW_INDEXED:
-			PvkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.drawIndexed.pipelineLayout, 0, 1, &c.drawIndexed.ds, c.drawIndexed.numUboOffsets, c.drawIndexed.uboOffsets);
-			PvkCmdBindIndexBuffer(cmd, c.drawIndexed.ibuffer, c.drawIndexed.ioffset, c.drawIndexed.indexType);
-			PvkCmdBindVertexBuffers(cmd, 0, 1, &c.drawIndexed.vbuffer, &c.drawIndexed.voffset);
-			PPvkCmdDrawIndexed(cmd, c.drawIndexed.count, c.drawIndexed.instances, 0, 0, 0);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.drawIndexed.pipelineLayout, 0, 1, &c.drawIndexed.ds, c.drawIndexed.numUboOffsets, c.drawIndexed.uboOffsets);
+			vkCmdBindIndexBuffer(cmd, c.drawIndexed.ibuffer, c.drawIndexed.ioffset, c.drawIndexed.indexType);
+			vkCmdBindVertexBuffers(cmd, 0, 1, &c.drawIndexed.vbuffer, &c.drawIndexed.voffset);
+			vkCmdDrawIndexed(cmd, c.drawIndexed.count, c.drawIndexed.instances, 0, 0, 0);
 			break;
 
 		case VKRRenderCommand::DRAW:
-			PvkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.draw.pipelineLayout, 0, 1, &c.draw.ds, c.draw.numUboOffsets, c.draw.uboOffsets);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.draw.pipelineLayout, 0, 1, &c.draw.ds, c.draw.numUboOffsets, c.draw.uboOffsets);
 			if (c.draw.vbuffer) {
-				PvkCmdBindVertexBuffers(cmd, 0, 1, &c.draw.vbuffer, &c.draw.voffset);
+				vkCmdBindVertexBuffers(cmd, 0, 1, &c.draw.vbuffer, &c.draw.voffset);
 			}
-			PvkCmdDraw(cmd, c.draw.count, 1, 0, 0);
+			vkCmdDraw(cmd, c.draw.count, 1, c.draw.offset, 0);
 			break;
 
 		case VKRRenderCommand::CLEAR:
@@ -1101,7 +1160,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				}
 			}
 			if (numAttachments) {
-				PvkCmdClearAttachments(cmd, numAttachments, attachments, 1, &rc);
+				vkCmdClearAttachments(cmd, numAttachments, attachments, 1, &rc);
 			}
 			break;
 		}
@@ -1110,7 +1169,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 			;
 		}
 	}
-	PvkCmdEndRenderPass(cmd);
+	vkCmdEndRenderPass(cmd);
 
 	// The renderpass handles the layout transition.
 	if (fb) {
@@ -1126,7 +1185,7 @@ void VulkanQueueRunner::PerformBindFramebufferAsRenderTarget(const VKRStep &step
 	int w;
 	int h;
 	if (step.render.framebuffer) {
-		_dbg_assert_(G3D, step.render.finalColorLayout != VK_IMAGE_LAYOUT_UNDEFINED);
+		_dbg_assert_(step.render.finalColorLayout != VK_IMAGE_LAYOUT_UNDEFINED);
 
 		VKRFramebuffer *fb = step.render.framebuffer;
 		framebuf = fb->framebuf;
@@ -1186,7 +1245,7 @@ void VulkanQueueRunner::PerformBindFramebufferAsRenderTarget(const VKRStep &step
 	rp_begin.renderArea.extent.height = h;
 	rp_begin.clearValueCount = numClearVals;
 	rp_begin.pClearValues = numClearVals ? clearVal : nullptr;
-	PvkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
@@ -1236,16 +1295,16 @@ void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
 	}
 
 	if (srcCount) {
-		PvkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
+		vkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
 	}
 	if (dstCount) {
-		PvkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
+		vkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
 	}
 
 	if (step.copy.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) {
 		copy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		copy.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		PvkCmdCopyImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &copy);
+		vkCmdCopyImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &copy);
 	}
 	if (step.copy.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
 		copy.srcSubresource.aspectMask = 0;
@@ -1258,7 +1317,7 @@ void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
 			copy.srcSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			copy.dstSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
-		PvkCmdCopyImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &copy);
+		vkCmdCopyImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &copy);
 	}
 }
 
@@ -1316,16 +1375,16 @@ void VulkanQueueRunner::PerformBlit(const VKRStep &step, VkCommandBuffer cmd) {
 	}
 
 	if (srcCount) {
-		PvkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
+		vkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
 	}
 	if (dstCount) {
-		PvkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
+		vkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
 	}
 
 	if (step.blit.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) {
 		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		PvkCmdBlitImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &blit, step.blit.filter);
+		vkCmdBlitImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &blit, step.blit.filter);
 	}
 
 	// TODO: Need to check if the depth format is blittable.
@@ -1341,7 +1400,7 @@ void VulkanQueueRunner::PerformBlit(const VKRStep &step, VkCommandBuffer cmd) {
 			blit.srcSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			blit.dstSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
-		PvkCmdBlitImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &blit, step.blit.filter);
+		vkCmdBlitImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &blit, step.blit.filter);
 	}
 }
 
@@ -1370,7 +1429,7 @@ void VulkanQueueRunner::SetupTransitionToTransferSrc(VKRImage &img, VkImageMemor
 		stage |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		break;
 	default:
-		_dbg_assert_msg_(G3D, false, "Transition from this layout to transfer src not supported (%d)", (int)img.layout);
+		_dbg_assert_msg_(false, "Transition from this layout to transfer src not supported (%d)", (int)img.layout);
 		break;
 	}
 	barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -1429,7 +1488,7 @@ void VulkanQueueRunner::SetupTransitionToTransferDst(VKRImage &img, VkImageMemor
 		stage |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		break;
 	default:
-		_dbg_assert_msg_(G3D, false, "Transition from this layout to transfer dst not supported (%d)", (int)img.layout);
+		_dbg_assert_msg_(false, "Transition from this layout to transfer dst not supported (%d)", (int)img.layout);
 		break;
 	}
 	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -1494,7 +1553,7 @@ void VulkanQueueRunner::PerformReadback(const VKRStep &step, VkCommandBuffer cmd
 		} else if (step.readback.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
 			srcImage = &step.readback.src->depth;
 		} else {
-			_dbg_assert_msg_(G3D, false, "No image aspect to readback?");
+			_dbg_assert_msg_(false, "No image aspect to readback?");
 			return;
 		}
 
@@ -1502,13 +1561,13 @@ void VulkanQueueRunner::PerformReadback(const VKRStep &step, VkCommandBuffer cmd
 		VkPipelineStageFlags stage = 0;
 		if (srcImage->layout != VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
 			SetupTransitionToTransferSrc(*srcImage, barrier, stage, step.readback.aspectMask);
-			PvkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		}
 		image = srcImage->image;
 		copyLayout = srcImage->layout;
 	}
 
-	PPvkCmdCopyImageToBuffer(cmd, image, copyLayout, readbackBuffer_, 1, &region);
+	vkCmdCopyImageToBuffer(cmd, image, copyLayout, readbackBuffer_, 1, &region);
 
 	// NOTE: Can't read the buffer using the CPU here - need to sync first.
 
@@ -1526,14 +1585,14 @@ void VulkanQueueRunner::PerformReadback(const VKRStep &step, VkCommandBuffer cmd
 
 void VulkanQueueRunner::PerformReadbackImage(const VKRStep &step, VkCommandBuffer cmd) {
 	// TODO: Clean this up - just reusing `SetupTransitionToTransferSrc`.
-	VKRImage srcImage;
+	VKRImage srcImage{};
 	srcImage.image = step.readback_image.image;
 	srcImage.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 	VkPipelineStageFlags stage = 0;
 	SetupTransitionToTransferSrc(srcImage, barrier, stage, VK_IMAGE_ASPECT_COLOR_BIT);
-	PvkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	vkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 	ResizeReadbackBuffer(sizeof(uint32_t) * step.readback_image.srcRect.extent.width * step.readback_image.srcRect.extent.height);
 
@@ -1546,7 +1605,7 @@ void VulkanQueueRunner::PerformReadbackImage(const VKRStep &step, VkCommandBuffe
 	region.bufferOffset = 0;
 	region.bufferRowLength = step.readback_image.srcRect.extent.width;
 	region.bufferImageHeight = step.readback_image.srcRect.extent.height;
-	PPvkCmdCopyImageToBuffer(cmd, step.readback_image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer_, 1, &region);
+	vkCmdCopyImageToBuffer(cmd, step.readback_image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer_, 1, &region);
 
 	// Now transfer it back to a texture.
 	TransitionImageLayout2(cmd, step.readback_image.image, 0, 1,
@@ -1567,17 +1626,17 @@ void VulkanQueueRunner::CopyReadbackBuffer(int width, int height, Draw::DataForm
 	void *mappedData;
 	const size_t srcPixelSize = DataFormatSizeInBytes(srcFormat);
 
-	VkResult res = PvkMapMemory(vulkan_->GetDevice(), readbackMemory_, 0, width * height * srcPixelSize, 0, &mappedData);
+	VkResult res = vkMapMemory(vulkan_->GetDevice(), readbackMemory_, 0, width * height * srcPixelSize, 0, &mappedData);
 	if (!readbackBufferIsCoherent_) {
 		VkMappedMemoryRange range{};
 		range.memory = readbackMemory_;
 		range.offset = 0;
 		range.size = width * height * srcPixelSize;
-		PvkInvalidateMappedMemoryRanges(vulkan_->GetDevice(), 1, &range);
+		vkInvalidateMappedMemoryRanges(vulkan_->GetDevice(), 1, &range);
 	}
 
 	if (res != VK_SUCCESS) {
-		ELOG("CopyReadbackBuffer: PvkMapMemory failed! result=%d", (int)res);
+		ELOG("CopyReadbackBuffer: vkMapMemory failed! result=%d", (int)res);
 		return;
 	}
 
@@ -1601,5 +1660,5 @@ void VulkanQueueRunner::CopyReadbackBuffer(int width, int height, Draw::DataForm
 		ELOG("CopyReadbackBuffer: Unknown format");
 		assert(false);
 	}
-	PvkUnmapMemory(vulkan_->GetDevice(), readbackMemory_);
+	vkUnmapMemory(vulkan_->GetDevice(), readbackMemory_);
 }

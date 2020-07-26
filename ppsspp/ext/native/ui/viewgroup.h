@@ -10,7 +10,7 @@
 #include "input/gesture_detector.h"
 #include "ui/view.h"
 
-namespace PUI {
+namespace UI {
 
 class AnchorTranslateTween;
 
@@ -241,6 +241,7 @@ public:
 	void ScrollTo(float newScrollPos);
 	void ScrollToBottom();
 	void ScrollRelative(float distance);
+	float GetScrollPosition();
 	bool CanScroll() const;
 	void Update() override;
 
@@ -396,12 +397,5 @@ private:
 	float maxHeight_;
 	std::set<int> hidden_;
 };
-
-void LayoutViewHierarchy(const UIContext &dc, ViewGroup *root);
-void UpdateViewHierarchy(ViewGroup *root);
-// Hooks arrow keys for navigation
-bool KeyEvent(const KeyInput &key, ViewGroup *root);
-bool TouchEvent(const TouchInput &touch, ViewGroup *root);
-bool AxisEvent(const AxisInput &axis, ViewGroup *root);
 
 }  // namespace UI

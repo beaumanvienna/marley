@@ -43,7 +43,7 @@
 
 #include "SymbolTable.h"
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // TType helper function needs a place to live.
@@ -441,4 +441,4 @@ void TSymbolTable::copyTable(const TSymbolTable& copyOf)
         table.push_back(copyOf.table[i]->clone());
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
+#include <atomic>
 #include <algorithm>  // min
 #include <string> // System: To be able to add strings with "+"
 #include <math.h>
@@ -35,7 +35,6 @@
 #include "util/text/utf8.h"
 #include "Common.h"
 #include "ConsoleListener.h" // Common
-#include "Atomics.h"
 
 #if defined(USING_WIN_UI)
 const int LOG_PENDING_MAX = 120 * 10000;
@@ -43,17 +42,17 @@ const int LOG_LATENCY_DELAY_MS = 20;
 const int LOG_SHUTDOWN_DELAY_MS = 250;
 const int LOG_MAX_DISPLAY_LINES = 4000;
 
-int PConsoleListener::refCount = 0;
-HANDLE PConsoleListener::hThread = NULL;
-HANDLE PConsoleListener::hTriggerEvent = NULL;
-CRITICAL_SECTION PConsoleListener::criticalSection;
+int ConsoleListener::refCount = 0;
+HANDLE ConsoleListener::hThread = NULL;
+HANDLE ConsoleListener::hTriggerEvent = NULL;
+CRITICAL_SECTION ConsoleListener::criticalSection;
 
-char *PConsoleListener::logPending = NULL;
-volatile u32 PConsoleListener::logPendingReadPos = 0;
-volatile u32 PConsoleListener::logPendingWritePos = 0;
+char *ConsoleListener::logPending = NULL;
+std::atomic<u32> ConsoleListener::logPendingReadPos;
+std::atomic<u32> ConsoleListener::logPendingWritePos;
 #endif
 
-PConsoleListener::PConsoleListener() : bHidden(true)
+ConsoleListener::ConsoleListener() : bHidden(true)
 {
 #if defined(USING_WIN_UI)
 	hConsole = NULL;
@@ -64,11 +63,7 @@ PConsoleListener::PConsoleListener() : bHidden(true)
 		logPending = new char[LOG_PENDING_MAX];
 	}
 	++refCount;
-#elif defined(ANDROID)
-	bUseColor = false;
-#elif defined(IOS)
-	bUseColor = false;
-#elif PPSSPP_PLATFORM(UWP)
+#elif PPSSPP_PLATFORM(ANDROID) || PPSSPP_PLATFORM(IOS) || PPSSPP_PLATFORM(UWP) || PPSSPP_PLATFORM(SWITCH)
 	bUseColor = false;
 #elif defined(_MSC_VER)
 	bUseColor = false;
@@ -77,7 +72,7 @@ PConsoleListener::PConsoleListener() : bHidden(true)
 #endif
 }
 
-PConsoleListener::~PConsoleListener()
+ConsoleListener::~ConsoleListener()
 {
 	Close();
 }
@@ -110,7 +105,7 @@ bool WINAPI ConsoleHandler(DWORD msgType)
 // 100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void PConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Title)
+void ConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Title)
 {
 #if defined(USING_WIN_UI)
 	openWidth_ = Width;
@@ -122,7 +117,7 @@ void PConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Ti
 #endif
 }
 
-void PConsoleListener::Open()
+void ConsoleListener::Open()
 {
 #if defined(USING_WIN_UI)
 	if (!GetConsoleWindow())
@@ -153,11 +148,11 @@ void PConsoleListener::Open()
 	}
 
 	if (hTriggerEvent != NULL && hThread == NULL)
-		hThread = (HANDLE)_beginthreadex(NULL, 0, &PConsoleListener::RunThread, this, 0, NULL);
+		hThread = (HANDLE)_beginthreadex(NULL, 0, &ConsoleListener::RunThread, this, 0, NULL);
 #endif
 }
 
-void PConsoleListener::Show(bool bShow)
+void ConsoleListener::Show(bool bShow)
 {
 #if defined(USING_WIN_UI)
 	if (bShow && bHidden)
@@ -176,7 +171,7 @@ void PConsoleListener::Show(bool bShow)
 }
 
 
-void PConsoleListener::UpdateHandle()
+void ConsoleListener::UpdateHandle()
 {
 #if defined(USING_WIN_UI)
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -184,7 +179,7 @@ void PConsoleListener::UpdateHandle()
 }
 
 // Close the console window and close the eventual file handle
-void PConsoleListener::Close()
+void ConsoleListener::Close()
 {
 #if defined(USING_WIN_UI)
 
@@ -192,7 +187,7 @@ void PConsoleListener::Close()
 	{
 		if (hThread != NULL)
 		{
-			PCommon::AtomicStoreRelease(logPendingWritePos, (u32) -1);
+			logPendingWritePos.store((u32)-1, std::memory_order_release);
 
 			SetEvent(hTriggerEvent);
 			WaitForSingleObject(hThread, LOG_SHUTDOWN_DELAY_MS);
@@ -222,7 +217,7 @@ void PConsoleListener::Close()
 #endif
 }
 
-bool PConsoleListener::IsOpen()
+bool ConsoleListener::IsOpen()
 {
 #if defined(USING_WIN_UI)
 	return (hConsole != NULL);
@@ -235,9 +230,9 @@ bool PConsoleListener::IsOpen()
   LetterSpace: SetConsoleScreenBufferSize and SetConsoleWindowInfo are
 	dependent on each other, that's the reason for the additional checks.  
 */
-void PConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
+void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
-	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
+	_dbg_assert_msg_(IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
 	BOOL SB, SW;
 	if (BufferFirst)
@@ -260,9 +255,9 @@ void PConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int 
 	}
 #endif
 }
-void PConsoleListener::LetterSpace(int Width, int Height)
+void ConsoleListener::LetterSpace(int Width, int Height)
 {
-	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
+	_dbg_assert_msg_(IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
 	// Get console info
 	CONSOLE_SCREEN_BUFFER_INFO ConInfo;
@@ -290,7 +285,7 @@ void PConsoleListener::LetterSpace(int Width, int Height)
 }
 
 #if defined(USING_WIN_UI)
-COORD PConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
+COORD ConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 {
 	COORD Ret = {0, 0};
 	// Full rows
@@ -301,15 +296,15 @@ COORD PConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 	return Ret;
 }
 
-unsigned int WINAPI PConsoleListener::RunThread(void *lpParam)
+unsigned int WINAPI ConsoleListener::RunThread(void *lpParam)
 {
 	setCurrentThreadName("Console");
-	PConsoleListener *consoleLog = (PConsoleListener *)lpParam;
+	ConsoleListener *consoleLog = (ConsoleListener *)lpParam;
 	consoleLog->LogWriterThread();
 	return 0;
 }
 
-void PConsoleListener::LogWriterThread()
+void ConsoleListener::LogWriterThread()
 {
 	char *logLocal = new char[LOG_PENDING_MAX];
 	int logLocalSize = 0;
@@ -319,7 +314,7 @@ void PConsoleListener::LogWriterThread()
 		WaitForSingleObject(hTriggerEvent, INFINITE);
 		Sleep(LOG_LATENCY_DELAY_MS);
 
-		u32 logRemotePos = PCommon::AtomicLoadAcquire(logPendingWritePos);
+		u32 logRemotePos = logPendingWritePos.load(std::memory_order_acquire);
 		if (logRemotePos == (u32) -1)
 			break;
 		else if (logRemotePos == logPendingReadPos)
@@ -327,7 +322,7 @@ void PConsoleListener::LogWriterThread()
 		else
 		{
 			EnterCriticalSection(&criticalSection);
-			logRemotePos = PCommon::AtomicLoadAcquire(logPendingWritePos);
+			logRemotePos = logPendingWritePos.load(std::memory_order_acquire);
 
 			int start = 0;
 			if (logRemotePos < logPendingReadPos)
@@ -380,7 +375,7 @@ void PConsoleListener::LogWriterThread()
 	delete [] logLocal;
 }
 
-void PConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
+void ConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text)
 {
 	// Oops, we're already quitting.  Just do nothing.
 	if (logPendingWritePos == (u32) -1)
@@ -397,12 +392,12 @@ void PConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text
 		// Not ANSI, since the console doesn't support it, but ANSI-like.
 		snprintf(ColorAttr, 16, "\033%d", Level);
 		// For now, rather than properly support it.
-		_dbg_assert_msg_(COMMON, strlen(ColorAttr) == 2, "Console logging doesn't support > 9 levels.");
+		_dbg_assert_msg_(strlen(ColorAttr) == 2, "Console logging doesn't support > 9 levels.");
 		ColorLen = (int)strlen(ColorAttr);
 	}
 
 	EnterCriticalSection(&criticalSection);
-	u32 logWritePos = PCommon::AtomicLoad(logPendingWritePos);
+	u32 logWritePos = logPendingWritePos.load();
 	u32 prevLogWritePos = logWritePos;
 	if (logWritePos + ColorLen + Len >= LOG_PENDING_MAX)
 	{
@@ -452,15 +447,15 @@ void PConsoleListener::SendToThread(LogTypes::LOG_LEVELS Level, const char *Text
 		return;
 	}
 
-	PCommon::AtomicStoreRelease(logPendingWritePos, logWritePos);
+	logPendingWritePos.store(logWritePos, std::memory_order::memory_order_release);
 	LeaveCriticalSection(&criticalSection);
 
 	SetEvent(hTriggerEvent);
 }
 
-void PConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Text, size_t Len)
+void ConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Text, size_t Len)
 {
-	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
+	_dbg_assert_msg_(IsOpen(), "Don't call this before opening the console.");
 
 	/*
 	const int MAX_BYTES = 1024*10;
@@ -513,9 +508,9 @@ void PConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Te
 }
 #endif
 
-void PConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
+void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
 {
-	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
+	_dbg_assert_msg_(IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
 	// Check size
 	if (Width < 8 || Height < 12) return;
@@ -549,11 +544,11 @@ void PConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool
 	{
 		Str.resize(Str.size() + 1);
 		if (!ReadConsoleOutputCharacter(hConsole, Str.back().data(), ReadBufferSize, coordScreen, &cCharsRead))
-			SLog += PStringFromFormat("WriteConsoleOutputCharacter error");
+			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
 
 		Attr.resize(Attr.size() + 1);
 		if (!ReadConsoleOutputAttribute(hConsole, Attr.back().data(), ReadBufferSize, coordScreen, &cAttrRead))
-			SLog += PStringFromFormat("WriteConsoleOutputAttribute error");
+			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
 
 		// Break on error
 		if (cAttrRead == 0) break;
@@ -579,9 +574,9 @@ void PConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool
 	for (size_t i = 0; i < Attr.size(); i++)
 	{
 		if (!WriteConsoleOutputCharacter(hConsole, Str[i].data(), ReadBufferSize, coordScreen, &cCharsWritten))
-			SLog += PStringFromFormat("WriteConsoleOutputCharacter error");
+			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
 		if (!WriteConsoleOutputAttribute(hConsole, Attr[i].data(), ReadBufferSize, coordScreen, &cAttrWritten))
-			SLog += PStringFromFormat("WriteConsoleOutputAttribute error");
+			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
 
 		BytesWritten += cAttrWritten;
 		coordScreen = GetCoordinates(BytesWritten, LBufWidth);
@@ -598,7 +593,7 @@ void PConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool
 #endif
 }
 
-void PConsoleListener::Log(const LogMessage &msg) {
+void ConsoleListener::Log(const LogMessage &msg) {
 	char Text[2048];
 	snprintf(Text, sizeof(Text), "%s %s %s", msg.timestamp, msg.header, msg.msg.c_str());
 	Text[sizeof(Text) - 2] = '\n';
@@ -635,9 +630,9 @@ void PConsoleListener::Log(const LogMessage &msg) {
 #endif
 }
 // Clear console screen
-void PConsoleListener::ClearScreen(bool Cursor)
+void ConsoleListener::ClearScreen(bool Cursor)
 { 
-	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
+	_dbg_assert_msg_(IsOpen(), "Don't call this before opening the console.");
 #if defined(USING_WIN_UI)
 	COORD coordScreen = { 0, 0 }; 
 	DWORD cCharsWritten; 

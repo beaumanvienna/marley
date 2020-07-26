@@ -37,6 +37,7 @@ enum class ServerStatus {
 	STARTING,
 	RUNNING,
 	STOPPING,
+	FINISHED,
 };
 
 static const char *REPORT_HOSTNAME = "report.ppsspp.org";
@@ -136,7 +137,7 @@ static std::string RemotePathForRecent(const std::string &filename) {
 }
 
 static std::string LocalFromRemotePath(const std::string &path) {
-	for (const std::string &filename : g_PConfig.recentIsos) {
+	for (const std::string &filename : g_Config.recentIsos) {
 		std::string basename = RemotePathForRecent(filename);
 		if (basename == path) {
 			return filename;
@@ -146,7 +147,7 @@ static std::string LocalFromRemotePath(const std::string &path) {
 }
 
 static void DiscHandler(const http::Request &request, const std::string &filename) {
-	s64 sz = PFile::GetFileSize(filename);
+	s64 sz = File::GetFileSize(filename);
 
 	std::string range;
 	if (request.Method() == http::RequestHeader::HEAD) {
@@ -165,7 +166,7 @@ static void DiscHandler(const http::Request &request, const std::string &filenam
 			return;
 		}
 
-		FILE *fp = PFile::OpenCFile(filename, "rb");
+		FILE *fp = File::OpenCFile(filename, "rb");
 		if (!fp || fseek(fp, begin, SEEK_SET) != 0) {
 			request.WriteHttpResponseHeader("1.0", 500, -1, "text/plain");
 			request.Out()->Push("File access failed.");
@@ -202,7 +203,7 @@ static void HandleListing(const http::Request &request) {
 	request.Out()->Printf("/\n");
 	if (serverFlags & (int)WebServerFlags::DISCS) {
 		// List the current discs in their recent order.
-		for (const std::string &filename : g_PConfig.recentIsos) {
+		for (const std::string &filename : g_Config.recentIsos) {
 			std::string basename = RemotePathForRecent(filename);
 			if (!basename.empty()) {
 				request.Out()->Printf("%s\n", basename.c_str());
@@ -245,16 +246,16 @@ static void ExecuteWebServer() {
 	http->SetFallbackHandler(&HandleFallback);
 	http->RegisterHandler("/debugger", &ForwardDebuggerRequest);
 
-	if (!http->Listen(g_PConfig.iRemoteISOPort)) {
+	if (!http->Listen(g_Config.iRemoteISOPort)) {
 		if (!http->Listen(0)) {
 			ERROR_LOG(FILESYS, "Unable to listen on any port");
-			UpdateStatus(ServerStatus::STOPPED);
+			UpdateStatus(ServerStatus::FINISHED);
 			return;
 		}
 	}
 	UpdateStatus(ServerStatus::RUNNING);
 
-	g_PConfig.iRemoteISOPort = http->Port();
+	g_Config.iRemoteISOPort = http->Port();
 	RegisterServer(http->Port());
 	double lastRegister = real_time_now();
 	while (RetrieveStatus() == ServerStatus::RUNNING) {
@@ -271,7 +272,7 @@ static void ExecuteWebServer() {
 	StopAllDebuggers();
 	delete http;
 
-	UpdateStatus(ServerStatus::STOPPED);
+	UpdateStatus(ServerStatus::FINISHED);
 }
 
 bool StartWebServer(WebServerFlags flags) {
@@ -284,11 +285,13 @@ bool StartWebServer(WebServerFlags flags) {
 		serverFlags |= (int)flags;
 		return true;
 
+	case ServerStatus::FINISHED:
+		serverThread.join();
+		// Intentional fallthrough.
 	case ServerStatus::STOPPED:
 		serverStatus = ServerStatus::STARTING;
 		serverFlags = (int)flags;
 		serverThread = std::thread(&ExecuteWebServer);
-		serverThread.detach();
 		return true;
 
 	default:
@@ -319,5 +322,13 @@ bool WebServerStopped(WebServerFlags flags) {
 	if (serverStatus == ServerStatus::RUNNING) {
 		return (serverFlags & (int)flags) == 0;
 	}
-	return serverStatus == ServerStatus::STOPPED;
+	return serverStatus == ServerStatus::STOPPED || serverStatus == ServerStatus::FINISHED;
+}
+
+void ShutdownWebServer() {
+	StopWebServer(WebServerFlags::ALL);
+
+	if (serverStatus != ServerStatus::STOPPED)
+		serverThread.join();
+	serverStatus = ServerStatus::STOPPED;
 }

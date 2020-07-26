@@ -844,7 +844,7 @@ spvc_result spvc_compiler_msl_add_vertex_attribute(spvc_compiler compiler, const
 	attr.msl_offset = va->msl_offset;
 	attr.msl_stride = va->msl_stride;
 	attr.format = static_cast<MSLVertexFormat>(va->format);
-	attr.builtin = static_cast<Pspv::BuiltIn>(va->builtin);
+	attr.builtin = static_cast<spv::BuiltIn>(va->builtin);
 	attr.per_instance = va->per_instance;
 	msl.add_msl_vertex_attribute(attr);
 	return SPVC_SUCCESS;
@@ -869,7 +869,7 @@ spvc_result spvc_compiler_msl_add_resource_binding(spvc_compiler compiler,
 	MSLResourceBinding bind;
 	bind.binding = binding->binding;
 	bind.desc_set = binding->desc_set;
-	bind.stage = static_cast<Pspv::ExecutionModel>(binding->stage);
+	bind.stage = static_cast<spv::ExecutionModel>(binding->stage);
 	bind.msl_buffer = binding->msl_buffer;
 	bind.msl_texture = binding->msl_texture;
 	bind.msl_sampler = binding->msl_sampler;
@@ -930,7 +930,7 @@ spvc_bool spvc_compiler_msl_is_resource_used(spvc_compiler compiler, SpvExecutio
 	}
 
 	auto &msl = *static_cast<CompilerMSL *>(compiler->compiler.get());
-	return msl.is_msl_resource_binding_used(static_cast<Pspv::ExecutionModel>(model), set, binding) ? SPVC_TRUE :
+	return msl.is_msl_resource_binding_used(static_cast<spv::ExecutionModel>(model), set, binding) ? SPVC_TRUE :
 	                                                                                                 SPVC_FALSE;
 #else
 	(void)model;
@@ -1258,13 +1258,13 @@ spvc_result spvc_resources_get_resource_list_for_type(spvc_resources resources, 
 
 void spvc_compiler_set_decoration(spvc_compiler compiler, SpvId id, SpvDecoration decoration, unsigned argument)
 {
-	compiler->compiler->set_decoration(id, static_cast<Pspv::Decoration>(decoration), argument);
+	compiler->compiler->set_decoration(id, static_cast<spv::Decoration>(decoration), argument);
 }
 
 void spvc_compiler_set_decoration_string(spvc_compiler compiler, SpvId id, SpvDecoration decoration,
                                          const char *argument)
 {
-	compiler->compiler->set_decoration_string(id, static_cast<Pspv::Decoration>(decoration), argument);
+	compiler->compiler->set_decoration_string(id, static_cast<spv::Decoration>(decoration), argument);
 }
 
 void spvc_compiler_set_name(spvc_compiler compiler, SpvId id, const char *argument)
@@ -1275,13 +1275,13 @@ void spvc_compiler_set_name(spvc_compiler compiler, SpvId id, const char *argume
 void spvc_compiler_set_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                          SpvDecoration decoration, unsigned argument)
 {
-	compiler->compiler->set_member_decoration(id, member_index, static_cast<Pspv::Decoration>(decoration), argument);
+	compiler->compiler->set_member_decoration(id, member_index, static_cast<spv::Decoration>(decoration), argument);
 }
 
 void spvc_compiler_set_member_decoration_string(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                                 SpvDecoration decoration, const char *argument)
 {
-	compiler->compiler->set_member_decoration_string(id, member_index, static_cast<Pspv::Decoration>(decoration),
+	compiler->compiler->set_member_decoration_string(id, member_index, static_cast<spv::Decoration>(decoration),
 	                                                 argument);
 }
 
@@ -1292,24 +1292,24 @@ void spvc_compiler_set_member_name(spvc_compiler compiler, spvc_type_id id, unsi
 
 void spvc_compiler_unset_decoration(spvc_compiler compiler, SpvId id, SpvDecoration decoration)
 {
-	compiler->compiler->unset_decoration(id, static_cast<Pspv::Decoration>(decoration));
+	compiler->compiler->unset_decoration(id, static_cast<spv::Decoration>(decoration));
 }
 
 void spvc_compiler_unset_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                            SpvDecoration decoration)
 {
-	compiler->compiler->unset_member_decoration(id, member_index, static_cast<Pspv::Decoration>(decoration));
+	compiler->compiler->unset_member_decoration(id, member_index, static_cast<spv::Decoration>(decoration));
 }
 
 spvc_bool spvc_compiler_has_decoration(spvc_compiler compiler, SpvId id, SpvDecoration decoration)
 {
-	return compiler->compiler->has_decoration(id, static_cast<Pspv::Decoration>(decoration)) ? SPVC_TRUE : SPVC_FALSE;
+	return compiler->compiler->has_decoration(id, static_cast<spv::Decoration>(decoration)) ? SPVC_TRUE : SPVC_FALSE;
 }
 
 spvc_bool spvc_compiler_has_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                               SpvDecoration decoration)
 {
-	return compiler->compiler->has_member_decoration(id, member_index, static_cast<Pspv::Decoration>(decoration)) ?
+	return compiler->compiler->has_member_decoration(id, member_index, static_cast<spv::Decoration>(decoration)) ?
 	           SPVC_TRUE :
 	           SPVC_FALSE;
 }
@@ -1321,24 +1321,24 @@ const char *spvc_compiler_get_name(spvc_compiler compiler, SpvId id)
 
 unsigned spvc_compiler_get_decoration(spvc_compiler compiler, SpvId id, SpvDecoration decoration)
 {
-	return compiler->compiler->get_decoration(id, static_cast<Pspv::Decoration>(decoration));
+	return compiler->compiler->get_decoration(id, static_cast<spv::Decoration>(decoration));
 }
 
 const char *spvc_compiler_get_decoration_string(spvc_compiler compiler, SpvId id, SpvDecoration decoration)
 {
-	return compiler->compiler->get_decoration_string(id, static_cast<Pspv::Decoration>(decoration)).c_str();
+	return compiler->compiler->get_decoration_string(id, static_cast<spv::Decoration>(decoration)).c_str();
 }
 
 unsigned spvc_compiler_get_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                              SpvDecoration decoration)
 {
-	return compiler->compiler->get_member_decoration(id, member_index, static_cast<Pspv::Decoration>(decoration));
+	return compiler->compiler->get_member_decoration(id, member_index, static_cast<spv::Decoration>(decoration));
 }
 
 const char *spvc_compiler_get_member_decoration_string(spvc_compiler compiler, spvc_type_id id, unsigned member_index,
                                                        SpvDecoration decoration)
 {
-	return compiler->compiler->get_member_decoration_string(id, member_index, static_cast<Pspv::Decoration>(decoration))
+	return compiler->compiler->get_member_decoration_string(id, member_index, static_cast<spv::Decoration>(decoration))
 	    .c_str();
 }
 
@@ -1381,7 +1381,7 @@ spvc_result spvc_compiler_get_entry_points(spvc_compiler compiler, const spvc_en
 
 spvc_result spvc_compiler_set_entry_point(spvc_compiler compiler, const char *name, SpvExecutionModel model)
 {
-	compiler->compiler->set_entry_point(name, static_cast<Pspv::ExecutionModel>(model));
+	compiler->compiler->set_entry_point(name, static_cast<spv::ExecutionModel>(model));
 	return SPVC_SUCCESS;
 }
 
@@ -1390,7 +1390,7 @@ spvc_result spvc_compiler_rename_entry_point(spvc_compiler compiler, const char 
 {
 	SPVC_BEGIN_SAFE_SCOPE
 	{
-		compiler->compiler->rename_entry_point(old_name, new_name, static_cast<Pspv::ExecutionModel>(model));
+		compiler->compiler->rename_entry_point(old_name, new_name, static_cast<spv::ExecutionModel>(model));
 	}
 	SPVC_END_SAFE_SCOPE(compiler->context, SPVC_ERROR_INVALID_ARGUMENT)
 	return SPVC_SUCCESS;
@@ -1402,7 +1402,7 @@ const char *spvc_compiler_get_cleansed_entry_point_name(spvc_compiler compiler, 
 	SPVC_BEGIN_SAFE_SCOPE
 	{
 		auto cleansed_name =
-		    compiler->compiler->get_cleansed_entry_point_name(name, static_cast<Pspv::ExecutionModel>(model));
+		    compiler->compiler->get_cleansed_entry_point_name(name, static_cast<spv::ExecutionModel>(model));
 		return compiler->context->allocate_name(cleansed_name);
 	}
 	SPVC_END_SAFE_SCOPE(compiler->context, nullptr)
@@ -1410,19 +1410,19 @@ const char *spvc_compiler_get_cleansed_entry_point_name(spvc_compiler compiler, 
 
 void spvc_compiler_set_execution_mode(spvc_compiler compiler, SpvExecutionMode mode)
 {
-	compiler->compiler->set_execution_mode(static_cast<Pspv::ExecutionMode>(mode));
+	compiler->compiler->set_execution_mode(static_cast<spv::ExecutionMode>(mode));
 }
 
 void spvc_compiler_set_execution_mode_with_arguments(spvc_compiler compiler, SpvExecutionMode mode, unsigned arg0,
                                                      unsigned arg1,
                                                      unsigned arg2)
 {
-	compiler->compiler->set_execution_mode(static_cast<Pspv::ExecutionMode>(mode), arg0, arg1, arg2);
+	compiler->compiler->set_execution_mode(static_cast<spv::ExecutionMode>(mode), arg0, arg1, arg2);
 }
 
 void spvc_compiler_unset_execution_mode(spvc_compiler compiler, SpvExecutionMode mode)
 {
-	compiler->compiler->unset_execution_mode(static_cast<Pspv::ExecutionMode>(mode));
+	compiler->compiler->unset_execution_mode(static_cast<spv::ExecutionMode>(mode));
 }
 
 spvc_result spvc_compiler_get_execution_modes(spvc_compiler compiler, const SpvExecutionMode **modes, size_t *num_modes)
@@ -1444,13 +1444,13 @@ spvc_result spvc_compiler_get_execution_modes(spvc_compiler compiler, const SpvE
 
 unsigned spvc_compiler_get_execution_mode_argument(spvc_compiler compiler, SpvExecutionMode mode)
 {
-	return compiler->compiler->get_execution_mode_argument(static_cast<Pspv::ExecutionMode>(mode));
+	return compiler->compiler->get_execution_mode_argument(static_cast<spv::ExecutionMode>(mode));
 }
 
 unsigned spvc_compiler_get_execution_mode_argument_by_index(spvc_compiler compiler, SpvExecutionMode mode,
                                                             unsigned index)
 {
-	return compiler->compiler->get_execution_mode_argument(static_cast<Pspv::ExecutionMode>(mode), index);
+	return compiler->compiler->get_execution_mode_argument(static_cast<spv::ExecutionMode>(mode), index);
 }
 
 SpvExecutionModel spvc_compiler_get_execution_model(spvc_compiler compiler)
@@ -1802,7 +1802,7 @@ spvc_bool spvc_compiler_get_binary_offset_for_decoration(spvc_compiler compiler,
                                                          unsigned *word_offset)
 {
 	uint32_t off = 0;
-	bool ret = compiler->compiler->get_binary_offset_for_decoration(id, static_cast<Pspv::Decoration>(decoration), off);
+	bool ret = compiler->compiler->get_binary_offset_for_decoration(id, static_cast<spv::Decoration>(decoration), off);
 	if (ret)
 	{
 		*word_offset = off;
@@ -1835,7 +1835,7 @@ spvc_result spvc_compiler_get_declared_capabilities(spvc_compiler compiler, cons
                                                     size_t *num_capabilities)
 {
 	auto &caps = compiler->compiler->get_declared_capabilities();
-	static_assert(sizeof(SpvCapability) == sizeof(Pspv::Capability), "Enum size mismatch.");
+	static_assert(sizeof(SpvCapability) == sizeof(spv::Capability), "Enum size mismatch.");
 	*capabilities = reinterpret_cast<const SpvCapability *>(caps.data());
 	*num_capabilities = caps.size();
 	return SPVC_SUCCESS;

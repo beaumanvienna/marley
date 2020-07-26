@@ -42,6 +42,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/Reporting.h"
+#include "Core/Core.h"
 #include "Core/System.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/FunctionWrappers.h"
@@ -49,6 +50,7 @@
 #include "Core/HLE/sceKernel.h"
 #include "Core/HLE/sceKernelThread.h"
 #include "Core/HLE/sceKernelInterrupt.h"
+#include "Core/Util/PPGeDraw.h"
 
 #include "GPU/GPU.h"
 #include "GPU/GPUState.h"
@@ -153,6 +155,12 @@ static double fpsHistory[120];
 static int fpsHistorySize = (int)ARRAY_SIZE(fpsHistory);
 static int fpsHistoryPos = 0;
 static int fpsHistoryValid = 0;
+static double frameTimeHistory[600];
+static double frameSleepHistory[600];
+static const int frameTimeHistorySize = (int)ARRAY_SIZE(frameTimeHistory);
+static int frameTimeHistoryPos = 0;
+static int frameTimeHistoryValid = 0;
+static double lastFrameTimeHistory = 0.0;
 static double monitorFpsUntil = 0.0;
 static int lastNumFlips = 0;
 static float flips = 0.0f;
@@ -178,14 +186,14 @@ int __DisplayGetNumVblanks() { return numVBlanks; }
 void __DisplayFlip(int cyclesLate);
 
 static void ScheduleLagSync(int over = 0) {
-	lagSyncScheduled = g_PConfig.bForceLagSync;
+	lagSyncScheduled = g_Config.bForceLagSync;
 	if (lagSyncScheduled) {
 		// Reset over if it became too high, such as after pausing or initial loading.
 		// There's no real sense in it being more than 1/60th of a second.
 		if (over > 1000000 / 60) {
 			over = 0;
 		}
-		CoreTiming_P::ScheduleEvent(usToCycles(1000 + over), lagSyncEvent, 0);
+		CoreTiming::ScheduleEvent(usToCycles(1000 + over), lagSyncEvent, 0);
 		lastLagSync = real_time_now();
 	}
 }
@@ -212,14 +220,14 @@ void __DisplayInit() {
 	nextFlipCycles = 0;
 	wasPaused = false;
 
-	enterVblankEvent = CoreTiming_P::RegisterEvent("EnterVBlank", &hleEnterVblank);
-	leaveVblankEvent = CoreTiming_P::RegisterEvent("LeaveVBlank", &hleLeaveVblank);
-	afterFlipEvent = CoreTiming_P::RegisterEvent("AfterFlip", &hleAfterFlip);
+	enterVblankEvent = CoreTiming::RegisterEvent("EnterVBlank", &hleEnterVblank);
+	leaveVblankEvent = CoreTiming::RegisterEvent("LeaveVBlank", &hleLeaveVblank);
+	afterFlipEvent = CoreTiming::RegisterEvent("AfterFlip", &hleAfterFlip);
 
-	lagSyncEvent = CoreTiming_P::RegisterEvent("LagSync", &hleLagSync);
+	lagSyncEvent = CoreTiming::RegisterEvent("LagSync", &hleLagSync);
 	ScheduleLagSync();
 
-	CoreTiming_P::ScheduleEvent(msToCycles(frameMs - vblankMs), enterVblankEvent, 0);
+	CoreTiming::ScheduleEvent(msToCycles(frameMs - vblankMs), enterVblankEvent, 0);
 	isVblank = 0;
 	frameStartTicks = 0;
 	vCount = 0;
@@ -235,6 +243,9 @@ void __DisplayInit() {
 	lastNumFlips = 0;
 	fpsHistoryValid = 0;
 	fpsHistoryPos = 0;
+	frameTimeHistoryValid = 0;
+	frameTimeHistoryPos = 0;
+	lastFrameTimeHistory = 0.0;
 
 	__KernelRegisterWaitTypeFuncs(WAITTYPE_VBLANK, __DisplayVblankBeginCallback, __DisplayVblankEndCallback);
 }
@@ -277,22 +288,22 @@ void __DisplayDoState(PointerWrap &p) {
 	p.Do(vblankPausedWaits);
 
 	p.Do(enterVblankEvent);
-	CoreTiming_P::RestoreRegisterEvent(enterVblankEvent, "EnterVBlank", &hleEnterVblank);
+	CoreTiming::RestoreRegisterEvent(enterVblankEvent, "EnterVBlank", &hleEnterVblank);
 	p.Do(leaveVblankEvent);
-	CoreTiming_P::RestoreRegisterEvent(leaveVblankEvent, "LeaveVBlank", &hleLeaveVblank);
+	CoreTiming::RestoreRegisterEvent(leaveVblankEvent, "LeaveVBlank", &hleLeaveVblank);
 	p.Do(afterFlipEvent);
-	CoreTiming_P::RestoreRegisterEvent(afterFlipEvent, "AfterFlip", &hleAfterFlip);
+	CoreTiming::RestoreRegisterEvent(afterFlipEvent, "AfterFlip", &hleAfterFlip);
 
 	if (s >= 5) {
 		p.Do(lagSyncEvent);
 		p.Do(lagSyncScheduled);
-		CoreTiming_P::RestoreRegisterEvent(lagSyncEvent, "LagSync", &hleLagSync);
+		CoreTiming::RestoreRegisterEvent(lagSyncEvent, "LagSync", &hleLagSync);
 		lastLagSync = real_time_now();
-		if (lagSyncScheduled != g_PConfig.bForceLagSync) {
+		if (lagSyncScheduled != g_Config.bForceLagSync) {
 			ScheduleLagSync();
 		}
 	} else {
-		lagSyncEvent = CoreTiming_P::RegisterEvent("LagSync", &hleLagSync);
+		lagSyncEvent = CoreTiming::RegisterEvent("LagSync", &hleLagSync);
 		ScheduleLagSync();
 	}
 
@@ -314,7 +325,7 @@ void __DisplayDoState(PointerWrap &p) {
 	}
 
 	if (s < 7) {
-		u64 now = CoreTiming_P::GetTicks();
+		u64 now = CoreTiming::GetTicks();
 		lastFlipCycles = now;
 		nextFlipCycles = now;
 	} else {
@@ -435,8 +446,7 @@ static bool IsRunningSlow() {
 			best = std::max(fpsHistory[index], best);
 		}
 
-		// Note that SYSPROP_DISPLAY_REFRESH_RATE is multiplied by 1000.
-		return best < System_GetPropertyInt(SYSPROP_DISPLAY_REFRESH_RATE) * (1.0 / 1001.0);
+		return best < System_GetPropertyFloat(SYSPROP_DISPLAY_REFRESH_RATE) * 0.999;
 	}
 
 	return false;
@@ -464,6 +474,23 @@ static void CalculateFPS() {
 			++fpsHistoryValid;
 		}
 	}
+
+	if (g_Config.bDrawFrameGraph) {
+		frameTimeHistory[frameTimeHistoryPos++] = now - lastFrameTimeHistory;
+		lastFrameTimeHistory = now;
+		frameTimeHistoryPos = frameTimeHistoryPos % frameTimeHistorySize;
+		if (frameTimeHistoryValid < frameTimeHistorySize) {
+			++frameTimeHistoryValid;
+		}
+		frameSleepHistory[frameTimeHistoryPos] = 0.0;
+	}
+}
+
+double *__DisplayGetFrameTimes(int *out_valid, int *out_pos, double **out_sleep) {
+	*out_valid = frameTimeHistoryValid;
+	*out_pos = frameTimeHistoryPos;
+	*out_sleep = frameSleepHistory;
+	return frameTimeHistory;
 }
 
 void __DisplayGetDebugStats(char *stats, size_t bufsize) {
@@ -489,10 +516,10 @@ void __DisplaySetWasPaused() {
 }
 
 static bool FrameTimingThrottled() {
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 == 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 == 0) {
 		return false;
 	}
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 == 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 == 0) {
 		return false;
 	}
 	return !PSP_CoreParameter().unthrottle;
@@ -510,12 +537,12 @@ static void DoFrameDropLogging(float scaledTimestep) {
 
 static int CalculateFrameSkip() {
 	int frameSkipNum;
-	if (g_PConfig.iFrameSkipType == 1) { 
+	if (g_Config.iFrameSkipType == 1) {
 		// Calculate the frames to skip dynamically using the set percentage of the current fps
-		frameSkipNum = ceil( flips * (static_cast<double>(g_PConfig.iFrameSkip) / 100.00) ); 
-	} else { 
+		frameSkipNum = ceil( flips * (static_cast<double>(g_Config.iFrameSkip) / 100.00) );
+	} else {
 		// Use the set number of frames to skip
-		frameSkipNum = g_PConfig.iFrameSkip; 
+		frameSkipNum = g_Config.iFrameSkip;
 	}
 	return frameSkipNum;
 }
@@ -524,14 +551,26 @@ static int CalculateFrameSkip() {
 static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 	PROFILE_THIS_SCOPE("timing");
 	FPSLimit fpsLimiter = PSP_CoreParameter().fpsLimit;
+	int fpsLimit = 60;
+	if (fpsLimiter != FPSLimit::NORMAL)
+		fpsLimit = fpsLimiter == FPSLimit::CUSTOM1 ? g_Config.iFpsLimit1 : g_Config.iFpsLimit2;
 	throttle = FrameTimingThrottled();
 	skipFrame = false;
 
 	// Check if the frameskipping code should be enabled. If neither throttling or frameskipping is on,
 	// we have nothing to do here.
-	bool doFrameSkip = g_PConfig.iFrameSkip != 0;
+	bool doFrameSkip = g_Config.iFrameSkip != 0;
 
-	if (!throttle && g_PConfig.bFrameSkipUnthrottle) {
+	bool unthrottleNeedsSkip = g_Config.iUnthrottleMode == (int)UnthrottleMode::SKIP_DRAW;
+	if (g_Config.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
+		// Vulkan doesn't support the interval setting, so we force frameskip.
+		unthrottleNeedsSkip = true;
+		// If it's not a clean multiple of 60, we may need frameskip to achieve it.
+		if (fpsLimit == 0 || (fpsLimit >= 0 && fpsLimit != 15 && fpsLimit != 30 && fpsLimit != 60)) {
+			doFrameSkip = true;
+		}
+	}
+	if (!throttle && unthrottleNeedsSkip) {
 		doFrameSkip = true;
 		skipFrame = true;
 		if (numSkippedFrames >= 7) {
@@ -546,10 +585,8 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 	time_update();
 
 	float scaledTimestep = timestep;
-	if (fpsLimiter == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 0) {
-		scaledTimestep *= 60.0f / g_PConfig.iFpsLimit1;
-	} else if (fpsLimiter == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 0) {
-		scaledTimestep *= 60.0f / g_PConfig.iFpsLimit2;
+	if (fpsLimit > 0 && fpsLimit != 60) {
+		scaledTimestep *= 60.0f / fpsLimit;
 	}
 
 	if (lastFrameTime == 0.0 || wasPaused) {
@@ -563,19 +600,22 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 	}
 	curFrameTime = time_now_d();
 
-	if (g_PConfig.bLogFrameDrops) {
+	if (g_Config.bLogFrameDrops) {
 		DoFrameDropLogging(scaledTimestep);
 	}
 
 	// Auto-frameskip automatically if speed limit is set differently than the default.
-	bool useAutoFrameskip = g_PConfig.bAutoFrameSkip && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
-	bool forceFrameskip = (fpsLimiter == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 60) || (fpsLimiter == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 60);
+	bool useAutoFrameskip = g_Config.bAutoFrameSkip && g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bool forceFrameskip = fpsLimit > 60 && unthrottleNeedsSkip;
 	int frameSkipNum = CalculateFrameSkip();
-	if (g_PConfig.bAutoFrameSkip || forceFrameskip) {
+	if (g_Config.bAutoFrameSkip || forceFrameskip) {
 		// autoframeskip
 		// Argh, we are falling behind! Let's skip a frame and see if we catch up.
 		if (curFrameTime > nextFrameTime && doFrameSkip) {
 			skipFrame = true;
+			if (forceFrameskip) {
+				throttle = false;
+			}
 		}
 	} else if (frameSkipNum >= 1) {
 		// fixed frameskip
@@ -610,31 +650,32 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 
 static void DoFrameIdleTiming() {
 	PROFILE_THIS_SCOPE("timing");
-	if (!FrameTimingThrottled() || !g_PConfig.bEnableSound || wasPaused) {
+	if (!FrameTimingThrottled() || !g_Config.bEnableSound || wasPaused) {
 		return;
 	}
 
 	time_update();
 
-	double dist = time_now_d() - lastFrameTime;
+	double before = time_now_d();
+	double dist = before - lastFrameTime;
 	// Ignore if the distance is just crazy.  May mean wrap or pause.
 	if (dist < 0.0 || dist >= 15 * timePerVblank) {
 		return;
 	}
 
 	float scaledVblank = timePerVblank;
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 > 0) {
 		// 0 is handled in FrameTimingThrottled().
-		scaledVblank *= 60.0f / g_PConfig.iFpsLimit1;
-	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 0) {
-		scaledVblank *= 60.0f / g_PConfig.iFpsLimit2;
+		scaledVblank *= 60.0f / g_Config.iFpsLimit1;
+	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 > 0) {
+		scaledVblank *= 60.0f / g_Config.iFpsLimit2;
 	}
 
 	// If we have over at least a vblank of spare time, maintain at least 30fps in delay.
 	// This prevents fast forward during loading screens.
 	// Give a little extra wiggle room in case the next vblank does more work.
 	const double goal = lastFrameTime + (numVBlanksSinceFlip - 1) * scaledVblank - 0.001;
-	if (numVBlanksSinceFlip >= 2 && time_now_d() < goal) {
+	if (numVBlanksSinceFlip >= 2 && before < goal) {
 		while (time_now_d() < goal) {
 #ifdef _WIN32
 			sleep_ms(1);
@@ -643,6 +684,10 @@ static void DoFrameIdleTiming() {
 			usleep((long)(left * 1000000));
 #endif
 			time_update();
+		}
+
+		if (g_Config.bDrawFrameGraph) {
+			frameSleepHistory[frameTimeHistoryPos] += time_now_d() - before;
 		}
 	}
 }
@@ -659,9 +704,9 @@ void hleEnterVblank(u64 userdata, int cyclesLate) {
 	if (hCountBase > 0x7FFFFFFF) {
 		hCountBase -= 0x80000000;
 	}
-	frameStartTicks = CoreTiming_P::GetTicks();
+	frameStartTicks = CoreTiming::GetTicks();
 
-	CoreTiming_P::ScheduleEvent(msToCycles(vblankMs) - cyclesLate, leaveVblankEvent, vbCount + 1);
+	CoreTiming::ScheduleEvent(msToCycles(vblankMs) - cyclesLate, leaveVblankEvent, vbCount + 1);
 
 	// Trigger VBlank interrupt handlers.
 	__TriggerInterrupt(PSP_INTR_IMMEDIATE | PSP_INTR_ONLY_IF_ENABLED | PSP_INTR_ALWAYS_RESCHED, PSP_VBLANK_INTR, PSP_INTR_SUB_ALL);
@@ -706,23 +751,41 @@ void __DisplayFlip(int cyclesLate) {
 	// non-buffered rendering. The interaction with frame skipping seems to need
 	// some work.
 	// But, let's flip at least once every 10 vblanks, to update fps, etc.
-	const bool noRecentFlip = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE && numVBlanksSinceFlip >= 10;
+	const bool noRecentFlip = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE && numVBlanksSinceFlip >= 10;
 	// Also let's always flip for animated shaders.
-	const ShaderInfo *shaderInfo = g_PConfig.sPostShaderName == "Off" ? nullptr : GetPostShaderInfo(g_PConfig.sPostShaderName);
+	const ShaderInfo *shaderInfo = g_Config.sPostShaderName == "Off" ? nullptr : GetPostShaderInfo(g_Config.sPostShaderName);
 	bool postEffectRequiresFlip = false;
-	if (shaderInfo && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE)
-		postEffectRequiresFlip = shaderInfo->requires60fps;
+
+	bool duplicateFrames = g_Config.bRenderDuplicateFrames && g_Config.iFrameSkip == 0;
+
+	bool unthrottleNeedsSkip = g_Config.iUnthrottleMode != (int)UnthrottleMode::CONTINUOUS;
+	if (g_Config.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
+		// Vulkan doesn't support the interval setting, so we force frameskip.
+		unthrottleNeedsSkip = true;
+	}
+
+	// postEffectRequiresFlip is not compatible with frameskip unthrottling, see #12325.
+	if (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE && !(unthrottleNeedsSkip && !FrameTimingThrottled())) {
+		if (shaderInfo) {
+			postEffectRequiresFlip = (shaderInfo->requires60fps || duplicateFrames);
+		} else {
+			postEffectRequiresFlip = duplicateFrames;
+		}
+	}
+
 	const bool fbDirty = gpu->FramebufferDirty();
+
 	if (fbDirty || noRecentFlip || postEffectRequiresFlip) {
+		int frameSleepPos = frameTimeHistoryPos;
 		CalculateFPS();
 
 		// Let the user know if we're running slow, so they know to adjust settings.
 		// Sometimes users just think the sound emulation is broken.
 		static bool hasNotifiedSlow = false;
-		if (!g_PConfig.bHideSlowWarnings && !hasNotifiedSlow && PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && IsRunningSlow()) {
+		if (!g_Config.bHideSlowWarnings && !hasNotifiedSlow && PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && IsRunningSlow()) {
 #ifndef _DEBUG
-			I18NCategory *err = GetI18NCategory("Error");
-			if (g_PConfig.bSoftwareRendering) {
+			auto err = GetI18NCategory("Error");
+			if (g_Config.bSoftwareRendering) {
 				host->NotifyUserMessage(err->T("Running slow: Try turning off Software Rendering"), 6.0f, 0xFF30D0D0);
 			} else {
 				host->NotifyUserMessage(err->T("Running slow: try frameskip, sound is choppy when slow"), 6.0f, 0xFF30D0D0);
@@ -731,13 +794,25 @@ void __DisplayFlip(int cyclesLate) {
 			hasNotifiedSlow = true;
 		}
 
+		bool forceNoFlip = false;
+		// Alternative to frameskip unthrottle, where we draw everything.
+		// Useful if skipping a frame breaks graphics or for checking drawing speed.
+		if (g_Config.iUnthrottleMode == (int)UnthrottleMode::SKIP_FLIP && !FrameTimingThrottled()) {
+			static double lastFlip = 0;
+			double now = time_now_d();
+			if ((now - lastFlip) < 1.0f / System_GetPropertyFloat(SYSPROP_DISPLAY_REFRESH_RATE)) {
+				forceNoFlip = true;
+			} else {
+				lastFlip = now;
+			}
+		}
+
 		// Setting CORE_NEXTFRAME causes a swap.
 		const bool fbReallyDirty = gpu->FramebufferReallyDirty();
 		if (fbReallyDirty || noRecentFlip || postEffectRequiresFlip) {
 			// Check first though, might've just quit / been paused.
-			if (coreState == CORE_RUNNING) {
-				coreState = CORE_NEXTFRAME;
-				gpu->CopyDisplayToOutput();
+			if (!forceNoFlip && Core_NextFrame()) {
+				gpu->CopyDisplayToOutput(fbReallyDirty);
 				if (fbReallyDirty) {
 					actualFlips++;
 				}
@@ -773,8 +848,13 @@ void __DisplayFlip(int cyclesLate) {
 		// Right after, we regain control for a little bit in hleAfterFlip. I think that's a great
 		// place to do housekeeping.
 
-		CoreTiming_P::ScheduleEvent(0 - cyclesLate, afterFlipEvent, 0);
+		CoreTiming::ScheduleEvent(0 - cyclesLate, afterFlipEvent, 0);
 		numVBlanksSinceFlip = 0;
+
+		if (g_Config.bDrawFrameGraph) {
+			// Track how long we sleep (whether vsync or sleep_ms.)
+			frameSleepHistory[frameSleepPos] += real_time_now() - lastFrameTimeHistory;
+		}
 	} else {
 		// Okay, there's no new frame to draw.  But audio may be playing, so we need to time still.
 		DoFrameIdleTiming();
@@ -783,9 +863,10 @@ void __DisplayFlip(int cyclesLate) {
 
 void hleAfterFlip(u64 userdata, int cyclesLate) {
 	gpu->BeginFrame();  // doesn't really matter if begin or end of frame.
+	PPGeNotifyFrame();
 
 	// This seems like as good a time as any to check if the config changed.
-	if (lagSyncScheduled != g_PConfig.bForceLagSync) {
+	if (lagSyncScheduled != g_Config.bForceLagSync) {
 		ScheduleLagSync();
 	}
 }
@@ -794,7 +875,7 @@ void hleLeaveVblank(u64 userdata, int cyclesLate) {
 	isVblank = 0;
 	flippedThisFrame = false;
 	VERBOSE_LOG(SCEDISPLAY,"Leave VBlank %i", (int)userdata - 1);
-	CoreTiming_P::ScheduleEvent(msToCycles(frameMs - vblankMs) - cyclesLate, enterVblankEvent, userdata);
+	CoreTiming::ScheduleEvent(msToCycles(frameMs - vblankMs) - cyclesLate, enterVblankEvent, userdata);
 
 	// Fire the vblank listeners after the vblank completes.
 	__DisplayFireVblank();
@@ -812,15 +893,16 @@ void hleLagSync(u64 userdata, int cyclesLate) {
 	}
 
 	float scale = 1.0f;
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 > 0) {
 		// 0 is handled in FrameTimingThrottled().
-		scale = 60.0f / g_PConfig.iFpsLimit1;
-	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 0) {
-		scale = 60.0f / g_PConfig.iFpsLimit2;
+		scale = 60.0f / g_Config.iFpsLimit1;
+	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 > 0) {
+		scale = 60.0f / g_Config.iFpsLimit2;
 	}
 
 	const double goal = lastLagSync + (scale / 1000.0f);
 	time_update();
+	double before = time_now_d();
 	// Don't lag too long ever, if they leave it paused.
 	while (time_now_d() < goal && goal < time_now_d() + 0.01) {
 #ifndef _WIN32
@@ -833,6 +915,10 @@ void hleLagSync(u64 userdata, int cyclesLate) {
 	const int emuOver = (int)cyclesToUs(cyclesLate);
 	const int over = (int)((time_now_d() - goal) * 1000000);
 	ScheduleLagSync(over - emuOver);
+
+	if (g_Config.bDrawFrameGraph) {
+		frameSleepHistory[frameTimeHistoryPos] += time_now_d() - before;
+	}
 }
 
 static u32 sceDisplayIsVblank() {
@@ -840,7 +926,7 @@ static u32 sceDisplayIsVblank() {
 }
 
 static int DisplayWaitForVblanks(const char *reason, int vblanks, bool callbacks = false) {
-	const s64 ticksIntoFrame = CoreTiming_P::GetTicks() - frameStartTicks;
+	const s64 ticksIntoFrame = CoreTiming::GetTicks() - frameStartTicks;
 	const s64 cyclesToNextVblank = msToCycles(frameMs) - ticksIntoFrame;
 
 	// These syscalls take about 115 us, so if the next vblank is before then, we're waiting extra.
@@ -888,11 +974,13 @@ void __DisplaySetFramebuf(u32 topaddr, int linesize, int pixelFormat, int sync) 
 	if (sync == PSP_DISPLAY_SETBUF_IMMEDIATE) {
 		// Write immediately to the current framebuffer parameters.
 		framebuf = fbstate;
+		// Also update latchedFramebuf for any sceDisplayGetFramebuf() after this.
+		latchedFramebuf = fbstate;
 		gpu->SetDisplayFramebuffer(framebuf.topaddr, framebuf.stride, framebuf.fmt);
 		// IMMEDIATE means that the buffer is fine. We can just flip immediately.
 		// Doing it in non-buffered though creates problems (black screen) on occasion though
 		// so let's not.
-		if (!flippedThisFrame && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE)
+		if (!flippedThisFrame && g_Config.iRenderingMode != FB_NON_BUFFERED_MODE)
 			__DisplayFlip(0);
 	} else {
 		// Delay the write until vblank
@@ -910,7 +998,7 @@ u32 sceDisplaySetFramebuf(u32 topaddr, int linesize, int pixelformat, int sync) 
 	if (sync != PSP_DISPLAY_SETBUF_IMMEDIATE && sync != PSP_DISPLAY_SETBUF_NEXTFRAME) {
 		return hleLogError(SCEDISPLAY, SCE_KERNEL_ERROR_INVALID_MODE, "invalid sync mode");
 	}
-	if (topaddr != 0 && !Memory_P::IsRAMAddress(topaddr) && !Memory_P::IsVRAMAddress(topaddr)) {
+	if (topaddr != 0 && !Memory::IsRAMAddress(topaddr) && !Memory::IsVRAMAddress(topaddr)) {
 		return hleLogError(SCEDISPLAY, SCE_KERNEL_ERROR_INVALID_POINTER, "invalid address");
 	}
 	if ((topaddr & 0xF) != 0) {
@@ -944,7 +1032,7 @@ u32 sceDisplaySetFramebuf(u32 topaddr, int linesize, int pixelformat, int sync) 
 		// Otherwise it'll always be ahead if the game messes up even once.
 		const s64 LEEWAY_CYCLES_PER_FLIP = usToCycles(10);
 
-		u64 now = CoreTiming_P::GetTicks();
+		u64 now = CoreTiming::GetTicks();
 		s64 cyclesAhead = nextFlipCycles - now;
 		if (cyclesAhead > FLIP_DELAY_CYCLES_MIN) {
 			if (lastFlipsTooFrequent >= FLIP_DELAY_MIN_FLIPS) {
@@ -992,16 +1080,14 @@ bool __DisplayGetFramebuf(PSPPointer<u8> *topaddr, u32 *linesize, u32 *pixelForm
 }
 
 static u32 sceDisplayGetFramebuf(u32 topaddrPtr, u32 linesizePtr, u32 pixelFormatPtr, int latchedMode) {
-	// NOTE: This is wrong and partially reverts #8753. Presumably there's something else involved here as well.
-	// See #8816. Could also be a firmware version difference, there are a few of those...
-	const FrameBufferState &fbState = (latchedMode == PSP_DISPLAY_SETBUF_NEXTFRAME && framebufIsLatched) ? latchedFramebuf : framebuf;
+	const FrameBufferState &fbState = latchedMode == PSP_DISPLAY_SETBUF_NEXTFRAME ? latchedFramebuf : framebuf;
 
-	if (Memory_P::IsValidAddress(topaddrPtr))
-		Memory_P::PWrite_U32(fbState.topaddr, topaddrPtr);
-	if (Memory_P::IsValidAddress(linesizePtr))
-		Memory_P::PWrite_U32(fbState.stride, linesizePtr);
-	if (Memory_P::IsValidAddress(pixelFormatPtr))
-		Memory_P::PWrite_U32(fbState.fmt, pixelFormatPtr);
+	if (Memory::IsValidAddress(topaddrPtr))
+		Memory::Write_U32(fbState.topaddr, topaddrPtr);
+	if (Memory::IsValidAddress(linesizePtr))
+		Memory::Write_U32(fbState.stride, linesizePtr);
+	if (Memory::IsValidAddress(pixelFormatPtr))
+		Memory::Write_U32(fbState.fmt, pixelFormatPtr);
 
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
@@ -1069,8 +1155,8 @@ static u32 sceDisplayGetVcount() {
 }
 
 static u32 __DisplayGetCurrentHcount() {
-	const int ticksIntoFrame = CoreTiming_P::GetTicks() - frameStartTicks;
-	const int ticksPerVblank = CoreTiming_P::GetClockFrequencyHz() / 60 / hCountPerVblank;
+	const int ticksIntoFrame = CoreTiming::GetTicks() - frameStartTicks;
+	const int ticksPerVblank = CoreTiming::GetClockFrequencyHz() / 60 / hCountPerVblank;
 	// Can't seem to produce a 0 on real hardware, offsetting by 1 makes things look right.
 	return 1 + (ticksIntoFrame / ticksPerVblank);
 }
@@ -1117,17 +1203,17 @@ static u32 sceDisplayIsForeground() {
 }
 
 static u32 sceDisplayGetMode(u32 modeAddr, u32 widthAddr, u32 heightAddr) {
-	if (Memory_P::IsValidAddress(modeAddr))
-		Memory_P::PWrite_U32(mode, modeAddr);
-	if (Memory_P::IsValidAddress(widthAddr))
-		Memory_P::PWrite_U32(width, widthAddr);
-	if (Memory_P::IsValidAddress(heightAddr))
-		Memory_P::PWrite_U32(height, heightAddr);
+	if (Memory::IsValidAddress(modeAddr))
+		Memory::Write_U32(mode, modeAddr);
+	if (Memory::IsValidAddress(widthAddr))
+		Memory::Write_U32(width, widthAddr);
+	if (Memory::IsValidAddress(heightAddr))
+		Memory::Write_U32(height, heightAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
 static u32 sceDisplayIsVsync() {
-	u64 now = CoreTiming_P::GetTicks();
+	u64 now = CoreTiming::GetTicks();
 	u64 start = frameStartTicks + msToCycles(vsyncStartMs);
 	u64 end = frameStartTicks + msToCycles(vsyncEndMs);
 
@@ -1135,8 +1221,8 @@ static u32 sceDisplayIsVsync() {
 }
 
 static u32 sceDisplayGetResumeMode(u32 resumeModeAddr) {
-	if (Memory_P::IsValidAddress(resumeModeAddr))
-		Memory_P::PWrite_U32(resumeMode, resumeModeAddr);
+	if (Memory::IsValidAddress(resumeModeAddr))
+		Memory::Write_U32(resumeMode, resumeModeAddr);
 	return hleLogSuccessI(SCEDISPLAY, 0);
 }
 
@@ -1149,12 +1235,12 @@ static u32 sceDisplaySetResumeMode(u32 rMode) {
 static u32 sceDisplayGetBrightness(u32 levelAddr, u32 otherAddr) {
 	// Standard levels on a PSP: 44, 60, 72, 84 (AC only)
 
-	if (Memory_P::IsValidAddress(levelAddr)) {
-		Memory_P::PWrite_U32(brightnessLevel, levelAddr);
+	if (Memory::IsValidAddress(levelAddr)) {
+		Memory::Write_U32(brightnessLevel, levelAddr);
 	}
 	// Always seems to write zero?
-	if (Memory_P::IsValidAddress(otherAddr)) {
-		Memory_P::PWrite_U32(0, otherAddr);
+	if (Memory::IsValidAddress(otherAddr)) {
+		Memory::Write_U32(0, otherAddr);
 	}
 	return hleLogWarning(SCEDISPLAY, 0);
 }

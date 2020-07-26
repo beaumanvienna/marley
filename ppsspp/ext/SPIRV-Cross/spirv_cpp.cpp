@@ -16,7 +16,7 @@
 
 #include "spirv_cpp.hpp"
 
-using namespace Pspv;
+using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 

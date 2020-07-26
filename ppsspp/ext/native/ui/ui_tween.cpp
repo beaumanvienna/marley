@@ -3,7 +3,7 @@
 #include "ui/view.h"
 #include "ui/viewgroup.h"
 
-namespace PUI {
+namespace UI {
 
 void Tween::Apply(View *view) {
 	if (!valid_)
@@ -16,7 +16,7 @@ void Tween::Apply(View *view) {
 	DoApply(view, pos);
 
 	if (finishApplied_) {
-		PUI::EventParams e{};
+		UI::EventParams e{};
 		e.v = view;
 		e.f = DurationOffset() - duration_;
 		Finish.Trigger(e);
@@ -37,7 +37,7 @@ void TweenBase<Value>::PersistData(PersistStatus status, std::string anonId, Per
 	PersistBuffer &buffer = storage["TweenBase::" + anonId];
 
 	switch (status) {
-	case PUI::PERSIST_SAVE:
+	case UI::PERSIST_SAVE:
 		buffer.resize(sizeof(TweenData) / sizeof(int));
 		{
 			TweenData &data = *(TweenData *)&buffer[0];
@@ -49,7 +49,7 @@ void TweenBase<Value>::PersistData(PersistStatus status, std::string anonId, Per
 			data.valid = valid_;
 		}
 		break;
-	case PUI::PERSIST_RESTORE:
+	case UI::PERSIST_RESTORE:
 		if (buffer.size() >= sizeof(TweenData) / sizeof(int)) {
 			TweenData data = *(TweenData *)&buffer[0];
 			start_ = data.start;

@@ -336,9 +336,6 @@
     <ClCompile Include="Util\PPGeDraw.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Util\ppge_atlas.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="HLE\sceFont.cpp">
       <Filter>HLE\Libraries</Filter>
     </ClCompile>
@@ -716,6 +713,9 @@
     <ClCompile Include="Debugger\WebSocket\GameSubscriber.cpp">
       <Filter>Debugger\WebSocket</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\WebSocket\MemorySubscriber.cpp">
+      <Filter>Debugger\WebSocket</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\WebSocket\DisasmSubscriber.cpp">
       <Filter>Debugger\WebSocket</Filter>
     </ClCompile>
@@ -739,6 +739,21 @@
     </ClCompile>
     <ClCompile Include="HLE\sceUsbMic.cpp">
       <Filter>HLE\Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\Camera.cpp">
+      <Filter>HW</Filter>
+    </ClCompile>
+    <ClCompile Include="HLE\sceKernelHeap.cpp">
+      <Filter>HLE\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="MemFault.cpp">
+      <Filter>Core</Filter>
+	</ClCompile>
+    <ClCompile Include="Util\PortManager.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Instance.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -995,9 +1010,6 @@
       <Filter>HW</Filter>
     </ClInclude>
     <ClInclude Include="Util\PPGeDraw.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\ppge_atlas.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="HLE\sceFont.h">
@@ -1343,6 +1355,9 @@
     <ClInclude Include="Debugger\WebSocket\GameSubscriber.h">
       <Filter>Debugger\WebSocket</Filter>
     </ClInclude>
+    <ClInclude Include="Debugger\WebSocket\MemorySubscriber.h">
+      <Filter>Debugger\WebSocket</Filter>
+    </ClInclude>
     <ClInclude Include="Debugger\WebSocket\DisasmSubscriber.h">
       <Filter>Debugger\WebSocket</Filter>
     </ClInclude>
@@ -1372,6 +1387,21 @@
     </ClInclude>
     <ClInclude Include="HLE\sceUsbMic.h">
       <Filter>HLE\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\Camera.h">
+      <Filter>HW</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\sceKernelHeap.h">
+      <Filter>HLE\Kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="MemFault.h">
+      <Filter>Core</Filter>
+	</ClInclude>
+    <ClInclude Include="Util\PortManager.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Instance.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

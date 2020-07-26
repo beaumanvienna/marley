@@ -46,10 +46,10 @@ Discord::~Discord() {
 }
 
 bool Discord::IsEnabled() const {
-	return g_PConfig.bDiscordPresence;
+	return g_Config.bDiscordPresence;
 }
 
-void Discord::PInit() {
+void Discord::Init() {
 	assert(IsEnabled());
 	assert(!initialized_);
 
@@ -63,23 +63,24 @@ void Discord::PInit() {
 	initialized_ = true;
 }
 
-void Discord::PShutdown() {
-	assert(initialized_);
+void Discord::Shutdown() {
+	if (initialized_) {
 #ifdef ENABLE_DISCORD
-	Discord_Shutdown();
+		Discord_Shutdown();
 #endif
-	initialized_ = false;
+		initialized_ = false;
+	}
 }
 
 void Discord::Update() {
 	if (!IsEnabled()) {
 		if (initialized_) {
-			PShutdown();
+			Shutdown();
 		}
 		return;
 	} else {
 		if (!initialized_) {
-			PInit();
+			Init();
 		}
 	}
 
@@ -96,11 +97,11 @@ void Discord::SetPresenceGame(const char *gameTitle) {
 		return;
 	
 	if (!initialized_) {
-		PInit();
+		Init();
 	}
 
 #ifdef ENABLE_DISCORD
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 	DiscordRichPresence discordPresence{};
 	discordPresence.state = gameTitle;
@@ -122,11 +123,11 @@ void Discord::SetPresenceMenu() {
 		return;
 
 	if (!initialized_) {
-		PInit();
+		Init();
 	}
 
 #ifdef ENABLE_DISCORD
-	I18NCategory *sc = GetI18NCategory("Screen");
+	auto sc = GetI18NCategory("Screen");
 
 	DiscordRichPresence discordPresence{};
 	discordPresence.state = sc->T("In menu");

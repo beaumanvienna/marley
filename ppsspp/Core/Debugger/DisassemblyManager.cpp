@@ -44,9 +44,9 @@ bool isInInterval(u32 start, u32 size, u32 value)
 static u32 computeHash(u32 address, u32 size)
 {
 #ifdef _M_X64
-	return XXH64(Memory_P::GetPointer(address), size, 0xBACD7814BACD7814LL);
+	return XXH64(Memory::GetPointer(address), size, 0xBACD7814BACD7814LL);
 #else
-	return XXH32(Memory_P::GetPointer(address), size, 0xBACD7814);
+	return XXH32(Memory::GetPointer(address), size, 0xBACD7814);
 #endif
 }
 
@@ -150,7 +150,7 @@ void DisassemblyManager::analyze(u32 address, u32 size = 1024)
 		if (!PSP_IsInited())
 			return;
 
-		auto memLock = Memory_P::Lock();
+		auto memLock = Memory::Lock();
 		std::lock_guard<std::recursive_mutex> guard(entriesLock_);
 		auto it = findDisassemblyEntry(entries, address, false);
 		if (it != entries.end())
@@ -240,7 +240,7 @@ std::vector<BranchLine> DisassemblyManager::getBranchLines(u32 start, u32 size)
 void DisassemblyManager::getLine(u32 address, bool insertSymbols, DisassemblyLineInfo &dest, DebugInterface *cpuDebug)
 {
 	// This is here really to avoid lock ordering issues.
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	std::lock_guard<std::recursive_mutex> guard(entriesLock_);
 	auto it = findDisassemblyEntry(entries,address,false);
 	if (it == entries.end())
@@ -262,7 +262,7 @@ void DisassemblyManager::getLine(u32 address, bool insertSymbols, DisassemblyLin
 		dest.totalSize = ((address+3) & ~3)-address;
 	else
 		dest.totalSize = 4;
-	if (Memory_P::IsValidRange(address, 4)) {
+	if (Memory::IsValidRange(address, 4)) {
 		dest.name = "ERROR";
 		dest.params = "Disassembly failure";
 	} else {
@@ -273,7 +273,7 @@ void DisassemblyManager::getLine(u32 address, bool insertSymbols, DisassemblyLin
 
 u32 DisassemblyManager::getStartAddress(u32 address)
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	std::lock_guard<std::recursive_mutex> guard(entriesLock_);
 	auto it = findDisassemblyEntry(entries,address,false);
 	if (it == entries.end())
@@ -291,9 +291,9 @@ u32 DisassemblyManager::getStartAddress(u32 address)
 
 u32 DisassemblyManager::getNthPreviousAddress(u32 address, int n)
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	std::lock_guard<std::recursive_mutex> guard(entriesLock_);
-	while (Memory_P::IsValidAddress(address))
+	while (Memory::IsValidAddress(address))
 	{
 		auto it = findDisassemblyEntry(entries,address,false);
 		if (it == entries.end())
@@ -321,9 +321,9 @@ u32 DisassemblyManager::getNthPreviousAddress(u32 address, int n)
 
 u32 DisassemblyManager::getNthNextAddress(u32 address, int n)
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	std::lock_guard<std::recursive_mutex> guard(entriesLock_);
-	while (Memory_P::IsValidAddress(address))
+	while (Memory::IsValidAddress(address))
 	{
 		auto it = findDisassemblyEntry(entries,address,false);
 		if (it == entries.end()) {
@@ -356,7 +356,7 @@ DisassemblyManager::~DisassemblyManager() {
 
 void DisassemblyManager::clear()
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	std::lock_guard<std::recursive_mutex> guard(entriesLock_);
 	for (auto it = entries.begin(); it != entries.end(); it++)
 	{
@@ -367,7 +367,7 @@ void DisassemblyManager::clear()
 
 DisassemblyFunction::DisassemblyFunction(u32 _address, u32 _size): address(_address), size(_size)
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	if (!PSP_IsInited())
 		return;
 
@@ -381,7 +381,7 @@ DisassemblyFunction::~DisassemblyFunction() {
 
 void DisassemblyFunction::recheck()
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	if (!PSP_IsInited())
 		return;
 
@@ -492,7 +492,7 @@ void DisassemblyFunction::generateBranchLines()
 
 		bool inFunction = (opInfo.branchTarget >= address && opInfo.branchTarget < end);
 		if (opInfo.isBranch && !opInfo.isBranchToRegister && !opInfo.isLinkedBranch && inFunction) {
-			if (!Memory_P::IsValidAddress(opInfo.branchTarget))
+			if (!Memory::IsValidAddress(opInfo.branchTarget))
 				continue;
 
 			BranchLine line;
@@ -630,7 +630,7 @@ void DisassemblyFunction::load()
 		// lui
 		if (MIPS_GET_OP(opInfo.encodedOpcode) == 0x0F && funcPos < funcEnd && funcPos != nextData)
 		{
-			MIPSOpcode next = Memory_P::Read_Instruction(funcPos);
+			MIPSOpcode next = Memory::Read_Instruction(funcPos);
 			MIPSInfo nextInfo = MIPSGetInfo(next);
 
 			u32 immediate = ((opInfo.encodedOpcode & 0xFFFF) << 16) + (s16)(next.encoding & 0xFFFF);
@@ -758,7 +758,7 @@ void DisassemblyOpcode::getBranchLines(u32 start, u32 size, std::vector<BranchLi
 	{
 		MIPSAnalyst::MipsOpcodeInfo info = MIPSAnalyst::GetOpcodeInfo(DisassemblyManager::getCpu(),pos);
 		if (info.isBranch && !info.isBranchToRegister && !info.isLinkedBranch) {
-			if (!Memory_P::IsValidAddress(info.branchTarget))
+			if (!Memory::IsValidAddress(info.branchTarget))
 				continue;
 
 			BranchLine line;
@@ -856,7 +856,7 @@ bool DisassemblyMacro::disassemble(u32 address, DisassemblyLineInfo &dest, bool 
 
 DisassemblyData::DisassemblyData(u32 _address, u32 _size, DataType _type): address(_address), size(_size), type(_type)
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	if (!PSP_IsInited())
 		return;
 
@@ -866,7 +866,7 @@ DisassemblyData::DisassemblyData(u32 _address, u32 _size, DataType _type): addre
 
 void DisassemblyData::recheck()
 {
-	auto memLock = Memory_P::Lock();
+	auto memLock = Memory::Lock();
 	if (!PSP_IsInited())
 		return;
 
@@ -944,7 +944,7 @@ void DisassemblyData::createLines()
 		bool inString = false;
 		while (pos < end)
 		{
-			u8 b = Memory_P::PRead_U8(pos++);
+			u8 b = Memory::Read_U8(pos++);
 			if (b >= 0x20 && b <= 0x7F)
 			{
 				if (currentLine.size()+1 >= maxChars)
@@ -1021,18 +1021,18 @@ void DisassemblyData::createLines()
 			switch (type)
 			{
 			case DATATYPE_BYTE:
-				value = Memory_P::PRead_U8(pos);
+				value = Memory::Read_U8(pos);
 				snprintf(buffer, sizeof(buffer), "0x%02X", value);
 				pos++;
 				break;
 			case DATATYPE_HALFWORD:
-				value = Memory_P::PRead_U16(pos);
+				value = Memory::Read_U16(pos);
 				snprintf(buffer, sizeof(buffer), "0x%04X", value);
 				pos += 2;
 				break;
 			case DATATYPE_WORD:
 				{
-					value = Memory_P::PRead_U32(pos);
+					value = Memory::Read_U32(pos);
 					const std::string label = g_symbolMap->GetLabelString(value);
 					if (!label.empty())
 						snprintf(buffer, sizeof(buffer), "%s", label.c_str());

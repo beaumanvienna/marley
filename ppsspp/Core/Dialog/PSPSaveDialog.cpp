@@ -29,6 +29,7 @@
 #include "Core/FileSystems/MetaFileSystem.h"
 #include "Core/Util/PPGeDraw.h"
 #include "Core/HLE/sceCtrl.h"
+#include "Core/HLE/sceUtility.h"
 #include "Core/MemMapHelpers.h"
 #include "Core/Config.h"
 #include "Core/Reporting.h"
@@ -73,15 +74,15 @@ int PSPSaveDialog::Init(int paramAddr)
 	ioThreadStatus = SAVEIO_NONE;
 
 	requestAddr = paramAddr;
-	int size = Memory_P::PRead_U32(requestAddr);
+	int size = Memory::Read_U32(requestAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different save request format
 	if (size != SAVEDATA_DIALOG_SIZE_V1 && size != SAVEDATA_DIALOG_SIZE_V2 && size != SAVEDATA_DIALOG_SIZE_V3) {
 		ERROR_LOG_REPORT(SCEUTILITY, "sceUtilitySavedataInitStart: invalid size %d", size);
 		return SCE_ERROR_UTILITY_INVALID_PARAM_SIZE;
 	}
-	Memory_P::Memcpy(&request, requestAddr, size);
-	Memory_P::Memcpy(&originalRequest, requestAddr, size);
+	Memory::Memcpy(&request, requestAddr, size);
+	Memory::Memcpy(&originalRequest, requestAddr, size);
 
 	int retval = param.SetPspParam(&request);
 
@@ -280,8 +281,12 @@ const std::string PSPSaveDialog::GetSelectedSaveDirName() const
 
 void PSPSaveDialog::DisplayBanner(int which)
 {
-	I18NCategory *di = GetI18NCategory("Dialog");
+	auto di = GetI18NCategory("Dialog");
 	PPGeDrawRect(0, 0, 480, 23, CalcFadedColor(0x65636358));
+
+	PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_VCENTER, 0.6f);
+	textStyle.hasShadow = false;
+
 	const char *title;
 	switch (which)
 	{
@@ -299,8 +304,8 @@ void PSPSaveDialog::DisplayBanner(int which)
 		break;
 	}
 	// TODO: Draw a hexagon icon
-	PPGeDrawImage(10, 6, 12.0f, 12.0f, 1, 10, 1, 10, 10, 10, CalcFadedColor(0xFFFFFFFF));
-	PPGeDrawText(title, 30, 11, PPGE_ALIGN_VCENTER, 0.6f, CalcFadedColor(0xFFFFFFFF));
+	PPGeDrawImage(10, 6, 12.0f, 12.0f, 1, 10, 1, 10, 10, 10, textStyle.color);
+	PPGeDrawText(title, 30, 11, textStyle);
 }
 
 void PSPSaveDialog::DisplaySaveList(bool canMove) {
@@ -390,76 +395,77 @@ void PSPSaveDialog::DisplaySaveIcon(bool checkExists)
 	PPGeSetDefaultTexture();
 }
 
-void PSPSaveDialog::DisplaySaveDataInfo1()
-{
+static void FormatSaveHourMin(char *hour_time, size_t sz, const tm &t) {
+	const char *am_pm = "AM";
+	int hour = t.tm_hour;
+	switch (g_Config.iTimeFormat) {
+	case 1:
+		if (hour == 12) {
+			am_pm = "PM";
+		} else if (hour > 12) {
+			am_pm = "PM";
+			hour -= 12;
+		} else if (hour == 0) {
+			hour = 12;
+		}
+		snprintf(hour_time, sz, "%02d:%02d %s", hour, t.tm_min, am_pm);
+		break;
+	case 0:
+	default:
+		snprintf(hour_time, sz, "%02d:%02d", hour, t.tm_min);
+		break;
+	}
+}
+
+static void FormatSaveDate(char *date, size_t sz, const tm &t) {
+	int year = t.tm_year + 1900;
+	int month = t.tm_mon + 1;
+	switch (g_Config.iDateFormat) {
+	case 1:
+		snprintf(date, sz, "%02d/%02d/%04d", month, t.tm_mday, year);
+		break;
+	case 2:
+		snprintf(date, sz, "%02d/%02d/%04d", t.tm_mday, month, year);
+		break;
+	case 0:
+	default:
+		snprintf(date, sz, "%04d/%02d/%02d", year, month, t.tm_mday);
+		break;
+	}
+}
+
+void PSPSaveDialog::DisplaySaveDataInfo1() {
 	std::lock_guard<std::mutex> guard(paramLock);
-	if (param.GetFileInfo(currentSelectedSave).size == 0) {
-		I18NCategory *di = GetI18NCategory("Dialog");
-		PPGeDrawText(di->T("NEW DATA"), 180, 136, PPGE_ALIGN_VCENTER, 0.6f, CalcFadedColor(0xFFFFFFFF));
+	const SaveFileInfo &saveInfo = param.GetFileInfo(currentSelectedSave);
+
+	if (saveInfo.size == 0) {
+		auto di = GetI18NCategory("Dialog");
+		PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_VCENTER, 0.6f);
+		PPGeDrawText(di->T("NEW DATA"), 180, 136, textStyle);
 	} else {
-		char title[512];
-		char time[512];
-		char saveTitle[1024];
-		char saveDetail[1024];
-
-		char am_pm[] = "AM";
 		char hour_time[32];
-		int hour = param.GetFileInfo(currentSelectedSave).modif_time.tm_hour;
-		int min  = param.GetFileInfo(currentSelectedSave).modif_time.tm_min;
-		switch (g_PConfig.iTimeFormat) {
-		case 1:
-			if (hour > 12) {
-				strcpy(am_pm, "PM");
-				hour -= 12;
-			}
-			snprintf(hour_time, sizeof(hour_time), "%02d:%02d %s", hour, min, am_pm);
-			break;
-		case 2:
-			snprintf(hour_time, sizeof(hour_time), "%02d:%02d", hour, min);
-			break;
-		default:
-			if (hour > 12) {
-				strcpy(am_pm, "PM");
-				hour -= 12;
-			}
-			snprintf(hour_time, sizeof(hour_time), "%02d:%02d %s", hour, min, am_pm);
-		}
+		FormatSaveHourMin(hour_time, sizeof(hour_time), saveInfo.modif_time);
 
-		snprintf(title, sizeof(title), "%s", param.GetFileInfo(currentSelectedSave).title);
-		int day   = param.GetFileInfo(currentSelectedSave).modif_time.tm_mday;
-		int month = param.GetFileInfo(currentSelectedSave).modif_time.tm_mon + 1;
-		int year  = param.GetFileInfo(currentSelectedSave).modif_time.tm_year + 1900;
-		s64 sizeK = param.GetFileInfo(currentSelectedSave).size / 1024;
-		switch (g_PConfig.iDateFormat) {
-		case 1:
-			snprintf(time, sizeof(time), "%d/%02d/%02d   %s  %lld KB", year, month, day, hour_time, sizeK);
-			break;
-		case 2:
-			snprintf(time, sizeof(time), "%02d/%02d/%d   %s  %lld KB", month, day, year, hour_time, sizeK);
-			break;
-		case 3:
-			snprintf(time, sizeof(time), "%02d/%02d/%d   %s  %lld KB", day, month, year, hour_time, sizeK);
-			break;
-		default:
-			snprintf(time, sizeof(time), "%d/%02d/%02d   %s  %lld KB", year, month, day, hour_time, sizeK);
-		}
-		snprintf(saveTitle, sizeof(saveTitle), "%s", param.GetFileInfo(currentSelectedSave).saveTitle);
-		snprintf(saveDetail, sizeof(saveDetail), "%s", param.GetFileInfo(currentSelectedSave).saveDetail);
+		char date_year[32];
+		FormatSaveDate(date_year, sizeof(date_year), saveInfo.modif_time);
+
+		s64 sizeK = saveInfo.size / 1024;
 
 		PPGeDrawRect(180, 136, 480, 137, CalcFadedColor(0xFFFFFFFF));
-		std::string titleTxt = title;
-		std::string timeTxt = time;
-		std::string saveTitleTxt = saveTitle;
-		std::string saveDetailTxt = saveDetail;
+		std::string titleTxt = saveInfo.title;
+		std::string timeTxt = StringFromFormat("%s   %s  %lld KB", date_year, hour_time, sizeK);
+		std::string saveTitleTxt = saveInfo.saveTitle;
+		std::string saveDetailTxt = saveInfo.saveDetail;
 
-		PPGeDrawText(titleTxt.c_str(), 181, 138, PPGE_ALIGN_BOTTOM, 0.6f, CalcFadedColor(0x80000000));
-		PPGeDrawText(titleTxt.c_str(), 180, 136, PPGE_ALIGN_BOTTOM, 0.6f, CalcFadedColor(0xFFC0C0C0));
-		PPGeDrawText(timeTxt.c_str(), 181, 139, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0x80000000));
-		PPGeDrawText(timeTxt.c_str(), 180, 137, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0xFFFFFFFF));
-		PPGeDrawText(saveTitleTxt.c_str(), 176, 162, PPGE_ALIGN_LEFT, 0.55f, CalcFadedColor(0x80000000));
-		PPGeDrawText(saveTitleTxt.c_str(), 175, 159, PPGE_ALIGN_LEFT, 0.55f, CalcFadedColor(0xFFFFFFFF));
-		PPGeDrawTextWrapped(saveDetailTxt.c_str(), 176, 183, 480 - 175, 250 - 183, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0x80000000));
-		PPGeDrawTextWrapped(saveDetailTxt.c_str(), 175, 181, 480 - 175, 250 - 181, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0xFFFFFFFF));
+		PPGeStyle titleStyle = FadedStyle(PPGeAlign::BOX_BOTTOM, 0.6f);
+		PPGeStyle saveTitleStyle = FadedStyle(PPGeAlign::BOX_LEFT, 0.55f);
+		titleStyle.color = CalcFadedColor(0xFFC0C0C0);
+		PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_LEFT, 0.5f);
+
+		PPGeDrawText(titleTxt.c_str(), 180, 136, titleStyle);
+		PPGeDrawText(timeTxt.c_str(), 180, 137, textStyle);
+		PPGeDrawText(saveTitleTxt.c_str(), 175, 159, saveTitleStyle);
+		PPGeDrawTextWrapped(saveDetailTxt.c_str(), 175, 181, 480 - 175, 250 - 181, textStyle);
 	}
 }
 
@@ -483,89 +489,49 @@ void PSPSaveDialog::DisplaySaveDataInfo2(bool showNewData) {
 		data_size = param.GetFileInfo(currentSelectedSave).size;
 	}
 
-	char date[256];
-	char am_pm[] = "AM";
 	char hour_time[32];
-	int hour = modif_time.tm_hour;
-	int min  = modif_time.tm_min;
-	switch (g_PConfig.iTimeFormat) {
-	case 1:
-		if (hour > 12) {
-			strcpy(am_pm, "PM");
-			hour -= 12;
-		}
-		snprintf(hour_time, sizeof(hour_time), "%02d:%02d %s", hour, min, am_pm);
-		break;
-	case 2:
-		snprintf(hour_time, sizeof(hour_time), "%02d:%02d", hour, min);
-		break;
-	default:
-		if (hour > 12) {
-			strcpy(am_pm, "PM");
-			hour -= 12;
-		}
-		snprintf(hour_time, sizeof(hour_time), "%02d:%02d %s", hour, min, am_pm);
-	}
+	FormatSaveHourMin(hour_time, sizeof(hour_time), modif_time);
 
-	int day   = modif_time.tm_mday;
-	int month = modif_time.tm_mon + 1;
-	int year  = modif_time.tm_year + 1900;
+	char date_year[32];
+	FormatSaveDate(date_year, sizeof(date_year), modif_time);
+
 	s64 sizeK = data_size / 1024;
-	switch (g_PConfig.iDateFormat) {
-	case 1:
-		snprintf(date, 256, "%d/%02d/%02d", year, month, day);
-		break;
-	case 2:
-		snprintf(date, 256, "%02d/%02d/%d", month, day, year);
-		break;
-	case 3:
-		snprintf(date, 256, "%02d/%02d/%d", day, month, year);
-		break;
-	default:
-		snprintf(date, 256, "%d/%02d/%02d", year, month, day);
-	}
 
-	std::string saveinfoTxt = PStringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date, hour_time, sizeK);
-	PPGeDrawText(saveinfoTxt.c_str(), 9, 202, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0x80000000));
-	PPGeDrawText(saveinfoTxt.c_str(), 8, 200, PPGE_ALIGN_LEFT, 0.5f, CalcFadedColor(0xFFFFFFFF));
+	PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_LEFT, 0.5f);
+	std::string saveinfoTxt = StringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date_year, hour_time, sizeK);
+	PPGeDrawText(saveinfoTxt.c_str(), 8, 200, textStyle);
 }
 
 void PSPSaveDialog::DisplayMessage(std::string text, bool hasYesNo)
 {
+	PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_CENTER, FONT_SCALE);
+
 	const float WRAP_WIDTH = 254.0f;
 	float y = 136.0f, h;
-	int n;
-	PPGeMeasureText(0, &h, &n, text.c_str(), FONT_SCALE, PPGE_LINE_WRAP_WORD, WRAP_WIDTH);
-	float h2 = h * (float)n / 2.0f;
+	PPGeMeasureText(nullptr, &h, text.c_str(), FONT_SCALE, PPGE_LINE_WRAP_WORD, WRAP_WIDTH);
+	float h2 = h / 2.0f;
 	if (hasYesNo)
 	{
-		I18NCategory *di = GetI18NCategory("Dialog");
+		auto di = GetI18NCategory("Dialog");
 		const char *choiceText;
-		u32 yesColor, noColor;
 		float x, w;
 		if (yesnoChoice == 1) {
 			choiceText = di->T("Yes");
 			x = 302.0f;
-			yesColor = 0xFFFFFFFF;
-			noColor  = 0xFFFFFFFF;
 		}
 		else {
 			choiceText = di->T("No");
 			x = 366.0f;
-			yesColor = 0xFFFFFFFF;
-			noColor  = 0xFFFFFFFF;
 		}
-		PPGeMeasureText(&w, &h, 0, choiceText, FONT_SCALE);
+		PPGeMeasureText(&w, &h, choiceText, FONT_SCALE);
 		w = w / 2.0f + 5.5f;
 		h /= 2.0f;
 		float y2 = y + h2 + 4.0f;
 		h2 += h + 4.0f;
 		y = 132.0f - h;
 		PPGeDrawRect(x - w, y2 - h, x + w, y2 + h, CalcFadedColor(0x40C0C0C0));
-		PPGeDrawText(di->T("Yes"), 303.0f, y2+2, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(0x80000000));
-		PPGeDrawText(di->T("Yes"), 302.0f, y2, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(yesColor));
-		PPGeDrawText(di->T("No"), 367.0f, y2+2, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(0x80000000));
-		PPGeDrawText(di->T("No"), 366.0f, y2, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(noColor));
+		PPGeDrawText(di->T("Yes"), 302.0f, y2, textStyle);
+		PPGeDrawText(di->T("No"), 366.0f, y2, textStyle);
 		if (IsButtonPressed(CTRL_LEFT) && yesnoChoice == 0) {
 			yesnoChoice = 1;
 		}
@@ -573,8 +539,7 @@ void PSPSaveDialog::DisplayMessage(std::string text, bool hasYesNo)
 			yesnoChoice = 0;
 		}
 	}
-	PPGeDrawTextWrapped(text.c_str(), 335.0f, y+2, WRAP_WIDTH, 0, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(0x80000000));
-	PPGeDrawTextWrapped(text.c_str(), 334.0f, y, WRAP_WIDTH, 0, PPGE_ALIGN_CENTER, FONT_SCALE, CalcFadedColor(0xFFFFFFFF));
+	PPGeDrawTextWrapped(text.c_str(), 334.0f, y, WRAP_WIDTH, 0, textStyle);
 	float sy = 122.0f - h2, ey = 150.0f + h2;
 	PPGeDrawRect(202.0f, sy, 466.0f, sy + 1.0f, CalcFadedColor(0xFFFFFFFF));
 	PPGeDrawRect(202.0f, ey, 466.0f, ey + 1.0f, CalcFadedColor(0xFFFFFFFF));
@@ -598,11 +563,11 @@ int PSPSaveDialog::Update(int animSpeed)
 	// The struct may have been updated by the game.  This happens in "Where Is My Heart?"
 	// Check if it has changed, reload it.
 	// TODO: Cut down on preloading?  This rebuilds the list from scratch.
-	int size = Memory_P::PRead_U32(requestAddr);
-	if (memcmp(Memory_P::GetPointer(requestAddr), &originalRequest, size) != 0) {
+	int size = Memory::Read_U32(requestAddr);
+	if (memcmp(Memory::GetPointer(requestAddr), &originalRequest, size) != 0) {
 		memset(&request, 0, sizeof(request));
-		Memory_P::Memcpy(&request, requestAddr, size);
-		Memory_P::Memcpy(&originalRequest, requestAddr, size);
+		Memory::Memcpy(&request, requestAddr, size);
+		Memory::Memcpy(&originalRequest, requestAddr, size);
 		std::lock_guard<std::mutex> guard(paramLock);
 		param.SetPspParam(&request);
 	}
@@ -610,18 +575,18 @@ int PSPSaveDialog::Update(int animSpeed)
 	UpdateButtons();
 	UpdateFade(animSpeed);
 
-	okButtonImg = I_CIRCLE;
-	cancelButtonImg = I_CROSS;
+	okButtonImg = ImageID("I_CIRCLE");
+	cancelButtonImg = ImageID("I_CROSS");
 	okButtonFlag = CTRL_CIRCLE;
 	cancelButtonFlag = CTRL_CROSS;
 	if (param.GetPspParam()->common.buttonSwap == 1) {
-		okButtonImg = I_CROSS;
-		cancelButtonImg = I_CIRCLE;
+		okButtonImg = ImageID("I_CROSS");
+		cancelButtonImg = ImageID("I_CIRCLE");
 		okButtonFlag = CTRL_CROSS;
 		cancelButtonFlag = CTRL_CIRCLE;
 	}
 
-	I18NCategory *di = GetI18NCategory("Dialog");
+	auto di = GetI18NCategory("Dialog");
 
 	switch (display)
 	{
@@ -1010,7 +975,7 @@ int PSPSaveDialog::Update(int animSpeed)
 	}
 
 	if (status == SCE_UTILITY_STATUS_FINISHED || pendingStatus == SCE_UTILITY_STATUS_FINISHED)
-		Memory_P::Memcpy(requestAddr, &request, request.common.size);
+		Memory::Memcpy(requestAddr, &request, request.common.size);
 	
 	return 0;
 }

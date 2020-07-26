@@ -17,15 +17,28 @@
 
 #pragma once
 
+#include "Core/HLE/proAdhoc.h"
+
+#ifdef _MSC_VER
+#pragma pack(push,1)
+#endif
+typedef struct MatchingArgs {
+	u32_le data[6]; //ContextID, Opcode, bufAddr[ to MAC], OptLen, OptAddr[, EntryPoint]
+} PACK MatchingArgs;
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
+
 class PointerWrap;
 
 void Register_sceNetAdhoc();
 
+u32_le __CreateHLELoop(u32_le* loopAddr, const char* sceFuncName, const char* hleFuncName, const char* tagName = NULL);
 void __NetAdhocInit();
 void __NetAdhocShutdown();
 void __NetAdhocDoState(PointerWrap &p);
 void __UpdateAdhocctlHandlers(u32 flags, u32 error);
-void __UpdateMatchingHandler(u64 params);
+void __UpdateMatchingHandler(MatchingArgs params);
 
 // I have to call this from netdialog
 int sceNetAdhocctlCreate(const char * groupName);
@@ -33,5 +46,14 @@ int sceNetAdhocctlCreate(const char * groupName);
 // May need to use these from sceNet.cpp
 extern bool netAdhocInited;
 extern bool netAdhocctlInited;
-int sceNetAdhocctlTerm();
-int sceNetAdhocTerm();
+extern bool networkInited;
+extern int adhocDefaultTimeout;
+extern int adhocEventPollDelayMS;
+extern int adhocMatchingEventDelayMS;
+extern int adhocEventDelayMS; // This will affect the duration of "Connecting..." dialog/message box in .Hack//Link and Naruto Ultimate Ninja Heroes 3
+extern std::recursive_mutex adhocEvtMtx;
+extern int IsAdhocctlInCB;
+
+int NetAdhocMatching_Term();
+int NetAdhocctl_Term();
+int NetAdhoc_Term();

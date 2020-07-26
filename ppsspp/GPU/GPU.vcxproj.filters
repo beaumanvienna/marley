@@ -282,6 +282,12 @@
     <ClInclude Include="Debugger\RecordFormat.h">
       <Filter>Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="Software\RasterizerRectangle.h">
+      <Filter>Software</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\PresentationCommon.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math3D.cpp">
@@ -559,6 +565,12 @@
     </ClCompile>
     <ClCompile Include="Debugger\Playback.cpp">
       <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Software\RasterizerRectangle.cpp">
+      <Filter>Software</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\PresentationCommon.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

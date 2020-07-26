@@ -114,7 +114,7 @@ void DrawProfile(UIContext &ui) {
 
 		if (catStatus[i] == PROFILE_CAT_VISIBLE) {
 			float y = legendStartY + legendNum++ * rowH;
-			ui.FillRect(PUI::Drawable(opacity | color), Bounds(legendStartX, y, rowH - 2, rowH - 2));
+			ui.FillRect(UI::Drawable(opacity | color), Bounds(legendStartX, y, rowH - 2, rowH - 2));
 			ui.DrawTextShadow(name, legendStartX + rowH + 2, y, 0xFFFFFFFF, ALIGN_VBASELINE);
 		}
 	}
@@ -143,8 +143,8 @@ void DrawProfile(UIContext &ui) {
 	float y_60th = ui.GetBounds().y2() - 10 - (1.0f / 60.0f) * scale;
 	float y_1ms = ui.GetBounds().y2() - 10 - (1.0f / 1000.0f) * scale;
 
-	ui.FillRect(PUI::Drawable(0x80FFFF00), Bounds(0, y_60th, graphWidth, 2));
-	ui.FillRect(PUI::Drawable(0x80FFFF00), Bounds(0, y_1ms, graphWidth, 2));
+	ui.FillRect(UI::Drawable(0x80FFFF00), Bounds(0, y_60th, graphWidth, 2));
+	ui.FillRect(UI::Drawable(0x80FFFF00), Bounds(0, y_1ms, graphWidth, 2));
 	ui.DrawTextShadow("1/60s", 5, y_60th, 0x80FFFF00);
 	ui.DrawTextShadow("1ms", 5, y_1ms, 0x80FFFF00);
 
@@ -163,8 +163,8 @@ void DrawProfile(UIContext &ui) {
 		uint32_t col = nice_colors[i % ARRAY_SIZE(nice_colors)];
 		if (area)
 			col = opacity | (col & 0xFFFFFF);
-		PUI::Drawable color(col);
-		PUI::Drawable outline((opacity >> 1) | 0xFFFFFF);
+		UI::Drawable color(col);
+		UI::Drawable outline((opacity >> 1) | 0xFFFFFF);
 
 		float bottom = ui.GetBounds().y2();
 		if (area) {

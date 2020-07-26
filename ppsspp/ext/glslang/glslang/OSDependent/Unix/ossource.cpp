@@ -50,7 +50,7 @@
 #include <sys/resource.h>
 #endif
 
-namespace Pglslang {
+namespace glslang {
 
 //
 // Thread cleanup
@@ -204,4 +204,4 @@ void OS_DumpMemoryCounters()
 #endif
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

@@ -53,25 +53,25 @@
 #include <cassert>
 #include <unordered_set>
 
-using Pspv::Block;
-using Pspv::Id;
+using spv::Block;
+using spv::Id;
 
 namespace {
 // Traverses CFG in a readable order, invoking a pre-set callback on each block.
 // Use by calling visit() on the root block.
 class ReadableOrderTraverser {
 public:
-    ReadableOrderTraverser(std::function<void(Block*, Pspv::ReachReason, Block*)> callback)
+    ReadableOrderTraverser(std::function<void(Block*, spv::ReachReason, Block*)> callback)
       : callback_(callback) {}
     // Visits the block if it hasn't been visited already and isn't currently
     // being delayed.  Invokes callback(block, why, header), then descends into its
     // successors.  Delays merge-block and continue-block processing until all
     // the branches have been completed.  If |block| is an unreachable merge block or
     // an unreachable continue target, then |header| is the corresponding header block.
-    void visit(Block* block, Pspv::ReachReason why, Block* header)
+    void visit(Block* block, spv::ReachReason why, Block* header)
     {
         assert(block);
-        if (why == Pspv::ReachViaControlFlow) {
+        if (why == spv::ReachViaControlFlow) {
             reachableViaControlFlow_.insert(block);
         }
         if (visited_.count(block) || delayed_.count(block))
@@ -85,38 +85,38 @@ public:
             Id mergeId = mergeInst->getIdOperand(0);
             mergeBlock = block->getParent().getParent().getInstruction(mergeId)->getBlock();
             delayed_.insert(mergeBlock);
-            if (mergeInst->getOpCode() == Pspv::OpLoopMerge) {
+            if (mergeInst->getOpCode() == spv::OpLoopMerge) {
                 Id continueId = mergeInst->getIdOperand(1);
                 continueBlock =
                     block->getParent().getParent().getInstruction(continueId)->getBlock();
                 delayed_.insert(continueBlock);
             }
         }
-        if (why == Pspv::ReachViaControlFlow) {
+        if (why == spv::ReachViaControlFlow) {
             const auto& successors = block->getSuccessors();
             for (auto it = successors.cbegin(); it != successors.cend(); ++it)
                 visit(*it, why, nullptr);
         }
         if (continueBlock) {
-            const Pspv::ReachReason continueWhy =
+            const spv::ReachReason continueWhy =
                 (reachableViaControlFlow_.count(continueBlock) > 0)
-                    ? Pspv::ReachViaControlFlow
-                    : Pspv::ReachDeadContinue;
+                    ? spv::ReachViaControlFlow
+                    : spv::ReachDeadContinue;
             delayed_.erase(continueBlock);
             visit(continueBlock, continueWhy, block);
         }
         if (mergeBlock) {
-            const Pspv::ReachReason mergeWhy =
+            const spv::ReachReason mergeWhy =
                 (reachableViaControlFlow_.count(mergeBlock) > 0)
-                    ? Pspv::ReachViaControlFlow
-                    : Pspv::ReachDeadMerge;
+                    ? spv::ReachViaControlFlow
+                    : spv::ReachDeadMerge;
             delayed_.erase(mergeBlock);
             visit(mergeBlock, mergeWhy, block);
         }
     }
 
 private:
-    std::function<void(Block*, Pspv::ReachReason, Block*)> callback_;
+    std::function<void(Block*, spv::ReachReason, Block*)> callback_;
     // Whether a block has already been visited or is being delayed.
     std::unordered_set<Block *> visited_, delayed_;
 
@@ -125,7 +125,7 @@ private:
 };
 }
 
-void Pspv::inReadableOrder(Block* root, std::function<void(Block*, Pspv::ReachReason, Block*)> callback)
+void spv::inReadableOrder(Block* root, std::function<void(Block*, spv::ReachReason, Block*)> callback)
 {
-    ReadableOrderTraverser(callback).visit(root, Pspv::ReachViaControlFlow, nullptr);
+    ReadableOrderTraverser(callback).visit(root, spv::ReachViaControlFlow, nullptr);
 }

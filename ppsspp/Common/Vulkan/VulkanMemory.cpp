@@ -23,8 +23,8 @@
 #include "base/timeutil.h"
 #include "math/math_util.h"
 
-VulkanPushBuffer::VulkanPushBuffer(VulkanContext *vulkan, size_t size, VkBufferUsageFlags usage)
-		: vulkan_(vulkan), size_(size), usage_(usage) {
+VulkanPushBuffer::VulkanPushBuffer(VulkanContext *vulkan, size_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyMask)
+		: vulkan_(vulkan), memoryPropertyMask_(memoryPropertyMask), size_(size), usage_(usage) {
 	bool res = AddBuffer();
 	assert(res);
 }
@@ -45,32 +45,32 @@ bool VulkanPushBuffer::AddBuffer() {
 	b.queueFamilyIndexCount = 0;
 	b.pQueueFamilyIndices = nullptr;
 
-	VkResult res = PvkCreateBuffer(device, &b, nullptr, &info.buffer);
+	VkResult res = vkCreateBuffer(device, &b, nullptr, &info.buffer);
 	if (VK_SUCCESS != res) {
-		_assert_msg_(G3D, false, "PvkCreateBuffer failed! result=%d", (int)res);
+		_assert_msg_(false, "vkCreateBuffer failed! result=%d", (int)res);
 		return false;
 	}
 
 	// Get the buffer memory requirements. None of this can be cached!
 	VkMemoryRequirements reqs;
-	PvkGetBufferMemoryRequirements(device, info.buffer, &reqs);
+	vkGetBufferMemoryRequirements(device, info.buffer, &reqs);
 
 	// Okay, that's the buffer. Now let's allocate some memory for it.
 	VkMemoryAllocateInfo alloc{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	alloc.allocationSize = reqs.size;
-	vulkan_->MemoryTypeFromProperties(reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &alloc.memoryTypeIndex);
+	vulkan_->MemoryTypeFromProperties(reqs.memoryTypeBits, memoryPropertyMask_, &alloc.memoryTypeIndex);
 
-	res = PvkAllocateMemory(device, &alloc, nullptr, &info.deviceMemory);
+	res = vkAllocateMemory(device, &alloc, nullptr, &info.deviceMemory);
 	if (VK_SUCCESS != res) {
-		_assert_msg_(G3D, false, "PvkAllocateMemory failed! size=%d result=%d", (int)reqs.size, (int)res);
-		PvkDestroyBuffer(device, info.buffer, nullptr);
+		_assert_msg_(false, "vkAllocateMemory failed! size=%d result=%d", (int)reqs.size, (int)res);
+		vkDestroyBuffer(device, info.buffer, nullptr);
 		return false;
 	}
-	res = PvkBindBufferMemory(device, info.buffer, info.deviceMemory, 0);
+	res = vkBindBufferMemory(device, info.buffer, info.deviceMemory, 0);
 	if (VK_SUCCESS != res) {
-		ELOG("PvkBindBufferMemory failed! result=%d", (int)res);
-		PvkFreeMemory(device, info.deviceMemory, nullptr);
-		PvkDestroyBuffer(device, info.buffer, nullptr);
+		ELOG("vkBindBufferMemory failed! result=%d", (int)res);
+		vkFreeMemory(device, info.deviceMemory, nullptr);
+		vkDestroyBuffer(device, info.buffer, nullptr);
 		return false;
 	}
 
@@ -89,7 +89,8 @@ void VulkanPushBuffer::Destroy(VulkanContext *vulkan) {
 
 void VulkanPushBuffer::NextBuffer(size_t minSize) {
 	// First, unmap the current memory.
-	Unmap();
+	if (memoryPropertyMask_ & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+		Unmap();
 
 	buf_++;
 	if (buf_ >= buffers_.size() || minSize > size_) {
@@ -108,7 +109,8 @@ void VulkanPushBuffer::NextBuffer(size_t minSize) {
 
 	// Now, move to the next buffer and map it.
 	offset_ = 0;
-	Map();
+	if (memoryPropertyMask_ & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+		Map();
 }
 
 void VulkanPushBuffer::Defragment(VulkanContext *vulkan) {
@@ -134,23 +136,24 @@ size_t VulkanPushBuffer::GetTotalSize() const {
 }
 
 void VulkanPushBuffer::Map() {
-	_dbg_assert_(G3D, !writePtr_);
-	VkResult res = PvkMapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory, 0, size_, 0, (void **)(&writePtr_));
-	_dbg_assert_(G3D, writePtr_);
+	_dbg_assert_(!writePtr_);
+	VkResult res = vkMapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory, 0, size_, 0, (void **)(&writePtr_));
+	_dbg_assert_(writePtr_);
 	assert(VK_SUCCESS == res);
 }
 
 void VulkanPushBuffer::Unmap() {
-	_dbg_assert_(G3D, writePtr_ != 0);
-	/*
-	// Should not need this since we use coherent memory.
-	VkMappedMemoryRange range{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
-	range.offset = 0;
-	range.size = offset_;
-	range.memory = buffers_[buf_].deviceMemory;
-	PvkFlushMappedMemoryRanges(device_, 1, &range);
-	*/
-	PvkUnmapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory);
+	_dbg_assert_(writePtr_ != 0);
+
+	if ((memoryPropertyMask_ & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0) {
+		VkMappedMemoryRange range{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+		range.offset = 0;
+		range.size = offset_;
+		range.memory = buffers_[buf_].deviceMemory;
+		vkFlushMappedMemoryRanges(vulkan_->GetDevice(), 1, &range);
+	}
+
+	vkUnmapMemory(vulkan_->GetDevice(), buffers_[buf_].deviceMemory);
 	writePtr_ = nullptr;
 }
 
@@ -174,7 +177,7 @@ void VulkanDeviceAllocator::Destroy() {
 			if (slabUsage == 1) {
 				ERROR_LOG(G3D, "VulkanDeviceAllocator detected memory leak of size %d", (int)pair.second);
 			} else {
-				_dbg_assert_msg_(G3D, slabUsage == 2, "Destroy: slabUsage has unexpected value %d", slabUsage);
+				_dbg_assert_msg_(slabUsage == 2, "Destroy: slabUsage has unexpected value %d", slabUsage);
 			}
 		}
 
@@ -311,13 +314,13 @@ void VulkanDeviceAllocator::DoTouch(VkDeviceMemory deviceMemory, size_t offset) 
 		}
 	}
 
-	_assert_msg_(G3D, found, "Failed to find allocation to touch - use after free?");
+	_assert_msg_(found, "Failed to find allocation to touch - use after free?");
 }
 
 void VulkanDeviceAllocator::Free(VkDeviceMemory deviceMemory, size_t offset) {
 	assert(!destroyed_);
 
-	_assert_msg_(G3D, !slabs_.empty(), "No slabs - can't be anything to free! double-freed?");
+	_assert_msg_(!slabs_.empty(), "No slabs - can't be anything to free! double-freed?");
 
 	// First, let's validate.  This will allow stack traces to tell us when frees are bad.
 	size_t start = offset >> SLAB_GRAIN_SHIFT;
@@ -328,9 +331,9 @@ void VulkanDeviceAllocator::Free(VkDeviceMemory deviceMemory, size_t offset) {
 		}
 
 		auto it = slab.allocSizes.find(start);
-		_assert_msg_(G3D, it != slab.allocSizes.end(), "Double free?");
+		_assert_msg_(it != slab.allocSizes.end(), "Double free?");
 		// This means a double free, while queued to actually free.
-		_assert_msg_(G3D, slab.usage[start] == 1, "Double free when queued to free!");
+		_assert_msg_(slab.usage[start] == 1, "Double free when queued to free!");
 
 		// Mark it as "free in progress".
 		slab.usage[start] = 2;
@@ -339,7 +342,7 @@ void VulkanDeviceAllocator::Free(VkDeviceMemory deviceMemory, size_t offset) {
 	}
 
 	// Wrong deviceMemory even?  Maybe it was already decimated, but that means a double-free.
-	_assert_msg_(G3D, found, "Failed to find allocation to free! Double-freed?");
+	_assert_msg_(found, "Failed to find allocation to free! Double-freed?");
 
 	// Okay, now enqueue.  It's valid.
 	FreeInfo *info = new FreeInfo(this, deviceMemory, offset);
@@ -380,7 +383,7 @@ void VulkanDeviceAllocator::ExecuteFree(FreeInfo *userdata) {
 			}
 		} else {
 			// Ack, a double free?
-			_assert_msg_(G3D, false, "Double free? Block missing at offset %d", (int)userdata->offset);
+			_assert_msg_(false, "Double free? Block missing at offset %d", (int)userdata->offset);
 		}
 		auto itTag = slab.tags.find(start);
 		if (itTag != slab.tags.end()) {
@@ -391,7 +394,7 @@ void VulkanDeviceAllocator::ExecuteFree(FreeInfo *userdata) {
 	}
 
 	// Wrong deviceMemory even?  Maybe it was already decimated, but that means a double-free.
-	_assert_msg_(G3D, found, "ExecuteFree: Block not found (offset %d)", (int)offset);
+	_assert_msg_(found, "ExecuteFree: Block not found (offset %d)", (int)offset);
 	delete userdata;
 }
 
@@ -412,7 +415,7 @@ bool VulkanDeviceAllocator::AllocateSlab(VkDeviceSize minBytes, int memoryTypeIn
 	}
 
 	VkDeviceMemory deviceMemory;
-	VkResult res = PvkAllocateMemory(vulkan_->GetDevice(), &alloc, NULL, &deviceMemory);
+	VkResult res = vkAllocateMemory(vulkan_->GetDevice(), &alloc, NULL, &deviceMemory);
 	if (res != VK_SUCCESS) {
 		// If it's something else, we used it wrong?
 		assert(res == VK_ERROR_OUT_OF_HOST_MEMORY || res == VK_ERROR_OUT_OF_DEVICE_MEMORY || res == VK_ERROR_TOO_MANY_OBJECTS);

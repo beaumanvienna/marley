@@ -13,7 +13,7 @@
 
 std::string VertexShaderDesc(const VShaderID &id) {
 	std::stringstream desc;
-	desc << PStringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
+	desc << StringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
 	if (id.Bit(VS_BIT_IS_THROUGH)) desc << "THR ";
 	if (id.Bit(VS_BIT_USE_HW_TRANSFORM)) desc << "HWX ";
 	if (id.Bit(VS_BIT_HAS_COLOR)) desc << "C ";
@@ -60,7 +60,7 @@ std::string VertexShaderDesc(const VShaderID &id) {
 	return desc.str();
 }
 
-void ComputeVertexShaderID(VShaderID *id_out, u32 vertType, bool useHWTransform) {
+void ComputeVertexShaderID(VShaderID *id_out, u32 vertType, bool useHWTransform, bool useHWTessellation) {
 	bool isModeThrough = (vertType & GE_VTYPE_THROUGH) != 0;
 	bool doTexture = gstate.isTextureMapEnabled() && !gstate.isModeClear();
 	bool doTextureTransform = gstate.getUVGenMode() == GE_TEXMAP_TEXTURE_MATRIX;
@@ -131,7 +131,7 @@ void ComputeVertexShaderID(VShaderID *id_out, u32 vertType, bool useHWTransform)
 		id.SetBit(VS_BIT_NORM_REVERSE, gstate.areNormalsReversed());
 		id.SetBit(VS_BIT_HAS_TEXCOORD, hasTexcoord);
 
-		if (g_PConfig.bHardwareTessellation) {
+		if (useHWTessellation) {
 			id.SetBit(VS_BIT_BEZIER, doBezier);
 			id.SetBit(VS_BIT_SPLINE, doSpline);
 			if (doBezier || doSpline) {
@@ -147,7 +147,7 @@ void ComputeVertexShaderID(VShaderID *id_out, u32 vertType, bool useHWTransform)
 	id.SetBit(VS_BIT_FLATSHADE, doFlatShading);
 
 	// These two bits cannot be combined, otherwise havoc occurs. We get reports that indicate this happened somehow... "ERROR: 0:14: 'u_proj' : undeclared identifier"
-	_dbg_assert_msg_(G3D, !id.Bit(VS_BIT_USE_HW_TRANSFORM) || !id.Bit(VS_BIT_IS_THROUGH), "Can't have both THROUGH and USE_HW_TRANSFORM together!");
+	_dbg_assert_msg_(!id.Bit(VS_BIT_USE_HW_TRANSFORM) || !id.Bit(VS_BIT_IS_THROUGH), "Can't have both THROUGH and USE_HW_TRANSFORM together!");
 
 	*id_out = id;
 }
@@ -161,7 +161,7 @@ static bool MatrixNeedsProjection(const float m[12]) {
 
 std::string FragmentShaderDesc(const FShaderID &id) {
 	std::stringstream desc;
-	desc << PStringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
+	desc << StringFromFormat("%08x:%08x ", id.d[1], id.d[0]);
 	if (id.Bit(FS_BIT_CLEARMODE)) desc << "Clear ";
 	if (id.Bit(FS_BIT_DO_TEXTURE)) desc << "Tex ";
 	if (id.Bit(FS_BIT_DO_TEXTURE_PROJ)) desc << "TexProj ";
@@ -310,7 +310,7 @@ void ComputeFragmentShaderID(FShaderID *id_out, const Draw::Bugs &bugs) {
 
 		id.SetBit(FS_BIT_SHADER_DEPAL, useShaderDepal);
 
-		if (g_PConfig.bVendorBugChecksEnabled) {
+		if (g_Config.bVendorBugChecksEnabled) {
 			if (bugs.Has(Draw::Bugs::NO_DEPTH_CANNOT_DISCARD_STENCIL)) {
 				id.SetBit(FS_BIT_NO_DEPTH_CANNOT_DISCARD_STENCIL, !IsStencilTestOutputDisabled() && !gstate.isDepthWriteEnabled());
 			}

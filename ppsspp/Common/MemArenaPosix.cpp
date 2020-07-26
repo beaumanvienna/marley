@@ -51,7 +51,7 @@ void MemArena::GrabLowMemSpace(size_t size) {
 	// Some platforms (like Raspberry Pi) end up flushing to disk.
 	// To avoid this, we try to use /dev/shm (tmpfs) if it exists.
 	fd = -1;
-	if (PFile::Exists(tmpfs_location)) {
+	if (File::Exists(tmpfs_location)) {
 		fd = open(tmpfs_ram_temp_file.c_str(), O_RDWR | O_CREAT, mode);
 		if (fd >= 0) {
 			// Great, this definitely shouldn't flush to disk.
@@ -124,12 +124,8 @@ u8* MemArena::Find4GBBase() {
 	}
 #else
 	size_t size = 0x10000000;
-	void* base = mmap(0, size, PROT_READ | PROT_WRITE,
-		MAP_ANON | MAP_SHARED, -1, 0);
-	if (base == MAP_FAILED) {
-		PanicAlert("Failed to map 256 MB of memory space: %s", strerror(errno));
-		return 0;
-	}
+	void* base = mmap(0, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+	_assert_msg_(base != MAP_FAILED, "Failed to map 256 MB of memory space: %s", strerror(errno));
 	munmap(base, size);
 	return static_cast<u8*>(base);
 #endif

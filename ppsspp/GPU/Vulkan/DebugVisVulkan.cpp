@@ -81,7 +81,7 @@ void DrawAllocatorVis(UIContext *ui, GPUInterface *gpu) {
 		Draw::DrawContext *draw = ui->GetDrawContext();
 		Draw::Texture *tex = draw->CreateTexture(desc);
 
-		PUI::Drawable white(0xFFFFFFFF);
+		UI::Drawable white(0xFFFFFFFF);
 		draw->BindTexture(0, tex);
 		// Cheap black border.
 		ui->Draw()->Rect(x-2, y-2, w+4, h+4, 0xE0000000);

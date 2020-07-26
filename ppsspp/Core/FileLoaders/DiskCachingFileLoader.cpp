@@ -21,6 +21,7 @@
 #include <mutex>
 #include <cstring>
 
+#include "ppsspp_config.h"
 #include "file/file_util.h"
 #include "file/free.h"
 #include "util/text/utf8.h"
@@ -28,6 +29,11 @@
 #include "Common/CommonWindows.h"
 #include "Core/FileLoaders/DiskCachingFileLoader.h"
 #include "Core/System.h"
+
+#if PPSSPP_PLATFORM(SWITCH)
+// Far from optimal, but I guess it works...
+#define fseeko fseek
+#endif
 
 static const char *CACHEFILE_MAGIC = "ppssppDC";
 static const s64 SAFETY_FREE_DISK_SPACE = 768 * 1024 * 1024; // 768 MB
@@ -392,7 +398,7 @@ u32 DiskCachingFileLoaderCache::AllocateBlock(u32 indexPos) {
 		}
 	}
 
-	_dbg_assert_msg_(LOADER, false, "Not enough free blocks");
+	_dbg_assert_msg_(false, "Not enough free blocks");
 	return INVALID_BLOCK;
 }
 
@@ -415,8 +421,8 @@ std::string DiskCachingFileLoaderCache::MakeCacheFilePath(const std::string &pat
 		dir = GetSysDirectory(DIRECTORY_CACHE);
 	}
 
-	if (!PFile::Exists(dir)) {
-		PFile::CreateFullPath(dir);
+	if (!File::Exists(dir)) {
+		File::CreateFullPath(dir);
 	}
 
 	return dir + "/" + MakeCacheFilename(path);
@@ -509,7 +515,7 @@ void DiskCachingFileLoaderCache::WriteIndexData(u32 indexPos, BlockInfo &info) {
 }
 
 bool DiskCachingFileLoaderCache::LoadCacheFile(const std::string &path) {
-	FILE *fp = PFile::OpenCFile(path, "rb+");
+	FILE *fp = File::OpenCFile(path, "rb+");
 	if (!fp) {
 		return false;
 	}
@@ -606,7 +612,7 @@ void DiskCachingFileLoaderCache::CreateCacheFile(const std::string &path) {
 	}
 	flags_ = 0;
 
-	f_ = PFile::OpenCFile(path, "wb+");
+	f_ = File::OpenCFile(path, "wb+");
 	if (!f_) {
 		ERROR_LOG(LOADER, "Could not create disk cache file");
 		return;
@@ -709,7 +715,7 @@ bool DiskCachingFileLoaderCache::LockCacheFile(bool lockStatus) {
 bool DiskCachingFileLoaderCache::RemoveCacheFile(const std::string &path) {
 	// Note that some platforms, you can't delete open files.  So we check.
 	CloseFileHandle();
-	return PFile::Delete(path);
+	return File::Delete(path);
 }
 
 void DiskCachingFileLoaderCache::CloseFileHandle() {

@@ -30,7 +30,7 @@
 #define PTRBITS 32
 #endif
 
-namespace PGen
+namespace Gen
 {
 
 enum X64Reg : u32
@@ -172,13 +172,13 @@ struct OpArg
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
-	void PWriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
-	void PWriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
+	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
+	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
 	u16 operandReg;
 
-	void PWriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
+	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
 	bool IsSimpleReg(X64Reg reg) const
@@ -292,7 +292,7 @@ template<> inline u32 PtrOffsetTpl<8>(const void *ptr, const void* base) {
 	if (distance >= 0x80000000LL ||
 	    distance < -0x80000000LL)
 	{
-		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
+		_assert_msg_(false, "pointer offset out of range");
 		return 0;
 	}
 
@@ -337,17 +337,17 @@ private:
 	u8 *code;
 	bool flags_locked;
 
-	void PCheckFlags();
+	void CheckFlags();
 
-	void PRex(int w, int r, int x, int b);
-	void PWriteSimple1Byte(int bits, u8 byte, X64Reg reg);
-	void PWriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
-	void PWriteMulDivType(int bits, OpArg src, int ext);
-	void PWriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
+	void Rex(int w, int r, int x, int b);
+	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
+	void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
+	void WriteMulDivType(int bits, OpArg src, int ext);
+	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
-	void PWriteMXCSR(OpArg arg, int ext);
-	void PWriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteMXCSR(OpArg arg, int ext);
+	void WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
@@ -356,7 +356,7 @@ private:
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
-	void PWriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
+	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
 	inline void Write8(u8 value)   {*code++ = value;}
@@ -369,17 +369,17 @@ public:
 	XEmitter(u8 *code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
-	void PWriteModRM(int mod, int rm, int reg);
-	void PWriteSIB(int scale, int index, int base);
+	void WriteModRM(int mod, int rm, int reg);
+	void WriteSIB(int scale, int index, int base);
 
-	void SetCodePointer(u8 *ptr);
+	void SetCodePointer(u8 *ptr, u8 *writePtr);
 	const u8 *GetCodePointer() const;
 
-	void PReserveCodeSpace(int bytes);
-	const u8 *PAlignCode4();
-	const u8 *PAlignCode16();
-	const u8 *PAlignCodePage();
-	u8 *PGetWritableCodePtr();
+	void ReserveCodeSpace(int bytes);
+	const u8 *AlignCode4();
+	const u8 *AlignCode16();
+	const u8 *AlignCodePage();
+	u8 *GetWritableCodePtr();
 
 	void LockFlags() { flags_locked = true; }
 	void UnlockFlags() { flags_locked = false; }
@@ -392,75 +392,75 @@ public:
 	// Actually, REP MOVSB has gotten fast again on recent CPU generations, though it's not all that useful anyway.
 
 	// Debug breakpoint
-	void PINT3();
+	void INT3();
 
 	// Do nothing
-	void PNOP(size_t count = 1);
+	void NOP(size_t count = 1);
 
 	// Save energy in wait-loops on P4 only. Probably not too useful.
-	void PPAUSE();
+	void PAUSE();
 
 	// Flag control
-	void PSTC();
-	void PCLC();
-	void PCMC();
+	void STC();
+	void CLC();
+	void CMC();
 
 	// These two can not be executed in 64-bit mode on early Intel 64-bit CPU:s, only on Core2 and AMD!
-	void PLAHF(); // 3 cycle vector path
-	void PSAHF(); // direct path fast
+	void LAHF(); // 3 cycle vector path
+	void SAHF(); // direct path fast
 
 	// Stack control
-	void PPUSH(X64Reg reg);
-	void PPOP(X64Reg reg);
-	void PPUSH(int bits, const OpArg &reg);
-	void PPOP(int bits, const OpArg &reg);
-	void PPUSHF();
-	void PPOPF();
+	void PUSH(X64Reg reg);
+	void POP(X64Reg reg);
+	void PUSH(int bits, const OpArg &reg);
+	void POP(int bits, const OpArg &reg);
+	void PUSHF();
+	void POPF();
 
 	// Flow control
-	void PRET();
-	void PRET_FAST();
-	void PUD2();
-	FixupBranch PJ(bool force5bytes = false);
+	void RET();
+	void RET_FAST();
+	void UD2();
+	FixupBranch J(bool force5bytes = false);
 
-	void PJMP(const u8 * addr, bool force5Bytes = false);
-	void PJMP(OpArg arg);
-	void PJMPptr(const OpArg &arg);
-	void PJMPself(); //infinite loop!
+	void JMP(const u8 * addr, bool force5Bytes = false);
+	void JMP(OpArg arg);
+	void JMPptr(const OpArg &arg);
+	void JMPself(); //infinite loop!
 #ifdef CALL
 #undef CALL
 #endif
-	void PCALL(const void *fnptr);
-	void PCALLptr(OpArg arg);
+	void CALL(const void *fnptr);
+	void CALLptr(OpArg arg);
 
-	FixupBranch PJ_CC(CCFlags conditionCode, bool force5bytes = false);
-	//void PJ_CC(CCFlags conditionCode, JumpTarget target);
-	void PJ_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
+	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
+	//void J_CC(CCFlags conditionCode, JumpTarget target);
+	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
 
-	void PSetJumpTarget(const FixupBranch &branch);
+	void SetJumpTarget(const FixupBranch &branch);
 
-	void PSETcc(CCFlags flag, OpArg dest);
+	void SETcc(CCFlags flag, OpArg dest);
 	// Note: CMOV brings small if any benefit on current cpus.
-	void PCMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
+	void CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
 
 	// Fences
-	void PLFENCE();
-	void PMFENCE();
-	void PSFENCE();
+	void LFENCE();
+	void MFENCE();
+	void SFENCE();
 
 	// Bit scan
 	void BSF(int bits, X64Reg dest, OpArg src); //bottom bit to top bit
 	void BSR(int bits, X64Reg dest, OpArg src); //top bit to bottom bit
 
 	// Cache control
-	enum PPREFETCHLevel
+	enum PrefetchLevel
 	{
 		PF_NTA, //Non-temporal (data used once and only once)
 		PF_T0,  //All cache levels
 		PF_T1,  //Levels 2+ (aliased to T0 on AMD)
 		PF_T2,  //Levels 3+ (aliased to T0 on AMD)
 	};
-	void PPREFETCH(PPREFETCHLevel level, OpArg arg);
+	void PREFETCH(PrefetchLevel level, OpArg arg);
 	void MOVNTI(int bits, OpArg dest, X64Reg src);
 	void MOVNTDQ(OpArg arg, X64Reg regOp);
 	void MOVNTPS(OpArg arg, X64Reg regOp);
@@ -494,42 +494,42 @@ public:
 	void SHLD(int bits, OpArg dest, OpArg src, OpArg shift);
 
 	// Extend EAX into EDX in various ways
-	void PCWD(int bits = 16);
-	inline void CDQ() {PCWD(32);}
-	inline void CQO() {PCWD(64);}
-	void PCBW(int bits = 8);
-	inline void CWDE() {PCBW(16);}
-	inline void CDQE() {PCBW(32);}
+	void CWD(int bits = 16);
+	inline void CDQ() {CWD(32);}
+	inline void CQO() {CWD(64);}
+	void CBW(int bits = 8);
+	inline void CWDE() {CBW(16);}
+	inline void CDQE() {CBW(32);}
 
 	// Load effective address
-	void PLEA(int bits, X64Reg dest, OpArg src);
+	void LEA(int bits, X64Reg dest, OpArg src);
 
 	// Integer arithmetic
 	void NEG (int bits, OpArg src);
-	void PADD (int bits, const OpArg &a1, const OpArg &a2);
-	void PADC (int bits, const OpArg &a1, const OpArg &a2);
-	void PSUB (int bits, const OpArg &a1, const OpArg &a2);
-	void PSBB (int bits, const OpArg &a1, const OpArg &a2);
-	void P_AND (int bits, const OpArg &a1, const OpArg &a2);
-	void PCMP (int bits, const OpArg &a1, const OpArg &a2);
+	void ADD (int bits, const OpArg &a1, const OpArg &a2);
+	void ADC (int bits, const OpArg &a1, const OpArg &a2);
+	void SUB (int bits, const OpArg &a1, const OpArg &a2);
+	void SBB (int bits, const OpArg &a1, const OpArg &a2);
+	void AND (int bits, const OpArg &a1, const OpArg &a2);
+	void CMP (int bits, const OpArg &a1, const OpArg &a2);
 
 	// Bit operations
 	void NOT (int bits, OpArg src);
-	void P_OR  (int bits, const OpArg &a1, const OpArg &a2);
-	void P_XOR (int bits, const OpArg &a1, const OpArg &a2);
-	void PMOV (int bits, const OpArg &a1, const OpArg &a2);
-	void P_TEST(int bits, const OpArg &a1, const OpArg &a2);
+	void OR  (int bits, const OpArg &a1, const OpArg &a2);
+	void XOR (int bits, const OpArg &a1, const OpArg &a2);
+	void MOV (int bits, const OpArg &a1, const OpArg &a2);
+	void TEST(int bits, const OpArg &a1, const OpArg &a2);
 
 	// Are these useful at all? Consider removing.
-	void PXCHG(int bits, const OpArg &a1, const OpArg &a2);
-	void PXCHG_AHAL();
+	void XCHG(int bits, const OpArg &a1, const OpArg &a2);
+	void XCHG_AHAL();
 
 	// Byte swapping (32 and 64-bit only).
-	void PBSWAP(int bits, X64Reg reg);
+	void BSWAP(int bits, X64Reg reg);
 
 	// Sign/zero extension
-	void PMOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
-	void PMOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
+	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
+	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
@@ -544,11 +544,11 @@ public:
 	void LDMXCSR(OpArg memloc);
 
 	// Prefixes
-	void PLOCK();
-	void PREP();
-	void PREPNE();
-	void PFSOverride();
-	void PGSOverride();
+	void LOCK();
+	void REP();
+	void REPNE();
+	void FSOverride();
+	void GSOverride();
 
 	// x87
 	enum x87StatusWordBits {
@@ -571,8 +571,8 @@ public:
 	void FLD(int bits, OpArg src);
 	void FST(int bits, OpArg dest);
 	void FSTP(int bits, OpArg dest);
-	void PFNSTSW_AX();
-	void PFWAIT();
+	void FNSTSW_AX();
+	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
 	void ADDSS(X64Reg regOp, OpArg arg);
@@ -706,20 +706,20 @@ public:
 	void MOVHPS(OpArg arg, X64Reg regOp);
 	void MOVHPD(OpArg arg, X64Reg regOp);
 
-	void PMOVHLPS(X64Reg regOp1, X64Reg regOp2);
-	void PMOVLHPS(X64Reg regOp1, X64Reg regOp2);
+	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
+	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
 
-	void PMOVD_xmm(X64Reg dest, const OpArg &arg);
-	void PMOVQ_xmm(X64Reg dest, OpArg arg);
-	void PMOVD_xmm(const OpArg &arg, X64Reg src);
-	void PMOVQ_xmm(OpArg arg, X64Reg src);
+	void MOVD_xmm(X64Reg dest, const OpArg &arg);
+	void MOVQ_xmm(X64Reg dest, OpArg arg);
+	void MOVD_xmm(const OpArg &arg, X64Reg src);
+	void MOVQ_xmm(OpArg arg, X64Reg src);
 
 	// SSE/SSE2: Generates a mask from the high bits of the components of the packed register in question.
 	void MOVMSKPS(X64Reg dest, OpArg arg);
 	void MOVMSKPD(X64Reg dest, OpArg arg);
 
 	// SSE2: Selective byte store, mask in src register. EDI/RDI specifies store address. This is a weird one.
-	void PMASKMOVDQU(X64Reg dest, X64Reg src);
+	void MASKMOVDQU(X64Reg dest, X64Reg src);
 	void LDDQU(X64Reg dest, OpArg src);
 
 	// SSE/SSE2: Data type conversions.
@@ -749,10 +749,10 @@ public:
 	void PACKUSDW(X64Reg dest, OpArg arg);
 	void PACKUSWB(X64Reg dest, OpArg arg);
 
-	void PPUNPCKLBW(X64Reg dest, const OpArg &arg);
-	void PPUNPCKLWD(X64Reg dest, const OpArg &arg);
-	void PPUNPCKLDQ(X64Reg dest, const OpArg &arg);
-	void PPUNPCKLQDQ(X64Reg dest, const OpArg &arg);
+	void PUNPCKLBW(X64Reg dest, const OpArg &arg);
+	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
+	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
+	void PUNPCKLQDQ(X64Reg dest, const OpArg &arg);
 
 	void PUNPCKHBW(X64Reg dest, const OpArg &arg);
 	void PUNPCKHWD(X64Reg dest, const OpArg &arg);
@@ -823,19 +823,19 @@ public:
 	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
 	void PSHUFHW(X64Reg dest, OpArg arg, u8 shuffle);
 
-	void PPSRLW(X64Reg reg, int shift);
-	void PPSRLD(X64Reg reg, int shift);
-	void PPSRLQ(X64Reg reg, int shift);
-	void PPSRLQ(X64Reg reg, OpArg arg);
-	void PPSRLDQ(X64Reg reg, int shift);
+	void PSRLW(X64Reg reg, int shift);
+	void PSRLD(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, OpArg arg);
+	void PSRLDQ(X64Reg reg, int shift);
 
-	void PPSLLW(X64Reg reg, int shift);
-	void PPSLLD(X64Reg reg, int shift);
-	void PPSLLQ(X64Reg reg, int shift);
-	void PPSLLDQ(X64Reg reg, int shift);
+	void PSLLW(X64Reg reg, int shift);
+	void PSLLD(X64Reg reg, int shift);
+	void PSLLQ(X64Reg reg, int shift);
+	void PSLLDQ(X64Reg reg, int shift);
 
-	void PPSRAW(X64Reg reg, int shift);
-	void PPSRAD(X64Reg reg, int shift);
+	void PSRAW(X64Reg reg, int shift);
+	void PSRAD(X64Reg reg, int shift);
 
 	void PMULLW(X64Reg dest, const OpArg &arg);
 	void PMULHW(X64Reg dest, const OpArg &arg);
@@ -992,7 +992,7 @@ public:
 	void BEXTR(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
 	void ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
-	void PRDTSC();
+	void RDTSC();
 
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack
@@ -1018,13 +1018,13 @@ public:
 	void ABI_CallFunctionCCP(const void *func, u32 param1, u32 param2, void *param3);
 	void ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2, u32 param3, void *param4);
 	void ABI_CallFunctionP(const void *func, void *param1);
-	void ABI_CallFunctionPA(const void *func, void *param1, const PGen::OpArg &arg2);
-	void ABI_CallFunctionPAA(const void *func, void *param1, const PGen::OpArg &arg2, const PGen::OpArg &arg3);
+	void ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpArg &arg2);
+	void ABI_CallFunctionPAA(const void *func, void *param1, const Gen::OpArg &arg2, const Gen::OpArg &arg3);
 	void ABI_CallFunctionPPC(const void *func, void *param1, void *param2, u32 param3);
-	void ABI_CallFunctionAC(const void *func, const PGen::OpArg &arg1, u32 param2);
-	void ABI_CallFunctionACC(const void *func, const PGen::OpArg &arg1, u32 param2, u32 param3);
-	void ABI_CallFunctionA(const void *func, const PGen::OpArg &arg1);
-	void ABI_CallFunctionAA(const void *func, const PGen::OpArg &arg1, const PGen::OpArg &arg2);
+	void ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 param2);
+	void ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32 param2, u32 param3);
+	void ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1);
+	void ABI_CallFunctionAA(const void *func, const Gen::OpArg &arg1, const Gen::OpArg &arg2);
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(const void *func, X64Reg reg1);

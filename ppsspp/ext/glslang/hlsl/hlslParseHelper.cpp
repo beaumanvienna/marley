@@ -51,7 +51,7 @@
 #include <array>
 #include <set>
 
-namespace Pglslang {
+namespace glslang {
 
 HlslParseContext::HlslParseContext(TSymbolTable& symbolTable, TIntermediate& interm, bool parsingBuiltins,
                                    int version, EProfile profile, const SpvVersion& spvVersion, EShLanguage language,
@@ -134,7 +134,7 @@ bool HlslParseContext::parseShaderStrings(TPpContext& ppContext, TInputScanner& 
     if (!grammar.parse()) {
         // Print a message formated such that if you click on the message it will take you right to
         // the line through most UIs.
-        const Pglslang::TSourceLoc& sourceLoc = input.getSourceLoc();
+        const glslang::TSourceLoc& sourceLoc = input.getSourceLoc();
         infoSink.info << sourceLoc.getFilenameStr() << "(" << sourceLoc.line << "): error at column " << sourceLoc.column
                       << ", HLSL parsing failed.\n";
         ++numErrors;
@@ -1254,7 +1254,7 @@ int HlslParseContext::addFlattenedMember(const TVariable& variable, const TType&
             // inherited locations must be auto bumped, not replicated
             if (flattenData.nextLocation != TQualifier::layoutLocationEnd) {
                 memberVariable->getWritableType().getQualifier().layoutLocation = flattenData.nextLocation;
-                flattenData.nextLocation += intermediate.PcomputeTypeLocationSize(memberVariable->getType(), language);
+                flattenData.nextLocation += intermediate.computeTypeLocationSize(memberVariable->getType(), language);
                 nextOutLocation = std::max(nextOutLocation, flattenData.nextLocation);
             }
         }
@@ -1545,9 +1545,9 @@ void HlslParseContext::assignToInterface(TVariable& variable)
                     int size;
                     if (type.isArray() && qualifier.isArrayedIo(language)) {
                         TType elementType(type, 0);
-                        size = intermediate.PcomputeTypeLocationSize(elementType, language);
+                        size = intermediate.computeTypeLocationSize(elementType, language);
                     } else
-                        size = intermediate.PcomputeTypeLocationSize(type, language);
+                        size = intermediate.computeTypeLocationSize(type, language);
 
                     if (qualifier.storage == EvqVaryingIn) {
                         variable.getWritableType().getQualifier().layoutLocation = nextInLocation;
@@ -6094,8 +6094,8 @@ void HlslParseContext::handleSemantic(TSourceLoc loc, TQualifier& qualifier, TBu
 // 'location' has the "c[Subcomponent]" part.
 // 'component' points to the "component" part, or nullptr if not present.
 //
-void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& qualifier, const Pglslang::TString& location,
-                                        const Pglslang::TString* component)
+void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& qualifier, const glslang::TString& location,
+                                        const glslang::TString* component)
 {
     if (location.size() == 0 || location[0] != 'c') {
         error(loc, "expected 'c'", "packoffset", "");
@@ -6134,8 +6134,8 @@ void HlslParseContext::handlePackOffset(const TSourceLoc& loc, TQualifier& quali
 // 'profile' points to the shader_profile part, or nullptr if not present.
 // 'desc' is the type# part.
 //
-void HlslParseContext::handleRegister(const TSourceLoc& loc, TQualifier& qualifier, const Pglslang::TString* profile,
-                                      const Pglslang::TString& desc, int subComponent, const Pglslang::TString* spaceDesc)
+void HlslParseContext::handleRegister(const TSourceLoc& loc, TQualifier& qualifier, const glslang::TString* profile,
+                                      const glslang::TString& desc, int subComponent, const glslang::TString* spaceDesc)
 {
     if (profile != nullptr)
         warn(loc, "ignoring shader_profile", "register", "");
@@ -7253,7 +7253,7 @@ void HlslParseContext::setSpecConstantId(const TSourceLoc& loc, TQualifier& qual
     } else {
         qualifier.layoutSpecConstantId = value;
         qualifier.specConstant = true;
-        if (! intermediate.PaddUsedConstantId(value))
+        if (! intermediate.addUsedConstantId(value))
             error(loc, "specialization-constant id already used", "constant_id", "");
     }
     return;
@@ -8730,7 +8730,7 @@ void HlslParseContext::fixBlockLocations(const TSourceLoc& loc, TQualifier& qual
                     memberQualifier.layoutComponent = 0;
                 }
                 nextLocation = memberQualifier.layoutLocation +
-                               intermediate.PcomputeTypeLocationSize(*typeList[member].type, language);
+                               intermediate.computeTypeLocationSize(*typeList[member].type, language);
             }
         }
     }
@@ -10038,4 +10038,4 @@ void HlslParseContext::finish()
     TParseContextBase::finish();
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

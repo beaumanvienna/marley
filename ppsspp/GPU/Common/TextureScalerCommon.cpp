@@ -554,14 +554,14 @@ bool TextureScalerCommon::ScaleInto(u32 *outputBuf, u32 *src, u32 &dstFmt, int &
 	ConvertTo8888(dstFmt, src, inputBuf, width, height);
 
 	// deposterize
-	if (g_PConfig.bTexDeposterize) {
+	if (g_Config.bTexDeposterize) {
 		bufDeposter.resize(width*height);
 		DePosterize(inputBuf, bufDeposter.data(), width, height);
 		inputBuf = bufDeposter.data();
 	}
 
 	// scale 
-	switch (g_PConfig.iTexScalingType) {
+	switch (g_Config.iTexScalingType) {
 	case XBRZ:
 		ScaleXBRZ(factor, inputBuf, outputBuf, width, height);
 		break;
@@ -575,7 +575,7 @@ bool TextureScalerCommon::ScaleInto(u32 *outputBuf, u32 *src, u32 &dstFmt, int &
 		ScaleHybrid(factor, inputBuf, outputBuf, width, height, true);
 		break;
 	default:
-		ERROR_LOG(G3D, "Unknown scaling type: %d", g_PConfig.iTexScalingType);
+		ERROR_LOG(G3D, "Unknown scaling type: %d", g_Config.iTexScalingType);
 	}
 
 	// update values accordingly

@@ -34,7 +34,7 @@
 
 #include "Settings.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 
 // We need CMake to provide us the absolute path to the directory containing
 // test files, so we are certain to find those files no matter where the test
@@ -48,4 +48,4 @@ namespace Pglslangtest {
 
 GTestSettings GlobalTestSettings = {nullptr, false, GLSLANG_TEST_DIRECTORY};
 
-}  // namespace Pglslangtest
+}  // namespace glslangtest

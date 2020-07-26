@@ -15,7 +15,7 @@
 #include "unittest.h"
 #include "rapidjson/internal/regex.h"
 
-using namespace rapidjson::Pinternal;
+using namespace rapidjson::internal;
 
 TEST(Regex, Single) {
     Regex re("a");

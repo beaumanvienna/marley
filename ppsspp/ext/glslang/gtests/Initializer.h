@@ -37,7 +37,7 @@
 
 #include "glslang/Public/ShaderLang.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 
 // Initializes glslang on creation, and destroys it on completion.
 // This object is expected to be a singleton, so that internal glslang state
@@ -45,11 +45,11 @@ namespace Pglslangtest {
 //
 class GlslangInitializer {
 public:
-    GlslangInitializer()  { Pglslang::InitializeProcess(); }
+    GlslangInitializer()  { glslang::InitializeProcess(); }
 
-    ~GlslangInitializer() { Pglslang::FinalizeProcess(); }
+    ~GlslangInitializer() { glslang::FinalizeProcess(); }
 };
 
-}  // namespace Pglslangtest
+}  // namespace glslangtest
 
 #endif  // GLSLANG_GTESTS_INITIALIZER_H

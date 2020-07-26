@@ -31,6 +31,7 @@
 #include "Core/MIPS/MIPSCodeUtils.h"
 #include "Core/MIPS/MIPS.h"
 #include "Core/MIPS/MIPSDebugInterface.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/MemMapHelpers.h"
 #include "Core/MIPS/JitCommon/JitCommon.h"
@@ -134,22 +135,20 @@ struct NativeCallback
 	s32_le notifyArg;
 };
 
-class Callback : public KernelObject
-{
+class PSPCallback : public KernelObject {
 public:
 	const char *GetName() override { return nc.name; }
-	const char *GetTypeName() override { return "CallBack"; }
+	const char *GetTypeName() override { return GetStaticTypeName(); }
+	static const char *GetStaticTypeName() { return "CallBack"; }
 
-	void GetQuickInfo(char *ptr, int size) override
-	{
+	void GetQuickInfo(char *ptr, int size) override {
 		sprintf(ptr, "thread=%i, argument= %08x",
 			//hackAddress,
 			nc.threadId,
 			nc.commonArgument);
 	}
 
-	~Callback()
-	{
+	~PSPCallback() {
 	}
 
 	static u32 GetMissingErrorCode() { return SCE_KERNEL_ERROR_UNKNOWN_CBID; }
@@ -267,9 +266,9 @@ public:
 		types_[actionType] = creator;
 	}
 
-	Action *createActionByType(int actionType) {
+	PSPAction *createActionByType(int actionType) {
 		if (actionType < (int) types_.size() && types_[actionType] != NULL) {
-			Action *a = types_[actionType]();
+			PSPAction *a = types_[actionType]();
 			a->actionTypeID = actionType;
 			return a;
 		}
@@ -292,7 +291,7 @@ private:
 	u32 idGen_;
 };
 
-class ActionAfterMipsCall : public Action
+class ActionAfterMipsCall : public PSPAction
 {
 	ActionAfterMipsCall()
 	{
@@ -302,8 +301,7 @@ class ActionAfterMipsCall : public Action
 public:
 	void run(MipsCall &call) override;
 
-	static Action *Create()
-	{
+	static PSPAction *Create() {
 		return new ActionAfterMipsCall();
 	}
 
@@ -344,17 +342,16 @@ public:
 	bool isProcessingCallbacks;
 	SceUID currentCallbackId;
 
-	Action *chainedAction;
+	PSPAction *chainedAction;
 };
 
-class ActionAfterCallback : public Action
+class ActionAfterCallback : public PSPAction
 {
 public:
 	ActionAfterCallback() {}
 	void run(MipsCall &call) override;
 
-	static Action *Create()
-	{
+	static PSPAction *Create() {
 		return new ActionAfterCallback;
 	}
 
@@ -375,13 +372,14 @@ public:
 	SceUID cbId;
 };
 
-class Thread : public KernelObject
-{
+class PSPThread : public KernelObject {
 public:
+	PSPThread() : debug(currentMIPS, context) {}
+
 	const char *GetName() override { return nt.name; }
-	const char *GetTypeName() override { return "Thread"; }
-	void GetQuickInfo(char *ptr, int size) override
-	{
+	const char *GetTypeName() override { return GetStaticTypeName(); }
+	static const char *GetStaticTypeName() { return "Thread"; }
+	void GetQuickInfo(char *ptr, int size) override {
 		sprintf(ptr, "pc= %08x sp= %08x %s %s %s %s %s %s (wt=%i wid=%i wv= %08x )",
 			context.pc, context.r[MIPS_REG_SP],
 			(nt.status & THREADSTATUS_RUNNING) ? "RUN" : "", 
@@ -399,8 +397,9 @@ public:
 	static int GetStaticIDType() { return SCE_KERNEL_TMID_Thread; }
 	int GetIDType() const override { return SCE_KERNEL_TMID_Thread; }
 
-	bool AllocateStack(u32 &stackSize)
-	{
+	bool AllocateStack(u32 &stackSize) {
+		_assert_msg_(stackSize >= 0x200, "thread stack should be 256 bytes or larger");
+
 		FreeStack();
 
 		bool fromTop = (nt.attr & PSP_THREAD_ATTR_LOW_STACK) == 0;
@@ -429,7 +428,7 @@ public:
 	bool FillStack() {
 		// Fill the stack.
 		if ((nt.attr & PSP_THREAD_ATTR_NO_FILLSTACK) == 0) {
-			Memory_P::Memset(currentStack.start, 0xFF, nt.stackSize);
+			Memory::Memset(currentStack.start, 0xFF, nt.stackSize);
 		}
 		context.r[MIPS_REG_SP] = currentStack.start + nt.stackSize;
 		currentStack.end = context.r[MIPS_REG_SP];
@@ -437,14 +436,14 @@ public:
 		context.r[MIPS_REG_SP] -= 256;
 		context.r[MIPS_REG_K0] = context.r[MIPS_REG_SP];
 		u32 k0 = context.r[MIPS_REG_K0];
-		Memory_P::Memset(k0, 0, 0x100);
-		Memory_P::PWrite_U32(GetUID(),        k0 + 0xc0);
-		Memory_P::PWrite_U32(nt.initialStack, k0 + 0xc8);
-		Memory_P::PWrite_U32(0xffffffff,      k0 + 0xf8);
-		Memory_P::PWrite_U32(0xffffffff,      k0 + 0xfc);
+		Memory::Memset(k0, 0, 0x100);
+		Memory::Write_U32(GetUID(),        k0 + 0xc0);
+		Memory::Write_U32(nt.initialStack, k0 + 0xc8);
+		Memory::Write_U32(0xffffffff,      k0 + 0xf8);
+		Memory::Write_U32(0xffffffff,      k0 + 0xfc);
 		// After k0 comes the arguments, which is done by sceKernelStartThread().
 
-		Memory_P::PWrite_U32(GetUID(), nt.initialStack);
+		Memory::Write_U32(GetUID(), nt.initialStack);
 		return true;
 	}
 
@@ -453,7 +452,7 @@ public:
 			DEBUG_LOG(SCEKERNEL, "Freeing thread stack %s", nt.name);
 
 			if ((nt.attr & PSP_THREAD_ATTR_CLEAR_STACK) != 0 && nt.initialStack != 0) {
-				Memory_P::Memset(nt.initialStack, 0, nt.stackSize);
+				Memory::Memset(nt.initialStack, 0, nt.stackSize);
 			}
 
 			if (nt.attr & PSP_THREAD_ATTR_KERNEL) {
@@ -478,8 +477,8 @@ public:
 		nt.stackSize = currentStack.end - currentStack.start;
 
 		// We still drop the threadID at the bottom and fill it, but there's no k0.
-		Memory_P::Memset(currentStack.start, 0xFF, nt.stackSize);
-		Memory_P::PWrite_U32(GetUID(), nt.initialStack);
+		Memory::Memset(currentStack.start, 0xFF, nt.stackSize);
+		Memory::Write_U32(GetUID(), nt.initialStack);
 		return true;
 	}
 
@@ -496,17 +495,12 @@ public:
 		return true;
 	}
 
-	Thread() : debug(currentMIPS, context)
-	{
-		currentStack.start = 0;
-	}
-
 	// Can't use a destructor since savestates will call that too.
 	void Cleanup()
 	{
 		// Callbacks are automatically deleted when their owning thread is deleted.
 		for (auto it = callbacks.begin(), end = callbacks.end(); it != end; ++it)
-			kernelObjects.Destroy<Callback>(*it);
+			kernelObjects.Destroy<PSPCallback>(*it);
 
 		if (pushedStacks.size() != 0)
 		{
@@ -579,16 +573,16 @@ public:
 		}
 	}
 
-	NativeThread nt;
+	NativeThread nt{};
 
-	ThreadWaitInfo waitInfo;
-	SceUID moduleId;
+	ThreadWaitInfo waitInfo{};
+	SceUID moduleId = -1;
 
-	bool isProcessingCallbacks;
-	u32 currentMipscallId;
-	SceUID currentCallbackId;
+	bool isProcessingCallbacks = false;
+	u32 currentMipscallId = -1;
+	SceUID currentCallbackId = -1;
 
-	ThreadContext context;
+	PSPThreadContext context;
 	KernelThreadDebugInterface debug;
 
 	std::vector<SceUID> callbacks;
@@ -603,7 +597,7 @@ public:
 	// These are stacks that aren't "active" right now, but will pop off once the func returns.
 	std::vector<StackInfo> pushedStacks;
 
-	StackInfo currentStack;
+	StackInfo currentStack{};
 
 	// For thread end.
 	std::vector<SceUID> waitingThreads;
@@ -619,11 +613,11 @@ struct WaitTypeFuncs
 
 bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter);
 
-Thread *__KernelCreateThread(SceUID &id, SceUID moduleID, const char *name, u32 entryPoint, u32 priority, int stacksize, u32 attr);
-void __KernelResetThread(Thread *t, int lowestPriority);
+PSPThread *__KernelCreateThread(SceUID &id, SceUID moduleID, const char *name, u32 entryPoint, u32 priority, int stacksize, u32 attr);
+void __KernelResetThread(PSPThread *t, int lowestPriority);
 void __KernelCancelWakeup(SceUID threadID);
 void __KernelCancelThreadEndTimeout(SceUID threadID);
-bool __KernelCheckThreadCallbacks(Thread *thread, bool force);
+bool __KernelCheckThreadCallbacks(PSPThread *thread, bool force);
 
 //////////////////////////////////////////////////////////////////////////
 //STATE BEGIN
@@ -633,9 +627,10 @@ int g_inCbCount = 0;
 SceUID currentCallbackThreadID = 0;
 int readyCallbacksCount = 0;
 SceUID currentThread;
-Thread *currentThreadPtr;
+PSPThread *currentThreadPtr;
 u32 idleThreadHackAddr;
 u32 threadReturnHackAddr;
+u32 hleReturnHackAddr;
 u32 cbReturnHackAddr;
 u32 intReturnHackAddr;
 u32 extendReturnHackAddr;
@@ -688,7 +683,7 @@ void __KernelRestoreActionType(int actionType, ActionCreator creator)
 	mipsCalls.restoreActionType(actionType, creator);
 }
 
-Action *__KernelCreateAction(int actionType)
+PSPAction *__KernelCreateAction(int actionType)
 {
 	return mipsCalls.createActionByType(actionType);
 }
@@ -738,17 +733,17 @@ void MipsCall::setReturnValue(u64 value)
 	savedV1 = (value >> 32) & 0xFFFFFFFF;
 }
 
-inline Thread *__GetCurrentThread() {
+inline PSPThread *__GetCurrentThread() {
 	return currentThreadPtr;
 }
 
-inline void __SetCurrentThread(Thread *thread, SceUID threadID, const char *name) {
+inline void __SetCurrentThread(PSPThread *thread, SceUID threadID, const char *name) {
 	currentThread = threadID;
 	currentThreadPtr = thread;
 	hleCurrentThreadName = name;
 }
 
-u32 __KernelMipsCallReturnAddress() {
+u32 __KernelCallbackReturnAddress() {
 	return cbReturnHackAddr;
 }
 
@@ -787,12 +782,12 @@ static void __KernelDelayEndCallback(SceUID threadID, SceUID prevCallbackId) {
 
 	// TODO: Don't wake up if __KernelCurHasReadyCallbacks()?
 
-	s64 cyclesLeft = delayDeadline - CoreTiming_P::GetTicks();
+	s64 cyclesLeft = delayDeadline - CoreTiming::GetTicks();
 	if (cyclesLeft < 0)
 		__KernelResumeThreadFromWait(threadID, 0);
 	else
 	{
-		CoreTiming_P::ScheduleEvent(cyclesLeft, eventScheduledWakeup, __KernelGetCurThread());
+		CoreTiming::ScheduleEvent(cyclesLeft, eventScheduledWakeup, __KernelGetCurThread());
 		DEBUG_LOG(SCEKERNEL, "sceKernelDelayThreadCB: Resuming delay after callback");
 	}
 }
@@ -803,7 +798,7 @@ static void __KernelSleepBeginCallback(SceUID threadID, SceUID prevCallbackId) {
 
 static void __KernelSleepEndCallback(SceUID threadID, SceUID prevCallbackId) {
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
 	if (!thread) {
 		// This probably should not happen.
 		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSleepThreadCB: thread deleted?");
@@ -823,7 +818,7 @@ static void __KernelSleepEndCallback(SceUID threadID, SceUID prevCallbackId) {
 
 static void __KernelThreadEndBeginCallback(SceUID threadID, SceUID prevCallbackId)
 {
-	auto result = HLEKernel::WaitBeginCallback<Thread, WAITTYPE_THREADEND, SceUID>(threadID, prevCallbackId, eventThreadEndTimeout);
+	auto result = HLEKernel::WaitBeginCallback<PSPThread, WAITTYPE_THREADEND, SceUID>(threadID, prevCallbackId, eventThreadEndTimeout);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelWaitThreadEndCB: Suspending wait for callback");
 	else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
@@ -832,17 +827,15 @@ static void __KernelThreadEndBeginCallback(SceUID threadID, SceUID prevCallbackI
 		WARN_LOG_REPORT(SCEKERNEL, "sceKernelWaitThreadEndCB: beginning callback with bad wait id?");
 }
 
-static bool __KernelCheckResumeThreadEnd(Thread *t, SceUID waitingThreadID, u32 &error, int result, bool &wokeThreads)
-{
+static bool __KernelCheckResumeThreadEnd(PSPThread *t, SceUID waitingThreadID, u32 &error, int result, bool &wokeThreads) {
 	if (!HLEKernel::VerifyWait(waitingThreadID, WAITTYPE_THREADEND, t->GetUID()))
 		return true;
 
-	if (t->nt.status == THREADSTATUS_DORMANT)
-	{
+	if (t->nt.status == THREADSTATUS_DORMANT) {
 		u32 timeoutPtr = __KernelGetWaitTimeoutPtr(waitingThreadID, error);
-		s64 cyclesLeft = CoreTiming_P::UnscheduleEvent(eventThreadEndTimeout, waitingThreadID);
+		s64 cyclesLeft = CoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThreadID);
 		if (timeoutPtr != 0)
-			Memory_P::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+			Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 		s32 exitStatus = t->nt.exitStatus;
 		__KernelResumeThreadFromWait(waitingThreadID, exitStatus);
 		return true;
@@ -853,7 +846,7 @@ static bool __KernelCheckResumeThreadEnd(Thread *t, SceUID waitingThreadID, u32 
 
 static void __KernelThreadEndEndCallback(SceUID threadID, SceUID prevCallbackId)
 {
-	auto result = HLEKernel::WaitEndCallback<Thread, WAITTYPE_THREADEND, SceUID>(threadID, prevCallbackId, eventThreadEndTimeout, __KernelCheckResumeThreadEnd);
+	auto result = HLEKernel::WaitEndCallback<PSPThread, WAITTYPE_THREADEND, SceUID>(threadID, prevCallbackId, eventThreadEndTimeout, __KernelCheckResumeThreadEnd);
 	if (result == HLEKernel::WAIT_CB_RESUMED_WAIT)
 		DEBUG_LOG(SCEKERNEL, "sceKernelWaitThreadEndCB: Resuming wait from callback");
 }
@@ -876,7 +869,7 @@ u32 __KernelSetThreadRA(SceUID threadID, u32 nid)
 	else
 	{
 		u32 error;
-		Thread *thread = kernelObjects.Get<Thread>(threadID, error);
+		PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
 		if (!thread)
 			return error;
 
@@ -895,6 +888,16 @@ static void __KernelWriteFakeSysCall(u32 nid, u32 *ptr, u32 &pos)
 	pos += 8;
 	WriteSyscall("FakeSysCalls", nid, *ptr);
 	MIPSAnalyst::PrecompileFunction(*ptr, 8);
+}
+
+u32 HLEMipsCallReturnAddress() {
+	if (hleReturnHackAddr == 0) {
+		// From an old save state, likely... try to recover.
+		u32 blockSize = 2 * sizeof(u32);
+		u32 pos = kernelMemory.Alloc(blockSize, false, "hlerethack");
+		__KernelWriteFakeSysCall(NID_HLECALLRETURN, &hleReturnHackAddr, pos);
+	}
+	return hleReturnHackAddr;
 }
 
 void __KernelThreadingInit()
@@ -920,6 +923,7 @@ void __KernelThreadingInit()
 		{NID_INTERRUPTRETURN, &intReturnHackAddr},
 		{NID_EXTENDRETURN, &extendReturnHackAddr},
 		{NID_MODULERETURN, &moduleReturnHackAddr},
+		{NID_HLECALLRETURN, &hleReturnHackAddr},
 	};
 	u32 blockSize = sizeof(idleThreadCode) + ARRAY_SIZE(threadHacks) * 2 * 4;  // The thread code above plus 8 bytes per "hack"
 
@@ -933,15 +937,15 @@ void __KernelThreadingInit()
 	lastSwitchCycles = 0;
 	idleThreadHackAddr = kernelMemory.Alloc(blockSize, false, "threadrethack");
 
-	Memory_P::Memcpy(idleThreadHackAddr, idleThreadCode, sizeof(idleThreadCode));
+	Memory::Memcpy(idleThreadHackAddr, idleThreadCode, sizeof(idleThreadCode));
 
 	u32 pos = idleThreadHackAddr + sizeof(idleThreadCode);
 	for (size_t i = 0; i < ARRAY_SIZE(threadHacks); ++i) {
 		__KernelWriteFakeSysCall(threadHacks[i].nid, threadHacks[i].addr, pos);
 	}
 
-	eventScheduledWakeup = CoreTiming_P::RegisterEvent("ScheduledWakeup", &hleScheduledWakeup);
-	eventThreadEndTimeout = CoreTiming_P::RegisterEvent("ThreadEndTimeout", &hleThreadEndTimeout);
+	eventScheduledWakeup = CoreTiming::RegisterEvent("ScheduledWakeup", &hleScheduledWakeup);
+	eventThreadEndTimeout = CoreTiming::RegisterEvent("ThreadEndTimeout", &hleThreadEndTimeout);
 	actionAfterMipsCall = __KernelRegisterActionType(ActionAfterMipsCall::Create);
 	actionAfterCallback = __KernelRegisterActionType(ActionAfterCallback::Create);
 
@@ -961,7 +965,7 @@ void __KernelThreadingInit()
 
 void __KernelThreadingDoState(PointerWrap &p)
 {
-	auto s = p.Section("sceKernelThread", 1, 3);
+	auto s = p.Section("sceKernelThread", 1, 4);
 	if (!s)
 		return;
 
@@ -975,6 +979,12 @@ void __KernelThreadingDoState(PointerWrap &p)
 	p.Do(extendReturnHackAddr);
 	p.Do(moduleReturnHackAddr);
 
+	if (s >= 4) {
+		p.Do(hleReturnHackAddr);
+	} else {
+		hleReturnHackAddr = 0;
+	}
+
 	p.Do(currentThread);
 	SceUID dv = 0;
 	p.Do(threadqueue, dv);
@@ -984,9 +994,9 @@ void __KernelThreadingDoState(PointerWrap &p)
 	p.Do(threadReadyQueue);
 
 	p.Do(eventScheduledWakeup);
-	CoreTiming_P::RestoreRegisterEvent(eventScheduledWakeup, "ScheduledWakeup", &hleScheduledWakeup);
+	CoreTiming::RestoreRegisterEvent(eventScheduledWakeup, "ScheduledWakeup", &hleScheduledWakeup);
 	p.Do(eventThreadEndTimeout);
-	CoreTiming_P::RestoreRegisterEvent(eventThreadEndTimeout, "ThreadEndTimeout", &hleThreadEndTimeout);
+	CoreTiming::RestoreRegisterEvent(eventThreadEndTimeout, "ThreadEndTimeout", &hleThreadEndTimeout);
 	p.Do(actionAfterMipsCall);
 	__KernelRestoreActionType(actionAfterMipsCall, ActionAfterMipsCall::Create);
 	p.Do(actionAfterCallback);
@@ -994,8 +1004,8 @@ void __KernelThreadingDoState(PointerWrap &p)
 
 	p.Do(pausedDelays);
 
-	__SetCurrentThread(kernelObjects.GetFast<Thread>(currentThread), currentThread, __KernelGetThreadName(currentThread));
-	lastSwitchCycles = CoreTiming_P::GetTicks();
+	__SetCurrentThread(kernelObjects.GetFast<PSPThread>(currentThread), currentThread, __KernelGetThreadName(currentThread));
+	lastSwitchCycles = CoreTiming::GetTicks();
 
 	if (s >= 2)
 		p.Do(threadEventHandlers);
@@ -1012,12 +1022,12 @@ void __KernelThreadingDoStateLate(PointerWrap &p)
 
 KernelObject *__KernelThreadObject()
 {
-	return new Thread;
+	return new PSPThread;
 }
 
 KernelObject *__KernelCallbackObject()
 {
-	return new Callback;
+	return new PSPCallback;
 }
 
 void __KernelListenThreadEnd(ThreadCallback callback)
@@ -1035,10 +1045,9 @@ static void __KernelFireThreadEnd(SceUID threadID)
 }
 
 // TODO: Use __KernelChangeThreadState instead?  It has other affects...
-static void __KernelChangeReadyState(Thread *thread, SceUID threadID, bool ready)
-{
+static void __KernelChangeReadyState(PSPThread *thread, SceUID threadID, bool ready) {
 	// Passing the id as a parameter is just an optimization, if it's wrong it will cause havoc.
-	_dbg_assert_msg_(SCEKERNEL, thread->GetUID() == threadID, "Incorrect threadID");
+	_dbg_assert_msg_(thread->GetUID() == threadID, "Incorrect threadID");
 	int prio = thread->nt.currentPriority;
 
 	if (thread->isReady())
@@ -1059,7 +1068,7 @@ static void __KernelChangeReadyState(Thread *thread, SceUID threadID, bool ready
 static void __KernelChangeReadyState(SceUID threadID, bool ready)
 {
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
 	if (thread)
 		__KernelChangeReadyState(thread, threadID, ready);
 	else
@@ -1071,7 +1080,7 @@ void __KernelStartIdleThreads(SceUID moduleId)
 	for (int i = 0; i < 2; i++)
 	{
 		u32 error;
-		Thread *t = kernelObjects.Get<Thread>(threadIdleID[i], error);
+		PSPThread *t = kernelObjects.Get<PSPThread>(threadIdleID[i], error);
 		t->nt.gpreg = __KernelGetModuleGP(moduleId);
 		t->context.r[MIPS_REG_GP] = t->nt.gpreg;
 		//t->context.pc += 4;	// ADJUSTPC
@@ -1089,12 +1098,12 @@ bool __KernelSwitchOffThread(const char *reason)
 
 	if (threadID != threadIdleID[0] && threadID != threadIdleID[1])
 	{
-		Thread *current = __GetCurrentThread();
+		PSPThread *current = __GetCurrentThread();
 		if (current && current->isRunning())
 			__KernelChangeReadyState(current, threadID, true);
 
 		// Idle 0 chosen entirely arbitrarily.
-		Thread *t = kernelObjects.GetFast<Thread>(threadIdleID[0]);
+		PSPThread *t = kernelObjects.GetFast<PSPThread>(threadIdleID[0]);
 		if (t)
 		{
 			hleSkipDeadbeef();
@@ -1123,7 +1132,7 @@ bool __KernelSwitchToThread(SceUID threadID, const char *reason)
 		return false;
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (!t)
 	{
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelSwitchToThread: %x doesn't exist", threadID);
@@ -1131,9 +1140,13 @@ bool __KernelSwitchToThread(SceUID threadID, const char *reason)
 	}
 	else if (t->isReady() || t->isRunning())
 	{
-		Thread *current = __GetCurrentThread();
+		PSPThread *current = __GetCurrentThread();
 		if (current && current->isRunning())
 			__KernelChangeReadyState(current, currentThread, true);
+
+		if (!Memory::IsValidAddress(t->context.pc)) {
+			Core_ExecException(t->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
+		}
 
 		__KernelSwitchContext(t, reason);
 		return true;
@@ -1151,7 +1164,7 @@ void __KernelIdle()
 	// Don't skip 0xDEADBEEF here, this is called directly bypassing CallSyscall().
 	// That means the hle flag would stick around until the next call.
 
-	CoreTiming_P::Idle();
+	CoreTiming::Idle();
 	// We Advance within __KernelReSchedule(), so anything that has now happened after idle
 	// will be triggered properly upon reschedule.
 	__KernelReSchedule("idle");
@@ -1167,6 +1180,7 @@ void __KernelThreadingShutdown() {
 	mipsCalls.clear();
 	threadReturnHackAddr = 0;
 	cbReturnHackAddr = 0;
+	hleReturnHackAddr = 0;
 	__SetCurrentThread(NULL, 0, NULL);
 	intReturnHackAddr = 0;
 	pausedDelays.clear();
@@ -1174,64 +1188,63 @@ void __KernelThreadingShutdown() {
 	pendingDeleteThreads.clear();
 }
 
+std::string __KernelThreadingSummary() {
+	PSPThread *t = __GetCurrentThread();
+	return StringFromFormat("Cur thread: %s (attr %08x)", t ? t->GetName() : "(null)", t ? t->nt.attr : 0);
+}
+
 const char *__KernelGetThreadName(SceUID threadID)
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 		return t->nt.name;
 	return "ERROR";
 }
 
-u32 __KernelGetWaitValue(SceUID threadID, u32 &error)
-{
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+bool KernelIsThreadDormant(SceUID threadID) {
+	u32 error;
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
-	{
+		return (t->nt.status & (THREADSTATUS_DEAD | THREADSTATUS_DORMANT)) != 0;
+	return 0;
+}
+
+u32 __KernelGetWaitValue(SceUID threadID, u32 &error) {
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (t) {
 		return t->getWaitInfo().waitValue;
-	}
-	else
-	{
+	} else {
 		ERROR_LOG(SCEKERNEL, "__KernelGetWaitValue ERROR: thread %i", threadID);
 		return 0;
 	}
 }
 
-u32 __KernelGetWaitTimeoutPtr(SceUID threadID, u32 &error)
-{
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
-	if (t)
-	{
+u32 __KernelGetWaitTimeoutPtr(SceUID threadID, u32 &error) {
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (t) {
 		return t->getWaitInfo().timeoutPtr;
-	}
-	else
-	{
+	} else {
 		ERROR_LOG(SCEKERNEL, "__KernelGetWaitTimeoutPtr ERROR: thread %i", threadID);
 		return 0;
 	}
 }
 
-SceUID __KernelGetWaitID(SceUID threadID, WaitType type, u32 &error)
-{
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
-	if (t)
-	{
+SceUID __KernelGetWaitID(SceUID threadID, WaitType type, u32 &error) {
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (t) {
 		return t->getWaitID(type);
-	}
-	else
-	{
+	} else {
 		ERROR_LOG(SCEKERNEL, "__KernelGetWaitID ERROR: thread %i", threadID);
 		return -1;
 	}
 }
 
-SceUID __KernelGetCurrentCallbackID(SceUID threadID, u32 &error)
-{
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
-	if (t)
+SceUID __KernelGetCurrentCallbackID(SceUID threadID, u32 &error) {
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (t) {
 		return t->currentCallbackId;
-	else
-	{
+	} else {
 		ERROR_LOG(SCEKERNEL, "__KernelGetCurrentCallbackID ERROR: thread %i", threadID);
 		return 0;
 	}
@@ -1246,45 +1259,38 @@ u32 sceKernelReferThreadStatus(u32 threadID, u32 statusPtr)
 		threadID = __KernelGetCurThread();
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
-	if (!t)
-	{
-		ERROR_LOG(SCEKERNEL, "%08x=sceKernelReferThreadStatus(%i, %08x): bad thread", error, threadID, statusPtr);
-		return error;
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (!t) {
+		hleEatCycles(700);
+		hleReSchedule("refer thread status");
+		return hleLogError(SCEKERNEL, error, "bad thread");
 	}
 
-	u32 wantedSize = Memory_P::PRead_U32(statusPtr);
+	u32 wantedSize = Memory::Read_U32(statusPtr);
 
-	if (sceKernelGetCompiledSdkVersion() > 0x02060010)
-	{
-		if (wantedSize > THREADINFO_SIZE_AFTER_260)
-		{
-			ERROR_LOG(SCEKERNEL, "%08x=sceKernelReferThreadStatus(%i, %08x): bad size %d", SCE_KERNEL_ERROR_ILLEGAL_SIZE, threadID, statusPtr, wantedSize);
-			return SCE_KERNEL_ERROR_ILLEGAL_SIZE;
+	if (sceKernelGetCompiledSdkVersion() > 0x02060010) {
+		if (wantedSize > THREADINFO_SIZE_AFTER_260) {
+			hleEatCycles(1200);
+			hleReSchedule("refer thread status");
+			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_SIZE, "bad size %d", wantedSize);
 		}
-
-		VERBOSE_LOG(SCEKERNEL, "sceKernelReferThreadStatus(%i, %08x)", threadID, statusPtr);
 
 		t->nt.nativeSize = THREADINFO_SIZE_AFTER_260;
 		if (wantedSize != 0)
-			Memory_P::Memcpy(statusPtr, &t->nt, std::min(wantedSize, (u32)sizeof(t->nt)));
+			Memory::Memcpy(statusPtr, &t->nt, std::min(wantedSize, (u32)sizeof(t->nt)));
 		// TODO: What is this value?  Basic tests show 0...
 		if (wantedSize > sizeof(t->nt))
-			Memory_P::Memset(statusPtr + sizeof(t->nt), 0, wantedSize - sizeof(t->nt));
-	}
-	else
-	{
-		VERBOSE_LOG(SCEKERNEL, "sceKernelReferThreadStatus(%i, %08x)", threadID, statusPtr);
-
+			Memory::Memset(statusPtr + sizeof(t->nt), 0, wantedSize - sizeof(t->nt));
+	} else {
 		t->nt.nativeSize = THREADINFO_SIZE;
 		u32 sz = std::min(THREADINFO_SIZE, wantedSize);
 		if (sz != 0)
-			Memory_P::Memcpy(statusPtr, &t->nt, sz);
+			Memory::Memcpy(statusPtr, &t->nt, sz);
 	}
 
-	hleEatCycles(1220);
+	hleEatCycles(1400);
 	hleReSchedule("refer thread status");
-	return 0;
+	return hleLogSuccessVerboseI(SCEKERNEL, 0);
 }
 
 // Thanks JPCSP
@@ -1294,7 +1300,7 @@ u32 sceKernelReferThreadRunStatus(u32 threadID, u32 statusPtr)
 		threadID = __KernelGetCurThread();
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (!t)
 	{
 		ERROR_LOG(SCEKERNEL,"sceKernelReferThreadRunStatus Error %08x", error);
@@ -1302,7 +1308,7 @@ u32 sceKernelReferThreadRunStatus(u32 threadID, u32 statusPtr)
 	}
 
 	DEBUG_LOG(SCEKERNEL,"sceKernelReferThreadRunStatus(%i, %08x)", threadID, statusPtr);
-	if (!Memory_P::IsValidAddress(statusPtr))
+	if (!Memory::IsValidAddress(statusPtr))
 		return -1;
 
 	auto runStatus = PSPPointer<SceKernelThreadRunStatus>::Create(statusPtr);
@@ -1325,7 +1331,7 @@ u32 sceKernelReferThreadRunStatus(u32 threadID, u32 statusPtr)
 int sceKernelGetThreadExitStatus(SceUID threadID)
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (t->nt.status == THREADSTATUS_DORMANT) // TODO: can be dormant before starting, too, need to avoid that
@@ -1363,19 +1369,19 @@ u32 sceKernelGetThreadmanIdType(u32 uid) {
 	}
 }
 
-static bool __ThreadmanIdListIsSleeping(const Thread *t) {
+static bool __ThreadmanIdListIsSleeping(const PSPThread *t) {
 	return t->isWaitingFor(WAITTYPE_SLEEP, 0);
 }
 
-static bool __ThreadmanIdListIsDelayed(const Thread *t) {
+static bool __ThreadmanIdListIsDelayed(const PSPThread *t) {
 	return t->isWaitingFor(WAITTYPE_DELAY, t->GetUID());
 }
 
-static bool __ThreadmanIdListIsSuspended(const Thread *t) {
+static bool __ThreadmanIdListIsSuspended(const PSPThread *t) {
 	return t->isSuspended();
 }
 
-static bool __ThreadmanIdListIsDormant(const Thread *t) {
+static bool __ThreadmanIdListIsDormant(const PSPThread *t) {
 	return t->isStopped();
 }
 
@@ -1385,7 +1391,7 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelGetThreadmanIdList(%i, %08x, %i, %08x): invalid size", type, readBufPtr, readBufSize, idCountPtr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
-	if (!Memory_P::IsValidAddress(readBufPtr) && readBufSize > 0) {
+	if (!Memory::IsValidAddress(readBufPtr) && readBufSize > 0) {
 		// Crashes on a PSP.
 		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelGetThreadmanIdList(%i, %08x, %i, %08x): invalid pointer", type, readBufPtr, readBufSize, idCountPtr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
@@ -1398,7 +1404,7 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 		DEBUG_LOG(SCEKERNEL, "sceKernelGetThreadmanIdList(%i, %08x, %i, %08x)", type, readBufPtr, readBufSize, idCountPtr);
 		total = kernelObjects.ListIDType(type, uids, readBufSize);
 	} else if (type >= SCE_KERNEL_TMID_SleepThread && type <= SCE_KERNEL_TMID_DormantThread) {
-		bool (*checkFunc)(const Thread *t) = NULL;
+		bool (*checkFunc)(const PSPThread *t) = nullptr;
 		switch (type) {
 		case SCE_KERNEL_TMID_SleepThread:
 			checkFunc = &__ThreadmanIdListIsSleeping;
@@ -1417,11 +1423,11 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 			break;
 
 		default:
-			_dbg_assert_msg_(SCEKERNEL, false, "Unexpected type %d", type);
+			_dbg_assert_msg_(false, "Unexpected type %d", type);
 		}
 
 		for (size_t i = 0; i < threadqueue.size(); i++) {
-			const Thread *t = kernelObjects.Get<Thread>(threadqueue[i], error);
+			const PSPThread *t = kernelObjects.Get<PSPThread>(threadqueue[i], error);
 			if (checkFunc(t)) {
 				if (total < readBufSize) {
 					*uids++ = threadqueue[i];
@@ -1434,20 +1440,18 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 		return SCE_KERNEL_ERROR_ILLEGAL_TYPE;
 	}
 
-	if (Memory_P::IsValidAddress(idCountPtr)) {
-		Memory_P::PWrite_U32(total, idCountPtr);
+	if (Memory::IsValidAddress(idCountPtr)) {
+		Memory::Write_U32(total, idCountPtr);
 	}
 	return total > readBufSize ? readBufSize : total;
 }
 
 // Saves the current CPU context
-void __KernelSaveContext(ThreadContext *ctx, bool vfpuEnabled)
-{
+void __KernelSaveContext(PSPThreadContext *ctx, bool vfpuEnabled) {
 	// r and f are immediately next to each other and must be.
 	memcpy((void *)ctx->r, (void *)currentMIPS->r, sizeof(ctx->r) + sizeof(ctx->f));
 
-	if (vfpuEnabled)
-	{
+	if (vfpuEnabled) {
 		memcpy(ctx->v, currentMIPS->v, sizeof(ctx->v));
 		memcpy(ctx->vfpuCtrl, currentMIPS->vfpuCtrl, sizeof(ctx->vfpuCtrl));
 	}
@@ -1456,15 +1460,17 @@ void __KernelSaveContext(ThreadContext *ctx, bool vfpuEnabled)
 }
 
 // Loads a CPU context
-void __KernelLoadContext(ThreadContext *ctx, bool vfpuEnabled)
-{
+void __KernelLoadContext(PSPThreadContext *ctx, bool vfpuEnabled) {
 	// r and f are immediately next to each other and must be.
 	memcpy((void *)currentMIPS->r, (void *)ctx->r, sizeof(ctx->r) + sizeof(ctx->f));
 
-	if (vfpuEnabled)
-	{
+	if (vfpuEnabled) {
 		memcpy(currentMIPS->v, ctx->v, sizeof(ctx->v));
 		memcpy(currentMIPS->vfpuCtrl, ctx->vfpuCtrl, sizeof(ctx->vfpuCtrl));
+	}
+
+	if (!Memory::IsValidAddress(ctx->pc)) {
+		Core_ExecException(ctx->pc, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
 	memcpy(currentMIPS->other, ctx->other, sizeof(ctx->other));
@@ -1480,7 +1486,7 @@ void __KernelLoadContext(ThreadContext *ctx, bool vfpuEnabled)
 u32 __KernelResumeThreadFromWait(SceUID threadID, u32 retval)
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		t->resumeFromWait();
@@ -1497,7 +1503,7 @@ u32 __KernelResumeThreadFromWait(SceUID threadID, u32 retval)
 u32 __KernelResumeThreadFromWait(SceUID threadID, u64 retval)
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		t->resumeFromWait();
@@ -1520,7 +1526,8 @@ void __KernelWaitCurThread(WaitType type, SceUID waitID, u32 waitValue, u32 time
 		return;
 	}
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
+	assert(thread != nullptr);
 	thread->nt.waitID = waitID;
 	thread->nt.waitType = type;
 	__KernelChangeThreadState(thread, ThreadStatus(THREADSTATUS_WAIT | (thread->nt.status & THREADSTATUS_SUSPEND)));
@@ -1543,7 +1550,7 @@ void __KernelWaitCallbacksCurThread(WaitType type, SceUID waitID, u32 waitValue,
 		return;
 	}
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	thread->nt.waitID = waitID;
 	thread->nt.waitType = type;
 	__KernelChangeThreadState(thread, ThreadStatus(THREADSTATUS_WAIT | (thread->nt.status & THREADSTATUS_SUSPEND)));
@@ -1569,29 +1576,29 @@ void hleScheduledWakeup(u64 userdata, int cyclesLate)
 void __KernelScheduleWakeup(SceUID threadID, s64 usFromNow)
 {
 	s64 cycles = usToCycles(usFromNow);
-	CoreTiming_P::ScheduleEvent(cycles, eventScheduledWakeup, threadID);
+	CoreTiming::ScheduleEvent(cycles, eventScheduledWakeup, threadID);
 }
 
 void __KernelCancelWakeup(SceUID threadID)
 {
-	CoreTiming_P::UnscheduleEvent(eventScheduledWakeup, threadID);
+	CoreTiming::UnscheduleEvent(eventScheduledWakeup, threadID);
 }
 
 void hleThreadEndTimeout(u64 userdata, int cyclesLate)
 {
 	SceUID threadID = (SceUID) userdata;
-	HLEKernel::WaitExecTimeout<Thread, WAITTYPE_THREADEND>(threadID);
+	HLEKernel::WaitExecTimeout<PSPThread, WAITTYPE_THREADEND>(threadID);
 }
 
 static void __KernelScheduleThreadEndTimeout(SceUID threadID, SceUID waitForID, s64 usFromNow)
 {
 	s64 cycles = usToCycles(usFromNow);
-	CoreTiming_P::ScheduleEvent(cycles, eventThreadEndTimeout, threadID);
+	CoreTiming::ScheduleEvent(cycles, eventThreadEndTimeout, threadID);
 }
 
 void __KernelCancelThreadEndTimeout(SceUID threadID)
 {
-	CoreTiming_P::UnscheduleEvent(eventThreadEndTimeout, threadID);
+	CoreTiming::UnscheduleEvent(eventThreadEndTimeout, threadID);
 }
 
 static void __KernelRemoveFromThreadQueue(SceUID threadID) {
@@ -1607,7 +1614,7 @@ static void __KernelRemoveFromThreadQueue(SceUID threadID) {
 void __KernelStopThread(SceUID threadID, int exitStatus, const char *reason)
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		__KernelChangeReadyState(t, threadID, false);
@@ -1620,9 +1627,9 @@ void __KernelStopThread(SceUID threadID, int exitStatus, const char *reason)
 			u32 timeoutPtr = __KernelGetWaitTimeoutPtr(waitingThread, error);
 			if (HLEKernel::VerifyWait(waitingThread, WAITTYPE_THREADEND, threadID))
 			{
-				s64 cyclesLeft = CoreTiming_P::UnscheduleEvent(eventThreadEndTimeout, waitingThread);
+				s64 cyclesLeft = CoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThread);
 				if (timeoutPtr != 0)
-					Memory_P::PWrite_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+					Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 
 				HLEKernel::ResumeFromWait(waitingThread, WAITTYPE_THREADEND, threadID, exitStatus);
 			}
@@ -1632,9 +1639,9 @@ void __KernelStopThread(SceUID threadID, int exitStatus, const char *reason)
 		// Stopped threads are never waiting.
 		t->nt.waitType = WAITTYPE_NONE;
 		t->nt.waitID = 0;
-	}
-	else
+	} else {
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelStopThread: thread %d does not exist", threadID);
+	}
 }
 
 u32 __KernelDeleteThread(SceUID threadID, int exitStatus, const char *reason)
@@ -1651,12 +1658,12 @@ u32 __KernelDeleteThread(SceUID threadID, int exitStatus, const char *reason)
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		for (auto it = t->callbacks.begin(), end = t->callbacks.end(); it != end; ++it)
 		{
-			Callback *callback = kernelObjects.Get<Callback>(*it, error);
+			PSPCallback *callback = kernelObjects.Get<PSPCallback>(*it, error);
 			if (callback && callback->nc.notifyCount != 0)
 				readyCallbacksCount--;
 		}
@@ -1672,7 +1679,7 @@ u32 __KernelDeleteThread(SceUID threadID, int exitStatus, const char *reason)
 			pendingDeleteThreads.push_back(threadID);
 			return 0;
 		} else {
-			return kernelObjects.Destroy<Thread>(threadID);
+			return kernelObjects.Destroy<PSPThread>(threadID);
 		}
 	} else {
 		RETURN(error);
@@ -1684,8 +1691,8 @@ static void __ReportThreadQueueEmpty() {
 	// We failed to find a thread to schedule.
 	// This means something horrible happened to the idle threads.
 	u32 error;
-	Thread *idleThread0 = kernelObjects.Get<Thread>(threadIdleID[0], error);
-	Thread *idleThread1 = kernelObjects.Get<Thread>(threadIdleID[1], error);
+	PSPThread *idleThread0 = kernelObjects.Get<PSPThread>(threadIdleID[0], error);
+	PSPThread *idleThread1 = kernelObjects.Get<PSPThread>(threadIdleID[1], error);
 
 	char idleDescription0[256];
 	int idleStatus0 = -1;
@@ -1711,11 +1718,11 @@ static void __ReportThreadQueueEmpty() {
 }
 
 // Returns NULL if the current thread is fine.
-static Thread *__KernelNextThread() {
+static PSPThread *__KernelNextThread() {
 	SceUID bestThread;
 
 	// If the current thread is running, it's a valid candidate.
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 	if (cur && cur->isRunning()) {
 		bestThread = threadReadyQueue.pop_first_better(cur->nt.currentPriority);
 		if (bestThread != 0)
@@ -1734,7 +1741,7 @@ static Thread *__KernelNextThread() {
 
 	// Assume threadReadyQueue has not become corrupt.
 	if (bestThread != 0)
-		return kernelObjects.GetFast<Thread>(bestThread);
+		return kernelObjects.GetFast<PSPThread>(bestThread);
 	else
 		return 0;
 }
@@ -1746,14 +1753,14 @@ void __KernelReSchedule(const char *reason)
 	__KernelCheckCallbacks();
 
 	// Execute any pending events while we're doing scheduling.
-	CoreTiming_P::Advance();
+	CoreTiming::Advance();
 	if (__IsInInterrupt() || !__KernelIsDispatchEnabled()) {
 		// Threads don't get changed within interrupts or while dispatch is disabled.
 		reason = "In Interrupt Or Callback";
 		return;
 	}
 
-	Thread *nextThread = __KernelNextThread();
+	PSPThread *nextThread = __KernelNextThread();
 	if (nextThread) {
 		__KernelSwitchContext(nextThread, reason);
 	}
@@ -1762,7 +1769,7 @@ void __KernelReSchedule(const char *reason)
 
 void __KernelReSchedule(bool doCallbacks, const char *reason)
 {
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (doCallbacks && thread != nullptr) {
 		thread->isProcessingCallbacks = doCallbacks;
 	}
@@ -1779,7 +1786,7 @@ void __KernelReSchedule(bool doCallbacks, const char *reason)
 int sceKernelCheckThreadStack()
 {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(__KernelGetCurThread(), error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(__KernelGetCurThread(), error);
 	if (t) {
 		u32 diff = labs((long)((s64)currentMIPS->r[MIPS_REG_SP] - (s64)t->currentStack.start));
 		DEBUG_LOG(SCEKERNEL, "%i=sceKernelCheckThreadStack()", diff);
@@ -1790,20 +1797,16 @@ int sceKernelCheckThreadStack()
 	}
 }
 
-void ThreadContext::reset()
-{
-	for (int i = 0; i<32; i++)
-	{
+void PSPThreadContext::reset() {
+	for (int i = 0; i<32; i++) {
 		r[i] = 0xDEADBEEF;
 		fi[i] = 0x7f800001;
 	}
 	r[0] = 0;
-	for (int i = 0; i<128; i++)
-	{
+	for (int i = 0; i<128; i++) {
 		vi[i] = 0x7f800001;
 	}
-	for (int i = 0; i<15; i++)
-	{
+	for (int i = 0; i<15; i++) {
 		vfpuCtrl[i] = 0x00000000;
 	}
 	vfpuCtrl[VFPU_CTRL_SPREFIX] = 0xe4; // neutral
@@ -1828,8 +1831,7 @@ void ThreadContext::reset()
 	other[5] = 0;
 }
 
-void __KernelResetThread(Thread *t, int lowestPriority)
-{
+void __KernelResetThread(PSPThread *t, int lowestPriority) {
 	t->context.reset();
 	t->context.pc = t->nt.entrypoint;
 
@@ -1857,10 +1859,10 @@ void __KernelResetThread(Thread *t, int lowestPriority)
 		ERROR_LOG_REPORT(SCEKERNEL, "Resetting thread with threads waiting on end?");
 }
 
-Thread *__KernelCreateThread(SceUID &id, SceUID moduleId, const char *name, u32 entryPoint, u32 priority, int stacksize, u32 attr) {
+PSPThread *__KernelCreateThread(SceUID &id, SceUID moduleId, const char *name, u32 entryPoint, u32 priority, int stacksize, u32 attr) {
 	std::lock_guard<std::mutex> guard(threadqueueLock);
 
-	Thread *t = new Thread;
+	PSPThread *t = new PSPThread();
 	id = kernelObjects.Create(t);
 
 	threadqueue.push_back(id);
@@ -1907,12 +1909,12 @@ SceUID __KernelSetupRootThread(SceUID moduleID, int args, const char *argp, int 
 {
 	//grab mips regs
 	SceUID id;
-	Thread *thread = __KernelCreateThread(id, moduleID, "root", currentMIPS->pc, prio, stacksize, attr);
+	PSPThread *thread = __KernelCreateThread(id, moduleID, "root", currentMIPS->pc, prio, stacksize, attr);
 	if (thread->currentStack.start == 0)
 		ERROR_LOG_REPORT(SCEKERNEL, "Unable to allocate stack for root thread.");
 	__KernelResetThread(thread, 0);
 
-	Thread *prevThread = __GetCurrentThread();
+	PSPThread *prevThread = __GetCurrentThread();
 	if (prevThread && prevThread->isRunning())
 		__KernelChangeReadyState(currentThread, true);
 	__SetCurrentThread(thread, id, "root");
@@ -1920,13 +1922,17 @@ SceUID __KernelSetupRootThread(SceUID moduleID, int args, const char *argp, int 
 
 	strcpy(thread->nt.name, "root");
 
+	if (!Memory::IsValidAddress(thread->context.pc)) {
+		Core_ExecException(thread->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
+	}
+
 	__KernelLoadContext(&thread->context, (attr & PSP_THREAD_ATTR_VFPU) != 0);
 	currentMIPS->r[MIPS_REG_A0] = args;
 	currentMIPS->r[MIPS_REG_SP] -= (args + 0xf) & ~0xf;
 	u32 location = currentMIPS->r[MIPS_REG_SP];
 	currentMIPS->r[MIPS_REG_A1] = location;
 	if (argp)
-		Memory_P::Memcpy(location, argp, args);
+		Memory::Memcpy(location, argp, args);
 	// Let's assume same as starting a new thread, 64 bytes for safety/kernel.
 	currentMIPS->r[MIPS_REG_SP] -= 64;
 
@@ -1936,7 +1942,7 @@ SceUID __KernelSetupRootThread(SceUID moduleID, int args, const char *argp, int 
 SceUID __KernelCreateThreadInternal(const char *threadName, SceUID moduleID, u32 entry, u32 prio, int stacksize, u32 attr)
 {
 	SceUID id;
-	Thread *newThread = __KernelCreateThread(id, moduleID, threadName, entry, prio, stacksize, attr);
+	PSPThread *newThread = __KernelCreateThread(id, moduleID, threadName, entry, prio, stacksize, attr);
 	if (newThread->currentStack.start == 0)
 		return SCE_KERNEL_ERROR_NO_MEMORY;
 
@@ -1955,7 +1961,7 @@ int __KernelCreateThread(const char *threadName, SceUID moduleID, u32 entry, u32
 		// return SCE_KERNEL_ERROR_ILLEGAL_PRIORITY;
 		prio = prio < 0x08 ? 0x08 : 0x77;
 	}
-	if (!Memory_P::IsValidAddress(entry)) {
+	if (!Memory::IsValidAddress(entry)) {
 		// The PSP firmware seems to allow NULL...?
 		if (entry != 0)
 			return hleReportError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_ADDR, "invalid thread entry %08x", entry);
@@ -1970,9 +1976,13 @@ int __KernelCreateThread(const char *threadName, SceUID moduleID, u32 entry, u32
 	// Some are USB/VSH specific, probably removes when they are from the wrong module?
 	attr &= ~PSP_THREAD_ATTR_USER_ERASE;
 
-	// We're assuming all threads created are user threads.
-	if ((attr & PSP_THREAD_ATTR_KERNEL) == 0)
-		attr |= PSP_THREAD_ATTR_USER;
+	if ((attr & PSP_THREAD_ATTR_KERNEL) == 0) {
+		if (allowKernel && (attr & PSP_THREAD_ATTR_USER) == 0) {
+			attr |= PSP_THREAD_ATTR_KERNEL;
+		} else {			
+			attr |= PSP_THREAD_ATTR_USER;
+		}
+	}
 
 	SceUID id = __KernelCreateThreadInternal(threadName, moduleID, entry, prio, stacksize, attr);
 	if ((u32)id == SCE_KERNEL_ERROR_NO_MEMORY)
@@ -1996,18 +2006,19 @@ int __KernelCreateThread(const char *threadName, SceUID moduleID, u32 entry, u32
 }
 
 int sceKernelCreateThread(const char *threadName, u32 entry, u32 prio, int stacksize, u32 attr, u32 optionAddr) {
-	Thread *cur = __GetCurrentThread();
-	bool allowKernel = cur ? (cur->nt.attr & PSP_THREAD_ATTR_KERNEL) != 0 : false;
-	return __KernelCreateThread(threadName, __KernelGetCurThreadModuleId(), entry, prio, stacksize, attr, optionAddr, allowKernel);
+	PSPThread *cur = __GetCurrentThread();
+	SceUID module = __KernelGetCurThreadModuleId();
+	bool allowKernel = KernelModuleIsKernelMode(module) || hleIsKernelMode() || (cur ? (cur->nt.attr & PSP_THREAD_ATTR_KERNEL) != 0 : false);
+	return __KernelCreateThread(threadName, module, entry, prio, stacksize, attr, optionAddr, allowKernel);
 }
 
 int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bool forceArgs) {
 	u32 error;
-	Thread *startThread = kernelObjects.Get<Thread>(threadToStartID, error);
+	PSPThread *startThread = kernelObjects.Get<PSPThread>(threadToStartID, error);
 	if (startThread == 0)
 		return error;
 
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 	__KernelResetThread(startThread, cur ? cur->nt.currentPriority : 0);
 
 	u32 &sp = startThread->context.r[MIPS_REG_SP];
@@ -2025,8 +2036,8 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 	}
 
 	// Now copy argument to stack.
-	if (!forceArgs && Memory_P::IsValidAddress(argBlockPtr))
-		Memory_P::Memcpy(sp, argBlockPtr, argSize);
+	if (!forceArgs && Memory::IsValidAddress(argBlockPtr))
+		Memory::Memcpy(sp, argBlockPtr, argSize);
 
 	// On the PSP, there's an extra 64 bytes of stack eaten after the args.
 	// This could be stack overflow safety, or just stack eaten by the kernel entry func.
@@ -2035,8 +2046,8 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 	// At the bottom of those 64 bytes, the return syscall and ra is written.
 	// Test Drive Unlimited actually depends on it being in the correct place.
 	WriteSyscall("FakeSysCalls", NID_THREADRETURN, sp);
-	Memory_P::PWrite_U32(MIPS_MAKE_B(-1), sp + 8);
-	Memory_P::PWrite_U32(MIPS_MAKE_NOP(), sp + 12);
+	Memory::Write_U32(MIPS_MAKE_B(-1), sp + 8);
+	Memory::Write_U32(MIPS_MAKE_NOP(), sp + 12);
 
 	// Point ra at our return stub, and start fp off matching sp.
 	startThread->context.r[MIPS_REG_RA] = sp;
@@ -2044,6 +2055,9 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 
 	// Smaller is better for priority.  Only switch if the new thread is better.
 	if (cur && cur->nt.currentPriority > startThread->nt.currentPriority) {
+		if (!Memory::IsValidAddress(startThread->context.pc)) {
+			Core_ExecException(startThread->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
+		}
 		__KernelChangeReadyState(cur, currentThread, true);
 		hleReSchedule("thread started");
 	}
@@ -2070,7 +2084,7 @@ int __KernelStartThreadValidate(SceUID threadToStartID, int argSize, u32 argBloc
 		return hleReportError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_ADDR, "bad thread argument pointer/length %08x / %08x", argSize, argBlockPtr);
 
 	u32 error = 0;
-	Thread *startThread = kernelObjects.Get<Thread>(threadToStartID, error);
+	PSPThread *startThread = kernelObjects.Get<PSPThread>(threadToStartID, error);
 	if (startThread == 0)
 		return hleLogError(SCEKERNEL, error, "thread does not exist");
 
@@ -2094,9 +2108,8 @@ int sceKernelGetThreadStackFreeSize(SceUID threadID)
 		threadID = __KernelGetCurThread();
 
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(threadID, error);
-	if (thread == 0)
-	{
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
+	if (thread == nullptr) {
 		ERROR_LOG(SCEKERNEL, "sceKernelGetThreadStackFreeSize: invalid thread id %i", threadID);
 		return error;
 	}
@@ -2106,7 +2119,7 @@ int sceKernelGetThreadStackFreeSize(SceUID threadID)
 	int sz = 0;
 	for (u32 offset = 0x10; offset < thread->nt.stackSize; ++offset)
 	{
-		if (Memory_P::PRead_U8(thread->currentStack.start + offset) != 0xFF)
+		if (Memory::Read_U8(thread->currentStack.start + offset) != 0xFF)
 			break;
 		sz++;
 	}
@@ -2119,10 +2132,10 @@ void __KernelReturnFromThread()
 	hleSkipDeadbeef();
 
 	int exitStatus = currentMIPS->r[MIPS_REG_V0];
-	Thread *thread = __GetCurrentThread();
-	_dbg_assert_msg_(SCEKERNEL, thread != NULL, "Returned from a NULL thread.");
+	PSPThread *thread = __GetCurrentThread();
+	_dbg_assert_msg_(thread != NULL, "Returned from a NULL thread.");
 
-	INFO_LOG(SCEKERNEL,"__KernelReturnFromThread: %d", exitStatus);
+	DEBUG_LOG(SCEKERNEL, "__KernelReturnFromThread: %d", exitStatus);
 	__KernelStopThread(currentThread, exitStatus, "thread returned");
 
 	hleReSchedule("thread returned");
@@ -2133,10 +2146,9 @@ void __KernelReturnFromThread()
 	// The stack will be deallocated when the thread is deleted.
 }
 
-void sceKernelExitThread(int exitStatus)
-{
-	Thread *thread = __GetCurrentThread();
-	_dbg_assert_msg_(SCEKERNEL, thread != NULL, "Exited from a NULL thread.");
+void sceKernelExitThread(int exitStatus) {
+	PSPThread *thread = __GetCurrentThread();
+	_dbg_assert_msg_(thread != NULL, "Exited from a NULL thread.");
 
 	INFO_LOG(SCEKERNEL, "sceKernelExitThread(%d)", exitStatus);
 	__KernelStopThread(currentThread, exitStatus, "thread exited");
@@ -2149,10 +2161,9 @@ void sceKernelExitThread(int exitStatus)
 	// The stack will be deallocated when the thread is deleted.
 }
 
-void _sceKernelExitThread(int exitStatus)
-{
-	Thread *thread = __GetCurrentThread();
-	_dbg_assert_msg_(SCEKERNEL, thread != NULL, "_Exited from a NULL thread.");
+void _sceKernelExitThread(int exitStatus) {
+	PSPThread *thread = __GetCurrentThread();
+	_dbg_assert_msg_(thread != NULL, "_Exited from a NULL thread.");
 
 	ERROR_LOG_REPORT(SCEKERNEL, "_sceKernelExitThread(%d): should not be called directly", exitStatus);
 	__KernelStopThread(currentThread, exitStatus, "thread _exited");
@@ -2165,9 +2176,8 @@ void _sceKernelExitThread(int exitStatus)
 	// The stack will be deallocated when the thread is deleted.
 }
 
-void sceKernelExitDeleteThread(int exitStatus)
-{
-	Thread *thread = __GetCurrentThread();
+void sceKernelExitDeleteThread(int exitStatus) {
+	PSPThread *thread = __GetCurrentThread();
 	if (thread)
 	{
 		INFO_LOG(SCEKERNEL,"sceKernelExitDeleteThread(%d)", exitStatus);
@@ -2227,7 +2237,7 @@ int sceKernelRotateThreadReadyQueue(int priority)
 {
 	VERBOSE_LOG(SCEKERNEL, "sceKernelRotateThreadReadyQueue(%x)", priority);
 
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 
 	// 0 is special, it means "my current priority."
 	if (priority == 0)
@@ -2254,29 +2264,23 @@ int sceKernelRotateThreadReadyQueue(int priority)
 	return 0;
 }
 
-int sceKernelDeleteThread(int threadID)
-{
-	if (threadID == 0 || threadID == currentThread)
-	{
+int sceKernelDeleteThread(int threadID) {
+	if (threadID == 0 || threadID == currentThread) {
 		ERROR_LOG(SCEKERNEL, "sceKernelDeleteThread(%i): cannot delete current thread", threadID);
 		return SCE_KERNEL_ERROR_NOT_DORMANT;
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
-	if (t)
-	{
-		if (!t->isStopped())
-		{
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
+	if (t) {
+		if (!t->isStopped()) {
 			ERROR_LOG(SCEKERNEL, "sceKernelDeleteThread(%i): thread not dormant", threadID);
 			return SCE_KERNEL_ERROR_NOT_DORMANT;
 		}
 
 		DEBUG_LOG(SCEKERNEL, "sceKernelDeleteThread(%i)", threadID);
 		return __KernelDeleteThread(threadID, SCE_KERNEL_ERROR_THREAD_TERMINATED, "thread deleted");
-	}
-	else
-	{
+	} else {
 		ERROR_LOG(SCEKERNEL, "sceKernelDeleteThread(%i): thread doesn't exist", threadID);
 		return error;
 	}
@@ -2291,7 +2295,7 @@ int sceKernelTerminateDeleteThread(int threadID)
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		bool wasStopped = t->isStopped();
@@ -2325,7 +2329,7 @@ int sceKernelTerminateThread(SceUID threadID) {
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t) {
 		if (t->isStopped()) {
 			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_DORMANT, "already stopped");
@@ -2352,25 +2356,29 @@ SceUID __KernelGetCurThread()
 	return currentThread;
 }
 
-SceUID __KernelGetCurThreadModuleId()
-{
-	Thread *t = __GetCurrentThread();
+int KernelCurThreadPriority() {
+	PSPThread *t = __GetCurrentThread();
+	if (t)
+		return t->nt.currentPriority;
+	return 0;
+}
+
+SceUID __KernelGetCurThreadModuleId() {
+	PSPThread *t = __GetCurrentThread();
 	if (t)
 		return t->moduleId;
 	return 0;
 }
 
-u32 __KernelGetCurThreadStack()
-{
-	Thread *t = __GetCurrentThread();
+u32 __KernelGetCurThreadStack() {
+	PSPThread *t = __GetCurrentThread();
 	if (t)
 		return t->currentStack.end;
 	return 0;
 }
 
-u32 __KernelGetCurThreadStackStart()
-{
-	Thread *t = __GetCurrentThread();
+u32 __KernelGetCurThreadStackStart() {
+	PSPThread *t = __GetCurrentThread();
 	if (t)
 		return t->currentStack.start;
 	return 0;
@@ -2394,7 +2402,7 @@ int sceKernelChangeCurrentThreadAttr(u32 clearAttr, u32 setAttr) {
 		return hleReportError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_ATTR, "invalid attr");
 	}
 
-	Thread *t = __GetCurrentThread();
+	PSPThread *t = __GetCurrentThread();
 	if (!t)
 		return hleReportError(SCEKERNEL, -1, "no current thread");
 
@@ -2402,32 +2410,11 @@ int sceKernelChangeCurrentThreadAttr(u32 clearAttr, u32 setAttr) {
 	return hleLogSuccessI(SCEKERNEL, 0);
 }
 
-int sceKernelChangeThreadPriority(SceUID threadID, int priority) {
-	if (threadID == 0) {
-		threadID = __KernelGetCurThread();
-	}
-
-	// 0 means the current (running) thread's priority, not target's.
-	if (priority == 0) {
-		Thread *cur = __GetCurrentThread();
-		if (!cur) {
-			ERROR_LOG_REPORT(SCEKERNEL, "sceKernelChangeThreadPriority(%i, %i): no current thread?", threadID, priority);
-		} else {
-			priority = cur->nt.currentPriority;
-		}
-	}
-
+// Assumes validated parameters.
+bool KernelChangeThreadPriority(SceUID threadID, int priority) {
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
 	if (thread) {
-		if (thread->isStopped()) {
-			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_DORMANT, "thread is dormant");
-		}
-
-		if (priority < 0x08 || priority > 0x77) {
-			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_PRIORITY, "bogus priority");
-		}
-
 		int old = thread->nt.currentPriority;
 		threadReadyQueue.remove(old, threadID);
 
@@ -2439,6 +2426,39 @@ int sceKernelChangeThreadPriority(SceUID threadID, int priority) {
 		if (thread->isReady()) {
 			threadReadyQueue.push_back(thread->nt.currentPriority, threadID);
 		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int sceKernelChangeThreadPriority(SceUID threadID, int priority) {
+	if (threadID == 0) {
+		threadID = __KernelGetCurThread();
+	}
+
+	// 0 means the current (running) thread's priority, not target's.
+	if (priority == 0) {
+		PSPThread *cur = __GetCurrentThread();
+		if (!cur) {
+			ERROR_LOG_REPORT(SCEKERNEL, "sceKernelChangeThreadPriority(%i, %i): no current thread?", threadID, priority);
+		} else {
+			priority = cur->nt.currentPriority;
+		}
+	}
+
+	u32 error;
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
+	if (thread) {
+		if (thread->isStopped()) {
+			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_DORMANT, "thread is dormant");
+		}
+
+		if (priority < 0x08 || priority > 0x77) {
+			return hleLogError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_PRIORITY, "bogus priority");
+		}
+
+		KernelChangeThreadPriority(threadID, priority);
 
 		hleEatCycles(450);
 		hleReSchedule("change thread priority");
@@ -2524,10 +2544,9 @@ int sceKernelDelaySysClockThread(u32 sysclockAddr) {
 	return hleLogSuccessI(SCEKERNEL, 0, "delaying %lld usecs", delayUs);
 }
 
-u32 __KernelGetThreadPrio(SceUID id)
-{
+u32 __KernelGetThreadPrio(SceUID id) {
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(id, error);
+	PSPThread *thread = kernelObjects.Get<PSPThread>(id, error);
 	if (thread)
 		return thread->nt.currentPriority;
 	return 0;
@@ -2547,7 +2566,7 @@ int sceKernelWakeupThread(SceUID uid) {
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(uid, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(uid, error);
 	if (t) {
 		if (!t->isWaitingFor(WAITTYPE_SLEEP, 0)) {
 			t->nt.wakeupCount++;
@@ -2568,7 +2587,7 @@ int sceKernelCancelWakeupThread(SceUID uid) {
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(uid, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(uid, error);
 	if (t) {
 		int wCount = t->nt.wakeupCount;
 		t->nt.wakeupCount = 0;
@@ -2579,7 +2598,7 @@ int sceKernelCancelWakeupThread(SceUID uid) {
 }
 
 static int __KernelSleepThread(bool doCallbacks) {
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (!thread) {
 		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelSleepThread*(): bad current thread");
 		return -1;
@@ -2616,13 +2635,13 @@ int sceKernelWaitThreadEnd(SceUID threadID, u32 timeoutPtr)
 		return SCE_KERNEL_ERROR_ILLEGAL_CONTEXT;
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (t->nt.status != THREADSTATUS_DORMANT)
 		{
-			if (Memory_P::IsValidAddress(timeoutPtr))
-				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory_P::PRead_U32(timeoutPtr));
+			if (Memory::IsValidAddress(timeoutPtr))
+				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory::Read_U32(timeoutPtr));
 			if (std::find(t->waitingThreads.begin(), t->waitingThreads.end(), currentThread) == t->waitingThreads.end())
 				t->waitingThreads.push_back(currentThread);
 			__KernelWaitCurThread(WAITTYPE_THREADEND, threadID, 0, timeoutPtr, false, "thread wait end");
@@ -2649,13 +2668,13 @@ int sceKernelWaitThreadEndCB(SceUID threadID, u32 timeoutPtr)
 		return SCE_KERNEL_ERROR_ILLEGAL_CONTEXT;
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (t->nt.status != THREADSTATUS_DORMANT)
 		{
-			if (Memory_P::IsValidAddress(timeoutPtr))
-				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory_P::PRead_U32(timeoutPtr));
+			if (Memory::IsValidAddress(timeoutPtr))
+				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory::Read_U32(timeoutPtr));
 			if (std::find(t->waitingThreads.begin(), t->waitingThreads.end(), currentThread) == t->waitingThreads.end())
 				t->waitingThreads.push_back(currentThread);
 			__KernelWaitCurThread(WAITTYPE_THREADEND, threadID, 0, timeoutPtr, true, "thread wait end");
@@ -2682,7 +2701,7 @@ int sceKernelReleaseWaitThread(SceUID threadID)
 		return SCE_KERNEL_ERROR_ILLEGAL_THID;
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (!t->isWaiting())
@@ -2719,7 +2738,7 @@ int sceKernelSuspendThread(SceUID threadID)
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (t->isStopped())
@@ -2756,7 +2775,7 @@ int sceKernelResumeThread(SceUID threadID)
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t)
 	{
 		if (!t->isSuspended())
@@ -2792,7 +2811,7 @@ SceUID sceKernelCreateCallback(const char *name, u32 entrypoint, u32 signalArg)
 	if (entrypoint & 0xF0000000)
 		return hleReportWarning(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_ADDR, "invalid func");
 
-	Callback *cb = new Callback;
+	PSPCallback *cb = new PSPCallback();
 	SceUID id = kernelObjects.Create(cb);
 
 	strncpy(cb->nc.name, name, KERNELOBJECT_MAX_NAME_LENGTH);
@@ -2804,7 +2823,7 @@ SceUID sceKernelCreateCallback(const char *name, u32 entrypoint, u32 signalArg)
 	cb->nc.notifyCount = 0;
 	cb->nc.notifyArg = 0;
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (thread)
 		thread->callbacks.push_back(id);
 
@@ -2814,16 +2833,16 @@ SceUID sceKernelCreateCallback(const char *name, u32 entrypoint, u32 signalArg)
 int sceKernelDeleteCallback(SceUID cbId)
 {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (cb)
 	{
-		Thread *thread = kernelObjects.Get<Thread>(cb->nc.threadId, error);
+		PSPThread *thread = kernelObjects.Get<PSPThread>(cb->nc.threadId, error);
 		if (thread)
 			thread->callbacks.erase(std::remove(thread->callbacks.begin(), thread->callbacks.end(), cbId), thread->callbacks.end());
 		if (cb->nc.notifyCount != 0)
 			readyCallbacksCount--;
 
-		return hleLogSuccessI(SCEKERNEL, kernelObjects.Destroy<Callback>(cbId));
+		return hleLogSuccessI(SCEKERNEL, kernelObjects.Destroy<PSPCallback>(cbId));
 	} else {
 		return hleLogError(SCEKERNEL, error, "bad cbId");
 	}
@@ -2833,7 +2852,7 @@ int sceKernelDeleteCallback(SceUID cbId)
 int sceKernelNotifyCallback(SceUID cbId, int notifyArg)
 {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (cb) {
 		__KernelNotifyCallback(cbId, notifyArg);
 		return hleLogSuccessI(SCEKERNEL, 0);
@@ -2845,7 +2864,7 @@ int sceKernelNotifyCallback(SceUID cbId, int notifyArg)
 int sceKernelCancelCallback(SceUID cbId)
 {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (cb) {
 		// This just resets the notify count.
 		cb->nc.notifyArg = 0;
@@ -2858,7 +2877,7 @@ int sceKernelCancelCallback(SceUID cbId)
 int sceKernelGetCallbackCount(SceUID cbId)
 {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (cb) {
 		return hleLogSuccessVerboseI(SCEKERNEL, cb->nc.notifyCount);
 	} else {
@@ -2869,10 +2888,10 @@ int sceKernelGetCallbackCount(SceUID cbId)
 int sceKernelReferCallbackStatus(SceUID cbId, u32 statusAddr)
 {
 	u32 error;
-	Callback *c = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *c = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (c) {
-		if (Memory_P::IsValidAddress(statusAddr) && Memory_P::PRead_U32(statusAddr) != 0) {
-			Memory_P::WriteStruct(statusAddr, &c->nc);
+		if (Memory::IsValidAddress(statusAddr) && Memory::Read_U32(statusAddr) != 0) {
+			Memory::WriteStruct(statusAddr, &c->nc);
 			return hleLogSuccessI(SCEKERNEL, 0);
 		} else {
 			return hleLogDebug(SCEKERNEL, 0, "struct size was 0");
@@ -2887,7 +2906,7 @@ u32 sceKernelExtendThreadStack(u32 size, u32 entryAddr, u32 entryParameter)
 	if (size < 512)
 		return hleReportError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_STACK_SIZE, "xxx", "stack size too small");
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (!thread)
 		return hleReportError(SCEKERNEL, -1, "xxx", "not on a thread?");
 
@@ -2897,9 +2916,13 @@ u32 sceKernelExtendThreadStack(u32 size, u32 entryAddr, u32 entryParameter)
 	// The stack has been changed now, so it's do or die time.
 
 	// Push the old SP, RA, and PC onto the stack (so we can restore them later.)
-	Memory_P::PWrite_U32(currentMIPS->r[MIPS_REG_RA], thread->currentStack.end - 4);
-	Memory_P::PWrite_U32(currentMIPS->r[MIPS_REG_SP], thread->currentStack.end - 8);
-	Memory_P::PWrite_U32(currentMIPS->pc, thread->currentStack.end - 12);
+	Memory::Write_U32(currentMIPS->r[MIPS_REG_RA], thread->currentStack.end - 4);
+	Memory::Write_U32(currentMIPS->r[MIPS_REG_SP], thread->currentStack.end - 8);
+	Memory::Write_U32(currentMIPS->pc, thread->currentStack.end - 12);
+
+	if (!Memory::IsValidAddress(entryAddr)) {
+		Core_ExecException(entryAddr, currentMIPS->pc, ExecExceptionType::THREAD);
+	}
 
 	currentMIPS->pc = entryAddr;
 	currentMIPS->r[MIPS_REG_A0] = entryParameter;
@@ -2915,7 +2938,7 @@ void __KernelReturnFromExtendStack()
 {
 	hleSkipDeadbeef();
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (!thread)
 	{
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelReturnFromExtendStack() - not on a thread?");
@@ -2923,14 +2946,18 @@ void __KernelReturnFromExtendStack()
 	}
 
 	// Grab the saved regs at the top of the stack.
-	u32 restoreRA = Memory_P::PRead_U32(thread->currentStack.end - 4);
-	u32 restoreSP = Memory_P::PRead_U32(thread->currentStack.end - 8);
-	u32 restorePC = Memory_P::PRead_U32(thread->currentStack.end - 12);
+	u32 restoreRA = Memory::Read_U32(thread->currentStack.end - 4);
+	u32 restoreSP = Memory::Read_U32(thread->currentStack.end - 8);
+	u32 restorePC = Memory::Read_U32(thread->currentStack.end - 12);
 
 	if (!thread->PopExtendedStack())
 	{
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelReturnFromExtendStack() - no stack to restore?");
 		return;
+	}
+
+	if (!Memory::IsValidAddress(restorePC)) {
+		Core_ExecException(restorePC, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
 	DEBUG_LOG(SCEKERNEL, "__KernelReturnFromExtendStack()");
@@ -2943,7 +2970,7 @@ void __KernelReturnFromExtendStack()
 
 void ActionAfterMipsCall::run(MipsCall &call) {
 	u32 error;
-	Thread *thread = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *thread = kernelObjects.Get<PSPThread>(threadID, error);
 	if (thread) {
 		// Resume waiting after a callback, but not from terminate/delete.
 		if ((thread->nt.status & (THREADSTATUS_DEAD | THREADSTATUS_DORMANT)) == 0) {
@@ -2963,8 +2990,7 @@ void ActionAfterMipsCall::run(MipsCall &call) {
 	}
 }
 
-void Thread::setReturnValue(u32 retval)
-{
+void PSPThread::setReturnValue(u32 retval) {
 	if (GetUID() == currentThread) {
 		currentMIPS->r[MIPS_REG_V0] = retval;
 	} else {
@@ -2972,8 +2998,7 @@ void Thread::setReturnValue(u32 retval)
 	}
 }
 
-void Thread::setReturnValue(u64 retval)
-{
+void PSPThread::setReturnValue(u64 retval) {
 	if (GetUID() == currentThread) {
 		currentMIPS->r[MIPS_REG_V0] = retval & 0xFFFFFFFF;
 		currentMIPS->r[MIPS_REG_V1] = (retval >> 32) & 0xFFFFFFFF;
@@ -2983,8 +3008,7 @@ void Thread::setReturnValue(u64 retval)
 	}
 }
 
-void Thread::resumeFromWait()
-{
+void PSPThread::resumeFromWait() {
 	nt.status &= ~THREADSTATUS_WAIT;
 	if (!(nt.status & (THREADSTATUS_WAITSUSPEND | THREADSTATUS_DORMANT | THREADSTATUS_DEAD)))
 		__KernelChangeReadyState(this, GetUID(), true);
@@ -2993,32 +3017,28 @@ void Thread::resumeFromWait()
 	isProcessingCallbacks = false;
 }
 
-bool Thread::isWaitingFor(WaitType type, int id) const
-{
+bool PSPThread::isWaitingFor(WaitType type, int id) const {
 	if (nt.status & THREADSTATUS_WAIT)
 		return nt.waitType == type && nt.waitID == id;
 	return false;
 }
 
-int Thread::getWaitID(WaitType type) const
-{
+int PSPThread::getWaitID(WaitType type) const {
 	if (nt.waitType == type)
 		return nt.waitID;
 	return 0;
 }
 
-ThreadWaitInfo Thread::getWaitInfo() const
-{
+ThreadWaitInfo PSPThread::getWaitInfo() const {
 	return waitInfo;
 }
 
-void __KernelSwitchContext(Thread *target, const char *reason) 
-{
+void __KernelSwitchContext(PSPThread *target, const char *reason) {
 	u32 oldPC = 0;
 	SceUID oldUID = 0;
 	const char *oldName = hleCurrentThreadName != NULL ? hleCurrentThreadName : "(none)";
 
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 	if (cur)  // It might just have been deleted.
 	{
 		__KernelSaveContext(&cur->context, (cur->nt.attr & PSP_THREAD_ATTR_VFPU) != 0);
@@ -3046,7 +3066,7 @@ void __KernelSwitchContext(Thread *target, const char *reason)
 #if DEBUG_LEVEL <= MAX_LOGLEVEL || DEBUG_LOG == NOTICE_LOG
 	if (!(fromIdle && toIdle))
 	{
-		u64 nowCycles = CoreTiming_P::GetTicks();
+		u64 nowCycles = CoreTiming::GetTicks();
 		s64 consumedCycles = nowCycles - lastSwitchCycles;
 		lastSwitchCycles = nowCycles;
 
@@ -3078,7 +3098,7 @@ void __KernelSwitchContext(Thread *target, const char *reason)
 	}
 }
 
-void __KernelChangeThreadState(Thread *thread, ThreadStatus newStatus) {
+void __KernelChangeThreadState(PSPThread *thread, ThreadStatus newStatus) {
 	if (!thread || thread->nt.status == newStatus)
 		return;
 
@@ -3103,17 +3123,18 @@ void __KernelChangeThreadState(Thread *thread, ThreadStatus newStatus) {
 }
 
 
-static bool __CanExecuteCallbackNow(Thread *thread) {
-	return g_inCbCount == 0;
+
+static bool __CanExecuteCallbackNow(PSPThread *thread) {
+	return currentCallbackThreadID == 0 && g_inCbCount == 0;
 }
 
-void __KernelCallAddress(Thread *thread, u32 entryPoint, Action *afterAction, const u32 args[], int numargs, bool reschedAfter, SceUID cbId)
-{
+// Takes ownership of afterAction.
+void __KernelCallAddress(PSPThread *thread, u32 entryPoint, PSPAction *afterAction, const u32 args[], int numargs, bool reschedAfter, SceUID cbId) {
 	if (!thread || thread->isStopped()) {
 		WARN_LOG_REPORT(SCEKERNEL, "Running mipscall on dormant thread");
 	}
 
-	_dbg_assert_msg_(SCEKERNEL, numargs <= 6, "MipsCalls can only take 6 args.");
+	_dbg_assert_msg_(numargs <= 6, "MipsCalls can only take 6 args.");
 
 	if (thread) {
 		ActionAfterMipsCall *after = (ActionAfterMipsCall *) __KernelCreateAction(actionAfterMipsCall);
@@ -3158,7 +3179,7 @@ void __KernelCallAddress(Thread *thread, u32 entryPoint, Action *afterAction, co
 	u32 callId = mipsCalls.add(call);
 
 	bool called = false;
-	if (!thread || thread == __GetCurrentThread()) {
+	if ((!thread || thread == __GetCurrentThread())) {
 		if (__CanExecuteCallbackNow(thread)) {
 			thread = __GetCurrentThread();
 			__KernelChangeThreadState(thread, THREADSTATUS_RUNNING);
@@ -3176,8 +3197,7 @@ void __KernelCallAddress(Thread *thread, u32 entryPoint, Action *afterAction, co
 	}
 }
 
-void __KernelDirectMipsCall(u32 entryPoint, Action *afterAction, u32 args[], int numargs, bool reschedAfter)
-{
+void __KernelDirectMipsCall(u32 entryPoint, PSPAction *afterAction, u32 args[], int numargs, bool reschedAfter) {
 	__KernelCallAddress(__GetCurrentThread(), entryPoint, afterAction, args, numargs, reschedAfter, 0);
 }
 
@@ -3185,7 +3205,7 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 {
 	hleSkipDeadbeef();
 
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 	if (cur == nullptr) {
 		ERROR_LOG(SCEKERNEL, "__KernelExecuteMipsCallOnCurrentThread(): Bad current thread");
 		return false;
@@ -3199,7 +3219,7 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 
 	// Grab some MIPS stack space.
 	u32 &sp = currentMIPS->r[MIPS_REG_SP];
-	if (!Memory_P::IsValidAddress(sp - 32 * 4)) {
+	if (!Memory::IsValidAddress(sp - 32 * 4)) {
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelExecuteMipsCallOnCurrentThread(): Not enough free stack");
 		return false;
 	}
@@ -3207,11 +3227,11 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 	// Let's just save regs generously.  Better to be safe.
 	sp -= 32 * 4;
 	for (int i = MIPS_REG_A0; i <= MIPS_REG_T7; ++i) {
-		Memory_P::PWrite_U32(currentMIPS->r[i], sp + i * 4);
+		Memory::Write_U32(currentMIPS->r[i], sp + i * 4);
 	}
-	Memory_P::PWrite_U32(currentMIPS->r[MIPS_REG_T8], sp + MIPS_REG_T8 * 4);
-	Memory_P::PWrite_U32(currentMIPS->r[MIPS_REG_T9], sp + MIPS_REG_T9 * 4);
-	Memory_P::PWrite_U32(currentMIPS->r[MIPS_REG_RA], sp + MIPS_REG_RA * 4);
+	Memory::Write_U32(currentMIPS->r[MIPS_REG_T8], sp + MIPS_REG_T8 * 4);
+	Memory::Write_U32(currentMIPS->r[MIPS_REG_T9], sp + MIPS_REG_T9 * 4);
+	Memory::Write_U32(currentMIPS->r[MIPS_REG_RA], sp + MIPS_REG_RA * 4);
 
 	// Save the few regs that need saving
 	call->savedPc = currentMIPS->pc;
@@ -3220,9 +3240,13 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 	call->savedId = cur->currentMipscallId;
 	call->reschedAfter = reschedAfter;
 
+	if (!Memory::IsValidAddress(call->entryPoint)) {
+		Core_ExecException(call->entryPoint, currentMIPS->pc, ExecExceptionType::THREAD);
+	}
+
 	// Set up the new state
 	currentMIPS->pc = call->entryPoint;
-	currentMIPS->r[MIPS_REG_RA] = __KernelMipsCallReturnAddress();
+	currentMIPS->r[MIPS_REG_RA] = __KernelCallbackReturnAddress();
 	cur->currentMipscallId = callId;
 	for (int i = 0; i < call->numArgs; i++) {
 		currentMIPS->r[MIPS_REG_A0 + i] = call->args[i];
@@ -3239,7 +3263,7 @@ void __KernelReturnFromMipsCall()
 {
 	hleSkipDeadbeef();
 
-	Thread *cur = __GetCurrentThread();
+	PSPThread *cur = __GetCurrentThread();
 	if (cur == NULL)
 	{
 		ERROR_LOG(SCEKERNEL, "__KernelReturnFromMipsCall(): Bad current thread");
@@ -3251,23 +3275,27 @@ void __KernelReturnFromMipsCall()
 
 	// Value returned by the callback function
 	u32 retVal = currentMIPS->r[MIPS_REG_V0];
-	DEBUG_LOG(SCEKERNEL,"__KernelReturnFromMipsCall(), returned %08x", retVal);
+	DEBUG_LOG(SCEKERNEL, "__KernelReturnFromMipsCall(), returned %08x", retVal);
 
-	// Should also save/restore wait state here.
-	if (call->doAfter)
-	{
+	// TODO: Should also save/restore wait state here?
+	if (call->doAfter) {
 		call->doAfter->run(*call);
 		delete call->doAfter;
+		call->doAfter = nullptr;
 	}
 
 	u32 &sp = currentMIPS->r[MIPS_REG_SP];
 	for (int i = MIPS_REG_A0; i <= MIPS_REG_T7; ++i) {
-		currentMIPS->r[i] = Memory_P::PRead_U32(sp + i * 4);
+		currentMIPS->r[i] = Memory::Read_U32(sp + i * 4);
 	}
-	currentMIPS->r[MIPS_REG_T8] = Memory_P::PRead_U32(sp + MIPS_REG_T8 * 4);
-	currentMIPS->r[MIPS_REG_T9] = Memory_P::PRead_U32(sp + MIPS_REG_T9 * 4);
-	currentMIPS->r[MIPS_REG_RA] = Memory_P::PRead_U32(sp + MIPS_REG_RA * 4);
+	currentMIPS->r[MIPS_REG_T8] = Memory::Read_U32(sp + MIPS_REG_T8 * 4);
+	currentMIPS->r[MIPS_REG_T9] = Memory::Read_U32(sp + MIPS_REG_T9 * 4);
+	currentMIPS->r[MIPS_REG_RA] = Memory::Read_U32(sp + MIPS_REG_RA * 4);
 	sp += 32 * 4;
+
+	if (!Memory::IsValidAddress(call->savedPc)) {
+		Core_ExecException(call->savedPc, currentMIPS->pc, ExecExceptionType::THREAD);
+	}
 
 	currentMIPS->pc = call->savedPc;
 	// This is how we set the return value.
@@ -3301,7 +3329,7 @@ void __KernelReturnFromMipsCall()
 
 		// Now seems like a good time to clear out any pending deletes.
 		for (SceUID delThread : pendingDeleteThreads) {
-			kernelObjects.Destroy<Thread>(delThread);
+			kernelObjects.Destroy<PSPThread>(delThread);
 		}
 		pendingDeleteThreads.clear();
 	}
@@ -3310,9 +3338,8 @@ void __KernelReturnFromMipsCall()
 }
 
 // First arg must be current thread, passed to avoid perf cost of a lookup.
-bool __KernelExecutePendingMipsCalls(Thread *thread, bool reschedAfter)
-{
-	_dbg_assert_msg_(SCEKERNEL, thread->GetUID() == __KernelGetCurThread(), "__KernelExecutePendingMipsCalls() should be called only with the current thread.");
+bool __KernelExecutePendingMipsCalls(PSPThread *thread, bool reschedAfter) {
+	_dbg_assert_msg_(thread->GetUID() == __KernelGetCurThread(), "__KernelExecutePendingMipsCalls() should be called only with the current thread.");
 
 	if (thread->pendingMipsCalls.empty()) {
 		// Nothing to do
@@ -3332,10 +3359,9 @@ bool __KernelExecutePendingMipsCalls(Thread *thread, bool reschedAfter)
 }
 
 // Executes the callback, when it next is context switched to.
-static void __KernelRunCallbackOnThread(SceUID cbId, Thread *thread, bool reschedAfter)
-{
+static void __KernelRunCallbackOnThread(SceUID cbId, PSPThread *thread, bool reschedAfter) {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (!cb) {
 		ERROR_LOG(SCEKERNEL, "__KernelRunCallbackOnThread: Bad cbId %i", cbId);
 		return;
@@ -3364,22 +3390,19 @@ static void __KernelRunCallbackOnThread(SceUID cbId, Thread *thread, bool resche
 void ActionAfterCallback::run(MipsCall &call) {
 	if (cbId != -1) {
 		u32 error;
-		Callback *cb = kernelObjects.Get<Callback>(cbId, error);
-		if (cb)
-		{
-			Thread *t = kernelObjects.Get<Thread>(cb->nc.threadId, error);
-			if (t)
-			{
+		PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
+		if (cb) {
+			PSPThread *t = kernelObjects.Get<PSPThread>(cb->nc.threadId, error);
+			if (t) {
 				// Check for other callbacks to run (including ones this callback scheduled.)
 				__KernelCheckThreadCallbacks(t, true);
 			}
 
 			DEBUG_LOG(SCEKERNEL, "Left callback %i - %s", cbId, cb->nc.name);
 			// Callbacks that don't return 0 are deleted. But should this be done here?
-			if (currentMIPS->r[MIPS_REG_V0] != 0)
-			{
+			if (currentMIPS->r[MIPS_REG_V0] != 0) {
 				DEBUG_LOG(SCEKERNEL, "ActionAfterCallback::run(): Callback returned non-zero, gets deleted!");
-				kernelObjects.Destroy<Callback>(cbId);
+				kernelObjects.Destroy<PSPCallback>(cbId);
 			}
 		}
 	}
@@ -3390,10 +3413,10 @@ bool __KernelCurHasReadyCallbacks() {
 		return false;
 	}
 
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	u32 error;
 	for (auto it = thread->callbacks.begin(), end = thread->callbacks.end(); it != end; ++it) {
-		Callback *callback = kernelObjects.Get<Callback>(*it, error);
+		PSPCallback *callback = kernelObjects.Get<PSPCallback>(*it, error);
 		if (callback && callback->nc.notifyCount != 0) {
 			return true;
 		}
@@ -3403,7 +3426,7 @@ bool __KernelCurHasReadyCallbacks() {
 
 // Check callbacks on the current thread only.
 // Returns true if any callbacks were processed on the current thread.
-bool __KernelCheckThreadCallbacks(Thread *thread, bool force) {
+bool __KernelCheckThreadCallbacks(PSPThread *thread, bool force) {
 	if (!thread || (!thread->isProcessingCallbacks && !force)) {
 		return false;
 	}
@@ -3411,7 +3434,7 @@ bool __KernelCheckThreadCallbacks(Thread *thread, bool force) {
 	if (!thread->callbacks.empty()) {
 		u32 error;
 		for (auto it = thread->callbacks.begin(), end = thread->callbacks.end(); it != end; ++it) {
-			Callback *callback = kernelObjects.Get<Callback>(*it, error);
+			PSPCallback *callback = kernelObjects.Get<PSPCallback>(*it, error);
 			if (callback && callback->nc.notifyCount != 0) {
 				__KernelRunCallbackOnThread(callback->GetUID(), thread, !force);
 				readyCallbacksCount--;
@@ -3442,7 +3465,7 @@ bool __KernelCheckCallbacks() {
 
 	u32 error;
 	for (auto iter = threadqueue.begin(); iter != threadqueue.end(); ++iter) {
-		Thread *thread = kernelObjects.Get<Thread>(*iter, error);
+		PSPThread *thread = kernelObjects.Get<PSPThread>(*iter, error);
 		if (thread && __KernelCheckThreadCallbacks(thread, false)) {
 			processed = true;
 		}
@@ -3464,7 +3487,7 @@ bool __KernelForceCallbacks()
 		ERROR_LOG_REPORT(SCEKERNEL, "readyCallbacksCount became negative: %i", readyCallbacksCount);
 	}
 
-	Thread *curThread = __GetCurrentThread();	
+	PSPThread *curThread = __GetCurrentThread();
 
 	bool callbacksProcessed = __KernelCheckThreadCallbacks(curThread, true);
 	if (callbacksProcessed)
@@ -3499,7 +3522,7 @@ void __KernelNotifyCallback(SceUID cbId, int notifyArg)
 {
 	u32 error;
 
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (!cb) {
 		// Yeah, we're screwed, this shouldn't happen.
 		ERROR_LOG(SCEKERNEL, "__KernelNotifyCallback - invalid callback %08x", cbId);
@@ -3524,7 +3547,7 @@ std::vector<DebugThreadInfo> GetThreadsInfo() {
 
 	u32 error;
 	for (const auto uid : threadqueue) {
-		Thread *t = kernelObjects.Get<Thread>(uid, error);
+		PSPThread *t = kernelObjects.Get<PSPThread>(uid, error);
 		if (!t)
 			continue;
 
@@ -3555,7 +3578,7 @@ DebugInterface *KernelDebugThread(SceUID threadID) {
 	}
 
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadID, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadID, error);
 	if (t) {
 		return &t->debug;
 	}
@@ -3563,10 +3586,9 @@ DebugInterface *KernelDebugThread(SceUID threadID) {
 	return nullptr;
 }
 
-void __KernelChangeThreadState(SceUID threadId, ThreadStatus newStatus)
-{
+void __KernelChangeThreadState(SceUID threadId, ThreadStatus newStatus) {
 	u32 error;
-	Thread *t = kernelObjects.Get<Thread>(threadId, error);
+	PSPThread *t = kernelObjects.Get<PSPThread>(threadId, error);
 	if (!t)
 		return;
 
@@ -3576,7 +3598,7 @@ void __KernelChangeThreadState(SceUID threadId, ThreadStatus newStatus)
 int sceKernelRegisterExitCallback(SceUID cbId)
 {
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(cbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (!cb)
 	{
 		WARN_LOG(SCEKERNEL, "sceKernelRegisterExitCallback(%i): invalid callback id", cbId);
@@ -3594,34 +3616,34 @@ int LoadExecForUser_362A956B()
 {
 	WARN_LOG_REPORT(SCEKERNEL, "LoadExecForUser_362A956B()");
 	u32 error;
-	Callback *cb = kernelObjects.Get<Callback>(registeredExitCbId, error);
+	PSPCallback *cb = kernelObjects.Get<PSPCallback>(registeredExitCbId, error);
 	if (!cb) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : registeredExitCbId not found 0x%x", registeredExitCbId);
 		return SCE_KERNEL_ERROR_UNKNOWN_CBID;
 	}
 	int cbArg = cb->nc.commonArgument;
-	if (!Memory_P::IsValidAddress(cbArg)) {
+	if (!Memory::IsValidAddress(cbArg)) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid address for cbArg (0x%08X)", cbArg);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
-	u32 unknown1 = Memory_P::PRead_U32(cbArg - 8);
+	u32 unknown1 = Memory::Read_U32(cbArg - 8);
 	if (unknown1 >= 4) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid value unknown1 (0x%08X)", unknown1);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
 	}
-	u32 parameterArea = Memory_P::PRead_U32(cbArg - 4);
-	if (!Memory_P::IsValidAddress(parameterArea)) {
+	u32 parameterArea = Memory::Read_U32(cbArg - 4);
+	if (!Memory::IsValidAddress(parameterArea)) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid address for parameterArea on userMemory  (0x%08X)", parameterArea);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
 	
-	u32 size = Memory_P::PRead_U32(parameterArea);
+	u32 size = Memory::Read_U32(parameterArea);
 	if (size < 12) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid parameterArea size %d", size);
 		return SCE_KERNEL_ERROR_ILLEGAL_SIZE;
 	}
-	Memory_P::PWrite_U32(0, parameterArea + 4);
-	Memory_P::PWrite_U32(-1, parameterArea + 8);
+	Memory::Write_U32(0, parameterArea + 4);
+	Memory::Write_U32(-1, parameterArea + 8);
 	return 0;
 }
 
@@ -3637,13 +3659,14 @@ struct NativeThreadEventHandler {
 };
 
 struct ThreadEventHandler : public KernelObject {
-	const char *GetName() { return nteh.name; }
-	const char *GetTypeName() { return "ThreadEventHandler"; }
+	const char *GetName() override { return nteh.name; }
+	const char *GetTypeName() override { return GetStaticTypeName(); }
+	static const char *GetStaticTypeName() { return "ThreadEventHandler"; }
 	static u32 GetMissingErrorCode() { return SCE_KERNEL_ERROR_UNKNOWN_TEID; }
 	static int GetStaticIDType() { return SCE_KERNEL_TMID_ThreadEventHandler; }
-	int GetIDType() const { return SCE_KERNEL_TMID_ThreadEventHandler; }
+	int GetIDType() const override { return SCE_KERNEL_TMID_ThreadEventHandler; }
 
-	virtual void DoState(PointerWrap &p) {
+	void DoState(PointerWrap &p) override {
 		auto s = p.Section("ThreadEventHandler", 1);
 		if (!s)
 			return;
@@ -3660,10 +3683,10 @@ KernelObject *__KernelThreadEventHandlerObject() {
 }
 
 bool __KernelThreadTriggerEvent(const ThreadEventHandlerList &handlers, SceUID threadID, ThreadEventType type) {
-	Thread *thread = __GetCurrentThread();
+	PSPThread *thread = __GetCurrentThread();
 	if (!thread || thread->isStopped()) {
 		SceUID nextThreadID = threadReadyQueue.peek_first();
-		thread = kernelObjects.GetFast<Thread>(nextThreadID);
+		thread = kernelObjects.GetFast<PSPThread>(nextThreadID);
 	}
 
 	bool hadHandlers = false;
@@ -3716,7 +3739,7 @@ SceUID sceKernelRegisterThreadEventHandler(const char *name, SceUID threadID, u3
 		}
 	}
 	u32 error;
-	if (kernelObjects.Get<Thread>(threadID, error) == NULL && threadID != SCE_TE_THREADID_ALL_USER) {
+	if (kernelObjects.Get<PSPThread>(threadID, error) == NULL && threadID != SCE_TE_THREADID_ALL_USER) {
 		return hleReportError(SCEKERNEL, error, "bad thread id");
 	}
 	if ((mask & ~THREADEVENT_SUPPORTED) != 0) {
@@ -3757,8 +3780,8 @@ int sceKernelReferThreadEventHandlerStatus(SceUID uid, u32 infoPtr) {
 		return hleReportError(SCEKERNEL, error, "bad handler id");
 	}
 
-	if (Memory_P::IsValidAddress(infoPtr) && Memory_P::PRead_U32(infoPtr) != 0) {
-		Memory_P::WriteStruct(infoPtr, &teh->nteh);
+	if (Memory::IsValidAddress(infoPtr) && Memory::Read_U32(infoPtr) != 0) {
+		Memory::WriteStruct(infoPtr, &teh->nteh);
 		return hleLogSuccessI(SCEKERNEL, 0);
 	} else {
 		return hleLogDebug(SCEKERNEL, 0, "struct size was 0");

@@ -37,7 +37,7 @@ static bool isJPCSPFont(const char *fontName) {
 
 // Gets a number of bits from an offset.
 static int getBits(int numBits, const u8 *buf, size_t pos) {
-	_dbg_assert_msg_(SCEFONT, numBits <= 32, "Unable to return more than 32 bits, %d requested", numBits);
+	_dbg_assert_msg_(numBits <= 32, "Unable to return more than 32 bits, %d requested", numBits);
 
 	const size_t wordpos = pos >> 5;
 	const u32 *wordbuf = (const u32 *)buf;
@@ -691,27 +691,27 @@ void PGF::SetFontPixel(u32 base, int bpl, int bufWidth, int bufHeight, int x, in
 			// We always get a 8-bit value, so take only the top 4 bits.
 			const u8 pix4 = pixelColor >> 4;
 
-			int oldColor = Memory_P::PRead_U8(framebufferAddr);
+			int oldColor = Memory::Read_U8(framebufferAddr);
 			int newColor;
 			if ((x & 1) != pixelformat) {
 				newColor = (pix4 << 4) | (oldColor & 0xF);
 			} else {
 				newColor = (oldColor & 0xF0) | pix4;
 			}
-			Memory_P::PWrite_U8(newColor, framebufferAddr);
+			Memory::Write_U8(newColor, framebufferAddr);
 			break;
 		}
 	case PSP_FONT_PIXELFORMAT_8:
 		{
-			Memory_P::PWrite_U8(pixelColor, framebufferAddr);
+			Memory::Write_U8(pixelColor, framebufferAddr);
 			break;
 		}
 	case PSP_FONT_PIXELFORMAT_24:
 		{
 			// Each channel has the same value.
-			Memory_P::PWrite_U8(pixelColor, framebufferAddr + 0);
-			Memory_P::PWrite_U8(pixelColor, framebufferAddr + 1);
-			Memory_P::PWrite_U8(pixelColor, framebufferAddr + 2);
+			Memory::Write_U8(pixelColor, framebufferAddr + 0);
+			Memory::Write_U8(pixelColor, framebufferAddr + 1);
+			Memory::Write_U8(pixelColor, framebufferAddr + 2);
 			break;
 		}
 	case PSP_FONT_PIXELFORMAT_32:
@@ -720,7 +720,7 @@ void PGF::SetFontPixel(u32 base, int bpl, int bufWidth, int bufHeight, int x, in
 			u32 pix32 = pixelColor;
 			pix32 |= pix32 << 8;
 			pix32 |= pix32 << 16;
-			Memory_P::PWrite_U32(pix32, framebufferAddr);
+			Memory::Write_U32(pix32, framebufferAddr);
 			break;
 		}
 	}

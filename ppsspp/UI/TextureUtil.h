@@ -42,16 +42,17 @@ private:
 std::unique_ptr<ManagedTexture> CreateTextureFromFile(Draw::DrawContext *draw, const char *filename, ImageFileType fileType, bool generateMips = false);
 std::unique_ptr<ManagedTexture> CreateTextureFromFileData(Draw::DrawContext *draw, const uint8_t *data, int size, ImageFileType fileType, bool generateMips = false);
 
-class GameIconView : public PUI::InertView {
+class GameIconView : public UI::InertView {
 public:
-	GameIconView(std::string gamePath, PUI::LayoutParams *layoutParams = 0)
-		: InertView(layoutParams), gamePath_(gamePath) {}
+	GameIconView(std::string gamePath, float scale, UI::LayoutParams *layoutParams = 0)
+		: InertView(layoutParams), gamePath_(gamePath), scale_(scale) {}
 
 	void GetContentDimensions(const UIContext &dc, float &w, float &h) const override;
 	void Draw(UIContext &dc) override;
 
 private:
 	std::string gamePath_;
+	float scale_ = 1.0f;
 	int textureWidth_ = 0;
 	int textureHeight_ = 0;
 };

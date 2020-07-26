@@ -36,7 +36,7 @@
 
 #include "TestFixture.h"
 
-namespace Pglslangtest {
+namespace glslangtest {
 namespace {
 
 using CompileToAstTest = GlslangTest<::testing::TestWithParam<std::string>>;
@@ -46,7 +46,7 @@ using CompileToAstTestNV = GlslangTest<::testing::TestWithParam<std::string>>;
 TEST_P(CompileToAstTest, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::OpenGL, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
                             Target::AST);
 }
 
@@ -54,7 +54,7 @@ TEST_P(CompileToAstTest, FromFile)
 TEST_P(CompileToAstTestNV, FromFile)
 {
     loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
-                            Source::GLSL, Semantics::OpenGL, Pglslang::EShTargetVulkan_1_0, Pglslang::EShTargetSpv_1_0,
+                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0, glslang::EShTargetSpv_1_0,
                             Target::AST);
 }
 
@@ -288,4 +288,4 @@ INSTANTIATE_TEST_CASE_P(
 // clang-format on
 
 }  // anonymous namespace
-}  // namespace Pglslangtest
+}  // namespace glslangtest

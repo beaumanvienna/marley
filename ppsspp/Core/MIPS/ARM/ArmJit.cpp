@@ -87,7 +87,7 @@ static u32 JitMemCheck(u32 pc) {
 		return 0;
 
 	// Note: pc may be the delay slot.
-	const auto op = Memory_P::Read_Instruction(pc, true);
+	const auto op = Memory::Read_Instruction(pc, true);
 	s32 offset = (s16)(op & 0xFFFF);
 	if (MIPSGetInfo(op) & IS_VFPU)
 		offset &= 0xFFFC;
@@ -275,7 +275,7 @@ u32 ArmJit::GetCompilerPC() {
 }
 
 MIPSOpcode ArmJit::GetOffsetInstruction(int offset) {
-	return Memory_P::Read_Instruction(GetCompilerPC() + 4 * offset);
+	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
@@ -304,17 +304,17 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 		JumpTarget backJump = GetCodePtr();
 		gpr.SetRegImm(R0, js.blockStart);
 		B((const void *)outerLoopPCInR0);
-		b->checkedEntry = (u8 *)GetCodePtr();
+		b->checkedEntry = GetCodePtr();
 		SetCC(CC_LT);
 		B(backJump);
 		SetCC(CC_AL);
 	} else if (jo.useForwardJump) {
-		b->checkedEntry = (u8 *)GetCodePtr();
+		b->checkedEntry = GetCodePtr();
 		SetCC(CC_LT);
 		bail = B();
 		SetCC(CC_AL);
 	} else {
-		b->checkedEntry = (u8 *)GetCodePtr();
+		b->checkedEntry = GetCodePtr();
 		SetCC(CC_LT);
 		gpr.SetRegImm(R0, js.blockStart);
 		B((const void *)outerLoopPCInR0);
@@ -335,7 +335,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 		// Jit breakpoints are quite fast, so let's do them in release too.
 		CheckJitBreakpoint(GetCompilerPC(), 0);
 
-		MIPSOpcode inst = Memory_P::Read_Opcode_JIT(GetCompilerPC());
+		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
 		//MIPSInfo info = MIPSGetInfo(inst);
 		//if (info & IS_VFPU) {
 		//	logBlocks = 1;
@@ -357,7 +357,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 		}
 
 		// Safety check, in case we get a bunch of really large jit ops without a lot of branching.
-		if (GetSpaceLeft() < 0x800 || js.numInstructions >= PJitBlockCache::MAX_BLOCK_INSTRUCTIONS)
+		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS)
 		{
 			FlushAll();
 			WriteExit(GetCompilerPC(), js.nextExit++);
@@ -366,7 +366,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	}
 
 	if (jo.useForwardJump) {
-		PSetJumpTarget(bail);
+		SetJumpTarget(bail);
 		gpr.SetRegImm(R0, js.blockStart);
 		B((const void *)outerLoopPCInR0);
 	}
@@ -377,7 +377,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	if (logBlocks > 0 && dontLogBlocks == 0) {
 		INFO_LOG(JIT, "=============== mips ===============");
 		for (u32 cpc = em_address; cpc != GetCompilerPC() + 4; cpc += 4) {
-			MIPSDisAsm(Memory_P::Read_Opcode_JIT(cpc), cpc, temp, true);
+			MIPSDisAsm(Memory::Read_Opcode_JIT(cpc), cpc, temp, true);
 			INFO_LOG(JIT, "M: %08x   %s", cpc, temp);
 		}
 	}
@@ -542,14 +542,14 @@ void ArmJit::Comp_ReplacementFunc(MIPSOpcode op)
 	}
 
 	if (disabled) {
-		MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
+		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
 	} else if (entry->jitReplaceFunc) {
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;
 		int cycles = (this->*repl)();
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
-			MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			FlushAll();
 			// Flushed, so R1 is safe.
@@ -576,7 +576,7 @@ void ArmJit::Comp_ReplacementFunc(MIPSOpcode op)
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			ApplyRoundingMode();
 			LDR(R1, CTXREG, MIPS_REG_RA * 4);
@@ -703,11 +703,12 @@ void ArmJit::UpdateRoundingMode(u32 fcr31) {
 // I don't think this gives us that much benefit.
 void ArmJit::WriteExit(u32 destination, int exit_num)
 {
+	// TODO: Check destination is valid and trigger exception.
 	WriteDownCount(); 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = PGetWritableCodePtr();
+	b->exitPtrs[exit_num] = GetWritableCodePtr();
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
@@ -723,6 +724,7 @@ void ArmJit::WriteExit(u32 destination, int exit_num)
 
 void ArmJit::WriteExitDestInR(ARMReg Reg) 
 {
+	// TODO: If not fast memory, check for invalid address in reg and trigger exception.
 	MovToPC(Reg);
 	WriteDownCount();
 	// TODO: shouldn't need an indirect branch here...
@@ -750,7 +752,7 @@ bool ArmJit::CheckJitBreakpoint(u32 addr, int downcountOffset) {
 		WriteDownCount(downcountOffset);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		PSetJumpTarget(skip);
+		SetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(true, false, R8);
@@ -779,7 +781,7 @@ bool ArmJit::CheckMemoryBreakpoint(int instructionOffset) {
 		WriteDownCount(-1 - off);
 		ApplyRoundingMode();
 		B((const void *)dispatcherCheckCoreState);
-		PSetJumpTarget(skip);
+		SetJumpTarget(skip);
 
 		ApplyRoundingMode();
 		_MSR(true, false, R8);
@@ -792,7 +794,7 @@ bool ArmJit::CheckMemoryBreakpoint(int instructionOffset) {
 void ArmJit::Comp_DoNothing(MIPSOpcode op) { }
 
 MIPSOpcode ArmJit::GetOriginalOp(MIPSOpcode op) {
-	PJitBlockCache *bc = GetBlockCache();
+	JitBlockCache *bc = GetBlockCache();
 	int block_num = bc->GetBlockNumberFromEmuHackOp(op, true);
 	if (block_num >= 0) {
 		return bc->GetOriginalFirstOp(block_num);

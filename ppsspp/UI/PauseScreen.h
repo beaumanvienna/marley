@@ -38,21 +38,20 @@ protected:
 	void CallbackDeleteConfig(bool yes);
 
 private:
-	PUI::EventReturn OnGameSettings(PUI::EventParams &e);
-	PUI::EventReturn OnExitToMenu(PUI::EventParams &e);
-    PUI::EventReturn OnExitToMarley(PUI::EventParams &e);
-	PUI::EventReturn OnReportFeedback(PUI::EventParams &e);
+	UI::EventReturn OnGameSettings(UI::EventParams &e);
+	UI::EventReturn OnExitToMenu(UI::EventParams &e);
+	UI::EventReturn OnReportFeedback(UI::EventParams &e);
 
-	PUI::EventReturn OnRewind(PUI::EventParams &e);
+	UI::EventReturn OnRewind(UI::EventParams &e);
 
-	PUI::EventReturn OnScreenshotClicked(PUI::EventParams &e);
-	PUI::EventReturn OnCwCheat(PUI::EventParams &e);
+	UI::EventReturn OnScreenshotClicked(UI::EventParams &e);
+	UI::EventReturn OnCwCheat(UI::EventParams &e);
 
-	PUI::EventReturn OnCreateConfig(PUI::EventParams &e);
-	PUI::EventReturn OnDeleteConfig(PUI::EventParams &e);
+	UI::EventReturn OnCreateConfig(UI::EventParams &e);
+	UI::EventReturn OnDeleteConfig(UI::EventParams &e);
 
-	PUI::EventReturn OnSwitchUMD(PUI::EventParams &e);
-	PUI::EventReturn OnState(PUI::EventParams &e);
+	UI::EventReturn OnSwitchUMD(UI::EventParams &e);
+	UI::EventReturn OnState(UI::EventParams &e);
 
 	// hack
 	bool finishNextFrame_ = false;
@@ -63,12 +62,12 @@ class PrioritizedWorkQueue;
 
 // AsyncImageFileView loads a texture from a file, and reloads it as necessary.
 // TODO: Actually make async, doh.
-class AsyncImageFileView : public PUI::Clickable {
+class AsyncImageFileView : public UI::Clickable {
 public:
-	AsyncImageFileView(const std::string &filename, PUI::ImageSizeMode sizeMode, PrioritizedWorkQueue *wq, PUI::LayoutParams *layoutParams = 0);
+	AsyncImageFileView(const std::string &filename, UI::ImageSizeMode sizeMode, PrioritizedWorkQueue *wq, UI::LayoutParams *layoutParams = 0);
 	~AsyncImageFileView();
 
-	void GetContentDimensionsBySpec(const UIContext &dc, PUI::MeasureSpec horiz, PUI::MeasureSpec vert, float &w, float &h) const override;
+	void GetContentDimensionsBySpec(const UIContext &dc, UI::MeasureSpec horiz, UI::MeasureSpec vert, float &w, float &h) const override;
 	void Draw(UIContext &dc) override;
 
 	void DeviceLost() override;
@@ -89,7 +88,7 @@ private:
 	std::string filename_;
 	std::string text_;
 	uint32_t color_;
-	PUI::ImageSizeMode sizeMode_;
+	UI::ImageSizeMode sizeMode_;
 
 	std::unique_ptr<ManagedTexture> texture_;
 	bool textureFailed_;

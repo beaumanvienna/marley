@@ -245,7 +245,7 @@ protected:
 	virtual void emit_texture_op(const Instruction &i);
 	virtual void emit_subgroup_op(const Instruction &i);
 	virtual std::string type_to_glsl(const SPIRType &type, uint32_t id = 0);
-	virtual std::string builtin_to_glsl(Pspv::BuiltIn builtin, Pspv::StorageClass storage);
+	virtual std::string builtin_to_glsl(spv::BuiltIn builtin, spv::StorageClass storage);
 	virtual void emit_struct_member(const SPIRType &type, uint32_t member_type_id, uint32_t index,
 	                                const std::string &qualifier = "", uint32_t base_offset = 0);
 	virtual std::string image_type_glsl(const SPIRType &type, uint32_t id = 0);
@@ -412,7 +412,7 @@ protected:
 	void emit_buffer_reference_block(SPIRType &type, bool forward_declaration);
 	void emit_buffer_block_legacy(const SPIRVariable &var);
 	void emit_buffer_block_flattened(const SPIRVariable &type);
-	void emit_declared_builtin_block(Pspv::StorageClass storage, Pspv::ExecutionModel model);
+	void emit_declared_builtin_block(spv::StorageClass storage, spv::ExecutionModel model);
 	void emit_push_constant_block_vulkan(const SPIRVariable &var);
 	void emit_push_constant_block_glsl(const SPIRVariable &var);
 	void emit_interface_block(const SPIRVariable &type);
@@ -518,7 +518,7 @@ protected:
 	const char *to_precision_qualifiers_glsl(uint32_t id);
 	virtual const char *to_storage_qualifiers_glsl(const SPIRVariable &var);
 	const char *flags_to_qualifiers_glsl(const SPIRType &type, const Bitset &flags);
-	const char *format_to_glsl(Pspv::ImageFormat format);
+	const char *format_to_glsl(spv::ImageFormat format);
 	virtual std::string layout_for_member(const SPIRType &type, uint32_t index);
 	virtual std::string to_interpolation_qualifiers(const Bitset &flags);
 	std::string layout_for_variable(const SPIRVariable &variable);
@@ -635,7 +635,7 @@ protected:
 
 	static std::string sanitize_underscores(const std::string &str);
 
-	bool can_use_io_location(Pspv::StorageClass storage, bool block);
+	bool can_use_io_location(spv::StorageClass storage, bool block);
 	const Instruction *get_next_instruction_in_block(const Instruction &instr);
 	static uint32_t mask_relevant_memory_semantics(uint32_t semantics);
 

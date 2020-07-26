@@ -29,6 +29,11 @@
 #undef realloc
 #endif
 
+// Weird issue
+#if PPSSPP_PLATFORM(WINDOWS) && PPSSPP_ARCH(ARM)
+#undef free
+#endif
+
 #include "base/logging.h"
 #include "base/basictypes.h"
 #include "base/stringutil.h"
@@ -62,12 +67,12 @@ static EShLanguage GetLanguage(const Draw::ShaderStage stage) {
 void ShaderTranslationInit() {
 	// TODO: We have TLS issues on UWP
 #if !PPSSPP_PLATFORM(UWP)
-	Pglslang::InitializeProcess();
+	glslang::InitializeProcess();
 #endif
 }
 void ShaderTranslationShutdown() {
 #if !PPSSPP_PLATFORM(UWP)
-	Pglslang::FinalizeProcess();
+	glslang::FinalizeProcess();
 #endif
 }
 
@@ -86,6 +91,7 @@ cbuffer data : register(b0) {
 	float2 u_texelDelta;
 	float2 u_pixelDelta;
 	float4 u_time;
+	float4 u_setting;
 	float u_video;
 };
 )";
@@ -96,13 +102,23 @@ R"(#version 430
 #extension GL_ARB_shading_language_420pack : enable
 )";
 
-static const char *pushconstantBufferDecl = R"(
-layout(push_constant) uniform data {
+static const char *vulkanUboDecl = R"(
+layout (std140, set = 0, binding = 0) uniform Data {
 	vec2 u_texelDelta;
 	vec2 u_pixelDelta;
 	vec4 u_time;
+	vec4 u_setting;
 	float u_video;
 };
+)";
+
+static const char *d3d9RegisterDecl = R"(
+float4 gl_HalfPixel : register(c0);
+float2 u_texelDelta : register(c1);
+float2 u_pixelDelta : register(c2);
+float4 u_time : register(c3);
+float4 u_setting : register(c4);
+float u_video : register(c5);
 )";
 
 // SPIRV-Cross' HLSL output has some deficiencies we need to work around.
@@ -110,20 +126,32 @@ layout(push_constant) uniform data {
 // Should probably do it in the source shader instead and then back translate to old style GLSL, but
 // SPIRV-Cross currently won't compile with the Android NDK so I can't be bothered.
 std::string Postprocess(std::string code, ShaderLanguage lang, Draw::ShaderStage stage) {
-	if (lang != HLSL_D3D11)
+	if (lang != HLSL_D3D11 && lang != HLSL_DX9)
 		return code;
 
 	std::stringstream out;
 
 	// Output the uniform buffer.
-	out << cbufferDecl;
+	if (lang == HLSL_D3D11)
+		out << cbufferDecl;
+	else if (lang == HLSL_DX9)
+		out << d3d9RegisterDecl;
 
 	// Alright, now let's go through it line by line and zap the single uniforms.
 	std::string line;
 	std::stringstream instream(code);
 	while (std::getline(instream, line)) {
-		if (line.find("uniform float") != std::string::npos)
+		if (line == "uniform sampler2D sampler0;" && lang == HLSL_DX9) {
+			out << "sampler2D sampler0 : register(s0);\n";
 			continue;
+		}
+		if (line == "uniform sampler2D sampler1;" && lang == HLSL_DX9) {
+			out << "sampler2D sampler1 : register(s1);\n";
+			continue;
+		}
+		if (line.find("uniform float") != std::string::npos) {
+			continue;
+		}
 		out << line << "\n";
 	}
 	std::string output = out.str();
@@ -139,7 +167,7 @@ bool ConvertToVulkanGLSL(std::string *dest, TranslatedShaderMetadata *destMetada
 		const char *replacement;
 	} replacements[] = {
 		{ Draw::ShaderStage::VERTEX, "attribute vec4 a_position;", "layout(location = 0) in vec4 a_position;" },
-		{ Draw::ShaderStage::VERTEX, "attribute vec2 a_texcoord0;", "layout(location = 1) in vec2 a_texcoord0;"},
+		{ Draw::ShaderStage::VERTEX, "attribute vec2 a_texcoord0;", "layout(location = 2) in vec2 a_texcoord0;"},
 		{ Draw::ShaderStage::VERTEX, "varying vec2 v_position;", "layout(location = 0) out vec2 v_position;" },
 		{ Draw::ShaderStage::FRAGMENT, "varying vec2 v_position;", "layout(location = 0) in vec2 v_position;" },
 		{ Draw::ShaderStage::FRAGMENT, "texture2D(", "texture(" },
@@ -151,7 +179,7 @@ bool ConvertToVulkanGLSL(std::string *dest, TranslatedShaderMetadata *destMetada
 		out << "layout (location = 0) out vec4 fragColor0;\n";
 	}
 	// Output the uniform buffer.
-	out << pushconstantBufferDecl;
+	out << vulkanUboDecl;
 
 	// Alright, now let's go through it line by line and zap the single uniforms
 	// and perform replacements.
@@ -162,14 +190,17 @@ bool ConvertToVulkanGLSL(std::string *dest, TranslatedShaderMetadata *destMetada
 		if (line.find("uniform bool") != std::string::npos) {
 			continue;
 		} else if (line.find("uniform sampler2D") == 0) {
-			line = "layout(set = 0, binding = 0) " + line;
+			if (line.find("sampler0") != line.npos)
+				line = "layout(set = 0, binding = 1) " + line;
+			else
+				line = "layout(set = 0, binding = 2) " + line;
 		} else if (line.find("uniform ") != std::string::npos) {
 			continue;
 		} else if (2 == sscanf(line.c_str(), "varying vec%d v_texcoord%d;", &vecSize, &num)) {
 			if (stage == Draw::ShaderStage::FRAGMENT) {
-				line = PStringFromFormat("layout(location = %d) in vec%d v_texcoord%d;", num, vecSize, num);
+				line = StringFromFormat("layout(location = %d) in vec%d v_texcoord%d;", num, vecSize, num);
 			} else {
-				line = PStringFromFormat("layout(location = %d) out vec%d v_texcoord%d;", num, vecSize, num);
+				line = StringFromFormat("layout(location = %d) out vec%d v_texcoord%d;", num, vecSize, num);
 			}
 		}
 		for (int i = 0; i < ARRAY_SIZE(replacements); i++) {
@@ -204,7 +235,7 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 	return false;
 #endif
 
-	Pglslang::TProgram program;
+	glslang::TProgram program;
 	const char *shaderStrings[1];
 
 	TBuiltInResource Resources;
@@ -214,7 +245,7 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 	EShMessages messages = EShMessages::EShMsgDefault;
 
 	EShLanguage shaderStage = GetLanguage(stage);
-	Pglslang::TShader shader(shaderStage);
+	glslang::TShader shader(shaderStage);
 
 	std::string preprocessed = Preprocess(src, srcLang, stage);
 
@@ -245,15 +276,15 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 
 	std::vector<unsigned int> spirv;
 	// Can't fail, parsing worked, "linking" worked.
-	Pglslang::SpvOptions options;
+	glslang::SpvOptions options;
 	options.disableOptimizer = false;
 	options.optimizeSize = false;
 	options.generateDebugInfo = false;
-	Pglslang::GlslangToSpv(*program.getIntermediate(shaderStage), spirv, &options);
+	glslang::GlslangToSpv(*program.getIntermediate(shaderStage), spirv, &options);
 
 	// For whatever reason, with our config, the above outputs an invalid SPIR-V version, 0.
 	// Patch it up so spirv-cross accepts it.
-	spirv[1] = Pglslang::EShTargetSpv_1_0;
+	spirv[1] = glslang::EShTargetSpv_1_0;
 
 
 	// Alright, step 1 done. Now let's take this SPIR-V shader and output in our desired format.
@@ -269,7 +300,8 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 		options_common.vertex.fixup_clipspace = true;
 		hlsl.set_hlsl_options(options);
 		hlsl.set_common_options(options_common);
-		*dest = hlsl.compile();
+		std::string raw = hlsl.compile();
+		*dest = Postprocess(raw, destLang, stage);
 		return true;
 	}
 	case HLSL_D3D11:
@@ -279,8 +311,8 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 
 		int i = 0;
 		for (auto &resource : resources.sampled_images) {
-			// int location = hlsl.get_decoration(resource.id, Pspv::DecorationLocation);
-			hlsl.set_decoration(resource.id, Pspv::DecorationLocation, i);
+			// int location = hlsl.get_decoration(resource.id, spv::DecorationLocation);
+			hlsl.set_decoration(resource.id, spv::DecorationLocation, i);
 			i++;
 		}
 		spirv_cross::CompilerHLSL::Options options{};
@@ -301,13 +333,13 @@ bool TranslateShader(std::string *dest, ShaderLanguage destLang, TranslatedShade
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 		// Get all sampled images in the shader.
 		for (auto &resource : resources.sampled_images) {
-			unsigned set = glsl.get_decoration(resource.id, Pspv::DecorationDescriptorSet);
-			unsigned binding = glsl.get_decoration(resource.id, Pspv::DecorationBinding);
+			unsigned set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+			unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
 			printf("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
 			// Modify the decoration to prepare it for GLSL.
-			glsl.unset_decoration(resource.id, Pspv::DecorationDescriptorSet);
+			glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
 			// Some arbitrary remapping if we want.
-			glsl.set_decoration(resource.id, Pspv::DecorationBinding, set * 16 + binding);
+			glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 		}
 		// Set some options.
 		spirv_cross::CompilerGLSL::Options options;

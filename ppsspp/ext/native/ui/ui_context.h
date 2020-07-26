@@ -25,7 +25,7 @@ class Texture;
 class DrawBuffer;
 class TextDrawer;
 
-namespace PUI {
+namespace UI {
 	struct Drawable;
 	struct Theme;
 	struct FontStyle;
@@ -35,8 +35,8 @@ class DrawBuffer;
 
 struct UITransform {
 	// TODO: Or just use a matrix?
-	Vec3 translate;
-	Vec3 scale;
+	Lin::Vec3 translate;
+	Lin::Vec3 scale;
 	float alpha;
 };
 
@@ -65,26 +65,27 @@ public:
 
 	DrawBuffer *Draw() const { return uidrawbuffer_; }
 	DrawBuffer *DrawTop() const { return uidrawbufferTop_; }
-	const PUI::Theme *theme;
+	const UI::Theme *theme;
 
 	// Utility methods
 
 	TextDrawer *Text() const { return textDrawer_; }
 
-	void SetFontStyle(const PUI::FontStyle &style);
-	const PUI::FontStyle &GetFontStyle() { return *fontStyle_; }
+	void SetFontStyle(const UI::FontStyle &style);
+	const UI::FontStyle &GetFontStyle() { return *fontStyle_; }
 	void SetFontScale(float scaleX, float scaleY);
-	void MeasureTextCount(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align = 0) const;
-	void MeasureText(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align = 0) const;
-	void MeasureTextRect(const PUI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align = 0) const;
+	void MeasureTextCount(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align = 0) const;
+	void MeasureText(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, float *x, float *y, int align = 0) const;
+	void MeasureTextRect(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align = 0) const;
 	void DrawText(const char *str, float x, float y, uint32_t color, int align = 0);
 	void DrawTextShadow(const char *str, float x, float y, uint32_t color, int align = 0);
 	void DrawTextRect(const char *str, const Bounds &bounds, uint32_t color, int align = 0);
-	void FillRect(const PUI::Drawable &drawable, const Bounds &bounds);
+	void FillRect(const UI::Drawable &drawable, const Bounds &bounds);
 
 	// in dps, like dp_xres and dp_yres
 	void SetBounds(const Bounds &b) { bounds_ = b; }
 	const Bounds &GetBounds() const { return bounds_; }
+	Bounds GetLayoutBounds() const;
 	Draw::DrawContext *GetDrawContext() { return draw_; }
 	void SetCurZ(float curZ);
 
@@ -98,7 +99,7 @@ private:
 
 	float fontScaleX_ = 1.0f;
 	float fontScaleY_ = 1.0f;
-	PUI::FontStyle *fontStyle_ = nullptr;
+	UI::FontStyle *fontStyle_ = nullptr;
 	TextDrawer *textDrawer_ = nullptr;
 
 	Draw::SamplerState *sampler_;

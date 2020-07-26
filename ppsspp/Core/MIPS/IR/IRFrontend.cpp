@@ -149,7 +149,7 @@ void IRFrontend::Comp_ReplacementFunc(MIPSOpcode op) {
 	}
 
 	if (disabled) {
-		MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
+		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
 	} else if (entry->replaceFunc) {
 		FlushAll();
 		RestoreRoundingMode();
@@ -159,7 +159,7 @@ void IRFrontend::Comp_ReplacementFunc(MIPSOpcode op) {
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory_P::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			ApplyRoundingMode();
 			ir.Write(IROp::Downcount, 0, ir.AddConstant(js.downcountAmount));
@@ -218,7 +218,7 @@ u32 IRFrontend::GetCompilerPC() {
 }
 
 MIPSOpcode IRFrontend::GetOffsetInstruction(int offset) {
-	return Memory_P::Read_Instruction(GetCompilerPC() + 4 * offset);
+	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 void IRFrontend::DoJit(u32 em_address, std::vector<IRInst> &instructions, u32 &mipsBytes, bool preload) {
@@ -242,7 +242,7 @@ void IRFrontend::DoJit(u32 em_address, std::vector<IRInst> &instructions, u32 &m
 		// Jit breakpoints are quite fast, so let's do them in release too.
 		CheckBreakpoint(GetCompilerPC());
 
-		MIPSOpcode inst = Memory_P::Read_Opcode_JIT(GetCompilerPC());
+		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 		MIPSCompileOp(inst, this);
 		js.compilerPC += 4;
@@ -282,7 +282,7 @@ void IRFrontend::DoJit(u32 em_address, std::vector<IRInst> &instructions, u32 &m
 		NOTICE_LOG(JIT, "=============== mips %08x ===============", em_address);
 		for (u32 cpc = em_address; cpc != GetCompilerPC(); cpc += 4) {
 			temp2[0] = 0;
-			MIPSDisAsm(Memory_P::Read_Opcode_JIT(cpc), cpc, temp2, true);
+			MIPSDisAsm(Memory::Read_Opcode_JIT(cpc), cpc, temp2, true);
 			NOTICE_LOG(JIT, "M: %08x   %s", cpc, temp2);
 		}
 	}

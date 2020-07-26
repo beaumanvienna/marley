@@ -141,7 +141,7 @@ bool SymbolMap::LoadSymbolMap(const char *filename) {
 		sscanf(line, "%08x %08x %x %i %127c", &address, &size, &vaddress, &typeInt, name);
 		type = (SymbolType) typeInt;
 		if (!hasModules) {
-			if (!Memory_P::IsValidAddress(vaddress)) {
+			if (!Memory::IsValidAddress(vaddress)) {
 				ERROR_LOG(LOADER, "Invalid address in symbol file: %08x (%s)", vaddress, name);
 				continue;
 			}
@@ -149,7 +149,7 @@ bool SymbolMap::LoadSymbolMap(const char *filename) {
 			// The 3rd field is now used for the module index.
 			moduleIndex = vaddress;
 			vaddress = GetModuleAbsoluteAddr(address, moduleIndex);
-			if (!Memory_P::IsValidAddress(vaddress)) {
+			if (!Memory::IsValidAddress(vaddress)) {
 				ERROR_LOG(LOADER, "Invalid address in symbol file: %08x (%s)", vaddress, name);
 				continue;
 			}
@@ -187,7 +187,7 @@ void SymbolMap::SaveSymbolMap(const char *filename) const {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
 
 	// Don't bother writing a blank file.
-	if (!PFile::Exists(filename) && functions.empty() && data.empty()) {
+	if (!File::Exists(filename) && functions.empty() && data.empty()) {
 		return;
 	}
 
@@ -221,7 +221,7 @@ void SymbolMap::SaveSymbolMap(const char *filename) const {
 
 bool SymbolMap::LoadNocashSym(const char *filename) {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
-	FILE *f = PFile::OpenCFile(filename, "r");
+	FILE *f = File::OpenCFile(filename, "r");
 	if (!f)
 		return false;
 
@@ -281,11 +281,11 @@ void SymbolMap::SaveNocashSym(const char *filename) const {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
 
 	// Don't bother writing a blank file.
-	if (!PFile::Exists(filename) && functions.empty() && data.empty()) {
+	if (!File::Exists(filename) && functions.empty() && data.empty()) {
 		return;
 	}
 
-	FILE* f = PFile::OpenCFile(filename, "w");
+	FILE* f = File::OpenCFile(filename, "w");
 	if (f == NULL)
 		return;
 

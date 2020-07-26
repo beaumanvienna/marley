@@ -36,7 +36,7 @@
 
 #include <cstring>
 
-namespace Pglslang {
+namespace glslang {
 
 void TInfoSinkBase::append(const char* s)
 {
@@ -110,4 +110,4 @@ void TInfoSinkBase::append(const TString& t)
         fprintf(stdout, "%s", t.c_str());
 }
 
-} // end namespace Pglslang
+} // end namespace glslang

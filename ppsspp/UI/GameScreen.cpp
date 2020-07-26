@@ -47,17 +47,18 @@ GameScreen::~GameScreen() {
 void GameScreen::CreateViews() {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, GAMEINFO_WANTBG | GAMEINFO_WANTSIZE);
 
-	if (info && !info->id.empty())
+	if (info && !info->id.empty()) {
 		saveDirs = info->GetSaveDataDirectories(); // Get's very heavy, let's not do it in update()
+	}
 
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *ga = GetI18NCategory("Game");
-	I18NCategory *pa = GetI18NCategory("Pause");
+	auto di = GetI18NCategory("Dialog");
+	auto ga = GetI18NCategory("Game");
+	auto pa = GetI18NCategory("Pause");
 
 	// Information in the top left.
 	// Back button to the bottom left.
 	// Scrolling action menu to the right.
-	using namespace PUI;
+	using namespace UI;
 
 	Margins actionMenuMargins(0, 100, 15, 0);
 
@@ -68,7 +69,7 @@ void GameScreen::CreateViews() {
 
 	leftColumn->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle(this, &GameScreen::OnSwitchBack);
 	if (info) {
-		leftColumn->Add(new GameIconView(gamePath_, new AnchorLayoutParams(144 * 2, 80 * 2, 10, 10, NONE, NONE)));
+		leftColumn->Add(new GameIconView(gamePath_, 2.0f, new AnchorLayoutParams(144 * 2, 80 * 2, 10, 10, NONE, NONE)));
 
 		LinearLayout *infoLayout = new LinearLayout(ORIENT_VERTICAL, new AnchorLayoutParams(10, 200, NONE, NONE));
 		leftColumn->Add(infoLayout);
@@ -119,9 +120,7 @@ void GameScreen::CreateViews() {
 	rightColumnItems->Add(btnDeleteSaveData_)->OnClick.Handle(this, &GameScreen::OnDeleteSaveData);
 	btnDeleteSaveData_->SetVisibility(V_GONE);
 
-	if (info && !info->pending) {
-		otherChoices_.clear();
-	}
+	otherChoices_.clear();
 
 	rightColumnItems->Add(AddOtherChoice(new Choice(ga->T("Delete Game"))))->OnClick.Handle(this, &GameScreen::OnDeleteGame);
 	if (host->CanCreateShortcut()) {
@@ -133,7 +132,7 @@ void GameScreen::CreateViews() {
 #if PPSSPP_PLATFORM(WINDOWS) && !PPSSPP_PLATFORM(UWP)
 	rightColumnItems->Add(AddOtherChoice(new Choice(ga->T("Show In Folder"))))->OnClick.Handle(this, &GameScreen::OnShowInFolder);
 #endif
-	if (g_PConfig.bEnableCheats) {
+	if (g_Config.bEnableCheats) {
 		rightColumnItems->Add(AddOtherChoice(new Choice(pa->T("Cheats"))))->OnClick.Handle(this, &GameScreen::OnCwCheat);
 	}
 
@@ -142,24 +141,24 @@ void GameScreen::CreateViews() {
 	btnSetBackground_->SetVisibility(V_GONE);
 }
 
-PUI::Choice *GameScreen::AddOtherChoice(PUI::Choice *choice) {
+UI::Choice *GameScreen::AddOtherChoice(UI::Choice *choice) {
 	otherChoices_.push_back(choice);
 	// While loading.
-	choice->SetVisibility(PUI::V_GONE);
+	choice->SetVisibility(UI::V_GONE);
 	return choice;
 }
 
-PUI::EventReturn GameScreen::OnCreateConfig(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnCreateConfig(UI::EventParams &e) {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(nullptr, gamePath_, 0);
 	if (!info) {
-		return PUI::EVENT_SKIPPED;
+		return UI::EVENT_SKIPPED;
 	}
-	g_PConfig.createGameConfig(info->id);
-	g_PConfig.saveGameConfig(info->id, info->GetTitle());
+	g_Config.createGameConfig(info->id);
+	g_Config.saveGameConfig(info->id, info->GetTitle());
 	info->hasConfig = true;
 
 	screenManager()->topScreen()->RecreateViews();
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 void GameScreen::CallbackDeleteConfig(bool yes) {
@@ -168,27 +167,27 @@ void GameScreen::CallbackDeleteConfig(bool yes) {
 		if (!info) {
 			return;
 		}
-		g_PConfig.deleteGameConfig(info->id);
+		g_Config.deleteGameConfig(info->id);
 		info->hasConfig = false;
 		screenManager()->RecreateAllViews();
 	}
 }
 
-PUI::EventReturn GameScreen::OnDeleteConfig(PUI::EventParams &e)
+UI::EventReturn GameScreen::OnDeleteConfig(UI::EventParams &e)
 {
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *ga = GetI18NCategory("Game");
+	auto di = GetI18NCategory("Dialog");
+	auto ga = GetI18NCategory("Game");
 	screenManager()->push(
 		new PromptScreen(di->T("DeleteConfirmGameConfig", "Do you really want to delete the settings for this game?"), ga->T("ConfirmDelete"), di->T("Cancel"),
 		std::bind(&GameScreen::CallbackDeleteConfig, this, std::placeholders::_1)));
 
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 void GameScreen::render() {
 	UIScreen::render();
 
-	I18NCategory *ga = GetI18NCategory("Game");
+	auto ga = GetI18NCategory("Game");
 
 	Draw::DrawContext *thin3d = screenManager()->getDrawContext();
 
@@ -200,72 +199,79 @@ void GameScreen::render() {
 
 	if (info->gameSize) {
 		char temp[256];
-		snprintf(temp, sizeof(temp), "%s: %1.1f %s", ga->T("Game"), (float) (info->gameSize) / 1024.f / 1024.f, ga->T("MB"));
-		tvGameSize_->SetText(temp);
-		snprintf(temp, sizeof(temp), "%s: %1.2f %s", ga->T("SaveData"), (float) (info->saveDataSize) / 1024.f / 1024.f, ga->T("MB"));
-		tvSaveDataSize_->SetText(temp);
-		if (info->installDataSize > 0) {
+		if (tvGameSize_) {
+			snprintf(temp, sizeof(temp), "%s: %1.1f %s", ga->T("Game"), (float)(info->gameSize) / 1024.f / 1024.f, ga->T("MB"));
+			tvGameSize_->SetText(temp);
+		}
+		if (tvSaveDataSize_) {
+			snprintf(temp, sizeof(temp), "%s: %1.2f %s", ga->T("SaveData"), (float)(info->saveDataSize) / 1024.f / 1024.f, ga->T("MB"));
+			tvSaveDataSize_->SetText(temp);
+		}
+		if (info->installDataSize > 0 && tvInstallDataSize_) {
 			snprintf(temp, sizeof(temp), "%s: %1.2f %s", ga->T("InstallData"), (float) (info->installDataSize) / 1024.f / 1024.f, ga->T("MB"));
 			tvInstallDataSize_->SetText(temp);
-			tvInstallDataSize_->SetVisibility(PUI::V_VISIBLE);
+			tvInstallDataSize_->SetVisibility(UI::V_VISIBLE);
 		}
 	}
 
-	if (info->region >= 0 && info->region < GAMEREGION_MAX && info->region != GAMEREGION_OTHER) {
-		static const char *regionNames[GAMEREGION_MAX] = {
-			"Japan",
-			"USA",
-			"Europe",
-			"Hong Kong",
-			"Asia"
-		};
-		tvRegion_->SetText(ga->T(regionNames[info->region]));
-	} else if (info->region > GAMEREGION_MAX){
-		tvRegion_->SetText(ga->T("Homebrew"));
+	if (tvRegion_) {
+		if (info->region >= 0 && info->region < GAMEREGION_MAX && info->region != GAMEREGION_OTHER) {
+			static const char *regionNames[GAMEREGION_MAX] = {
+				"Japan",
+				"USA",
+				"Europe",
+				"Hong Kong",
+				"Asia",
+				"Korea"
+			};
+			tvRegion_->SetText(ga->T(regionNames[info->region]));
+		} else if (info->region > GAMEREGION_MAX) {
+			tvRegion_->SetText(ga->T("Homebrew"));
+		}
 	}
 
 	if (!info->id.empty()) {
-		btnGameSettings_->SetVisibility(info->hasConfig ? PUI::V_VISIBLE : PUI::V_GONE);
-		btnDeleteGameConfig_->SetVisibility(info->hasConfig ? PUI::V_VISIBLE : PUI::V_GONE);
-		btnCreateGameConfig_->SetVisibility(info->hasConfig ? PUI::V_GONE : PUI::V_VISIBLE);
+		btnGameSettings_->SetVisibility(info->hasConfig ? UI::V_VISIBLE : UI::V_GONE);
+		btnDeleteGameConfig_->SetVisibility(info->hasConfig ? UI::V_VISIBLE : UI::V_GONE);
+		btnCreateGameConfig_->SetVisibility(info->hasConfig ? UI::V_GONE : UI::V_VISIBLE);
 
 		if (saveDirs.size()) {
-			btnDeleteSaveData_->SetVisibility(PUI::V_VISIBLE);
+			btnDeleteSaveData_->SetVisibility(UI::V_VISIBLE);
 		}
 		if (info->pic0.texture || info->pic1.texture) {
-			btnSetBackground_->SetVisibility(PUI::V_VISIBLE);
+			btnSetBackground_->SetVisibility(UI::V_VISIBLE);
 		}
 	}
 
 	if (!info->pending) {
 		// At this point, the above buttons won't become visible.  We can show these now.
-		for (PUI::Choice *choice : otherChoices_) {
-			choice->SetVisibility(PUI::V_VISIBLE);
+		for (UI::Choice *choice : otherChoices_) {
+			choice->SetVisibility(UI::V_VISIBLE);
 		}
 	}
 }
 
-PUI::EventReturn GameScreen::OnShowInFolder(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnShowInFolder(UI::EventParams &e) {
 	OpenDirectory(gamePath_.c_str());
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
-PUI::EventReturn GameScreen::OnCwCheat(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnCwCheat(UI::EventParams &e) {
 	screenManager()->push(new CwCheatScreen(gamePath_));
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
-PUI::EventReturn GameScreen::OnSwitchBack(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnSwitchBack(UI::EventParams &e) {
 	TriggerFinish(DR_OK);
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
-PUI::EventReturn GameScreen::OnPlay(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnPlay(UI::EventParams &e) {
 	screenManager()->switchScreen(new EmuScreen(gamePath_));
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
-PUI::EventReturn GameScreen::OnGameSettings(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnGameSettings(UI::EventParams &e) {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, GAMEINFO_WANTBG | GAMEINFO_WANTSIZE);
 	if (info && info->paramSFOLoaded) {
 		std::string discID = info->paramSFO.GetValueString("DISC_ID");
@@ -273,12 +279,12 @@ PUI::EventReturn GameScreen::OnGameSettings(PUI::EventParams &e) {
 			discID = g_paramSFO.GenerateFakeID(gamePath_);
 		screenManager()->push(new GameSettingsScreen(gamePath_, discID, true));
 	}
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
-PUI::EventReturn GameScreen::OnDeleteSaveData(PUI::EventParams &e) {
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *ga = GetI18NCategory("Game");
+UI::EventReturn GameScreen::OnDeleteSaveData(UI::EventParams &e) {
+	auto di = GetI18NCategory("Dialog");
+	auto ga = GetI18NCategory("Game");
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, GAMEINFO_WANTBG | GAMEINFO_WANTSIZE);
 	if (info) {
 		// Check that there's any savedata to delete
@@ -290,7 +296,7 @@ PUI::EventReturn GameScreen::OnDeleteSaveData(PUI::EventParams &e) {
 	}
 
 	RecreateViews();
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 void GameScreen::CallbackDeleteSaveData(bool yes) {
@@ -302,9 +308,9 @@ void GameScreen::CallbackDeleteSaveData(bool yes) {
 	}
 }
 
-PUI::EventReturn GameScreen::OnDeleteGame(PUI::EventParams &e) {
-	I18NCategory *di = GetI18NCategory("Dialog");
-	I18NCategory *ga = GetI18NCategory("Game");
+UI::EventReturn GameScreen::OnDeleteGame(UI::EventParams &e) {
+	auto di = GetI18NCategory("Dialog");
+	auto ga = GetI18NCategory("Game");
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, GAMEINFO_WANTBG | GAMEINFO_WANTSIZE);
 	if (info) {
 		screenManager()->push(
@@ -312,7 +318,7 @@ PUI::EventReturn GameScreen::OnDeleteGame(PUI::EventParams &e) {
 			std::bind(&GameScreen::CallbackDeleteGame, this, std::placeholders::_1)));
 	}
 
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 void GameScreen::CallbackDeleteGame(bool yes) {
@@ -324,31 +330,31 @@ void GameScreen::CallbackDeleteGame(bool yes) {
 	}
 }
 
-PUI::EventReturn GameScreen::OnCreateShortcut(PUI::EventParams &e) {
+UI::EventReturn GameScreen::OnCreateShortcut(UI::EventParams &e) {
 	std::shared_ptr<GameInfo> info = g_gameInfoCache->GetInfo(NULL, gamePath_, 0);
 	if (info) {
 		host->CreateDesktopShortcut(gamePath_, info->GetTitle());
 	}
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 bool GameScreen::isRecentGame(const std::string &gamePath) {
-	if (g_PConfig.iMaxRecent <= 0)
+	if (g_Config.iMaxRecent <= 0)
 		return false;
 
-	const std::string resolved = PFile::ResolvePath(gamePath);
-	for (auto it = g_PConfig.recentIsos.begin(); it != g_PConfig.recentIsos.end(); ++it) {
-		const std::string recent = PFile::ResolvePath(*it);
+	const std::string resolved = File::ResolvePath(gamePath);
+	for (auto it = g_Config.recentIsos.begin(); it != g_Config.recentIsos.end(); ++it) {
+		const std::string recent = File::ResolvePath(*it);
 		if (resolved == recent)
 			return true;
 	}
 	return false;
 }
 
-PUI::EventReturn GameScreen::OnRemoveFromRecent(PUI::EventParams &e) {
-	g_PConfig.RemoveRecent(gamePath_);
+UI::EventReturn GameScreen::OnRemoveFromRecent(UI::EventParams &e) {
+	g_Config.RemoveRecent(gamePath_);
 	screenManager()->switchScreen(new MainScreen());
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }
 
 class SetBackgroundPopupScreen : public PopupScreen {
@@ -358,7 +364,7 @@ public:
 protected:
 	bool FillVertical() const override { return false; }
 	bool ShowButtons() const override { return false; }
-	void CreatePopupContents(PUI::ViewGroup *parent) override;
+	void CreatePopupContents(UI::ViewGroup *parent) override;
 	void update() override;
 
 private:
@@ -379,9 +385,9 @@ SetBackgroundPopupScreen::SetBackgroundPopupScreen(const std::string &title, con
 	timeStart_ = time_now_d();
 }
 
-void SetBackgroundPopupScreen::CreatePopupContents(PUI::ViewGroup *parent) {
-	I18NCategory *ga = GetI18NCategory("Game");
-	parent->Add(new PUI::TextView(ga->T("One moment please..."), ALIGN_LEFT | ALIGN_VCENTER, false, new PUI::LinearLayoutParams(PUI::Margins(10, 0, 10, 10))));
+void SetBackgroundPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
+	auto ga = GetI18NCategory("Game");
+	parent->Add(new UI::TextView(ga->T("One moment please..."), ALIGN_LEFT | ALIGN_VCENTER, false, new UI::LinearLayoutParams(UI::Margins(10, 0, 10, 10))));
 }
 
 void SetBackgroundPopupScreen::update() {
@@ -414,13 +420,13 @@ void SetBackgroundPopupScreen::update() {
 	}
 }
 
-PUI::EventReturn GameScreen::OnSetBackground(PUI::EventParams &e) {
-	I18NCategory *ga = GetI18NCategory("Game");
+UI::EventReturn GameScreen::OnSetBackground(UI::EventParams &e) {
+	auto ga = GetI18NCategory("Game");
 	// This popup is used to prevent any race condition:
 	// g_gameInfoCache may take time to load the data, and a crash could happen if they exit before then.
 	SetBackgroundPopupScreen *pop = new SetBackgroundPopupScreen(ga->T("Setting Background"), gamePath_);
 	if (e.v)
 		pop->SetPopupOrigin(e.v);
 	screenManager()->push(pop);
-	return PUI::EVENT_DONE;
+	return UI::EVENT_DONE;
 }

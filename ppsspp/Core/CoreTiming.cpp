@@ -15,7 +15,7 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-
+#include <atomic>
 #include <vector>
 #include <cstdio>
 #include <mutex>
@@ -24,7 +24,6 @@
 #include "profiler/profiler.h"
 
 #include "Common/MsgHandler.h"
-#include "Common/Atomics.h"
 #include "Core/CoreTiming.h"
 #include "Core/Core.h"
 #include "Core/Config.h"
@@ -41,7 +40,7 @@ int CPU_HZ = 222000000;
 #define INITIAL_SLICE_LENGTH 20000
 #define MAX_SLICE_LENGTH 100000000
 
-namespace CoreTiming_P
+namespace CoreTiming
 {
 
 struct EventType
@@ -76,7 +75,7 @@ Event *eventPool = 0;
 Event *eventTsPool = 0;
 int allocatedTsEvents = 0;
 // Optimization to skip MoveEvents when possible.
-volatile u32 hasTsEvents = 0;
+std::atomic<u32> hasTsEvents;
 
 // Downcount has been moved to currentMIPS, to save a couple of clocks in every ARM JIT block
 // as we can already reach that structure through a register.
@@ -98,6 +97,11 @@ void FireMhzChange() {
 }
 
 void SetClockFrequencyHz(int cpuHz) {
+	if (cpuHz <= 0) {
+		// Paranoid check, protecting against division by zero and similar nonsense.
+		return;
+	}
+
 	// When the mhz changes, we keep track of what "time" it was before hand.
 	// This way, time always moves forward, even if mhz is changed.
 	lastGlobalTimeUs = GetGlobalTimeUs();
@@ -179,17 +183,16 @@ void AntiCrashCallback(u64 userdata, int cyclesLate)
 
 void RestoreRegisterEvent(int event_type, const char *name, TimedCallback callback)
 {
-	_assert_msg_(CORETIMING, event_type >= 0, "Invalid event type %d", event_type)
+	_assert_msg_(event_type >= 0, "Invalid event type %d", event_type)
 	if (event_type >= (int) event_types.size())
 		event_types.resize(event_type + 1, EventType(AntiCrashCallback, "INVALID EVENT"));
 
 	event_types[event_type] = EventType(callback, name);
 }
 
-void UnregisterAllPEvents()
+void UnregisterAllEvents()
 {
-	if (first)
-		PanicAlert("Cannot unregister events with events pending");
+	_dbg_assert_msg_(first == nullptr, "Unregistering events with events pending - this isn't good.");
 	event_types.clear();
 }
 
@@ -210,7 +213,7 @@ void Shutdown()
 {
 	MoveEvents();
 	ClearPendingEvents();
-	UnregisterAllPEvents();
+	UnregisterAllEvents();
 
 	while(eventPool)
 	{
@@ -255,7 +258,7 @@ void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata
 		tsLast->next = ne;
 	tsLast = ne;
 
-	PCommon::AtomicStoreRelease(hasTsEvents, 1);
+	hasTsEvents.store(1, std::memory_order::memory_order_release);
 }
 
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
@@ -535,7 +538,7 @@ void ProcessFifoWaitEvents()
 
 void MoveEvents()
 {
-	PCommon::AtomicStoreRelease(hasTsEvents, 0);
+	hasTsEvents.store(0, std::memory_order::memory_order_release);
 
 	std::lock_guard<std::mutex> lk(externalEventLock);
 	// Move events from async queue into main queue
@@ -568,7 +571,7 @@ void ForceCheck()
 	slicelength = -1;
 
 #ifdef _DEBUG
-	_dbg_assert_msg_(CPU, cyclesExecuted >= 0, "Shouldn't have a negative cyclesExecuted");
+	_dbg_assert_msg_( cyclesExecuted >= 0, "Shouldn't have a negative cyclesExecuted");
 #endif
 }
 
@@ -579,7 +582,7 @@ void Advance()
 	globalTimer += cyclesExecuted;
 	currentMIPS->downcount = slicelength;
 
-	if (PCommon::AtomicLoadAcquire(hasTsEvents))
+	if (hasTsEvents.load(std::memory_order_acquire))
 		MoveEvents();
 	ProcessFifoWaitEvents();
 
@@ -643,17 +646,18 @@ void Idle(int maxIdle)
 		currentMIPS->downcount = -1;
 }
 
-std::string GetScheduledEventsSummary()
-{
+std::string GetScheduledEventsSummary() {
 	Event *ptr = first;
 	std::string text = "Scheduled events\n";
 	text.reserve(1000);
-	while (ptr)
-	{
+	while (ptr) {
 		unsigned int t = ptr->type;
-		if (t >= event_types.size())
-			PanicAlert("Invalid event type"); // %i", t);
-		const char *name = event_types[ptr->type].name;
+		if (t >= event_types.size()) {
+			_dbg_assert_msg_(false, "Invalid event type %d", t);
+			ptr = ptr->next;
+			continue;
+		}
+		const char *name = event_types[t].name;
 		if (!name)
 			name = "[unknown]";
 		char temp[512];

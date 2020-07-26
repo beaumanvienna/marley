@@ -42,7 +42,7 @@
 
 #include <vector>
 
-namespace Pspv {
+namespace spv {
 
 // Fill in all the parameters
 void Parameterize();
@@ -255,4 +255,4 @@ const char* AccessQualifierString(int attr);
 
 void PrintOperands(const OperandParameters& operands, int reservedOperands);
 
-}  // end namespace Pspv
+}  // end namespace spv

@@ -65,8 +65,8 @@ bool GameInfo::Delete() {
 		{
 			// Just delete the one file (TODO: handle two-disk games as well somehow).
 			const char *fileToRemove = filePath_.c_str();
-			PFile::Delete(fileToRemove);
-			g_PConfig.RemoveRecent(filePath_);
+			File::Delete(fileToRemove);
+			g_Config.RemoveRecent(filePath_);
 			return true;
 		}
 	case IdentifiedFileType::PSP_PBP_DIRECTORY:
@@ -75,11 +75,11 @@ bool GameInfo::Delete() {
 			// TODO: This could be handled by Core/Util/GameManager too somehow.
 			std::string directoryToRemove = ResolvePBPDirectory(filePath_);
 			INFO_LOG(SYSTEM, "Deleting %s", directoryToRemove.c_str());
-			if (!PFile::DeleteDirRecursively(directoryToRemove)) {
+			if (!File::DeleteDirRecursively(directoryToRemove)) {
 				ERROR_LOG(SYSTEM, "Failed to delete file");
 				return false;
 			}
-			g_PConfig.CleanRecent();
+			g_Config.CleanRecent();
 			return true;
 		}
 	case IdentifiedFileType::PSP_ELF:
@@ -91,18 +91,18 @@ bool GameInfo::Delete() {
 	case IdentifiedFileType::PPSSPP_GE_DUMP:
 		{
 			const std::string &fileToRemove = filePath_;
-			PFile::Delete(fileToRemove);
-			g_PConfig.RemoveRecent(filePath_);
+			File::Delete(fileToRemove);
+			g_Config.RemoveRecent(filePath_);
 			return true;
 		}
 
 	case IdentifiedFileType::PPSSPP_SAVESTATE:
 		{
 			const std::string &ppstPath = filePath_;
-			PFile::Delete(ppstPath);
+			File::Delete(ppstPath);
 			const std::string screenshotPath = ReplaceAll(filePath_, ".ppst", ".jpg");
-			if (PFile::Exists(screenshotPath)) {
-				PFile::Delete(screenshotPath);
+			if (File::Exists(screenshotPath)) {
+				File::Delete(screenshotPath);
 			}
 			return true;
 		}
@@ -208,7 +208,7 @@ bool GameInfo::LoadFromPath(const std::string &gamePath) {
 		filePath_ = gamePath;
 
 		// This is a fallback title, while we're loading / if unable to load.
-		title = PFile::GetFilename(filePath_);
+		title = File::GetFilename(filePath_);
 	}
 
 	return true;
@@ -238,10 +238,10 @@ bool GameInfo::DeleteAllSaveData() {
 
 		u64 totalSize = 0;
 		for (size_t i = 0; i < fileInfo.size(); i++) {
-			PFile::Delete(fileInfo[i].fullName.c_str());
+			File::Delete(fileInfo[i].fullName.c_str());
 		}
 
-		PFile::DeleteDir(saveDataDir[j].c_str());
+		File::DeleteDir(saveDataDir[j].c_str());
 	}
 	return true;
 }
@@ -265,6 +265,7 @@ void GameInfo::ParseParamSFO() {
 		case 'J': region = GAMEREGION_JAPAN; break;
 		case 'H': region = GAMEREGION_HONGKONG; break;
 		case 'A': region = GAMEREGION_ASIA; break;
+		case 'K': region = GAMEREGION_KOREA; break;
 		}
 		/*
 		if (regStr == "NPEZ" || regStr == "NPEG" || regStr == "ULES" || regStr == "UCES" ||
@@ -301,7 +302,7 @@ static bool ReadFileToString(IFileSystem *fs, const char *filename, std::string 
 	}
 
 	int handle = fs->OpenFile(filename, FILEACCESS_READ);
-	if (!handle) {
+	if (handle < 0) {
 		return false;
 	}
 
@@ -404,9 +405,9 @@ public:
 					std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 					std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 					// Try using png/jpg screenshots first
-					if (PFile::Exists(screenshot_png))
+					if (File::Exists(screenshot_png))
 						readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-					else if (PFile::Exists(screenshot_jpg))
+					else if (File::Exists(screenshot_jpg))
 						readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 					else
 						// Read standard icon
@@ -451,9 +452,9 @@ handleELF:
 				std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 				std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 				// Try using png/jpg screenshots first
-				if (PFile::Exists(screenshot_png)) {
+				if (File::Exists(screenshot_png)) {
 					readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-				} else if (PFile::Exists(screenshot_jpg)) {
+				} else if (File::Exists(screenshot_jpg)) {
 					readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 				} else {
 					// Read standard icon
@@ -494,7 +495,7 @@ handleELF:
 
 			// Let's use the screenshot as an icon, too.
 			std::string screenshotPath = ReplaceAll(gamePath_, ".ppst", ".jpg");
-			if (PFile::Exists(screenshotPath)) {
+			if (File::Exists(screenshotPath)) {
 				if (readFileToString(false, screenshotPath.c_str(), info_->icon.data)) {
 					info_->icon.dataLoaded = true;
 				} else {
@@ -579,9 +580,9 @@ handleELF:
 					std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 					std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 					// Try using png/jpg screenshots first
-					if (PFile::Exists(screenshot_png))
+					if (File::Exists(screenshot_png))
 						readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-					else if (PFile::Exists(screenshot_jpg))
+					else if (File::Exists(screenshot_jpg))
 						readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 					else {
 						DEBUG_LOG(LOADER, "Loading unknown.png because no icon was found");
@@ -622,7 +623,7 @@ handleELF:
 				break;
 		}
 
-		info_->hasConfig = g_PConfig.hasGameConfig(info_->id);
+		info_->hasConfig = g_Config.hasGameConfig(info_->id);
 
 		if (info_->wantFlags & GAMEINFO_WANTSIZE) {
 			std::lock_guard<std::mutex> lock(info_->lock);

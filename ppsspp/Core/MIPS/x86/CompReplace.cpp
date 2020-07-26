@@ -26,13 +26,13 @@
 alignas(16) static const u64 ssNoSignMask[2] = {0x7FFFFFFF7FFFFFFFULL, 0x7FFFFFFF7FFFFFFFULL};
 
 namespace MIPSComp {
-using namespace PGen;
+using namespace Gen;
 
 int Jit::Replace_fabsf() {
 	fpr.SpillLock(0, 12);
 	fpr.MapReg(0, false, true);
 	MOVSS(fpr.RX(0), fpr.R(12));
-	PMOV(PTRBITS, R(RAX), ImmPtr(&ssNoSignMask));
+	MOV(PTRBITS, R(RAX), ImmPtr(&ssNoSignMask));
 	ANDPS(fpr.RX(0), MatR(RAX));
 	fpr.ReleaseSpillLocks();
 	return 4;  // Number of instructions in the MIPS function

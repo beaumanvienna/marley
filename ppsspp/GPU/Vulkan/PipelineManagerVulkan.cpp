@@ -126,7 +126,15 @@ static int SetupVertexAttribsPretransformed(VkVertexInputAttributeDescription at
 }
 
 static bool UsesBlendConstant(int factor) {
-	return factor == VK_BLEND_FACTOR_CONSTANT_ALPHA || factor == VK_BLEND_FACTOR_CONSTANT_COLOR;
+	switch (factor) {
+	case VK_BLEND_FACTOR_CONSTANT_ALPHA:
+	case VK_BLEND_FACTOR_CONSTANT_COLOR:
+	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
+	case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
+		return true;
+	default:
+		return false;
+	}
 }
 
 static VulkanPipeline *CreateVulkanPipeline(VkDevice device, VkPipelineCache pipelineCache, 
@@ -293,13 +301,13 @@ static VulkanPipeline *CreateVulkanPipeline(VkDevice device, VkPipelineCache pip
 	pipe.subpass = 0;
 
 	VkPipeline pipeline;
-	VkResult result = PvkCreateGraphicsPipelines(device, pipelineCache, 1, &pipe, nullptr, &pipeline);
+	VkResult result = vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipe, nullptr, &pipeline);
 	if (result != VK_SUCCESS) {
 		if (result == VK_INCOMPLETE) {
 			// Bad return value seen on Adreno in Burnout :(  Try to ignore?
 			// TODO: Log all the information we can here!
 		} else {
-			_dbg_assert_msg_(G3D, false, "Failed creating graphics pipeline! result='%s'", VulkanResultToString(result));
+			_dbg_assert_msg_(false, "Failed creating graphics pipeline! result='%s'", VulkanResultToString(result));
 		}
 		ERROR_LOG(G3D, "Failed creating graphics pipeline! result='%s'", VulkanResultToString(result));
 		// Create a placeholder to avoid creating over and over if something is broken.
@@ -322,12 +330,12 @@ static VulkanPipeline *CreateVulkanPipeline(VkDevice device, VkPipelineCache pip
 VulkanPipeline *PipelineManagerVulkan::GetOrCreatePipeline(VkPipelineLayout layout, VkRenderPass renderPass, const VulkanPipelineRasterStateKey &rasterKey, const DecVtxFormat *decFmt, VulkanVertexShader *vs, VulkanFragmentShader *fs, bool useHwTransform) {
 	if (!pipelineCache_) {
 		VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-		VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+		VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 		assert(VK_SUCCESS == res);
 	}
 
 	VulkanPipelineKey key{};
-	_assert_msg_(G3D, renderPass, "Can't create a pipeline with a null renderpass");
+	_assert_msg_(renderPass, "Can't create a pipeline with a null renderpass");
 
 	key.raster = rasterKey;
 	key.renderPass = renderPass;
@@ -464,7 +472,7 @@ std::string PipelineManagerVulkan::DebugGetObjectString(std::string id, DebugSha
 	}
 
 	std::string str = pipelineKey.GetDescription(stringType);
-	return PStringFromFormat("%p: %s", iter, str.c_str());
+	return StringFromFormat("%p: %s", iter, str.c_str());
 }
 
 std::string VulkanPipelineKey::GetDescription(DebugShaderStringType stringType) const {
@@ -518,7 +526,7 @@ std::string VulkanPipelineKey::GetDescription(DebugShaderStringType stringType) 
 			str << "HWX ";
 		}
 		if (vtxFmtId) {
-			str << "V(" << PStringFromFormat("%08x", vtxFmtId) << ") ";  // TODO: Format nicer.
+			str << "V(" << StringFromFormat("%08x", vtxFmtId) << ") ";  // TODO: Format nicer.
 		} else {
 			str << "SWX ";
 		}
@@ -583,7 +591,7 @@ void PipelineManagerVulkan::SaveCache(FILE *file, bool saveRawPipelineCache, Sha
 
 	if (saveRawPipelineCache) {
 		// WARNING: See comment in LoadCache before using this path.
-		VkResult result = PvkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, nullptr);
+		VkResult result = vkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, nullptr);
 		uint32_t size = (uint32_t)dataSize;
 		if (result != VK_SUCCESS) {
 			size = 0;
@@ -591,7 +599,7 @@ void PipelineManagerVulkan::SaveCache(FILE *file, bool saveRawPipelineCache, Sha
 			return;
 		}
 		std::unique_ptr<uint8_t[]> buffer(new uint8_t[dataSize]);
-		PvkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, buffer.get());
+		vkGetPipelineCacheData(vulkan_->GetDevice(), pipelineCache_, &dataSize, buffer.get());
 		size = (uint32_t)dataSize;
 		fwrite(&size, sizeof(size), 1, file);
 		fwrite(buffer.get(), 1, size, file);
@@ -697,20 +705,20 @@ bool PipelineManagerVulkan::LoadCache(FILE *file, bool loadRawPipelineCache, Sha
 		pc.initialDataSize = size;
 		pc.flags = 0;
 		VkPipelineCache cache;
-		VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &cache);
+		VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &cache);
 		if (res != VK_SUCCESS) {
 			return false;
 		}
 		if (!pipelineCache_) {
 			pipelineCache_ = cache;
 		} else {
-			PvkMergePipelineCaches(vulkan_->GetDevice(), pipelineCache_, 1, &cache);
+			vkMergePipelineCaches(vulkan_->GetDevice(), pipelineCache_, 1, &cache);
 		}
 		NOTICE_LOG(G3D, "Loaded Vulkan pipeline cache (%d bytes).", (int)size);
 	} else {
 		if (!pipelineCache_) {
 			VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-			VkResult res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+			VkResult res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 		}
 	}
 

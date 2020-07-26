@@ -364,14 +364,14 @@ struct SPIRConstantOp : IVariant
 		type = TypeConstantOp
 	};
 
-	SPIRConstantOp(uint32_t result_type, Pspv::Op op, const uint32_t *args, uint32_t length)
+	SPIRConstantOp(uint32_t result_type, spv::Op op, const uint32_t *args, uint32_t length)
 	    : opcode(op)
 	    , arguments(args, args + length)
 	    , basetype(result_type)
 	{
 	}
 
-	Pspv::Op opcode;
+	spv::Op opcode;
 	SmallVector<uint32_t> arguments;
 	uint32_t basetype;
 
@@ -434,20 +434,20 @@ struct SPIRType : IVariant
 	uint32_t pointer_depth = 0;
 	bool pointer = false;
 
-	Pspv::StorageClass storage = Pspv::StorageClassGeneric;
+	spv::StorageClass storage = spv::StorageClassGeneric;
 
 	SmallVector<uint32_t> member_types;
 
 	struct ImageType
 	{
 		uint32_t type;
-		Pspv::Dim dim;
+		spv::Dim dim;
 		bool depth;
 		bool arrayed;
 		bool ms;
 		uint32_t sampled;
-		Pspv::ImageFormat format;
-		Pspv::AccessQualifier access;
+		spv::ImageFormat format;
+		spv::AccessQualifier access;
 	} image;
 
 	// Structs can be declared multiple times if they are used as part of interface blocks.
@@ -495,7 +495,7 @@ struct SPIRExtension : IVariant
 // so in order to avoid conflicts, we can't stick them in the ids array.
 struct SPIREntryPoint
 {
-	SPIREntryPoint(uint32_t self_, Pspv::ExecutionModel execution_model, const std::string &entry_name)
+	SPIREntryPoint(uint32_t self_, spv::ExecutionModel execution_model, const std::string &entry_name)
 	    : self(self_)
 	    , name(entry_name)
 	    , orig_name(entry_name)
@@ -517,7 +517,7 @@ struct SPIREntryPoint
 	} workgroup_size;
 	uint32_t invocations = 0;
 	uint32_t output_vertices = 0;
-	Pspv::ExecutionModel model = Pspv::ExecutionModelMax;
+	spv::ExecutionModel model = spv::ExecutionModelMax;
 };
 
 struct SPIRExpression : IVariant
@@ -833,7 +833,7 @@ struct SPIRAccessChain : IVariant
 		type = TypeAccessChain
 	};
 
-	SPIRAccessChain(uint32_t basetype_, Pspv::StorageClass storage_, std::string base_, std::string dynamic_index_,
+	SPIRAccessChain(uint32_t basetype_, spv::StorageClass storage_, std::string base_, std::string dynamic_index_,
 	                int32_t static_index_)
 	    : basetype(basetype_)
 	    , storage(storage_)
@@ -849,7 +849,7 @@ struct SPIRAccessChain : IVariant
 	// StructuredBuffer is too limited, so our only option is to deal with ByteAddressBuffer which works with raw addresses.
 
 	uint32_t basetype;
-	Pspv::StorageClass storage;
+	spv::StorageClass storage;
 	std::string base;
 	std::string dynamic_index;
 	int32_t static_index;
@@ -874,7 +874,7 @@ struct SPIRVariable : IVariant
 	};
 
 	SPIRVariable() = default;
-	SPIRVariable(uint32_t basetype_, Pspv::StorageClass storage_, uint32_t initializer_ = 0, uint32_t basevariable_ = 0)
+	SPIRVariable(uint32_t basetype_, spv::StorageClass storage_, uint32_t initializer_ = 0, uint32_t basevariable_ = 0)
 	    : basetype(basetype_)
 	    , storage(storage_)
 	    , initializer(initializer_)
@@ -883,7 +883,7 @@ struct SPIRVariable : IVariant
 	}
 
 	uint32_t basetype = 0;
-	Pspv::StorageClass storage = Pspv::StorageClassGeneric;
+	spv::StorageClass storage = spv::StorageClassGeneric;
 	uint32_t decoration = 0;
 	uint32_t initializer = 0;
 	uint32_t basevariable = 0;
@@ -1407,7 +1407,7 @@ struct Meta
 		std::string qualified_alias;
 		std::string hlsl_semantic;
 		Bitset decoration_flags;
-		Pspv::BuiltIn builtin_type = Pspv::BuiltInMax;
+		spv::BuiltIn builtin_type = spv::BuiltInMax;
 		uint32_t location = 0;
 		uint32_t component = 0;
 		uint32_t set = 0;
@@ -1418,7 +1418,7 @@ struct Meta
 		uint32_t input_attachment = 0;
 		uint32_t spec_id = 0;
 		uint32_t index = 0;
-		Pspv::FPRoundingMode fp_rounding_mode = Pspv::FPRoundingModeMax;
+		spv::FPRoundingMode fp_rounding_mode = spv::FPRoundingModeMax;
 		bool builtin = false;
 
 		struct
@@ -1514,19 +1514,19 @@ static inline SPIRType::BaseType to_unsigned_basetype(uint32_t width)
 }
 
 // Returns true if an arithmetic operation does not change behavior depending on signedness.
-static inline bool opcode_is_sign_invariant(Pspv::Op opcode)
+static inline bool opcode_is_sign_invariant(spv::Op opcode)
 {
 	switch (opcode)
 	{
-	case Pspv::OpIEqual:
-	case Pspv::OpINotEqual:
-	case Pspv::OpISub:
-	case Pspv::OpIAdd:
-	case Pspv::OpIMul:
-	case Pspv::OpShiftLeftLogical:
-	case Pspv::OpBitwiseOr:
-	case Pspv::OpBitwiseXor:
-	case Pspv::OpBitwiseAnd:
+	case spv::OpIEqual:
+	case spv::OpINotEqual:
+	case spv::OpISub:
+	case spv::OpIAdd:
+	case spv::OpIMul:
+	case spv::OpShiftLeftLogical:
+	case spv::OpBitwiseOr:
+	case spv::OpBitwiseXor:
+	case spv::OpBitwiseAnd:
 		return true;
 
 	default:

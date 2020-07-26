@@ -4,10 +4,30 @@
 #include "base/display.h"
 #include "thin3d/thin3d.h"
 #include "thin3d/thin3d_create.h"
+#include "thin3d/VulkanRenderManager.h"
 #include "util/text/parsers.h"
 
 #include "Core/System.h"
 #include "SDLVulkanGraphicsContext.h"
+
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+#include "SDLCocoaMetalLayer.h"
+#endif
+
+#ifdef _DEBUG
+static const bool g_Validate = true;
+#else
+static const bool g_Validate = false;
+#endif
+
+static uint32_t FlagsFromConfig() {
+	uint32_t flags = 0;
+	flags = g_Config.bVSync ? VULKAN_FLAG_PRESENT_FIFO : VULKAN_FLAG_PRESENT_MAILBOX;
+	if (g_Validate) {
+		flags |= VULKAN_FLAG_VALIDATE;
+	}
+	return flags;
+}
 
 bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std::string *error_message) {
 	window = SDL_CreateWindow("Initializing Vulkan...", x, y, pixel_xres, pixel_yres, mode);
@@ -30,8 +50,8 @@ bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode,
 	}
 
 	vulkan_ = new VulkanContext();
-	int vulkanFlags = VULKAN_FLAG_PRESENT_MAILBOX;
-	// vulkanFlags |= VULKAN_FLAG_VALIDATE;
+	int vulkanFlags = FlagsFromConfig();
+
 	VulkanContext::CreateInfo info{};
 	info.app_name = "PPSSPP";
 	info.app_ver = gitVer.ToInteger();
@@ -50,7 +70,6 @@ bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode,
 		return false;
 	}
 
-#if !defined(__APPLE__)
 	SDL_SysWMinfo sys_info{};
 	SDL_VERSION(&sys_info.version); //Set SDL version
 	if (!SDL_GetWindowWMInfo(window, &sys_info)) {
@@ -72,14 +91,24 @@ bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode,
 		vulkan_->InitSurface(WINDOWSYSTEM_WAYLAND, (void*)sys_info.info.wl.display, (void *)sys_info.info.wl.surface);
 		break;
 #endif
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+#if defined(PPSSPP_PLATFORM_MAC)
+	case SDL_SYSWM_COCOA:
+		vulkan_->InitSurface(WINDOWSYSTEM_METAL_EXT, makeWindowMetalCompatible(sys_info.info.cocoa.window), nullptr);
+		break;
+#else
+	case SDL_SYSWM_UIKIT:
+		vulkan_->InitSurface(WINDOWSYSTEM_METAL_EXT, makeWindowMetalCompatible(sys_info.info.uikit.window), nullptr);
+		break;
+#endif
+#endif
 	default:
 		fprintf(stderr, "Vulkan subsystem %d not supported\n", sys_info.subsystem);
 		exit(1);
 		break;
 	}
-#endif
 
-	if (!vulkan_->InitObjects()) {
+	if (!vulkan_->InitSwapchain()) {
 		*error_message = vulkan_->InitError();
 		Shutdown();
 		return false;
@@ -91,6 +120,9 @@ bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode,
 	assert(success);
 	draw_->HandleEvent(Draw::Event::GOT_BACKBUFFER, vulkan_->GetBackbufferWidth(), vulkan_->GetBackbufferHeight());
 
+	renderManager_ = (VulkanRenderManager *)draw_->GetNativeObject(Draw::NativeObject::RENDER_MANAGER);
+	renderManager_->SetInflightFrames(g_Config.iInflightFrames);
+
 	return true;
 }
 
@@ -100,11 +132,26 @@ void SDLVulkanGraphicsContext::Shutdown() {
 	delete draw_;
 	draw_ = nullptr;
 	vulkan_->WaitUntilQueueIdle();
-	vulkan_->DestroyObjects();
+	vulkan_->DestroySwapchain();
+	vulkan_->DestroySurface();
 	vulkan_->DestroyDevice();
-	vulkan_->DestroyDebugMsgCallback();
 	vulkan_->DestroyInstance();
 	delete vulkan_;
 	vulkan_ = nullptr;
 	finalize_glslang();
+}
+
+void SDLVulkanGraphicsContext::Resize() {
+	draw_->HandleEvent(Draw::Event::LOST_BACKBUFFER, vulkan_->GetBackbufferWidth(), vulkan_->GetBackbufferHeight());
+	vulkan_->DestroySwapchain();
+	vulkan_->UpdateFlags(FlagsFromConfig());
+	vulkan_->InitSwapchain();
+	draw_->HandleEvent(Draw::Event::GOT_BACKBUFFER, vulkan_->GetBackbufferWidth(), vulkan_->GetBackbufferHeight());
+}
+
+void SDLVulkanGraphicsContext::Poll() {
+	// Check for existing swapchain to avoid issues during shutdown.
+	if (vulkan_->GetSwapchain() && renderManager_->NeedsSwapchainRecreate()) {
+		Resize();
+	}
 }

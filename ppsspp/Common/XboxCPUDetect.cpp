@@ -48,11 +48,11 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = PStringFromFormat("%s, %i core", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
 	else
 	{
-		sum = PStringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT) sum += PStringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
+		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
+		if (HTT) sum += StringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";

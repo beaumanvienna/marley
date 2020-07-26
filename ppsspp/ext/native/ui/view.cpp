@@ -1,4 +1,3 @@
-#include <queue>
 #include <algorithm>
 #include <mutex>
 
@@ -13,102 +12,15 @@
 #include "ui/view.h"
 #include "ui/ui_context.h"
 #include "ui/ui_tween.h"
+#include "ui/root.h"
 #include "thin3d/thin3d.h"
 #include "base/NativeApp.h"
 
-namespace PUI {
-
-static View *focusedView;
-static bool focusMovementEnabled;
-bool focusForced;
-static std::mutex eventMutex_;  // needs recursivity!
+namespace UI {
 
 const float ITEM_HEIGHT = 64.f;
 const float MIN_TEXT_SCALE = 0.8f;
 const float MAX_ITEM_SIZE = 65535.0f;
-
-struct DispatchQueueItem {
-	Event *e;
-	EventParams params;
-};
-
-std::deque<DispatchQueueItem> g_dispatchQueue;
-
-void EventTriggered(Event *e, EventParams params) {
-	DispatchQueueItem item;
-	item.e = e;
-	item.params = params;
-
-	std::unique_lock<std::mutex> guard(eventMutex_);
-	g_dispatchQueue.push_front(item);
-}
-
-void DispatchEvents() {
-	while (true) {
-		DispatchQueueItem item;
-		{
-			std::unique_lock<std::mutex> guard(eventMutex_);
-			if (g_dispatchQueue.empty())
-				break;
-			item = g_dispatchQueue.back();
-			g_dispatchQueue.pop_back();
-		}
-		if (item.e) {
-			item.e->Dispatch(item.params);
-		}
-	}
-}
-
-void RemoveQueuedEvents(View *v) {
-	for (auto it = g_dispatchQueue.begin(); it != g_dispatchQueue.end(); ) {
-		if (it->params.v == v) {
-			it = g_dispatchQueue.erase(it);
-		} else {
-			++it;
-		}
-	}
-}
-
-void RemoveQueuedEvents(Event *e) {
-	for (auto it = g_dispatchQueue.begin(); it != g_dispatchQueue.end(); ) {
-		if (it->e == e) {
-			it = g_dispatchQueue.erase(it);
-		} else {
-			++it;
-		}
-	}
-}
-
-View *GetFocusedView() {
-	return focusedView;
-}
-
-void SetFocusedView(View *view, bool force) {
-	if (focusedView) {
-		focusedView->FocusChanged(FF_LOSTFOCUS);
-	}
-	focusedView = view;
-	if (focusedView) {
-		focusedView->FocusChanged(FF_GOTFOCUS);
-		if (force) {
-			focusForced = true;
-		}
-	}
-}
-
-void EnableFocusMovement(bool enable) {
-	focusMovementEnabled = enable;
-	if (!enable) {
-		if (focusedView) {
-			focusedView->FocusChanged(FF_LOSTFOCUS); 
-		}
-		focusedView = 0;
-	}
-}
-
-bool IsFocusMovementEnabled() {
-	return focusMovementEnabled;
-}
 
 void MeasureBySpec(Size sz, float contentWidth, MeasureSpec spec, float *measured) {
 	*measured = sz;
@@ -162,23 +74,23 @@ void Event::Trigger(EventParams &e) {
 // Call this from UI thread
 EventReturn Event::Dispatch(EventParams &e) {
 	for (auto iter = handlers_.begin(); iter != handlers_.end(); ++iter) {
-		if ((iter->func)(e) == PUI::EVENT_DONE) {
+		if ((iter->func)(e) == UI::EVENT_DONE) {
 			// Event is handled, stop looping immediately. This event might even have gotten deleted.
-			return PUI::EVENT_DONE;
+			return UI::EVENT_DONE;
 		}
 	}
-	return PUI::EVENT_SKIPPED;
+	return UI::EVENT_SKIPPED;
 }
 
 Event::~Event() {
 	handlers_.clear();
-	RemoveQueuedEvents(this);
+	RemoveQueuedEventsByEvent(this);
 }
 
 View::~View() {
 	if (HasFocus())
 		SetFocusedView(0);
-	RemoveQueuedEvents(this);
+	RemoveQueuedEventsByView(this);
 
 	// Could use unique_ptr, but then we have to include tween everywhere.
 	for (auto &tween : tweens_)
@@ -224,7 +136,7 @@ void View::Query(float x, float y, std::vector<View *> &list) {
 }
 
 std::string View::Describe() const {
-	return PStringFromFormat("%0.1f,%0.1f %0.1fx%0.1f", bounds_.x, bounds_.y, bounds_.w, bounds_.h);
+	return StringFromFormat("%0.1f,%0.1f %0.1fx%0.1f", bounds_.x, bounds_.y, bounds_.w, bounds_.h);
 }
 
 
@@ -237,12 +149,12 @@ void View::PersistData(PersistStatus status, std::string anonId, PersistMap &sto
 
 	const std::string focusedKey = "ViewFocused::" + tag;
 	switch (status) {
-	case PUI::PERSIST_SAVE:
+	case UI::PERSIST_SAVE:
 		if (HasFocus()) {
 			storage[focusedKey].resize(1);
 		}
 		break;
-	case PUI::PERSIST_RESTORE:
+	case UI::PERSIST_RESTORE:
 		if (storage.find(focusedKey) != storage.end()) {
 			SetFocus();
 		}
@@ -302,7 +214,7 @@ void Clickable::DrawBG(UIContext &dc, const Style &style) {
 }
 
 void Clickable::Click() {
-	PUI::EventParams e{};
+	UI::EventParams e{};
 	e.v = this;
 	OnClick.Trigger(e);
 };
@@ -513,10 +425,8 @@ void ClickableItem::Draw(UIContext &dc) {
 }
 
 void Choice::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
-	if (atlasImage_ != -1) {
-		const AtlasImage &img = dc.Draw()->GetAtlas()->images[atlasImage_];
-		w = img.w;
-		h = img.h;
+	if (atlasImage_.isValid()) {
+		dc.Draw()->GetAtlas()->measureImage(atlasImage_, &w, &h);
 	} else {
 		const int paddingX = 12;
 		float availWidth = horiz.size - paddingX * 2 - textPadding_.horiz();
@@ -570,7 +480,7 @@ void Choice::Draw(UIContext &dc) {
 		style = dc.theme->itemDisabledStyle;
 	}
 
-	if (atlasImage_ != -1) {
+	if (atlasImage_.isValid()) {
 		dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
 	} else {
 		dc.SetFontStyle(dc.theme->uiFont);
@@ -583,7 +493,7 @@ void Choice::Draw(UIContext &dc) {
 		if (centered_) {
 			dc.DrawTextRect(text_.c_str(), bounds_, style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
 		} else {
-			if (iconImage_ != -1) {
+			if (iconImage_.isValid()) {
 				dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
 			}
 
@@ -610,7 +520,7 @@ InfoItem::InfoItem(const std::string &text, const std::string &rightText, Layout
 void InfoItem::Draw(UIContext &dc) {
 	Item::Draw(dc);
 
-	PUI::Style style = HasFocus() ? dc.theme->itemFocusedStyle : dc.theme->infoStyle;
+	UI::Style style = HasFocus() ? dc.theme->itemFocusedStyle : dc.theme->infoStyle;
 
 	if (style.background.type == DRAW_SOLID_COLOR) {
 		// For a smoother fade, using the same color with 0 alpha.
@@ -634,8 +544,8 @@ void InfoItem::Draw(UIContext &dc) {
 
 ItemHeader::ItemHeader(const std::string &text, LayoutParams *layoutParams)
 	: Item(layoutParams), text_(text) {
-		layoutParams_->width = FILL_PARENT;
-		layoutParams_->height = 40;
+	layoutParams_->width = FILL_PARENT;
+	layoutParams_->height = 40;
 }
 
 void ItemHeader::Draw(UIContext &dc) {
@@ -709,7 +619,7 @@ void CheckBox::Draw(UIContext &dc) {
 
 	ClickableItem::Draw(dc);
 
-	int image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
+	ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
@@ -736,7 +646,7 @@ float CheckBox::CalculateTextScale(const UIContext &dc, float availWidth) const 
 }
 
 void CheckBox::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	int image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
+	ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
@@ -769,10 +679,8 @@ bool BitCheckBox::Toggled() const {
 }
 
 void Button::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	if (imageID_ != -1) {
-		const AtlasImage *img = &dc.Draw()->GetAtlas()->images[imageID_];
-		w = img->w;
-		h = img->h;
+	if (imageID_.isValid()) {
+		dc.Draw()->GetAtlas()->measureImage(imageID_, &w, &h);
 	} else {
 		dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), &w, &h);
 	}
@@ -792,36 +700,38 @@ void Button::Draw(UIContext &dc) {
 	DrawBG(dc, style);
 	float tw, th;
 	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), &tw, &th);
-	if (tw > bounds_.w || imageID_ != -1) {
+	if (tw > bounds_.w || imageID_.isValid()) {
 		dc.PushScissor(bounds_);
 	}
 	dc.SetFontStyle(dc.theme->uiFont);
-	if (imageID_ != -1 && text_.empty()) {
+	if (imageID_.isValid() && text_.empty()) {
 		dc.Draw()->DrawImage(imageID_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
 	} else if (!text_.empty()) {
 		dc.DrawText(text_.c_str(), bounds_.centerX(), bounds_.centerY(), style.fgColor, ALIGN_CENTER);
-		if (imageID_ != -1) {
-			const AtlasImage &img = dc.Draw()->GetAtlas()->images[imageID_];
-			dc.Draw()->DrawImage(imageID_, bounds_.centerX() - tw / 2 - 5 - img.w/2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+		if (imageID_.isValid()) {
+			const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(imageID_);
+			if (img) {
+				dc.Draw()->DrawImage(imageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+			}
 		}
 	}
-	if (tw > bounds_.w || imageID_ != -1) {
+	if (tw > bounds_.w || imageID_.isValid()) {
 		dc.PopScissor();
 	}
 }
 
 void ImageView::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	const AtlasImage &img = dc.Draw()->GetAtlas()->images[atlasImage_];
+	dc.Draw()->GetAtlas()->measureImage(atlasImage_, &w, &h);
 	// TODO: involve sizemode
-	w = img.w;
-	h = img.h;
 }
 
 void ImageView::Draw(UIContext &dc) {
-	const AtlasImage &img = dc.Draw()->GetAtlas()->images[atlasImage_];
-	// TODO: involve sizemode
-	float scale = bounds_.w / img.w;
-	dc.Draw()->DrawImage(atlasImage_, bounds_.x, bounds_.y, scale, 0xFFFFFFFF, ALIGN_TOPLEFT);
+	const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(atlasImage_);
+	if (img) {
+		// TODO: involve sizemode
+		float scale = bounds_.w / img->w;
+		dc.Draw()->DrawImage(atlasImage_, bounds_.x, bounds_.y, scale, 0xFFFFFFFF, ALIGN_TOPLEFT);
+	}
 }
 
 void TextView::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
@@ -856,7 +766,7 @@ void TextView::Draw(UIContext &dc) {
 	}
 	// In case it's been made focusable.
 	if (HasFocus()) {
-		PUI::Style style = dc.theme->itemFocusedStyle;
+		UI::Style style = dc.theme->itemFocusedStyle;
 		style.background.color &= 0x7fffffff;
 		dc.FillRect(style.background, bounds_);
 	}
@@ -880,7 +790,7 @@ TextEdit::TextEdit(const std::string &text, const std::string &placeholderText, 
 void TextEdit::Draw(UIContext &dc) {
 	dc.PushScissor(bounds_);
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.FillRect(HasFocus() ? PUI::Drawable(0x80000000) : PUI::Drawable(0x30000000), bounds_);
+	dc.FillRect(HasFocus() ? UI::Drawable(0x80000000) : UI::Drawable(0x30000000), bounds_);
 
 	uint32_t textColor = hasTextColor_ ? textColor_ : dc.theme->infoStyle.fgColor;
 	float textX = bounds_.x;
@@ -909,7 +819,7 @@ void TextEdit::Draw(UIContext &dc) {
 			scrollPos_ += caretX;
 		}
 		caretX += textX;
-		dc.FillRect(PUI::Drawable(textColor), Bounds(caretX - 1, bounds_.y + 2, 3, bounds_.h - 4));
+		dc.FillRect(UI::Drawable(textColor), Bounds(caretX - 1, bounds_.y + 2, 3, bounds_.h - 4));
 	}
 	dc.PopScissor();
 }
@@ -1069,7 +979,7 @@ bool TextEdit::Key(const KeyInput &input) {
 	}
 
 	if (textChanged) {
-		PUI::EventParams e{};
+		UI::EventParams e{};
 		e.v = this;
 		OnTextChange.Trigger(e);
 	}
@@ -1146,9 +1056,7 @@ void TriggerButton::Draw(UIContext &dc) {
 }
 
 void TriggerButton::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	const AtlasImage &image = dc.Draw()->GetAtlas()->images[imageBackground_];
-	w = image.w;
-	h = image.h;
+	dc.Draw()->GetAtlas()->measureImage(imageBackground_, &w, &h);
 }
 
 bool Slider::Key(const KeyInput &input) {

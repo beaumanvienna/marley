@@ -53,7 +53,7 @@ struct AsyncIOResult {
 	}
 
 	AsyncIOResult(s64 r, int usec, u32 addr = 0) : result(r), invalidateAddr(addr) {
-		finishTicks = CoreTiming_P::GetTicks() + usToCycles(usec);
+		finishTicks = CoreTiming::GetTicks() + usToCycles(usec);
 	}
 
 	void DoState(PointerWrap &p) {
@@ -91,7 +91,7 @@ public:
 protected:
 	void ProcessEvent(AsyncIOEvent ref) override;
 	bool ShouldExitEventLoop() override {
-		return coreState == CORE_ERROR || coreState == CORE_POWERDOWN;
+		return coreState == CORE_BOOT_ERROR || coreState == CORE_RUNTIME_ERROR || coreState == CORE_POWERDOWN;
 	}
 
 private:
