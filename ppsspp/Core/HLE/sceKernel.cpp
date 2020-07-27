@@ -199,8 +199,8 @@ void __KernelShutdown()
 	__CheatShutdown();
 	__KernelModuleShutdown();
 
-	CoreTiming::ClearPendingEvents();
-	CoreTiming::UnregisterAllEvents();
+	PCoreTiming::ClearPendingEvents();
+	PCoreTiming::UnregisterAllEvents();
 	Reporting::Shutdown();
 	SaveState::Shutdown();
 
@@ -636,12 +636,12 @@ struct SystemStatus {
 
 static int sceKernelReferSystemStatus(u32 statusPtr) {
 	DEBUG_LOG(SCEKERNEL, "sceKernelReferSystemStatus(%08x)", statusPtr);
-	if (Memory::IsValidAddress(statusPtr)) {
+	if (PMemory::IsValidAddress(statusPtr)) {
 		SystemStatus status;
 		memset(&status, 0, sizeof(SystemStatus));
 		status.size = sizeof(SystemStatus);
 		// TODO: Fill in the struct!
-		Memory::WriteStruct(statusPtr, &status);
+		PMemory::WriteStruct(statusPtr, &status);
 	}
 	return 0;
 }
@@ -677,8 +677,8 @@ static u32 sceKernelReferThreadProfiler(u32 statusPtr) {
 	//DebugProfilerRegs regs;
 	//memset(&regs, 0, sizeof(regs));
 	// TODO: fill the struct.
-	//if (Memory::IsValidAddress(statusPtr)) {
-	//	Memory::WriteStruct(statusPtr, &regs);
+	//if (PMemory::IsValidAddress(statusPtr)) {
+	//	PMemory::WriteStruct(statusPtr, &regs);
 	//}
 	return 0;
 }

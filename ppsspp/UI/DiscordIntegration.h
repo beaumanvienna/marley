@@ -9,9 +9,9 @@
 
 // All you need to call is FrameCallback, Shutdown, and UpdatePresence.
 
-class Discord {
+class PDiscord {
 public:
-	~Discord();
+	~PDiscord();
 	void Update();  // Call every frame or at least regularly. Will initialize if necessary.
 	void Shutdown();
 
@@ -26,4 +26,4 @@ private:
 	bool initialized_ = false;
 };
 
-extern Discord g_Discord;
+extern PDiscord g_Discord;

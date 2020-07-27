@@ -113,8 +113,8 @@ static int getCameraResolution(Camera::ConfigType type, int *width, int *height)
 
 static int sceUsbCamSetupMic(u32 paramAddr, u32 workareaAddr, int wasize) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupMic");
-	if (Memory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupMicParam))) {
-		Memory::ReadStruct(paramAddr, &config->micParam);
+	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupMicParam))) {
+		PMemory::ReadStruct(paramAddr, &config->micParam);
 	}
 	return 0;
 }
@@ -132,8 +132,8 @@ static int sceUsbCamStopMic() {
 static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamReadMicBlocking: size: %d", size);
 	for (unsigned int i = 0; i < size; i++) {
-		if (Memory::IsValidAddress(bufAddr + i)) {
-			Memory::Write_U8(i & 0xFF, bufAddr + i);
+		if (PMemory::IsValidAddress(bufAddr + i)) {
+			PMemory::Write_U8(i & 0xFF, bufAddr + i);
 		}
 	}
 	hleEatMicro(1000000 / config->micParam.frequency * (size / 2));
@@ -141,16 +141,16 @@ static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 }
 
 static int sceUsbCamSetupVideo(u32 paramAddr, u32 workareaAddr, int wasize) {
-	if (Memory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoParam))) {
-		Memory::ReadStruct(paramAddr, &config->videoParam);
+	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoParam))) {
+		PMemory::ReadStruct(paramAddr, &config->videoParam);
 	}
 	config->type = Camera::ConfigType::CfVideo;
 	return 0;
 }
 
 static int sceUsbCamSetupVideoEx(u32 paramAddr, u32 workareaAddr, int wasize) {
-	if (Memory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoExParam))) {
-		Memory::ReadStruct(paramAddr, &config->videoExParam);
+	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoExParam))) {
+		PMemory::ReadStruct(paramAddr, &config->videoExParam);
 	}
 	config->type = Camera::ConfigType::CfVideoEx;
 	return 0;
@@ -185,8 +185,8 @@ static int sceUsbCamStopVideo() {
 static int sceUsbCamReadVideoFrameBlocking(u32 bufAddr, u32 size) {
 	std::lock_guard<std::mutex> lock(videoBufferMutex);
 	u32 transferSize = std::min(videoBufferLength, size);
-	if (Memory::IsValidRange(bufAddr, size)) {
-		Memory::Memcpy(bufAddr, videoBuffer, transferSize);
+	if (PMemory::IsValidRange(bufAddr, size)) {
+		PMemory::Memcpy(bufAddr, videoBuffer, transferSize);
 	}
 	return videoBufferLength;
 }
@@ -194,8 +194,8 @@ static int sceUsbCamReadVideoFrameBlocking(u32 bufAddr, u32 size) {
 static int sceUsbCamReadVideoFrame(u32 bufAddr, u32 size) {
 	std::lock_guard<std::mutex> lock(videoBufferMutex);
 	u32 transferSize = std::min(videoBufferLength, size);
-	if (Memory::IsValidRange(bufAddr, size)) {
-		Memory::Memcpy(bufAddr, videoBuffer, transferSize);
+	if (PMemory::IsValidRange(bufAddr, size)) {
+		PMemory::Memcpy(bufAddr, videoBuffer, transferSize);
 	}
 	nextVideoFrame = videoBufferLength;
 	return 0;
@@ -208,8 +208,8 @@ static int sceUsbCamPollReadVideoFrameEnd() {
 
 static int sceUsbCamSetupStill(u32 paramAddr) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupStill");
-	if (Memory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillParam))) {
-		Memory::ReadStruct(paramAddr, &config->stillParam);
+	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillParam))) {
+		PMemory::ReadStruct(paramAddr, &config->stillParam);
 	}
 	config->type = Camera::ConfigType::CfStill;
 	return 0;
@@ -217,8 +217,8 @@ static int sceUsbCamSetupStill(u32 paramAddr) {
 
 static int sceUsbCamSetupStillEx(u32 paramAddr) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupStillEx");
-	if (Memory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillExParam))) {
-		Memory::ReadStruct(paramAddr, &config->stillExParam);
+	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillExParam))) {
+		PMemory::ReadStruct(paramAddr, &config->stillExParam);
 	}
 	config->type = Camera::ConfigType::CfStillEx;
 	return 0;

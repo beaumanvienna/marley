@@ -139,7 +139,7 @@ void PPGeSetTexture(u32 dataAddr, int width, int height);
 
 //only 0xFFFFFF of data is used
 static void WriteCmd(u8 cmd, u32 data) {
-	Memory::Write_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
+	PMemory::Write_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
 	dlWritePtr += 4;
 	assert(dlWritePtr <= dlPtr + dlSize);
 }
@@ -170,14 +170,14 @@ static void Vertex(float x, float y, float u, float v, int tw, int th, u32 color
 		vtx.x = x; vtx.y = y; vtx.z = 0;
 		vtx.u = u * tw; vtx.v = v * th;
 		vtx.color = color;
-		Memory::WriteStruct(dataWritePtr, &vtx);
+		PMemory::WriteStruct(dataWritePtr, &vtx);
 		dataWritePtr += sizeof(vtx);
 	} else {
 		PPGeVertex vtx;
 		vtx.x = x; vtx.y = y; vtx.z = 0;
 		vtx.u = u * tw; vtx.v = v * th;
 		vtx.color = color;
-		Memory::WriteStruct(dataWritePtr, &vtx);
+		PMemory::WriteStruct(dataWritePtr, &vtx);
 		dataWritePtr += sizeof(vtx);
 	}
 	assert(dataWritePtr <= dataPtr + dataSize);
@@ -251,7 +251,7 @@ void __PPGeInit() {
 	}
 
 	const u32_le *imagePtr = (u32_le *)imageData[0];
-	u8 *ramPtr = atlasPtr == 0 ? nullptr : (u8 *)Memory::GetPointer(atlasPtr);
+	u8 *ramPtr = atlasPtr == 0 ? nullptr : (u8 *)PMemory::GetPointer(atlasPtr);
 
 	// Palettize to 4-bit, the easy way.
 	for (int i = 0; i < width[0] * height[0] / 2; i++) {
@@ -832,7 +832,7 @@ static PPGeTextDrawerImage PPGeGetTextImage(const char *text, const PPGeStyle &s
 
 		if (im.ptr) {
 			int wBytes = (im.entry.bmWidth + 1) / 2;
-			u8 *ramPtr = (u8 *)Memory::GetPointer(im.ptr);
+			u8 *ramPtr = (u8 *)PMemory::GetPointer(im.ptr);
 			for (int y = 0; y < im.entry.bmHeight; ++y) {
 				for (int x = 0; x < wBytes; ++x) {
 					uint8_t c1 = bitmapData[y * im.entry.bmWidth + x * 2];
@@ -1201,7 +1201,7 @@ bool PPGeImage::Load() {
 	unsigned char *textureData;
 	int success;
 	if (filename_.empty()) {
-		success = pngLoadPtr(Memory::GetPointer(png_), size_, &width_, &height_, &textureData, false);
+		success = pngLoadPtr(PMemory::GetPointer(png_), size_, &width_, &height_, &textureData, false);
 	} else {
 		std::vector<u8> pngData;
 		if (pspFileSystem.ReadEntireFile(filename_, pngData) < 0) {
@@ -1224,7 +1224,7 @@ bool PPGeImage::Load() {
 		return false;
 	}
 
-	Memory::Memcpy(texture_, textureData, texSize);
+	PMemory::Memcpy(texture_, textureData, texSize);
 	free(textureData);
 
 	lastFrame_ = gpuStats.numFlips;

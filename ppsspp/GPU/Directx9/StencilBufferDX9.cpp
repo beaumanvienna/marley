@@ -86,7 +86,7 @@ bool FramebufferManagerDX9::NotifyStencilUpload(u32 addr, int size, StencilUploa
 	int values = 0;
 	u8 usedBits = 0;
 
-	const u8 *src = Memory::GetPointer(addr);
+	const u8 *src = PMemory::GetPointer(addr);
 	if (!src) {
 		return false;
 	}

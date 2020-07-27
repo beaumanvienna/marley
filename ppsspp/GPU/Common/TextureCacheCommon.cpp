@@ -324,7 +324,7 @@ void TextureCacheCommon::SetTexture(bool force) {
 	if (IsFakeMipmapChange())
 		level = std::max(0, gstate.getTexLevelOffset16() / 16);
 	u32 texaddr = gstate.getTextureAddress(level);
-	if (!Memory::IsValidAddress(texaddr)) {
+	if (!PMemory::IsValidAddress(texaddr)) {
 		// Bind a null texture and return.
 		Unbind();
 		return;
@@ -358,7 +358,7 @@ void TextureCacheCommon::SetTexture(bool force) {
 	int bufw = GetTextureBufw(0, texaddr, format);
 	u8 maxLevel = gstate.getTextureMaxLevel();
 
-	u32 texhash = MiniHash((const u32 *)Memory::GetPointerUnchecked(texaddr));
+	u32 texhash = MiniHash((const u32 *)PMemory::GetPointerUnchecked(texaddr));
 
 	TexCache::iterator iter = cache_.find(cachekey);
 	TexCacheEntry *entry = nullptr;
@@ -644,7 +644,7 @@ void TextureCacheCommon::NotifyFramebuffer(u32 address, VirtualFramebuffer *fram
 	// Mask to ignore the Z memory mirrors if the address is in VRAM.
 	// These checks are mainly to reduce scanning all textures.
 	const u32 mirrorMask = 0x00600000;
-	const u32 addr = Memory::IsVRAMAddress(address) ? (address & ~mirrorMask) : address;
+	const u32 addr = PMemory::IsVRAMAddress(address) ? (address & ~mirrorMask) : address;
 	const u32 bpp = framebuffer->format == GE_FORMAT_8888 ? 4 : 2;
 	const u64 cacheKey = (u64)addr << 32;
 	// If it has a clut, those are the low 32 bits, so it'll be inside this range.
@@ -919,7 +919,7 @@ bool TextureCacheCommon::SetOffsetTexture(u32 yOffset) {
 	const u32 bpp = fmt == GE_TFMT_8888 ? 4 : 2;
 	const u32 texaddrOffset = yOffset * gstate.getTextureWidth(0) * bpp;
 
-	if (!Memory::IsValidAddress(texaddr) || !Memory::IsValidAddress(texaddr + texaddrOffset)) {
+	if (!PMemory::IsValidAddress(texaddr) || !PMemory::IsValidAddress(texaddr + texaddrOffset)) {
 		return false;
 	}
 
@@ -994,8 +994,8 @@ void TextureCacheCommon::LoadClut(u32 clutAddr, u32 loadBytes) {
 	clutTotalBytes_ = loadBytes;
 	clutRenderAddress_ = 0xFFFFFFFF;
 
-	if (Memory::IsValidAddress(clutAddr)) {
-		if (Memory::IsVRAMAddress(clutAddr)) {
+	if (PMemory::IsValidAddress(clutAddr)) {
+		if (PMemory::IsVRAMAddress(clutAddr)) {
 			// Clear the uncached bit, etc. to match framebuffers.
 			const u32 clutFramebufAddr = clutAddr & 0x3FFFFFFF;
 			const u32 clutFramebufEnd = clutFramebufAddr + loadBytes;
@@ -1025,17 +1025,17 @@ void TextureCacheCommon::LoadClut(u32 clutAddr, u32 loadBytes) {
 		}
 
 		// It's possible for a game to (successfully) access outside valid memory.
-		u32 bytes = Memory::ValidSize(clutAddr, loadBytes);
+		u32 bytes = PMemory::ValidSize(clutAddr, loadBytes);
 		if (clutRenderAddress_ != 0xFFFFFFFF && !g_Config.bDisableSlowFramebufEffects) {
 			framebufferManager_->DownloadFramebufferForClut(clutRenderAddress_, clutRenderOffset_ + bytes);
-			Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
+			PMemory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 			if (bytes < loadBytes) {
 				memset((u8 *)clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 			}
 		} else {
 #ifdef _M_SSE
 			if (bytes == loadBytes) {
-				const __m128i *source = (const __m128i *)Memory::GetPointerUnchecked(clutAddr);
+				const __m128i *source = (const __m128i *)PMemory::GetPointerUnchecked(clutAddr);
 				__m128i *dest = (__m128i *)clutBufRaw_;
 				int numBlocks = bytes / 32;
 				for (int i = 0; i < numBlocks; i++, source += 2, dest += 2) {
@@ -1045,14 +1045,14 @@ void TextureCacheCommon::LoadClut(u32 clutAddr, u32 loadBytes) {
 					_mm_store_si128(dest + 1, data2);
 				}
 			} else {
-				Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
+				PMemory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 				if (bytes < loadBytes) {
 					memset((u8 *)clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 				}
 			}
 #elif PPSSPP_ARCH(ARM_NEON)
 			if (bytes == loadBytes) {
-				const uint32_t *source = (const uint32_t *)Memory::GetPointerUnchecked(clutAddr);
+				const uint32_t *source = (const uint32_t *)PMemory::GetPointerUnchecked(clutAddr);
 				uint32_t *dest = (uint32_t *)clutBufRaw_;
 				int numBlocks = bytes / 32;
 				for (int i = 0; i < numBlocks; i++, source += 8, dest += 8) {
@@ -1062,13 +1062,13 @@ void TextureCacheCommon::LoadClut(u32 clutAddr, u32 loadBytes) {
 					vst1q_u32(dest + 4, data2);
 				}
 			} else {
-				Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
+				PMemory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 				if (bytes < loadBytes) {
 					memset((u8 *)clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 				}
 			}
 #else
-			Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
+			PMemory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 			if (bytes < loadBytes) {
 				memset((u8 *)clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 			}
@@ -1193,7 +1193,7 @@ static inline void ConvertFormatToRGBA8888(GEPaletteFormat format, u32 *dst, con
 
 void TextureCacheCommon::DecodeTextureLevel(u8 *out, int outPitch, GETextureFormat format, GEPaletteFormat clutformat, uint32_t texaddr, int level, int bufw, bool reverseColors, bool useBGRA, bool expandTo32bit) {
 	bool swizzled = gstate.isTextureSwizzled();
-	if ((texaddr & 0x00600000) != 0 && Memory::IsVRAMAddress(texaddr)) {
+	if ((texaddr & 0x00600000) != 0 && PMemory::IsVRAMAddress(texaddr)) {
 		// This means it's in a mirror, possibly a swizzled mirror.  Let's report.
 		WARN_LOG_REPORT_ONCE(texmirror, G3D, "Decoding texture from VRAM mirror at %08x swizzle=%d", texaddr, swizzled ? 1 : 0);
 		if ((texaddr & 0x00200000) == 0x00200000) {
@@ -1205,7 +1205,7 @@ void TextureCacheCommon::DecodeTextureLevel(u8 *out, int outPitch, GETextureForm
 
 	int w = gstate.getTextureWidth(level);
 	int h = gstate.getTextureHeight(level);
-	const u8 *texptr = Memory::GetPointer(texaddr);
+	const u8 *texptr = PMemory::GetPointer(texaddr);
 
 	switch (format) {
 	case GE_TFMT_CLUT4:

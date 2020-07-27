@@ -27,7 +27,7 @@
 #include <dlfcn.h>
 #endif
 
-PFN_vkCreateInstance vkCreateInstance;
+PFN_PvkCreateInstance PvkCreateInstance;
 PFN_vkDestroyInstance vkDestroyInstance;
 PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
@@ -36,8 +36,8 @@ PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatPrope
 PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
-PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
-PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+PFN_PvkGetInstanceProcAddr PvkGetInstanceProcAddr;
+PFN_PvkGetDeviceProcAddr PvkGetDeviceProcAddr;
 PFN_vkCreateDevice vkCreateDevice;
 PFN_vkDestroyDevice vkDestroyDevice;
 PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
@@ -224,8 +224,8 @@ const char *VulkanResultToString(VkResult res);
 bool g_vulkanAvailabilityChecked = false;
 bool g_vulkanMayBeAvailable = false;
 
-#define LOAD_INSTANCE_FUNC(instance, x) x = (PFN_ ## x)vkGetInstanceProcAddr(instance, #x); if (!x) {ILOG("Missing (instance): %s", #x);}
-#define LOAD_DEVICE_FUNC(instance, x) x = (PFN_ ## x)vkGetDeviceProcAddr(instance, #x); if (!x) {ILOG("Missing (device): %s", #x);}
+#define LOAD_INSTANCE_FUNC(instance, x) x = (PFN_ ## x)PvkGetInstanceProcAddr(instance, #x); if (!x) {ILOG("Missing (instance): %s", #x);}
+#define LOAD_DEVICE_FUNC(instance, x) x = (PFN_ ## x)PvkGetDeviceProcAddr(instance, #x); if (!x) {ILOG("Missing (device): %s", #x);}
 #define LOAD_GLOBAL_FUNC(x) x = (PFN_ ## x)dlsym(vulkanLibrary, #x); if (!x) {ILOG("Missing (global): %s", #x);}
 
 #define LOAD_GLOBAL_FUNC_LOCAL(lib, x) (PFN_ ## x)dlsym(lib, #x);
@@ -290,7 +290,7 @@ bool VulkanMayBeAvailable() {
 	// Do a hyper minimal initialization and teardown to figure out if there's any chance
 	// that any sort of Vulkan will be usable.
 	PFN_vkEnumerateInstanceExtensionProperties localEnumerateInstanceExtensionProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, vkEnumerateInstanceExtensionProperties);
-	PFN_vkCreateInstance localCreateInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, vkCreateInstance);
+	PFN_PvkCreateInstance localCreateInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, PvkCreateInstance);
 	PFN_vkEnumeratePhysicalDevices localEnumerate = LOAD_GLOBAL_FUNC_LOCAL(lib, vkEnumeratePhysicalDevices);
 	PFN_vkDestroyInstance localDestroyInstance = LOAD_GLOBAL_FUNC_LOCAL(lib, vkDestroyInstance);
 	PFN_vkGetPhysicalDeviceProperties localGetPhysicalDeviceProperties = LOAD_GLOBAL_FUNC_LOCAL(lib, vkGetPhysicalDeviceProperties);
@@ -467,14 +467,14 @@ bool VulkanLoad() {
 		}
 	}
 
-	LOAD_GLOBAL_FUNC(vkCreateInstance);
-	LOAD_GLOBAL_FUNC(vkGetInstanceProcAddr);
-	LOAD_GLOBAL_FUNC(vkGetDeviceProcAddr);
+	LOAD_GLOBAL_FUNC(PvkCreateInstance);
+	LOAD_GLOBAL_FUNC(PvkGetInstanceProcAddr);
+	LOAD_GLOBAL_FUNC(PvkGetDeviceProcAddr);
 
 	LOAD_GLOBAL_FUNC(vkEnumerateInstanceExtensionProperties);
 	LOAD_GLOBAL_FUNC(vkEnumerateInstanceLayerProperties);
 
-	if (vkCreateInstance && vkGetInstanceProcAddr && vkGetDeviceProcAddr && vkEnumerateInstanceExtensionProperties && vkEnumerateInstanceLayerProperties) {
+	if (PvkCreateInstance && PvkGetInstanceProcAddr && PvkGetDeviceProcAddr && vkEnumerateInstanceExtensionProperties && vkEnumerateInstanceLayerProperties) {
 		WLOG("VulkanLoad: Base functions loaded.");
 		return true;
 	} else {
@@ -551,7 +551,7 @@ void VulkanLoadInstanceFunctions(VkInstance instance, const VulkanDeviceExtensio
 	WLOG("Vulkan instance functions loaded.");
 }
 
-// On some implementations, loading functions (that have Device as their first parameter) via vkGetDeviceProcAddr may
+// On some implementations, loading functions (that have Device as their first parameter) via PvkGetDeviceProcAddr may
 // increase performance - but then these function pointers will only work on that specific device. Thus, this loader is not very
 // good for multi-device - not likely we'll ever try that anyway though.
 void VulkanLoadDeviceFunctions(VkDevice device, const VulkanDeviceExtensions &enabledExtensions) {

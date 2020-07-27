@@ -26,7 +26,7 @@
 
 #include "Core/MIPS/MIPS.h"
 
-namespace Memory {
+namespace PMemory {
 
 u8 *GetPointer(const u32 address) {
 	if ((address & 0x3E000000) == 0x08000000) {
@@ -168,4 +168,4 @@ void Write_U64(const u64 _Data, const u32 address) {
 	WriteToHardware<u64_le>(address, _Data);
 }
 
-}	// namespace Memory
+}	// namespace PMemory

@@ -112,7 +112,7 @@ void MipsJit::CompileDelaySlot(int flags)
 	//	Save flags here
 
 	js.inDelaySlot = true;
-	MIPSOpcode op = Memory::Read_Opcode_JIT(js.compilerPC + 4);
+	MIPSOpcode op = PMemory::Read_Opcode_JIT(js.compilerPC + 4);
 	MIPSCompileOp(op, this);
 	js.inDelaySlot = false;
 
@@ -171,7 +171,7 @@ const u8 *MipsJit::DoJit(u32 em_address, JitBlock *b)
 	js.numInstructions = 0;
 	while (js.compiling)
 	{
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(js.compilerPC);
+		MIPSOpcode inst = PMemory::Read_Opcode_JIT(js.compilerPC);
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst, this);

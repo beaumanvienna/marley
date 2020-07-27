@@ -120,11 +120,11 @@ void VagDecoder::GetSamples(s16 *outSamples, int numSamples) {
 		memset(outSamples, 0, numSamples * sizeof(s16));
 		return;
 	}
-	if (!Memory::IsValidAddress(read_)) {
+	if (!PMemory::IsValidAddress(read_)) {
 		WARN_LOG(SASMIX, "Bad VAG samples address?");
 		return;
 	}
-	u8 *readp = Memory::GetPointerUnchecked(read_);
+	u8 *readp = PMemory::GetPointerUnchecked(read_);
 	u8 *origp = readp;
 
 	for (int i = 0; i < numSamples; i++) {
@@ -133,7 +133,7 @@ void VagDecoder::GetSamples(s16 *outSamples, int numSamples) {
 				VERBOSE_LOG(SASMIX, "Looping VAG from block %d/%d to %d", curBlock_, numBlocks_, loopStartBlock_);
 				// data_ starts at curBlock = -1.
 				read_ = data_ + 16 * loopStartBlock_ + 16;
-				readp = Memory::GetPointerUnchecked(read_);
+				readp = PMemory::GetPointerUnchecked(read_);
 				origp = readp;
 				curBlock_ = loopStartBlock_;
 				loopAtNextBlock_ = false;
@@ -434,7 +434,7 @@ void SasVoice::ReadSamples(s16 *output, int numSamples) {
 					pcmIndex = 0;
 					break;
 				}
-				Memory::Memcpy(out, pcmAddr + pcmIndex * sizeof(s16), size * sizeof(s16));
+				PMemory::Memcpy(out, pcmAddr + pcmIndex * sizeof(s16), size * sizeof(s16));
 				pcmIndex += size;
 				needed -= size;
 				out += size;
@@ -586,8 +586,8 @@ void SasInstance::Mix(u32 outAddr, u32 inAddr, int leftVol, int rightVol) {
 	// Then mix the send buffer in with the rest.
 
 	// Alright, all voices mixed. Let's convert and clip, and at the same time, wipe mixBuffer for next time. Could also dither.
-	s16 *outp = (s16 *)Memory::GetPointer(outAddr);
-	const s16 *inp = inAddr ? (s16*)Memory::GetPointer(inAddr) : 0;
+	s16 *outp = (s16 *)PMemory::GetPointer(outAddr);
+	const s16 *inp = inAddr ? (s16*)PMemory::GetPointer(inAddr) : 0;
 	if (outputMode == PSP_SAS_OUTPUTMODE_MIXED) {
 		// Okay, apply effects processing to the Send buffer.
 		WriteMixedOutput(outp, inp, leftVol, rightVol);
@@ -608,7 +608,7 @@ void SasInstance::Mix(u32 outAddr, u32 inAddr, int leftVol, int rightVol) {
 	memset(sendBuffer, 0, grainSize * sizeof(int) * 2);
 
 #ifdef AUDIO_TO_FILE
-	fwrite(Memory::GetPointer(outAddr), 1, grainSize * 2 * 2, audioDump);
+	fwrite(PMemory::GetPointer(outAddr), 1, grainSize * 2 * 2, audioDump);
 #endif
 }
 
@@ -741,7 +741,7 @@ void SasVoice::KeyOn() {
 	envelope.KeyOn();
 	switch (type) {
 	case VOICETYPE_VAG:
-		if (Memory::IsValidAddress(vagAddr)) {
+		if (PMemory::IsValidAddress(vagAddr)) {
 			vag.Start(vagAddr, vagSize, loop);
 		} else {
 			ERROR_LOG(SASMIX, "Invalid VAG address %08x", vagAddr);

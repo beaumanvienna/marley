@@ -133,7 +133,7 @@ void GPUgstate::Save(u32_le *ptr) {
 	}
 
 	if (savedContextVersion == 0) {
-		if (Memory::IsValidAddress(getClutAddress()))
+		if (PMemory::IsValidAddress(getClutAddress()))
 			*cmds++ = loadclut;
 
 		// Seems like it actually writes commands to load the matrices and then reset the counts.
@@ -166,7 +166,7 @@ void GPUgstate::Save(u32_le *ptr) {
 }
 
 void GPUgstate::FastLoadBoneMatrix(u32 addr) {
-	const u32_le *src = (const u32_le *)Memory::GetPointerUnchecked(addr);
+	const u32_le *src = (const u32_le *)PMemory::GetPointerUnchecked(addr);
 	u32 num = boneMatrixNumber;
 	u32 *dst = (u32 *)(boneMatrix + (num & 0x7F));
 
@@ -215,7 +215,7 @@ void GPUgstate::Restore(u32_le *ptr) {
 	}
 
 	if (savedContextVersion == 0) {
-		if (Memory::IsValidAddress(getClutAddress()))
+		if (PMemory::IsValidAddress(getClutAddress()))
 			loadclut = *cmds++;
 		boneMatrixNumber = *cmds++;
 		worldmtxnum = *cmds++;

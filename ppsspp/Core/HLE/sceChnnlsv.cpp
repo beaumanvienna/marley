@@ -217,9 +217,9 @@ static int sub_17A8(u8* data)
 static int sceSdGetLastIndex(u32 addressCtx, u32 addressHash, u32 addressKey)
 {
 	pspChnnlsvContext1 ctx;
-	Memory::ReadStruct(addressCtx, &ctx);
-	int res = sceSdGetLastIndex_(ctx, Memory::GetPointer(addressHash), Memory::GetPointer(addressKey));
-	Memory::WriteStruct(addressCtx, &ctx);
+	PMemory::ReadStruct(addressCtx, &ctx);
+	int res = sceSdGetLastIndex_(ctx, PMemory::GetPointer(addressHash), PMemory::GetPointer(addressKey));
+	PMemory::WriteStruct(addressCtx, &ctx);
 	return res;
 }
 
@@ -328,9 +328,9 @@ int sceSdGetLastIndex_(pspChnnlsvContext1& ctx, u8* in_hash, u8* in_key)
 static int sceSdSetIndex(u32 addressCtx, int value)
 {
 	pspChnnlsvContext1 ctx;
-	Memory::ReadStruct(addressCtx,&ctx);
+	PMemory::ReadStruct(addressCtx,&ctx);
 	int res = sceSdSetIndex_(ctx, value);
-	Memory::WriteStruct(addressCtx,&ctx);
+	PMemory::WriteStruct(addressCtx,&ctx);
 	return res;
 }
 
@@ -347,9 +347,9 @@ int sceSdSetIndex_(pspChnnlsvContext1& ctx, int value)
 static int sceSdRemoveValue(u32 addressCtx, u32 addressData, int length)
 {
 	pspChnnlsvContext1 ctx;
-	Memory::ReadStruct(addressCtx, &ctx);
-	int res = sceSdRemoveValue_(ctx, Memory::GetPointer(addressData), length);
-	Memory::WriteStruct(addressCtx, &ctx);
+	PMemory::ReadStruct(addressCtx, &ctx);
+	int res = sceSdRemoveValue_(ctx, PMemory::GetPointer(addressData), length);
+	PMemory::WriteStruct(addressCtx, &ctx);
 
 	return res;
 }
@@ -399,13 +399,13 @@ int sceSdRemoveValue_(pspChnnlsvContext1& ctx, u8* data, int length)
 static int sceSdCreateList(u32 ctx2Addr, int mode, int unkwn, u32 dataAddr, u32 cryptkeyAddr)
 {
 	pspChnnlsvContext2 ctx2;
-	Memory::ReadStruct(ctx2Addr, &ctx2);
-	u8* data = Memory::GetPointer(dataAddr);
-	u8* cryptkey = Memory::GetPointer(cryptkeyAddr);
+	PMemory::ReadStruct(ctx2Addr, &ctx2);
+	u8* data = PMemory::GetPointer(dataAddr);
+	u8* cryptkey = PMemory::GetPointer(cryptkeyAddr);
 
 	int res = sceSdCreateList_(ctx2, mode, unkwn, data, cryptkey);
 
-	Memory::WriteStruct(ctx2Addr, &ctx2);
+	PMemory::WriteStruct(ctx2Addr, &ctx2);
 
 	return res;
 }
@@ -467,12 +467,12 @@ int sceSdCreateList_(pspChnnlsvContext2& ctx2, int mode, int uknw, u8* data, u8*
 static int sceSdSetMember(u32 ctxAddr, u32 dataAddr, int alignedLen)
 {
 	pspChnnlsvContext2 ctx;
-	Memory::ReadStruct(ctxAddr, &ctx);
-	u8* data = Memory::GetPointer(dataAddr);
+	PMemory::ReadStruct(ctxAddr, &ctx);
+	u8* data = PMemory::GetPointer(dataAddr);
 
 	int res = sceSdSetMember_(ctx, data, alignedLen);
 
-	Memory::WriteStruct(ctxAddr, &ctx);
+	PMemory::WriteStruct(ctxAddr, &ctx);
 
 	return res;
 }
@@ -514,11 +514,11 @@ int sceSdSetMember_(pspChnnlsvContext2& ctx, u8* data, int alignedLen)
 static int sceChnnlsv_21BE78B4(u32 ctxAddr)
 {
 	pspChnnlsvContext2 ctx;
-	Memory::ReadStruct(ctxAddr, &ctx);
+	PMemory::ReadStruct(ctxAddr, &ctx);
 
 	int res = sceChnnlsv_21BE78B4_(ctx);
 
-	Memory::WriteStruct(ctxAddr, &ctx);
+	PMemory::WriteStruct(ctxAddr, &ctx);
 	return res;
 }
 

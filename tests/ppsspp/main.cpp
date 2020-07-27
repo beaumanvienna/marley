@@ -523,7 +523,9 @@ int main(int argc, char* argv[])
         ppsspp_argc = 1; 
     }
 
-    while (1) ppsspp_main(ppsspp_argc,ppsspp_argv);
+    ppsspp_main(ppsspp_argc,ppsspp_argv);
+    ppsspp_main(ppsspp_argc,ppsspp_argv);
+    ppsspp_main(ppsspp_argc,ppsspp_argv);
     printf("jc exit test\n");
 
     return 0;

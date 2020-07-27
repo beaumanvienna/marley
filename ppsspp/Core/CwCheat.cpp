@@ -284,14 +284,14 @@ static int GetRefreshMs() {
 
 void __CheatInit() {
 	// Always register the event, want savestates to be compatible whether cheats on or off.
-	CheatEvent = CoreTiming::RegisterEvent("CheatEvent", &hleCheat);
+	CheatEvent = PCoreTiming::RegisterEvent("CheatEvent", &hleCheat);
 
 	if (g_Config.bEnableCheats) {
 		__CheatStart();
 	}
 
 	// Only check once a second for cheats to be enabled.
-	CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+	PCoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 }
 
 void __CheatShutdown() {
@@ -305,13 +305,13 @@ void __CheatDoState(PointerWrap &p) {
 	}
 
 	p.Do(CheatEvent);
-	CoreTiming::RestoreRegisterEvent(CheatEvent, "CheatEvent", &hleCheat);
+	PCoreTiming::RestoreRegisterEvent(CheatEvent, "CheatEvent", &hleCheat);
 
 	if (s < 2) {
 		// Before this we didn't have a checkpoint, so reset didn't work.
 		// Let's just force one in.
-		CoreTiming::RemoveEvent(CheatEvent);
-		CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+		PCoreTiming::RemoveEvent(CheatEvent);
+		PCoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 	}
 }
 
@@ -326,7 +326,7 @@ void hleCheat(u64 userdata, int cyclesLate) {
 	}
 
 	// Check periodically for cheats.
-	CoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
+	PCoreTiming::ScheduleEvent(msToCycles(GetRefreshMs()), CheatEvent, 0);
 
 	if (PSP_CoreParameter().compat.flags().JitInvalidationHack) {
 		std::string gameTitle = g_paramSFO.GetValueString("DISC_ID");
@@ -791,28 +791,28 @@ CheatOperation CWCheatEngine::InterpretNextOp(const CheatCode &cheat, size_t &i)
 }
 
 void CWCheatEngine::ApplyMemoryOperator(const CheatOperation &op, uint32_t(*oper)(uint32_t, uint32_t)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (PMemory::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 		if (op.sz == 1)
-			Memory::Write_U8((u8)oper(Memory::Read_U8(op.addr), op.val), op.addr);
+			PMemory::Write_U8((u8)oper(PMemory::Read_U8(op.addr), op.val), op.addr);
 		else if (op.sz == 2)
-			Memory::Write_U16((u16)oper(Memory::Read_U16(op.addr), op.val),op. addr);
+			PMemory::Write_U16((u16)oper(PMemory::Read_U16(op.addr), op.val),op. addr);
 		else if (op.sz == 4)
-			Memory::Write_U32((u32)oper(Memory::Read_U32(op.addr), op.val), op.addr);
+			PMemory::Write_U32((u32)oper(PMemory::Read_U32(op.addr), op.val), op.addr);
 	}
 }
 
 bool CWCheatEngine::TestIf(const CheatOperation &op, bool(*oper)(int, int)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (PMemory::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 
 		int memoryValue = 0;
 		if (op.sz == 1)
-			memoryValue = (int)Memory::Read_U8(op.addr);
+			memoryValue = (int)PMemory::Read_U8(op.addr);
 		else if (op.sz == 2)
-			memoryValue = (int)Memory::Read_U16(op.addr);
+			memoryValue = (int)PMemory::Read_U16(op.addr);
 		else if (op.sz == 4)
-			memoryValue = (int)Memory::Read_U32(op.addr);
+			memoryValue = (int)PMemory::Read_U32(op.addr);
 
 		return oper(memoryValue, (int)op.val);
 	}
@@ -820,20 +820,20 @@ bool CWCheatEngine::TestIf(const CheatOperation &op, bool(*oper)(int, int)) {
 }
 
 bool CWCheatEngine::TestIfAddr(const CheatOperation &op, bool(*oper)(int, int)) {
-	if (Memory::IsValidAddress(op.addr)) {
+	if (PMemory::IsValidAddress(op.addr)) {
 		InvalidateICache(op.addr, 4);
 
 		int memoryValue1 = 0;
 		int memoryValue2 = 0;
 		if (op.sz == 1) {
-			memoryValue1 = (int)Memory::Read_U8(op.addr);
-			memoryValue2 = (int)Memory::Read_U8(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)PMemory::Read_U8(op.addr);
+			memoryValue2 = (int)PMemory::Read_U8(op.ifAddrTypes.compareAddr);
 		} else if (op.sz == 2) {
-			memoryValue1 = (int)Memory::Read_U16(op.addr);
-			memoryValue2 = (int)Memory::Read_U16(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)PMemory::Read_U16(op.addr);
+			memoryValue2 = (int)PMemory::Read_U16(op.ifAddrTypes.compareAddr);
 		} else if (op.sz == 4) {
-			memoryValue1 = (int)Memory::Read_U32(op.addr);
-			memoryValue2 = (int)Memory::Read_U32(op.ifAddrTypes.compareAddr);
+			memoryValue1 = (int)PMemory::Read_U32(op.addr);
+			memoryValue2 = (int)PMemory::Read_U32(op.ifAddrTypes.compareAddr);
 		}
 
 		return oper(memoryValue1, memoryValue2);
@@ -851,14 +851,14 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::Write:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (PMemory::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, 4);
 			if (op.sz == 1)
-				Memory::Write_U8((u8)op.val, op.addr);
+				PMemory::Write_U8((u8)op.val, op.addr);
 			else if (op.sz == 2)
-				Memory::Write_U16((u16)op.val, op.addr);
+				PMemory::Write_U16((u16)op.val, op.addr);
 			else if (op.sz == 4)
-				Memory::Write_U32((u32)op.val, op.addr);
+				PMemory::Write_U32((u32)op.val, op.addr);
 		}
 		break;
 
@@ -893,19 +893,19 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::MultiWrite:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (PMemory::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, op.multiWrite.count * op.multiWrite.step + op.sz);
 
 			uint32_t data = op.val;
 			uint32_t addr = op.addr;
 			for (uint32_t a = 0; a < op.multiWrite.count; a++) {
-				if (Memory::IsValidAddress(addr)) {
+				if (PMemory::IsValidAddress(addr)) {
 					if (op.sz == 1)
-						Memory::Write_U8((u8)data, addr);
+						PMemory::Write_U8((u8)data, addr);
 					else if (op.sz == 2)
-						Memory::Write_U16((u16)data, addr);
+						PMemory::Write_U16((u16)data, addr);
 					else if (op.sz == 4)
-						Memory::Write_U32((u32)data, addr);
+						PMemory::Write_U32((u32)data, addr);
 				}
 				addr += op.multiWrite.step;
 				data += op.multiWrite.add;
@@ -914,11 +914,11 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::CopyBytesFrom:
-		if (Memory::IsValidRange(op.addr, op.val) && Memory::IsValidRange(op.copyBytesFrom.destAddr, op.val)) {
+		if (PMemory::IsValidRange(op.addr, op.val) && PMemory::IsValidRange(op.copyBytesFrom.destAddr, op.val)) {
 			InvalidateICache(op.addr, op.val);
 			InvalidateICache(op.copyBytesFrom.destAddr, op.val);
 
-			Memory::MemcpyUnchecked(op.copyBytesFrom.destAddr, op.addr, op.val);
+			PMemory::MemcpyUnchecked(op.copyBytesFrom.destAddr, op.addr, op.val);
 		}
 		break;
 
@@ -934,16 +934,16 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::VibrationFromMemory:
-		if (Memory::IsValidAddress(op.addr) && Memory::IsValidAddress(op.addr + 0x4)) {
-			uint16_t checkLeftVibration = Memory::Read_U16(op.addr);
-			uint16_t checkRightVibration = Memory::Read_U16(op.addr + 0x2);
+		if (PMemory::IsValidAddress(op.addr) && PMemory::IsValidAddress(op.addr + 0x4)) {
+			uint16_t checkLeftVibration = PMemory::Read_U16(op.addr);
+			uint16_t checkRightVibration = PMemory::Read_U16(op.addr + 0x2);
 			if (checkLeftVibration > 0) {
 				SetLeftVibration(checkLeftVibration);
-				SetVibrationLeftDropout(Memory::Read_U8(op.addr + 0x4));
+				SetVibrationLeftDropout(PMemory::Read_U8(op.addr + 0x4));
 			}
 			if (checkRightVibration > 0) {
 				SetRightVibration(checkRightVibration);
-				SetVibrationRightDropout(Memory::Read_U8(op.addr + 0x6));
+				SetVibrationRightDropout(PMemory::Read_U8(op.addr + 0x6));
 			}
 		}
 		break;
@@ -962,12 +962,12 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 	case CheatOp::PostShaderFromMemory:
 		{
 			auto shaderChain = GetPostShaderChain(g_Config.sPostShaderName);
-			if (Memory::IsValidAddress(op.addr) && op.PostShaderUniform.shader < shaderChain.size()) {
+			if (PMemory::IsValidAddress(op.addr) && op.PostShaderUniform.shader < shaderChain.size()) {
 				union {
 					float f;
 					uint32_t u;
 				} value;
-				value.u = Memory::Read_U32(op.addr);
+				value.u = PMemory::Read_U32(op.addr);
 				std::string shaderName = shaderChain[op.PostShaderUniform.shader]->section;
 				if (shaderName != "Off") {
 					switch (op.PostShaderUniform.format) {
@@ -994,9 +994,9 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 		break;
 
 	case CheatOp::Assert:
-		if (Memory::IsValidAddress(op.addr)) {
+		if (PMemory::IsValidAddress(op.addr)) {
 			InvalidateICache(op.addr, 4);
-			if (Memory::Read_U32(op.addr) != op.val) {
+			if (PMemory::Read_U32(op.addr) != op.val) {
 				i = cheat.lines.size();
 			}
 		}
@@ -1086,7 +1086,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 	case CheatOp::CwCheatPointerCommands:
 		{
 			InvalidateICache(op.addr + op.pointerCommands.baseOffset, 4);
-			u32 base = Memory::Read_U32(op.addr + op.pointerCommands.baseOffset);
+			u32 base = PMemory::Read_U32(op.addr + op.pointerCommands.baseOffset);
 			u32 val = op.val;
 			int type = op.pointerCommands.type;
 			for (int a = 0; a < op.pointerCommands.count; ++a) {
@@ -1095,12 +1095,12 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 				case 0x1: // type copy byte
 					{
 						InvalidateICache(op.addr, 4);
-						u32 srcAddr = Memory::Read_U32(op.addr) + op.pointerCommands.offset;
-						u32 dstAddr = Memory::Read_U32(op.addr + op.pointerCommands.baseOffset) + (line.part1 & 0x0FFFFFFF);
-						if (Memory::IsValidRange(dstAddr, val) && Memory::IsValidRange(srcAddr, val)) {
+						u32 srcAddr = PMemory::Read_U32(op.addr) + op.pointerCommands.offset;
+						u32 dstAddr = PMemory::Read_U32(op.addr + op.pointerCommands.baseOffset) + (line.part1 & 0x0FFFFFFF);
+						if (PMemory::IsValidRange(dstAddr, val) && PMemory::IsValidRange(srcAddr, val)) {
 							InvalidateICache(dstAddr, val);
 							InvalidateICache(srcAddr, val);
-							Memory::MemcpyUnchecked(dstAddr, srcAddr, val);
+							PMemory::MemcpyUnchecked(dstAddr, srcAddr, val);
 						}
 						// Don't perform any further action.
 						type = -1;
@@ -1115,7 +1115,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 							walkOffset = -walkOffset;
 						}
 						InvalidateICache(base + walkOffset, 4);
-						base = Memory::Read_U32(base + walkOffset);
+						base = PMemory::Read_U32(base + walkOffset);
 						switch (line.part2 >> 28) {
 						case 0x2:
 						case 0x3: // type pointer walk
@@ -1124,7 +1124,7 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 								walkOffset = -walkOffset;
 							}
 							InvalidateICache(base + walkOffset, 4);
-							base = Memory::Read_U32(base + walkOffset);
+							base = PMemory::Read_U32(base + walkOffset);
 							break;
 
 						default:
@@ -1148,27 +1148,27 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 			switch (type) {
 			case 0: // 8 bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::Write_U8((u8)val, base + op.pointerCommands.offset);
+				PMemory::Write_U8((u8)val, base + op.pointerCommands.offset);
 				break;
 			case 1: // 16-bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::Write_U16((u16)val, base + op.pointerCommands.offset);
+				PMemory::Write_U16((u16)val, base + op.pointerCommands.offset);
 				break;
 			case 2: // 32-bit write
 				InvalidateICache(base + op.pointerCommands.offset, 4);
-				Memory::Write_U32((u32)val, base + op.pointerCommands.offset);
+				PMemory::Write_U32((u32)val, base + op.pointerCommands.offset);
 				break;
 			case 3: // 8 bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::Write_U8((u8)val, base - op.pointerCommands.offset);
+				PMemory::Write_U8((u8)val, base - op.pointerCommands.offset);
 				break;
 			case 4: // 16-bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::Write_U16((u16)val, base - op.pointerCommands.offset);
+				PMemory::Write_U16((u16)val, base - op.pointerCommands.offset);
 				break;
 			case 5: // 32-bit inverse write
 				InvalidateICache(base - op.pointerCommands.offset, 4);
-				Memory::Write_U32((u32)val, base - op.pointerCommands.offset);
+				PMemory::Write_U32((u32)val, base - op.pointerCommands.offset);
 				break;
 			case -1: // Operation already performed, nothing to do
 				break;

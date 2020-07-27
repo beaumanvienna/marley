@@ -873,7 +873,7 @@ UI::EventReturn JitCompareScreen::OnAddressChange(UI::EventParams &e) {
 	if (blockAddr_->GetText().size() > 8)
 		return UI::EVENT_DONE;
 	if (1 == sscanf(blockAddr_->GetText().c_str(), "%08x", &addr)) {
-		if (Memory::IsValidAddress(addr)) {
+		if (PMemory::IsValidAddress(addr)) {
 			currentBlock_ = blockCache->GetBlockNumberFromStartAddress(addr);
 			UpdateDisasm();
 		}
@@ -937,7 +937,7 @@ UI::EventReturn JitCompareScreen::OnBlockAddress(UI::EventParams &e) {
 	if (!blockCache)
 		return UI::EVENT_DONE;
 
-	if (Memory::IsValidAddress(e.a)) {
+	if (PMemory::IsValidAddress(e.a)) {
 		currentBlock_ = blockCache->GetBlockNumberFromStartAddress(e.a);
 	} else {
 		currentBlock_ = -1;
@@ -990,7 +990,7 @@ void JitCompareScreen::OnRandomBlock(int flag) {
 			JitBlockDebugInfo b = blockCache->GetBlockDebugInfo(currentBlock_);
 			u32 mipsBytes = (u32)b.origDisasm.size() * 4;
 			for (u32 addr = b.originalAddress; addr <= b.originalAddress + mipsBytes; addr += 4) {
-				MIPSOpcode opcode = Memory::Read_Instruction(addr);
+				MIPSOpcode opcode = PMemory::Read_Instruction(addr);
 				if (MIPSGetInfo(opcode) & flag) {
 					char temp[256];
 					MIPSDisAsm(opcode, addr, temp);

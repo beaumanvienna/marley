@@ -192,11 +192,11 @@ bool CPU_Init() {
 
 	// Default memory settings
 	// Seems to be the safest place currently..
-	Memory::g_MemorySize = Memory::RAM_NORMAL_SIZE; // 32 MB of ram by default
+	PMemory::g_MemorySize = PMemory::RAM_NORMAL_SIZE; // 32 MB of ram by default
 
 	g_RemasterMode = false;
 	g_DoubleTextureCoordinates = false;
-	Memory::g_PSPModel = g_Config.iPSPModel;
+	PMemory::g_PSPModel = g_Config.iPSPModel;
 
 	std::string filename = coreParameter.fileToStart;
 	loadedFile = ResolveFileLoaderTarget(ConstructFileLoader(filename));
@@ -228,9 +228,9 @@ bool CPU_Init() {
 		InitMemoryForGamePBP(loadedFile);
 		break;
 	case IdentifiedFileType::PSP_ELF:
-		if (Memory::g_PSPModel != PSP_MODEL_FAT) {
+		if (PMemory::g_PSPModel != PSP_MODEL_FAT) {
 			INFO_LOG(LOADER, "ELF, using full PSP-2000 memory access");
-			Memory::g_MemorySize = Memory::RAM_DOUBLE_SIZE;
+			PMemory::g_MemorySize = PMemory::RAM_DOUBLE_SIZE;
 		}
 		break;
 	default:
@@ -243,7 +243,7 @@ bool CPU_Init() {
 	std::string discID = g_paramSFO.GetDiscID();
 	coreParameter.compat.Load(discID);
 
-	if (!Memory::Init()) {
+	if (!PMemory::Init()) {
 		// We're screwed.
 		return false;
 	}
@@ -255,7 +255,7 @@ bool CPU_Init() {
 		Audio_Init();
 	}
 
-	CoreTiming::Init();
+	PCoreTiming::Init();
 
 	// Init all the HLE modules
 	HLEInit();
@@ -274,7 +274,7 @@ bool CPU_Init() {
 		g_Config.AddRecent(filename);
 	}
 
-	InstallExceptionHandler(&Memory::HandleFault);
+	InstallExceptionHandler(&PMemory::HandleFault);
 	return true;
 }
 
@@ -299,7 +299,7 @@ void CPU_Shutdown() {
 
 	Replacement_Shutdown();
 
-	CoreTiming::Shutdown();
+	PCoreTiming::Shutdown();
 	__KernelShutdown();
 	HLEShutdown();
 	if (coreParameter.enableSound) {
@@ -307,7 +307,7 @@ void CPU_Shutdown() {
 	}
 	pspFileSystem.Shutdown();
 	mipsr4k.Shutdown();
-	Memory::Shutdown();
+	PMemory::Shutdown();
 
 	delete loadedFile;
 	loadedFile = nullptr;
@@ -510,7 +510,7 @@ void PSP_RunLoopUntil(u64 globalticks) {
 }
 
 void PSP_RunLoopFor(int cycles) {
-	PSP_RunLoopUntil(CoreTiming::GetTicks() + cycles);
+	PSP_RunLoopUntil(PCoreTiming::GetTicks() + cycles);
 }
 
 void PSP_SetLoading(const std::string &reason) {

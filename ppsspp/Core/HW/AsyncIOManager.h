@@ -53,7 +53,7 @@ struct AsyncIOResult {
 	}
 
 	AsyncIOResult(s64 r, int usec, u32 addr = 0) : result(r), invalidateAddr(addr) {
-		finishTicks = CoreTiming::GetTicks() + usToCycles(usec);
+		finishTicks = PCoreTiming::GetTicks() + usToCycles(usec);
 	}
 
 	void DoState(PointerWrap &p) {

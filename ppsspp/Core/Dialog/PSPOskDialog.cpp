@@ -280,7 +280,7 @@ int PSPOskDialog::Init(u32 oskPtr) {
 		return SCE_ERROR_UTILITY_INVALID_STATUS;
 	}
 	// Seems like this should crash?
-	if (!Memory::IsValidAddress(oskPtr)) {
+	if (!PMemory::IsValidAddress(oskPtr)) {
 		ERROR_LOG_REPORT(SCEUTILITY, "sceUtilityOskInitStart: invalid params (%08x)", oskPtr);
 		return -1;
 	}

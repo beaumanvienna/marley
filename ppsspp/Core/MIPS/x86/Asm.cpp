@@ -113,7 +113,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 #ifdef _M_X64
 	// Two statically allocated registers.
-	MOV(64, R(MEMBASEREG), ImmPtr(Memory::base));
+	MOV(64, R(MEMBASEREG), ImmPtr(PMemory::base));
 	uintptr_t jitbase = (uintptr_t)GetBasePtr();
 	if (jitbase > 0x7FFFFFFFULL) {
 		MOV(64, R(JITBASEREG), ImmPtr(GetBasePtr()));
@@ -125,7 +125,7 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 
 	outerLoop = GetCodePtr();
 		RestoreRoundingMode(true);
-		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
+		ABI_CallFunction(reinterpret_cast<void *>(&PCoreTiming::Advance));
 		ApplyRoundingMode(true);
 		FixupBranch skipToCoreStateCheck = J();  //skip the downcount check
 
@@ -159,12 +159,12 @@ void Jit::GenerateFixedCode(JitOptions &jo) {
 			dispatcherInEAXNoCheck = GetCodePtr();
 
 #ifdef MASKED_PSP_MEMORY
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			AND(32, R(EAX), Imm32(PMemory::MEMVIEW32_MASK));
 #endif
 
 #ifdef _M_IX86
-			_assert_msg_( Memory::base != 0, "Memory base bogus");
-			MOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
+			_assert_msg_( PMemory::base != 0, "Memory base bogus");
+			MOV(32, R(EAX), MDisp(EAX, (u32)PMemory::base));
 #elif _M_X64
 			MOV(32, R(EAX), MComplex(MEMBASEREG, RAX, SCALE_1, 0));
 #endif

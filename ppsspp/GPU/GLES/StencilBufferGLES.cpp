@@ -88,7 +88,7 @@ bool FramebufferManagerGLES::NotifyStencilUpload(u32 addr, int size, StencilUplo
 	int values = 0;
 	u8 usedBits = 0;
 
-	const u8 *src = Memory::GetPointer(addr);
+	const u8 *src = PMemory::GetPointer(addr);
 	if (!src)
 		return false;
 

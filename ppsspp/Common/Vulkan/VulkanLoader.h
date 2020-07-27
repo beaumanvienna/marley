@@ -33,7 +33,7 @@
 
 #include "ext/vulkan/vulkan.h"
 
-extern PFN_vkCreateInstance vkCreateInstance;
+extern PFN_PvkCreateInstance PvkCreateInstance;
 extern PFN_vkDestroyInstance vkDestroyInstance;
 extern PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 extern PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
@@ -42,8 +42,8 @@ extern PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageForm
 extern PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 extern PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 extern PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
-extern PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
-extern PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+extern PFN_PvkGetInstanceProcAddr PvkGetInstanceProcAddr;
+extern PFN_PvkGetDeviceProcAddr PvkGetDeviceProcAddr;
 extern PFN_vkCreateDevice vkCreateDevice;
 extern PFN_vkDestroyDevice vkDestroyDevice;
 extern PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;

@@ -87,7 +87,7 @@ void __KernelSemaEndCallback(SceUID threadID, SceUID prevCallbackId);
 
 void __KernelSemaInit()
 {
-	semaWaitTimer = CoreTiming::RegisterEvent("SemaphoreTimeout", __KernelSemaTimeout);
+	semaWaitTimer = PCoreTiming::RegisterEvent("SemaphoreTimeout", __KernelSemaTimeout);
 	__KernelRegisterWaitTypeFuncs(WAITTYPE_SEMA, __KernelSemaBeginCallback, __KernelSemaEndCallback);
 }
 
@@ -98,7 +98,7 @@ void __KernelSemaDoState(PointerWrap &p)
 		return;
 
 	p.Do(semaWaitTimer);
-	CoreTiming::RestoreRegisterEvent(semaWaitTimer, "SemaphoreTimeout", __KernelSemaTimeout);
+	PCoreTiming::RestoreRegisterEvent(semaWaitTimer, "SemaphoreTimeout", __KernelSemaTimeout);
 }
 
 KernelObject *__KernelSemaphoreObject()
@@ -125,10 +125,10 @@ static bool __KernelUnlockSemaForThread(PSPSemaphore *s, SceUID threadID, u32 &e
 	if (timeoutPtr != 0 && semaWaitTimer != -1)
 	{
 		// Remove any event for this thread.
-		s64 cyclesLeft = CoreTiming::UnscheduleEvent(semaWaitTimer, threadID);
+		s64 cyclesLeft = PCoreTiming::UnscheduleEvent(semaWaitTimer, threadID);
 		if (cyclesLeft < 0)
 			cyclesLeft = 0;
-		Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+		PMemory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 	}
 
 	__KernelResumeThreadFromWait(threadID, result);
@@ -180,8 +180,8 @@ int sceKernelCancelSema(SceUID id, int newCount, u32 numWaitThreadsPtr)
 		DEBUG_LOG(SCEKERNEL, "sceKernelCancelSema(%i, %i, %08x)", id, newCount, numWaitThreadsPtr);
 
 		s->ns.numWaitThreads = (int) s->waitingThreads.size();
-		if (Memory::IsValidAddress(numWaitThreadsPtr))
-			Memory::Write_U32(s->ns.numWaitThreads, numWaitThreadsPtr);
+		if (PMemory::IsValidAddress(numWaitThreadsPtr))
+			PMemory::Write_U32(s->ns.numWaitThreads, numWaitThreadsPtr);
 
 		if (newCount < 0)
 			s->ns.currentCount = s->ns.initCount;
@@ -229,7 +229,7 @@ int sceKernelCreateSema(const char* name, u32 attr, int initVal, int maxVal, u32
 
 	if (optionPtr != 0)
 	{
-		u32 size = Memory::Read_U32(optionPtr);
+		u32 size = PMemory::Read_U32(optionPtr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateSema(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -268,14 +268,14 @@ int sceKernelReferSemaStatus(SceUID id, u32 infoPtr)
 	{
 		DEBUG_LOG(SCEKERNEL, "sceKernelReferSemaStatus(%i, %08x)", id, infoPtr);
 
-		if (!Memory::IsValidAddress(infoPtr))
+		if (!PMemory::IsValidAddress(infoPtr))
 			return -1;
 
 		HLEKernel::CleanupWaitingThreads(WAITTYPE_SEMA, id, s->waitingThreads);
 
 		s->ns.numWaitThreads = (int) s->waitingThreads.size();
-		if (Memory::Read_U32(infoPtr) != 0)
-			Memory::WriteStruct(infoPtr, &s->ns);
+		if (PMemory::Read_U32(infoPtr) != 0)
+			PMemory::WriteStruct(infoPtr, &s->ns);
 		return 0;
 	}
 	else
@@ -353,7 +353,7 @@ static void __KernelSetSemaTimeout(PSPSemaphore *s, u32 timeoutPtr) {
 	if (timeoutPtr == 0 || semaWaitTimer == -1)
 		return;
 
-	int micro = (int) Memory::Read_U32(timeoutPtr);
+	int micro = (int) PMemory::Read_U32(timeoutPtr);
 
 	// This happens to be how the hardware seems to time things.
 	if (micro <= 3)
@@ -362,7 +362,7 @@ static void __KernelSetSemaTimeout(PSPSemaphore *s, u32 timeoutPtr) {
 		micro = 245;
 
 	// This should call __KernelSemaTimeout() later, unless we cancel it.
-	CoreTiming::ScheduleEvent(usToCycles(micro), semaWaitTimer, __KernelGetCurThread());
+	PCoreTiming::ScheduleEvent(usToCycles(micro), semaWaitTimer, __KernelGetCurThread());
 }
 
 static int __KernelWaitSema(SceUID id, int wantedCount, u32 timeoutPtr, bool processCallbacks)

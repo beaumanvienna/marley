@@ -70,7 +70,7 @@ inline s64 cyclesToUs(s64 cycles) {
 	return (cycles * 1000000) / CPU_HZ;
 }
 
-namespace CoreTiming
+namespace PCoreTiming
 {
 	void Init();
 	void Shutdown();

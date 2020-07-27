@@ -40,7 +40,7 @@ NullGPU::~NullGPU() { }
 
 void NullGPU::FastRunLoop(DisplayList &list) {
 	for (; downcount > 0; --downcount) {
-		u32 op = Memory::ReadUnchecked_U32(list.pc);
+		u32 op = PMemory::ReadUnchecked_U32(list.pc);
 		u32 cmd = op >> 24;
 
 		u32 diff = op ^ gstate.cmdmem[cmd];
@@ -339,8 +339,8 @@ void NullGPU::ExecuteOp(u32 op, u32 diff) {
 			DEBUG_LOG(G3D, "Block transfer: %08x/%x -> %08x/%x, %ix%ix%i (%i,%i)->(%i,%i)", srcBasePtr, srcStride, dstBasePtr, dstStride, width, height, bpp, srcX, srcY, dstX, dstY);
 
 			for (int y = 0; y < height; y++) {
-				const u8 *src = Memory::GetPointer(srcBasePtr + ((y + srcY) * srcStride + srcX) * bpp);
-				u8 *dst = Memory::GetPointer(dstBasePtr + ((y + dstY) * dstStride + dstX) * bpp);
+				const u8 *src = PMemory::GetPointer(srcBasePtr + ((y + srcY) * srcStride + srcX) * bpp);
+				u8 *dst = PMemory::GetPointer(dstBasePtr + ((y + dstY) * dstStride + dstX) * bpp);
 				memcpy(dst, src, width * bpp);
 			}
 

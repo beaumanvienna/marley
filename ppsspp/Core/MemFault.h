@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace Memory {
+namespace PMemory {
 
 void MemFault_Init();
 

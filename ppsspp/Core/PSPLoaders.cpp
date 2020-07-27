@@ -65,9 +65,9 @@ static void UseLargeMem(int memsize) {
 		return;
 	}
 
-	if (Memory::g_PSPModel != PSP_MODEL_FAT) {
+	if (PMemory::g_PSPModel != PSP_MODEL_FAT) {
 		INFO_LOG(LOADER, "Game requested full PSP-2000 memory access");
-		Memory::g_MemorySize = Memory::RAM_DOUBLE_SIZE;
+		PMemory::g_MemorySize = PMemory::RAM_DOUBLE_SIZE;
 	} else {
 		WARN_LOG(LOADER, "Game requested full PSP-2000 memory access, ignoring in PSP-1000 mode");
 	}
@@ -135,7 +135,7 @@ void InitMemoryForGameISO(FileLoader *fileLoader) {
 		}
 
 		g_RemasterMode = true;
-		Memory::g_MemorySize = entry.memorySize;
+		PMemory::g_MemorySize = entry.memorySize;
 		g_DoubleTextureCoordinates = entry.doubleTextureCoordinates;
 		break;
 	}

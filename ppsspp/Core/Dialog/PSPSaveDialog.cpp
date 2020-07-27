@@ -74,15 +74,15 @@ int PSPSaveDialog::Init(int paramAddr)
 	ioThreadStatus = SAVEIO_NONE;
 
 	requestAddr = paramAddr;
-	int size = Memory::Read_U32(requestAddr);
+	int size = PMemory::Read_U32(requestAddr);
 	memset(&request, 0, sizeof(request));
 	// Only copy the right size to support different save request format
 	if (size != SAVEDATA_DIALOG_SIZE_V1 && size != SAVEDATA_DIALOG_SIZE_V2 && size != SAVEDATA_DIALOG_SIZE_V3) {
 		ERROR_LOG_REPORT(SCEUTILITY, "sceUtilitySavedataInitStart: invalid size %d", size);
 		return SCE_ERROR_UTILITY_INVALID_PARAM_SIZE;
 	}
-	Memory::Memcpy(&request, requestAddr, size);
-	Memory::Memcpy(&originalRequest, requestAddr, size);
+	PMemory::Memcpy(&request, requestAddr, size);
+	PMemory::Memcpy(&originalRequest, requestAddr, size);
 
 	int retval = param.SetPspParam(&request);
 
@@ -563,11 +563,11 @@ int PSPSaveDialog::Update(int animSpeed)
 	// The struct may have been updated by the game.  This happens in "Where Is My Heart?"
 	// Check if it has changed, reload it.
 	// TODO: Cut down on preloading?  This rebuilds the list from scratch.
-	int size = Memory::Read_U32(requestAddr);
-	if (memcmp(Memory::GetPointer(requestAddr), &originalRequest, size) != 0) {
+	int size = PMemory::Read_U32(requestAddr);
+	if (memcmp(PMemory::GetPointer(requestAddr), &originalRequest, size) != 0) {
 		memset(&request, 0, sizeof(request));
-		Memory::Memcpy(&request, requestAddr, size);
-		Memory::Memcpy(&originalRequest, requestAddr, size);
+		PMemory::Memcpy(&request, requestAddr, size);
+		PMemory::Memcpy(&originalRequest, requestAddr, size);
 		std::lock_guard<std::mutex> guard(paramLock);
 		param.SetPspParam(&request);
 	}
@@ -975,7 +975,7 @@ int PSPSaveDialog::Update(int animSpeed)
 	}
 
 	if (status == SCE_UTILITY_STATUS_FINISHED || pendingStatus == SCE_UTILITY_STATUS_FINISHED)
-		Memory::Memcpy(requestAddr, &request, request.common.size);
+		PMemory::Memcpy(requestAddr, &request, request.common.size);
 	
 	return 0;
 }

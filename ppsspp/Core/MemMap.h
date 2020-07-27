@@ -53,7 +53,7 @@ typedef void (*readFn16)(u16&, const u32);
 typedef void (*readFn32)(u32&, const u32);
 typedef void (*readFn64)(u64&, const u32);
 
-namespace Memory {
+namespace PMemory {
 // Base is a pointer to the base of the memory map. Yes, some MMU tricks
 // are used to set up a full GC or Wii memory map in process memory.	on
 // 32-bit, you have to mask your offsets with 0x3FFFFFFF. This means that
@@ -318,7 +318,7 @@ inline bool IsValidRange(const u32 address, const u32 size) {
 	return IsValidAddress(address) && ValidSize(address, size) == size;
 }
 
-}  // namespace Memory
+}  // namespace PMemory
 
 template <typename T>
 struct PSPPointer
@@ -328,27 +328,27 @@ struct PSPPointer
 	inline T &operator*() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return *(T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return *(T *)(PMemory::base + (ptr & PMemory::MEMVIEW32_MASK));
 #else
-		return *(T *)(Memory::base + ptr);
+		return *(T *)(PMemory::base + ptr);
 #endif
 	}
 
 	inline T &operator[](int i) const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return *((T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK)) + i);
+		return *((T *)(PMemory::base + (ptr & PMemory::MEMVIEW32_MASK)) + i);
 #else
-		return *((T *)(Memory::base + ptr) + i);
+		return *((T *)(PMemory::base + ptr) + i);
 #endif
 	}
 
 	inline T *operator->() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (T *)(PMemory::base + (ptr & PMemory::MEMVIEW32_MASK));
 #else
-		return (T *)(Memory::base + ptr);
+		return (T *)(PMemory::base + ptr);
 #endif
 	}
 
@@ -415,24 +415,24 @@ struct PSPPointer
 	inline operator T*()
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (T *)(PMemory::base + (ptr & PMemory::MEMVIEW32_MASK));
 #else
-		return (T *)(Memory::base + ptr);
+		return (T *)(PMemory::base + ptr);
 #endif
 	}
 
 	inline operator const T*() const
 	{
 #ifdef MASKED_PSP_MEMORY
-		return (const T *)(Memory::base + (ptr & Memory::MEMVIEW32_MASK));
+		return (const T *)(PMemory::base + (ptr & PMemory::MEMVIEW32_MASK));
 #else
-		return (const T *)(Memory::base + ptr);
+		return (const T *)(PMemory::base + ptr);
 #endif
 	}
 
 	bool IsValid() const
 	{
-		return Memory::IsValidAddress(ptr);
+		return PMemory::IsValidAddress(ptr);
 	}
 
 	static PSPPointer<T> Create(u32 ptr) {
@@ -447,7 +447,7 @@ inline u32 PSP_GetScratchpadMemoryBase() { return 0x00010000;}
 inline u32 PSP_GetScratchpadMemoryEnd() { return 0x00014000;}
 
 inline u32 PSP_GetKernelMemoryBase() { return 0x08000000;}
-inline u32 PSP_GetUserMemoryEnd() { return PSP_GetKernelMemoryBase() + Memory::g_MemorySize;}
+inline u32 PSP_GetUserMemoryEnd() { return PSP_GetKernelMemoryBase() + PMemory::g_MemorySize;}
 inline u32 PSP_GetKernelMemoryEnd() { return 0x08400000;}
 // "Volatile" RAM is between 0x08400000 and 0x08800000, can be requested by the
 // game through sceKernelVolatileMemTryLock.

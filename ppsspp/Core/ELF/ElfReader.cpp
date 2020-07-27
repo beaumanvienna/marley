@@ -24,7 +24,7 @@
 #include "Core/HLE/sceKernelMemory.h"
 #include "Core/HLE/sceKernelModule.h"
 
-const char *ElfReader::GetSectionName(int section) const {
+const char *PElfReader::GetSectionName(int section) const {
 	if (sections[section].sh_type == SHT_NULL)
 		return nullptr;
 
@@ -53,7 +53,7 @@ void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
 	}
 }
 
-bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
+bool PElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 {
 	int numErrors = 0;
 	DEBUG_LOG(LOADER, "Loading %i relocations...", numRelocs);
@@ -84,7 +84,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 		// It appears that misaligned relocations are allowed.
 		// Will they work correctly on big-endian?
 
-		if (((addr & 3) && type != R_MIPS_32) || !Memory::IsValidAddress(addr)) {
+		if (((addr & 3) && type != R_MIPS_32) || !PMemory::IsValidAddress(addr)) {
 			if (numErrors < 10) {
 				WARN_LOG_REPORT(LOADER, "Suspicious address %08x, skipping reloc, type = %d", addr, type);
 			} else if (numErrors == 10) {
@@ -94,7 +94,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 			continue;
 		}
 
-		u32 op = Memory::Read_Instruction(addr, true).encoding;
+		u32 op = PMemory::Read_Instruction(addr, true).encoding;
 
 		const bool log = false;
 		//log=true;
@@ -135,8 +135,8 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 						if (log) {
 							DEBUG_LOG(LOADER,"Corresponding lo found at %08x", corrLoAddr);
 						}
-						if (Memory::IsValidAddress(corrLoAddr)) {
-							s16 lo = (s32)(s16)(u16)(Memory::ReadUnchecked_U32(corrLoAddr) & 0xFFFF); //signed??
+						if (PMemory::IsValidAddress(corrLoAddr)) {
+							s16 lo = (s32)(s16)(u16)(PMemory::ReadUnchecked_U32(corrLoAddr) & 0xFFFF); //signed??
 							cur += lo;
 							cur += relocateTo;
 							addrToHiLo(cur, hi, lo);
@@ -189,7 +189,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 			}
 			break;
 		}
-		Memory::Write_U32(op, addr);
+		PMemory::Write_U32(op, addr);
 	}
 	if (numErrors) {
 		WARN_LOG(LOADER, "%i bad relocations found!!!", numErrors);
@@ -198,7 +198,7 @@ bool ElfReader::LoadRelocations(const Elf32_Rel *rels, int numRelocs)
 }
 
 
-void ElfReader::LoadRelocations2(int rel_seg)
+void PElfReader::LoadRelocations2(int rel_seg)
 {
 	u8 *buf, *end, *flag_table, *type_table;
 	int flag_table_size, type_table_size;
@@ -262,7 +262,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 		}else{
 			addr_seg = seg;
 			relocate_to = segmentVAddr[addr_seg];
-			if (!Memory::IsValidAddress(relocate_to)) {
+			if (!PMemory::IsValidAddress(relocate_to)) {
 				ERROR_LOG(LOADER, "ELF: Bad address to relocate to: %08x", relocate_to);
 				continue;
 			}
@@ -294,7 +294,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 
 
 			rel_offset = rel_base+segmentVAddr[off_seg];
-			if (!Memory::IsValidAddress(rel_offset)) {
+			if (!PMemory::IsValidAddress(rel_offset)) {
 				ERROR_LOG(LOADER, "ELF: Bad rel_offset: %08x", rel_offset);
 				continue;
 			}
@@ -313,7 +313,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 				ERROR_LOG_REPORT(LOADER, "Rel2: invalid lo16 type! %x", flag);
 			}
 
-			op = Memory::Read_Instruction(rel_offset, true).encoding;
+			op = PMemory::Read_Instruction(rel_offset, true).encoding;
 			DEBUG_LOG(LOADER, "Rel2: %5d: CMD=0x%04X flag=%x type=%d off_seg=%d offset=%08x addr_seg=%d op=%08x\n", rcount, cmd, flag, type, off_seg, rel_base, addr_seg, op);
 
 			switch(type){
@@ -347,7 +347,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 				break;
 			}
 
-			Memory::Write_U32(op, rel_offset);
+			PMemory::Write_U32(op, rel_offset);
 			rcount += 1;
 		}
 	}
@@ -355,7 +355,7 @@ void ElfReader::LoadRelocations2(int rel_seg)
 }
 
 
-int ElfReader::LoadInto(u32 loadAddress, bool fromTop)
+int PElfReader::LoadInto(u32 loadAddress, bool fromTop)
 {
 	DEBUG_LOG(LOADER,"String section: %i", header->e_shstrndx);
 
@@ -466,7 +466,7 @@ int ElfReader::LoadInto(u32 loadAddress, bool fromTop)
 			u32 writeAddr = segmentVAddr[i];
 
 			const u8 *src = GetSegmentPtr(i);
-			u8 *dst = Memory::GetPointer(writeAddr);
+			u8 *dst = PMemory::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
 
@@ -589,7 +589,7 @@ int ElfReader::LoadInto(u32 loadAddress, bool fromTop)
 }
 
 
-SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
+SectionID PElfReader::GetSectionByName(const char *name, int firstSection) const
 {
 	if (!name)
 		return -1;
@@ -602,7 +602,7 @@ SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
 	return -1;
 }
 
-u32 ElfReader::GetTotalTextSize() const {
+u32 PElfReader::GetTotalTextSize() const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		if (!(sections[i].sh_flags & SHF_WRITE) && (sections[i].sh_flags & SHF_ALLOC) && !(sections[i].sh_flags & SHF_STRINGS)) {
@@ -612,7 +612,7 @@ u32 ElfReader::GetTotalTextSize() const {
 	return total;
 }
 
-u32 ElfReader::GetTotalDataSize() const {
+u32 PElfReader::GetTotalDataSize() const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		if ((sections[i].sh_flags & SHF_WRITE) && (sections[i].sh_flags & SHF_ALLOC) && !(sections[i].sh_flags & SHF_MASKPROC)) {
@@ -622,7 +622,7 @@ u32 ElfReader::GetTotalDataSize() const {
 	return total;
 }
 
-u32 ElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
+u32 PElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
 	u32 total = 0;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		const char *secname = GetSectionName(i);
@@ -633,7 +633,7 @@ u32 ElfReader::GetTotalSectionSizeByPrefix(const std::string &prefix) const {
 	return total;
 }
 
-std::vector<SectionID> ElfReader::GetCodeSections() const {
+std::vector<SectionID> PElfReader::GetCodeSections() const {
 	std::vector<SectionID> ids;
 	for (int i = 0; i < GetNumSections(); ++i) {
 		u32 flags = sections[i].sh_flags;
@@ -644,7 +644,7 @@ std::vector<SectionID> ElfReader::GetCodeSections() const {
 	return ids;
 }
 
-bool ElfReader::LoadSymbols()
+bool PElfReader::LoadSymbols()
 {
 	bool hasSymbols = false;
 	SectionID sec = GetSectionByName(".symtab");

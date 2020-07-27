@@ -237,7 +237,7 @@ namespace MIPSComp
 		bool doCheck = false;
 		switch (op >> 26)
 		{
-		case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
+		case 50: //lv.s  // VI(vt) = PMemory::Read_U32(addr);
 			{
 				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
@@ -250,7 +250,7 @@ namespace MIPSComp
 				fpr.MapRegV(vt, MAP_DIRTY | MAP_NOINIT);
 				if (gpr.IsImm(rs)) {
 					u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory::base);
+					gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_Config.bFastMemory) {
@@ -282,7 +282,7 @@ namespace MIPSComp
 			}
 			break;
 
-		case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
+		case 58: //sv.s   // PMemory::Write_U32(VI(vt), addr);
 			{
 				if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 					gpr.MapRegAsPointer(rs);
@@ -295,7 +295,7 @@ namespace MIPSComp
 				fpr.MapRegV(vt);
 				if (gpr.IsImm(rs)) {
 					u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory::base);
+					gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_Config.bFastMemory) {
@@ -353,7 +353,7 @@ namespace MIPSComp
 
 				if (gpr.IsImm(rs)) {
 					u32 addr = (imm + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory::base);
+					gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_Config.bFastMemory) {
@@ -418,7 +418,7 @@ namespace MIPSComp
 
 				if (gpr.IsImm(rs)) {
 					u32 addr = (imm + gpr.GetImm(rs)) & 0x3FFFFFFF;
-					gpr.SetRegImm(R0, addr + (u32)Memory::base);
+					gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 				} else {
 					gpr.MapReg(rs);
 					if (g_Config.bFastMemory) {

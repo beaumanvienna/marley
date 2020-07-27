@@ -157,8 +157,8 @@ void __NetAdhocDoState(PointerWrap &p) {
 		}
 	
 		// Restore dummy Loop MIPS code to prevent crashes after loading from SaveState
-		if (dummyThreadHackAddr) Memory::Memcpy(dummyThreadHackAddr, dummyThreadCode, sizeof(dummyThreadCode));
-		if (matchingThreadHackAddr) Memory::Memcpy(matchingThreadHackAddr, matchingThreadCode, sizeof(matchingThreadCode));
+		if (dummyThreadHackAddr) PMemory::Memcpy(dummyThreadHackAddr, dummyThreadCode, sizeof(dummyThreadCode));
+		if (matchingThreadHackAddr) PMemory::Memcpy(matchingThreadHackAddr, matchingThreadCode, sizeof(matchingThreadCode));
 		
 		// Let's not change "Inited" value when Loading SaveState to prevent memory & port leaks
 		netAdhocMatchingInited = cur_netAdhocMatchingInited;
@@ -195,7 +195,7 @@ u32_le __CreateHLELoop(u32_le *loopAddr, const char *sceFuncName, const char *hl
 	loopAddr[2] = MIPS_MAKE_NOP();
 	u32 blockSize = sizeof(u32_le)*3;
 	u32_le dummyThreadHackAddr = kernelMemory.Alloc(blockSize, false, tagName); // blockSize will be rounded to 256 granularity
-	Memory::Memcpy(dummyThreadHackAddr, loopAddr, sizeof(u32_le) * 3); // This area will be cleared again after loading an old savestate :(
+	PMemory::Memcpy(dummyThreadHackAddr, loopAddr, sizeof(u32_le) * 3); // This area will be cleared again after loading an old savestate :(
 	return dummyThreadHackAddr;
 }
 
@@ -238,8 +238,8 @@ static u32 sceNetAdhocctlInit(int stackSize, int prio, u32 productAddr) {
 	if (netAdhocctlInited)
 		return ERROR_NET_ADHOCCTL_ALREADY_INITIALIZED;
 
-	if (Memory::IsValidAddress(productAddr)) {
-		Memory::ReadStruct(productAddr, &product_code);
+	if (PMemory::IsValidAddress(productAddr)) {
+		PMemory::ReadStruct(productAddr, &product_code);
 	}
 
 	netAdhocctlInited = true; //needed for cleanup during AdhocctlTerm even when it failed to connect to Adhoc Server (since it's being faked as success)
@@ -272,9 +272,9 @@ static int sceNetAdhocctlGetState(u32 ptrToStatus) {
 	// Library initialized
 	if (netAdhocctlInited) {
 		// Valid Arguments
-		if (Memory::IsValidAddress(ptrToStatus)) {
+		if (PMemory::IsValidAddress(ptrToStatus)) {
 			// Return Thread Status
-			Memory::Write_U32(threadStatus, ptrToStatus);
+			PMemory::Write_U32(threadStatus, ptrToStatus);
 			// Return Success
 			return 0;
 		}
@@ -440,9 +440,9 @@ static int sceNetAdhocctlGetParameter(u32 paramAddr) {
 	// Library initialized
 	if (netAdhocctlInited) {
 		// Valid Arguments
-		if (Memory::IsValidAddress(paramAddr)) {
+		if (PMemory::IsValidAddress(paramAddr)) {
 			// Copy Parameter
-			Memory::WriteStruct(paramAddr,&parameter);
+			PMemory::WriteStruct(paramAddr,&parameter);
 			// Return Success
 			return 0;
 		}
@@ -736,7 +736,7 @@ static int sceNetAdhocPdpRecv(int id, void *addr, void * port, void *buf, void *
 						// Update last recv timestamp, may cause disconnection not detected properly tho
 						peerlock.lock();
 						auto peer = findFriend(&mac);
-						if (peer != NULL) peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+						if (peer != NULL) peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 						peerlock.unlock();
 					}
 
@@ -785,7 +785,7 @@ static int sceNetAdhocPdpRecv(int id, void *addr, void * port, void *buf, void *
 						// Update last recv timestamp, may cause disconnection not detected properly tho
 						peerlock.lock();
 						auto peer = findFriend(&mac);
-						if (peer != NULL) peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+						if (peer != NULL) peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 						peerlock.unlock();
 
 						// Free Network Lock
@@ -855,7 +855,7 @@ int sceNetAdhocPollSocket(u32 socketStructAddr, int count, int timeout, int nonb
 	if (netAdhocInited)
 	{
 		SceNetAdhocPollSd * sds = NULL;
-		if (Memory::IsValidAddress(socketStructAddr)) sds = (SceNetAdhocPollSd *)Memory::GetPointer(socketStructAddr);
+		if (PMemory::IsValidAddress(socketStructAddr)) sds = (SceNetAdhocPollSd *)PMemory::GetPointer(socketStructAddr);
 
 		// Valid Arguments
 		if (sds != NULL && count > 0)
@@ -1016,12 +1016,12 @@ static int sceNetAdhocctlGetAdhocId(u32 productStructAddr) {
 	if (netAdhocctlInited)
 	{
 		// Valid Arguments
-		if (Memory::IsValidAddress(productStructAddr))
+		if (PMemory::IsValidAddress(productStructAddr))
 		{
-			SceNetAdhocctlAdhocId * adhoc_id = (SceNetAdhocctlAdhocId *)Memory::GetPointer(productStructAddr);
+			SceNetAdhocctlAdhocId * adhoc_id = (SceNetAdhocctlAdhocId *)PMemory::GetPointer(productStructAddr);
 			// Copy Product ID
 			*adhoc_id = product_code;
-			//Memory::WriteStruct(productStructAddr, &product_code);
+			//PMemory::WriteStruct(productStructAddr, &product_code);
 
 			// Return Success
 			return 0;
@@ -1102,11 +1102,11 @@ static int sceNetAdhocctlScan() {
 
 static int sceNetAdhocctlGetScanInfo(u32 sizeAddr, u32 bufAddr) {
 	s32_le *buflen = NULL;
-	if (Memory::IsValidAddress(sizeAddr)) buflen = (s32_le *)Memory::GetPointer(sizeAddr);
+	if (PMemory::IsValidAddress(sizeAddr)) buflen = (s32_le *)PMemory::GetPointer(sizeAddr);
 	SceNetAdhocctlScanInfoEmu *buf = NULL;
-	if (Memory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlScanInfoEmu *)Memory::GetPointer(bufAddr);
+	if (PMemory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlScanInfoEmu *)PMemory::GetPointer(bufAddr);
 
-	INFO_LOG(SCENET, "sceNetAdhocctlGetScanInfo([%08x]=%i, %08x)", sizeAddr, /*buflen ? *buflen : -1*/Memory::Read_U32(sizeAddr), bufAddr);
+	INFO_LOG(SCENET, "sceNetAdhocctlGetScanInfo([%08x]=%i, %08x)", sizeAddr, /*buflen ? *buflen : -1*/PMemory::Read_U32(sizeAddr), bufAddr);
 	if (!g_Config.bEnableWlan) {
 		return 0;
 	}
@@ -1212,7 +1212,7 @@ static u32 sceNetAdhocctlAddHandler(u32 handlerPtr, u32 handlerArg) {
 		}
 	}
 
-	if (!foundHandler && Memory::IsValidAddress(handlerPtr)) {
+	if (!foundHandler && PMemory::IsValidAddress(handlerPtr)) {
 		if (adhocctlHandlers.size() >= MAX_ADHOCCTL_HANDLERS) {
 			ERROR_LOG(SCENET, "UNTESTED sceNetAdhocctlAddHandler(%x, %x): Too many handlers", handlerPtr, handlerArg);
 			retval = ERROR_NET_ADHOCCTL_TOO_MANY_HANDLERS;
@@ -1365,9 +1365,9 @@ static int sceNetAdhocctlGetNameByAddr(const char *mac, u32 nameAddr) {
 	if (netAdhocctlInited)
 	{
 		// Valid Arguments
-		if (mac != NULL && Memory::IsValidAddress(nameAddr))
+		if (mac != NULL && PMemory::IsValidAddress(nameAddr))
 		{
-			SceNetAdhocctlNickname * nickname = (SceNetAdhocctlNickname *)Memory::GetPointer(nameAddr);
+			SceNetAdhocctlNickname * nickname = (SceNetAdhocctlNickname *)PMemory::GetPointer(nameAddr);
 			// Get Local MAC Address
 			SceNetEtherAddr localmac; 
 			getLocalMac(&localmac);
@@ -1435,9 +1435,9 @@ static int sceNetAdhocctlJoin(u32 scanInfoAddr) {
 	if (netAdhocctlInited)
 	{
 		// Valid Argument
-		if (Memory::IsValidAddress(scanInfoAddr))
+		if (PMemory::IsValidAddress(scanInfoAddr))
 		{
-			SceNetAdhocctlScanInfoEmu * sinfo = (SceNetAdhocctlScanInfoEmu *)Memory::GetPointer(scanInfoAddr);
+			SceNetAdhocctlScanInfoEmu * sinfo = (SceNetAdhocctlScanInfoEmu *)PMemory::GetPointer(scanInfoAddr);
 			//while (true) sleep_ms(1);
 
 			// We can ignore minor connection process differences here
@@ -1461,8 +1461,8 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 
 	SceNetEtherAddr * maddr = (SceNetEtherAddr *)mac;
 	SceNetAdhocctlPeerInfoEmu * buf = NULL;
-	if (Memory::IsValidAddress(peerInfoAddr)) {
-		buf = (SceNetAdhocctlPeerInfoEmu *)Memory::GetPointer(peerInfoAddr);
+	if (PMemory::IsValidAddress(peerInfoAddr)) {
+		buf = (SceNetAdhocctlPeerInfoEmu *)PMemory::GetPointer(peerInfoAddr);
 	}
 	// Library initialized
 	if (netAdhocctlInited) {
@@ -1484,7 +1484,7 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 			buf->mac_addr = *maddr;
 			buf->ip_addr = addr.sin_addr.s_addr; // 0x11111111;
 			buf->padding = 0;
-			buf->last_recv = CoreTiming::GetGlobalTimeUsScaled(); 
+			buf->last_recv = PCoreTiming::GetGlobalTimeUsScaled(); 
 
 			// Success
 			retval = 0;
@@ -1498,7 +1498,7 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 			SceNetAdhocctlPeerInfo * peer = findFriend(maddr);
 			if (peer != NULL) {
 				// Fake Receive Time
-				if (peer->last_recv != 0) peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+				if (peer->last_recv != 0) peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 
 				//buf->next = 0;
 				buf->nickname = peer->nickname;
@@ -1506,7 +1506,7 @@ int sceNetAdhocctlGetPeerInfo(const char *mac, int size, u32 peerInfoAddr) {
 				buf->mac_addr = *maddr;
 				buf->ip_addr = peer->ip_addr; // 0x11111111;
 				buf->padding = 0;
-				buf->last_recv = peer->last_recv; //CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0; //(uint64_t)time(NULL); //This timestamp is important issue on Dissidia 012
+				buf->last_recv = peer->last_recv; //PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0; //(uint64_t)time(NULL); //This timestamp is important issue on Dissidia 012
 
 				// Success
 				retval = 0;
@@ -1580,7 +1580,7 @@ int sceNetAdhocctlCreate(const char *groupName) {
 					threadStatus = ADHOCCTL_STATE_CONNECTED;
 					// Notify Event Handlers, Needed for the Nickname to be shown on the screen when success is faked
 					// Might be better not to notify the game when faking success (failed to connect to adhoc server), at least the player will know that it failed to connect 
-					//__UpdateAdhocctlHandlers(ADHOCCTL_EVENT_CONNECT, 0); //CoreTiming::ScheduleEvent_Threadsafe_Immediate(eventAdhocctlHandlerUpdate, join32(ADHOCCTL_EVENT_CONNECT, 0)); 
+					//__UpdateAdhocctlHandlers(ADHOCCTL_EVENT_CONNECT, 0); //PCoreTiming::ScheduleEvent_Threadsafe_Immediate(eventAdhocctlHandlerUpdate, join32(ADHOCCTL_EVENT_CONNECT, 0)); 
 				}
 
 				// Free Network Lock
@@ -1621,8 +1621,8 @@ int sceNetAdhocctlCreate(const char *groupName) {
 }
 
 static int sceNetAdhocctlConnect(u32 ptrToGroupName) {
-	if (Memory::IsValidAddress(ptrToGroupName)) {
-		const char* groupName = Memory::GetCharPointer(ptrToGroupName);
+	if (PMemory::IsValidAddress(ptrToGroupName)) {
+		const char* groupName = PMemory::GetCharPointer(ptrToGroupName);
 		char grpName[9] = { 0 };
 		memcpy(grpName, groupName, ADHOCCTL_GROUPNAME_LEN); // Copied to null-terminated var to prevent unexpected behaviour on Logs
 
@@ -1639,7 +1639,7 @@ static int sceNetAdhocctlCreateEnterGameMode(const char *groupName, int unknown,
 	memcpy(grpName, groupName, ADHOCCTL_GROUPNAME_LEN); // Copied to null-terminated var to prevent unexpected behaviour on Logs
 
 	SceNetEtherAddr* addrs = NULL; // List of participating MAC addresses (started from host)
-	if (Memory::IsValidAddress(macsAddr)) {
+	if (PMemory::IsValidAddress(macsAddr)) {
 		addrs = PSPPointer<SceNetEtherAddr>::Create(macsAddr);
 	}
 
@@ -1728,9 +1728,9 @@ static int sceNetAdhocGetPdpStat(u32 structSize, u32 structAddr) {
 	if (netAdhocInited)
 	{
 		s32_le *buflen = NULL;
-		if (Memory::IsValidAddress(structSize)) buflen = (s32_le *)Memory::GetPointer(structSize);
+		if (PMemory::IsValidAddress(structSize)) buflen = (s32_le *)PMemory::GetPointer(structSize);
 		SceNetAdhocPdpStat *buf = NULL;
-		if (Memory::IsValidAddress(structAddr)) buf = (SceNetAdhocPdpStat *)Memory::GetPointer(structAddr);
+		if (PMemory::IsValidAddress(structAddr)) buf = (SceNetAdhocPdpStat *)PMemory::GetPointer(structAddr);
 
 		// Length Returner Mode
 		if (buflen != NULL && buf == NULL)
@@ -1806,9 +1806,9 @@ static int sceNetAdhocGetPtpStat(u32 structSize, u32 structAddr) {
 	VERBOSE_LOG(SCENET,"sceNetAdhocGetPtpStat(%08x, %08x) at %08x",structSize,structAddr,currentMIPS->pc);
 
 	s32_le *buflen = NULL;
-	if (Memory::IsValidAddress(structSize)) buflen = (s32_le *)Memory::GetPointer(structSize);
+	if (PMemory::IsValidAddress(structSize)) buflen = (s32_le *)PMemory::GetPointer(structSize);
 	SceNetAdhocPtpStat *buf = NULL;
-	if (Memory::IsValidAddress(structAddr)) buf = (SceNetAdhocPtpStat *)Memory::GetPointer(structAddr);
+	if (PMemory::IsValidAddress(structAddr)) buf = (SceNetAdhocPtpStat *)PMemory::GetPointer(structAddr);
 
 	// Library is initialized
 	if (netAdhocInited) {
@@ -2037,12 +2037,12 @@ static int sceNetAdhocPtpOpen(const char *srcmac, int sport, const char *dstmac,
 static int sceNetAdhocPtpAccept(int id, u32 peerMacAddrPtr, u32 peerPortPtr, int timeout, int flag) {
 
 	SceNetEtherAddr * addr = NULL;
-	if (Memory::IsValidAddress(peerMacAddrPtr)) {
+	if (PMemory::IsValidAddress(peerMacAddrPtr)) {
 		addr = PSPPointer<SceNetEtherAddr>::Create(peerMacAddrPtr);
 	}
 	uint16_t * port = NULL; //
-	if (Memory::IsValidAddress(peerPortPtr)) {
-		port = (uint16_t *)Memory::GetPointer(peerPortPtr);
+	if (PMemory::IsValidAddress(peerPortPtr)) {
+		port = (uint16_t *)PMemory::GetPointer(peerPortPtr);
 	}
 	if (flag == 0) { // Prevent spamming Debug Log with retries of non-bocking socket
 		DEBUG_LOG(SCENET, "sceNetAdhocPtpAccept(%d, [%08x]=%s, [%08x]=%u, %d, %u) at %08x", id, peerMacAddrPtr, mac2str(addr).c_str(), peerPortPtr, port ? *port : -1, timeout, flag, currentMIPS->pc);
@@ -2579,8 +2579,8 @@ static int sceNetAdhocPtpSend(int id, u32 dataAddr, u32 dataSizeAddr, int timeou
 	if (!g_Config.bEnableWlan) {
 		return 0;
 	}
-	int * len = (int *)Memory::GetPointer(dataSizeAddr);
-	const char * data = Memory::GetCharPointer(dataAddr);
+	int * len = (int *)PMemory::GetPointer(dataSizeAddr);
+	const char * data = PMemory::GetCharPointer(dataAddr);
 	// Library is initialized
 	if (netAdhocInited) {
 		// Valid Socket
@@ -2668,8 +2668,8 @@ static int sceNetAdhocPtpRecv(int id, u32 dataAddr, u32 dataSizeAddr, int timeou
 	if (!g_Config.bEnableWlan) {
 		return 0;
 	}
-	void * buf = (void *)Memory::GetPointer(dataAddr);
-	int * len = (int *)Memory::GetPointer(dataSizeAddr);
+	void * buf = (void *)PMemory::GetPointer(dataAddr);
+	int * len = (int *)PMemory::GetPointer(dataSizeAddr);
 	// Library is initialized
 	if (netAdhocInited) {
 		// Valid Socket
@@ -2726,7 +2726,7 @@ static int sceNetAdhocPtpRecv(int id, u32 dataAddr, u32 dataSizeAddr, int timeou
 					// Update last recv timestamp, may cause disconnection not detected properly tho
 					peerlock.lock();
 					auto peer = findFriend(&socket->paddr);
-					if (peer != NULL) peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+					if (peer != NULL) peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 					peerlock.unlock();
 
 					DEBUG_LOG(SCENET, "sceNetAdhocPtpRecv[%i:%u]: Received %u bytes from %s:%u", id, socket->lport, received, mac2str(&socket->paddr).c_str(), socket->pport);
@@ -2850,8 +2850,8 @@ int sceNetAdhocGetSocketAlert(int id, u32 flagPtr) {
 	ERROR_LOG(SCENET, "UNIMPL sceNetAdhocGetSocketAlert(%i, %08x)", id, flagPtr);
 	
 	// Dummy Value
-	if (Memory::IsValidAddress(flagPtr)) {
-		s32_le * flag = (s32_le*)Memory::GetPointer(flagPtr);
+	if (PMemory::IsValidAddress(flagPtr)) {
+		s32_le * flag = (s32_le*)PMemory::GetPointer(flagPtr);
 		*flag = 0;
 	}
 
@@ -3172,12 +3172,12 @@ static int sceNetAdhocMatchingStart(int matchingId, int evthPri, int evthStack, 
 	
 	if (item != NULL) {
 		//sceNetAdhocMatchingSetHelloOpt(matchingId, optLen, optDataAddr); //SetHelloOpt only works when context is running
-		if ((optLen > 0) && Memory::IsValidAddress(optDataAddr)) {
+		if ((optLen > 0) && PMemory::IsValidAddress(optDataAddr)) {
 			// Allocate the memory and copy the content
 			if (item->hello != NULL) free(item->hello);
 			item->hello = (uint8_t *)malloc(optLen);
 			if (item->hello != NULL) {
-				Memory::Memcpy(item->hello, optDataAddr, optLen);
+				PMemory::Memcpy(item->hello, optDataAddr, optLen);
 				item->hellolen = optLen;
 				item->helloAddr = optDataAddr;
 			}
@@ -3244,12 +3244,12 @@ static int sceNetAdhocMatchingStart2(int matchingId, int evthPri, int evthPartit
 
 	if (item != NULL) {
 		//sceNetAdhocMatchingSetHelloOpt(matchingId, optLen, optDataAddr); //SetHelloOpt only works when context is running
-		if ((optLen > 0) && Memory::IsValidAddress(optDataAddr)) {
+		if ((optLen > 0) && PMemory::IsValidAddress(optDataAddr)) {
 			// Allocate the memory and copy the content
 			if (item->hello != NULL) free(item->hello);
 			item->hello = (uint8_t*)malloc(optLen);
 			if (item->hello != NULL) {
-				Memory::Memcpy(item->hello, optDataAddr, optLen);
+				PMemory::Memcpy(item->hello, optDataAddr, optLen);
 				item->hellolen = optLen;
 				item->helloAddr = optDataAddr;
 			}
@@ -3336,7 +3336,7 @@ static int sceNetAdhocMatchingSelectTarget(int matchingId, const char *macAddres
 						if ((optLen == 0 && optDataPtr == 0) || (optLen > 0 && optDataPtr != 0))
 						{
 							void * opt = NULL;
-							if (Memory::IsValidAddress(optDataPtr)) opt = Memory::GetPointer(optDataPtr);
+							if (PMemory::IsValidAddress(optDataPtr)) opt = PMemory::GetPointer(optDataPtr);
 							// Host Mode
 							if (context->mode == PSP_ADHOC_MATCHING_MODE_PARENT)
 							{
@@ -3467,7 +3467,7 @@ int sceNetAdhocMatchingCancelTargetWithOpt(int matchingId, const char *macAddres
 	{
 		SceNetEtherAddr * target = (SceNetEtherAddr *)macAddress;
 		void * opt = NULL;
-		if (Memory::IsValidAddress(optDataPtr)) opt = Memory::GetPointer(optDataPtr);
+		if (PMemory::IsValidAddress(optDataPtr)) opt = PMemory::GetPointer(optDataPtr);
 
 		// Valid Arguments
 		if (target != NULL && ((optLen == 0 && opt == NULL) || (optLen > 0 && opt != NULL)))
@@ -3548,7 +3548,7 @@ int sceNetAdhocMatchingGetHelloOpt(int matchingId, u32 optLenAddr, u32 optDataAd
 	if (!g_Config.bEnableWlan)
 		return -1;
 
-	if (!Memory::IsValidAddress(optLenAddr)) return ERROR_NET_ADHOC_MATCHING_INVALID_ARG;
+	if (!PMemory::IsValidAddress(optLenAddr)) return ERROR_NET_ADHOC_MATCHING_INVALID_ARG;
 
 	s32_le *optlen = PSPPointer<s32_le>::Create(optLenAddr);
 
@@ -3560,8 +3560,8 @@ int sceNetAdhocMatchingGetHelloOpt(int matchingId, u32 optLenAddr, u32 optDataAd
 	if (item != NULL) {
 		// Get OptData
 		*optlen = item->hellolen;
-		if ((*optlen > 0) && Memory::IsValidAddress(optDataAddr)) {
-			uint8_t * optdata = Memory::GetPointer(optDataAddr);
+		if ((*optlen > 0) && PMemory::IsValidAddress(optDataAddr)) {
+			uint8_t * optdata = PMemory::GetPointer(optDataAddr);
 			memcpy(optdata, item->hello, *optlen);
 		}
 		//else return ERROR_NET_ADHOC_MATCHING_INVALID_ARG;
@@ -3624,7 +3624,7 @@ int sceNetAdhocMatchingSetHelloOpt(int matchingId, int optLenAddr, u32 optDataAd
 
 						// Clone Hello Data
 						//memcpy(hello, opt, optLenAddr);
-						Memory::Memcpy(hello, optDataAddr, optLenAddr);
+						PMemory::Memcpy(hello, optDataAddr, optLenAddr);
 
 						// Set Hello Data
 						context->hello = (uint8_t*)hello;
@@ -3660,7 +3660,7 @@ int sceNetAdhocMatchingSetHelloOpt(int matchingId, int optLenAddr, u32 optDataAd
 }
 
 static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) {
-	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetMembers(%i, [%08x]=%i, %08x) at %08x", matchingId, sizeAddr, Memory::Read_U32(sizeAddr), buf, currentMIPS->pc);
+	DEBUG_LOG(SCENET, "UNTESTED sceNetAdhocMatchingGetMembers(%i, [%08x]=%i, %08x) at %08x", matchingId, sizeAddr, PMemory::Read_U32(sizeAddr), buf, currentMIPS->pc);
 	if (!g_Config.bEnableWlan)
 		return -1;
 
@@ -3671,7 +3671,7 @@ static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) 
 	}
 
 	// Minimum Argument
-	if (!Memory::IsValidAddress(sizeAddr)) 
+	if (!PMemory::IsValidAddress(sizeAddr)) 
 		return ERROR_NET_ADHOC_MATCHING_INVALID_ARG;
 
 	// Multithreading Lock
@@ -3690,10 +3690,10 @@ static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) 
 			// Length Buffer available
 			if (sizeAddr != 0)
 			{
-				int * buflen = (int *)Memory::GetPointer(sizeAddr);
+				int * buflen = (int *)PMemory::GetPointer(sizeAddr);
 				SceNetAdhocMatchingMemberInfoEmu * buf2 = NULL;
-				if (Memory::IsValidAddress(buf)) {
-					buf2 = (SceNetAdhocMatchingMemberInfoEmu *)Memory::GetPointer(buf);
+				if (PMemory::IsValidAddress(buf)) {
+					buf2 = (SceNetAdhocMatchingMemberInfoEmu *)PMemory::GetPointer(buf);
 				}
 
 				// Number of Connected Peers, should we exclude timeout members?
@@ -3751,7 +3751,7 @@ static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) 
 								{
 									// Faking lastping
 									if (p2p->lastping != 0)
-										p2p->lastping = CoreTiming::GetGlobalTimeUsScaled();
+										p2p->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 
 									// Add P2P Brother MAC
 									buf2[filledpeers++].mac_addr = p2p->mac;
@@ -3771,7 +3771,7 @@ static int sceNetAdhocMatchingGetMembers(int matchingId, u32 sizeAddr, u32 buf) 
 									if (!excludeTimedout || peer->lastping != 0) {
 										// Faking lastping
 										if (peer->lastping != 0)
-											peer->lastping = CoreTiming::GetGlobalTimeUsScaled();
+											peer->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 
 										// Parent Mode
 										if (context->mode == PSP_ADHOC_MATCHING_MODE_PARENT) {
@@ -3863,7 +3863,7 @@ int sceNetAdhocMatchingSendData(int matchingId, const char *mac, int dataLen, u3
 					if (peer != NULL)
 					{
 						void * data = NULL;
-						if (Memory::IsValidAddress(dataAddr)) data = Memory::GetPointer(dataAddr);
+						if (PMemory::IsValidAddress(dataAddr)) data = PMemory::GetPointer(dataAddr);
 
 						// Valid Data Length
 						if (dataLen > 0 && data != NULL)
@@ -3991,7 +3991,7 @@ int sceNetAdhocMatchingGetPoolStat(u32 poolstatPtr) {
 	if (netAdhocMatchingInited)
 	{
 		SceNetMallocStat * poolstat = NULL;
-		if (Memory::IsValidAddress(poolstatPtr)) poolstat = (SceNetMallocStat *)Memory::GetPointer(poolstatPtr);
+		if (PMemory::IsValidAddress(poolstatPtr)) poolstat = (SceNetMallocStat *)PMemory::GetPointer(poolstatPtr);
 
 		// Valid Argument
 		if (poolstat != NULL)
@@ -4063,7 +4063,7 @@ void __NetMatchingCallbacks() //(int matchingId)
 
 		//if (/*__KernelGetCurThread() == context->matching_thid &&*/ (!__IsInInterrupt() && __KernelIsDispatchEnabled() && !__KernelInCallback()) /*&& !IsMatchingInCallback(context)*/) 
 		{
-			DEBUG_LOG(SCENET, "AdhocMatchingCallback: [ID=%i][EVENT=%i][%s]", args[0], args[1], mac2str((SceNetEtherAddr*)Memory::GetPointer(args[2])).c_str());
+			DEBUG_LOG(SCENET, "AdhocMatchingCallback: [ID=%i][EVENT=%i][%s]", args[0], args[1], mac2str((SceNetEtherAddr*)PMemory::GetPointer(args[2])).c_str());
 			AfterMatchingMipsCall* after = (AfterMatchingMipsCall*)__KernelCreateAction(actionAfterMatchingMipsCall);
 			after->SetData(args[0], args[1], args[2]);
 			//SetMatchingInCallback(context, true);
@@ -4140,7 +4140,7 @@ static int sceNetAdhocctlGetGameModeInfo(u32 infoAddr) {
 	ERROR_LOG(SCENET, "UNIMPL sceNetAdhocctlGetGameModeInfo(%08x)", infoAddr);
 
 	SceNetAdhocctlGameModeInfo* gmInfo = NULL;
-	if (Memory::IsValidAddress(infoAddr)) gmInfo = (SceNetAdhocctlGameModeInfo*)Memory::GetPointer(infoAddr);
+	if (PMemory::IsValidAddress(infoAddr)) gmInfo = (SceNetAdhocctlGameModeInfo*)PMemory::GetPointer(infoAddr);
 	// TODO: Writes number of participants and each participating MAC address into infoAddr/gmInfo
 
 	return 0;
@@ -4148,11 +4148,11 @@ static int sceNetAdhocctlGetGameModeInfo(u32 infoAddr) {
 
 static int sceNetAdhocctlGetPeerList(u32 sizeAddr, u32 bufAddr) {
 	s32_le *buflen = NULL;
-	if (Memory::IsValidAddress(sizeAddr)) buflen = (s32_le *)Memory::GetPointer(sizeAddr);
+	if (PMemory::IsValidAddress(sizeAddr)) buflen = (s32_le *)PMemory::GetPointer(sizeAddr);
 	SceNetAdhocctlPeerInfoEmu *buf = NULL;
-	if (Memory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlPeerInfoEmu *)Memory::GetPointer(bufAddr);
+	if (PMemory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlPeerInfoEmu *)PMemory::GetPointer(bufAddr);
 
-	DEBUG_LOG(SCENET, "sceNetAdhocctlGetPeerList([%08x]=%i, %08x) at %08x", sizeAddr, /*buflen ? *buflen : -1*/Memory::Read_U32(sizeAddr), bufAddr, currentMIPS->pc);
+	DEBUG_LOG(SCENET, "sceNetAdhocctlGetPeerList([%08x]=%i, %08x) at %08x", sizeAddr, /*buflen ? *buflen : -1*/PMemory::Read_U32(sizeAddr), bufAddr, currentMIPS->pc);
 	if (!g_Config.bEnableWlan) {
 		return -1;
 	}
@@ -4193,7 +4193,7 @@ static int sceNetAdhocctlGetPeerList(u32 sizeAddr, u32 bufAddr) {
 						if (!excludeTimedout || peer->last_recv != 0) {
 							// Faking Last Receive Time
 							if (peer->last_recv != 0) 
-								peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+								peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 
 							// Copy Peer Info
 							buf[discovered].nickname = peer->nickname;
@@ -4238,7 +4238,7 @@ static int sceNetAdhocctlGetPeerList(u32 sizeAddr, u32 bufAddr) {
 
 static int sceNetAdhocctlGetAddrByName(const char *nickName, u32 sizeAddr, u32 bufAddr) {
 	s32_le *buflen = NULL; //int32_t
-	if (Memory::IsValidAddress(sizeAddr)) buflen = (s32_le *)Memory::GetPointer(sizeAddr);
+	if (PMemory::IsValidAddress(sizeAddr)) buflen = (s32_le *)PMemory::GetPointer(sizeAddr);
 
 	char nckName[ADHOCCTL_NICKNAME_LEN];
 	memcpy(nckName, nickName, ADHOCCTL_NICKNAME_LEN); // Copied to null-terminated var to prevent unexpected behaviour on Logs
@@ -4253,7 +4253,7 @@ static int sceNetAdhocctlGetAddrByName(const char *nickName, u32 sizeAddr, u32 b
 		if (nickName != NULL && buflen != NULL)
 		{
 			SceNetAdhocctlPeerInfoEmu *buf = NULL;
-			if (Memory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlPeerInfoEmu *)Memory::GetPointer(bufAddr);
+			if (PMemory::IsValidAddress(bufAddr)) buf = (SceNetAdhocctlPeerInfoEmu *)PMemory::GetPointer(bufAddr);
 
 			// Multithreading Lock
 			peerlock.lock();
@@ -4289,7 +4289,7 @@ static int sceNetAdhocctlGetAddrByName(const char *nickName, u32 sizeAddr, u32 b
 						getLocalMac(&buf[discovered].mac_addr);
 						buf[discovered].ip_addr = addr.sin_addr.s_addr; // 0x11111111;
 						//buf->padding = 0x1111; //0;
-						buf[discovered++].last_recv = CoreTiming::GetGlobalTimeUsScaled(); 
+						buf[discovered++].last_recv = PCoreTiming::GetGlobalTimeUsScaled(); 
 					}
 
 					// Peer Reference
@@ -4302,7 +4302,7 @@ static int sceNetAdhocctlGetAddrByName(const char *nickName, u32 sizeAddr, u32 b
 						if (strncmp((char *)&peer->nickname.data, nickName, ADHOCCTL_NICKNAME_LEN) == 0)
 						{
 							// Fake Receive Time
-							if (peer->last_recv != 0) peer->last_recv = CoreTiming::GetGlobalTimeUsScaled(); //sceKernelGetSystemTimeWide();
+							if (peer->last_recv != 0) peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled(); //sceKernelGetSystemTimeWide();
 
 							// Copy Peer Info
 							buf[discovered].nickname = peer->nickname;
@@ -4821,7 +4821,7 @@ void actOnPingPacket(SceNetAdhocMatchingContext * context, SceNetEtherAddr * sen
 	if (peer != NULL)
 	{
 		// Update Receive Timer
-		peer->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+		peer->lastping = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 	}
 }
 
@@ -4873,7 +4873,7 @@ void actOnHelloPacket(SceNetAdhocMatchingContext * context, SceNetEtherAddr * se
 						peer->state = PSP_ADHOC_MATCHING_PEER_OFFER;
 
 						// Initialize Ping Timer
-						peer->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+						peer->lastping = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 						peerlock.lock();
 						// Link Peer into List
@@ -4950,7 +4950,7 @@ void actOnJoinPacket(SceNetAdhocMatchingContext * context, SceNetEtherAddr * sen
 							peer->state = PSP_ADHOC_MATCHING_PEER_INCOMING_REQUEST;
 
 							// Initialize Ping Timer
-							peer->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+							peer->lastping = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 							peerlock.lock();
 							// Link Peer into List
@@ -5268,7 +5268,7 @@ void actOnBirthPacket(SceNetAdhocMatchingContext * context, SceNetEtherAddr * se
 				sibling->state = PSP_ADHOC_MATCHING_PEER_CHILD;
 
 				// Initialize Ping Timer
-				sibling->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+				sibling->lastping = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 				peerlock.lock();
 
@@ -5346,7 +5346,7 @@ void actOnByePacket(SceNetAdhocMatchingContext * context, SceNetEtherAddr * send
 			// Delete Peer
 			deletePeer(context, peer);
 			// Instead of removing peer immediately, We should give a little time before removing the peer and let it timed out? just in case the game is in the middle of communicating with the peer on another thread so it won't recognize it as Unknown peer
-			//peer->lastping = CoreTiming::GetGlobalTimeUsScaled();
+			//peer->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 		}
 
 		// Parent Bye
@@ -5489,7 +5489,7 @@ int matchingEventThread(int matchingId)
 		}
 
 		// Free memory
-		//if (Memory::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
+		//if (PMemory::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
 
 		// Delete Pointer Reference (and notify caller about finished cleanup)
 		//context->eventThread = NULL;
@@ -5541,7 +5541,7 @@ int matchingInputThread(int matchingId) // TODO: The MatchingInput thread is usi
 			peerlock.unlock();
 
 			if (context != NULL) {
-				now = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+				now = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 				// Hello Message Sending Context with unoccupied Slots
 				if ((context->mode == PSP_ADHOC_MATCHING_MODE_PARENT && (countChildren(context) < (context->maxpeers - 1))) || (context->mode == PSP_ADHOC_MATCHING_MODE_P2P && findP2P(context) == NULL))
@@ -5635,7 +5635,7 @@ int matchingInputThread(int matchingId) // TODO: The MatchingInput thread is usi
 					peerlock.lock();
 					SceNetAdhocctlPeerInfo* peer = findFriend(&sendermac);
 					if (peer != NULL) {
-						now = CoreTiming::GetGlobalTimeUsScaled();
+						now = PCoreTiming::GetGlobalTimeUsScaled();
 						u64_le delta = now - peer->last_recv;
 						DEBUG_LOG(SCENET, "Timestamp Delta: %llu (%llu - %llu) from %s", delta, now, peer->last_recv, mac2str(&sendermac).c_str());
 						if (/*context->rxbuf[0] > 0 &&*/ peer->last_recv != 0) peer->last_recv = now - 1; // - context->keepalive_int; // May need to deduce by ping interval to prevent Dissidia 012 unable to see other players (ie. disappearing issue)

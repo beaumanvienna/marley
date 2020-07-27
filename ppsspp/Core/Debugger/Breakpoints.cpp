@@ -583,12 +583,12 @@ void CBreakPoints::ExecMemCheckJitCleanup()
 void CBreakPoints::SetSkipFirst(u32 pc)
 {
 	breakSkipFirstAt_ = pc;
-	breakSkipFirstTicks_ = CoreTiming::GetTicks();
+	breakSkipFirstTicks_ = PCoreTiming::GetTicks();
 }
 u32 CBreakPoints::CheckSkipFirst()
 {
 	u32 pc = breakSkipFirstAt_;
-	if (breakSkipFirstTicks_ == CoreTiming::GetTicks())
+	if (breakSkipFirstTicks_ == PCoreTiming::GetTicks())
 		return pc;
 	return 0;
 }

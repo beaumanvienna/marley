@@ -598,7 +598,7 @@ namespace MIPSAnalyst {
 	}
 
 	int OpMemoryAccessSize(u32 pc) {
-		const auto op = Memory::Read_Instruction(pc, true);
+		const auto op = PMemory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		if ((info & (IN_MEM | OUT_MEM)) == 0) {
 			return 0;
@@ -621,19 +621,19 @@ namespace MIPSAnalyst {
 	}
 
 	bool IsOpMemoryWrite(u32 pc) {
-		const auto op = Memory::Read_Instruction(pc, true);
+		const auto op = PMemory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		return (info & OUT_MEM) != 0;
 	}
 
 	bool OpHasDelaySlot(u32 pc) {
-		const auto op = Memory::Read_Instruction(pc, true);
+		const auto op = PMemory::Read_Instruction(pc, true);
 		MIPSInfo info = MIPSGetInfo(op);
 		return (info & DELAYSLOT) != 0;
 	}
 
 	bool OpWouldChangeMemory(u32 pc, u32 addr, u32 size) {
-		const auto op = Memory::Read_Instruction(pc, true);
+		const auto op = PMemory::Read_Instruction(pc, true);
 
 		// TODO: Trap sc/ll, svl.q, svr.q?
 
@@ -660,26 +660,26 @@ namespace MIPSAnalyst {
 		{
 			MIPSGPReg rt = MIPS_GET_RT(op);
 			writeVal = currentMIPS->r[rt] & gprMask;
-			prevVal = Memory::Read_U32(addr) & gprMask;
+			prevVal = PMemory::Read_U32(addr) & gprMask;
 		}
 
 		if (IsSWC1Instr(op)) {
 			int ft = MIPS_GET_FT(op);
 			writeVal = currentMIPS->fi[ft];
-			prevVal = Memory::Read_U32(addr);
+			prevVal = PMemory::Read_U32(addr);
 		}
 
 		if (IsSVSInstr(op)) {
 			int vt = ((op >> 16) & 0x1f) | ((op & 3) << 5);
 			writeVal = currentMIPS->vi[voffset[vt]];
-			prevVal = Memory::Read_U32(addr);
+			prevVal = PMemory::Read_U32(addr);
 		}
 
 		if (IsSVQInstr(op)) {
 			int vt = (((op >> 16) & 0x1f)) | ((op & 1) << 5);
 			float rd[4];
 			ReadVector(rd, V_Quad, vt);
-			return memcmp(rd, Memory::GetPointer(addr), sizeof(float) * 4) != 0;
+			return memcmp(rd, PMemory::GetPointer(addr), sizeof(float) * 4) != 0;
 		}
 
 		// TODO: Technically, the break might be for 1 byte in the middle of a sw.
@@ -701,7 +701,7 @@ namespace MIPSAnalyst {
 		}
 
 		for (u32 addr = address, endAddr = address + MAX_ANALYZE; addr <= endAddr; addr += 4) {
-			MIPSOpcode op = Memory::Read_Instruction(addr, true);
+			MIPSOpcode op = PMemory::Read_Instruction(addr, true);
 			MIPSInfo info = MIPSGetInfo(op);
 
 			MIPSGPReg rs = MIPS_GET_RS(op);
@@ -777,7 +777,7 @@ namespace MIPSAnalyst {
 		u32 end = addr + instrs * sizeof(u32);
 		bool canClobber = true;
 		while (addr < end) {
-			const MIPSOpcode op = Memory::Read_Instruction(addr, true);
+			const MIPSOpcode op = PMemory::Read_Instruction(addr, true);
 			const MIPSInfo info = MIPSGetInfo(op);
 
 			// Yes, used.
@@ -826,7 +826,7 @@ namespace MIPSAnalyst {
 		u32 end = addr + instrs * sizeof(u32);
 		bool canClobber = true;
 		while (addr < end) {
-			const MIPSOpcode op = Memory::Read_Instruction(addr, true);
+			const MIPSOpcode op = PMemory::Read_Instruction(addr, true);
 			const MIPSInfo info = MIPSGetInfo(op);
 
 			// Yes, used.
@@ -879,7 +879,7 @@ namespace MIPSAnalyst {
 
 		for (auto iter = functions.begin(), end = functions.end(); iter != end; iter++) {
 			AnalyzedFunction &f = *iter;
-			if (!Memory::IsValidRange(f.start, f.end - f.start + 4)) {
+			if (!PMemory::IsValidRange(f.start, f.end - f.start + 4)) {
 				continue;
 			}
 
@@ -888,7 +888,7 @@ namespace MIPSAnalyst {
 			size_t pos = 0;
 			for (u32 addr = f.start; addr <= f.end; addr += 4) {
 				u32 validbits = 0xFFFFFFFF;
-				MIPSOpcode instr = Memory::ReadUnchecked_Instruction(addr, true);
+				MIPSOpcode instr = PMemory::ReadUnchecked_Instruction(addr, true);
 				if (MIPS_IS_EMUHACK(instr)) {
 					f.hasHash = false;
 					goto skip;
@@ -978,7 +978,7 @@ skip:
 		u32 furthestJumpbackAddr = INVALIDTARGET;
 
 		for (u32 ahead = fromAddr; ahead < fromAddr + MAX_AHEAD_SCAN; ahead += 4) {
-			MIPSOpcode aheadOp = Memory::Read_Instruction(ahead, true);
+			MIPSOpcode aheadOp = PMemory::Read_Instruction(ahead, true);
 			u32 target = GetBranchTargetNoRA(ahead, aheadOp);
 			if (target == INVALIDTARGET && ((aheadOp & 0xFC000000) == 0x08000000)) {
 				target = GetJumpTarget(ahead);
@@ -1002,7 +1002,7 @@ skip:
 
 		if (closestJumpbackAddr != INVALIDTARGET && furthestJumpbackAddr == INVALIDTARGET) {
 			for (u32 behind = closestJumpbackTarget; behind < fromAddr; behind += 4) {
-				MIPSOpcode behindOp = Memory::Read_Instruction(behind, true);
+				MIPSOpcode behindOp = PMemory::Read_Instruction(behind, true);
 				u32 target = GetBranchTargetNoRA(behind, behindOp);
 				if (target == INVALIDTARGET && ((behindOp & 0xFC000000) == 0x08000000)) {
 					target = GetJumpTarget(behind);
@@ -1034,7 +1034,7 @@ skip:
 
 		u32 addr;
 		for (addr = startAddr; addr <= endAddr; addr += 4) {
-			MIPSOpcode op = Memory::Read_Instruction(addr, true);
+			MIPSOpcode op = PMemory::Read_Instruction(addr, true);
 			u32 target = GetBranchTargetNoRA(addr, op);
 			if (target != INVALIDTARGET) {
 				isStraightLeaf = false;
@@ -1057,7 +1057,7 @@ skip:
 					// If it's a nearby forward jump, and not a stackless leaf, assume not a tail call.
 					if (sureTarget <= addr + MAX_JUMP_FORWARD && decreasedSp) {
 						// But let's check the delay slot.
-						MIPSOpcode op = Memory::Read_Instruction(addr + 4, true);
+						MIPSOpcode op = PMemory::Read_Instruction(addr + 4, true);
 						// addiu sp, sp, +X
 						if ((op & 0xFFFF8000) != 0x27BD0000) {
 							furthestBranch = sureTarget;
@@ -1419,14 +1419,14 @@ skip:
 		MipsOpcodeInfo info;
 		memset(&info, 0, sizeof(info));
 
-		if (!Memory::IsValidAddress(address)) {
+		if (!PMemory::IsValidAddress(address)) {
 			info.opcodeAddress = address;
 			return info;
 		}
 
 		info.cpu = cpu;
 		info.opcodeAddress = address;
-		info.encodedOpcode = Memory::Read_Instruction(address);
+		info.encodedOpcode = PMemory::Read_Instruction(address);
 
 		MIPSOpcode op = info.encodedOpcode;
 		MIPSInfo opInfo = MIPSGetInfo(op);

@@ -88,11 +88,11 @@ void WebSocketDisasmState::WriteDisasmLine(JsonWriter &json, const DisassemblyLi
 
 	json.writeUint("address", addr);
 	json.writeInt("addressSize", l.totalSize);
-	json.writeUint("encoding", Memory::IsValidAddress(addr) ? Memory::Read_Instruction(addr).encoding : 0);
-	if (l.totalSize >= 8 && Memory::IsValidRange(addr, l.totalSize)) {
+	json.writeUint("encoding", PMemory::IsValidAddress(addr) ? PMemory::Read_Instruction(addr).encoding : 0);
+	if (l.totalSize >= 8 && PMemory::IsValidRange(addr, l.totalSize)) {
 		json.pushArray("macroEncoding");
 		for (u32 off = 0; off < l.totalSize; off += 4) {
-			json.writeUint(Memory::Read_Instruction(addr + off).encoding);
+			json.writeUint(PMemory::Read_Instruction(addr + off).encoding);
 		}
 		json.pop();
 	} else {
@@ -175,8 +175,8 @@ void WebSocketDisasmState::WriteDisasmLine(JsonWriter &json, const DisassemblyLi
 	if (l.info.hasRelevantAddress) {
 		json.pushDict("relevantData");
 		json.writeUint("address", l.info.relevantAddress);
-		if (Memory::IsValidRange(l.info.relevantAddress, 4))
-			json.writeUint("uintValue", Memory::ReadUnchecked_U32(l.info.relevantAddress));
+		if (PMemory::IsValidRange(l.info.relevantAddress, 4))
+			json.writeUint("uintValue", PMemory::ReadUnchecked_U32(l.info.relevantAddress));
 		else
 			json.writeNull("uintValue");
 		json.pop();
@@ -196,14 +196,14 @@ void WebSocketDisasmState::WriteDisasmLine(JsonWriter &json, const DisassemblyLi
 		
 		std::string dataSymbol = g_symbolMap->GetLabelString(l.info.dataAddress);
 		std::string valueSymbol;
-		if (!Memory::IsValidRange(l.info.dataAddress, l.info.dataSize))
+		if (!PMemory::IsValidRange(l.info.dataAddress, l.info.dataSize))
 			json.writeNull("uintValue");
 		else if (l.info.dataSize == 1)
-			json.writeUint("uintValue", Memory::ReadUnchecked_U8(l.info.dataAddress));
+			json.writeUint("uintValue", PMemory::ReadUnchecked_U8(l.info.dataAddress));
 		else if (l.info.dataSize == 2)
-			json.writeUint("uintValue", Memory::ReadUnchecked_U16(l.info.dataAddress));
+			json.writeUint("uintValue", PMemory::ReadUnchecked_U16(l.info.dataAddress));
 		else if (l.info.dataSize >= 4) {
-			u32 data = Memory::ReadUnchecked_U32(l.info.dataAddress);
+			u32 data = PMemory::ReadUnchecked_U32(l.info.dataAddress);
 			valueSymbol = g_symbolMap->GetLabelString(data);
 			json.writeUint("uintValue", data);
 		}
@@ -260,7 +260,7 @@ uint32_t WebSocketDisasmState::RoundAddressUp(uint32_t addr) {
 //  - addressHex: string indicating base address in hexadecimal (may be 64 bit.)
 void WebSocketDisasmState::Base(DebuggerRequest &req) {
 	JsonWriter &json = req.Respond();
-	json.writeString("addressHex", StringFromFormat("%016llx", Memory::base));
+	json.writeString("addressHex", StringFromFormat("%016llx", PMemory::base));
 }
 
 // Disassemble a range of memory as CPU instructions (memory.disasm)
@@ -295,7 +295,7 @@ void WebSocketDisasmState::Base(DebuggerRequest &req) {
 //     - params: formatted parameters for the instruction.
 //     - (other info about the disassembled line.)
 void WebSocketDisasmState::Disasm(DebuggerRequest &req) {
-	if (!currentDebugMIPS->isAlive() || !Memory::IsActive())
+	if (!currentDebugMIPS->isAlive() || !PMemory::IsActive())
 		return req.Fail("CPU not started");
 	auto cpuDebug = CPUFromRequest(req);
 	if (!cpuDebug)
@@ -380,7 +380,7 @@ void WebSocketDisasmState::Disasm(DebuggerRequest &req) {
 // Response (same event name):
 //  - address: number address of match or null if none was found.
 void WebSocketDisasmState::SearchDisasm(DebuggerRequest &req) {
-	if (!currentDebugMIPS->isAlive() || !Memory::IsActive())
+	if (!currentDebugMIPS->isAlive() || !PMemory::IsActive())
 		return req.Fail("CPU not started");
 	auto cpuDebug = CPUFromRequest(req);
 	if (!cpuDebug)
@@ -459,7 +459,7 @@ void WebSocketDisasmState::SearchDisasm(DebuggerRequest &req) {
 // Response (same event name):
 //  - encoding: resulting encoding at this address.  Always returns one value, even for macros.
 void WebSocketDisasmState::Assemble(DebuggerRequest &req) {
-	if (!currentDebugMIPS->isAlive() || !Memory::IsActive()) {
+	if (!currentDebugMIPS->isAlive() || !PMemory::IsActive()) {
 		return req.Fail("CPU not started");
 	}
 
@@ -474,5 +474,5 @@ void WebSocketDisasmState::Assemble(DebuggerRequest &req) {
 		return req.Fail(StringFromFormat("Could not assemble: %s", ConvertWStringToUTF8(MIPSAsm::GetAssembleError()).c_str()));
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("encoding", Memory::Read_Instruction(address).encoding);
+	json.writeUint("encoding", PMemory::Read_Instruction(address).encoding);
 }

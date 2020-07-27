@@ -163,7 +163,7 @@ void FramebufferManagerGLES::PackDepthbuffer(VirtualFramebuffer *vfb, int x, int
 	}
 
 	int dstByteOffset = y * vfb->z_stride * sizeof(u16);
-	u16 *depth = (u16 *)Memory::GetPointer(z_address + dstByteOffset);
+	u16 *depth = (u16 *)PMemory::GetPointer(z_address + dstByteOffset);
 	u32_le *packed32 = (u32_le *)convBuf_;
 	GLfloat *packedf = (GLfloat *)convBuf_;
 

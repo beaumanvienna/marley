@@ -339,7 +339,7 @@ size_t DirectoryFileHandle::Read(u8* pointer, s64 size)
 		// On a PSP. it actually is truncated, but the data wasn't erased.
 		off_t off = (off_t)Seek(0, FILEMOVE_CURRENT);
 		if (needsTrunc_ <= off) {
-			return replay_ ? ReplayApplyDiskRead(pointer, 0, (uint32_t)size, inGameDir_, CoreTiming::GetGlobalTimeUs()) : 0;
+			return replay_ ? ReplayApplyDiskRead(pointer, 0, (uint32_t)size, inGameDir_, PCoreTiming::GetGlobalTimeUs()) : 0;
 		}
 		if (needsTrunc_ < off + size) {
 			size = needsTrunc_ - off;
@@ -350,7 +350,7 @@ size_t DirectoryFileHandle::Read(u8* pointer, s64 size)
 #else
 	bytesRead = read(hFile, pointer, size);
 #endif
-	return replay_ ? ReplayApplyDiskRead(pointer, (uint32_t)bytesRead, (uint32_t)size, inGameDir_, CoreTiming::GetGlobalTimeUs()) : bytesRead;
+	return replay_ ? ReplayApplyDiskRead(pointer, (uint32_t)bytesRead, (uint32_t)size, inGameDir_, PCoreTiming::GetGlobalTimeUs()) : bytesRead;
 }
 
 size_t DirectoryFileHandle::Write(const u8* pointer, s64 size)
@@ -378,7 +378,7 @@ size_t DirectoryFileHandle::Write(const u8* pointer, s64 size)
 	}
 
 	if (replay_) {
-		bytesWritten = ReplayApplyDiskWrite(pointer, (uint64_t)bytesWritten, (uint64_t)size, &diskFull, inGameDir_, CoreTiming::GetGlobalTimeUs());
+		bytesWritten = ReplayApplyDiskWrite(pointer, (uint64_t)bytesWritten, (uint64_t)size, &diskFull, inGameDir_, PCoreTiming::GetGlobalTimeUs());
 	}
 
 	if (diskFull) {
@@ -431,7 +431,7 @@ size_t DirectoryFileHandle::Seek(s32 position, FileMove type)
 	result = lseek(hFile, position, moveMethod);
 #endif
 
-	return replay_ ? (size_t)ReplayApplyDisk64(ReplayAction::FILE_SEEK, result, CoreTiming::GetGlobalTimeUs()) : result;
+	return replay_ ? (size_t)ReplayApplyDisk64(ReplayAction::FILE_SEEK, result, PCoreTiming::GetGlobalTimeUs()) : result;
 }
 
 void DirectoryFileHandle::Close()
@@ -496,7 +496,7 @@ bool DirectoryFileSystem::MkDir(const std::string &dirname) {
 #else
 	result = File::CreateFullPath(GetLocalPath(dirname));
 #endif
-	return ReplayApplyDisk(ReplayAction::MKDIR, result, CoreTiming::GetGlobalTimeUs()) != 0;
+	return ReplayApplyDisk(ReplayAction::MKDIR, result, PCoreTiming::GetGlobalTimeUs()) != 0;
 }
 
 bool DirectoryFileSystem::RmDir(const std::string &dirname) {
@@ -505,12 +505,12 @@ bool DirectoryFileSystem::RmDir(const std::string &dirname) {
 #if HOST_IS_CASE_SENSITIVE
 	// Maybe we're lucky?
 	if (File::DeleteDirRecursively(fullName))
-		return (bool)ReplayApplyDisk(ReplayAction::RMDIR, true, CoreTiming::GetGlobalTimeUs());
+		return (bool)ReplayApplyDisk(ReplayAction::RMDIR, true, PCoreTiming::GetGlobalTimeUs());
 
 	// Nope, fix case and try again.  Should we try again?
 	fullName = dirname;
 	if (!FixPathCase(basePath,fullName, FPC_FILE_MUST_EXIST))
-		return (bool)ReplayApplyDisk(ReplayAction::RMDIR, false, CoreTiming::GetGlobalTimeUs());
+		return (bool)ReplayApplyDisk(ReplayAction::RMDIR, false, PCoreTiming::GetGlobalTimeUs());
 
 	fullName = GetLocalPath(fullName);
 #endif
@@ -521,7 +521,7 @@ bool DirectoryFileSystem::RmDir(const std::string &dirname) {
 	return 0 == rmdir(fullName.c_str());
 #endif*/
 	bool result = File::DeleteDirRecursively(fullName);
-	return ReplayApplyDisk(ReplayAction::RMDIR, result, CoreTiming::GetGlobalTimeUs()) != 0;
+	return ReplayApplyDisk(ReplayAction::RMDIR, result, PCoreTiming::GetGlobalTimeUs()) != 0;
 }
 
 int DirectoryFileSystem::RenameFile(const std::string &from, const std::string &to) {
@@ -539,14 +539,14 @@ int DirectoryFileSystem::RenameFile(const std::string &from, const std::string &
 
 	// At this point, we should check if the paths match and give an already exists error.
 	if (from == fullTo)
-		return ReplayApplyDisk(ReplayAction::FILE_RENAME, SCE_KERNEL_ERROR_ERRNO_FILE_ALREADY_EXISTS, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDisk(ReplayAction::FILE_RENAME, SCE_KERNEL_ERROR_ERRNO_FILE_ALREADY_EXISTS, PCoreTiming::GetGlobalTimeUs());
 
 	std::string fullFrom = GetLocalPath(from);
 
 #if HOST_IS_CASE_SENSITIVE
 	// In case TO should overwrite a file with different case.  Check error code?
 	if (!FixPathCase(basePath,fullTo, FPC_PATH_MUST_EXIST))
-		return ReplayApplyDisk(ReplayAction::FILE_RENAME, -1, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDisk(ReplayAction::FILE_RENAME, -1, PCoreTiming::GetGlobalTimeUs());
 #endif
 
 	fullTo = GetLocalPath(fullTo);
@@ -564,7 +564,7 @@ int DirectoryFileSystem::RenameFile(const std::string &from, const std::string &
 		// May have failed due to case sensitivity on FROM, so try again.  Check error code?
 		fullFrom = from;
 		if (!FixPathCase(basePath,fullFrom, FPC_FILE_MUST_EXIST))
-			return ReplayApplyDisk(ReplayAction::FILE_RENAME, -1, CoreTiming::GetGlobalTimeUs());
+			return ReplayApplyDisk(ReplayAction::FILE_RENAME, -1, PCoreTiming::GetGlobalTimeUs());
 		fullFrom = GetLocalPath(fullFrom);
 
 #ifdef _WIN32
@@ -577,7 +577,7 @@ int DirectoryFileSystem::RenameFile(const std::string &from, const std::string &
 
 	// TODO: Better error codes.
 	int result = retValue ? 0 : (int)SCE_KERNEL_ERROR_ERRNO_FILE_ALREADY_EXISTS;
-	return ReplayApplyDisk(ReplayAction::FILE_RENAME, result, CoreTiming::GetGlobalTimeUs());
+	return ReplayApplyDisk(ReplayAction::FILE_RENAME, result, PCoreTiming::GetGlobalTimeUs());
 }
 
 bool DirectoryFileSystem::RemoveFile(const std::string &filename) {
@@ -594,7 +594,7 @@ bool DirectoryFileSystem::RemoveFile(const std::string &filename) {
 		// May have failed due to case sensitivity, so try again.  Try even if it fails?
 		fullName = filename;
 		if (!FixPathCase(basePath,fullName, FPC_FILE_MUST_EXIST))
-			return (bool)ReplayApplyDisk(ReplayAction::FILE_REMOVE, false, CoreTiming::GetGlobalTimeUs());
+			return (bool)ReplayApplyDisk(ReplayAction::FILE_REMOVE, false, PCoreTiming::GetGlobalTimeUs());
 		fullName = GetLocalPath(fullName);
 
 #ifdef _WIN32
@@ -605,7 +605,7 @@ bool DirectoryFileSystem::RemoveFile(const std::string &filename) {
 	}
 #endif
 
-	return ReplayApplyDisk(ReplayAction::FILE_REMOVE, retValue, CoreTiming::GetGlobalTimeUs()) != 0;
+	return ReplayApplyDisk(ReplayAction::FILE_REMOVE, retValue, PCoreTiming::GetGlobalTimeUs()) != 0;
 }
 
 int DirectoryFileSystem::OpenFile(std::string filename, FileAccess access, const char *devicename) {
@@ -616,7 +616,7 @@ int DirectoryFileSystem::OpenFile(std::string filename, FileAccess access, const
 		err = SCE_KERNEL_ERROR_ERRNO_FILE_NOT_FOUND;
 	}
 
-	err = ReplayApplyDisk(ReplayAction::FILE_OPEN, err, CoreTiming::GetGlobalTimeUs());
+	err = ReplayApplyDisk(ReplayAction::FILE_OPEN, err, PCoreTiming::GetGlobalTimeUs());
 	if (err != 0) {
 #ifdef _WIN32
 		ERROR_LOG(FILESYS, "DirectoryFileSystem::OpenFile: FAILED, %i - access = %i", GetLastError(), (int)access);
@@ -726,13 +726,13 @@ PSPFileInfo DirectoryFileSystem::GetFileInfo(std::string filename) {
 	if (!File::Exists(fullName)) {
 #if HOST_IS_CASE_SENSITIVE
 		if (! FixPathCase(basePath,filename, FPC_FILE_MUST_EXIST))
-			return ReplayApplyDiskFileInfo(x, CoreTiming::GetGlobalTimeUs());
+			return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 		fullName = GetLocalPath(filename);
 
 		if (! File::Exists(fullName))
-			return ReplayApplyDiskFileInfo(x, CoreTiming::GetGlobalTimeUs());
+			return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 #else
-		return ReplayApplyDiskFileInfo(x, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 #endif
 	}
 	x.type = File::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
@@ -755,7 +755,7 @@ PSPFileInfo DirectoryFileSystem::GetFileInfo(std::string filename) {
 		}
 	}
 
-	return ReplayApplyDiskFileInfo(x, CoreTiming::GetGlobalTimeUs());
+	return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 }
 
 bool DirectoryFileSystem::GetHostPath(const std::string &inpath, std::string &outpath) {
@@ -850,7 +850,7 @@ std::vector<PSPFileInfo> DirectoryFileSystem::GetDirListing(std::string path) {
 
 	if (hFind == INVALID_HANDLE_VALUE) {
 		// Just return the empty array.
-		return ReplayApplyDiskListing(myVector, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDiskListing(myVector, PCoreTiming::GetGlobalTimeUs());
 	}
 
 	bool hideISOFiles = PSP_CoreParameter().compat.flags().HideISOFiles;
@@ -904,7 +904,7 @@ std::vector<PSPFileInfo> DirectoryFileSystem::GetDirListing(std::string path) {
 
 	if (dp == NULL) {
 		ERROR_LOG(FILESYS,"Error opening directory %s\n",path.c_str());
-		return ReplayApplyDiskListing(myVector, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDiskListing(myVector, PCoreTiming::GetGlobalTimeUs());
 	}
 
 	bool hideISOFiles = PSP_CoreParameter().compat.flags().HideISOFiles;
@@ -938,13 +938,13 @@ std::vector<PSPFileInfo> DirectoryFileSystem::GetDirListing(std::string path) {
 	closedir(dp);
 #endif
 
-	return ReplayApplyDiskListing(myVector, CoreTiming::GetGlobalTimeUs());
+	return ReplayApplyDiskListing(myVector, PCoreTiming::GetGlobalTimeUs());
 }
 
 u64 DirectoryFileSystem::FreeSpace(const std::string &path) {
 	uint64_t result = 0;
 	if (free_disk_space(GetLocalPath(path), result)) {
-		return ReplayApplyDisk64(ReplayAction::FREESPACE, result, CoreTiming::GetGlobalTimeUs());
+		return ReplayApplyDisk64(ReplayAction::FREESPACE, result, PCoreTiming::GetGlobalTimeUs());
 	}
 
 #if HOST_IS_CASE_SENSITIVE
@@ -952,13 +952,13 @@ u64 DirectoryFileSystem::FreeSpace(const std::string &path) {
 	if (FixPathCase(basePath, fixedCase, FPC_FILE_MUST_EXIST)) {
 		// May have failed due to case sensitivity, try again.
 		if (free_disk_space(GetLocalPath(fixedCase), result)) {
-			return ReplayApplyDisk64(ReplayAction::FREESPACE, result, CoreTiming::GetGlobalTimeUs());
+			return ReplayApplyDisk64(ReplayAction::FREESPACE, result, PCoreTiming::GetGlobalTimeUs());
 		}
 	}
 #endif
 
 	// Just assume they're swimming in free disk space if we don't know otherwise.
-	return ReplayApplyDisk64(ReplayAction::FREESPACE, std::numeric_limits<u64>::max(), CoreTiming::GetGlobalTimeUs());
+	return ReplayApplyDisk64(ReplayAction::FREESPACE, std::numeric_limits<u64>::max(), PCoreTiming::GetGlobalTimeUs());
 }
 
 void DirectoryFileSystem::DoState(PointerWrap &p) {

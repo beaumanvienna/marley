@@ -204,19 +204,19 @@ static u32 sceMp3ReserveMp3Handle(u32 mp3Addr) {
 	if (mp3Map.size() >= MP3_MAX_HANDLES) {
 		return hleLogError(ME, ERROR_MP3_NO_RESOURCE_AVAIL, "no free handles");
 	}
-	if (mp3Addr != 0 && !Memory::IsValidRange(mp3Addr, 32)) {
+	if (mp3Addr != 0 && !PMemory::IsValidRange(mp3Addr, 32)) {
 		// The PSP would crash, but might as well return a proper error.
 		return hleLogError(ME, SCE_KERNEL_ERROR_INVALID_POINTER, "bad mp3 pointer");
 	}
 
 	AuCtx *Au = new AuCtx;
 	if (mp3Addr) {
-		Au->startPos = Memory::Read_U64(mp3Addr); // Audio stream start position.
-		Au->endPos = Memory::Read_U64(mp3Addr + 8); // Audio stream end position.
-		Au->AuBuf = Memory::Read_U32(mp3Addr + 16); // Input Au data buffer.
-		Au->AuBufSize = Memory::Read_U32(mp3Addr + 20); // Input Au data buffer size.
-		Au->PCMBuf = Memory::Read_U32(mp3Addr + 24); // Output PCM data buffer.
-		Au->PCMBufSize = Memory::Read_U32(mp3Addr + 28); // Output PCM data buffer size.
+		Au->startPos = PMemory::Read_U64(mp3Addr); // Audio stream start position.
+		Au->endPos = PMemory::Read_U64(mp3Addr + 8); // Audio stream end position.
+		Au->AuBuf = PMemory::Read_U32(mp3Addr + 16); // Input Au data buffer.
+		Au->AuBufSize = PMemory::Read_U32(mp3Addr + 20); // Input Au data buffer size.
+		Au->PCMBuf = PMemory::Read_U32(mp3Addr + 24); // Output PCM data buffer.
+		Au->PCMBufSize = PMemory::Read_U32(mp3Addr + 28); // Output PCM data buffer size.
 
 		if (Au->startPos >= Au->endPos) {
 			delete Au;
@@ -360,12 +360,12 @@ static int CalculateMp3SamplesPerFrame(int versionBits, int layerBits) {
 
 static int FindMp3Header(AuCtx *ctx, int &header, int end) {
 	u32 addr = ctx->AuBuf + ctx->AuStreamWorkareaSize();
-	if (Memory::IsValidRange(addr, end)) {
-		u8 *ptr = Memory::GetPointerUnchecked(addr);
+	if (PMemory::IsValidRange(addr, end)) {
+		u8 *ptr = PMemory::GetPointerUnchecked(addr);
 		for (int offset = 0; offset < end; ++offset) {
 			// If we hit valid sync bits, then we've found a header.
 			if (ptr[offset] == 0xFF && (ptr[offset + 1] & 0xC0) == 0xC0) {
-				header = bswap32(Memory::Read_U32(addr + offset));
+				header = bswap32(PMemory::Read_U32(addr + offset));
 				return offset;
 			}
 		}
@@ -672,20 +672,20 @@ static u32 sceMp3LowLevelDecode(u32 mp3, u32 sourceAddr, u32 sourceBytesConsumed
 		return -1;
 	}
 
-	if (!Memory::IsValidAddress(sourceAddr) || !Memory::IsValidAddress(sourceBytesConsumedAddr) ||
-		!Memory::IsValidAddress(samplesAddr) || !Memory::IsValidAddress(sampleBytesAddr)) {
+	if (!PMemory::IsValidAddress(sourceAddr) || !PMemory::IsValidAddress(sourceBytesConsumedAddr) ||
+		!PMemory::IsValidAddress(samplesAddr) || !PMemory::IsValidAddress(sampleBytesAddr)) {
 		ERROR_LOG(ME, "sceMp3LowLevelDecode(%08x, %08x, %08x, %08x, %08x) : invalid address in args", mp3, sourceAddr, sourceBytesConsumedAddr, samplesAddr, sampleBytesAddr);
 		return -1;
 	}
 
-	auto inbuff = Memory::GetPointer(sourceAddr);
-	auto outbuff = Memory::GetPointer(samplesAddr);
+	auto inbuff = PMemory::GetPointer(sourceAddr);
+	auto outbuff = PMemory::GetPointer(samplesAddr);
 	
 	int outpcmbytes = 0;
 	ctx->decoder->Decode((void*)inbuff, 4096, outbuff, &outpcmbytes);
 	
-	Memory::Write_U32(ctx->decoder->GetSourcePos(), sourceBytesConsumedAddr);
-	Memory::Write_U32(outpcmbytes, sampleBytesAddr);
+	PMemory::Write_U32(ctx->decoder->GetSourcePos(), sourceBytesConsumedAddr);
+	PMemory::Write_U32(outpcmbytes, sampleBytesAddr);
 	return 0;
 }
 

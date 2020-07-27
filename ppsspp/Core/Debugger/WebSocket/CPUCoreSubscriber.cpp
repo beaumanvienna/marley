@@ -110,7 +110,7 @@ void WebSocketCPUStatus(DebuggerRequest &req) {
 	// Avoid NULL deference.
 	json.writeUint("pc", PSP_IsInited() ? currentMIPS->pc : 0);
 	// A double ought to be good enough for a 156 day debug session.
-	json.writeFloat("ticks", PSP_IsInited() ? CoreTiming::GetTicks() : 0);
+	json.writeFloat("ticks", PSP_IsInited() ? PCoreTiming::GetTicks() : 0);
 }
 
 // Retrieve all regs and their values (cpu.getAllRegs)

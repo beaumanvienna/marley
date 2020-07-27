@@ -363,7 +363,7 @@ namespace MIPSDis
 
 	void Dis_Emuhack(MIPSOpcode op, char *out)
 	{
-		auto resolved = Memory::Read_Instruction(disPC, true);
+		auto resolved = PMemory::Read_Instruction(disPC, true);
 		char disasm[256];
 		if (MIPS_IS_EMUHACK(resolved)) {
 			strcpy(disasm, "(invalid emuhack)");

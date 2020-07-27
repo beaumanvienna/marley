@@ -56,8 +56,8 @@ FormatBuffer depthbuf;
 SoftGPU::SoftGPU(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	: GPUCommon(gfxCtx, draw)
 {
-	fb.data = Memory::GetPointer(0x44000000); // TODO: correct default address?
-	depthbuf.data = Memory::GetPointer(0x44000000); // TODO: correct default address?
+	fb.data = PMemory::GetPointer(0x44000000); // TODO: correct default address?
+	depthbuf.data = PMemory::GetPointer(0x44000000); // TODO: correct default address?
 
 	framebufferDirty_ = true;
 	// TODO: Is there a default?
@@ -138,7 +138,7 @@ void SoftGPU::ConvertTextureDescFrom16(Draw::TextureDesc &desc, int srcwidth, in
 	// TODO: This should probably be converted in a shader instead..
 	fbTexBuffer_.resize(srcwidth * srcheight);
 	FormatBuffer displayBuffer;
-	displayBuffer.data = overrideData ? overrideData : Memory::GetPointer(displayFramebuf_);
+	displayBuffer.data = overrideData ? overrideData : PMemory::GetPointer(displayFramebuf_);
 	for (int y = 0; y < srcheight; ++y) {
 		u32 *buf_line = &fbTexBuffer_[y * srcwidth];
 		const u16 *fb_line = &displayBuffer.as16[y * displayStride_];
@@ -201,7 +201,7 @@ void SoftGPU::CopyToCurrentFboFromDisplayRam(int srcwidth, int srcheight) {
 	bool hasPostShader = presentation_->HasPostShader();
 
 	if (PSP_CoreParameter().compat.flags().DarkStalkersPresentHack && displayFormat_ == GE_FORMAT_5551 && g_DarkStalkerStretch != DSStretch::Off) {
-		u8 *data = Memory::GetPointer(0x04088000);
+		u8 *data = PMemory::GetPointer(0x04088000);
 		bool fillDesc = true;
 		if (draw_->GetDataFormatSupport(Draw::DataFormat::A1B5G5R5_UNORM_PACK16) & Draw::FMT_TEXTURE) {
 			// The perfect one.
@@ -226,17 +226,17 @@ void SoftGPU::CopyToCurrentFboFromDisplayRam(int srcwidth, int srcheight) {
 		if (g_DarkStalkerStretch == DSStretch::Normal) {
 			outputFlags |= OutputFlags::PILLARBOX;
 		}
-	} else if (!Memory::IsValidAddress(displayFramebuf_) || srcwidth == 0 || srcheight == 0) {
+	} else if (!PMemory::IsValidAddress(displayFramebuf_) || srcwidth == 0 || srcheight == 0) {
 		hasImage = false;
 		u1 = 1.0f;
 	} else if (displayFormat_ == GE_FORMAT_8888) {
-		u8 *data = Memory::GetPointer(displayFramebuf_);
+		u8 *data = PMemory::GetPointer(displayFramebuf_);
 		desc.width = displayStride_ == 0 ? srcwidth : displayStride_;
 		desc.height = srcheight;
 		desc.initData.push_back(data);
 		desc.format = Draw::DataFormat::R8G8B8A8_UNORM;
 	} else if (displayFormat_ == GE_FORMAT_5551) {
-		u8 *data = Memory::GetPointer(displayFramebuf_);
+		u8 *data = PMemory::GetPointer(displayFramebuf_);
 		bool fillDesc = true;
 		if (draw_->GetDataFormatSupport(Draw::DataFormat::A1B5G5R5_UNORM_PACK16) & Draw::FMT_TEXTURE) {
 			// The perfect one.
@@ -305,7 +305,7 @@ void SoftGPU::Resized() {
 void SoftGPU::FastRunLoop(DisplayList &list) {
 	PROFILE_THIS_SCOPE("soft_runloop");
 	for (; downcount > 0; --downcount) {
-		u32 op = Memory::ReadUnchecked_U32(list.pc);
+		u32 op = PMemory::ReadUnchecked_U32(list.pc);
 		u32 cmd = op >> 24;
 
 		u32 diff = op ^ gstate.cmdmem[cmd];
@@ -339,19 +339,19 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 			// Upper bits are ignored.
 			GEPrimitiveType prim = static_cast<GEPrimitiveType>((data >> 16) & 7);
 
-			if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+			if (!PMemory::IsValidAddress(gstate_c.vertexAddr)) {
 				ERROR_LOG_REPORT(G3D, "Software: Bad vertex address %08x!", gstate_c.vertexAddr);
 				break;
 			}
 
-			void *verts = Memory::GetPointer(gstate_c.vertexAddr);
+			void *verts = PMemory::GetPointer(gstate_c.vertexAddr);
 			void *indices = NULL;
 			if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-				if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
+				if (!PMemory::IsValidAddress(gstate_c.indexAddr)) {
 					ERROR_LOG_REPORT(G3D, "Software: Bad index address %08x!", gstate_c.indexAddr);
 					break;
 				}
-				indices = Memory::GetPointer(gstate_c.indexAddr);
+				indices = PMemory::GetPointer(gstate_c.indexAddr);
 			}
 
 			cyclesExecuted += EstimatePerVertexCost() * count;
@@ -377,19 +377,19 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 				return;
 			}
 
-			if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+			if (!PMemory::IsValidAddress(gstate_c.vertexAddr)) {
 				ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
 				return;
 			}
 
-			void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+			void *control_points = PMemory::GetPointerUnchecked(gstate_c.vertexAddr);
 			void *indices = NULL;
 			if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-				if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
+				if (!PMemory::IsValidAddress(gstate_c.indexAddr)) {
 					ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
 					return;
 				}
-				indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
+				indices = PMemory::GetPointerUnchecked(gstate_c.indexAddr);
 			}
 
 			if ((gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) || vertTypeIsSkinningEnabled(gstate.vertType)) {
@@ -429,19 +429,19 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 				return;
 			}
 
-			if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
+			if (!PMemory::IsValidAddress(gstate_c.vertexAddr)) {
 				ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
 				return;
 			}
 
-			void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
+			void *control_points = PMemory::GetPointerUnchecked(gstate_c.vertexAddr);
 			void *indices = NULL;
 			if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-				if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
+				if (!PMemory::IsValidAddress(gstate_c.indexAddr)) {
 					ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
 					return;
 				}
-				indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
+				indices = PMemory::GetPointerUnchecked(gstate_c.indexAddr);
 			}
 
 			if ((gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) || vertTypeIsSkinningEnabled(gstate.vertType)) {
@@ -477,7 +477,7 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 			currentList->bboxResult = false;
 		} else if (((data & 7) == 0) && data <= 64) {  // Sanity check
 			DEBUG_LOG(G3D, "Unsupported bounding box: %06x", data);
-			void *control_points = Memory::GetPointer(gstate_c.vertexAddr);
+			void *control_points = PMemory::GetPointer(gstate_c.vertexAddr);
 			if (!control_points) {
 				ERROR_LOG_REPORT_ONCE(boundingbox, G3D, "Invalid verts in bounding box check");
 				currentList->bboxResult = true;
@@ -561,11 +561,11 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 		break;
 
 	case GE_CMD_FRAMEBUFPTR:
-		fb.data = Memory::GetPointer(gstate.getFrameBufAddress());
+		fb.data = PMemory::GetPointer(gstate.getFrameBufAddress());
 		break;
 
 	case GE_CMD_FRAMEBUFWIDTH:
-		fb.data = Memory::GetPointer(gstate.getFrameBufAddress());
+		fb.data = PMemory::GetPointer(gstate.getFrameBufAddress());
 		break;
 
 	case GE_CMD_FRAMEBUFPIXFORMAT:
@@ -600,9 +600,9 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 			u32 clutAddr = gstate.getClutAddress();
 			u32 clutTotalBytes = gstate.getClutLoadBytes();
 
-			if (Memory::IsValidAddress(clutAddr)) {
-				u32 validSize = Memory::ValidSize(clutAddr, clutTotalBytes);
-				Memory::MemcpyUnchecked(clut, clutAddr, validSize);
+			if (PMemory::IsValidAddress(clutAddr)) {
+				u32 validSize = PMemory::ValidSize(clutAddr, clutTotalBytes);
+				PMemory::MemcpyUnchecked(clut, clutAddr, validSize);
 				if (validSize < clutTotalBytes) {
 					// Zero out the parts that were outside valid memory.
 					memset((u8 *)clut + validSize, 0x00, clutTotalBytes - validSize);
@@ -647,8 +647,8 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 			DEBUG_LOG(G3D, "Block transfer: %08x/%x -> %08x/%x, %ix%ix%i (%i,%i)->(%i,%i)", srcBasePtr, srcStride, dstBasePtr, dstStride, width, height, bpp, srcX, srcY, dstX, dstY);
 
 			for (int y = 0; y < height; y++) {
-				const u8 *src = Memory::GetPointer(srcBasePtr + ((y + srcY) * srcStride + srcX) * bpp);
-				u8 *dst = Memory::GetPointer(dstBasePtr + ((y + dstY) * dstStride + dstX) * bpp);
+				const u8 *src = PMemory::GetPointer(srcBasePtr + ((y + srcY) * srcStride + srcX) * bpp);
+				u8 *dst = PMemory::GetPointer(dstBasePtr + ((y + dstY) * dstStride + dstX) * bpp);
 				memcpy(dst, src, width * bpp);
 			}
 
@@ -674,11 +674,11 @@ void SoftGPU::ExecuteOp(u32 op, u32 diff) {
 		break;
 
 	case GE_CMD_ZBUFPTR:
-		depthbuf.data = Memory::GetPointer(gstate.getDepthBufAddress());
+		depthbuf.data = PMemory::GetPointer(gstate.getDepthBufAddress());
 		break;
 
 	case GE_CMD_ZBUFWIDTH:
-		depthbuf.data = Memory::GetPointer(gstate.getDepthBufAddress());
+		depthbuf.data = PMemory::GetPointer(gstate.getDepthBufAddress());
 		break;
 
 	case GE_CMD_AMBIENTCOLOR:

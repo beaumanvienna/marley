@@ -37,10 +37,10 @@ public:
 	void close() override { };
 	bool isOpen() override { return true; };
 	bool write(void* data, size_t length) override {
-		if (!Memory::IsValidAddress((u32)(address+length-1)))
+		if (!PMemory::IsValidAddress((u32)(address+length-1)))
 			return false;
 
-		Memory::Memcpy((u32)address,data,(u32)length);
+		PMemory::Memcpy((u32)address,data,(u32)length);
 		
 		// In case this is a delay slot or combined instruction, clear cache above it too.
 		if (MIPSComp::jit)
@@ -53,7 +53,7 @@ public:
 	int64_t getPhysicalAddress() override { return getVirtualAddress(); };
 	int64_t getHeaderSize() override { return 0; }
 	bool seekVirtual(int64_t virtualAddress) override {
-		if (!Memory::IsValidAddress(virtualAddress))
+		if (!PMemory::IsValidAddress(virtualAddress))
 			return false;
 		address = virtualAddress;
 		return true;

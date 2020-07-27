@@ -964,7 +964,7 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 	MIPSState *curMips = currentMIPS;
 	while (coreState == CORE_RUNNING)
 	{
-		CoreTiming::Advance();
+		PCoreTiming::Advance();
 		u32 lastPC = 0;
 
 		// NEVER stop in a delay slot!
@@ -973,8 +973,8 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 			// int cycles = 0;
 			{
 				again:
-				MIPSOpcode op = MIPSOpcode(Memory::Read_U32(curMips->pc));
-				//MIPSOpcode op = Memory::Read_Opcode_JIT(mipsr4k.pc);
+				MIPSOpcode op = MIPSOpcode(PMemory::Read_U32(curMips->pc));
+				//MIPSOpcode op = PMemory::Read_Opcode_JIT(mipsr4k.pc);
 				/*
 				// Choke on VFPU
 				MIPSInfo info = MIPSGetInfo(op);
@@ -1032,9 +1032,9 @@ int MIPSInterpret_RunUntil(u64 globalTicks)
 			}
 
 			curMips->downcount -= 1;
-			if (CoreTiming::GetTicks() > globalTicks)
+			if (PCoreTiming::GetTicks() > globalTicks)
 			{
-				// DEBUG_LOG(CPU, "Hit the max ticks, bailing 1 : %llu, %llu", globalTicks, CoreTiming::GetTicks());
+				// DEBUG_LOG(CPU, "Hit the max ticks, bailing 1 : %llu, %llu", globalTicks, PCoreTiming::GetTicks());
 				return 1;
 			}
 		}
@@ -1084,6 +1084,6 @@ int MIPSGetInstructionCycleEstimate(MIPSOpcode op)
 
 const char *MIPSDisasmAt(u32 compilerPC) {
 	static char temp[256];
-	MIPSDisAsm(Memory::Read_Instruction(compilerPC), 0, temp);
+	MIPSDisAsm(PMemory::Read_Instruction(compilerPC), 0, temp);
 	return temp;
 }

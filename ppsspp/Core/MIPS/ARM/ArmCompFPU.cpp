@@ -103,7 +103,7 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 	bool doCheck = false;
 	switch(op >> 26)
 	{
-	case 49: //FI(ft) = Memory::Read_U32(addr); break; //lwc1
+	case 49: //FI(ft) = PMemory::Read_U32(addr); break; //lwc1
 		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
@@ -115,7 +115,7 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.MapReg(ft, MAP_NOINIT | MAP_DIRTY);
 		if (gpr.IsImm(rs)) {
 			u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-			gpr.SetRegImm(R0, addr + (u32)Memory::base);
+			gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 		} else {
 			gpr.MapReg(rs);
 			if (g_Config.bFastMemory) {
@@ -147,7 +147,7 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.ReleaseSpillLocksAndDiscardTemps();
 		break;
 
-	case 57: //Memory::Write_U32(FI(ft), addr); break; //swc1
+	case 57: //PMemory::Write_U32(FI(ft), addr); break; //swc1
 		if (!gpr.IsImm(rs) && jo.cachePointers && g_Config.bFastMemory && (offset & 3) == 0 && offset < 0x400 && offset > -0x400) {
 			gpr.MapRegAsPointer(rs);
 			fpr.MapReg(ft, 0);
@@ -158,7 +158,7 @@ void ArmJit::Comp_FPULS(MIPSOpcode op)
 		fpr.MapReg(ft);
 		if (gpr.IsImm(rs)) {
 			u32 addr = (offset + gpr.GetImm(rs)) & 0x3FFFFFFF;
-			gpr.SetRegImm(R0, addr + (u32)Memory::base);
+			gpr.SetRegImm(R0, addr + (u32)PMemory::base);
 		} else {
 			gpr.MapReg(rs);
 			if (g_Config.bFastMemory) {

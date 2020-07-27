@@ -127,7 +127,7 @@ void ArmJit::GenerateFixedCode() {
 
 	enterDispatcher = AlignCode16();
 
-	DEBUG_LOG(JIT, "Base: %08x", (u32)Memory::base);
+	DEBUG_LOG(JIT, "Base: %08x", (u32)PMemory::base);
 
 	SetCC(CC_AL);
 
@@ -150,7 +150,7 @@ void ArmJit::GenerateFixedCode() {
 	// Really starting to run low on registers already though...
 
 	// R11, R10, R9
-	MOVP2R(MEMBASEREG, Memory::base);
+	MOVP2R(MEMBASEREG, PMemory::base);
 	MOVP2R(CTXREG, mips_);
 	MOVP2R(JITBASEREG, GetBasePtr());
 
@@ -161,7 +161,7 @@ void ArmJit::GenerateFixedCode() {
 	outerLoop = GetCodePtr();
 		SaveDowncount();
 		RestoreRoundingMode(true);
-		QuickCallFunction(R0, &CoreTiming::Advance);
+		QuickCallFunction(R0, &PCoreTiming::Advance);
 		ApplyRoundingMode(true);
 		RestoreDowncount();
 		FixupBranch skipToCoreStateCheck = B(); //skip the downcount check

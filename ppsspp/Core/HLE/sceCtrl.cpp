@@ -107,7 +107,7 @@ const u32 CTRL_EMU_RAPIDFIRE_MASK = CTRL_UP | CTRL_DOWN | CTRL_LEFT | CTRL_RIGHT
 static void __CtrlUpdateLatch()
 {
 	std::lock_guard<std::mutex> guard(ctrlMutex);
-	u64 t = CoreTiming::GetGlobalTimeUs();
+	u64 t = PCoreTiming::GetGlobalTimeUs();
 
 	u32 buttons = ctrlCurrent.buttons;
 	if (emuRapidFire && (emuRapidFireFrames % 10) < 5)
@@ -308,14 +308,14 @@ static void __CtrlTimerUpdate(u64 userdata, int cyclesLate)
 	// This only runs in timer mode (ctrlCycle > 0.)
 	_dbg_assert_msg_(ctrlCycle > 0, "Ctrl: sampling cycle should be > 0");
 
-	CoreTiming::ScheduleEvent(usToCycles(ctrlCycle) - cyclesLate, ctrlTimer, 0);
+	PCoreTiming::ScheduleEvent(usToCycles(ctrlCycle) - cyclesLate, ctrlTimer, 0);
 
 	__CtrlDoSample();
 }
 
 void __CtrlInit()
 {
-	ctrlTimer = CoreTiming::RegisterEvent("CtrlSampleTimer", __CtrlTimerUpdate);
+	ctrlTimer = PCoreTiming::RegisterEvent("CtrlSampleTimer", __CtrlTimerUpdate);
 	__DisplayListenVblank(__CtrlVblank);
 
 	ctrlIdleReset = -1;
@@ -377,7 +377,7 @@ void __CtrlDoState(PointerWrap &p)
 	p.Do(waitingThreads, dv);
 
 	p.Do(ctrlTimer);
-	CoreTiming::RestoreRegisterEvent(ctrlTimer, "CtrlSampleTimer", __CtrlTimerUpdate);
+	PCoreTiming::RestoreRegisterEvent(ctrlTimer, "CtrlSampleTimer", __CtrlTimerUpdate);
 }
 
 void __CtrlShutdown()
@@ -399,9 +399,9 @@ static u32 sceCtrlSetSamplingCycle(u32 cycle)
 	ctrlCycle = cycle;
 
 	if (prev > 0)
-		CoreTiming::UnscheduleEvent(ctrlTimer, 0);
+		PCoreTiming::UnscheduleEvent(ctrlTimer, 0);
 	if (cycle > 0)
-		CoreTiming::ScheduleEvent(usToCycles(ctrlCycle), ctrlTimer, 0);
+		PCoreTiming::ScheduleEvent(usToCycles(ctrlCycle), ctrlTimer, 0);
 
 	return prev;
 }
@@ -409,8 +409,8 @@ static u32 sceCtrlSetSamplingCycle(u32 cycle)
 static int sceCtrlGetSamplingCycle(u32 cyclePtr)
 {
 	DEBUG_LOG(SCECTRL, "sceCtrlGetSamplingCycle(%08x)", cyclePtr);
-	if (Memory::IsValidAddress(cyclePtr))
-		Memory::Write_U32(ctrlCycle, cyclePtr);
+	if (PMemory::IsValidAddress(cyclePtr))
+		PMemory::Write_U32(ctrlCycle, cyclePtr);
 	return 0;
 }
 
@@ -432,8 +432,8 @@ static int sceCtrlGetSamplingMode(u32 modePtr)
 	u32 retVal = analogEnabled == true ? CTRL_MODE_ANALOG : CTRL_MODE_DIGITAL;
 	DEBUG_LOG(SCECTRL, "%d=sceCtrlGetSamplingMode(%08x)", retVal, modePtr);
 
-	if (Memory::IsValidAddress(modePtr))
-		Memory::Write_U32(retVal, modePtr);
+	if (PMemory::IsValidAddress(modePtr))
+		PMemory::Write_U32(retVal, modePtr);
 
 	return 0;
 }
@@ -454,15 +454,15 @@ static int sceCtrlGetIdleCancelThreshold(u32 idleResetPtr, u32 idleBackPtr)
 {
 	DEBUG_LOG(SCECTRL, "sceCtrlSetIdleCancelThreshold(%08x, %08x)", idleResetPtr, idleBackPtr);
 
-	if (idleResetPtr && !Memory::IsValidAddress(idleResetPtr))
+	if (idleResetPtr && !PMemory::IsValidAddress(idleResetPtr))
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
-	if (idleBackPtr && !Memory::IsValidAddress(idleBackPtr))
+	if (idleBackPtr && !PMemory::IsValidAddress(idleBackPtr))
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 
 	if (idleResetPtr)
-		Memory::Write_U32(ctrlIdleReset, idleResetPtr);
+		PMemory::Write_U32(ctrlIdleReset, idleResetPtr);
 	if (idleBackPtr)
-		Memory::Write_U32(ctrlIdleBack, idleBackPtr);
+		PMemory::Write_U32(ctrlIdleBack, idleBackPtr);
 
 	return 0;
 }

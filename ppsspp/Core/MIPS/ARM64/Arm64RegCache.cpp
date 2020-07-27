@@ -113,7 +113,7 @@ void Arm64RegCache::EmitLoadStaticRegisters() {
 		int offset = GetMipsRegOffset(allocs[i].mr);
 		emit_->LDR(INDEX_UNSIGNED, allocs[i].ar, CTXREG, offset);
 		if (allocs[i].pointerified && jo_->enablePointerify) {
-			emit_->MOVK(EncodeRegTo64(allocs[i].ar), ((uint64_t)Memory::base) >> 32, SHIFT_32);
+			emit_->MOVK(EncodeRegTo64(allocs[i].ar), ((uint64_t)PMemory::base) >> 32, SHIFT_32);
 		}
 	}
 }
@@ -446,7 +446,7 @@ Arm64Gen::ARM64Reg Arm64RegCache::MapRegAsPointer(MIPSGPReg reg) {
 			emit_->ADD(EncodeRegTo64(a), EncodeRegTo64(a), MEMBASEREG);
 			mr[reg].loc = ML_ARMREG_AS_PTR;
 		} else if (!ar[a].pointerified) {
-			emit_->MOVK(EncodeRegTo64(a), ((uint64_t)Memory::base) >> 32, SHIFT_32);
+			emit_->MOVK(EncodeRegTo64(a), ((uint64_t)PMemory::base) >> 32, SHIFT_32);
 			ar[a].pointerified = true;
 		}
 	} else {
@@ -775,7 +775,7 @@ void Arm64RegCache::FlushAll() {
 	for (int i = 0; i < count; i++) {
 		if (allocs[i].pointerified && !ar[allocs[i].ar].pointerified && jo_->enablePointerify) {
 			// Re-pointerify
-			emit_->MOVK(EncodeRegTo64(allocs[i].ar), ((uint64_t)Memory::base) >> 32, SHIFT_32);
+			emit_->MOVK(EncodeRegTo64(allocs[i].ar), ((uint64_t)PMemory::base) >> 32, SHIFT_32);
 			ar[allocs[i].ar].pointerified = true;
 		} else {
 			// If this register got pointerified on the way, mark it as not, so that after save/reload (like in an interpreter fallback), it won't be regarded as such, as it simply won't be.

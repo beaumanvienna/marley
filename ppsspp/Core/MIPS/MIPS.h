@@ -29,7 +29,7 @@
 
 class PointerWrap;
 
-typedef Memory::Opcode MIPSOpcode;
+typedef PMemory::Opcode MIPSOpcode;
 
 // Unlike on the PPC, opcode 0 is not unused and thus we have to choose another fake
 // opcode to represent JIT blocks and other emu hacks.

@@ -83,8 +83,8 @@ void DrawSprite(const VertexData& v0, const VertexData& v1) {
 	GETextureFormat texfmt = gstate.getTextureFormat();
 	u32 texaddr = gstate.getTextureAddress(0);
 	int texbufw = GetTextureBufw(0, texaddr, texfmt);
-	if (Memory::IsValidAddress(texaddr))
-		texptr = Memory::GetPointerUnchecked(texaddr);
+	if (PMemory::IsValidAddress(texaddr))
+		texptr = PMemory::GetPointerUnchecked(texaddr);
 
 	ScreenCoords pprime(v0.screenpos.x, v0.screenpos.y, 0);
 	Sampler::NearestFunc nearestFunc = Sampler::GetNearestFunc();  // Looks at gstate.

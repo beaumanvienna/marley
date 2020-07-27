@@ -78,7 +78,7 @@ static u32 JitMemCheck(u32 pc) {
 		return 0;
 
 	// Note: pc may be the delay slot.
-	const auto op = Memory::Read_Instruction(pc, true);
+	const auto op = PMemory::Read_Instruction(pc, true);
 	s32 offset = (s16)(op & 0xFFFF);
 	if (MIPSGetInfo(op) & IS_VFPU)
 		offset &= 0xFFFC;
@@ -95,7 +95,7 @@ using namespace Arm64JitConstants;
 
 Arm64Jit::Arm64Jit(MIPSState *mips) : blocks(mips, this), gpr(mips, &js, &jo), fpr(mips, &js, &jo), mips_(mips), fp(this) { 
 	// Automatically disable incompatible options.
-	if (((intptr_t)Memory::base & 0x00000000FFFFFFFFUL) != 0) {
+	if (((intptr_t)PMemory::base & 0x00000000FFFFFFFFUL) != 0) {
 		jo.enablePointerify = false;
 	}
 
@@ -271,7 +271,7 @@ u32 Arm64Jit::GetCompilerPC() {
 }
 
 MIPSOpcode Arm64Jit::GetOffsetInstruction(int offset) {
-	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
+	return PMemory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *Arm64Jit::DoJit(u32 em_address, JitBlock *b) {
@@ -328,7 +328,7 @@ const u8 *Arm64Jit::DoJit(u32 em_address, JitBlock *b) {
 		// Jit breakpoints are quite fast, so let's do them in release too.
 		CheckJitBreakpoint(GetCompilerPC(), 0);
 
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
+		MIPSOpcode inst = PMemory::Read_Opcode_JIT(GetCompilerPC());
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst, this);
@@ -362,7 +362,7 @@ const u8 *Arm64Jit::DoJit(u32 em_address, JitBlock *b) {
 	if (logBlocks > 0 && dontLogBlocks == 0) {
 		ILOG("=============== mips %d ===============", blocks.GetNumBlocks());
 		for (u32 cpc = em_address; cpc != GetCompilerPC() + 4; cpc += 4) {
-			MIPSDisAsm(Memory::Read_Opcode_JIT(cpc), cpc, temp, true);
+			MIPSDisAsm(PMemory::Read_Opcode_JIT(cpc), cpc, temp, true);
 			ILOG("M: %08x   %s", cpc, temp);
 		}
 	}
@@ -535,14 +535,14 @@ void Arm64Jit::Comp_ReplacementFunc(MIPSOpcode op)
 	}
 
 	if (disabled) {
-		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
+		MIPSCompileOp(PMemory::Read_Instruction(GetCompilerPC(), true), this);
 	} else if (entry->jitReplaceFunc) {
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;
 		int cycles = (this->*repl)();
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
-			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(PMemory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			FlushAll();
 			// Flushed, so R1 is safe.
@@ -566,7 +566,7 @@ void Arm64Jit::Comp_ReplacementFunc(MIPSOpcode op)
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
 			LoadStaticRegisters();
-			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(PMemory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			ApplyRoundingMode();
 			LoadStaticRegisters();

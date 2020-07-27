@@ -28,7 +28,7 @@
 
 // TODO: Enable on more platforms. Make optional.
 
-Discord g_Discord;
+PDiscord g_Discord;
 
 static const char *ppsspp_app_id = "423397985041383434";
 
@@ -39,17 +39,17 @@ static void handleDiscordError(int errCode, const char *message) {
 }
 #endif
 
-Discord::~Discord() {
+PDiscord::~PDiscord() {
 	if (initialized_) {
 		ERROR_LOG(SYSTEM, "Discord destructor running though g_Discord.Shutdown() has not been called.");
 	}
 }
 
-bool Discord::IsEnabled() const {
+bool PDiscord::IsEnabled() const {
 	return g_Config.bDiscordPresence;
 }
 
-void Discord::Init() {
+void PDiscord::Init() {
 	assert(IsEnabled());
 	assert(!initialized_);
 
@@ -63,7 +63,7 @@ void Discord::Init() {
 	initialized_ = true;
 }
 
-void Discord::Shutdown() {
+void PDiscord::Shutdown() {
 	if (initialized_) {
 #ifdef ENABLE_DISCORD
 		Discord_Shutdown();
@@ -72,7 +72,7 @@ void Discord::Shutdown() {
 	}
 }
 
-void Discord::Update() {
+void PDiscord::Update() {
 	if (!IsEnabled()) {
 		if (initialized_) {
 			Shutdown();
@@ -92,7 +92,7 @@ void Discord::Update() {
 #endif
 }
 
-void Discord::SetPresenceGame(const char *gameTitle) {
+void PDiscord::SetPresenceGame(const char *gameTitle) {
 	if (!IsEnabled())
 		return;
 	
@@ -118,7 +118,7 @@ void Discord::SetPresenceGame(const char *gameTitle) {
 #endif
 }
 
-void Discord::SetPresenceMenu() {
+void PDiscord::SetPresenceMenu() {
 	if (!IsEnabled())
 		return;
 
@@ -143,7 +143,7 @@ void Discord::SetPresenceMenu() {
 #endif
 }
 
-void Discord::ClearPresence() {
+void PDiscord::ClearPresence() {
 	if (!IsEnabled() || !initialized_)
 		return;
 

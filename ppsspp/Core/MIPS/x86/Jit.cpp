@@ -318,7 +318,7 @@ u32 Jit::GetCompilerPC() {
 }
 
 MIPSOpcode Jit::GetOffsetInstruction(int offset) {
-	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
+	return PMemory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
@@ -354,7 +354,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 		// Jit breakpoints are quite fast, so let's do them in release too.
 		CheckJitBreakpoint(GetCompilerPC(), 0);
 
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
+		MIPSOpcode inst = PMemory::Read_Opcode_JIT(GetCompilerPC());
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst, this);
@@ -581,7 +581,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op) {
 
 	// Hack for old savestates: Avoid stack overflow (MIPSCompileOp/CompReplacementFunc)
 	// Not sure about the cause.
-	Memory::Opcode origInstruction = Memory::Read_Instruction(GetCompilerPC(), true);
+	PMemory::Opcode origInstruction = PMemory::Read_Instruction(GetCompilerPC(), true);
 	if (origInstruction.encoding == op.encoding) {
 		ERROR_LOG(HLE, "Replacement broken (savestate problem?): %08x", op.encoding);
 		return;
@@ -615,7 +615,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op) {
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true), this);
+			MIPSCompileOp(PMemory::Read_Instruction(GetCompilerPC(), true), this);
 		} else {
 			MOV(32, R(ECX), MIPSSTATE_VAR(r[MIPS_REG_RA]));
 			SUB(32, MIPSSTATE_VAR(downcount), R(EAX));
@@ -665,7 +665,7 @@ static void HitInvalidBranch(uint32_t dest) {
 void Jit::WriteExit(u32 destination, int exit_num) {
 	_dbg_assert_msg_(exit_num < MAX_JIT_BLOCK_EXITS, "Expected a valid exit_num");
 
-	if (!Memory::IsValidAddress(destination)) {
+	if (!PMemory::IsValidAddress(destination)) {
 		ERROR_LOG_REPORT(JIT, "Trying to write block exit to illegal destination %08x: pc = %08x", destination, currentMIPS->pc);
 		MOV(32, MIPSSTATE_VAR(pc), Imm32(GetCompilerPC()));
 		ABI_CallFunctionC(&HitInvalidBranch, destination);
@@ -755,7 +755,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 		SetJumpTarget(tooLow);
 		SetJumpTarget(tooHigh);
 
-		ABI_CallFunctionA((const void *)&Memory::IsValidAddress, R(reg));
+		ABI_CallFunctionA((const void *)&PMemory::IsValidAddress, R(reg));
 
 		// If we're ignoring, coreState didn't trip - so trip it now.
 		CMP(32, R(EAX), Imm32(0));

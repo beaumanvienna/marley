@@ -83,7 +83,7 @@ VulkanContext::VulkanContext() {
 }
 
 VkResult VulkanContext::CreateInstance(const CreateInfo &info) {
-	if (!vkCreateInstance) {
+	if (!PvkCreateInstance) {
 		init_error_ = "Vulkan not loaded - can't create instance";
 		return VK_ERROR_INITIALIZATION_FAILED;
 	}
@@ -176,7 +176,7 @@ VkResult VulkanContext::CreateInstance(const CreateInfo &info) {
 #if SIMULATE_VULKAN_FAILURE == 2
 	VkResult res = VK_ERROR_INCOMPATIBLE_DRIVER;
 #else
-	VkResult res = vkCreateInstance(&inst_info, nullptr, &instance_);
+	VkResult res = PvkCreateInstance(&inst_info, nullptr, &instance_);
 #endif
 	if (res != VK_SUCCESS) {
 		if (res == VK_ERROR_LAYER_NOT_PRESENT) {
@@ -186,7 +186,7 @@ VkResult VulkanContext::CreateInstance(const CreateInfo &info) {
 			device_layer_names_.clear();
 			inst_info.enabledLayerCount = 0;
 			inst_info.ppEnabledLayerNames = nullptr;
-			res = vkCreateInstance(&inst_info, nullptr, &instance_);
+			res = PvkCreateInstance(&inst_info, nullptr, &instance_);
 			if (res != VK_SUCCESS)
 				ELOG("Failed to create instance even without validation: %d", res);
 		} else {

@@ -51,14 +51,14 @@ int PSPMsgDialog::Init(unsigned int paramAddr) {
 	}
 
 	messageDialogAddr = paramAddr;
-	if (!Memory::IsValidAddress(messageDialogAddr))
+	if (!PMemory::IsValidAddress(messageDialogAddr))
 	{
 		return 0;
 	}
-	int size = Memory::Read_U32(paramAddr);
+	int size = PMemory::Read_U32(paramAddr);
 	memset(&messageDialog,0,sizeof(messageDialog));
 	// Only copy the right size to support different request format
-	Memory::Memcpy(&messageDialog,paramAddr,size);
+	PMemory::Memcpy(&messageDialog,paramAddr,size);
 
 	// debug info
 	int optionsNotCoded = messageDialog.options & ~SCE_UTILITY_MSGDIALOG_OPTION_SUPPORTED;
@@ -343,7 +343,7 @@ int PSPMsgDialog::Update(int animSpeed) {
 		messageDialog.result = 0;
 	}
 
-	Memory::Memcpy(messageDialogAddr, &messageDialog ,messageDialog.common.size);
+	PMemory::Memcpy(messageDialogAddr, &messageDialog ,messageDialog.common.size);
 	return 0;
 }
 

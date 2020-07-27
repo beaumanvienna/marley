@@ -93,30 +93,30 @@ struct Mbx : public KernelObject
 	inline void AddInitialMessage(u32 ptr)
 	{
 		nmb.numMessages++;
-		Memory::Write_U32(ptr, ptr);
+		PMemory::Write_U32(ptr, ptr);
 		nmb.packetListHead = ptr;
 	}
 
 	inline void AddFirstMessage(u32 endPtr, u32 ptr)
 	{
 		nmb.numMessages++;
-		Memory::Write_U32(nmb.packetListHead, ptr);
-		Memory::Write_U32(ptr, endPtr);
+		PMemory::Write_U32(nmb.packetListHead, ptr);
+		PMemory::Write_U32(ptr, endPtr);
 		nmb.packetListHead = ptr;
 	}
 
 	inline void AddLastMessage(u32 endPtr, u32 ptr)
 	{
 		nmb.numMessages++;
-		Memory::Write_U32(ptr, endPtr);
-		Memory::Write_U32(nmb.packetListHead, ptr);
+		PMemory::Write_U32(ptr, endPtr);
+		PMemory::Write_U32(nmb.packetListHead, ptr);
 	}
 
 	inline void AddMessage(u32 beforePtr, u32 afterPtr, u32 ptr)
 	{
 		nmb.numMessages++;
-		Memory::Write_U32(afterPtr, ptr);
-		Memory::Write_U32(ptr, beforePtr);
+		PMemory::Write_U32(afterPtr, ptr);
+		PMemory::Write_U32(ptr, beforePtr);
 	}
 
 	int ReceiveMessage(u32 receivePtr)
@@ -127,15 +127,15 @@ struct Mbx : public KernelObject
 		int c = 0;
 		while (true)
 		{
-			u32 next = Memory::Read_U32(nmb.packetListHead);
-			if (!Memory::IsValidAddress(next))
+			u32 next = PMemory::Read_U32(nmb.packetListHead);
+			if (!PMemory::IsValidAddress(next))
 				return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 			if (next == ptr)
 			{
 				if (nmb.packetListHead != ptr)
 				{
-					next = Memory::Read_U32(next);
-					Memory::Write_U32(next, nmb.packetListHead);
+					next = PMemory::Read_U32(next);
+					PMemory::Write_U32(next, nmb.packetListHead);
 					nmb.packetListHead = next;
 					break;
 				}
@@ -154,7 +154,7 @@ struct Mbx : public KernelObject
 		}
 
 		// Tell the receiver about the message.
-		Memory::Write_U32(ptr, receivePtr);
+		PMemory::Write_U32(ptr, receivePtr);
 		nmb.numMessages--;
 
 		return 0;
@@ -184,7 +184,7 @@ void __KernelMbxEndCallback(SceUID threadID, SceUID prevCallbackId);
 
 void __KernelMbxInit()
 {
-	mbxWaitTimer = CoreTiming::RegisterEvent("MbxTimeout", __KernelMbxTimeout);
+	mbxWaitTimer = PCoreTiming::RegisterEvent("MbxTimeout", __KernelMbxTimeout);
 	__KernelRegisterWaitTypeFuncs(WAITTYPE_MBX, __KernelMbxBeginCallback, __KernelMbxEndCallback);
 }
 
@@ -195,7 +195,7 @@ void __KernelMbxDoState(PointerWrap &p)
 		return;
 
 	p.Do(mbxWaitTimer);
-	CoreTiming::RestoreRegisterEvent(mbxWaitTimer, "MbxTimeout", __KernelMbxTimeout);
+	PCoreTiming::RestoreRegisterEvent(mbxWaitTimer, "MbxTimeout", __KernelMbxTimeout);
 }
 
 KernelObject *__KernelMbxObject()
@@ -212,8 +212,8 @@ static bool __KernelUnlockMbxForThread(Mbx *m, MbxWaitingThread &th, u32 &error,
 	if (timeoutPtr != 0 && mbxWaitTimer != -1)
 	{
 		// Remove any event for this thread.
-		s64 cyclesLeft = CoreTiming::UnscheduleEvent(mbxWaitTimer, th.threadID);
-		Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+		s64 cyclesLeft = PCoreTiming::UnscheduleEvent(mbxWaitTimer, th.threadID);
+		PMemory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 	}
 
 	__KernelResumeThreadFromWait(th.threadID, result);
@@ -260,7 +260,7 @@ static void __KernelWaitMbx(Mbx *m, u32 timeoutPtr)
 	if (timeoutPtr == 0 || mbxWaitTimer == -1)
 		return;
 
-	int micro = (int) Memory::Read_U32(timeoutPtr);
+	int micro = (int) PMemory::Read_U32(timeoutPtr);
 
 	// This seems to match the actual timing.
 	if (micro <= 2)
@@ -269,7 +269,7 @@ static void __KernelWaitMbx(Mbx *m, u32 timeoutPtr)
 		micro = 250;
 
 	// This should call __KernelMbxTimeout() later, unless we cancel it.
-	CoreTiming::ScheduleEvent(usToCycles(micro), mbxWaitTimer, __KernelGetCurThread());
+	PCoreTiming::ScheduleEvent(usToCycles(micro), mbxWaitTimer, __KernelGetCurThread());
 }
 
 static std::vector<MbxWaitingThread>::iterator __KernelMbxFindPriority(std::vector<MbxWaitingThread> &waiting)
@@ -321,7 +321,7 @@ SceUID sceKernelCreateMbx(const char *name, u32 attr, u32 optAddr)
 
 	if (optAddr != 0)
 	{
-		u32 size = Memory::Read_U32(optAddr);
+		u32 size = PMemory::Read_U32(optAddr);
 		if (size > 4)
 			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMbx(%s) unsupported options parameter, size = %d", name, size);
 	}
@@ -364,7 +364,7 @@ int sceKernelSendMbx(SceUID id, u32 packetAddr)
 		return error;
 	}
 
-	NativeMbxPacket *addPacket = (NativeMbxPacket*)Memory::GetPointer(packetAddr);
+	NativeMbxPacket *addPacket = (NativeMbxPacket*)PMemory::GetPointer(packetAddr);
 	if (addPacket == 0)
 	{
 		ERROR_LOG(SCEKERNEL, "sceKernelSendMbx(%i, %08x): invalid packet address", id, packetAddr);
@@ -391,7 +391,7 @@ int sceKernelSendMbx(SceUID id, u32 packetAddr)
 			if (wokeThreads)
 			{
 				DEBUG_LOG(SCEKERNEL, "sceKernelSendMbx(%i, %08x): threads waiting, resuming %d", id, packetAddr, t.threadID);
-				Memory::Write_U32(packetAddr, t.packetAddr);
+				PMemory::Write_U32(packetAddr, t.packetAddr);
 				hleReSchedule("mbx sent");
 
 				// We don't need to do anything else, finish here.
@@ -411,11 +411,11 @@ int sceKernelSendMbx(SceUID id, u32 packetAddr)
 		{
 			if (next == packetAddr)
 				return PSP_MBX_ERROR_DUPLICATE_MSG;
-			if (!Memory::IsValidAddress(next))
+			if (!PMemory::IsValidAddress(next))
 				return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 
 			prev = next;
-			next = Memory::Read_U32(next);
+			next = PMemory::Read_U32(next);
 		}
 
 		bool inserted = false;
@@ -424,7 +424,7 @@ int sceKernelSendMbx(SceUID id, u32 packetAddr)
 			NativeMbxPacket p;
 			for (int i = 0, n = m->nmb.numMessages; i < n; i++)
 			{
-				Memory::ReadStructUnchecked<NativeMbxPacket>(next, &p);
+				PMemory::ReadStructUnchecked<NativeMbxPacket>(next, &p);
 				if (addPacket->priority < p.priority)
 				{
 					if (i == 0)
@@ -436,7 +436,7 @@ int sceKernelSendMbx(SceUID id, u32 packetAddr)
 				}
 
 				prev = next;
-				next = Memory::Read_U32(next);
+				next = PMemory::Read_U32(next);
 			}
 		}
 		if (!inserted)
@@ -547,7 +547,7 @@ int sceKernelCancelReceiveMbx(SceUID id, u32 numWaitingThreadsAddr)
 		hleReSchedule("mbx canceled");
 
 	if (numWaitingThreadsAddr)
-		Memory::Write_U32(count, numWaitingThreadsAddr);
+		PMemory::Write_U32(count, numWaitingThreadsAddr);
 	return 0;
 }
 
@@ -562,19 +562,19 @@ int sceKernelReferMbxStatus(SceUID id, u32 infoAddr)
 	}
 
 	// Should we crash the thread somehow?
-	if (!Memory::IsValidAddress(infoAddr))
+	if (!PMemory::IsValidAddress(infoAddr))
 		return -1;
 
 	for (int i = 0, n = m->nmb.numMessages; i < n; ++i)
-		m->nmb.packetListHead = Memory::Read_U32(m->nmb.packetListHead);
+		m->nmb.packetListHead = PMemory::Read_U32(m->nmb.packetListHead);
 
 	HLEKernel::CleanupWaitingThreads(WAITTYPE_MBX, id, m->waitingThreads);
 
 	// For whatever reason, it won't write if the size (first member) is 0.
-	if (Memory::Read_U32(infoAddr) != 0)
+	if (PMemory::Read_U32(infoAddr) != 0)
 	{
 		m->nmb.numWaitThreads = (int) m->waitingThreads.size();
-		Memory::WriteStruct<NativeMbx>(infoAddr, &m->nmb);
+		PMemory::WriteStruct<NativeMbx>(infoAddr, &m->nmb);
 	}
 
 	return 0;

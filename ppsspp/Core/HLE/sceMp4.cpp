@@ -211,19 +211,19 @@ static u32 sceAacExit(u32 id)
 static u32 sceAacInit(u32 id)
 {
 	INFO_LOG(ME, "UNIMPL sceAacInit(%08x)", id);
-	if (!Memory::IsValidAddress(id)){
+	if (!PMemory::IsValidAddress(id)){
 		ERROR_LOG(ME, "sceAacInit() AAC Invalid id address %08x", id);
 		return ERROR_AAC_INVALID_ADDRESS;
 	}
 
 	AuCtx *aac = new AuCtx();
-	aac->startPos = Memory::Read_U64(id);				// Audio stream start position.
-	aac->endPos = Memory::Read_U32(id + 8);				// Audio stream end position.
-	aac->AuBuf = Memory::Read_U32(id + 16);             // Input AAC data buffer.	
-	aac->AuBufSize = Memory::Read_U32(id + 20);         // Input AAC data buffer size.
-	aac->PCMBuf = Memory::Read_U32(id + 24);            // Output PCM data buffer.
-	aac->PCMBufSize = Memory::Read_U32(id + 28);        // Output PCM data buffer size.
-	aac->freq = Memory::Read_U32(id + 32);              // Frequency.
+	aac->startPos = PMemory::Read_U64(id);				// Audio stream start position.
+	aac->endPos = PMemory::Read_U32(id + 8);				// Audio stream end position.
+	aac->AuBuf = PMemory::Read_U32(id + 16);             // Input AAC data buffer.	
+	aac->AuBufSize = PMemory::Read_U32(id + 20);         // Input AAC data buffer size.
+	aac->PCMBuf = PMemory::Read_U32(id + 24);            // Output PCM data buffer.
+	aac->PCMBufSize = PMemory::Read_U32(id + 28);        // Output PCM data buffer size.
+	aac->freq = PMemory::Read_U32(id + 32);              // Frequency.
 	if (aac->AuBuf == 0 || aac->PCMBuf == 0) {
 		ERROR_LOG(ME, "sceAacInit() AAC INVALID ADDRESS AuBuf %08x PCMBuf %08x", aac->AuBuf, aac->PCMBuf);
 		delete aac;

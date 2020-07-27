@@ -32,11 +32,11 @@ HLEHelperThread::HLEHelperThread(const char *threadName, u32 instructions[], u32
 	u32 instrBytes = instrCount * sizeof(u32);
 	u32 totalBytes = instrBytes + sizeof(u32) * 2;
 	AllocEntry(totalBytes);
-	Memory::Memcpy(entry_, instructions, instrBytes);
+	PMemory::Memcpy(entry_, instructions, instrBytes);
 
 	// Just to simplify things, we add the return here.
-	Memory::Write_U32(MIPS_MAKE_JR_RA(), entry_ + instrBytes + 0);
-	Memory::Write_U32(MIPS_MAKE_NOP(), entry_ + instrBytes + 4);
+	PMemory::Write_U32(MIPS_MAKE_JR_RA(), entry_ + instrBytes + 0);
+	PMemory::Write_U32(MIPS_MAKE_NOP(), entry_ + instrBytes + 4);
 
 	Create(threadName, prio, stacksize);
 }
@@ -44,8 +44,8 @@ HLEHelperThread::HLEHelperThread(const char *threadName, u32 instructions[], u32
 HLEHelperThread::HLEHelperThread(const char *threadName, const char *module, const char *func, u32 prio, int stacksize) {
 	const u32 bytes = sizeof(u32) * 2;
 	AllocEntry(bytes);
-	Memory::Write_U32(MIPS_MAKE_JR_RA(), entry_ + 0);
-	Memory::Write_U32(MIPS_MAKE_SYSCALL(module, func), entry_ + 4);
+	PMemory::Write_U32(MIPS_MAKE_JR_RA(), entry_ + 0);
+	PMemory::Write_U32(MIPS_MAKE_SYSCALL(module, func), entry_ + 4);
 
 	Create(threadName, prio, stacksize);
 }
@@ -59,7 +59,7 @@ HLEHelperThread::~HLEHelperThread() {
 
 void HLEHelperThread::AllocEntry(u32 size) {
 	entry_ = kernelMemory.Alloc(size);
-	Memory::Memset(entry_, 0, size);
+	PMemory::Memset(entry_, 0, size);
 	currentMIPS->InvalidateICache(entry_, size);
 }
 

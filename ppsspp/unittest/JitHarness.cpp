@@ -85,13 +85,13 @@ static void SetupJitHarness() {
 
 	Memory::Init();
 	mipsr4k.Reset();
-	CoreTiming::Init();
+	PCoreTiming::Init();
 }
 
 static void DestroyJitHarness() {
 	// Clear our custom module out to be safe.
 	HLEShutdown();
-	CoreTiming::Shutdown();
+	PCoreTiming::Shutdown();
 	mipsr4k.Shutdown();
 	Memory::Shutdown();
 	coreState = CORE_POWERDOWN;

@@ -45,9 +45,9 @@ enum KnownElfTypes {
 
 typedef int SectionID;
 
-class ElfReader {
+class PElfReader {
 public:
-	ElfReader(const void *ptr, size_t size) {
+	PElfReader(const void *ptr, size_t size) {
 		base = (const char*)ptr;
 		base32 = (const u32 *)ptr;
 		header = (const Elf32_Ehdr*)ptr;
@@ -56,7 +56,7 @@ public:
 		size_ = size;
 	}
 
-	~ElfReader() {
+	~PElfReader() {
 		delete[] sectionOffsets;
 		delete[] sectionAddrs;
 	}

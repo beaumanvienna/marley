@@ -294,7 +294,7 @@ void IRFrontend::Comp_Jump(MIPSOpcode op) {
 	u32 targetAddr = (GetCompilerPC() & 0xF0000000) | off;
 
 	// Might be a stubbed address or something?
-	if (!Memory::IsValidAddress(targetAddr)) {
+	if (!PMemory::IsValidAddress(targetAddr)) {
 		// If preloading, flush - this block will likely be fixed later.
 		if (js.preloading)
 			js.cancel = true;

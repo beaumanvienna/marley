@@ -489,7 +489,7 @@ public:
 
 	FontLib(u32 paramPtr, u32 errorCodePtr) : fontHRes_(128.0f), fontVRes_(128.0f), altCharCode_(0x5F), charInfoBitmapAddress_(0) {
 		nfl_ = 0;
-		Memory::ReadStruct(paramPtr, &params_);
+		PMemory::ReadStruct(paramPtr, &params_);
 		if (params_.numFonts > 9) {
 			params_.numFonts = 9;
 		}
@@ -729,7 +729,7 @@ void PostAllocCallback::run(MipsCall &call) {
 	if (v0 == 0) {
 		// TODO: Who deletes fontLib?
 		if (errorCodePtr_)
-			Memory::Write_U32(ERROR_FONT_OUT_OF_MEMORY, errorCodePtr_);
+			PMemory::Write_U32(ERROR_FONT_OUT_OF_MEMORY, errorCodePtr_);
 		call.setReturnValue(0);
 	} else {
 		FontLib *fontLib = fontLibList[fontLibID_];
@@ -949,7 +949,7 @@ static u32 sceFontNewLib(u32 paramPtr, u32 errorCodePtr) {
 		// The PSP would crash in this situation, not a real error code.
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
-	if (!Memory::IsValidAddress(params->allocFuncAddr) || !Memory::IsValidAddress(params->freeFuncAddr)) {
+	if (!PMemory::IsValidAddress(params->allocFuncAddr) || !PMemory::IsValidAddress(params->freeFuncAddr)) {
 		ERROR_LOG_REPORT(SCEFONT, "sceFontNewLib(%08x, %08x): missing alloc func", paramPtr, errorCodePtr);
 		*errorCode = ERROR_FONT_INVALID_PARAMETER;
 		return 0;
@@ -1012,7 +1012,7 @@ static u32 sceFontOpenUserMemory(u32 libHandle, u32 memoryFontAddrPtr, u32 memor
 		ERROR_LOG_REPORT(SCEFONT, "sceFontOpenUserMemory(%08x, %08x, %08x, %08x): invalid error address", libHandle, memoryFontAddrPtr, memoryFontLength, errorCodePtr);
 		return -1;
 	}
-	if (!Memory::IsValidAddress(memoryFontAddrPtr)) {
+	if (!PMemory::IsValidAddress(memoryFontAddrPtr)) {
 		ERROR_LOG_REPORT(SCEFONT, "sceFontOpenUserMemory(%08x, %08x, %08x, %08x): invalid address", libHandle, memoryFontAddrPtr, memoryFontLength, errorCodePtr);
 		*errorCode = ERROR_FONT_INVALID_PARAMETER;
 		return 0;
@@ -1031,12 +1031,12 @@ static u32 sceFontOpenUserMemory(u32 libHandle, u32 memoryFontAddrPtr, u32 memor
 	}
 
 	DEBUG_LOG(SCEFONT, "sceFontOpenUserMemory(%08x, %08x, %08x, %08x)", libHandle, memoryFontAddrPtr, memoryFontLength, errorCodePtr);
-	const u8 *fontData = Memory::GetPointer(memoryFontAddrPtr);
+	const u8 *fontData = PMemory::GetPointer(memoryFontAddrPtr);
 	// Games are able to overstate the size of a font.  Let's avoid crashing when we memcpy() it.
 	// Unsigned 0xFFFFFFFF is treated as max, but that's impossible, so let's clamp to 64MB.
 	if (memoryFontLength > 0x03FFFFFF)
 		memoryFontLength = 0x03FFFFFF;
-	while (!Memory::IsValidAddress(memoryFontAddrPtr + memoryFontLength - 1)) {
+	while (!PMemory::IsValidAddress(memoryFontAddrPtr + memoryFontLength - 1)) {
 		--memoryFontLength;
 	}
 	Font *f = new Font(fontData, memoryFontLength);
@@ -1125,7 +1125,7 @@ static int sceFontFindOptimumFont(u32 libHandle, u32 fontStylePtr, u32 errorCode
 		return 0;
 	}
 
-	if (!Memory::IsValidAddress(fontStylePtr)) {
+	if (!PMemory::IsValidAddress(fontStylePtr)) {
 		ERROR_LOG_REPORT(SCEFONT, "sceFontFindOptimumFont(%08x, %08x, %08x): invalid style address", libHandle, fontStylePtr, errorCodePtr);
 		// Yes, actually.  Must've been a typo in the library.
 		*errorCode = ERROR_FONT_INVALID_LIBID;
@@ -1193,7 +1193,7 @@ static int sceFontFindFont(u32 libHandle, u32 fontStylePtr, u32 errorCodePtr) {
 		return 0;
 	}
 
-	if (!Memory::IsValidAddress(fontStylePtr)) {
+	if (!PMemory::IsValidAddress(fontStylePtr)) {
 		ERROR_LOG_REPORT(SCEFONT, "sceFontFindFont(%08x, %08x, %08x): invalid style address", libHandle, fontStylePtr, errorCodePtr);
 		*errorCode = ERROR_FONT_INVALID_PARAMETER;
 		return 0;
@@ -1228,7 +1228,7 @@ static int sceFontFindFont(u32 libHandle, u32 fontStylePtr, u32 errorCodePtr) {
 }
 
 static int sceFontGetFontInfo(u32 fontHandle, u32 fontInfoPtr) {
-	if (!Memory::IsValidAddress(fontInfoPtr)) {
+	if (!PMemory::IsValidAddress(fontInfoPtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetFontInfo(%x, %x): bad fontInfo pointer", fontHandle, fontInfoPtr);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1272,7 +1272,7 @@ static int sceFontGetFontInfoByIndexNumber(u32 libHandle, u32 fontInfoPtr, u32 i
 
 static int sceFontGetCharInfo(u32 fontHandle, u32 charCode, u32 charInfoPtr) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(charInfoPtr)) {
+	if (!PMemory::IsValidAddress(charInfoPtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetCharInfo(%08x, %i, %08x): bad charInfo pointer", fontHandle, charCode, charInfoPtr);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1313,7 +1313,7 @@ static int sceFontGetCharInfo(u32 fontHandle, u32 charCode, u32 charInfoPtr) {
 
 static int sceFontGetShadowInfo(u32 fontHandle, u32 charCode, u32 charInfoPtr) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(charInfoPtr)) {
+	if (!PMemory::IsValidAddress(charInfoPtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetShadowInfo(%08x, %i, %08x): bad charInfo pointer", fontHandle, charCode, charInfoPtr);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1374,7 +1374,7 @@ static int sceFontGetShadowImageRect(u32 fontHandle, u32 charCode, u32 charRectP
 
 static int sceFontGetCharGlyphImage(u32 fontHandle, u32 charCode, u32 glyphImagePtr) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(glyphImagePtr)) {
+	if (!PMemory::IsValidAddress(glyphImagePtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetCharGlyphImage(%x, %x, %x): bad glyphImage pointer", fontHandle, charCode, glyphImagePtr);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1392,7 +1392,7 @@ static int sceFontGetCharGlyphImage(u32 fontHandle, u32 charCode, u32 glyphImage
 
 static int sceFontGetCharGlyphImage_Clip(u32 fontHandle, u32 charCode, u32 glyphImagePtr, int clipXPos, int clipYPos, int clipWidth, int clipHeight) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(glyphImagePtr)) {
+	if (!PMemory::IsValidAddress(glyphImagePtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetCharGlyphImage_Clip(%08x, %i, %08x, %i, %i, %i, %i): bad glyphImage pointer", fontHandle, charCode, glyphImagePtr, clipXPos, clipYPos, clipWidth, clipHeight);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1566,7 +1566,7 @@ static int sceFontCalcMemorySize() {
 
 static int sceFontGetShadowGlyphImage(u32 fontHandle, u32 charCode, u32 glyphImagePtr) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(glyphImagePtr)) {
+	if (!PMemory::IsValidAddress(glyphImagePtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetShadowGlyphImage(%x, %x, %x): bad glyphImage pointer", fontHandle, charCode, glyphImagePtr);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}
@@ -1584,7 +1584,7 @@ static int sceFontGetShadowGlyphImage(u32 fontHandle, u32 charCode, u32 glyphIma
 
 static int sceFontGetShadowGlyphImage_Clip(u32 fontHandle, u32 charCode, u32 glyphImagePtr, int clipXPos, int clipYPos, int clipWidth, int clipHeight) {
 	charCode &= 0xffff;
-	if (!Memory::IsValidAddress(glyphImagePtr)) {
+	if (!PMemory::IsValidAddress(glyphImagePtr)) {
 		ERROR_LOG(SCEFONT, "sceFontGetShadowGlyphImage_Clip(%08x, %i, %08x, %i, %i, %i, %i): bad glyphImage pointer", fontHandle, charCode, glyphImagePtr, clipXPos, clipYPos, clipWidth, clipHeight);
 		return ERROR_FONT_INVALID_PARAMETER;
 	}

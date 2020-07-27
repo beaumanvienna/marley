@@ -53,8 +53,8 @@ static int sceUsbGpsGetInitDataLocation(u32 addr) {
 }
 
 static int sceUsbGpsGetState(u32 stateAddr) {
-	if (Memory::IsValidAddress(stateAddr)) {
-		Memory::Write_U32(gpsStatus, stateAddr);
+	if (PMemory::IsValidAddress(stateAddr)) {
+		PMemory::Write_U32(gpsStatus, stateAddr);
 	}
 	return 0;
 }
@@ -75,11 +75,11 @@ static int sceUsbGpsClose() {
 }
 
 static int sceUsbGpsGetData(u32 gpsDataAddr, u32 satDataAddr) {
-	if (Memory::IsValidRange(gpsDataAddr, sizeof(GpsData))) {
-		Memory::WriteStruct(gpsDataAddr, GPS::getGpsData());
+	if (PMemory::IsValidRange(gpsDataAddr, sizeof(GpsData))) {
+		PMemory::WriteStruct(gpsDataAddr, GPS::getGpsData());
 	}
-	if (Memory::IsValidRange(satDataAddr, sizeof(SatData))) {
-		Memory::WriteStruct(satDataAddr, GPS::getSatData());
+	if (PMemory::IsValidRange(satDataAddr, sizeof(SatData))) {
+		PMemory::WriteStruct(satDataAddr, GPS::getSatData());
 	}
 	return 0;
 }

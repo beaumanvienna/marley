@@ -41,7 +41,7 @@ DebuggerSubscriber *WebSocketMemoryInit(DebuggerEventHandlerMap &map) {
 // Response (same event name):
 //  - value: unsigned integer
 void WebSocketMemoryReadU8(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -49,13 +49,13 @@ void WebSocketMemoryReadU8(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U8(addr));
+	json.writeUint("value", PMemory::Read_U8(addr));
 }
 
 // Read two bytes from memory (memory.read_u16)
@@ -66,7 +66,7 @@ void WebSocketMemoryReadU8(DebuggerRequest &req) {
 // Response (same event name):
 //  - value: unsigned integer
 void WebSocketMemoryReadU16(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -74,13 +74,13 @@ void WebSocketMemoryReadU16(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U16(addr));
+	json.writeUint("value", PMemory::Read_U16(addr));
 }
 
 // Read four bytes from memory (memory.read_u32)
@@ -91,7 +91,7 @@ void WebSocketMemoryReadU16(DebuggerRequest &req) {
 // Response (same event name):
 //  - value: unsigned integer
 void WebSocketMemoryReadU32(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -99,13 +99,13 @@ void WebSocketMemoryReadU32(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U32(addr));
+	json.writeUint("value", PMemory::Read_U32(addr));
 }
 
 // Write a byte to memory (memory.write_u8)
@@ -117,7 +117,7 @@ void WebSocketMemoryReadU32(DebuggerRequest &req) {
 // Response (same event name):
 //  - value: new value, unsigned integer
 void WebSocketMemoryWriteU8(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr, val;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -130,14 +130,14 @@ void WebSocketMemoryWriteU8(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
-	Memory::Write_U8(val, addr);
+	PMemory::Write_U8(val, addr);
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U8(addr));
+	json.writeUint("value", PMemory::Read_U8(addr));
 }
 
 // Write two bytes to memory (memory.write_u16)
@@ -149,7 +149,7 @@ void WebSocketMemoryWriteU8(DebuggerRequest &req) {
 // Response (same event name):
 //  - value: new value, unsigned integer
 void WebSocketMemoryWriteU16(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr, val;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -162,14 +162,14 @@ void WebSocketMemoryWriteU16(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
-	Memory::Write_U16(val, addr);
+	PMemory::Write_U16(val, addr);
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U16(addr));
+	json.writeUint("value", PMemory::Read_U16(addr));
 }
 
 // Write four bytes to memory (memory.write_u32)
@@ -181,7 +181,7 @@ void WebSocketMemoryWriteU16(DebuggerRequest &req) {
 // Response (same event name):
 //  - value: new value, unsigned integer
 void WebSocketMemoryWriteU32(DebuggerRequest &req) {
-	auto memLock = Memory::Lock();
+	auto memLock = PMemory::Lock();
 	uint32_t addr, val;
 
 	if (!req.ParamU32("address", &addr, false)) {
@@ -194,12 +194,12 @@ void WebSocketMemoryWriteU32(DebuggerRequest &req) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(addr)) {
+	if (!PMemory::IsValidAddress(addr)) {
 		req.Fail("Invalid address");
 		return;
 	}
-	Memory::Write_U32(val, addr);
+	PMemory::Write_U32(val, addr);
 
 	JsonWriter &json = req.Respond();
-	json.writeUint("value", Memory::Read_U32(addr));
+	json.writeUint("value", PMemory::Read_U32(addr));
 }

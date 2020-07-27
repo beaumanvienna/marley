@@ -325,20 +325,20 @@ static int sceNetThreadAbort(SceUID thid) {
 }
 
 static u32 sceWlanGetEtherAddr(u32 addrAddr) {
-	if (!Memory::IsValidRange(addrAddr, 6)) {
+	if (!PMemory::IsValidRange(addrAddr, 6)) {
 		// More correctly, it should crash.
 		return hleLogError(SCENET, SCE_KERNEL_ERROR_ILLEGAL_ADDR, "illegal address");
 	}
 
-	u8 *addr = Memory::GetPointer(addrAddr);
+	u8 *addr = PMemory::GetPointer(addrAddr);
 	if (PPSSPP_ID > 1) {
-		Memory::Memset(addrAddr, PPSSPP_ID, 6);
+		PMemory::Memset(addrAddr, PPSSPP_ID, 6);
 	}
 	else
 	// Read MAC Address from config
 	if (!ParseMacAddress(g_Config.sMACAddress.c_str(), addr)) {
 		ERROR_LOG(SCENET, "Error parsing mac address %s", g_Config.sMACAddress.c_str());
-		Memory::Memset(addrAddr, 0, 6);
+		PMemory::Memset(addrAddr, 0, 6);
 	} else {
 		CBreakPoints::ExecMemCheck(addrAddr, true, 6, currentMIPS->pc);
 	}
@@ -362,9 +362,9 @@ static u32 sceWlanGetSwitchState() {
 static void sceNetEtherNtostr(u32 macPtr, u32 bufferPtr) {
 	DEBUG_LOG(SCENET, "sceNetEtherNtostr(%08x, %08x)", macPtr, bufferPtr);
 
-	if (Memory::IsValidAddress(bufferPtr) && Memory::IsValidAddress(macPtr)) {
-		char *buffer = (char *)Memory::GetPointer(bufferPtr);
-		const u8 *mac = Memory::GetPointer(macPtr);
+	if (PMemory::IsValidAddress(bufferPtr) && PMemory::IsValidAddress(macPtr)) {
+		char *buffer = (char *)PMemory::GetPointer(bufferPtr);
+		const u8 *mac = PMemory::GetPointer(macPtr);
 
 		// MAC address is always 6 bytes / 48 bits.
 		sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -388,9 +388,9 @@ static int hex_to_digit(int c) {
 static void sceNetEtherStrton(u32 bufferPtr, u32 macPtr) {
 	DEBUG_LOG(SCENET, "sceNetEtherStrton(%08x, %08x)", bufferPtr, macPtr);
 
-	if (Memory::IsValidAddress(bufferPtr) && Memory::IsValidAddress(macPtr)) {
-		const char *buffer = (char *)Memory::GetPointer(bufferPtr);
-		u8 *mac = Memory::GetPointer(macPtr);
+	if (PMemory::IsValidAddress(bufferPtr) && PMemory::IsValidAddress(macPtr)) {
+		const char *buffer = (char *)PMemory::GetPointer(bufferPtr);
+		u8 *mac = PMemory::GetPointer(macPtr);
 
 		// MAC address is always 6 pairs of hex digits.
 		// TODO: Funny stuff happens if it's too short.
@@ -416,7 +416,7 @@ static void sceNetEtherStrton(u32 bufferPtr, u32 macPtr) {
 			}
 		}
 
-		VERBOSE_LOG(SCENET, "sceNetEtherStrton - [%s]", mac2str((SceNetEtherAddr*)Memory::GetPointer(macPtr)).c_str());
+		VERBOSE_LOG(SCENET, "sceNetEtherStrton - [%s]", mac2str((SceNetEtherAddr*)PMemory::GetPointer(macPtr)).c_str());
 		// Seems to maybe kinda return the last value.  Probably returns void.
 		//return value;
 	}
@@ -426,8 +426,8 @@ static void sceNetEtherStrton(u32 bufferPtr, u32 macPtr) {
 // Write static data since we don't actually manage any memory for sceNet* yet.
 static int sceNetGetMallocStat(u32 statPtr) {
 	WARN_LOG(SCENET, "UNTESTED sceNetGetMallocStat(%x)", statPtr);
-	if(Memory::IsValidAddress(statPtr))
-		Memory::WriteStruct(statPtr, &netMallocStat);
+	if(PMemory::IsValidAddress(statPtr))
+		PMemory::WriteStruct(statPtr, &netMallocStat);
 	else
 		ERROR_LOG(SCENET, "UNTESTED sceNetGetMallocStat(%x): tried to request invalid address!", statPtr);
 
@@ -486,7 +486,7 @@ static u32 sceNetApctlAddHandler(u32 handlerPtr, u32 handlerArg) {
 		}
 	}
 
-	if(!foundHandler && Memory::IsValidAddress(handlerPtr)) {
+	if(!foundHandler && PMemory::IsValidAddress(handlerPtr)) {
 		if(apctlHandlers.size() >= MAX_APCTL_HANDLERS) {
 			ERROR_LOG(SCENET, "UNTESTED sceNetApctlAddHandler(%x, %x): Too many handlers", handlerPtr, handlerArg);
 			retval = ERROR_NET_ADHOCCTL_TOO_MANY_HANDLERS; // TODO: What's the proper error code for Apctl's TOO_MANY_HANDLERS?
@@ -662,8 +662,8 @@ static int sceNetUpnpGetNatInfo()
 
 static int sceNetGetDropRate(u32 dropRateAddr, u32 dropDurationAddr)
 {
-	Memory::Write_U32(netDropRate, dropRateAddr);
-	Memory::Write_U32(netDropDuration, dropDurationAddr);
+	PMemory::Write_U32(netDropRate, dropRateAddr);
+	PMemory::Write_U32(netDropDuration, dropDurationAddr);
 	return hleLogSuccessInfoI(SCENET, 0);
 }
 

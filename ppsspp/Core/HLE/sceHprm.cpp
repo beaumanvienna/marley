@@ -23,7 +23,7 @@
 
 static u32 sceHprmPeekCurrentKey(u32 keyAddress) {
 	DEBUG_LOG(HLE,"0=sceHprmPeekCurrentKey(ptr)");
-	Memory::Write_U32(0, keyAddress);
+	PMemory::Write_U32(0, keyAddress);
 	return 0;
 }
 

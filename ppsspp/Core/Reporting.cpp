@@ -390,7 +390,7 @@ namespace Reporting
 	void AddGameplayInfo(UrlEncoder &postdata)
 	{
 		// Just to get an idea of how long they played.
-		postdata.Add("ticks", (const uint64_t)CoreTiming::GetTicks());
+		postdata.Add("ticks", (const uint64_t)PCoreTiming::GetTicks());
 
 		float vps, fps;
 		__DisplayGetAveragedFPS(&vps, &fps);

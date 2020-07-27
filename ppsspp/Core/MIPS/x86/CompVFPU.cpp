@@ -248,7 +248,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 	MIPSGPReg rs = _RS;
 
 	switch (op >> 26) {
-	case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
+	case 50: //lv.s  // VI(vt) = PMemory::Read_U32(addr);
 		{
 			gpr.Lock(rs);
 			fpr.MapRegV(vt, MAP_DIRTY | MAP_NOINIT);
@@ -268,7 +268,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 		}
 		break;
 
-	case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
+	case 58: //sv.s   // PMemory::Write_U32(VI(vt), addr);
 		{
 			gpr.Lock(rs);
 
@@ -317,7 +317,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 			MOV(32, R(EAX), gpr.R(rs));
 			ADD(32, R(EAX), Imm32(imm));
 #ifdef MASKED_PSP_MEMORY
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			AND(32, R(EAX), Imm32(PMemory::MEMVIEW32_MASK));
 #endif
 			MOV(32, R(ECX), R(EAX));
 			SHR(32, R(EAX), Imm8(2));
@@ -327,7 +327,7 @@ void Jit::Comp_SVQ(MIPSOpcode op) {
 
 			auto PSPMemAddr = [](X64Reg scaled, int offset) {
 #ifdef _M_IX86
-				return MDisp(scaled, (u32)Memory::base + offset);
+				return MDisp(scaled, (u32)PMemory::base + offset);
 #else
 				return MComplex(MEMBASEREG, scaled, 1, offset);
 #endif

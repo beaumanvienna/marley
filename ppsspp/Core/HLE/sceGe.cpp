@@ -157,8 +157,8 @@ public:
 		case PSP_GE_SIGNAL_HANDLER_SUSPEND:
 			if (sceKernelGetCompiledSdkVersion() <= 0x02000010) {
 				// uofw says dl->state = endCmd & 0xFF;
-				DisplayListState newState = static_cast<DisplayListState>(Memory::ReadUnchecked_U32(intrdata.pc - 4) & 0xFF);
-				//dl->status = static_cast<DisplayListStatus>(Memory::ReadUnchecked_U32(intrdata.pc) & 0xFF);
+				DisplayListState newState = static_cast<DisplayListState>(PMemory::ReadUnchecked_U32(intrdata.pc - 4) & 0xFF);
+				//dl->status = static_cast<DisplayListStatus>(PMemory::ReadUnchecked_U32(intrdata.pc) & 0xFF);
 				//if(dl->status < 0 || dl->status > PSP_GE_LIST_PAUSED)
 				//	ERROR_LOG(SCEGE, "Weird DL status after signal suspend %x", dl->status);
 				if (newState != PSP_GE_DL_STATE_RUNNING) {
@@ -199,11 +199,11 @@ void __GeInit() {
 	ge_pending_cb.clear();
 	__RegisterIntrHandler(PSP_GE_INTR, new GeIntrHandler());
 
-	geSyncEvent = CoreTiming::RegisterEvent("GeSyncEvent", &__GeExecuteSync);
-	geInterruptEvent = CoreTiming::RegisterEvent("GeInterruptEvent", &__GeExecuteInterrupt);
+	geSyncEvent = PCoreTiming::RegisterEvent("GeSyncEvent", &__GeExecuteSync);
+	geInterruptEvent = PCoreTiming::RegisterEvent("GeInterruptEvent", &__GeExecuteInterrupt);
 
 	// Deprecated
-	geCycleEvent = CoreTiming::RegisterEvent("GeCycleEvent", &__GeCheckCycles);
+	geCycleEvent = PCoreTiming::RegisterEvent("GeCycleEvent", &__GeCheckCycles);
 
 	listWaitingThreads.clear();
 	drawWaitingThreads.clear();
@@ -230,17 +230,17 @@ void __GeDoState(PointerWrap &p) {
 		ge_pending_cb.clear();
 		for (auto it = old.begin(), end = old.end(); it != end; ++it) {
 			GeInterruptData intrdata = {it->listid, it->pc};
-			intrdata.cmd = Memory::ReadUnchecked_U32(it->pc - 4) >> 24;
+			intrdata.cmd = PMemory::ReadUnchecked_U32(it->pc - 4) >> 24;
 			ge_pending_cb.push_back(intrdata);
 		}
 	}
 
 	p.Do(geSyncEvent);
-	CoreTiming::RestoreRegisterEvent(geSyncEvent, "GeSyncEvent", &__GeExecuteSync);
+	PCoreTiming::RestoreRegisterEvent(geSyncEvent, "GeSyncEvent", &__GeExecuteSync);
 	p.Do(geInterruptEvent);
-	CoreTiming::RestoreRegisterEvent(geInterruptEvent, "GeInterruptEvent", &__GeExecuteInterrupt);
+	PCoreTiming::RestoreRegisterEvent(geInterruptEvent, "GeInterruptEvent", &__GeExecuteInterrupt);
 	p.Do(geCycleEvent);
-	CoreTiming::RestoreRegisterEvent(geCycleEvent, "GeCycleEvent", &__GeCheckCycles);
+	PCoreTiming::RestoreRegisterEvent(geCycleEvent, "GeCycleEvent", &__GeCheckCycles);
 
 	p.Do(listWaitingThreads);
 	p.Do(drawWaitingThreads);
@@ -253,13 +253,13 @@ void __GeShutdown() {
 
 bool __GeTriggerSync(GPUSyncType type, int id, u64 atTicks) {
 	u64 userdata = (u64)id << 32 | (u64)type;
-	s64 future = atTicks - CoreTiming::GetTicks();
+	s64 future = atTicks - PCoreTiming::GetTicks();
 	if (type == GPU_SYNC_DRAW) {
-		s64 left = CoreTiming::UnscheduleEvent(geSyncEvent, userdata);
+		s64 left = PCoreTiming::UnscheduleEvent(geSyncEvent, userdata);
 		if (left > future)
 			future = left;
 	}
-	CoreTiming::ScheduleEvent(future, geSyncEvent, userdata);
+	PCoreTiming::ScheduleEvent(future, geSyncEvent, userdata);
 	return true;
 }
 
@@ -267,12 +267,12 @@ bool __GeTriggerInterrupt(int listid, u32 pc, u64 atTicks) {
 	GeInterruptData intrdata;
 	intrdata.listid = listid;
 	intrdata.pc = pc;
-	intrdata.cmd = Memory::ReadUnchecked_U32(pc - 4) >> 24;
+	intrdata.cmd = PMemory::ReadUnchecked_U32(pc - 4) >> 24;
 
 	ge_pending_cb.push_back(intrdata);
 
 	u64 userdata = (u64)listid << 32 | (u64) pc;
-	CoreTiming::ScheduleEvent(atTicks - CoreTiming::GetTicks(), geInterruptEvent, userdata);
+	PCoreTiming::ScheduleEvent(atTicks - PCoreTiming::GetTicks(), geInterruptEvent, userdata);
 	return true;
 }
 
@@ -341,7 +341,7 @@ u32 sceGeListEnQueue(u32 listAddress, u32 stallAddress, int callbackId, u32 optP
 		listID = LIST_ID_MAGIC ^ listID;
 
 	hleEatCycles(490);
-	CoreTiming::ForceCheck();
+	PCoreTiming::ForceCheck();
 	return hleLogSuccessX(SCEGE, listID);
 }
 
@@ -356,7 +356,7 @@ u32 sceGeListEnQueueHead(u32 listAddress, u32 stallAddress, int callbackId, u32 
 		listID = LIST_ID_MAGIC ^ listID;
 
 	hleEatCycles(480);
-	CoreTiming::ForceCheck();
+	PCoreTiming::ForceCheck();
 	return hleLogSuccessX(SCEGE, listID);
 }
 
@@ -371,7 +371,7 @@ static int sceGeListUpdateStallAddr(u32 displayListID, u32 stallAddress) {
 	// Advance() might cause an interrupt, so defer the Advance but do it ASAP.
 	// Final Fantasy Type-0 has a graphical artifact without this (timing issue.)
 	hleEatCycles(190);
-	CoreTiming::ForceCheck();
+	PCoreTiming::ForceCheck();
 
 	DEBUG_LOG(SCEGE, "sceGeListUpdateStallAddr(dlid=%i, stalladdr=%08x)", displayListID, stallAddress);
 	return gpu->UpdateStall(LIST_ID_MAGIC ^ displayListID, stallAddress);
@@ -409,7 +409,7 @@ static int sceGeBreak(u32 mode, u32 unknownPtr) {
 		WARN_LOG_REPORT(SCEGE, "sceGeBreak(mode=%d, unknown=%08x): invalid ptr", mode, unknownPtr);
 		return SCE_KERNEL_ERROR_PRIV_REQUIRED;
 	} else if (unknownPtr != 0) {
-		WARN_LOG_REPORT(SCEGE, "sceGeBreak(mode=%d, unknown=%08x): unknown ptr (%s)", mode, unknownPtr, Memory::IsValidAddress(unknownPtr) ? "valid" : "invalid");
+		WARN_LOG_REPORT(SCEGE, "sceGeBreak(mode=%d, unknown=%08x): unknown ptr (%s)", mode, unknownPtr, PMemory::IsValidAddress(unknownPtr) ? "valid" : "invalid");
 	}
 
 	//mode => 0 : current dlist 1: all drawing
@@ -438,7 +438,7 @@ static u32 sceGeSetCallback(u32 structAddr) {
 	}
 
 	ge_used_callbacks[cbID] = true;
-	Memory::ReadStruct(structAddr, &ge_callback_data[cbID]);
+	PMemory::ReadStruct(structAddr, &ge_callback_data[cbID]);
 
 	int subIntrBase = __GeSubIntrBase(cbID);
 
@@ -489,8 +489,8 @@ u32 sceGeSaveContext(u32 ctxAddr) {
 	}
 
 	// Let's just dump gstate.
-	if (Memory::IsValidAddress(ctxAddr)) {
-		gstate.Save((u32_le *)Memory::GetPointer(ctxAddr));
+	if (PMemory::IsValidAddress(ctxAddr)) {
+		gstate.Save((u32_le *)PMemory::GetPointer(ctxAddr));
 	}
 
 	// This action should probably be pushed to the end of the queue of the display thread -
@@ -506,8 +506,8 @@ u32 sceGeRestoreContext(u32 ctxAddr) {
 		return SCE_KERNEL_ERROR_BUSY;
 	}
 
-	if (Memory::IsValidAddress(ctxAddr)) {
-		gstate.Restore((u32_le *)Memory::GetPointer(ctxAddr));
+	if (PMemory::IsValidAddress(ctxAddr)) {
+		gstate.Restore((u32_le *)PMemory::GetPointer(ctxAddr));
 	}
 
 	gpu->ReapplyGfxState();
@@ -516,12 +516,12 @@ u32 sceGeRestoreContext(u32 ctxAddr) {
 
 static void __GeCopyMatrix(u32 matrixPtr, float *mtx, u32 size) {
 	for (u32 i = 0; i < size / sizeof(float); ++i) {
-		Memory::Write_U32(toFloat24(mtx[i]), matrixPtr + i * sizeof(float));
+		PMemory::Write_U32(toFloat24(mtx[i]), matrixPtr + i * sizeof(float));
 	}
 }
 
 static int sceGeGetMtx(int type, u32 matrixPtr) {
-	if (!Memory::IsValidAddress(matrixPtr)) {
+	if (!PMemory::IsValidAddress(matrixPtr)) {
 		ERROR_LOG(SCEGE, "sceGeGetMtx(%d, %08x) - bad matrix ptr", type, matrixPtr);
 		return -1;
 	}

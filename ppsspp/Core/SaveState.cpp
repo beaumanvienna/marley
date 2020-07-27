@@ -284,7 +284,7 @@ namespace SaveState
 		}
 
 		// Gotta do CoreTiming first since we'll restore into it.
-		CoreTiming::DoState(p);
+		PCoreTiming::DoState(p);
 
 		// Memory is a bit tricky when jit is enabled, since there's emuhacks in it.
 		auto savedReplacements = SaveAndClearReplacements();
@@ -292,11 +292,11 @@ namespace SaveState
 		{
 			std::vector<u32> savedBlocks;
 			savedBlocks = MIPSComp::jit->SaveAndClearEmuHackOps();
-			Memory::DoState(p);
+			PMemory::DoState(p);
 			MIPSComp::jit->RestoreSavedEmuHackOps(savedBlocks);
 		}
 		else
-			Memory::DoState(p);
+			PMemory::DoState(p);
 		RestoreSavedReplacements(savedReplacements);
 
 		MemoryStick_DoState(p);
@@ -684,7 +684,7 @@ namespace SaveState
 
 	bool IsStale() {
 		if (saveStateGeneration >= STALE_STATE_USES) {
-			return CoreTiming::GetGlobalTimeUs() > STALE_STATE_TIME;
+			return PCoreTiming::GetGlobalTimeUs() > STALE_STATE_TIME;
 		}
 		return false;
 	}

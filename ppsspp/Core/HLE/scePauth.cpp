@@ -29,8 +29,8 @@
 
 static int scePauth_F7AA47F6(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 workArea)
 {
-	auto src = Memory::GetPointer(srcPtr);
-	auto key = Memory::GetPointer(workArea);
+	auto src = PMemory::GetPointer(srcPtr);
+	auto key = PMemory::GetPointer(workArea);
 
 	const auto decryptResult = pspDecryptPRX(src, src, srcLength, key);
 
@@ -40,14 +40,14 @@ static int scePauth_F7AA47F6(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 		return decryptResult;
 	}
 
-	Memory::Write_U32(decryptResult, destLengthPtr);
+	PMemory::Write_U32(decryptResult, destLengthPtr);
 	return 0;
 }
 
 static int scePauth_98B83B5D(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 workArea)
 {
-	auto src = Memory::GetPointer(srcPtr);
-	auto key = Memory::GetPointer(workArea);
+	auto src = PMemory::GetPointer(srcPtr);
+	auto key = PMemory::GetPointer(workArea);
 
 	const auto decryptResult = pspDecryptPRX(src, src, srcLength, key);
 
@@ -57,7 +57,7 @@ static int scePauth_98B83B5D(u32 srcPtr, int srcLength, u32 destLengthPtr, u32 w
 		return decryptResult;
 	}
 
-	Memory::Write_U32(decryptResult, destLengthPtr);
+	PMemory::Write_U32(decryptResult, destLengthPtr);
 	return 0;
 }
 

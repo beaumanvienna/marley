@@ -428,7 +428,7 @@ public:
 	bool FillStack() {
 		// Fill the stack.
 		if ((nt.attr & PSP_THREAD_ATTR_NO_FILLSTACK) == 0) {
-			Memory::Memset(currentStack.start, 0xFF, nt.stackSize);
+			PMemory::Memset(currentStack.start, 0xFF, nt.stackSize);
 		}
 		context.r[MIPS_REG_SP] = currentStack.start + nt.stackSize;
 		currentStack.end = context.r[MIPS_REG_SP];
@@ -436,14 +436,14 @@ public:
 		context.r[MIPS_REG_SP] -= 256;
 		context.r[MIPS_REG_K0] = context.r[MIPS_REG_SP];
 		u32 k0 = context.r[MIPS_REG_K0];
-		Memory::Memset(k0, 0, 0x100);
-		Memory::Write_U32(GetUID(),        k0 + 0xc0);
-		Memory::Write_U32(nt.initialStack, k0 + 0xc8);
-		Memory::Write_U32(0xffffffff,      k0 + 0xf8);
-		Memory::Write_U32(0xffffffff,      k0 + 0xfc);
+		PMemory::Memset(k0, 0, 0x100);
+		PMemory::Write_U32(GetUID(),        k0 + 0xc0);
+		PMemory::Write_U32(nt.initialStack, k0 + 0xc8);
+		PMemory::Write_U32(0xffffffff,      k0 + 0xf8);
+		PMemory::Write_U32(0xffffffff,      k0 + 0xfc);
 		// After k0 comes the arguments, which is done by sceKernelStartThread().
 
-		Memory::Write_U32(GetUID(), nt.initialStack);
+		PMemory::Write_U32(GetUID(), nt.initialStack);
 		return true;
 	}
 
@@ -452,7 +452,7 @@ public:
 			DEBUG_LOG(SCEKERNEL, "Freeing thread stack %s", nt.name);
 
 			if ((nt.attr & PSP_THREAD_ATTR_CLEAR_STACK) != 0 && nt.initialStack != 0) {
-				Memory::Memset(nt.initialStack, 0, nt.stackSize);
+				PMemory::Memset(nt.initialStack, 0, nt.stackSize);
 			}
 
 			if (nt.attr & PSP_THREAD_ATTR_KERNEL) {
@@ -477,8 +477,8 @@ public:
 		nt.stackSize = currentStack.end - currentStack.start;
 
 		// We still drop the threadID at the bottom and fill it, but there's no k0.
-		Memory::Memset(currentStack.start, 0xFF, nt.stackSize);
-		Memory::Write_U32(GetUID(), nt.initialStack);
+		PMemory::Memset(currentStack.start, 0xFF, nt.stackSize);
+		PMemory::Write_U32(GetUID(), nt.initialStack);
 		return true;
 	}
 
@@ -782,12 +782,12 @@ static void __KernelDelayEndCallback(SceUID threadID, SceUID prevCallbackId) {
 
 	// TODO: Don't wake up if __KernelCurHasReadyCallbacks()?
 
-	s64 cyclesLeft = delayDeadline - CoreTiming::GetTicks();
+	s64 cyclesLeft = delayDeadline - PCoreTiming::GetTicks();
 	if (cyclesLeft < 0)
 		__KernelResumeThreadFromWait(threadID, 0);
 	else
 	{
-		CoreTiming::ScheduleEvent(cyclesLeft, eventScheduledWakeup, __KernelGetCurThread());
+		PCoreTiming::ScheduleEvent(cyclesLeft, eventScheduledWakeup, __KernelGetCurThread());
 		DEBUG_LOG(SCEKERNEL, "sceKernelDelayThreadCB: Resuming delay after callback");
 	}
 }
@@ -833,9 +833,9 @@ static bool __KernelCheckResumeThreadEnd(PSPThread *t, SceUID waitingThreadID, u
 
 	if (t->nt.status == THREADSTATUS_DORMANT) {
 		u32 timeoutPtr = __KernelGetWaitTimeoutPtr(waitingThreadID, error);
-		s64 cyclesLeft = CoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThreadID);
+		s64 cyclesLeft = PCoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThreadID);
 		if (timeoutPtr != 0)
-			Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+			PMemory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 		s32 exitStatus = t->nt.exitStatus;
 		__KernelResumeThreadFromWait(waitingThreadID, exitStatus);
 		return true;
@@ -937,15 +937,15 @@ void __KernelThreadingInit()
 	lastSwitchCycles = 0;
 	idleThreadHackAddr = kernelMemory.Alloc(blockSize, false, "threadrethack");
 
-	Memory::Memcpy(idleThreadHackAddr, idleThreadCode, sizeof(idleThreadCode));
+	PMemory::Memcpy(idleThreadHackAddr, idleThreadCode, sizeof(idleThreadCode));
 
 	u32 pos = idleThreadHackAddr + sizeof(idleThreadCode);
 	for (size_t i = 0; i < ARRAY_SIZE(threadHacks); ++i) {
 		__KernelWriteFakeSysCall(threadHacks[i].nid, threadHacks[i].addr, pos);
 	}
 
-	eventScheduledWakeup = CoreTiming::RegisterEvent("ScheduledWakeup", &hleScheduledWakeup);
-	eventThreadEndTimeout = CoreTiming::RegisterEvent("ThreadEndTimeout", &hleThreadEndTimeout);
+	eventScheduledWakeup = PCoreTiming::RegisterEvent("ScheduledWakeup", &hleScheduledWakeup);
+	eventThreadEndTimeout = PCoreTiming::RegisterEvent("ThreadEndTimeout", &hleThreadEndTimeout);
 	actionAfterMipsCall = __KernelRegisterActionType(ActionAfterMipsCall::Create);
 	actionAfterCallback = __KernelRegisterActionType(ActionAfterCallback::Create);
 
@@ -994,9 +994,9 @@ void __KernelThreadingDoState(PointerWrap &p)
 	p.Do(threadReadyQueue);
 
 	p.Do(eventScheduledWakeup);
-	CoreTiming::RestoreRegisterEvent(eventScheduledWakeup, "ScheduledWakeup", &hleScheduledWakeup);
+	PCoreTiming::RestoreRegisterEvent(eventScheduledWakeup, "ScheduledWakeup", &hleScheduledWakeup);
 	p.Do(eventThreadEndTimeout);
-	CoreTiming::RestoreRegisterEvent(eventThreadEndTimeout, "ThreadEndTimeout", &hleThreadEndTimeout);
+	PCoreTiming::RestoreRegisterEvent(eventThreadEndTimeout, "ThreadEndTimeout", &hleThreadEndTimeout);
 	p.Do(actionAfterMipsCall);
 	__KernelRestoreActionType(actionAfterMipsCall, ActionAfterMipsCall::Create);
 	p.Do(actionAfterCallback);
@@ -1005,7 +1005,7 @@ void __KernelThreadingDoState(PointerWrap &p)
 	p.Do(pausedDelays);
 
 	__SetCurrentThread(kernelObjects.GetFast<PSPThread>(currentThread), currentThread, __KernelGetThreadName(currentThread));
-	lastSwitchCycles = CoreTiming::GetTicks();
+	lastSwitchCycles = PCoreTiming::GetTicks();
 
 	if (s >= 2)
 		p.Do(threadEventHandlers);
@@ -1144,7 +1144,7 @@ bool __KernelSwitchToThread(SceUID threadID, const char *reason)
 		if (current && current->isRunning())
 			__KernelChangeReadyState(current, currentThread, true);
 
-		if (!Memory::IsValidAddress(t->context.pc)) {
+		if (!PMemory::IsValidAddress(t->context.pc)) {
 			Core_ExecException(t->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
 		}
 
@@ -1164,7 +1164,7 @@ void __KernelIdle()
 	// Don't skip 0xDEADBEEF here, this is called directly bypassing CallSyscall().
 	// That means the hle flag would stick around until the next call.
 
-	CoreTiming::Idle();
+	PCoreTiming::Idle();
 	// We Advance within __KernelReSchedule(), so anything that has now happened after idle
 	// will be triggered properly upon reschedule.
 	__KernelReSchedule("idle");
@@ -1266,7 +1266,7 @@ u32 sceKernelReferThreadStatus(u32 threadID, u32 statusPtr)
 		return hleLogError(SCEKERNEL, error, "bad thread");
 	}
 
-	u32 wantedSize = Memory::Read_U32(statusPtr);
+	u32 wantedSize = PMemory::Read_U32(statusPtr);
 
 	if (sceKernelGetCompiledSdkVersion() > 0x02060010) {
 		if (wantedSize > THREADINFO_SIZE_AFTER_260) {
@@ -1277,15 +1277,15 @@ u32 sceKernelReferThreadStatus(u32 threadID, u32 statusPtr)
 
 		t->nt.nativeSize = THREADINFO_SIZE_AFTER_260;
 		if (wantedSize != 0)
-			Memory::Memcpy(statusPtr, &t->nt, std::min(wantedSize, (u32)sizeof(t->nt)));
+			PMemory::Memcpy(statusPtr, &t->nt, std::min(wantedSize, (u32)sizeof(t->nt)));
 		// TODO: What is this value?  Basic tests show 0...
 		if (wantedSize > sizeof(t->nt))
-			Memory::Memset(statusPtr + sizeof(t->nt), 0, wantedSize - sizeof(t->nt));
+			PMemory::Memset(statusPtr + sizeof(t->nt), 0, wantedSize - sizeof(t->nt));
 	} else {
 		t->nt.nativeSize = THREADINFO_SIZE;
 		u32 sz = std::min(THREADINFO_SIZE, wantedSize);
 		if (sz != 0)
-			Memory::Memcpy(statusPtr, &t->nt, sz);
+			PMemory::Memcpy(statusPtr, &t->nt, sz);
 	}
 
 	hleEatCycles(1400);
@@ -1308,7 +1308,7 @@ u32 sceKernelReferThreadRunStatus(u32 threadID, u32 statusPtr)
 	}
 
 	DEBUG_LOG(SCEKERNEL,"sceKernelReferThreadRunStatus(%i, %08x)", threadID, statusPtr);
-	if (!Memory::IsValidAddress(statusPtr))
+	if (!PMemory::IsValidAddress(statusPtr))
 		return -1;
 
 	auto runStatus = PSPPointer<SceKernelThreadRunStatus>::Create(statusPtr);
@@ -1391,7 +1391,7 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelGetThreadmanIdList(%i, %08x, %i, %08x): invalid size", type, readBufPtr, readBufSize, idCountPtr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
-	if (!Memory::IsValidAddress(readBufPtr) && readBufSize > 0) {
+	if (!PMemory::IsValidAddress(readBufPtr) && readBufSize > 0) {
 		// Crashes on a PSP.
 		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelGetThreadmanIdList(%i, %08x, %i, %08x): invalid pointer", type, readBufPtr, readBufSize, idCountPtr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
@@ -1440,8 +1440,8 @@ u32 sceKernelGetThreadmanIdList(u32 type, u32 readBufPtr, u32 readBufSize, u32 i
 		return SCE_KERNEL_ERROR_ILLEGAL_TYPE;
 	}
 
-	if (Memory::IsValidAddress(idCountPtr)) {
-		Memory::Write_U32(total, idCountPtr);
+	if (PMemory::IsValidAddress(idCountPtr)) {
+		PMemory::Write_U32(total, idCountPtr);
 	}
 	return total > readBufSize ? readBufSize : total;
 }
@@ -1469,7 +1469,7 @@ void __KernelLoadContext(PSPThreadContext *ctx, bool vfpuEnabled) {
 		memcpy(currentMIPS->vfpuCtrl, ctx->vfpuCtrl, sizeof(ctx->vfpuCtrl));
 	}
 
-	if (!Memory::IsValidAddress(ctx->pc)) {
+	if (!PMemory::IsValidAddress(ctx->pc)) {
 		Core_ExecException(ctx->pc, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -1576,12 +1576,12 @@ void hleScheduledWakeup(u64 userdata, int cyclesLate)
 void __KernelScheduleWakeup(SceUID threadID, s64 usFromNow)
 {
 	s64 cycles = usToCycles(usFromNow);
-	CoreTiming::ScheduleEvent(cycles, eventScheduledWakeup, threadID);
+	PCoreTiming::ScheduleEvent(cycles, eventScheduledWakeup, threadID);
 }
 
 void __KernelCancelWakeup(SceUID threadID)
 {
-	CoreTiming::UnscheduleEvent(eventScheduledWakeup, threadID);
+	PCoreTiming::UnscheduleEvent(eventScheduledWakeup, threadID);
 }
 
 void hleThreadEndTimeout(u64 userdata, int cyclesLate)
@@ -1593,12 +1593,12 @@ void hleThreadEndTimeout(u64 userdata, int cyclesLate)
 static void __KernelScheduleThreadEndTimeout(SceUID threadID, SceUID waitForID, s64 usFromNow)
 {
 	s64 cycles = usToCycles(usFromNow);
-	CoreTiming::ScheduleEvent(cycles, eventThreadEndTimeout, threadID);
+	PCoreTiming::ScheduleEvent(cycles, eventThreadEndTimeout, threadID);
 }
 
 void __KernelCancelThreadEndTimeout(SceUID threadID)
 {
-	CoreTiming::UnscheduleEvent(eventThreadEndTimeout, threadID);
+	PCoreTiming::UnscheduleEvent(eventThreadEndTimeout, threadID);
 }
 
 static void __KernelRemoveFromThreadQueue(SceUID threadID) {
@@ -1627,9 +1627,9 @@ void __KernelStopThread(SceUID threadID, int exitStatus, const char *reason)
 			u32 timeoutPtr = __KernelGetWaitTimeoutPtr(waitingThread, error);
 			if (HLEKernel::VerifyWait(waitingThread, WAITTYPE_THREADEND, threadID))
 			{
-				s64 cyclesLeft = CoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThread);
+				s64 cyclesLeft = PCoreTiming::UnscheduleEvent(eventThreadEndTimeout, waitingThread);
 				if (timeoutPtr != 0)
-					Memory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
+					PMemory::Write_U32((u32) cyclesToUs(cyclesLeft), timeoutPtr);
 
 				HLEKernel::ResumeFromWait(waitingThread, WAITTYPE_THREADEND, threadID, exitStatus);
 			}
@@ -1753,7 +1753,7 @@ void __KernelReSchedule(const char *reason)
 	__KernelCheckCallbacks();
 
 	// Execute any pending events while we're doing scheduling.
-	CoreTiming::Advance();
+	PCoreTiming::Advance();
 	if (__IsInInterrupt() || !__KernelIsDispatchEnabled()) {
 		// Threads don't get changed within interrupts or while dispatch is disabled.
 		reason = "In Interrupt Or Callback";
@@ -1922,7 +1922,7 @@ SceUID __KernelSetupRootThread(SceUID moduleID, int args, const char *argp, int 
 
 	strcpy(thread->nt.name, "root");
 
-	if (!Memory::IsValidAddress(thread->context.pc)) {
+	if (!PMemory::IsValidAddress(thread->context.pc)) {
 		Core_ExecException(thread->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -1932,7 +1932,7 @@ SceUID __KernelSetupRootThread(SceUID moduleID, int args, const char *argp, int 
 	u32 location = currentMIPS->r[MIPS_REG_SP];
 	currentMIPS->r[MIPS_REG_A1] = location;
 	if (argp)
-		Memory::Memcpy(location, argp, args);
+		PMemory::Memcpy(location, argp, args);
 	// Let's assume same as starting a new thread, 64 bytes for safety/kernel.
 	currentMIPS->r[MIPS_REG_SP] -= 64;
 
@@ -1961,7 +1961,7 @@ int __KernelCreateThread(const char *threadName, SceUID moduleID, u32 entry, u32
 		// return SCE_KERNEL_ERROR_ILLEGAL_PRIORITY;
 		prio = prio < 0x08 ? 0x08 : 0x77;
 	}
-	if (!Memory::IsValidAddress(entry)) {
+	if (!PMemory::IsValidAddress(entry)) {
 		// The PSP firmware seems to allow NULL...?
 		if (entry != 0)
 			return hleReportError(SCEKERNEL, SCE_KERNEL_ERROR_ILLEGAL_ADDR, "invalid thread entry %08x", entry);
@@ -2036,8 +2036,8 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 	}
 
 	// Now copy argument to stack.
-	if (!forceArgs && Memory::IsValidAddress(argBlockPtr))
-		Memory::Memcpy(sp, argBlockPtr, argSize);
+	if (!forceArgs && PMemory::IsValidAddress(argBlockPtr))
+		PMemory::Memcpy(sp, argBlockPtr, argSize);
 
 	// On the PSP, there's an extra 64 bytes of stack eaten after the args.
 	// This could be stack overflow safety, or just stack eaten by the kernel entry func.
@@ -2046,8 +2046,8 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 	// At the bottom of those 64 bytes, the return syscall and ra is written.
 	// Test Drive Unlimited actually depends on it being in the correct place.
 	WriteSyscall("FakeSysCalls", NID_THREADRETURN, sp);
-	Memory::Write_U32(MIPS_MAKE_B(-1), sp + 8);
-	Memory::Write_U32(MIPS_MAKE_NOP(), sp + 12);
+	PMemory::Write_U32(MIPS_MAKE_B(-1), sp + 8);
+	PMemory::Write_U32(MIPS_MAKE_NOP(), sp + 12);
 
 	// Point ra at our return stub, and start fp off matching sp.
 	startThread->context.r[MIPS_REG_RA] = sp;
@@ -2055,7 +2055,7 @@ int __KernelStartThread(SceUID threadToStartID, int argSize, u32 argBlockPtr, bo
 
 	// Smaller is better for priority.  Only switch if the new thread is better.
 	if (cur && cur->nt.currentPriority > startThread->nt.currentPriority) {
-		if (!Memory::IsValidAddress(startThread->context.pc)) {
+		if (!PMemory::IsValidAddress(startThread->context.pc)) {
 			Core_ExecException(startThread->context.pc, currentMIPS->pc, ExecExceptionType::THREAD);
 		}
 		__KernelChangeReadyState(cur, currentThread, true);
@@ -2119,7 +2119,7 @@ int sceKernelGetThreadStackFreeSize(SceUID threadID)
 	int sz = 0;
 	for (u32 offset = 0x10; offset < thread->nt.stackSize; ++offset)
 	{
-		if (Memory::Read_U8(thread->currentStack.start + offset) != 0xFF)
+		if (PMemory::Read_U8(thread->currentStack.start + offset) != 0xFF)
 			break;
 		sz++;
 	}
@@ -2640,8 +2640,8 @@ int sceKernelWaitThreadEnd(SceUID threadID, u32 timeoutPtr)
 	{
 		if (t->nt.status != THREADSTATUS_DORMANT)
 		{
-			if (Memory::IsValidAddress(timeoutPtr))
-				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory::Read_U32(timeoutPtr));
+			if (PMemory::IsValidAddress(timeoutPtr))
+				__KernelScheduleThreadEndTimeout(currentThread, threadID, PMemory::Read_U32(timeoutPtr));
 			if (std::find(t->waitingThreads.begin(), t->waitingThreads.end(), currentThread) == t->waitingThreads.end())
 				t->waitingThreads.push_back(currentThread);
 			__KernelWaitCurThread(WAITTYPE_THREADEND, threadID, 0, timeoutPtr, false, "thread wait end");
@@ -2673,8 +2673,8 @@ int sceKernelWaitThreadEndCB(SceUID threadID, u32 timeoutPtr)
 	{
 		if (t->nt.status != THREADSTATUS_DORMANT)
 		{
-			if (Memory::IsValidAddress(timeoutPtr))
-				__KernelScheduleThreadEndTimeout(currentThread, threadID, Memory::Read_U32(timeoutPtr));
+			if (PMemory::IsValidAddress(timeoutPtr))
+				__KernelScheduleThreadEndTimeout(currentThread, threadID, PMemory::Read_U32(timeoutPtr));
 			if (std::find(t->waitingThreads.begin(), t->waitingThreads.end(), currentThread) == t->waitingThreads.end())
 				t->waitingThreads.push_back(currentThread);
 			__KernelWaitCurThread(WAITTYPE_THREADEND, threadID, 0, timeoutPtr, true, "thread wait end");
@@ -2890,8 +2890,8 @@ int sceKernelReferCallbackStatus(SceUID cbId, u32 statusAddr)
 	u32 error;
 	PSPCallback *c = kernelObjects.Get<PSPCallback>(cbId, error);
 	if (c) {
-		if (Memory::IsValidAddress(statusAddr) && Memory::Read_U32(statusAddr) != 0) {
-			Memory::WriteStruct(statusAddr, &c->nc);
+		if (PMemory::IsValidAddress(statusAddr) && PMemory::Read_U32(statusAddr) != 0) {
+			PMemory::WriteStruct(statusAddr, &c->nc);
 			return hleLogSuccessI(SCEKERNEL, 0);
 		} else {
 			return hleLogDebug(SCEKERNEL, 0, "struct size was 0");
@@ -2916,11 +2916,11 @@ u32 sceKernelExtendThreadStack(u32 size, u32 entryAddr, u32 entryParameter)
 	// The stack has been changed now, so it's do or die time.
 
 	// Push the old SP, RA, and PC onto the stack (so we can restore them later.)
-	Memory::Write_U32(currentMIPS->r[MIPS_REG_RA], thread->currentStack.end - 4);
-	Memory::Write_U32(currentMIPS->r[MIPS_REG_SP], thread->currentStack.end - 8);
-	Memory::Write_U32(currentMIPS->pc, thread->currentStack.end - 12);
+	PMemory::Write_U32(currentMIPS->r[MIPS_REG_RA], thread->currentStack.end - 4);
+	PMemory::Write_U32(currentMIPS->r[MIPS_REG_SP], thread->currentStack.end - 8);
+	PMemory::Write_U32(currentMIPS->pc, thread->currentStack.end - 12);
 
-	if (!Memory::IsValidAddress(entryAddr)) {
+	if (!PMemory::IsValidAddress(entryAddr)) {
 		Core_ExecException(entryAddr, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -2946,9 +2946,9 @@ void __KernelReturnFromExtendStack()
 	}
 
 	// Grab the saved regs at the top of the stack.
-	u32 restoreRA = Memory::Read_U32(thread->currentStack.end - 4);
-	u32 restoreSP = Memory::Read_U32(thread->currentStack.end - 8);
-	u32 restorePC = Memory::Read_U32(thread->currentStack.end - 12);
+	u32 restoreRA = PMemory::Read_U32(thread->currentStack.end - 4);
+	u32 restoreSP = PMemory::Read_U32(thread->currentStack.end - 8);
+	u32 restorePC = PMemory::Read_U32(thread->currentStack.end - 12);
 
 	if (!thread->PopExtendedStack())
 	{
@@ -2956,7 +2956,7 @@ void __KernelReturnFromExtendStack()
 		return;
 	}
 
-	if (!Memory::IsValidAddress(restorePC)) {
+	if (!PMemory::IsValidAddress(restorePC)) {
 		Core_ExecException(restorePC, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -3066,7 +3066,7 @@ void __KernelSwitchContext(PSPThread *target, const char *reason) {
 #if DEBUG_LEVEL <= MAX_LOGLEVEL || DEBUG_LOG == NOTICE_LOG
 	if (!(fromIdle && toIdle))
 	{
-		u64 nowCycles = CoreTiming::GetTicks();
+		u64 nowCycles = PCoreTiming::GetTicks();
 		s64 consumedCycles = nowCycles - lastSwitchCycles;
 		lastSwitchCycles = nowCycles;
 
@@ -3219,7 +3219,7 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 
 	// Grab some MIPS stack space.
 	u32 &sp = currentMIPS->r[MIPS_REG_SP];
-	if (!Memory::IsValidAddress(sp - 32 * 4)) {
+	if (!PMemory::IsValidAddress(sp - 32 * 4)) {
 		ERROR_LOG_REPORT(SCEKERNEL, "__KernelExecuteMipsCallOnCurrentThread(): Not enough free stack");
 		return false;
 	}
@@ -3227,11 +3227,11 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 	// Let's just save regs generously.  Better to be safe.
 	sp -= 32 * 4;
 	for (int i = MIPS_REG_A0; i <= MIPS_REG_T7; ++i) {
-		Memory::Write_U32(currentMIPS->r[i], sp + i * 4);
+		PMemory::Write_U32(currentMIPS->r[i], sp + i * 4);
 	}
-	Memory::Write_U32(currentMIPS->r[MIPS_REG_T8], sp + MIPS_REG_T8 * 4);
-	Memory::Write_U32(currentMIPS->r[MIPS_REG_T9], sp + MIPS_REG_T9 * 4);
-	Memory::Write_U32(currentMIPS->r[MIPS_REG_RA], sp + MIPS_REG_RA * 4);
+	PMemory::Write_U32(currentMIPS->r[MIPS_REG_T8], sp + MIPS_REG_T8 * 4);
+	PMemory::Write_U32(currentMIPS->r[MIPS_REG_T9], sp + MIPS_REG_T9 * 4);
+	PMemory::Write_U32(currentMIPS->r[MIPS_REG_RA], sp + MIPS_REG_RA * 4);
 
 	// Save the few regs that need saving
 	call->savedPc = currentMIPS->pc;
@@ -3240,7 +3240,7 @@ bool __KernelExecuteMipsCallOnCurrentThread(u32 callId, bool reschedAfter)
 	call->savedId = cur->currentMipscallId;
 	call->reschedAfter = reschedAfter;
 
-	if (!Memory::IsValidAddress(call->entryPoint)) {
+	if (!PMemory::IsValidAddress(call->entryPoint)) {
 		Core_ExecException(call->entryPoint, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -3286,14 +3286,14 @@ void __KernelReturnFromMipsCall()
 
 	u32 &sp = currentMIPS->r[MIPS_REG_SP];
 	for (int i = MIPS_REG_A0; i <= MIPS_REG_T7; ++i) {
-		currentMIPS->r[i] = Memory::Read_U32(sp + i * 4);
+		currentMIPS->r[i] = PMemory::Read_U32(sp + i * 4);
 	}
-	currentMIPS->r[MIPS_REG_T8] = Memory::Read_U32(sp + MIPS_REG_T8 * 4);
-	currentMIPS->r[MIPS_REG_T9] = Memory::Read_U32(sp + MIPS_REG_T9 * 4);
-	currentMIPS->r[MIPS_REG_RA] = Memory::Read_U32(sp + MIPS_REG_RA * 4);
+	currentMIPS->r[MIPS_REG_T8] = PMemory::Read_U32(sp + MIPS_REG_T8 * 4);
+	currentMIPS->r[MIPS_REG_T9] = PMemory::Read_U32(sp + MIPS_REG_T9 * 4);
+	currentMIPS->r[MIPS_REG_RA] = PMemory::Read_U32(sp + MIPS_REG_RA * 4);
 	sp += 32 * 4;
 
-	if (!Memory::IsValidAddress(call->savedPc)) {
+	if (!PMemory::IsValidAddress(call->savedPc)) {
 		Core_ExecException(call->savedPc, currentMIPS->pc, ExecExceptionType::THREAD);
 	}
 
@@ -3622,28 +3622,28 @@ int LoadExecForUser_362A956B()
 		return SCE_KERNEL_ERROR_UNKNOWN_CBID;
 	}
 	int cbArg = cb->nc.commonArgument;
-	if (!Memory::IsValidAddress(cbArg)) {
+	if (!PMemory::IsValidAddress(cbArg)) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid address for cbArg (0x%08X)", cbArg);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
-	u32 unknown1 = Memory::Read_U32(cbArg - 8);
+	u32 unknown1 = PMemory::Read_U32(cbArg - 8);
 	if (unknown1 >= 4) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid value unknown1 (0x%08X)", unknown1);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
 	}
-	u32 parameterArea = Memory::Read_U32(cbArg - 4);
-	if (!Memory::IsValidAddress(parameterArea)) {
+	u32 parameterArea = PMemory::Read_U32(cbArg - 4);
+	if (!PMemory::IsValidAddress(parameterArea)) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid address for parameterArea on userMemory  (0x%08X)", parameterArea);
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDR;
 	}
 	
-	u32 size = Memory::Read_U32(parameterArea);
+	u32 size = PMemory::Read_U32(parameterArea);
 	if (size < 12) {
 		WARN_LOG(SCEKERNEL, "LoadExecForUser_362A956B() : invalid parameterArea size %d", size);
 		return SCE_KERNEL_ERROR_ILLEGAL_SIZE;
 	}
-	Memory::Write_U32(0, parameterArea + 4);
-	Memory::Write_U32(-1, parameterArea + 8);
+	PMemory::Write_U32(0, parameterArea + 4);
+	PMemory::Write_U32(-1, parameterArea + 8);
 	return 0;
 }
 
@@ -3780,8 +3780,8 @@ int sceKernelReferThreadEventHandlerStatus(SceUID uid, u32 infoPtr) {
 		return hleReportError(SCEKERNEL, error, "bad handler id");
 	}
 
-	if (Memory::IsValidAddress(infoPtr) && Memory::Read_U32(infoPtr) != 0) {
-		Memory::WriteStruct(infoPtr, &teh->nteh);
+	if (PMemory::IsValidAddress(infoPtr) && PMemory::Read_U32(infoPtr) != 0) {
+		PMemory::WriteStruct(infoPtr, &teh->nteh);
 		return hleLogSuccessI(SCEKERNEL, 0);
 	} else {
 		return hleLogDebug(SCEKERNEL, 0, "struct size was 0");

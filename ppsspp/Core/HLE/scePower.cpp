@@ -117,7 +117,7 @@ void __PowerInit() {
 	if (g_Config.iLockedCPUSpeed > 0) {
 		pllFreq = PowerPllMhzToHz(g_Config.iLockedCPUSpeed);
 		busFreq = PowerBusMhzToHz(pllFreq / 2000000);
-		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
+		PCoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
 	} else {
 		pllFreq = PowerPllMhzToHz(222);
 		busFreq = PowerBusMhzToHz(111);
@@ -146,7 +146,7 @@ void __PowerDoState(PointerWrap &p) {
 	if (g_Config.iLockedCPUSpeed > 0) {
 		pllFreq = PowerPllMhzToHz(g_Config.iLockedCPUSpeed);
 		busFreq = PowerBusMhzToHz(pllFreq / 2000000);
-		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
+		PCoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(g_Config.iLockedCPUSpeed, pllFreq));
 	} else {
 		pllFreq = RealpllFreq;
 		busFreq = RealbusFreq;
@@ -294,11 +294,11 @@ static int __KernelVolatileMemLock(int type, u32 paddr, u32 psize) {
 	// Volatile RAM is always at 0x08400000 and is of size 0x00400000.
 	// It's always available in the emu.
 	// TODO: Should really reserve this properly!
-	if (Memory::IsValidAddress(paddr)) {
-		Memory::Write_U32(0x08400000, paddr);
+	if (PMemory::IsValidAddress(paddr)) {
+		PMemory::Write_U32(0x08400000, paddr);
 	}
-	if (Memory::IsValidAddress(psize)) {
-		Memory::Write_U32(0x00400000, psize);
+	if (PMemory::IsValidAddress(psize)) {
+		PMemory::Write_U32(0x00400000, psize);
 	}
 	volatileMemLocked = true;
 
@@ -399,16 +399,16 @@ static int sceKernelVolatileMemLock(int type, u32 paddr, u32 psize) {
 	case SCE_KERNEL_ERROR_CAN_NOT_WAIT:
 		{
 			WARN_LOG(HLE, "sceKernelVolatileMemLock(%i, %08x, %08x): dispatch disabled", type, paddr, psize);
-			Memory::Write_U32(0x08400000, paddr);
-			Memory::Write_U32(0x00400000, psize);
+			PMemory::Write_U32(0x08400000, paddr);
+			PMemory::Write_U32(0x00400000, psize);
 		}
 		break;
 
 	case SCE_KERNEL_ERROR_ILLEGAL_CONTEXT:
 		{
 			WARN_LOG(HLE, "sceKernelVolatileMemLock(%i, %08x, %08x): in interrupt", type, paddr, psize);
-			Memory::Write_U32(0x08400000, paddr);
-			Memory::Write_U32(0x00400000, psize);
+			PMemory::Write_U32(0x08400000, paddr);
+			PMemory::Write_U32(0x00400000, psize);
 		}
 		break;
 
@@ -448,7 +448,7 @@ static u32 scePowerSetClockFrequency(u32 pllfreq, u32 cpufreq, u32 busfreq) {
 		if (g_Config.iLockedCPUSpeed <= 0) {
 			pllFreq = RealpllFreq;
 			busFreq = RealbusFreq;
-			CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+			PCoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 		}
 
 		// The delay depends on the source and destination frequency, most are 150ms.
@@ -462,7 +462,7 @@ static u32 scePowerSetClockFrequency(u32 pllfreq, u32 cpufreq, u32 busfreq) {
 		return hleDelayResult(0, "scepower set clockFrequency", usec);
 	}
 	if (g_Config.iLockedCPUSpeed <= 0)
-		CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+		PCoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 	return 0;
 }
 
@@ -473,7 +473,7 @@ static u32 scePowerSetCpuClockFrequency(u32 cpufreq) {
 	if (g_Config.iLockedCPUSpeed > 0) {
 		return hleLogDebug(SCEMISC, 0, "locked by user config at %i", g_Config.iLockedCPUSpeed);
 	}
-	CoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
+	PCoreTiming::SetClockFrequencyHz(PowerCpuMhzToHz(cpufreq, pllFreq));
 	return hleLogSuccessI(SCEMISC, 0);
 }
 
@@ -503,7 +503,7 @@ static u32 scePowerSetBusClockFrequency(u32 busfreq) {
 }
 
 static u32 scePowerGetCpuClockFrequencyInt() {
-	int cpuFreq = CoreTiming::GetClockFrequencyHz() / 1000000;
+	int cpuFreq = PCoreTiming::GetClockFrequencyHz() / 1000000;
 	return hleLogSuccessI(SCEMISC, cpuFreq);
 }
 
@@ -516,7 +516,7 @@ static u32 scePowerGetBusClockFrequencyInt() {
 }
 
 static float scePowerGetCpuClockFrequencyFloat() {
-	float cpuFreq = CoreTiming::GetClockFrequencyHz() / 1000000.0f;
+	float cpuFreq = PCoreTiming::GetClockFrequencyHz() / 1000000.0f;
 	DEBUG_LOG(SCEMISC, "%f=scePowerGetCpuClockFrequencyFloat()", (float)cpuFreq);
 	return cpuFreq;
 }

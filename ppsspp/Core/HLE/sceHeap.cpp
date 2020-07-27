@@ -114,7 +114,7 @@ static u32 sceHeapAllocHeapMemoryWithOption(u32 heapAddr, u32 memSize, u32 param
 
 	// 0 is ignored.
 	if (paramsPtr != 0) {
-		u32 size = Memory::Read_U32(paramsPtr);
+		u32 size = PMemory::Read_U32(paramsPtr);
 		if (size < 8) {
 			ERROR_LOG(HLE, "sceHeapAllocHeapMemoryWithOption(%08x, %08x, %08x): invalid param size", heapAddr, memSize, paramsPtr);
 			return 0;
@@ -122,7 +122,7 @@ static u32 sceHeapAllocHeapMemoryWithOption(u32 heapAddr, u32 memSize, u32 param
 		if (size > 8) {
 			WARN_LOG_REPORT(HLE, "sceHeapAllocHeapMemoryWithOption(): unexpected param size %d", size);
 		}
-		grain = Memory::Read_U32(paramsPtr + 4);
+		grain = PMemory::Read_U32(paramsPtr + 4);
 	}
 
 	DEBUG_LOG(HLE,"sceHeapAllocHeapMemoryWithOption(%08x, %08x, %08x)", heapAddr, memSize, paramsPtr);
@@ -149,7 +149,7 @@ static int sceHeapGetTotalFreeSize(u32 heapAddr) {
 }
 
 static int sceHeapIsAllocatedHeapMemory(u32 heapPtr, u32 memPtr) {
-	if (!Memory::IsValidAddress(memPtr)) {
+	if (!PMemory::IsValidAddress(memPtr)) {
 		ERROR_LOG(HLE, "sceHeapIsAllocatedHeapMemory(%08x, %08x): invalid address", heapPtr, memPtr);
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
 	}
@@ -179,7 +179,7 @@ static int sceHeapDeleteHeap(u32 heapAddr) {
 
 static int sceHeapCreateHeap(const char* name, u32 heapSize, int attr, u32 paramsPtr) {
 	if (paramsPtr != 0) {
-		u32 size = Memory::Read_U32(paramsPtr);
+		u32 size = PMemory::Read_U32(paramsPtr);
 		WARN_LOG_REPORT(HLE, "sceHeapCreateHeap(): unsupported options parameter, size = %d", size);
 	}	
 	if (name == NULL) {

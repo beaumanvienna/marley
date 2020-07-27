@@ -141,7 +141,7 @@ bool SymbolMap::LoadSymbolMap(const char *filename) {
 		sscanf(line, "%08x %08x %x %i %127c", &address, &size, &vaddress, &typeInt, name);
 		type = (SymbolType) typeInt;
 		if (!hasModules) {
-			if (!Memory::IsValidAddress(vaddress)) {
+			if (!PMemory::IsValidAddress(vaddress)) {
 				ERROR_LOG(LOADER, "Invalid address in symbol file: %08x (%s)", vaddress, name);
 				continue;
 			}
@@ -149,7 +149,7 @@ bool SymbolMap::LoadSymbolMap(const char *filename) {
 			// The 3rd field is now used for the module index.
 			moduleIndex = vaddress;
 			vaddress = GetModuleAbsoluteAddr(address, moduleIndex);
-			if (!Memory::IsValidAddress(vaddress)) {
+			if (!PMemory::IsValidAddress(vaddress)) {
 				ERROR_LOG(LOADER, "Invalid address in symbol file: %08x (%s)", vaddress, name);
 				continue;
 			}

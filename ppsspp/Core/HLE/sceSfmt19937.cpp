@@ -27,81 +27,81 @@
 
 
 static int sceSfmt19937InitGenRand(u32 sfmt, u32 seed) {
-	if (!Memory::IsValidAddress(sfmt)) {
+	if (!PMemory::IsValidAddress(sfmt)) {
 		ERROR_LOG(HLE, "sceSfmt19937InitGenRand(sfmt=%08x, seed=%08x) - bad address(es)", sfmt, seed);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937InitGenRand(sfmt=%08x, seed=%08x)", sfmt, seed);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
 	sfmt_init_gen_rand(psfmt, seed);
 
 	return 0;
 }
 
 static int sceSfmt19937InitByArray(u32 sfmt, u32 seeds, int seedslen) {
-	if (!Memory::IsValidAddress(sfmt) || !Memory::IsValidAddress(seeds) || !Memory::IsValidAddress(seeds + 4 * (seedslen - 1))) {
+	if (!PMemory::IsValidAddress(sfmt) || !PMemory::IsValidAddress(seeds) || !PMemory::IsValidAddress(seeds + 4 * (seedslen - 1))) {
 		ERROR_LOG(HLE, "sceSfmt19937InitByArray(sfmt=%08x, seeds=%08x, seedslen=%08x)  - bad address(es)", sfmt, seeds, seedslen);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937InitByArray(sfmt=%08x, seeds=%08x, seedslen=%08x)", sfmt, seeds, seedslen);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
-	uint32_t *pseeds = (uint32_t *)Memory::GetPointerUnchecked(seeds);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
+	uint32_t *pseeds = (uint32_t *)PMemory::GetPointerUnchecked(seeds);
 	sfmt_init_by_array(psfmt, pseeds, seedslen);
 
 	return 0;
 }
 
 static u32 sceSfmt19937GenRand32(u32 sfmt) {
-	if (!Memory::IsValidAddress(sfmt)) {
+	if (!PMemory::IsValidAddress(sfmt)) {
 		ERROR_LOG(HLE, "sceSfmt19937GenRand32(sfmt=%08x)  - bad address(es)", sfmt);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937GenRand32(sfmt=%08x)", sfmt);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
 	u32 ret = sfmt_genrand_uint32(psfmt);
 
 	return ret;
 }
 
 static u64 sceSfmt19937GenRand64(u32 sfmt) {
-	if (!Memory::IsValidAddress(sfmt)) {
+	if (!PMemory::IsValidAddress(sfmt)) {
 		ERROR_LOG(HLE, "sceSfmt19937GenRand64(sfmt=%08x)  - bad address(es)", sfmt);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937GenRand64(sfmt=%08x)", sfmt);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
 	u64 ret = sfmt_genrand_uint64(psfmt);
 
 	return ret;
 }
 
 static int sceSfmt19937FillArray32(u32 sfmt, u32 array, int arraylen) {
-	if (!Memory::IsValidAddress(sfmt) || !Memory::IsValidAddress(array) || !Memory::IsValidAddress(array + 4 * (arraylen - 1))) {
+	if (!PMemory::IsValidAddress(sfmt) || !PMemory::IsValidAddress(array) || !PMemory::IsValidAddress(array + 4 * (arraylen - 1))) {
 		ERROR_LOG(HLE, "sceSfmt19937FillArray32(sfmt=%08x, ar=%08x, arlen=%08x)  - bad address(es)", sfmt, array, arraylen);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937FillArray32(sfmt=%08x, ar=%08x, arlen=%08x)", sfmt, array, arraylen);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
-	uint32_t *parray = (uint32_t *)Memory::GetPointerUnchecked(array);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
+	uint32_t *parray = (uint32_t *)PMemory::GetPointerUnchecked(array);
 	sfmt_fill_array32(psfmt, parray, arraylen);
 
 	return 0;
 }
 
 static int sceSfmt19937FillArray64(u32 sfmt, u32 array, int arraylen) {
-	if (!Memory::IsValidAddress(sfmt) || !Memory::IsValidAddress(array) || !Memory::IsValidAddress(array + 8 * (arraylen - 1))) {
+	if (!PMemory::IsValidAddress(sfmt) || !PMemory::IsValidAddress(array) || !PMemory::IsValidAddress(array + 8 * (arraylen - 1))) {
 		ERROR_LOG(HLE, "sceSfmt19937FillArray64(sfmt=%08x, ar=%08x, arlen=%08x)  - bad address(es)", sfmt, array, arraylen);
 		return -1;
 	}
 	INFO_LOG(HLE, "sceSfmt19937FillArray64(sfmt=%08x, ar=%08x, arlen=%08x)", sfmt, array, arraylen);
 
-	sfmt_t *psfmt = (sfmt_t *)Memory::GetPointerUnchecked(sfmt);
-	uint64_t *parray = (uint64_t *)Memory::GetPointerUnchecked(array);
+	sfmt_t *psfmt = (sfmt_t *)PMemory::GetPointerUnchecked(sfmt);
+	uint64_t *parray = (uint64_t *)PMemory::GetPointerUnchecked(array);
 	sfmt_fill_array64(psfmt, parray, arraylen);
 
 	return 0;

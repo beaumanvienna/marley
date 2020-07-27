@@ -45,7 +45,7 @@
 #include "Core/MIPS/JitCommon/JitCommon.h"
 #include "UI/OnScreenDisplay.h"
 
-namespace Memory {
+namespace PMemory {
 
 // The base pointer to the auto-mirrored arena.
 u8* base = nullptr;
@@ -456,7 +456,7 @@ Opcode Read_Opcode_JIT(u32 address)
 // We assume that _Address is cached
 void Write_Opcode_JIT(const u32 _Address, const Opcode& _Value)
 {
-	Memory::WriteUnchecked_U32(_Value.encoding, _Address);
+	PMemory::WriteUnchecked_U32(_Value.encoding, _Address);
 }
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength) {

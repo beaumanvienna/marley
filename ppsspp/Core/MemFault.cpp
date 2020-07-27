@@ -33,7 +33,7 @@
 #include "Core/MemMap.h"
 #include "Core/MIPS/JitCommon/JitCommon.h"
 
-namespace Memory {
+namespace PMemory {
 
 static int64_t g_numReportedBadAccesses = 0;
 

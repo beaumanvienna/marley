@@ -231,7 +231,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 		}
 	}
 
-	const u8 *checkp = Memory::GetPointer(addr);
+	const u8 *checkp = PMemory::GetPointer(addr);
 	float reduceHashSize = 1.0;
 	if (reduceHash_)
 		reduceHashSize = 0.5;

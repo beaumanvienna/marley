@@ -39,7 +39,7 @@ PSPDialog::~PSPDialog() {
 
 PSPDialog::DialogStatus PSPDialog::GetStatus()
 {
-	if (pendingStatusTicks != 0 && CoreTiming::GetTicks() >= pendingStatusTicks) {
+	if (pendingStatusTicks != 0 && PCoreTiming::GetTicks() >= pendingStatusTicks) {
 		status = pendingStatus;
 		pendingStatusTicks = 0;
 	}
@@ -60,7 +60,7 @@ void PSPDialog::ChangeStatus(DialogStatus newStatus, int delayUs) {
 		pendingStatusTicks = 0;
 	} else {
 		pendingStatus = newStatus;
-		pendingStatusTicks = CoreTiming::GetTicks() + usToCycles(delayUs);
+		pendingStatusTicks = PCoreTiming::GetTicks() + usToCycles(delayUs);
 	}
 }
 

@@ -241,7 +241,7 @@ bool BufMapping::ExtraInfo::Alloc(u32 bufpos, u32 sz, const std::vector<u8> &pus
 
 	buf_pointer_ = bufpos;
 	size_ = sz;
-	Memory::MemcpyUnchecked(psp_pointer_, pushbuf_.data() + bufpos, sz);
+	PMemory::MemcpyUnchecked(psp_pointer_, pushbuf_.data() + bufpos, sz);
 	return true;
 }
 
@@ -263,7 +263,7 @@ bool BufMapping::SlabInfo::Setup(u32 bufpos, const std::vector<u8> &pushbuf_) {
 
 	buf_pointer_ = bufpos;
 	u32 sz = std::min((u32)SLAB_SIZE, (u32)pushbuf_.size() - bufpos);
-	Memory::MemcpyUnchecked(psp_pointer_, pushbuf_.data() + bufpos, sz);
+	PMemory::MemcpyUnchecked(psp_pointer_, pushbuf_.data() + bufpos, sz);
 
 	slabGeneration_++;
 	last_used_ = slabGeneration_;
@@ -316,14 +316,14 @@ void DumpExecute::SyncStall() {
 	gpu->UpdateStall(execListID, execListPos);
 	s64 listTicks = gpu->GetListTicks(execListID);
 	if (listTicks != -1) {
-		s64 nowTicks = CoreTiming::GetTicks();
+		s64 nowTicks = PCoreTiming::GetTicks();
 		if (listTicks > nowTicks) {
 			currentMIPS->downcount -= listTicks - nowTicks;
 		}
 	}
 
 	// Make sure downcount doesn't overflow.
-	CoreTiming::ForceCheck();
+	PCoreTiming::ForceCheck();
 }
 
 bool DumpExecute::SubmitCmds(const void *p, u32 sz) {
@@ -339,7 +339,7 @@ bool DumpExecute::SubmitCmds(const void *p, u32 sz) {
 		}
 
 		execListPos = execListBuf;
-		Memory::Write_U32(GE_CMD_NOP << 24, execListPos);
+		PMemory::Write_U32(GE_CMD_NOP << 24, execListPos);
 		execListPos += 4;
 
 		gpu->EnableInterrupts(false);
@@ -352,8 +352,8 @@ bool DumpExecute::SubmitCmds(const void *p, u32 sz) {
 	// Validate space for jump.
 	u32 allocSize = pendingSize + sz + 8;
 	if (execListPos + allocSize >= execListBuf + LIST_BUF_SIZE) {
-		Memory::Write_U32((GE_CMD_BASE << 24) | ((execListBuf >> 8) & 0x00FF0000), execListPos);
-		Memory::Write_U32((GE_CMD_JUMP << 24) | (execListBuf & 0x00FFFFFF), execListPos + 4);
+		PMemory::Write_U32((GE_CMD_BASE << 24) | ((execListBuf >> 8) & 0x00FF0000), execListPos);
+		PMemory::Write_U32((GE_CMD_JUMP << 24) | (execListBuf & 0x00FFFFFF), execListPos + 4);
 
 		execListPos = execListBuf;
 
@@ -361,15 +361,15 @@ bool DumpExecute::SubmitCmds(const void *p, u32 sz) {
 		SyncStall();
 	}
 
-	Memory::MemcpyUnchecked(execListPos, execListQueue.data(), pendingSize);
+	PMemory::MemcpyUnchecked(execListPos, execListQueue.data(), pendingSize);
 	execListPos += pendingSize;
 	u32 writePos = execListPos;
-	Memory::MemcpyUnchecked(execListPos, p, sz);
+	PMemory::MemcpyUnchecked(execListPos, p, sz);
 	execListPos += sz;
 
 	// TODO: Unfortunate.  Maybe Texture commands should contain the bufw instead.
 	// The goal here is to realistically combine prims in dumps.  Stalling for the bufw flushes.
-	u32_le *ops = (u32_le *)Memory::GetPointer(writePos);
+	u32_le *ops = (u32_le *)PMemory::GetPointer(writePos);
 	for (u32 i = 0; i < sz / 4; ++i) {
 		u32 cmd = ops[i] >> 24;
 		if (cmd >= GE_CMD_TEXBUFWIDTH0 && cmd <= GE_CMD_TEXBUFWIDTH7) {
@@ -402,8 +402,8 @@ void DumpExecute::SubmitListEnd() {
 	}
 
 	// There's always space for the end, same size as a jump.
-	Memory::Write_U32(GE_CMD_FINISH << 24, execListPos);
-	Memory::Write_U32(GE_CMD_END << 24, execListPos + 4);
+	PMemory::Write_U32(GE_CMD_FINISH << 24, execListPos);
+	PMemory::Write_U32(GE_CMD_END << 24, execListPos + 4);
 	execListPos += 8;
 
 	SyncStall();
@@ -476,7 +476,7 @@ void DumpExecute::Memset(u32 ptr, u32 sz) {
 
 	const MemsetCommand *data = (const MemsetCommand *)(pushbuf_.data() + ptr);
 
-	if (Memory::IsVRAMAddress(data->dest)) {
+	if (PMemory::IsVRAMAddress(data->dest)) {
 		SyncStall();
 		gpu->PerformMemorySet(data->dest, (u8)data->value, data->sz);
 	}
@@ -488,9 +488,9 @@ void DumpExecute::MemcpyDest(u32 ptr, u32 sz) {
 
 void DumpExecute::Memcpy(u32 ptr, u32 sz) {
 	PROFILE_THIS_SCOPE("ReplayMemcpy");
-	if (Memory::IsVRAMAddress(execMemcpyDest)) {
+	if (PMemory::IsVRAMAddress(execMemcpyDest)) {
 		SyncStall();
-		Memory::MemcpyUnchecked(execMemcpyDest, pushbuf_.data() + ptr, sz);
+		PMemory::MemcpyUnchecked(execMemcpyDest, pushbuf_.data() + ptr, sz);
 		gpu->PerformMemoryUpload(execMemcpyDest, sz);
 	}
 }
@@ -530,9 +530,9 @@ void DumpExecute::Framebuf(int level, u32 ptr, u32 sz) {
 	u32 pspSize = sz - headerSize;
 	const bool isTarget = (framebuf->flags & 1) != 0;
 	// Could potentially always skip if !isTarget, but playing it safe for offset texture behavior.
-	if (Memory::IsValidRange(framebuf->addr, pspSize) && (!isTarget || !g_Config.bSoftwareRendering)) {
+	if (PMemory::IsValidRange(framebuf->addr, pspSize) && (!isTarget || !g_Config.bSoftwareRendering)) {
 		// Intentionally don't trigger an upload here.
-		Memory::MemcpyUnchecked(framebuf->addr, pushbuf_.data() + ptr + headerSize, pspSize);
+		PMemory::MemcpyUnchecked(framebuf->addr, pushbuf_.data() + ptr + headerSize, pspSize);
 	}
 }
 

@@ -119,7 +119,7 @@ SceNetAdhocMatchingMemberInternal* addMember(SceNetAdhocMatchingContext * contex
 	// Already existed
 	if (peer != NULL) {
 		WARN_LOG(SCENET, "Member Peer Already Existed! Updating [%s]", mac2str(mac).c_str());
-		peer->lastping = CoreTiming::GetGlobalTimeUsScaled();
+		peer->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 	}
 	// Member is not added yet
 	else {
@@ -127,7 +127,7 @@ SceNetAdhocMatchingMemberInternal* addMember(SceNetAdhocMatchingContext * contex
 		if (peer != NULL) {
 			memset(peer, 0, sizeof(SceNetAdhocMatchingMemberInternal));
 			peer->mac = *mac;
-			peer->lastping = CoreTiming::GetGlobalTimeUsScaled();
+			peer->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 			peer->next = context->peerlist;
 			context->peerlist = peer;
 		}
@@ -150,7 +150,7 @@ void addFriend(SceNetAdhocctlConnectPacketS2C * packet) {
 		peer->mac_addr = packet->mac;
 		peer->ip_addr = packet->ip;
 		// Update TimeStamp
-		peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+		peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 	}
 	else {
 		// Allocate Structure
@@ -170,7 +170,7 @@ void addFriend(SceNetAdhocctlConnectPacketS2C * packet) {
 			peer->ip_addr = packet->ip;
 
 			// TimeStamp
-			peer->last_recv = CoreTiming::GetGlobalTimeUsScaled();
+			peer->last_recv = PCoreTiming::GetGlobalTimeUsScaled();
 
 			// Link to existing Peers
 			peer->next = friends;
@@ -340,7 +340,7 @@ void deleteFriendByIP(uint32_t ip) {
 			//free(peer);
 			//peer = NULL;
 			// Instead of removing it from the list we'll make it timed out since most Matching games are moving group and may still need the peer data thus not recognizing it as Unknown peer
-			peer->last_recv = 0; //CoreTiming::GetGlobalTimeUsScaled();
+			peer->last_recv = 0; //PCoreTiming::GetGlobalTimeUsScaled();
 
 			// Multithreading Unlock
 			peerlock.unlock();
@@ -476,7 +476,7 @@ void postAcceptAddSiblings(SceNetAdhocMatchingContext * context, int siblingcoun
 			sibling->state = PSP_ADHOC_MATCHING_PEER_CHILD;
 
 			// Initialize Ping Timer
-			sibling->lastping = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
+			sibling->lastping = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0;
 
 			peerlock.lock();
 			// Link Peer, should check whether it's already added before
@@ -877,7 +877,7 @@ void handleTimeout(SceNetAdhocMatchingContext * context)
 		// Get Next Pointer (to avoid crash on memory freeing)
 		SceNetAdhocMatchingMemberInternal * next = peer->next;
 
-		u64_le now = CoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0
+		u64_le now = PCoreTiming::GetGlobalTimeUsScaled(); //real_time_now()*1000000.0
 		// Timeout!, may be we shouldn't kick timedout members ourself and let the game do it
 		if ((now - peer->lastping) >= context->timeout) 
 		{
@@ -970,7 +970,7 @@ void clearPeerList(SceNetAdhocMatchingContext * context)
 		// Delete Peer
 		free(peer); //deletePeer(context, peer);
 		// Instead of removing peer immediately, We should give a little time before removing the peer and let it timed out? just in case the game is in the middle of communicating with the peer on another thread so it won't recognize it as Unknown peer
-		//peer->lastping = CoreTiming::GetGlobalTimeUsScaled();
+		//peer->lastping = PCoreTiming::GetGlobalTimeUsScaled();
 
 		// Move Pointer
 		peer = context->peerlist; //peer = next;
@@ -990,8 +990,8 @@ void AfterMatchingMipsCall::run(MipsCall &call) {
 	u32 v0 = currentMIPS->r[MIPS_REG_V0];
 	if (__IsInInterrupt()) ERROR_LOG(SCENET, "AfterMatchingMipsCall::run [ID=%i][Event=%d] is Returning Inside an Interrupt!", contextID, EventID);
 	//SetMatchingInCallback(context, false);
-	DEBUG_LOG(SCENET, "AfterMatchingMipsCall::run [ID=%i][Event=%d][%s] [cbId: %u][retV0: %08x]", contextID, EventID, mac2str((SceNetEtherAddr*)Memory::GetPointer(bufAddr)).c_str(), call.cbId, v0);
-	if (Memory::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
+	DEBUG_LOG(SCENET, "AfterMatchingMipsCall::run [ID=%i][Event=%d][%s] [cbId: %u][retV0: %08x]", contextID, EventID, mac2str((SceNetEtherAddr*)PMemory::GetPointer(bufAddr)).c_str(), call.cbId, v0);
+	if (PMemory::IsValidAddress(bufAddr)) userMemory.Free(bufAddr);
 	//call.setReturnValue(v0);
 }
 
@@ -1060,7 +1060,7 @@ void notifyMatchingHandler(SceNetAdhocMatchingContext * context, ThreadMessage *
 	MatchingArgs argsNew;
 	u32_le dataBufLen = msg->optlen + 8; //max(bufLen, msg->optlen + 8);
 	u32_le dataBufAddr = userMemory.Alloc(dataBufLen); // We will free this memory after returning from mipscall
-	uint8_t * dataPtr = Memory::GetPointer(dataBufAddr);
+	uint8_t * dataPtr = PMemory::GetPointer(dataBufAddr);
 	memcpy(dataPtr, &msg->mac, sizeof(msg->mac));
 	if (msg->optlen > 0) 
 		memcpy(dataPtr + 8, opt, msg->optlen);
@@ -1174,7 +1174,7 @@ int friendFinder(){
 
 		if (networkInited) {
 			// Ping Server
-			now = real_time_now() * 1000000.0; // Use real_time_now()*1000000.0 instead of CoreTiming::GetGlobalTimeUsScaled() if the game gets disconnected from AdhocServer too soon when FPS wasn't stable
+			now = real_time_now() * 1000000.0; // Use real_time_now()*1000000.0 instead of PCoreTiming::GetGlobalTimeUsScaled() if the game gets disconnected from AdhocServer too soon when FPS wasn't stable
 			if (now - lastping >= PSP_ADHOCCTL_PING_TIMEOUT) { // We may need to use lower interval to prevent getting timeout at Pro Adhoc Server through internet
 				// original code : ((sceKernelGetSystemTimeWide() - lastping) >= ADHOCCTL_PING_TIMEOUT)
 				// Update Ping Time
