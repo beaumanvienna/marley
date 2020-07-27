@@ -69,6 +69,7 @@ static int g_DesktopHeight = 0;
 static float g_RefreshRate = 60.f;
 
 static SDL_AudioSpec g_retFmt;
+void VFSShutdown();
 
 int getDisplayNumber(void) {
 	int displayNumber = 0;
@@ -456,12 +457,16 @@ void gpu_features_reset(void);
 int ppsspp_main(int argc, char *argv[]) {
 
     SDL_GL_ResetAttributes();
-    GlobalUIState lastUIState = UISTATE_MENU;
+    lastUIState = UISTATE_MENU;
     g_ToggleFullScreenNextFrame = false;
     g_QuitRequested = 0;
     g_DesktopWidth  = 0;
     g_DesktopHeight = 0;
+    g_RefreshRate = 60.f;
     gpu_features_reset();
+
+static SDL_AudioSpec g_retFmt;
+    
 
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "--version")) {
@@ -1158,12 +1163,13 @@ int ppsspp_main(int argc, char *argv[]) {
 	// Destroys Draw, which is used in NativeShutdown to shutdown.
 	graphicsContext->ShutdownFromRenderThread();
 	delete graphicsContext;
+    
+    if (audioDev > 0) 
+    {
+        SDL_PauseAudioDevice(audioDev, 1);
+        SDL_CloseAudioDevice(audioDev);
+    }
 
-	if (audioDev > 0) {
-		SDL_PauseAudioDevice(audioDev, 1);
-		SDL_CloseAudioDevice(audioDev);
-	}
-	SDL_Quit();
 #if PPSSPP_PLATFORM(RPI)
 	bcm_host_deinit();
 #endif
@@ -1173,5 +1179,6 @@ int ppsspp_main(int argc, char *argv[]) {
 #ifdef HAVE_LIBNX
 	socketExit();
 #endif
+    VFSShutdown();
 	return 0;
 }
