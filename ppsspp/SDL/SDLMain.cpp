@@ -55,7 +55,7 @@ SDLJoystick *joystick = NULL;
 #include "Common/GraphicsContext.h"
 #include "SDLGLGraphicsContext.h"
 #include "SDLVulkanGraphicsContext.h"
-
+#include "../../include/gui.h"
 
 GlobalUIState lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
@@ -452,7 +452,17 @@ static void EmuThreadJoin() {
 #ifdef _WIN32
 #undef main
 #endif
-int main(int argc, char *argv[]) {
+void gpu_features_reset(void);
+int ppsspp_main(int argc, char *argv[]) {
+
+    SDL_GL_ResetAttributes();
+    GlobalUIState lastUIState = UISTATE_MENU;
+    g_ToggleFullScreenNextFrame = false;
+    g_QuitRequested = 0;
+    g_DesktopWidth  = 0;
+    g_DesktopHeight = 0;
+    gpu_features_reset();
+
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "--version")) {
 			printf("%s\n", PPSSPP_GIT_VERSION);
@@ -473,11 +483,11 @@ int main(int argc, char *argv[]) {
 	putenv((char*)"SDL_VIDEO_CENTERED=1");
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 
-	if (VulkanMayBeAvailable()) {
-		printf("DEBUG: Vulkan might be available.\n");
+	/*if (VulkanMayBeAvailable()) {
+		//printf("DEBUG: Vulkan might be available.\n");
 	} else {
-		printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
-	}
+		//printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
+	}*/
 
 	SDL_version compiled;
 	SDL_version linked;
@@ -566,31 +576,15 @@ int main(int argc, char *argv[]) {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	// Force fullscreen if the resolution is too low to run windowed.
-	if (g_DesktopWidth < 480 * 2 && g_DesktopHeight < 272 * 2) {
-		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-	}
-
-	// If we're on mobile, don't try for windowed either.
-#if defined(MOBILE_DEVICE) && !PPSSPP_PLATFORM(SWITCH)
-	mode |= SDL_WINDOW_FULLSCREEN;
-#elif defined(USING_FBDEV) || PPSSPP_PLATFORM(SWITCH)
-	mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-#else
-	mode |= SDL_WINDOW_RESIZABLE;
-#endif
-
+    SDL_DisplayMode l_mode;
+    SDL_GetWindowDisplayMode(gWindow,&l_mode);
+    
+    pixel_xres = WINDOW_WIDTH;
+    pixel_yres = WINDOW_HEIGHT;
+    mode = SDL_GetWindowFlags(gWindow);
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-		pixel_xres = g_DesktopWidth;
-		pixel_yres = g_DesktopHeight;
 		g_Config.bFullScreen = true;
 	} else {
-		// set a sensible default resolution (2x)
-		pixel_xres = 480 * 2 * set_scale;
-		pixel_yres = 272 * 2 * set_scale;
-		if (portrait) {
-			std::swap(pixel_xres, pixel_yres);
-		}
 		g_Config.bFullScreen = false;
 	}
 
@@ -636,13 +630,20 @@ int main(int argc, char *argv[]) {
 		strcat(path, "/");
 
 	NativeInit(remain_argc, (const char **)remain_argv, path, "/tmp", nullptr);
-
+    
+    
+    
+    if (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP)
+		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    int x,y;
+    SDL_GetWindowPosition(gWindow,&x,&y);
+    /*
 	// Use the setting from the config when initing the window.
 	if (g_Config.bFullScreen)
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	int x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(getDisplayNumber());
-	int y = SDL_WINDOWPOS_UNDEFINED;
+	int y = SDL_WINDOWPOS_UNDEFINED;*/
 
 	pixel_in_dps_x = (float)pixel_xres / dp_xres;
 	pixel_in_dps_y = (float)pixel_yres / dp_yres;
@@ -655,7 +656,7 @@ int main(int argc, char *argv[]) {
 	printf("Virtual pixels: %i x %i\n", dp_xres, dp_yres);
 
 	GraphicsContext *graphicsContext = nullptr;
-	SDL_Window *window = nullptr;
+	SDL_Window *window = gWindow;
 
 	std::string error_message;
 	if (g_Config.iGPUBackend == (int)GPUBackend::OPENGL) {
@@ -681,7 +682,7 @@ int main(int argc, char *argv[]) {
 
 	bool useEmuThread = g_Config.iGPUBackend == (int)GPUBackend::OPENGL;
 
-	SDL_SetWindowTitle(window, (app_name_nice + " " + PPSSPP_GIT_VERSION).c_str());
+	SDL_SetWindowTitle(window, "PPSSPP Marley");
 
 	char iconPath[PATH_MAX];
 	snprintf(iconPath, PATH_MAX, "%sassets/icon_regular_72.png", SDL_GetBasePath() ? SDL_GetBasePath() : "");

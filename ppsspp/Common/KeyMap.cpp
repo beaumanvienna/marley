@@ -108,6 +108,9 @@ static const DefMappingStruct defaultAzertyKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
+    {VIRTKEY_SAVE_STATE, NKCODE_F5},
+    {VIRTKEY_LOAD_STATE, NKCODE_F7},
+    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
@@ -138,6 +141,9 @@ static const DefMappingStruct defaultQwertzKeyboardKeyMap[] = {
 	{VIRTKEY_PAUSE       , NKCODE_ESCAPE},
 	{VIRTKEY_REWIND      , NKCODE_DEL},
 	{VIRTKEY_ANALOG_LIGHTLY, NKCODE_SHIFT_RIGHT},
+    {VIRTKEY_SAVE_STATE, NKCODE_F5},
+    {VIRTKEY_LOAD_STATE, NKCODE_F7},
+    {VIRTKEY_TOGGLE_FULLSCREEN, NKCODE_F},
 };
 
 static const DefMappingStruct default360KeyMap[] = {
@@ -339,7 +345,6 @@ void UpdateNativeMenuKeys() {
 		KeyDef(DEVICE_ID_KEYBOARD, NKCODE_ESCAPE),
 		KeyDef(DEVICE_ID_ANY, NKCODE_BACK),
 		KeyDef(DEVICE_ID_ANY, NKCODE_BUTTON_B),
-		KeyDef(DEVICE_ID_MOUSE, NKCODE_EXT_MOUSEBUTTON_4),
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(hardcodedCancelKeys); i++) {

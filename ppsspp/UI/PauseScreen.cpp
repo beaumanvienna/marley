@@ -386,7 +386,7 @@ void GamePauseScreen::CreateViews() {
 		auto mm = GetI18NCategory("MainMenu");
 		rightColumnItems->Add(new Choice(mm->T("Exit")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMenu);
 	} else {
-		rightColumnItems->Add(new Choice(pa->T("Exit to menu")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMenu);
+		rightColumnItems->Add(new Choice(pa->T("Exit to Marley")))->OnClick.Handle(this, &GamePauseScreen::OnExitToMarley);
 	}
 }
 
@@ -426,6 +426,13 @@ UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
 		Screen *screen = new ScreenshotViewScreen(fn, title, v->GetSlot(), pa);
 		screenManager()->push(screen);
 	}
+	return UI::EVENT_DONE;
+}
+
+UI::EventReturn GamePauseScreen::OnExitToMarley(UI::EventParams &e) {
+	
+	System_SendMessage("finish", "");
+	
 	return UI::EVENT_DONE;
 }
 

@@ -104,6 +104,7 @@
 #include "UI/RemoteISOScreen.h"
 #include "UI/TiltEventProcessor.h"
 #include "UI/TextureUtil.h"
+#include "../../include/emu.h"
 
 #if !defined(MOBILE_DEVICE)
 #include "Common/KeyMap.h"
@@ -512,13 +513,23 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	g_Config.memStickDirectory = g_Config.internalDataDirectory + "config/ppsspp/";
 	g_Config.flash0Directory = g_Config.internalDataDirectory + "assets/flash0/";
 #elif !defined(_WIN32)
-	std::string config;
-	if (getenv("XDG_CONFIG_HOME") != NULL)
+	std::string config,slash;
+    #warning "JC: modified"
+    slash = gBaseDir.substr(gBaseDir.length()-1,1);
+    if (slash == "/")
+    {
+        config = gBaseDir.substr(0,gBaseDir.length()-1);
+    }
+    else
+    {
+        config = gBaseDir;
+    }
+	/*if (getenv("XDG_CONFIG_HOME") != NULL)
 		config = getenv("XDG_CONFIG_HOME");
 	else if (getenv("HOME") != NULL)
 		config = getenv("HOME") + std::string("/.config");
 	else // Just in case
-		config = "./config";
+		config = "./config";*/
 
 	g_Config.memStickDirectory = config + "/ppsspp/";
 	g_Config.flash0Directory = File::GetExeDirectory() + "/assets/flash0/";

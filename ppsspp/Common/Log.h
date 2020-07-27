@@ -91,7 +91,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 bool GenericLogEnabled(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type);
 
 #if defined(LOGGING) || defined(_DEBUG) || defined(DEBUGFAST) || defined(_WIN32)
-#define MAX_LOGLEVEL DEBUG_LEVEL
+#define MAX_LOGLEVEL ERROR_LEVEL
 #else
 #ifndef MAX_LOGLEVEL
 #define MAX_LOGLEVEL INFO_LEVEL

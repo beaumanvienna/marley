@@ -45,6 +45,12 @@ static std::set<std::string> g_set_egl_extensions;
 static bool extensionsDone = false;
 static bool useCoreContext = false;
 
+void gpu_features_reset(void)
+{
+    extensionsDone = false;
+    useCoreContext = false;
+}
+
 static void ParseExtensionsString(const std::string& str, std::set<std::string> &output) {
 	output.clear();
 
