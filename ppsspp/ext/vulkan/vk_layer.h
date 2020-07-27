@@ -61,7 +61,7 @@ typedef struct VkNegotiateLayerInterface {
     VkNegotiateLayerStructType sType;
     void *pNext;
     uint32_t loaderLayerInterfaceVersion;
-    PFN_PPvkGetInstanceProcAddr pfnGetInstanceProcAddr;
+    PFN_PvkGetInstanceProcAddr pfnGetInstanceProcAddr;
     PFN_PvkGetDeviceProcAddr pfnGetDeviceProcAddr;
     PFN_GetPhysicalDeviceProcAddr pfnGetPhysicalDeviceProcAddr;
 } VkNegotiateLayerInterface;
@@ -88,7 +88,7 @@ typedef enum VkLayerFunction_ {
 
 typedef struct VkLayerInstanceLink_ {
     struct VkLayerInstanceLink_ *pNext;
-    PFN_PPvkGetInstanceProcAddr pfnNextGetInstanceProcAddr;
+    PFN_PvkGetInstanceProcAddr pfnNextGetInstanceProcAddr;
     PFN_GetPhysicalDeviceProcAddr pfnNextGetPhysicalDeviceProcAddr;
 } VkLayerInstanceLink;
 
@@ -101,7 +101,7 @@ typedef struct VkLayerInstanceLink_ {
  */
 typedef struct VkLayerDeviceInfo_ {
     void *device_info;
-    PFN_PPvkGetInstanceProcAddr pfnNextGetInstanceProcAddr;
+    PFN_PvkGetInstanceProcAddr pfnNextGetInstanceProcAddr;
 } VkLayerDeviceInfo;
 
 typedef VkResult (VKAPI_PTR *PFN_vkSetInstanceLoaderData)(VkInstance instance,
@@ -109,8 +109,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkSetInstanceLoaderData)(VkInstance instance,
 typedef VkResult (VKAPI_PTR *PFN_vkSetDeviceLoaderData)(VkDevice device,
         void *object);
 typedef VkResult (VKAPI_PTR *PFN_vkLayerCreateDevice)(VkInstance instance, VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo *pCreateInfo,
-						      const VkAllocationCallbacks *pAllocator, VkDevice *pDevice, PFN_PPvkGetInstanceProcAddr layerGIPA, PFN_PvkGetDeviceProcAddr *nextGDPA);
-typedef void (VKAPI_PTR *PFN_vkLayerDestroyDevice)(VkDevice physicalDevice, const VkAllocationCallbacks *pAllocator, PFN_vkDestroyDevice destroyFunction);
+						      const VkAllocationCallbacks *pAllocator, VkDevice *pDevice, PFN_PvkGetInstanceProcAddr layerGIPA, PFN_PvkGetDeviceProcAddr *nextGDPA);
+typedef void (VKAPI_PTR *PFN_vkLayerDestroyDevice)(VkDevice physicalDevice, const VkAllocationCallbacks *pAllocator, PFN_PvkDestroyDevice destroyFunction);
 typedef struct {
     VkStructureType sType; // VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO
     const void *pNext;

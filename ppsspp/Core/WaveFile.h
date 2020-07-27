@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 // ---------------------------------------------------------------------------------
-// Class: WaveFileWriter
+// Class: PWaveFileWriter
 // Description: Simple utility class to make it easy to write long 16-bit stereo
 // audio streams to disk.
 // Use Start() to start recording to a file, and AddStereoSamples to add wave data.
@@ -18,11 +18,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
-class WaveFileWriter
+class PWaveFileWriter
 {
 public:
-	WaveFileWriter();
-	~WaveFileWriter();
+	PWaveFileWriter();
+	~PWaveFileWriter();
 
 	bool Start(const std::string& filename, unsigned int HLESampleRate);
 	void Stop();

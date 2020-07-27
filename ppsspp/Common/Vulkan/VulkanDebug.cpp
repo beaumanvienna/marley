@@ -34,9 +34,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugUtilsCallback(
 	const char *pMessage = pCallbackData->pMessage;
 
 	// Apparent bugs around timestamp validation in the validation layers
-	if (strstr(pMessage, "vkCmdBeginQuery(): VkQueryPool"))
+	if (strstr(pMessage, "PvkCmdBeginQuery(): VkQueryPool"))
 		return false;
-	if (strstr(pMessage, "vkGetQueryPoolResults() on VkQueryPool"))
+	if (strstr(pMessage, "PvkGetQueryPoolResults() on VkQueryPool"))
 		return false;
 
 	int messageCode = pCallbackData->messageIdNumber;

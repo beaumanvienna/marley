@@ -67,7 +67,7 @@ static int audioHostIntervalCycles;
 static s32 *mixBuffer;
 static s16 *clampedMixBuffer;
 #ifndef MOBILE_DEVICE
-WaveFileWriter g_wave_writer;
+PWaveFileWriter g_wave_writer;
 static bool m_logAudio;
 #endif
 

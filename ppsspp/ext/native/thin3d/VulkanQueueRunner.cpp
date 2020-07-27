@@ -48,10 +48,10 @@ void VulkanQueueRunner::ResizeReadbackBuffer(VkDeviceSize requiredSize) {
 	buf.size = readbackBufferSize_;
 	buf.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-	vkCreateBuffer(device, &buf, nullptr, &readbackBuffer_);
+	PvkCreateBuffer(device, &buf, nullptr, &readbackBuffer_);
 
 	VkMemoryRequirements reqs{};
-	vkGetBufferMemoryRequirements(device, readbackBuffer_, &reqs);
+	PvkGetBufferMemoryRequirements(device, readbackBuffer_, &reqs);
 
 	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	allocInfo.allocationSize = reqs.size;
@@ -74,15 +74,15 @@ void VulkanQueueRunner::ResizeReadbackBuffer(VkDeviceSize requiredSize) {
 	_assert_(successTypeReqs != 0);
 	readbackBufferIsCoherent_ = (successTypeReqs & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
 
-	VkResult res = vkAllocateMemory(device, &allocInfo, nullptr, &readbackMemory_);
+	VkResult res = PvkAllocateMemory(device, &allocInfo, nullptr, &readbackMemory_);
 	if (res != VK_SUCCESS) {
 		readbackMemory_ = VK_NULL_HANDLE;
-		vkDestroyBuffer(device, readbackBuffer_, nullptr);
+		PvkDestroyBuffer(device, readbackBuffer_, nullptr);
 		readbackBuffer_ = VK_NULL_HANDLE;
 		return;
 	}
 	uint32_t offset = 0;
-	vkBindBufferMemory(device, readbackBuffer_, readbackMemory_, offset);
+	PvkBindBufferMemory(device, readbackBuffer_, readbackMemory_, offset);
 }
 
 void VulkanQueueRunner::DestroyDeviceObjects() {
@@ -170,7 +170,7 @@ void VulkanQueueRunner::InitBackbufferRenderPass() {
 	rp_info.dependencyCount = 1;
 	rp_info.pDependencies = &dep;
 
-	VkResult res = vkCreateRenderPass(vulkan_->GetDevice(), &rp_info, nullptr, &backbufferRenderPass_);
+	VkResult res = PvkCreateRenderPass(vulkan_->GetDevice(), &rp_info, nullptr, &backbufferRenderPass_);
 	_assert_(res == VK_SUCCESS);
 }
 
@@ -370,7 +370,7 @@ VkRenderPass VulkanQueueRunner::GetRenderPass(const RPKey &key) {
 		rp.pDependencies = deps;
 	}
 
-	VkResult res = vkCreateRenderPass(vulkan_->GetDevice(), &rp, nullptr, &pass);
+	VkResult res = PvkCreateRenderPass(vulkan_->GetDevice(), &rp, nullptr, &pass);
 	_assert_(res == VK_SUCCESS);
 	_assert_(pass != VK_NULL_HANDLE);
 	renderPasses_.Insert(key, pass);
@@ -478,7 +478,7 @@ void VulkanQueueRunner::RunSteps(VkCommandBuffer cmd, std::vector<VKRStep *> &st
 		}
 
 		if (profile && profile->timestampDescriptions.size() + 1 < MAX_TIMESTAMP_QUERIES) {
-			vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, profile->queryPool, (uint32_t)profile->timestampDescriptions.size());
+			PvkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, profile->queryPool, (uint32_t)profile->timestampDescriptions.size());
 			profile->timestampDescriptions.push_back(StepToString(step));
 		}
 
@@ -993,7 +993,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-			vkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			PvkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 			iter.fb->color.layout = barrier.newLayout;
 		}
 	}
@@ -1017,7 +1017,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		PvkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 
 	// This is supposed to bind a vulkan render pass to the command buffer.
@@ -1045,7 +1045,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 
 		case VKRRenderCommand::BIND_PIPELINE:
 			if (c.pipeline.pipeline != lastPipeline) {
-				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.pipeline.pipeline);
+				PvkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.pipeline.pipeline);
 				lastPipeline = c.pipeline.pipeline;
 				// Reset dynamic state so it gets refreshed with the new pipeline.
 				lastStencilWriteMask = -1;
@@ -1056,7 +1056,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 
 		case VKRRenderCommand::VIEWPORT:
 			if (fb != nullptr) {
-				vkCmdSetViewport(cmd, 0, 1, &c.viewport.vp);
+				PvkCmdSetViewport(cmd, 0, 1, &c.viewport.vp);
 			} else {
 				const VkViewport &vp = c.viewport.vp;
 				DisplayRect<float> rc{ vp.x, vp.y, vp.width, vp.height };
@@ -1068,14 +1068,14 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				final_vp.height = rc.h;
 				final_vp.maxDepth = vp.maxDepth;
 				final_vp.minDepth = vp.minDepth;
-				vkCmdSetViewport(cmd, 0, 1, &final_vp);
+				PvkCmdSetViewport(cmd, 0, 1, &final_vp);
 			}
 			break;
 
 		case VKRRenderCommand::SCISSOR:
 		{
 			if (fb != nullptr) {
-				vkCmdSetScissor(cmd, 0, 1, &c.scissor.scissor);
+				PvkCmdSetScissor(cmd, 0, 1, &c.scissor.scissor);
 			} else {
 				// Rendering to backbuffer. Might need to rotate.
 				const VkRect2D &rc = c.scissor.scissor;
@@ -1084,7 +1084,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				_dbg_assert_(rotated_rc.x >= 0);
 				_dbg_assert_(rotated_rc.y >= 0);
 				VkRect2D finalRect = VkRect2D{ { rotated_rc.x, rotated_rc.y }, { (uint32_t)rotated_rc.w, (uint32_t)rotated_rc.h} };
-				vkCmdSetScissor(cmd, 0, 1, &finalRect);
+				PvkCmdSetScissor(cmd, 0, 1, &finalRect);
 			}
 			break;
 		}
@@ -1093,42 +1093,42 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 		{
 			float bc[4];
 			Uint8x4ToFloat4(bc, c.blendColor.color);
-			vkCmdSetBlendConstants(cmd, bc);
+			PvkCmdSetBlendConstants(cmd, bc);
 			break;
 		}
 
 		case VKRRenderCommand::PUSH_CONSTANTS:
-			vkCmdPushConstants(cmd, c.push.pipelineLayout, c.push.stages, c.push.offset, c.push.size, c.push.data);
+			PvkCmdPushConstants(cmd, c.push.pipelineLayout, c.push.stages, c.push.offset, c.push.size, c.push.data);
 			break;
 
 		case VKRRenderCommand::STENCIL:
 			if (lastStencilWriteMask != c.stencil.stencilWriteMask) {
 				lastStencilWriteMask = (int)c.stencil.stencilWriteMask;
-				vkCmdSetStencilWriteMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilWriteMask);
+				PvkCmdSetStencilWriteMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilWriteMask);
 			}
 			if (lastStencilCompareMask != c.stencil.stencilCompareMask) {
 				lastStencilCompareMask = c.stencil.stencilCompareMask;
-				vkCmdSetStencilCompareMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilCompareMask);
+				PvkCmdSetStencilCompareMask(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilCompareMask);
 			}
 			if (lastStencilReference != c.stencil.stencilRef) {
 				lastStencilReference = c.stencil.stencilRef;
-				vkCmdSetStencilReference(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilRef);
+				PvkCmdSetStencilReference(cmd, VK_STENCIL_FRONT_AND_BACK, c.stencil.stencilRef);
 			}
 			break;
 
 		case VKRRenderCommand::DRAW_INDEXED:
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.drawIndexed.pipelineLayout, 0, 1, &c.drawIndexed.ds, c.drawIndexed.numUboOffsets, c.drawIndexed.uboOffsets);
-			vkCmdBindIndexBuffer(cmd, c.drawIndexed.ibuffer, c.drawIndexed.ioffset, c.drawIndexed.indexType);
-			vkCmdBindVertexBuffers(cmd, 0, 1, &c.drawIndexed.vbuffer, &c.drawIndexed.voffset);
-			vkCmdDrawIndexed(cmd, c.drawIndexed.count, c.drawIndexed.instances, 0, 0, 0);
+			PvkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.drawIndexed.pipelineLayout, 0, 1, &c.drawIndexed.ds, c.drawIndexed.numUboOffsets, c.drawIndexed.uboOffsets);
+			PvkCmdBindIndexBuffer(cmd, c.drawIndexed.ibuffer, c.drawIndexed.ioffset, c.drawIndexed.indexType);
+			PvkCmdBindVertexBuffers(cmd, 0, 1, &c.drawIndexed.vbuffer, &c.drawIndexed.voffset);
+			PvkCmdDrawIndexed(cmd, c.drawIndexed.count, c.drawIndexed.instances, 0, 0, 0);
 			break;
 
 		case VKRRenderCommand::DRAW:
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.draw.pipelineLayout, 0, 1, &c.draw.ds, c.draw.numUboOffsets, c.draw.uboOffsets);
+			PvkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, c.draw.pipelineLayout, 0, 1, &c.draw.ds, c.draw.numUboOffsets, c.draw.uboOffsets);
 			if (c.draw.vbuffer) {
-				vkCmdBindVertexBuffers(cmd, 0, 1, &c.draw.vbuffer, &c.draw.voffset);
+				PvkCmdBindVertexBuffers(cmd, 0, 1, &c.draw.vbuffer, &c.draw.voffset);
 			}
-			vkCmdDraw(cmd, c.draw.count, 1, c.draw.offset, 0);
+			PvkCmdDraw(cmd, c.draw.count, 1, c.draw.offset, 0);
 			break;
 
 		case VKRRenderCommand::CLEAR:
@@ -1160,7 +1160,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 				}
 			}
 			if (numAttachments) {
-				vkCmdClearAttachments(cmd, numAttachments, attachments, 1, &rc);
+				PvkCmdClearAttachments(cmd, numAttachments, attachments, 1, &rc);
 			}
 			break;
 		}
@@ -1169,7 +1169,7 @@ void VulkanQueueRunner::PerformRenderPass(const VKRStep &step, VkCommandBuffer c
 			;
 		}
 	}
-	vkCmdEndRenderPass(cmd);
+	PvkCmdEndRenderPass(cmd);
 
 	// The renderpass handles the layout transition.
 	if (fb) {
@@ -1245,7 +1245,7 @@ void VulkanQueueRunner::PerformBindFramebufferAsRenderTarget(const VKRStep &step
 	rp_begin.renderArea.extent.height = h;
 	rp_begin.clearValueCount = numClearVals;
 	rp_begin.pClearValues = numClearVals ? clearVal : nullptr;
-	vkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+	PvkCmdBeginRenderPass(cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
@@ -1295,16 +1295,16 @@ void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
 	}
 
 	if (srcCount) {
-		vkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
+		PvkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
 	}
 	if (dstCount) {
-		vkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
+		PvkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
 	}
 
 	if (step.copy.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) {
 		copy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		copy.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		vkCmdCopyImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &copy);
+		PvkCmdCopyImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &copy);
 	}
 	if (step.copy.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
 		copy.srcSubresource.aspectMask = 0;
@@ -1317,7 +1317,7 @@ void VulkanQueueRunner::PerformCopy(const VKRStep &step, VkCommandBuffer cmd) {
 			copy.srcSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			copy.dstSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
-		vkCmdCopyImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &copy);
+		PvkCmdCopyImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &copy);
 	}
 }
 
@@ -1375,16 +1375,16 @@ void VulkanQueueRunner::PerformBlit(const VKRStep &step, VkCommandBuffer cmd) {
 	}
 
 	if (srcCount) {
-		vkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
+		PvkCmdPipelineBarrier(cmd, srcStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, srcCount, srcBarriers);
 	}
 	if (dstCount) {
-		vkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
+		PvkCmdPipelineBarrier(cmd, dstStage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, dstCount, dstBarriers);
 	}
 
 	if (step.blit.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) {
 		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		vkCmdBlitImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &blit, step.blit.filter);
+		PvkCmdBlitImage(cmd, src->color.image, src->color.layout, dst->color.image, dst->color.layout, 1, &blit, step.blit.filter);
 	}
 
 	// TODO: Need to check if the depth format is blittable.
@@ -1400,7 +1400,7 @@ void VulkanQueueRunner::PerformBlit(const VKRStep &step, VkCommandBuffer cmd) {
 			blit.srcSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			blit.dstSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
-		vkCmdBlitImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &blit, step.blit.filter);
+		PvkCmdBlitImage(cmd, src->depth.image, src->depth.layout, dst->depth.image, dst->depth.layout, 1, &blit, step.blit.filter);
 	}
 }
 
@@ -1561,13 +1561,13 @@ void VulkanQueueRunner::PerformReadback(const VKRStep &step, VkCommandBuffer cmd
 		VkPipelineStageFlags stage = 0;
 		if (srcImage->layout != VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
 			SetupTransitionToTransferSrc(*srcImage, barrier, stage, step.readback.aspectMask);
-			vkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			PvkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		}
 		image = srcImage->image;
 		copyLayout = srcImage->layout;
 	}
 
-	vkCmdCopyImageToBuffer(cmd, image, copyLayout, readbackBuffer_, 1, &region);
+	PvkCmdCopyImageToBuffer(cmd, image, copyLayout, readbackBuffer_, 1, &region);
 
 	// NOTE: Can't read the buffer using the CPU here - need to sync first.
 
@@ -1592,7 +1592,7 @@ void VulkanQueueRunner::PerformReadbackImage(const VKRStep &step, VkCommandBuffe
 	VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 	VkPipelineStageFlags stage = 0;
 	SetupTransitionToTransferSrc(srcImage, barrier, stage, VK_IMAGE_ASPECT_COLOR_BIT);
-	vkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	PvkCmdPipelineBarrier(cmd, stage, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 	ResizeReadbackBuffer(sizeof(uint32_t) * step.readback_image.srcRect.extent.width * step.readback_image.srcRect.extent.height);
 
@@ -1605,7 +1605,7 @@ void VulkanQueueRunner::PerformReadbackImage(const VKRStep &step, VkCommandBuffe
 	region.bufferOffset = 0;
 	region.bufferRowLength = step.readback_image.srcRect.extent.width;
 	region.bufferImageHeight = step.readback_image.srcRect.extent.height;
-	vkCmdCopyImageToBuffer(cmd, step.readback_image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer_, 1, &region);
+	PvkCmdCopyImageToBuffer(cmd, step.readback_image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer_, 1, &region);
 
 	// Now transfer it back to a texture.
 	TransitionImageLayout2(cmd, step.readback_image.image, 0, 1,
@@ -1626,17 +1626,17 @@ void VulkanQueueRunner::CopyReadbackBuffer(int width, int height, Draw::DataForm
 	void *mappedData;
 	const size_t srcPixelSize = DataFormatSizeInBytes(srcFormat);
 
-	VkResult res = vkMapMemory(vulkan_->GetDevice(), readbackMemory_, 0, width * height * srcPixelSize, 0, &mappedData);
+	VkResult res = PvkMapMemory(vulkan_->GetDevice(), readbackMemory_, 0, width * height * srcPixelSize, 0, &mappedData);
 	if (!readbackBufferIsCoherent_) {
 		VkMappedMemoryRange range{};
 		range.memory = readbackMemory_;
 		range.offset = 0;
 		range.size = width * height * srcPixelSize;
-		vkInvalidateMappedMemoryRanges(vulkan_->GetDevice(), 1, &range);
+		PvkInvalidateMappedMemoryRanges(vulkan_->GetDevice(), 1, &range);
 	}
 
 	if (res != VK_SUCCESS) {
-		ELOG("CopyReadbackBuffer: vkMapMemory failed! result=%d", (int)res);
+		ELOG("CopyReadbackBuffer: PvkMapMemory failed! result=%d", (int)res);
 		return;
 	}
 
@@ -1660,5 +1660,5 @@ void VulkanQueueRunner::CopyReadbackBuffer(int width, int height, Draw::DataForm
 		ELOG("CopyReadbackBuffer: Unknown format");
 		assert(false);
 	}
-	vkUnmapMemory(vulkan_->GetDevice(), readbackMemory_);
+	PvkUnmapMemory(vulkan_->GetDevice(), readbackMemory_);
 }

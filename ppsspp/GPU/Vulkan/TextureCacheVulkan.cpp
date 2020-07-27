@@ -483,7 +483,7 @@ uint readColoru(uvec2 p) {
 vec4 readColorf(uvec2 p) {
 	// Unpack the color (we could look it up in a CLUT here if we wanted...)
 	// It's a bit silly that we need to unpack to float and then have imageStore repack,
-	// but the alternative is to store to a buffer, and then launch a vkCmdCopyBufferToImage instead.
+	// but the alternative is to store to a buffer, and then launch a PvkCmdCopyBufferToImage instead.
 	return unpackUnorm4x8(readColoru(p));
 }
 
@@ -536,7 +536,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 	samp.minLod = (float)(int32_t)key.minLevel * (1.0f / 256.0f);
 	samp.mipLodBias = (float)(int32_t)key.lodBias * (1.0f / 256.0f);
 
-	VkResult res = vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &sampler);
+	VkResult res = PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &sampler);
 	assert(res == VK_SUCCESS);
 	cache_.Insert(key, sampler);
 	return sampler;
@@ -646,7 +646,7 @@ void TextureCacheVulkan::DeviceRestore(VulkanContext *vulkan, Draw::DrawContext 
 	samp.magFilter = VK_FILTER_NEAREST;
 	samp.minFilter = VK_FILTER_NEAREST;
 	samp.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-	vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &samplerNearest_);
+	PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &samplerNearest_);
 
 	std::string error;
 	std::string fullUploadShader = StringFromFormat(uploadShader, shader4xbrz);
@@ -1186,9 +1186,9 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 					} else if (dstFmt == VULKAN_565_FORMAT) {
 						params.fmt = 6;
 					}
-					vkCmdBindDescriptorSets(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipelineLayout(), 0, 1, &descSet, 0, nullptr);
-					vkCmdPushConstants(cmdInit, computeShaderManager_.GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(params), &params);
-					vkCmdDispatch(cmdInit, (mipWidth + 15) / 16, (mipHeight + 15) / 16, 1);
+					PvkCmdBindDescriptorSets(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipelineLayout(), 0, 1, &descSet, 0, nullptr);
+					PvkCmdPushConstants(cmdInit, computeShaderManager_.GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(params), &params);
+					PvkCmdDispatch(cmdInit, (mipWidth + 15) / 16, (mipHeight + 15) / 16, 1);
 				};
 
 				if (fakeMipmap) {
@@ -1204,7 +1204,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 						// This format can be used with storage images.
 						VkImageView view = entry->vkTex->CreateViewForMip(i);
 						VkDescriptorSet descSet = computeShaderManager_.GetDescriptorSet(view, texBuf, bufferOffset, srcSize);
-						vkCmdBindPipeline(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipeline(uploadCS_));
+						PvkCmdBindPipeline(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipeline(uploadCS_));
 						dispatchCompute(descSet);
 						vulkan_->Delete().QueueDeleteImageView(view);
 					} else if (computeCopy) {
@@ -1220,7 +1220,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 						localOffset = (uint32_t)drawEngine_->GetPushBufferLocal()->Allocate(localSize, &localBuf);
 
 						VkDescriptorSet descSet = computeShaderManager_.GetDescriptorSet(VK_NULL_HANDLE, texBuf, bufferOffset, srcSize, localBuf, localOffset, localSize);
-						vkCmdBindPipeline(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipeline(copyCS_));
+						PvkCmdBindPipeline(cmdInit, VK_PIPELINE_BIND_POINT_COMPUTE, computeShaderManager_.GetPipeline(copyCS_));
 						dispatchCompute(descSet);
 
 						// After the compute, before the copy, we need a memory barrier.
@@ -1232,7 +1232,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 						barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 						barrier.offset = localOffset;
 						barrier.size = localSize;
-						vkCmdPipelineBarrier(cmdInit, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+						PvkCmdPipelineBarrier(cmdInit, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 							0, 0, nullptr, 1, &barrier, 0, nullptr);
 
 						entry->vkTex->UploadMip(cmdInit, i, mipWidth, mipHeight, localBuf, localOffset, stride / bpp);

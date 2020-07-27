@@ -665,7 +665,7 @@ public:
 		s.minFilter = desc.minFilter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 		s.mipmapMode = desc.mipFilter == TextureFilter::LINEAR ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		s.maxLod = desc.maxLod;
-		VkResult res = vkCreateSampler(vulkan_->GetDevice(), &s, nullptr, &sampler_);
+		VkResult res = PvkCreateSampler(vulkan_->GetDevice(), &s, nullptr, &sampler_);
 		_assert_(VK_SUCCESS == res);
 	}
 	~VKSamplerState() {
@@ -831,7 +831,7 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	for (int i = 0; i < VulkanContext::MAX_INFLIGHT_FRAMES; i++) {
 		VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		frame_[i].pushBuffer = new VulkanPushBuffer(vulkan_, 1024 * 1024, usage);
-		VkResult res = vkCreateDescriptorPool(device_, &dp, nullptr, &frame_[i].descriptorPool);
+		VkResult res = PvkCreateDescriptorPool(device_, &dp, nullptr, &frame_[i].descriptorPool);
 		_assert_(res == VK_SUCCESS);
 	}
 
@@ -855,7 +855,7 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	VkDescriptorSetLayoutCreateInfo dsl = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 	dsl.bindingCount = ARRAY_SIZE(bindings);
 	dsl.pBindings = bindings;
-	VkResult res = vkCreateDescriptorSetLayout(device_, &dsl, nullptr, &descriptorSetLayout_);
+	VkResult res = PvkCreateDescriptorSetLayout(device_, &dsl, nullptr, &descriptorSetLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkPipelineLayoutCreateInfo pl = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
@@ -863,11 +863,11 @@ VKContext::VKContext(VulkanContext *vulkan, bool splitSubmit)
 	pl.pushConstantRangeCount = 0;
 	pl.setLayoutCount = 1;
 	pl.pSetLayouts = &descriptorSetLayout_;
-	res = vkCreatePipelineLayout(device_, &pl, nullptr, &pipelineLayout_);
+	res = PvkCreatePipelineLayout(device_, &pl, nullptr, &pipelineLayout_);
 	assert(VK_SUCCESS == res);
 
 	VkPipelineCacheCreateInfo pc{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
-	res = vkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
+	res = PvkCreatePipelineCache(vulkan_->GetDevice(), &pc, nullptr, &pipelineCache_);
 	assert(VK_SUCCESS == res);
 
 	renderManager_.SetSplitSubmit(splitSubmit);
@@ -908,7 +908,7 @@ void VKContext::BeginFrame() {
 	allocator_->Begin();
 
 	frame.descSets_.clear();
-	VkResult result = vkResetDescriptorPool(device_, frame.descriptorPool, 0);
+	VkResult result = PvkResetDescriptorPool(device_, frame.descriptorPool, 0);
 	_assert_(result == VK_SUCCESS);
 }
 
@@ -964,7 +964,7 @@ VkDescriptorSet VKContext::GetOrCreateDescriptorSet(VkBuffer buf) {
 	alloc.descriptorPool = frame->descriptorPool;
 	alloc.pSetLayouts = &descriptorSetLayout_;
 	alloc.descriptorSetCount = 1;
-	VkResult res = vkAllocateDescriptorSets(device_, &alloc, &descSet);
+	VkResult res = PvkAllocateDescriptorSets(device_, &alloc, &descSet);
 	_assert_(VK_SUCCESS == res);
 
 	VkDescriptorBufferInfo bufferDesc;
@@ -1014,7 +1014,7 @@ VkDescriptorSet VKContext::GetOrCreateDescriptorSet(VkBuffer buf) {
 		}
 	}
 
-	vkUpdateDescriptorSets(device_, numWrites, writes, 0, nullptr);
+	PvkUpdateDescriptorSets(device_, numWrites, writes, 0, nullptr);
 
 	frame->descSets_[key] = descSet;
 	return descSet;
@@ -1096,7 +1096,7 @@ Pipeline *VKContext::CreateGraphicsPipeline(const PipelineDesc &desc) {
 
 	// OK, need to create new pipelines.
 	VkPipeline pipelines[2]{};
-	VkResult result = vkCreateGraphicsPipelines(device_, pipelineCache_, 2, createInfo, nullptr, pipelines);
+	VkResult result = PvkCreateGraphicsPipelines(device_, pipelineCache_, 2, createInfo, nullptr, pipelines);
 	if (result != VK_SUCCESS) {
 		ELOG("Failed to create graphics pipeline");
 		delete pipeline;
@@ -1428,7 +1428,7 @@ std::vector<std::string> VKContext::GetExtensionList() const {
 uint32_t VKContext::GetDataFormatSupport(DataFormat fmt) const {
 	VkFormat vulkan_format = DataFormatToVulkan(fmt);
 	VkFormatProperties properties;
-	vkGetPhysicalDeviceFormatProperties(vulkan_->GetCurrentPhysicalDevice(), vulkan_format, &properties);
+	PvkGetPhysicalDeviceFormatProperties(vulkan_->GetCurrentPhysicalDevice(), vulkan_format, &properties);
 	uint32_t flags = 0;
 	if (properties.optimalTilingFeatures & VkFormatFeatureFlagBits::VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) {
 		flags |= FMT_RENDERTARGET;

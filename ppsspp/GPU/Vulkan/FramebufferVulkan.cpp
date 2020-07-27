@@ -116,11 +116,11 @@ void FramebufferManagerVulkan::InitDeviceObjects() {
 	samp.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 	samp.magFilter = VK_FILTER_NEAREST;
 	samp.minFilter = VK_FILTER_NEAREST;
-	VkResult res = vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &nearestSampler_);
+	VkResult res = PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &nearestSampler_);
 	assert(res == VK_SUCCESS);
 	samp.magFilter = VK_FILTER_LINEAR;
 	samp.minFilter = VK_FILTER_LINEAR;
-	res = vkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &linearSampler_);
+	res = PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &linearSampler_);
 	assert(res == VK_SUCCESS);
 }
 

@@ -64,10 +64,10 @@ void VulkanImage::Create2D(VulkanContext *vulkan, VkFormat format, VkFlags requi
 
 	VkMemoryRequirements mem_reqs;
 
-	VkResult err = vkCreateImage(device, &i, nullptr, &image_);
+	VkResult err = PvkCreateImage(device, &i, nullptr, &image_);
 	assert(!err);
 
-	vkGetImageMemoryRequirements(device, image_, &mem_reqs);
+	PvkGetImageMemoryRequirements(device, image_, &mem_reqs);
 
 	mem_alloc_.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	mem_alloc_.pNext = NULL;
@@ -77,10 +77,10 @@ void VulkanImage::Create2D(VulkanContext *vulkan, VkFormat format, VkFlags requi
 	bool res = vulkan->MemoryTypeFromProperties(mem_reqs.memoryTypeBits, required_props, &mem_alloc_.memoryTypeIndex);
 	assert(res);
 
-	err = vkAllocateMemory(device, &mem_alloc_, nullptr, &memory_);
+	err = PvkAllocateMemory(device, &mem_alloc_, nullptr, &memory_);
 	assert(!err);
 
-	err = vkBindImageMemory(device, image_, memory_, 0);  // at offset 0.
+	err = PvkBindImageMemory(device, image_, memory_, 0);  // at offset 0.
 	assert(!err);
 }
 
@@ -92,9 +92,9 @@ void VulkanImage::SetImageData2D(VkDevice device, const uint8_t *data, int width
 
 	VkSubresourceLayout layout;
 	void *destData;
-	vkGetImageSubresourceLayout(device, image_, &subres, &layout);
+	PvkGetImageSubresourceLayout(device, image_, &subres, &layout);
 
-	VkResult err = vkMapMemory(device, memory_, 0, mem_alloc_.allocationSize, 0, &destData);
+	VkResult err = PvkMapMemory(device, memory_, 0, mem_alloc_.allocationSize, 0, &destData);
 	assert(!err);
 	
 	uint8_t *writePtr = (uint8_t *)destData + layout.offset;
@@ -103,7 +103,7 @@ void VulkanImage::SetImageData2D(VkDevice device, const uint8_t *data, int width
 		memcpy(writePtr + y * layout.rowPitch, data + y * pitch, bpp * width);
 	}
 
-	vkUnmapMemory(device, memory_);
+	PvkUnmapMemory(device, memory_);
 }
 
 
@@ -138,5 +138,5 @@ void VulkanImage::ChangeLayout(VkCommandBuffer cmd, VkImageAspectFlags aspectMas
 
 	VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 	VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-	vkCmdPipelineBarrier(cmd, src_stages, dest_stages, false, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+	PvkCmdPipelineBarrier(cmd, src_stages, dest_stages, false, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
 }
