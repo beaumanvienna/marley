@@ -26,7 +26,7 @@
 alignas(16) static const u64 ssNoSignMask[2] = {0x7FFFFFFF7FFFFFFFULL, 0x7FFFFFFF7FFFFFFFULL};
 
 namespace MIPSComp {
-using namespace Gen;
+using namespace PGen;
 
 int Jit::Replace_fabsf() {
 	fpr.SpillLock(0, 12);

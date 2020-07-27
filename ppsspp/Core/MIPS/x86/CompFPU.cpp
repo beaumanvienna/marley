@@ -47,7 +47,7 @@
 
 namespace MIPSComp {
 
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 alignas(16) const u32 reverseQNAN[4] = { 0x803FFFFF, 0x803FFFFF, 0x803FFFFF, 0x803FFFFF };

@@ -30,7 +30,7 @@
 #define PTRBITS 32
 #endif
 
-namespace Gen
+namespace PGen
 {
 
 enum X64Reg : u32
@@ -1018,13 +1018,13 @@ public:
 	void ABI_CallFunctionCCP(const void *func, u32 param1, u32 param2, void *param3);
 	void ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2, u32 param3, void *param4);
 	void ABI_CallFunctionP(const void *func, void *param1);
-	void ABI_CallFunctionPA(const void *func, void *param1, const Gen::OpArg &arg2);
-	void ABI_CallFunctionPAA(const void *func, void *param1, const Gen::OpArg &arg2, const Gen::OpArg &arg3);
+	void ABI_CallFunctionPA(const void *func, void *param1, const PGen::OpArg &arg2);
+	void ABI_CallFunctionPAA(const void *func, void *param1, const PGen::OpArg &arg2, const PGen::OpArg &arg3);
 	void ABI_CallFunctionPPC(const void *func, void *param1, void *param2, u32 param3);
-	void ABI_CallFunctionAC(const void *func, const Gen::OpArg &arg1, u32 param2);
-	void ABI_CallFunctionACC(const void *func, const Gen::OpArg &arg1, u32 param2, u32 param3);
-	void ABI_CallFunctionA(const void *func, const Gen::OpArg &arg1);
-	void ABI_CallFunctionAA(const void *func, const Gen::OpArg &arg1, const Gen::OpArg &arg2);
+	void ABI_CallFunctionAC(const void *func, const PGen::OpArg &arg1, u32 param2);
+	void ABI_CallFunctionACC(const void *func, const PGen::OpArg &arg1, u32 param2, u32 param3);
+	void ABI_CallFunctionA(const void *func, const PGen::OpArg &arg1);
+	void ABI_CallFunctionAA(const void *func, const PGen::OpArg &arg1, const PGen::OpArg &arg2);
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(const void *func, X64Reg reg1);

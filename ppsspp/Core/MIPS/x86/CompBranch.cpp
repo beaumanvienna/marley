@@ -76,7 +76,7 @@ using namespace MIPSAnalyst;
 
 namespace MIPSComp
 {
-using namespace Gen;
+using namespace PGen;
 
 static void JitBranchLog(MIPSOpcode op, u32 pc) {
 	currentMIPS->pc = pc;
@@ -206,7 +206,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 		if (predictTakeBranch)
 			cc = FlipCCFlag(cc);
 
-		Gen::FixupBranch ptr;
+		PGen::FixupBranch ptr;
 		RegCacheState state;
 		if (!likely)
 		{
@@ -269,7 +269,7 @@ void Jit::CompBranchExits(CCFlags cc, u32 targetAddr, u32 notTakenAddr, bool del
 	}
 	else
 	{
-		Gen::FixupBranch ptr;
+		PGen::FixupBranch ptr;
 		if (!likely)
 		{
 			if (!delaySlotIsNice)
@@ -312,7 +312,7 @@ void Jit::CompBranchExit(bool taken, u32 targetAddr, u32 notTakenAddr, bool dela
 	js.compiling = false;
 }
 
-void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
+void Jit::BranchRSRTComp(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -388,7 +388,7 @@ void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 	}
 }
 
-void Jit::BranchRSZeroComp(MIPSOpcode op, Gen::CCFlags cc, bool andLink, bool likely)
+void Jit::BranchRSZeroComp(MIPSOpcode op, PGen::CCFlags cc, bool andLink, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -504,7 +504,7 @@ void Jit::Comp_RelBranchRI(MIPSOpcode op)
 
 
 // If likely is set, discard the branch slot if NOT taken.
-void Jit::BranchFPFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
+void Jit::BranchFPFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {
@@ -542,7 +542,7 @@ void Jit::Comp_FPUBranch(MIPSOpcode op)
 }
 
 // If likely is set, discard the branch slot if NOT taken.
-void Jit::BranchVFPUFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
+void Jit::BranchVFPUFlag(MIPSOpcode op, PGen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
 	if (js.inDelaySlot) {

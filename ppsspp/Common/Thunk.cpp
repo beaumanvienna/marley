@@ -31,7 +31,7 @@ static u16 saved_mxcsr;
 
 }  // namespace
 
-using namespace Gen;
+using namespace PGen;
 
 void ThunkManager::Init()
 {

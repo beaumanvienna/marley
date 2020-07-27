@@ -30,18 +30,18 @@ public:
 	JitSafeMem(Jit *jit, MIPSGPReg raddr, s32 offset, u32 alignMask = 0xFFFFFFFF);
 
 	// Emit code necessary for a memory write, returns true if MOV to dest is needed.
-	bool PrepareWrite(Gen::OpArg &dest, int size);
+	bool PrepareWrite(PGen::OpArg &dest, int size);
 	// Emit code proceeding a slow write call, returns true if slow write is needed.
 	bool PrepareSlowWrite();
 	// Emit a slow write from src.
-	void DoSlowWrite(const void *safeFunc, const Gen::OpArg& src, int suboffset = 0);
+	void DoSlowWrite(const void *safeFunc, const PGen::OpArg& src, int suboffset = 0);
 	template <typename T>
-	void DoSlowWrite(void (*safeFunc)(T val, u32 addr), const Gen::OpArg& src, int suboffset = 0) {
+	void DoSlowWrite(void (*safeFunc)(T val, u32 addr), const PGen::OpArg& src, int suboffset = 0) {
 		DoSlowWrite((const void *)safeFunc, src, suboffset);
 	}
 
 	// Emit code necessary for a memory read, returns true if MOV from src is needed.
-	bool PrepareRead(Gen::OpArg &src, int size);
+	bool PrepareRead(PGen::OpArg &src, int size);
 	// Emit code for a slow read call, and returns true if result is in EAX.
 	bool PrepareSlowRead(const void *safeFunc);
 	template <typename T>
@@ -53,7 +53,7 @@ public:
 	void Finish();
 
 	// WARNING: Only works for non-GPR.  Do not use for reads into GPR.
-	Gen::OpArg NextFastAddress(int suboffset);
+	PGen::OpArg NextFastAddress(int suboffset);
 	// WARNING: Only works for non-GPR.  Do not use for reads into GPR.
 	void NextSlowRead(const void *safeFunc, int suboffset);
 	template <typename T>
@@ -67,7 +67,7 @@ private:
 		MEM_WRITE,
 	};
 
-	Gen::OpArg PrepareMemoryOpArg(MemoryOpType type);
+	PGen::OpArg PrepareMemoryOpArg(MemoryOpType type);
 	void PrepareSlowAccess();
 	void MemCheckImm(MemoryOpType type);
 	void MemCheckAsm(MemoryOpType type);
@@ -82,14 +82,14 @@ private:
 	bool fast_;
 	u32 alignMask_;
 	u32 iaddr_;
-	Gen::X64Reg xaddr_;
-	Gen::FixupBranch tooLow_, tooHigh_, skip_;
-	std::vector<Gen::FixupBranch> skipChecks_;
+	PGen::X64Reg xaddr_;
+	PGen::FixupBranch tooLow_, tooHigh_, skip_;
+	std::vector<PGen::FixupBranch> skipChecks_;
 	const u8 *safe_;
 };
 
 // Kept separate to avoid mistakes in the above class not using jit_.
-class JitSafeMemFuncs : public Gen::XCodeBlock
+class JitSafeMemFuncs : public PGen::XCodeBlock
 {
 public:
 	JitSafeMemFuncs() {
@@ -115,7 +115,7 @@ private:
 	void CheckDirectEAX();
 	void StartDirectAccess();
 
-	std::vector<Gen::FixupBranch> skips_;
+	std::vector<PGen::FixupBranch> skips_;
 	ThunkManager *thunks_;
 };
 

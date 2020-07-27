@@ -28,7 +28,7 @@
 #include "Core/MIPS/x86/RegCache.h"
 #include "Core/MIPS/x86/RegCacheFPU.h"
 
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 FPURegCache::FPURegCache() : mips(0), initialReady(false), emit(0) {
@@ -289,7 +289,7 @@ bool FPURegCache::TryMapRegsVS(const u8 *v, VectorSize vsz, int flags) {
 	}
 
 	// Victory, now let's clean up everything.
-	OpArg newloc = Gen::R(xr);
+	OpArg newloc = PGen::R(xr);
 	bool dirty = (flags & MAP_DIRTY) != 0;
 	for (int i = 0; i < n; ++i) {
 		MIPSCachedFPReg &vr = vregs[v[i]];
@@ -432,14 +432,14 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 		loadXR(0);
 		if (n == 4) {
 			// This gives us [w, y] in the y reg.
-			emit->UNPCKLPS(xrs[1], Gen::R(xrs[3]));
+			emit->UNPCKLPS(xrs[1], PGen::R(xrs[3]));
 		}
 		if (n >= 3) {
 			// This gives us [z, x].  Then we combine with y.
-			emit->UNPCKLPS(xrs[0], Gen::R(xrs[2]));
+			emit->UNPCKLPS(xrs[0], PGen::R(xrs[2]));
 		}
 		if (n >= 2) {
-			emit->UNPCKLPS(xrs[0], Gen::R(xrs[1]));
+			emit->UNPCKLPS(xrs[0], PGen::R(xrs[1]));
 		}
 		res = xrs[0];
 	} else {
@@ -475,19 +475,19 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 				emit->MOVSS(xr2, vregs[v[2]].location);
 			if (!vregs[v[1]].location.IsSimpleReg(xr1))
 				emit->MOVSS(xr1, vregs[v[1]].location);
-			emit->SHUFPS(xr1, Gen::R(xr2), _MM_SHUFFLE(3, 0, 0, 0));
+			emit->SHUFPS(xr1, PGen::R(xr2), _MM_SHUFFLE(3, 0, 0, 0));
 			emit->MOVSS(xr2, vregs[v[0]].location);
-			emit->MOVSS(xr1, Gen::R(xr2));
+			emit->MOVSS(xr1, PGen::R(xr2));
 		} else if (n == 4) {
 			if (!vregs[v[2]].location.IsSimpleReg(xr2))
 				emit->MOVSS(xr2, vregs[v[2]].location);
 			if (!vregs[v[3]].location.IsSimpleReg(xr1))
 				emit->MOVSS(xr1, vregs[v[3]].location);
-			emit->UNPCKLPS(xr2, Gen::R(xr1));
+			emit->UNPCKLPS(xr2, PGen::R(xr1));
 			emit->MOVSS(xr1, vregs[v[1]].location);
-			emit->SHUFPS(xr1, Gen::R(xr2), _MM_SHUFFLE(1, 0, 0, 3));
+			emit->SHUFPS(xr1, PGen::R(xr2), _MM_SHUFFLE(1, 0, 0, 3));
 			emit->MOVSS(xr2, vregs[v[0]].location);
-			emit->MOVSS(xr1, Gen::R(xr2));
+			emit->MOVSS(xr1, PGen::R(xr2));
 		}
 		res = xr1;
 	}
@@ -607,7 +607,7 @@ void FPURegCache::MapReg(const int i, bool doLoad, bool makeDirty) {
 		_assert_msg_(xr < NUM_X_FPREGS, "WTF - FPURegCache::MapReg - invalid reg %d", (int)xr);
 		xregs[xr].mipsReg = i;
 		xregs[xr].dirty = makeDirty;
-		OpArg newloc = ::Gen::R(xr);
+		OpArg newloc = ::PGen::R(xr);
 		if (doLoad)	{
 			emit->MOVSS(xr, regs[i].location);
 		}
@@ -700,7 +700,7 @@ void FPURegCache::StoreFromRegister(int i) {
 					continue;
 				}
 				if (j != 0 && xregs[xr].dirty) {
-					emit->SHUFPS(xr, Gen::R(xr), MMShuffleSwapTo0(j));
+					emit->SHUFPS(xr, PGen::R(xr), MMShuffleSwapTo0(j));
 				}
 				OpArg newLoc = GetDefaultLocation(mr);
 				if (xregs[xr].dirty) {
@@ -744,7 +744,7 @@ void FPURegCache::DiscardR(int i) {
 					continue;
 				}
 				if (j != 0 && xregs[xr].dirty) {
-					emit->SHUFPS(xr, Gen::R(xr), MMShuffleSwapTo0(j));
+					emit->SHUFPS(xr, PGen::R(xr), MMShuffleSwapTo0(j));
 				}
 
 				OpArg newLoc = GetDefaultLocation(mr);
@@ -952,7 +952,7 @@ int FPURegCache::SanityCheck() const {
 			return 4;
 
 		if (mr.away) {
-			Gen::X64Reg simple = mr.location.GetSimpleReg();
+			PGen::X64Reg simple = mr.location.GetSimpleReg();
 			if (mr.lane == 0) {
 				if (xregs[simple].mipsReg != i)
 					return 5;

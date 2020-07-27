@@ -28,7 +28,7 @@
 #include "Core/MIPS/x86/Jit.h"
 #include "Core/MIPS/x86/RegCache.h"
 
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 static const X64Reg allocationOrder[] = {
@@ -239,7 +239,7 @@ int GPRRegCache::SanityCheck() const {
 		const MIPSGPReg r = MIPSGPReg(i);
 		if (regs[i].away) {
 			if (regs[i].location.IsSimpleReg()) {
-				Gen::X64Reg simple = regs[i].location.GetSimpleReg();
+				PGen::X64Reg simple = regs[i].location.GetSimpleReg();
 				if (xregs[simple].allocLocked)
 					return 1;
 				if (xregs[simple].mipsReg != r)
@@ -358,7 +358,7 @@ void GPRRegCache::MapReg(MIPSGPReg i, bool doLoad, bool makeDirty) {
 		xregs[xr].free = false;
 		xregs[xr].mipsReg = i;
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
-		OpArg newloc = ::Gen::R(xr);
+		OpArg newloc = ::PGen::R(xr);
 		if (doLoad) {
 			// Force ZERO to be 0.
 			if (i == MIPS_REG_ZERO)

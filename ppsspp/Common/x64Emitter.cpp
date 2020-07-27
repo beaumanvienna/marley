@@ -25,7 +25,7 @@
 
 #define PRIx64 "llx"
 
-namespace Gen
+namespace PGen
 {
 
 struct NormalOpDef

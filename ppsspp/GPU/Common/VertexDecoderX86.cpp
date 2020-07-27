@@ -30,7 +30,7 @@
 // using SSE / NEON and store them here.
 alignas(16) static float bones[16 * 8];
 
-using namespace Gen;
+using namespace PGen;
 
 alignas(16) static const float by128[4] = {
 	1.0f / 128.0f, 1.0f / 128.0f, 1.0f / 128.0f, 1.0f / 128.0f

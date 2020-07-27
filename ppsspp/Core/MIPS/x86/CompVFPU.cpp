@@ -61,7 +61,7 @@
 
 namespace MIPSComp
 {
-using namespace Gen;
+using namespace PGen;
 using namespace X64JitConstants;
 
 static const float one = 1.0f;

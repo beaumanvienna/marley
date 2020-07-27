@@ -25,7 +25,7 @@
 #include "GPU/Software/Sampler.h"
 #include "GPU/ge_constants.h"
 
-using namespace Gen;
+using namespace PGen;
 
 extern u32 clut[4096];
 
