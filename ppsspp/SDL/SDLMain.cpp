@@ -584,12 +584,14 @@ static SDL_AudioSpec g_retFmt;
     SDL_DisplayMode l_mode;
     SDL_GetWindowDisplayMode(gWindow,&l_mode);
     
-    pixel_xres = WINDOW_WIDTH;
-    pixel_yres = WINDOW_HEIGHT;
     mode = SDL_GetWindowFlags(gWindow);
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+        pixel_xres = g_DesktopWidth;
+        pixel_yres = g_DesktopHeight;
 		g_Config.bFullScreen = true;
 	} else {
+        pixel_xres = WINDOW_WIDTH;
+        pixel_yres = WINDOW_HEIGHT;
 		g_Config.bFullScreen = false;
 	}
 
