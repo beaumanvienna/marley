@@ -33,7 +33,7 @@ public:
 private:
 	static constexpr size_t BUFFER_SIZE = 32 * 1024;
 
-	File::IOFile file;
+	PFile::IOFile file;
 	bool skip_silence = false;
 	u32 audio_size = 0;
 	std::array<short, BUFFER_SIZE> conv_buffer{};

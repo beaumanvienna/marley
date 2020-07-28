@@ -187,7 +187,7 @@ void SymbolMap::SaveSymbolMap(const char *filename) const {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
 
 	// Don't bother writing a blank file.
-	if (!File::Exists(filename) && functions.empty() && data.empty()) {
+	if (!PFile::Exists(filename) && functions.empty() && data.empty()) {
 		return;
 	}
 
@@ -221,7 +221,7 @@ void SymbolMap::SaveSymbolMap(const char *filename) const {
 
 bool SymbolMap::LoadNocashSym(const char *filename) {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
-	FILE *f = File::OpenCFile(filename, "r");
+	FILE *f = PFile::OpenCFile(filename, "r");
 	if (!f)
 		return false;
 
@@ -281,11 +281,11 @@ void SymbolMap::SaveNocashSym(const char *filename) const {
 	std::lock_guard<std::recursive_mutex> guard(lock_);
 
 	// Don't bother writing a blank file.
-	if (!File::Exists(filename) && functions.empty() && data.empty()) {
+	if (!PFile::Exists(filename) && functions.empty() && data.empty()) {
 		return;
 	}
 
-	FILE* f = File::OpenCFile(filename, "w");
+	FILE* f = PFile::OpenCFile(filename, "w");
 	if (f == NULL)
 		return;
 

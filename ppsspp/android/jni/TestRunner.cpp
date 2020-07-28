@@ -66,10 +66,10 @@ bool TestsAvailable() {
 	std::string testDirectory = g_Config.memStickDirectory;
 #endif
 	// Hack to easily run the tests on Windows from the submodule
-	if (File::IsDirectory("../pspautotests")) {
+	if (PFile::IsDirectory("../pspautotests")) {
 		testDirectory = "../";
 	}
-	return File::Exists(testDirectory + "pspautotests/tests/");
+	return PFile::Exists(testDirectory + "pspautotests/tests/");
 }
 
 bool RunTests() {
@@ -80,7 +80,7 @@ bool RunTests() {
 #else
 	std::string baseDirectory = g_Config.memStickDirectory;
 	// Hack to easily run the tests on Windows from the submodule
-	if (File::IsDirectory("../pspautotests")) {
+	if (PFile::IsDirectory("../pspautotests")) {
 		baseDirectory = "../";
 	}
 #endif

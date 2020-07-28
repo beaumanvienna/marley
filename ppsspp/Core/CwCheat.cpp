@@ -361,15 +361,15 @@ CWCheatEngine::CWCheatEngine(const std::string &gameID) : gameID_(gameID) {
 }
 
 void CWCheatEngine::CreateCheatFile() {
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_CHEATS));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_CHEATS));
 
-	if (!File::Exists(filename_)) {
-		FILE *f = File::OpenCFile(filename_, "wb");
+	if (!PFile::Exists(filename_)) {
+		FILE *f = PFile::OpenCFile(filename_, "wb");
 		if (f) {
 			fwrite("\xEF\xBB\xBF\n", 1, 4, f);
 			fclose(f);
 		}
-		if (!File::Exists(filename_)) {
+		if (!PFile::Exists(filename_)) {
 			auto err = GetI18NCategory("Error");
 			host->NotifyUserMessage(err->T("Unable to create cheat file, disk may be full"));
 		}

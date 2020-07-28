@@ -101,7 +101,7 @@ GPU_GLES::GPU_GLES(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	// Load shader cache.
 	std::string discID = g_paramSFO.GetDiscID();
 	if (discID.size()) {
-		File::CreateFullPath(GetSysDirectory(DIRECTORY_APP_CACHE));
+		PFile::CreateFullPath(GetSysDirectory(DIRECTORY_APP_CACHE));
 		shaderCachePath_ = GetSysDirectory(DIRECTORY_APP_CACHE) + "/" + discID + ".glshadercache";
 		// Actually precompiled by IsReady() since we're single-threaded.
 		shaderManagerGL_->Load(shaderCachePath_);

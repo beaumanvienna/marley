@@ -420,9 +420,9 @@ void __AudioUpdate(bool resetRecording) {
 			std::string discID = g_paramSFO.GetDiscID();
 			std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 			INFO_LOG(COMMON, "Restarted audio recording to: %s", audio_file_name.c_str());
-			if (!File::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
-				File::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
-			File::CreateEmptyFile(audio_file_name);
+			if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
+				PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
+			PFile::CreateEmptyFile(audio_file_name);
 			__StartLogAudio(audio_file_name);
 		}
 		if (!m_logAudio) {
@@ -432,9 +432,9 @@ void __AudioUpdate(bool resetRecording) {
 				std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 				INFO_LOG(COMMON,"Recording audio to: %s", audio_file_name.c_str());
 				// Create the path just in case it doesn't exist
-				if (!File::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
-					File::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
-				File::CreateEmptyFile(audio_file_name);
+				if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
+					PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
+				PFile::CreateEmptyFile(audio_file_name);
 				__StartLogAudio(audio_file_name);
 			}
 		} else {

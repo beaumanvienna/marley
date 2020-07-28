@@ -173,7 +173,7 @@ UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
 #if PPSSPP_PLATFORM(UWP)
 		LaunchBrowser(engine_->CheatFilename().c_str());
 #else
-		File::openIniFile(engine_->CheatFilename());
+		PFile::openIniFile(engine_->CheatFilename());
 #endif
 	}
 	return UI::EVENT_DONE;
@@ -193,7 +193,7 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	std::string gameID = StringFromFormat("_S %s-%s", gameID_.substr(0, 4).c_str(), gameID_.substr(4).c_str());
 
 	std::fstream fs;
-	File::OpenCPPFile(fs, cheatFile, std::ios::in);
+	PFile::OpenCPPFile(fs, cheatFile, std::ios::in);
 
 	if (!fs.is_open()) {
 		WARN_LOG(COMMON, "Unable to open %s\n", cheatFile.c_str());
@@ -237,10 +237,10 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	}
 	fs.close();
 	std::string title2;
-	File::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::in);
+	PFile::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::in);
 	getline(fs, title2);
 	fs.close();
-	File::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::out | std::ios::app);
+	PFile::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::out | std::ios::app);
 
 	auto it = title.begin();
 	if (((title2[0] == '_' && title2[1] != 'S') || title2[0] == '/' || title2[0] == '#') && it != title.end() && (++it) != title.end()) {
@@ -277,7 +277,7 @@ UI::EventReturn CwCheatScreen::OnCheckBox(int index) {
 
 bool CwCheatScreen::RebuildCheatFile(int index) {
 	std::fstream fs;
-	if (!engine_ || !File::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::in)) {
+	if (!engine_ || !PFile::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::in)) {
 		return false;
 	}
 
@@ -322,7 +322,7 @@ bool CwCheatScreen::RebuildCheatFile(int index) {
 	}
 
 
-	if (!File::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::out | std::ios::trunc)) {
+	if (!PFile::OpenCPPFile(fs, engine_->CheatFilename(), std::ios::out | std::ios::trunc)) {
 		return false;
 	}
 

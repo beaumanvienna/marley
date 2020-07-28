@@ -497,7 +497,7 @@ namespace Reporting
 		// Some users run the exe from a zip or something, and don't have fonts.
 		// This breaks things, but let's not report it since it's confusing.
 #if defined(USING_WIN_UI) || defined(APPLE)
-		if (!File::Exists(g_Config.flash0Directory + "/font/jpn0.pgf"))
+		if (!PFile::Exists(g_Config.flash0Directory + "/font/jpn0.pgf"))
 			return false;
 #else
 		FileInfo fo;

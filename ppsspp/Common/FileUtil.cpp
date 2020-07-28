@@ -80,7 +80,7 @@
 // This namespace has various generic functions related to files and paths.
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!
-namespace File
+namespace PFile
 {
 
 FILE *OpenCFile(const std::string &filename, const char *mode)
@@ -329,7 +329,7 @@ bool CreateFullPath(const std::string &path)
 	int panicCounter = 100;
 	VERBOSE_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
 		
-	if (File::Exists(fullPath)) {
+	if (PFile::Exists(fullPath)) {
 		DEBUG_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
 		return true;
 	}
@@ -349,13 +349,13 @@ bool CreateFullPath(const std::string &path)
 		// we're done, yay!
 		if (position == fullPath.npos)
 		{
-			if (!File::Exists(fullPath))
-				return File::CreateDir(fullPath);
+			if (!PFile::Exists(fullPath))
+				return PFile::CreateDir(fullPath);
 			return true;
 		}
 		std::string subPath = fullPath.substr(0, position);
-		if (position != 0 && !File::Exists(subPath))
-			File::CreateDir(subPath);
+		if (position != 0 && !PFile::Exists(subPath))
+			PFile::CreateDir(subPath);
 
 		// A safety check
 		panicCounter--;
@@ -375,7 +375,7 @@ bool DeleteDir(const std::string &filename)
 	INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
 
 	// check if a directory
-	if (!File::IsDirectory(filename))
+	if (!PFile::IsDirectory(filename))
 	{
 		ERROR_LOG(COMMON, "DeleteDir: Not a directory %s", filename.c_str());
 		return false;
@@ -702,7 +702,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		}
 		else
 		{
-			if (!File::Delete(newPath))
+			if (!PFile::Delete(newPath))
 			{
 #ifndef _WIN32
 				closedir(dirp);
@@ -720,7 +720,7 @@ bool DeleteDirRecursively(const std::string &directory)
 	}
 	closedir(dirp);
 #endif
-	return File::DeleteDir(directory);
+	return PFile::DeleteDir(directory);
 }
 
 
@@ -729,8 +729,8 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 {
 #ifndef _WIN32
 	if (source_path == dest_path) return;
-	if (!File::Exists(source_path)) return;
-	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
+	if (!PFile::Exists(source_path)) return;
+	if (!PFile::Exists(dest_path)) PFile::CreateFullPath(dest_path);
 
 	struct dirent *result = NULL;
 	DIR *dirp = opendir(source_path.c_str());
@@ -752,10 +752,10 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 		{
 			source += '/';
 			dest += '/';
-			if (!File::Exists(dest)) File::CreateFullPath(dest);
+			if (!PFile::Exists(dest)) PFile::CreateFullPath(dest);
 			CopyDir(source, dest);
 		}
-		else if (!File::Exists(dest)) File::Copy(source, dest);
+		else if (!PFile::Exists(dest)) PFile::Copy(source, dest);
 	}
 	closedir(dirp);
 #else
@@ -878,7 +878,7 @@ IOFile::~IOFile()
 bool IOFile::Open(const std::string& filename, const char openmode[])
 {
 	Close();
-	m_file = File::OpenCFile(filename, openmode);
+	m_file = PFile::OpenCFile(filename, openmode);
 	m_good = IsOpen();
 	return m_good;
 }
@@ -909,7 +909,7 @@ void IOFile::SetHandle(std::FILE* file)
 u64 IOFile::GetSize()
 {
 	if (IsOpen())
-		return File::GetFileSize(m_file);
+		return PFile::GetFileSize(m_file);
 	else
 		return 0;
 }

@@ -397,7 +397,7 @@ namespace SaveState
 		std::string title;
 		if (CChunkFileReader::GetFileTitle(filename, &title) == CChunkFileReader::ERROR_NONE) {
 			if (title.empty()) {
-				return File::GetFilename(filename);
+				return PFile::GetFilename(filename);
 			}
 
 			return AppendSlotTitle(filename, title);
@@ -405,7 +405,7 @@ namespace SaveState
 
 		// The file can't be loaded - let's note that.
 		auto sy = GetI18NCategory("System");
-		return File::GetFilename(filename) + " " + sy->T("(broken)");
+		return PFile::GetFilename(filename) + " " + sy->T("(broken)");
 	}
 
 	std::string GenerateSaveSlotFilename(const std::string &gameFilename, int slot, const char *extension)
@@ -447,23 +447,23 @@ namespace SaveState
 
 	static void DeleteIfExists(const std::string &fn) {
 		// Just avoiding error messages.
-		if (File::Exists(fn)) {
-			File::Delete(fn);
+		if (PFile::Exists(fn)) {
+			PFile::Delete(fn);
 		}
 	}
 
 	static void RenameIfExists(const std::string &from, const std::string &to) {
-		if (File::Exists(from)) {
-			File::Rename(from, to);
+		if (PFile::Exists(from)) {
+			PFile::Rename(from, to);
 		}
 	}
 
 	static void SwapIfExists(const std::string &from, const std::string &to) {
 		std::string temp = from + ".tmp";
-		if (File::Exists(from)) {
-			File::Rename(from, temp);
-			File::Rename(to, from);
-			File::Rename(temp, to);
+		if (PFile::Exists(from)) {
+			PFile::Rename(from, temp);
+			PFile::Rename(to, from);
+			PFile::Rename(temp, to);
 		}
 	}
 
@@ -482,7 +482,7 @@ namespace SaveState
 					} else {
 						DeleteIfExists(fn);
 					}
-					File::Rename(fn + ".tmp", fn);
+					PFile::Rename(fn + ".tmp", fn);
 				}
 				if (callback) {
 					callback(status, message, data);
@@ -509,7 +509,7 @@ namespace SaveState
 		std::string shotUndo = GenerateSaveSlotFilename(gameFilename, slot, UNDO_SCREENSHOT_EXTENSION);
 
 		// Do nothing if there's no undo.
-		if (File::Exists(fnUndo)) {
+		if (PFile::Exists(fnUndo)) {
 			// Swap them so they can undo again to redo.  Mistakes happen.
 			SwapIfExists(shotUndo, shot);
 			SwapIfExists(fnUndo, fn);
@@ -523,19 +523,19 @@ namespace SaveState
 	bool HasSaveInSlot(const std::string &gameFilename, int slot)
 	{
 		std::string fn = GenerateSaveSlotFilename(gameFilename, slot, STATE_EXTENSION);
-		return File::Exists(fn);
+		return PFile::Exists(fn);
 	}
 
 	bool HasUndoSaveInSlot(const std::string &gameFilename, int slot)
 	{
 		std::string fn = GenerateSaveSlotFilename(gameFilename, slot, STATE_EXTENSION);
-		return File::Exists(fn + ".undo");
+		return PFile::Exists(fn + ".undo");
 	}
 
 	bool HasScreenshotInSlot(const std::string &gameFilename, int slot)
 	{
 		std::string fn = GenerateSaveSlotFilename(gameFilename, slot, SCREENSHOT_EXTENSION);
-		return File::Exists(fn);
+		return PFile::Exists(fn);
 	}
 
 	bool operator < (const tm &t1, const tm &t2) {
@@ -580,9 +580,9 @@ namespace SaveState
 		tm newestDate = {0};
 		for (int i = 0; i < NUM_SLOTS; i++) {
 			std::string fn = GenerateSaveSlotFilename(gameFilename, i, STATE_EXTENSION);
-			if (File::Exists(fn)) {
+			if (PFile::Exists(fn)) {
 				tm time;
-				bool success = File::GetModifTime(fn, time);
+				bool success = PFile::GetModifTime(fn, time);
 				if (success && newestDate < time) {
 					newestDate = time;
 					newestSlot = i;
@@ -597,9 +597,9 @@ namespace SaveState
 		tm oldestDate = {0};
 		for (int i = 0; i < NUM_SLOTS; i++) {
 			std::string fn = GenerateSaveSlotFilename(gameFilename, i, STATE_EXTENSION);
-			if (File::Exists(fn)) {
+			if (PFile::Exists(fn)) {
 				tm time;
-				bool success = File::GetModifTime(fn, time);
+				bool success = PFile::GetModifTime(fn, time);
 				if (success && (!oldestDate || oldestDate > time)) {
 					oldestDate = time;
 					oldestSlot = i;
@@ -611,9 +611,9 @@ namespace SaveState
 
 	std::string GetSlotDateAsString(const std::string &gameFilename, int slot) {
 		std::string fn = GenerateSaveSlotFilename(gameFilename, slot, STATE_EXTENSION);
-		if (File::Exists(fn)) {
+		if (PFile::Exists(fn)) {
 			tm time;
-			if (File::GetModifTime(fn, time)) {
+			if (PFile::GetModifTime(fn, time)) {
 				char buf[256];
 				// TODO: Use local time format? Americans and some others might not like ISO standard :)
 				strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &time);
@@ -890,7 +890,7 @@ namespace SaveState
 	void Init()
 	{
 		// Make sure there's a directory for save slots
-		File::CreateFullPath(GetSysDirectory(DIRECTORY_SAVESTATE));
+		PFile::CreateFullPath(GetSysDirectory(DIRECTORY_SAVESTATE));
 
 		std::lock_guard<std::mutex> guard(mutex);
 		rewindStates.Clear();

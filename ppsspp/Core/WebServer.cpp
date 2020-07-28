@@ -147,7 +147,7 @@ static std::string LocalFromRemotePath(const std::string &path) {
 }
 
 static void DiscHandler(const http::Request &request, const std::string &filename) {
-	s64 sz = File::GetFileSize(filename);
+	s64 sz = PFile::GetFileSize(filename);
 
 	std::string range;
 	if (request.Method() == http::RequestHeader::HEAD) {
@@ -166,7 +166,7 @@ static void DiscHandler(const http::Request &request, const std::string &filenam
 			return;
 		}
 
-		FILE *fp = File::OpenCFile(filename, "rb");
+		FILE *fp = PFile::OpenCFile(filename, "rb");
 		if (!fp || fseek(fp, begin, SEEK_SET) != 0) {
 			request.WriteHttpResponseHeader("1.0", 500, -1, "text/plain");
 			request.Out()->Push("File access failed.");

@@ -65,7 +65,7 @@ bool GameInfo::Delete() {
 		{
 			// Just delete the one file (TODO: handle two-disk games as well somehow).
 			const char *fileToRemove = filePath_.c_str();
-			File::Delete(fileToRemove);
+			PFile::Delete(fileToRemove);
 			g_Config.RemoveRecent(filePath_);
 			return true;
 		}
@@ -75,7 +75,7 @@ bool GameInfo::Delete() {
 			// TODO: This could be handled by Core/Util/GameManager too somehow.
 			std::string directoryToRemove = ResolvePBPDirectory(filePath_);
 			INFO_LOG(SYSTEM, "Deleting %s", directoryToRemove.c_str());
-			if (!File::DeleteDirRecursively(directoryToRemove)) {
+			if (!PFile::DeleteDirRecursively(directoryToRemove)) {
 				ERROR_LOG(SYSTEM, "Failed to delete file");
 				return false;
 			}
@@ -91,7 +91,7 @@ bool GameInfo::Delete() {
 	case IdentifiedFileType::PPSSPP_GE_DUMP:
 		{
 			const std::string &fileToRemove = filePath_;
-			File::Delete(fileToRemove);
+			PFile::Delete(fileToRemove);
 			g_Config.RemoveRecent(filePath_);
 			return true;
 		}
@@ -99,10 +99,10 @@ bool GameInfo::Delete() {
 	case IdentifiedFileType::PPSSPP_SAVESTATE:
 		{
 			const std::string &ppstPath = filePath_;
-			File::Delete(ppstPath);
+			PFile::Delete(ppstPath);
 			const std::string screenshotPath = ReplaceAll(filePath_, ".ppst", ".jpg");
-			if (File::Exists(screenshotPath)) {
-				File::Delete(screenshotPath);
+			if (PFile::Exists(screenshotPath)) {
+				PFile::Delete(screenshotPath);
 			}
 			return true;
 		}
@@ -208,7 +208,7 @@ bool GameInfo::LoadFromPath(const std::string &gamePath) {
 		filePath_ = gamePath;
 
 		// This is a fallback title, while we're loading / if unable to load.
-		title = File::GetFilename(filePath_);
+		title = PFile::GetFilename(filePath_);
 	}
 
 	return true;
@@ -238,10 +238,10 @@ bool GameInfo::DeleteAllSaveData() {
 
 		u64 totalSize = 0;
 		for (size_t i = 0; i < fileInfo.size(); i++) {
-			File::Delete(fileInfo[i].fullName.c_str());
+			PFile::Delete(fileInfo[i].fullName.c_str());
 		}
 
-		File::DeleteDir(saveDataDir[j].c_str());
+		PFile::DeleteDir(saveDataDir[j].c_str());
 	}
 	return true;
 }
@@ -405,9 +405,9 @@ public:
 					std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 					std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 					// Try using png/jpg screenshots first
-					if (File::Exists(screenshot_png))
+					if (PFile::Exists(screenshot_png))
 						readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-					else if (File::Exists(screenshot_jpg))
+					else if (PFile::Exists(screenshot_jpg))
 						readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 					else
 						// Read standard icon
@@ -452,9 +452,9 @@ handleELF:
 				std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 				std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 				// Try using png/jpg screenshots first
-				if (File::Exists(screenshot_png)) {
+				if (PFile::Exists(screenshot_png)) {
 					readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-				} else if (File::Exists(screenshot_jpg)) {
+				} else if (PFile::Exists(screenshot_jpg)) {
 					readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 				} else {
 					// Read standard icon
@@ -495,7 +495,7 @@ handleELF:
 
 			// Let's use the screenshot as an icon, too.
 			std::string screenshotPath = ReplaceAll(gamePath_, ".ppst", ".jpg");
-			if (File::Exists(screenshotPath)) {
+			if (PFile::Exists(screenshotPath)) {
 				if (readFileToString(false, screenshotPath.c_str(), info_->icon.data)) {
 					info_->icon.dataLoaded = true;
 				} else {
@@ -580,9 +580,9 @@ handleELF:
 					std::string screenshot_jpg = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.jpg";
 					std::string screenshot_png = GetSysDirectory(DIRECTORY_SCREENSHOT) + info_->id + "_00000.png";
 					// Try using png/jpg screenshots first
-					if (File::Exists(screenshot_png))
+					if (PFile::Exists(screenshot_png))
 						readFileToString(false, screenshot_png.c_str(), info_->icon.data);
-					else if (File::Exists(screenshot_jpg))
+					else if (PFile::Exists(screenshot_jpg))
 						readFileToString(false, screenshot_jpg.c_str(), info_->icon.data);
 					else {
 						DEBUG_LOG(LOADER, "Loading unknown.png because no icon was found");

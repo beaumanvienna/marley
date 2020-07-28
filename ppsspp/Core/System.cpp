@@ -571,7 +571,7 @@ void InitSysDirectories() {
 	if (!g_Config.memStickDirectory.empty() && !g_Config.flash0Directory.empty())
 		return;
 
-	const std::string path = File::GetExeDirectory();
+	const std::string path = PFile::GetExeDirectory();
 
 	// Mount a filesystem
 	g_Config.flash0Directory = path + "assets/flash0/";
@@ -585,7 +585,7 @@ void InitSysDirectories() {
 	const std::string rootMyDocsPath = g_Config.internalDataDirectory;
 	const std::string myDocsPath = rootMyDocsPath + "/PPSSPP/";
 	const std::string installedFile = path + "installed.txt";
-	const bool installed = File::Exists(installedFile);
+	const bool installed = PFile::Exists(installedFile);
 
 	// If installed.txt exists(and we can determine the Documents directory)
 	if (installed && rootMyDocsPath.size() > 0) {
@@ -621,8 +621,8 @@ void InitSysDirectories() {
 
 	// Create the memstickpath before trying to write to it, and fall back on Documents yet again
 	// if we can't make it.
-	if (!File::Exists(g_Config.memStickDirectory)) {
-		if (!File::CreateDir(g_Config.memStickDirectory))
+	if (!PFile::Exists(g_Config.memStickDirectory)) {
+		if (!PFile::CreateDir(g_Config.memStickDirectory))
 			g_Config.memStickDirectory = myDocsPath;
 		INFO_LOG(COMMON, "Memstick directory not present, creating at '%s'", g_Config.memStickDirectory.c_str());
 	}
@@ -631,21 +631,21 @@ void InitSysDirectories() {
 
 	// If any directory is read-only, fall back to the Documents directory.
 	// We're screwed anyway if we can't write to Documents, or can't detect it.
-	if (!File::CreateEmptyFile(testFile))
+	if (!PFile::CreateEmptyFile(testFile))
 		g_Config.memStickDirectory = myDocsPath;
 
 	// Clean up our mess.
-	if (File::Exists(testFile))
-		File::Delete(testFile);
+	if (PFile::Exists(testFile))
+		PFile::Delete(testFile);
 #endif
 
 	// Create the default directories that a real PSP creates. Good for homebrew so they can
 	// expect a standard environment. Skipping THEME though, that's pointless.
-	File::CreateDir(g_Config.memStickDirectory + "PSP");
-	File::CreateDir(g_Config.memStickDirectory + "PSP/COMMON");
-	File::CreateDir(GetSysDirectory(DIRECTORY_GAME));
-	File::CreateDir(GetSysDirectory(DIRECTORY_SAVEDATA));
-	File::CreateDir(GetSysDirectory(DIRECTORY_SAVESTATE));
+	PFile::CreateDir(g_Config.memStickDirectory + "PSP");
+	PFile::CreateDir(g_Config.memStickDirectory + "PSP/COMMON");
+	PFile::CreateDir(GetSysDirectory(DIRECTORY_GAME));
+	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVEDATA));
+	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVESTATE));
 
 	if (g_Config.currentDirectory.empty()) {
 		g_Config.currentDirectory = GetSysDirectory(DIRECTORY_GAME);

@@ -421,8 +421,8 @@ std::string DiskCachingFileLoaderCache::MakeCacheFilePath(const std::string &pat
 		dir = GetSysDirectory(DIRECTORY_CACHE);
 	}
 
-	if (!File::Exists(dir)) {
-		File::CreateFullPath(dir);
+	if (!PFile::Exists(dir)) {
+		PFile::CreateFullPath(dir);
 	}
 
 	return dir + "/" + MakeCacheFilename(path);
@@ -515,7 +515,7 @@ void DiskCachingFileLoaderCache::WriteIndexData(u32 indexPos, BlockInfo &info) {
 }
 
 bool DiskCachingFileLoaderCache::LoadCacheFile(const std::string &path) {
-	FILE *fp = File::OpenCFile(path, "rb+");
+	FILE *fp = PFile::OpenCFile(path, "rb+");
 	if (!fp) {
 		return false;
 	}
@@ -612,7 +612,7 @@ void DiskCachingFileLoaderCache::CreateCacheFile(const std::string &path) {
 	}
 	flags_ = 0;
 
-	f_ = File::OpenCFile(path, "wb+");
+	f_ = PFile::OpenCFile(path, "wb+");
 	if (!f_) {
 		ERROR_LOG(LOADER, "Could not create disk cache file");
 		return;
@@ -715,7 +715,7 @@ bool DiskCachingFileLoaderCache::LockCacheFile(bool lockStatus) {
 bool DiskCachingFileLoaderCache::RemoveCacheFile(const std::string &path) {
 	// Note that some platforms, you can't delete open files.  So we check.
 	CloseFileHandle();
-	return File::Delete(path);
+	return PFile::Delete(path);
 }
 
 void DiskCachingFileLoaderCache::CloseFileHandle() {

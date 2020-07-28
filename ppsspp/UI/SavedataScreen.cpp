@@ -44,7 +44,7 @@ class SavedataButton;
 
 std::string GetFileDateAsString(std::string filename) {
 	tm time;
-	if (File::GetModifTime(filename, time)) {
+	if (PFile::GetModifTime(filename, time)) {
 		char buf[256];
 		// TODO: Use local time format? Americans and some others might not like ISO standard :)
 		strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &time);
@@ -98,7 +98,7 @@ public:
 			content->Add(new Spacer(3.0));
 		} else {
 			std::string image_path = ReplaceAll(savePath_, ".ppst", ".jpg");
-			if (File::Exists(image_path)) {
+			if (PFile::Exists(image_path)) {
 				PrioritizedWorkQueue *wq = g_gameInfoCache->WorkQueue();
 				toprow->Add(new AsyncImageFileView(image_path, IS_KEEP_ASPECT, wq, new LinearLayoutParams(480, 272, Margins(10, 0))));
 			} else {
@@ -362,9 +362,9 @@ static time_t GetDateSeconds(const SavedataButton *b) {
 	tm datetm;
 	bool success;
 	if (Identify_File(fileLoader.get()) == IdentifiedFileType::PSP_SAVEDATA_DIRECTORY) {
-		success = File::GetModifTime(b->GamePath() + "/PARAM.SFO", datetm);
+		success = PFile::GetModifTime(b->GamePath() + "/PARAM.SFO", datetm);
 	} else {
-		success = File::GetModifTime(b->GamePath(), datetm);
+		success = PFile::GetModifTime(b->GamePath(), datetm);
 	}
 
 	if (success) {
@@ -412,7 +412,7 @@ void SavedataBrowser::Refresh() {
 		bool isState = !fileInfo[i].isDirectory;
 		bool isSaveData = false;
 		
-		if (!isState && File::Exists(path_ + fileInfo[i].name + "/PARAM.SFO"))
+		if (!isState && PFile::Exists(path_ + fileInfo[i].name + "/PARAM.SFO"))
 			isSaveData = true;
 
 		if (isSaveData || isState) {

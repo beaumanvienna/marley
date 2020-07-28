@@ -166,8 +166,8 @@ void ReportScreen::postRender() {
 	// We could do it mid frame, but then we have to reapply viewport/scissor.
 	if (!tookScreenshot_) {
 		std::string path = GetSysDirectory(DIRECTORY_SCREENSHOT);
-		if (!File::Exists(path)) {
-			File::CreateDir(path);
+		if (!PFile::Exists(path)) {
+			PFile::CreateDir(path);
 		}
 		screenshotFilename_ = path + ".reporting.jpg";
 		if (TakeGameScreenshot(screenshotFilename_.c_str(), ScreenshotFormat::JPG, SCREENSHOT_DISPLAY, nullptr, nullptr, 4)) {

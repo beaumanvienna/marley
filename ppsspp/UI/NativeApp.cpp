@@ -348,7 +348,7 @@ static void PostLoadConfig() {
 	const std::string langOverridePath = GetSysDirectory(DIRECTORY_SYSTEM) + "lang/";
 
 	// If we run into the unlikely case that "lang" is actually a file, just use the built-in translations.
-	if (!File::Exists(langOverridePath) || !File::IsDirectory(langOverridePath))
+	if (!PFile::Exists(langOverridePath) || !PFile::IsDirectory(langOverridePath))
 		i18nrepo.LoadIni(g_Config.sLanguageIni);
 	else
 		i18nrepo.LoadIni(g_Config.sLanguageIni, langOverridePath);
@@ -358,19 +358,19 @@ void CreateDirectoriesAndroid() {
 	// On Android, create a PSP directory tree in the external_dir,
 	// to hopefully reduce confusion a bit.
 	ILOG("Creating %s", (g_Config.memStickDirectory + "PSP").c_str());
-	File::CreateFullPath(g_Config.memStickDirectory + "PSP");
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_SAVEDATA));
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_SAVESTATE));
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_GAME));
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_SYSTEM));
-	File::CreateFullPath(GetSysDirectory(DIRECTORY_TEXTURES));
+	PFile::CreateFullPath(g_Config.memStickDirectory + "PSP");
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_SAVEDATA));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_SAVESTATE));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_GAME));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_SYSTEM));
+	PFile::CreateFullPath(GetSysDirectory(DIRECTORY_TEXTURES));
 
 	// Avoid media scanners in PPSSPP_STATE and SAVEDATA directories,
 	// and in the root PSP directory as well.
-	File::CreateEmptyFile(GetSysDirectory(DIRECTORY_SAVESTATE) + ".nomedia");
-	File::CreateEmptyFile(GetSysDirectory(DIRECTORY_SAVEDATA) + ".nomedia");
-	File::CreateEmptyFile(GetSysDirectory(DIRECTORY_SYSTEM) + ".nomedia");
-	File::CreateEmptyFile(GetSysDirectory(DIRECTORY_TEXTURES) + ".nomedia");
+	PFile::CreateEmptyFile(GetSysDirectory(DIRECTORY_SAVESTATE) + ".nomedia");
+	PFile::CreateEmptyFile(GetSysDirectory(DIRECTORY_SAVEDATA) + ".nomedia");
+	PFile::CreateEmptyFile(GetSysDirectory(DIRECTORY_SYSTEM) + ".nomedia");
+	PFile::CreateEmptyFile(GetSysDirectory(DIRECTORY_TEXTURES) + ".nomedia");
 }
 
 static void CheckFailedGPUBackends() {
@@ -418,8 +418,8 @@ static void CheckFailedGPUBackends() {
 
 	if (System_GetPropertyBool(SYSPROP_SUPPORTS_PERMISSIONS)) {
 		// Let's try to create, in case it doesn't exist.
-		if (!File::Exists(GetSysDirectory(DIRECTORY_APP_CACHE)))
-			File::CreateDir(GetSysDirectory(DIRECTORY_APP_CACHE));
+		if (!PFile::Exists(GetSysDirectory(DIRECTORY_APP_CACHE)))
+			PFile::CreateDir(GetSysDirectory(DIRECTORY_APP_CACHE));
 		writeStringToFile(true, g_Config.sFailedGPUBackends, cache.c_str());
 	} else {
 		// Just save immediately, since we have storage.
@@ -435,7 +435,7 @@ static void ClearFailedGPUBackends() {
 	// In case they update drivers and have totally different problems much later, clear the failed list.
 	g_Config.sFailedGPUBackends.clear();
 	if (System_GetPropertyBool(SYSPROP_SUPPORTS_PERMISSIONS)) {
-		File::Delete(GetSysDirectory(DIRECTORY_APP_CACHE) + "/FailedGraphicsBackends.txt");
+		PFile::Delete(GetSysDirectory(DIRECTORY_APP_CACHE) + "/FailedGraphicsBackends.txt");
 	} else {
 		g_Config.Save("clearFailedGPUBackends");
 	}
@@ -467,8 +467,8 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	VFSRegister("", new DirectoryAssetReader(external_dir));
 #endif
 #if !defined(MOBILE_DEVICE) && !defined(_WIN32) && !PPSSPP_PLATFORM(SWITCH)
-	VFSRegister("", new DirectoryAssetReader((File::GetExeDirectory() + "assets/").c_str()));
-	VFSRegister("", new DirectoryAssetReader((File::GetExeDirectory()).c_str()));
+	VFSRegister("", new DirectoryAssetReader((PFile::GetExeDirectory() + "assets/").c_str()));
+	VFSRegister("", new DirectoryAssetReader((PFile::GetExeDirectory()).c_str()));
 	VFSRegister("", new DirectoryAssetReader("/usr/local/share/ppsspp/assets/"));
 	VFSRegister("", new DirectoryAssetReader("/usr/local/share/games/ppsspp/assets/"));
 	VFSRegister("", new DirectoryAssetReader("/usr/share/ppsspp/assets/"));
@@ -499,10 +499,10 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	g_Config.flash0Directory = std::string(external_dir) + "/flash0/";
 
 	std::string memstickDirFile = g_Config.internalDataDirectory + "/memstick_dir.txt";
-	if (File::Exists(memstickDirFile)) {
+	if (PFile::Exists(memstickDirFile)) {
 		std::string memstickDir;
 		readFileToString(true, memstickDirFile.c_str(), memstickDir);
-		if (!memstickDir.empty() && File::Exists(memstickDir)) {
+		if (!memstickDir.empty() && PFile::Exists(memstickDir)) {
 			g_Config.memStickDirectory = memstickDir + "/";
 		}
 	}
@@ -532,7 +532,7 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 		config = "./config";*/
 
 	g_Config.memStickDirectory = config + "/ppsspp/";
-	g_Config.flash0Directory = File::GetExeDirectory() + "/assets/flash0/";
+	g_Config.flash0Directory = PFile::GetExeDirectory() + "/assets/flash0/";
 #endif
 
 	if (cache_dir && strlen(cache_dir)) {
@@ -969,8 +969,8 @@ void TakeScreenshot() {
 	while (path.length() > 0 && path.back() == '/') {
 		path.resize(path.size() - 1);
 	}
-	if (!File::Exists(path)) {
-		File::CreateDir(path);
+	if (!PFile::Exists(path)) {
+		PFile::CreateDir(path);
 	}
 
 	// First, find a free filename.
@@ -1125,7 +1125,7 @@ void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 	if (msg == "bgImage_updated") {
 		if (!value.empty()) {
 			std::string dest = GetSysDirectory(DIRECTORY_SYSTEM) + (endsWithNoCase(value, ".jpg") ? "background.jpg" : "background.png");
-			File::Copy(value, dest);
+			PFile::Copy(value, dest);
 		}
 		UIBackgroundShutdown();
 		UIBackgroundInit(*uiContext);

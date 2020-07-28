@@ -101,7 +101,7 @@ GPU_Vulkan::GPU_Vulkan(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	// Load shader cache.
 	std::string discID = g_paramSFO.GetDiscID();
 	if (discID.size()) {
-		File::CreateFullPath(GetSysDirectory(DIRECTORY_APP_CACHE));
+		PFile::CreateFullPath(GetSysDirectory(DIRECTORY_APP_CACHE));
 		shaderCachePath_ = GetSysDirectory(DIRECTORY_APP_CACHE) + "/" + discID + ".vkshadercache";
 		shaderCacheLoaded_ = false;
 
@@ -126,7 +126,7 @@ void GPU_Vulkan::CancelReady() {
 void GPU_Vulkan::LoadCache(std::string filename) {
 	PSP_SetLoading("Loading shader cache...");
 	// Actually precompiled by IsReady() since we're single-threaded.
-	FILE *f = File::OpenCFile(filename, "rb");
+	FILE *f = PFile::OpenCFile(filename, "rb");
 	if (!f)
 		return;
 
@@ -142,7 +142,7 @@ void GPU_Vulkan::LoadCache(std::string filename) {
 	if (!result) {
 		WARN_LOG(G3D, "Bad Vulkan pipeline cache");
 		// Bad cache file for this GPU/Driver/etc. Delete it.
-		File::Delete(filename);
+		PFile::Delete(filename);
 	} else {
 		INFO_LOG(G3D, "Loaded Vulkan pipeline cache.");
 	}
@@ -155,7 +155,7 @@ void GPU_Vulkan::SaveCache(std::string filename) {
 		return;
 	}
 
-	FILE *f = File::OpenCFile(filename, "wb");
+	FILE *f = PFile::OpenCFile(filename, "wb");
 	if (!f)
 		return;
 	shaderManagerVulkan_->SaveCache(f);

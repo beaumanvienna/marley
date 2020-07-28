@@ -827,7 +827,7 @@ void GameSettingsScreen::CreateViews() {
 	systemSettings->Add(new CheckBox(&g_Config.bCheckForNewVersion, sy->T("VersionCheck", "Check for new versions of PPSSPP")));
 	const std::string bgPng = GetSysDirectory(DIRECTORY_SYSTEM) + "background.png";
 	const std::string bgJpg = GetSysDirectory(DIRECTORY_SYSTEM) + "background.jpg";
-	if (File::Exists(bgPng) || File::Exists(bgJpg)) {
+	if (PFile::Exists(bgPng) || PFile::Exists(bgJpg)) {
 		backgroundChoice_ = systemSettings->Add(new Choice(sy->T("Clear UI background")));
 	} else if (System_GetPropertyBool(SYSPROP_HAS_IMAGE_BROWSER)) {
 		backgroundChoice_ = systemSettings->Add(new Choice(sy->T("Set UI background...")));
@@ -857,14 +857,14 @@ void GameSettingsScreen::CreateViews() {
 	SavePathInOtherChoice->SetEnabled(false);
 	SavePathInOtherChoice->OnClick.Handle(this, &GameSettingsScreen::OnSavePathOther);
 	const bool myDocsExists = W32Util::UserDocumentsPath().size() != 0;
-	const std::string PPSSPPpath = File::GetExeDirectory();
+	const std::string PPSSPPpath = PFile::GetExeDirectory();
 	const std::string installedFile = PPSSPPpath + "installed.txt";
-	installed_ = File::Exists(installedFile);
+	installed_ = PFile::Exists(installedFile);
 	otherinstalled_ = false;
 	if (!installed_ && myDocsExists) {
-		if (File::CreateEmptyFile(PPSSPPpath + "installedTEMP.txt")) {
+		if (PFile::CreateEmptyFile(PPSSPPpath + "installedTEMP.txt")) {
 			// Disable the setting whether cannot create & delete file
-			if (!(File::Delete(PPSSPPpath + "installedTEMP.txt")))
+			if (!(PFile::Delete(PPSSPPpath + "installedTEMP.txt")))
 				SavePathInMyDocumentChoice->SetEnabled(false);
 			else
 				SavePathInOtherChoice->SetEnabled(!PSP_IsInited());
@@ -1036,7 +1036,7 @@ UI::EventReturn GameSettingsScreen::OnChangeMemStickDir(UI::EventParams &e) {
 
 			pendingMemstickFolder_ = newPath;
 			std::string promptMessage = sy->T("ChangingMemstickPath", "Save games, save states, and other data will not be copied to this folder.\n\nChange the Memory Stick folder?");
-			if (!File::Exists(newPath)) {
+			if (!PFile::Exists(newPath)) {
 				promptMessage = sy->T("ChangingMemstickPathNotExists", "That folder doesn't exist yet.\n\nSave games, save states, and other data will not be copied to this folder.\n\nCreate a new Memory Stick folder?");
 			}
 			// Add the path for clarity and proper confirmation.
@@ -1050,17 +1050,17 @@ UI::EventReturn GameSettingsScreen::OnChangeMemStickDir(UI::EventParams &e) {
 #elif defined(_WIN32) && !PPSSPP_PLATFORM(UWP)
 
 UI::EventReturn GameSettingsScreen::OnSavePathMydoc(UI::EventParams &e) {
-	const std::string PPSSPPpath = File::GetExeDirectory();
+	const std::string PPSSPPpath = PFile::GetExeDirectory();
 	const std::string installedFile = PPSSPPpath + "installed.txt";
-	installed_ = File::Exists(installedFile);
+	installed_ = PFile::Exists(installedFile);
 	if (otherinstalled_) {
-		File::Delete(PPSSPPpath + "installed.txt");
-		File::CreateEmptyFile(PPSSPPpath + "installed.txt");
+		PFile::Delete(PPSSPPpath + "installed.txt");
+		PFile::CreateEmptyFile(PPSSPPpath + "installed.txt");
 		otherinstalled_ = false;
 		const std::string myDocsPath = W32Util::UserDocumentsPath() + "/PPSSPP/";
 		g_Config.memStickDirectory = myDocsPath;
 	} else if (installed_) {
-		File::Delete(PPSSPPpath + "installed.txt");
+		PFile::Delete(PPSSPPpath + "installed.txt");
 		installed_ = false;
 		g_Config.memStickDirectory = PPSSPPpath + "memstick/";
 	} else {
@@ -1078,13 +1078,13 @@ UI::EventReturn GameSettingsScreen::OnSavePathMydoc(UI::EventParams &e) {
 }
 
 UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
-	const std::string PPSSPPpath = File::GetExeDirectory();
+	const std::string PPSSPPpath = PFile::GetExeDirectory();
 	if (otherinstalled_) {
 		auto di = GetI18NCategory("Dialog");
 		std::string folder = W32Util::BrowseForFolder(MainWindow::GetHWND(), di->T("Choose PPSSPP save folder"));
 		if (folder.size()) {
 			g_Config.memStickDirectory = folder;
-			FILE *f = File::OpenCFile(PPSSPPpath + "installed.txt", "wb");
+			FILE *f = PFile::OpenCFile(PPSSPPpath + "installed.txt", "wb");
 			if (f) {
 				std::string utfstring("\xEF\xBB\xBF");
 				utfstring.append(folder);
@@ -1097,7 +1097,7 @@ UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
 			otherinstalled_ = false;
 	}
 	else {
-		File::Delete(PPSSPPpath + "installed.txt");
+		PFile::Delete(PPSSPPpath + "installed.txt");
 		SavePathInMyDocumentChoice->SetEnabled(true);
 		otherinstalled_ = false;
 		installed_ = false;
@@ -1111,12 +1111,12 @@ UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
 UI::EventReturn GameSettingsScreen::OnChangeBackground(UI::EventParams &e) {
 	const std::string bgPng = GetSysDirectory(DIRECTORY_SYSTEM) + "background.png";
 	const std::string bgJpg = GetSysDirectory(DIRECTORY_SYSTEM) + "background.jpg";
-	if (File::Exists(bgPng) || File::Exists(bgJpg)) {
-		if (File::Exists(bgPng)) {
-			File::Delete(bgPng);
+	if (PFile::Exists(bgPng) || PFile::Exists(bgJpg)) {
+		if (PFile::Exists(bgPng)) {
+			PFile::Delete(bgPng);
 		}
-		if (File::Exists(bgJpg)) {
-			File::Delete(bgJpg);
+		if (PFile::Exists(bgJpg)) {
+			PFile::Delete(bgJpg);
 		}
 
 		NativeMessageReceived("bgImage_updated", "");
@@ -1208,14 +1208,14 @@ void GameSettingsScreen::CallbackMemstickFolder(bool yes) {
 		std::string testWriteFile = pendingMemstickFolder_ + "/.write_verify_file";
 
 		// Already, create away.
-		if (!File::Exists(pendingMemstickFolder_)) {
-			File::CreateFullPath(pendingMemstickFolder_);
+		if (!PFile::Exists(pendingMemstickFolder_)) {
+			PFile::CreateFullPath(pendingMemstickFolder_);
 		}
 		if (!writeDataToFile(true, "1", 1, testWriteFile.c_str())) {
 			settingInfo_->Show(sy->T("ChangingMemstickPathInvalid", "That path couldn't be used to save Memory Stick files."), nullptr);
 			return;
 		}
-		File::Delete(testWriteFile);
+		PFile::Delete(testWriteFile);
 
 		writeDataToFile(true, pendingMemstickFolder_.c_str(), pendingMemstickFolder_.size(), memstickDirFile.c_str());
 		// Save so the settings, at least, are transferred.
@@ -1614,7 +1614,7 @@ UI::EventReturn DeveloperToolsScreen::OnOpenTexturesIniFile(UI::EventParams &e) 
 	std::string gameID = g_paramSFO.GetDiscID();
 	std::string generatedFilename;
 	if (TextureReplacer::GenerateIni(gameID, &generatedFilename)) {
-		File::openIniFile(generatedFilename);
+		PFile::openIniFile(generatedFilename);
 	}
 	return UI::EVENT_DONE;
 }

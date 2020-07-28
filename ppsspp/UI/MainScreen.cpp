@@ -539,7 +539,7 @@ UI::EventReturn GameBrowser::HomeClick(UI::EventParams &e) {
 
 UI::EventReturn GameBrowser::PinToggleClick(UI::EventParams &e) {
 	auto &pinnedPaths = g_Config.vPinnedPaths;
-	const std::string path = File::ResolvePath(path_.GetPath());
+	const std::string path = PFile::ResolvePath(path_.GetPath());
 	if (IsCurrentPathPinned()) {
 		pinnedPaths.erase(std::remove(pinnedPaths.begin(), pinnedPaths.end(), path), pinnedPaths.end());
 	} else {
@@ -602,7 +602,7 @@ void GameBrowser::Draw(UIContext &dc) {
 }
 
 static bool IsValidPBP(const std::string &path, bool allowHomebrew) {
-	if (!File::Exists(path))
+	if (!PFile::Exists(path))
 		return false;
 
 	std::unique_ptr<FileLoader> loader(ConstructFileLoader(path));
@@ -707,9 +707,9 @@ void GameBrowser::Refresh() {
 			// Check if eboot directory
 			if (!isGame && path_.GetPath().size() >= 4 && IsValidPBP(path_.GetPath() + fileInfo[i].name + "/EBOOT.PBP", true))
 				isGame = true;
-			else if (!isGame && File::Exists(path_.GetPath() + fileInfo[i].name + "/PSP_GAME/SYSDIR"))
+			else if (!isGame && PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PSP_GAME/SYSDIR"))
 				isGame = true;
-			else if (!isGame && File::Exists(path_.GetPath() + fileInfo[i].name + "/PARAM.SFO"))
+			else if (!isGame && PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PARAM.SFO"))
 				isSaveData = true;
 
 			if (!isGame && !isSaveData) {
@@ -795,7 +795,7 @@ void GameBrowser::Refresh() {
 
 bool GameBrowser::IsCurrentPathPinned() {
 	const auto paths = g_Config.vPinnedPaths;
-	return std::find(paths.begin(), paths.end(), File::ResolvePath(path_.GetPath())) != paths.end();
+	return std::find(paths.begin(), paths.end(), PFile::ResolvePath(path_.GetPath())) != paths.end();
 }
 
 const std::vector<std::string> GameBrowser::GetPinnedPaths() {
@@ -805,7 +805,7 @@ const std::vector<std::string> GameBrowser::GetPinnedPaths() {
 	static const std::string sepChars = "/\\";
 #endif
 
-	const std::string currentPath = File::ResolvePath(path_.GetPath());
+	const std::string currentPath = PFile::ResolvePath(path_.GetPath());
 	const std::vector<std::string> paths = g_Config.vPinnedPaths;
 	std::vector<std::string> results;
 	for (size_t i = 0; i < paths.size(); ++i) {

@@ -101,11 +101,11 @@ bool AVIDump::CreateAVI() {
 	snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s", s_file_index_str.str().c_str());
 	INFO_LOG(COMMON, "Recording Video to: %s", s_format_context->filename);
 	// Make sure that the path exists
-	if (!File::Exists(GetSysDirectory(DIRECTORY_VIDEO)))
-		File::CreateDir(GetSysDirectory(DIRECTORY_VIDEO));
+	if (!PFile::Exists(GetSysDirectory(DIRECTORY_VIDEO)))
+		PFile::CreateDir(GetSysDirectory(DIRECTORY_VIDEO));
 
-	if (File::Exists(s_format_context->filename))
-		File::Delete(s_format_context->filename);
+	if (PFile::Exists(s_format_context->filename))
+		PFile::Delete(s_format_context->filename);
 
 	if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) || !(s_stream = avformat_new_stream(s_format_context, codec)))
 	{

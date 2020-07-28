@@ -408,16 +408,16 @@ bool Load_PSP_ELF_PBP(FileLoader *fileLoader, std::string *error_string) {
 
 	for (int i = 0; i < 5; i += 1) {
 		std::string oldName = StringFromFormat("%s%s_%d.ppst", savestateDir.c_str(), homebrewName.c_str(), i);
-		if (File::Exists(oldName)) {
+		if (PFile::Exists(oldName)) {
 			std::string newName = StringFromFormat("%s%s_1.00_%d.ppst", savestateDir.c_str(), madeUpID.c_str(), i);
-			File::Rename(oldName, newName);
+			PFile::Rename(oldName, newName);
 		}
 	}
 	for (int i = 0; i < 5; i += 1) {
 		std::string oldName = StringFromFormat("%s%s_%d.jpg", savestateDir.c_str(), homebrewName.c_str(), i);
-		if (File::Exists(oldName)) {
+		if (PFile::Exists(oldName)) {
 			std::string newName = StringFromFormat("%s%s_1.00_%d.jpg", savestateDir.c_str(), madeUpID.c_str(), i);
-			File::Rename(oldName, newName);
+			PFile::Rename(oldName, newName);
 		}
 	}
 	// End of temporary code

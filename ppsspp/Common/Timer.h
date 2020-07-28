@@ -20,7 +20,7 @@
 #include "Common.h"
 #include <string>
 
-namespace Common
+namespace GCommon
 {
 class Timer
 {

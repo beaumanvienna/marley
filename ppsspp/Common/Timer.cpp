@@ -30,7 +30,7 @@
 #include "Timer.h"
 #include "StringUtils.h"
 
-namespace Common
+namespace GCommon
 {
 
 u32 Timer::GetTimeMs()
@@ -229,7 +229,7 @@ double Timer::GetDoubleTime()
 	(void)gettimeofday(&t, NULL);
 #endif
 	// Get continuous timestamp
-	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
+	u64 TmpSeconds = GCommon::Timer::GetTimeSinceJan1970();
 
 	// Remove a few years. We only really want enough seconds to make
 	// sure that we are detecting actual actions, perhaps 60 seconds is
@@ -249,4 +249,4 @@ double Timer::GetDoubleTime()
 	return TmpTime;
 }
 
-} // Namespace Common
+} // Namespace GCommon

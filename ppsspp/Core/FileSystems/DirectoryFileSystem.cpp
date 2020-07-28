@@ -57,7 +57,7 @@
 static bool FixFilenameCase(const std::string &path, std::string &filename)
 {
 	// Are we lucky?
-	if (File::Exists(path + filename))
+	if (PFile::Exists(path + filename))
 		return true;
 
 	size_t filenameSize = filename.size();  // size in bytes, not characters
@@ -151,7 +151,7 @@ bool FixPathCase(const std::string &basePath, std::string &path, FixPathCaseBeha
 #endif
 
 DirectoryFileSystem::DirectoryFileSystem(IHandleAllocator *_hAlloc, std::string _basePath, FileSystemFlags _flags) : basePath(_basePath), flags(_flags) {
-	File::CreateFullPath(basePath);
+	PFile::CreateFullPath(basePath);
 	hAlloc = _hAlloc;
 }
 
@@ -492,9 +492,9 @@ bool DirectoryFileSystem::MkDir(const std::string &dirname) {
 	if (!FixPathCase(basePath,fixedCase, FPC_PARTIAL_ALLOWED))
 		result = false;
 	else
-		result = File::CreateFullPath(GetLocalPath(fixedCase));
+		result = PFile::CreateFullPath(GetLocalPath(fixedCase));
 #else
-	result = File::CreateFullPath(GetLocalPath(dirname));
+	result = PFile::CreateFullPath(GetLocalPath(dirname));
 #endif
 	return ReplayApplyDisk(ReplayAction::MKDIR, result, PCoreTiming::GetGlobalTimeUs()) != 0;
 }
@@ -504,7 +504,7 @@ bool DirectoryFileSystem::RmDir(const std::string &dirname) {
 
 #if HOST_IS_CASE_SENSITIVE
 	// Maybe we're lucky?
-	if (File::DeleteDirRecursively(fullName))
+	if (PFile::DeleteDirRecursively(fullName))
 		return (bool)ReplayApplyDisk(ReplayAction::RMDIR, true, PCoreTiming::GetGlobalTimeUs());
 
 	// Nope, fix case and try again.  Should we try again?
@@ -520,7 +520,7 @@ bool DirectoryFileSystem::RmDir(const std::string &dirname) {
 #else
 	return 0 == rmdir(fullName.c_str());
 #endif*/
-	bool result = File::DeleteDirRecursively(fullName);
+	bool result = PFile::DeleteDirRecursively(fullName);
 	return ReplayApplyDisk(ReplayAction::RMDIR, result, PCoreTiming::GetGlobalTimeUs()) != 0;
 }
 
@@ -723,24 +723,24 @@ PSPFileInfo DirectoryFileSystem::GetFileInfo(std::string filename) {
 	x.name = filename;
 
 	std::string fullName = GetLocalPath(filename);
-	if (!File::Exists(fullName)) {
+	if (!PFile::Exists(fullName)) {
 #if HOST_IS_CASE_SENSITIVE
 		if (! FixPathCase(basePath,filename, FPC_FILE_MUST_EXIST))
 			return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 		fullName = GetLocalPath(filename);
 
-		if (! File::Exists(fullName))
+		if (! PFile::Exists(fullName))
 			return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 #else
 		return ReplayApplyDiskFileInfo(x, PCoreTiming::GetGlobalTimeUs());
 #endif
 	}
-	x.type = File::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
+	x.type = PFile::IsDirectory(fullName) ? FILETYPE_DIRECTORY : FILETYPE_NORMAL;
 	x.exists = true;
 
 	if (x.type != FILETYPE_DIRECTORY) {
-		File::FileDetails details;
-		if (!File::GetFileDetails(fullName, &details)) {
+		PFile::FileDetails details;
+		if (!PFile::GetFileDetails(fullName, &details)) {
 			ERROR_LOG(FILESYS, "DirectoryFileSystem::GetFileInfo: GetFileDetails failed: %s", fullName.c_str());
 		} else {
 			x.size = details.size;
