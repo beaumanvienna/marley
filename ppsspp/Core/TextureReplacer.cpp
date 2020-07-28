@@ -53,12 +53,12 @@ void TextureReplacer::Init() {
 void TextureReplacer::NotifyConfigChanged() {
 	gameID_ = g_paramSFO.GetDiscID();
 
-	enabled_ = g_Config.bReplaceTextures || g_Config.bSaveNewTextures;
+	enabled_ = g_PConfig.bReplaceTextures || g_PConfig.bSaveNewTextures;
 	if (enabled_) {
 		basePath_ = GetSysDirectory(DIRECTORY_TEXTURES) + gameID_ + "/";
 
 		// If we're saving, auto-create the directory.
-		if (g_Config.bSaveNewTextures && !PFile::Exists(basePath_ + NEW_TEXTURE_DIR)) {
+		if (g_PConfig.bSaveNewTextures && !PFile::Exists(basePath_ + NEW_TEXTURE_DIR)) {
 			PFile::CreateFullPath(basePath_ + NEW_TEXTURE_DIR);
 			PFile::CreateEmptyFile(basePath_ + NEW_TEXTURE_DIR + "/.nomedia");
 		}
@@ -84,7 +84,7 @@ bool TextureReplacer::LoadIni() {
 	ignoreMipmap_ = false;
 
 	if (PFile::Exists(basePath_ + INI_FILENAME)) {
-		IniFile ini;
+		PIniFile ini;
 		ini.LoadFromVFS(basePath_ + INI_FILENAME);
 
 		if (!LoadIniValues(ini)) {
@@ -96,7 +96,7 @@ bool TextureReplacer::LoadIni() {
 		if (ini.GetOrCreateSection("games")->Get(gameID_.c_str(), &overrideFilename, "")) {
 			if (!overrideFilename.empty() && overrideFilename != INI_FILENAME) {
 				INFO_LOG(G3D, "Loading extra texture ini: %s", overrideFilename.c_str());
-				IniFile overrideIni;
+				PIniFile overrideIni;
 				overrideIni.LoadFromVFS(basePath_ + overrideFilename);
 
 				if (!LoadIniValues(overrideIni, true)) {
@@ -110,7 +110,7 @@ bool TextureReplacer::LoadIni() {
 	return true;
 }
 
-bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
+bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 	auto options = ini.GetOrCreateSection("options");
 	std::string hash;
 	options->Get("hash", &hash, "");
@@ -150,7 +150,7 @@ bool TextureReplacer::LoadIniValues(IniFile &ini, bool isOverride) {
 	if (ini.HasSection("hashes")) {
 		auto hashes = ini.GetOrCreateSection("hashes")->ToMap();
 		// Format: hashname = filename.png
-		bool checkFilenames = g_Config.bSaveNewTextures && !g_Config.bIgnoreTextureFilenames;
+		bool checkFilenames = g_PConfig.bSaveNewTextures && !g_PConfig.bIgnoreTextureFilenames;
 		for (const auto &item : hashes) {
 			ReplacementAliasKey key(0, 0, 0);
 			if (sscanf(item.first.c_str(), "%16llx%8x_%d", &key.cachekey, &key.hash, &key.level) >= 1) {
@@ -200,14 +200,14 @@ void TextureReplacer::ParseHashRange(const std::string &key, const std::string &
 	u32 addr;
 	u32 fromW;
 	u32 fromH;
-	if (!TryParse(keyParts[0], &addr) || !TryParse(keyParts[1], &fromW) || !TryParse(keyParts[2], &fromH)) {
+	if (!PTryParse(keyParts[0], &addr) || !PTryParse(keyParts[1], &fromW) || !PTryParse(keyParts[2], &fromH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, key format is 0x12345678,512,512", key.c_str(), value.c_str());
 		return;
 	}
 
 	u32 toW;
 	u32 toH;
-	if (!TryParse(valueParts[0], &toW) || !TryParse(valueParts[1], &toH)) {
+	if (!PTryParse(valueParts[0], &toW) || !PTryParse(valueParts[1], &toH)) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, value format is 512,512", key.c_str(), value.c_str());
 		return;
 	}
@@ -291,7 +291,7 @@ u32 TextureReplacer::ComputeHash(u32 addr, int bufw, int w, int h, GETextureForm
 
 ReplacedTexture &TextureReplacer::FindReplacement(u64 cachekey, u32 hash, int w, int h) {
 	// Only actually replace if we're replacing.  We might just be saving.
-	if (!Enabled() || !g_Config.bReplaceTextures) {
+	if (!Enabled() || !g_PConfig.bReplaceTextures) {
 		return none_;
 	}
 
@@ -399,7 +399,7 @@ static bool WriteTextureToPNG(png_imagep image, const std::string &filename, int
 
 void TextureReplacer::NotifyTextureDecoded(const ReplacedTextureDecodeInfo &replacedInfo, const void *data, int pitch, int level, int w, int h) {
 	_assert_msg_(enabled_, "Replacement not enabled");
-	if (!g_Config.bSaveNewTextures) {
+	if (!g_PConfig.bSaveNewTextures) {
 		// Ignore.
 		return;
 	}

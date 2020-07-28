@@ -299,7 +299,7 @@ bool __KernelIsRunning() {
 
 std::string __KernelStateSummary() {
 	std::string threadSummary = __KernelThreadingSummary();
-	return StringFromFormat("%s", threadSummary.c_str());
+	return PStringFromFormat("%s", threadSummary.c_str());
 }
 
 
@@ -319,7 +319,7 @@ void sceKernelExitGameWithStatus()
 
 u32 sceKernelDevkitVersion()
 {
-	int firmwareVersion = g_Config.iFirmwareVersion;
+	int firmwareVersion = g_PConfig.iFirmwareVersion;
 	int major = firmwareVersion / 100;
 	int minor = (firmwareVersion / 10) % 10;
 	int revision = firmwareVersion % 10;

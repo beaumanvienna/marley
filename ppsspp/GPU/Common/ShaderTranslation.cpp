@@ -198,9 +198,9 @@ bool ConvertToVulkanGLSL(std::string *dest, TranslatedShaderMetadata *destMetada
 			continue;
 		} else if (2 == sscanf(line.c_str(), "varying vec%d v_texcoord%d;", &vecSize, &num)) {
 			if (stage == Draw::ShaderStage::FRAGMENT) {
-				line = StringFromFormat("layout(location = %d) in vec%d v_texcoord%d;", num, vecSize, num);
+				line = PStringFromFormat("layout(location = %d) in vec%d v_texcoord%d;", num, vecSize, num);
 			} else {
-				line = StringFromFormat("layout(location = %d) out vec%d v_texcoord%d;", num, vecSize, num);
+				line = PStringFromFormat("layout(location = %d) out vec%d v_texcoord%d;", num, vecSize, num);
 			}
 		}
 		for (int i = 0; i < ARRAY_SIZE(replacements); i++) {

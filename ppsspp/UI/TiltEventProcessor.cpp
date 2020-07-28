@@ -18,9 +18,9 @@ inline float tiltInputCurve (float x, float deadzone, float sensitivity) {
 	const float factor = sensitivity * 1.0f / (1.0f - deadzone);
 
 	if (x > deadzone) {
-		return (x - deadzone) * factor * factor + g_Config.fTiltDeadzoneSkip;
+		return (x - deadzone) * factor * factor + g_PConfig.fTiltDeadzoneSkip;
 	} else if (x < -deadzone) {
-		return (x + deadzone) * factor * factor - g_Config.fTiltDeadzoneSkip;
+		return (x + deadzone) * factor * factor - g_PConfig.fTiltDeadzoneSkip;
 	} else {
 		return 0.0f;
 	}
@@ -74,7 +74,7 @@ Tilt TiltEventProcessor::GenTilt(const Tilt &baseTilt, const Tilt &currentTilt, 
 }
 
 void TiltEventProcessor::TranslateTiltToInput(const Tilt &tilt) {
-	switch (g_Config.iTiltInputType) {
+	switch (g_PConfig.iTiltInputType) {
 	case TILT_NULL:
 		break;
 

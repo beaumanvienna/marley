@@ -456,7 +456,7 @@ public:
 		case APIVERSION: 
 		{
 			uint32_t ver = vulkan_->GetPhysicalDeviceProperties().properties.apiVersion;
-			return StringFromFormat("%d.%d.%d", ver >> 22, (ver >> 12) & 0x3ff, ver & 0xfff);
+			return PStringFromFormat("%d.%d.%d", ver >> 22, (ver >> 12) & 0x3ff, ver & 0xfff);
 		}
 		default: return "?";
 		}
@@ -897,7 +897,7 @@ VKContext::~VKContext() {
 }
 
 void VKContext::BeginFrame() {
-	renderManager_.BeginFrame(g_Config.bShowGpuProfile);
+	renderManager_.BeginFrame(g_PConfig.bShowGpuProfile);
 
 	FrameData &frame = frame_[vulkan_->GetCurFrame()];
 	push_ = frame.pushBuffer;

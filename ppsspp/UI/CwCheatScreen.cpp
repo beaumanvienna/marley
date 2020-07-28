@@ -68,7 +68,7 @@ void CwCheatScreen::LoadCheatInfo() {
 	fileInfo_ = engine_->FileInfo();
 
 	// Let's also trigger a reload, in case it changed.
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 }
 
 void CwCheatScreen::CreateViews() {
@@ -89,12 +89,12 @@ void CwCheatScreen::CreateViews() {
 	leftColumn->Add(new Choice(cw->T("Edit Cheat File")))->OnClick.Handle(this, &CwCheatScreen::OnEditCheatFile);
 #endif
 	leftColumn->Add(new Choice(cw->T("Enable/Disable All")))->OnClick.Handle(this, &CwCheatScreen::OnEnableAll);
-	leftColumn->Add(new PopupSliderChoice(&g_Config.iCwCheatRefreshRate, 1, 1000, cw->T("Refresh Rate"), 1, screenManager()));
+	leftColumn->Add(new PopupSliderChoice(&g_PConfig.iCwCheatRefreshRate, 1, 1000, cw->T("Refresh Rate"), 1, screenManager()));
 
 	rightScroll_ = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT, 0.5f));
 	rightScroll_->SetTag("CwCheats");
 	rightScroll_->SetScrollToTop(false);
-	rightScroll_->ScrollTo(g_Config.fCwCheatScrollPosition);
+	rightScroll_->ScrollTo(g_PConfig.fCwCheatScrollPosition);
 	LinearLayout *rightColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(200, FILL_PARENT, actionMenuMargins));
 	rightScroll_->Add(rightColumn);
 
@@ -137,7 +137,7 @@ void CwCheatScreen::onFinish(DialogResult result) {
 	if (MIPSComp::jit) {
 		MIPSComp::jit->ClearCache();
 	}
-	g_Config.fCwCheatScrollPosition = rightScroll_->GetScrollPosition();
+	g_PConfig.fCwCheatScrollPosition = rightScroll_->GetScrollPosition();
 }
 
 UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
@@ -160,12 +160,12 @@ UI::EventReturn CwCheatScreen::OnEnableAll(UI::EventParams &params) {
 
 UI::EventReturn CwCheatScreen::OnAddCheat(UI::EventParams &params) {
 	TriggerFinish(DR_OK);
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn CwCheatScreen::OnEditCheatFile(UI::EventParams &params) {
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	if (MIPSComp::jit) {
 		MIPSComp::jit->ClearCache();
 	}
@@ -190,7 +190,7 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	std::vector<std::string> newList;
 
 	std::string cheatFile = GetSysDirectory(DIRECTORY_CHEATS) + "cheat.db";
-	std::string gameID = StringFromFormat("_S %s-%s", gameID_.substr(0, 4).c_str(), gameID_.substr(4).c_str());
+	std::string gameID = PStringFromFormat("_S %s-%s", gameID_.substr(0, 4).c_str(), gameID_.substr(4).c_str());
 
 	std::fstream fs;
 	PFile::OpenCPPFile(fs, cheatFile, std::ios::in);
@@ -260,7 +260,7 @@ UI::EventReturn CwCheatScreen::OnImportCheat(UI::EventParams &params) {
 	}
 	fs.close();
 
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	RecreateViews();
 	return UI::EVENT_DONE;
 }
@@ -332,6 +332,6 @@ bool CwCheatScreen::RebuildCheatFile(int index) {
 	fs.close();
 
 	// Cheats will need to be reparsed now.
-	g_Config.bReloadCheats = true;
+	g_PConfig.bReloadCheats = true;
 	return true;
 }

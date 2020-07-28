@@ -33,7 +33,7 @@ static int kuKernelLoadModule(const char *path, uint32_t flags, uint32_t lmOptio
 
 static int kuKernelGetModel() {
 	INFO_LOG(SCEKERNEL, "kuKernelGetModel()");
-	return g_Config.iPSPModel;
+	return g_PConfig.iPSPModel;
 }
 
 const HLEFunction KUBridge[] =

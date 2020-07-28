@@ -377,7 +377,7 @@ void CPUInfo::Detect() {
 				counted_cores.insert(id);
 
 				// Also count any thread siblings as counted.
-				auto threads = ParseCPUList(StringFromFormat("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", id));
+				auto threads = ParseCPUList(PStringFromFormat("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", id));
 				for (int mark_id : threads) {
 					counted_cores.insert(mark_id);
 				}
@@ -405,11 +405,11 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = StringFromFormat("%s, %d core", cpu_string, num_cores);
+		sum = PStringFromFormat("%s, %d core", cpu_string, num_cores);
 	else
 	{
-		sum = StringFromFormat("%s, %d cores", cpu_string, num_cores);
-		if (HTT) sum += StringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
+		sum = PStringFromFormat("%s, %d cores", cpu_string, num_cores);
+		if (HTT) sum += PStringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";

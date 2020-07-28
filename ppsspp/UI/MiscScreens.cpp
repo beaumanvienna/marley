@@ -168,7 +168,7 @@ void HandleCommonMessages(const char *message, const char *value, ScreenManager 
 			MIPSComp::jit->ClearCache();
 		}
 		if (PSP_IsInited()) {
-			currentMIPS->UpdateCore((CPUCore)g_Config.iCpuCore);
+			currentMIPS->UpdateCore((CPUCore)g_PConfig.iCpuCore);
 		}
 	} else if (!strcmp(message, "control mapping") && isActiveScreen && activeScreen->tag() != "control mapping") {
 		UpdateUIState(UISTATE_MENU);
@@ -308,7 +308,7 @@ PostProcScreen::PostProcScreen(const std::string &title) : ListPopupScreen(title
 	for (int i = 0; i < (int)shaders_.size(); i++) {
 		if (!shaders_[i].visible)
 			continue;
-		if (shaders_[i].section == g_Config.sPostShaderName)
+		if (shaders_[i].section == g_PConfig.sPostShaderName)
 			selected = i;
 		items.push_back(ps->T(shaders_[i].section.c_str(), shaders_[i].name.c_str()));
 	}
@@ -318,7 +318,7 @@ PostProcScreen::PostProcScreen(const std::string &title) : ListPopupScreen(title
 void PostProcScreen::OnCompleted(DialogResult result) {
 	if (result != DR_OK)
 		return;
-	g_Config.sPostShaderName = shaders_[listView_->GetSelected()].section;
+	g_PConfig.sPostShaderName = shaders_[listView_->GetSelected()].section;
 }
 
 NewLanguageScreen::NewLanguageScreen(const std::string &title) : ListPopupScreen(title) {
@@ -369,7 +369,7 @@ NewLanguageScreen::NewLanguageScreen(const std::string &title) : ListPopupScreen
 				buttonTitle = langValuesMapping[code].first;
 			}
 		}
-		if (g_Config.sLanguageIni == code)
+		if (g_PConfig.sLanguageIni == code)
 			selected = counter;
 		listing.push_back(buttonTitle);
 		counter++;
@@ -381,7 +381,7 @@ NewLanguageScreen::NewLanguageScreen(const std::string &title) : ListPopupScreen
 void NewLanguageScreen::OnCompleted(DialogResult result) {
 	if (result != DR_OK)
 		return;
-	std::string oldLang = g_Config.sLanguageIni;
+	std::string oldLang = g_PConfig.sLanguageIni;
 	std::string iniFile = langs_[listView_->GetSelected()].name;
 
 	size_t dot = iniFile.find('.');
@@ -392,7 +392,7 @@ void NewLanguageScreen::OnCompleted(DialogResult result) {
 	if (code.empty())
 		return;
 
-	g_Config.sLanguageIni = code;
+	g_PConfig.sLanguageIni = code;
 
 	bool iniLoadedSuccessfully = false;
 	// Allow the lang directory to be overridden for testing purposes (e.g. Android, where it's hard to 
@@ -401,21 +401,21 @@ void NewLanguageScreen::OnCompleted(DialogResult result) {
 
 	// If we run into the unlikely case that "lang" is actually a file, just use the built-in translations.
 	if (!PFile::Exists(langOverridePath) || !PFile::IsDirectory(langOverridePath))
-		iniLoadedSuccessfully = i18nrepo.LoadIni(g_Config.sLanguageIni);
+		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni);
 	else
-		iniLoadedSuccessfully = i18nrepo.LoadIni(g_Config.sLanguageIni, langOverridePath);
+		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni, langOverridePath);
 
 	if (iniLoadedSuccessfully) {
 		// Dunno what else to do here.
 		if (langValuesMapping.find(code) == langValuesMapping.end()) {
 			// Fallback to English
-			g_Config.iLanguage = PSP_SYSTEMPARAM_LANGUAGE_ENGLISH;
+			g_PConfig.iLanguage = PSP_SYSTEMPARAM_LANGUAGE_ENGLISH;
 		} else {
-			g_Config.iLanguage = langValuesMapping[code].second;
+			g_PConfig.iLanguage = langValuesMapping[code].second;
 		}
 		RecreateViews();
 	} else {
-		g_Config.sLanguageIni = oldLang;
+		g_PConfig.sLanguageIni = oldLang;
 	}
 }
 

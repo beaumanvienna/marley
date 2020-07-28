@@ -530,7 +530,7 @@ void DumpExecute::Framebuf(int level, u32 ptr, u32 sz) {
 	u32 pspSize = sz - headerSize;
 	const bool isTarget = (framebuf->flags & 1) != 0;
 	// Could potentially always skip if !isTarget, but playing it safe for offset texture behavior.
-	if (PMemory::IsValidRange(framebuf->addr, pspSize) && (!isTarget || !g_Config.bSoftwareRendering)) {
+	if (PMemory::IsValidRange(framebuf->addr, pspSize) && (!isTarget || !g_PConfig.bSoftwareRendering)) {
 		// Intentionally don't trigger an upload here.
 		PMemory::MemcpyUnchecked(framebuf->addr, pushbuf_.data() + ptr + headerSize, pspSize);
 	}

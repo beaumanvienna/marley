@@ -380,13 +380,13 @@ namespace SaveState
 		};
 
 		if (detectSlot(STATE_EXTENSION)) {
-			return StringFromFormat("%s (%c)", title.c_str(), slotChar);
+			return PStringFromFormat("%s (%c)", title.c_str(), slotChar);
 		}
 		if (detectSlot(UNDO_STATE_EXTENSION)) {
 			auto sy = GetI18NCategory("System");
 			// Allow the number to be positioned where it makes sense.
 			std::string undo = sy->T("undo %c");
-			return title + " (" + StringFromFormat(undo.c_str(), slotChar) + ")";
+			return title + " (" + PStringFromFormat(undo.c_str(), slotChar) + ")";
 		}
 
 		// Couldn't detect, use the filename.
@@ -417,20 +417,20 @@ namespace SaveState
 			discId = g_paramSFO.GenerateFakeID();
 			discVer = "1.00";
 		}
-		fullDiscId = StringFromFormat("%s_%s", discId.c_str(), discVer.c_str());
+		fullDiscId = PStringFromFormat("%s_%s", discId.c_str(), discVer.c_str());
 
-		std::string filename = StringFromFormat("%s_%d.%s", fullDiscId.c_str(), slot, extension);
+		std::string filename = PStringFromFormat("%s_%d.%s", fullDiscId.c_str(), slot, extension);
 		return GetSysDirectory(DIRECTORY_SAVESTATE) + filename;
 	}
 
 	int GetCurrentSlot()
 	{
-		return g_Config.iCurrentStateSlot;
+		return g_PConfig.iCurrentStateSlot;
 	}
 
 	void NextSlot()
 	{
-		g_Config.iCurrentStateSlot = (g_Config.iCurrentStateSlot + 1) % NUM_SLOTS;
+		g_PConfig.iCurrentStateSlot = (g_PConfig.iCurrentStateSlot + 1) % NUM_SLOTS;
 	}
 
 	void LoadSlot(const std::string &gameFilename, int slot, Callback callback, void *cbUserData)
@@ -476,7 +476,7 @@ namespace SaveState
 		if (!fn.empty()) {
 			auto renameCallback = [=](Status status, const std::string &message, void *data) {
 				if (status != Status::FAILURE) {
-					if (g_Config.bEnableStateUndo) {
+					if (g_PConfig.bEnableStateUndo) {
 						DeleteIfExists(fnUndo);
 						RenameIfExists(fn, fnUndo);
 					} else {
@@ -489,7 +489,7 @@ namespace SaveState
 				}
 			};
 			// Let's also create a screenshot.
-			if (g_Config.bEnableStateUndo) {
+			if (g_PConfig.bEnableStateUndo) {
 				DeleteIfExists(shotUndo);
 				RenameIfExists(shot, shotUndo);
 			}
@@ -663,7 +663,7 @@ namespace SaveState
 #ifndef MOBILE_DEVICE
 	static inline void CheckRewindState()
 	{
-		if (gpuStats.numFlips % g_Config.iRewindFlipFrequency != 0)
+		if (gpuStats.numFlips % g_PConfig.iRewindFlipFrequency != 0)
 			return;
 
 		// For fast-forwarding, otherwise they may be useless and too close.
@@ -704,7 +704,7 @@ namespace SaveState
 	void Process()
 	{
 #ifndef MOBILE_DEVICE
-		if (g_Config.iRewindFlipFrequency != 0 && gpuStats.numFlips != 0)
+		if (g_PConfig.iRewindFlipFrequency != 0 && gpuStats.numFlips != 0)
 			CheckRewindState();
 #endif
 
@@ -739,7 +739,7 @@ namespace SaveState
 			if (strlen(i18nSaveFailure) == 0)
 				i18nSaveFailure = sc->T("Failed to save state");
 
-			std::string slot_prefix = op.slot >= 0 ? StringFromFormat("(%d) ", op.slot + 1) : "";
+			std::string slot_prefix = op.slot >= 0 ? PStringFromFormat("(%d) ", op.slot + 1) : "";
 
 			switch (op.type)
 			{
@@ -752,26 +752,26 @@ namespace SaveState
 					callbackResult = Status::SUCCESS;
 					hasLoadedState = true;
 
-					if (!g_Config.bHideStateWarnings && IsStale()) {
+					if (!g_PConfig.bHideStateWarnings && IsStale()) {
 						// For anyone wondering why (too long to put on the screen in an osm):
 						// Using save states instead of saves simulates many hour play sessions.
 						// Sometimes this exposes game bugs that were rarely seen on real devices,
 						// because few people played on a real PSP for 10 hours straight.
 						callbackMessage = slot_prefix + sc->T("Loaded.  Save in game, restart, and load for less bugs.");
 						callbackResult = Status::WARNING;
-					} else if (!g_Config.bHideStateWarnings && IsOldVersion()) {
+					} else if (!g_PConfig.bHideStateWarnings && IsOldVersion()) {
 						// Save states also preserve bugs from old PPSSPP versions, so warn.
 						callbackMessage = slot_prefix + sc->T("Loaded.  Save in game, restart, and load for less bugs.");
 						callbackResult = Status::WARNING;
 					}
 
 #ifndef MOBILE_DEVICE
-					if (g_Config.bSaveLoadResetsAVdumping) {
-						if (g_Config.bDumpFrames) {
+					if (g_PConfig.bSaveLoadResetsAVdumping) {
+						if (g_PConfig.bDumpFrames) {
 							AVIDump::Stop();
 							AVIDump::Start(PSP_CoreParameter().renderWidth, PSP_CoreParameter().renderHeight);
 						}
-						if (g_Config.bDumpAudio) {
+						if (g_PConfig.bDumpAudio) {
 							WAVDump::Reset();
 						}
 					}
@@ -801,12 +801,12 @@ namespace SaveState
 					callbackMessage = slot_prefix + sc->T("Saved State");
 					callbackResult = Status::SUCCESS;
 #ifndef MOBILE_DEVICE
-					if (g_Config.bSaveLoadResetsAVdumping) {
-						if (g_Config.bDumpFrames) {
+					if (g_PConfig.bSaveLoadResetsAVdumping) {
+						if (g_PConfig.bDumpFrames) {
 							AVIDump::Stop();
 							AVIDump::Start(PSP_CoreParameter().renderWidth, PSP_CoreParameter().renderHeight);
 						}
-						if (g_Config.bDumpAudio) {
+						if (g_PConfig.bDumpAudio) {
 							WAVDump::Reset();
 						}
 					}
@@ -858,7 +858,7 @@ namespace SaveState
 
 			case SAVESTATE_SAVE_SCREENSHOT:
 			{
-				int maxRes = g_Config.iInternalResolution > 2 ? 2 : -1;
+				int maxRes = g_PConfig.iInternalResolution > 2 ? 2 : -1;
 				tempResult = TakeGameScreenshot(op.filename.c_str(), ScreenshotFormat::JPG, SCREENSHOT_DISPLAY, nullptr, nullptr, maxRes);
 				callbackResult = tempResult ? Status::SUCCESS : Status::FAILURE;
 				if (!tempResult) {

@@ -96,7 +96,7 @@ bool PortManager::Initialize(const unsigned int timeout) {
 	int error = 0;
 	
 	INFO_LOG(SCENET, "PortManager::Initialize(%d)", timeout);
-	if (!g_Config.bEnableUPnP) {
+	if (!g_PConfig.bEnableUPnP) {
 		ERROR_LOG(SCENET, "PortManager::Initialize - UPnP is Disabled on Networking Settings");
 		return false;
 	}
@@ -165,7 +165,7 @@ bool PortManager::Initialize(const unsigned int timeout) {
 
 		// Using Game ID & Player Name as default description for mapping
 		std::string gameID = g_paramSFO.GetDiscID();
-		m_defaultDesc = "PPSSPP:" + gameID + ":" + g_Config.sNickName; // Some routers may automatically prefixed it with "UPnP:"
+		m_defaultDesc = "PPSSPP:" + gameID + ":" + g_PConfig.sNickName; // Some routers may automatically prefixed it with "UPnP:"
 
 		freeUPNPDevlist(devlist);
 
@@ -196,7 +196,7 @@ bool PortManager::Add(const char* protocol, unsigned short port, unsigned short 
 	INFO_LOG(SCENET, "PortManager::Add(%s, %d, %d)", protocol, port, intport);
 	if (urls == NULL || urls->controlURL == NULL || urls->controlURL[0] == '\0')
 	{
-		if (g_Config.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Add - the init was not done !");
+		if (g_PConfig.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Add - the init was not done !");
 		return false;
 	}
 	sprintf(port_str, "%d", port);
@@ -241,7 +241,7 @@ bool PortManager::Remove(const char* protocol, unsigned short port) {
 	INFO_LOG(SCENET, "PortManager::Remove(%s, %d)", protocol, port);
 	if (urls == NULL || urls->controlURL == NULL || urls->controlURL[0] == '\0')
 	{
-		if (g_Config.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Remove - the init was not done !");
+		if (g_PConfig.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Remove - the init was not done !");
 		return false;
 	}
 	sprintf(port_str, "%d", port);
@@ -267,7 +267,7 @@ bool PortManager::Restore() {
 	INFO_LOG(SCENET, "PortManager::Restore()");
 	if (urls == NULL || urls->controlURL == NULL || urls->controlURL[0] == '\0')
 	{
-		if (g_Config.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Remove - the init was not done !");
+		if (g_PConfig.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Remove - the init was not done !");
 		return false;
 	}
 	for (auto it = m_otherPortList.begin(); it != m_otherPortList.end(); ++it) {
@@ -320,7 +320,7 @@ bool PortManager::Clear() {
 	INFO_LOG(SCENET, "PortManager::Clear()");
 	if (urls == NULL || urls->controlURL == NULL || urls->controlURL[0] == '\0')
 	{
-		if (g_Config.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Clear - the init was not done !");
+		if (g_PConfig.bEnableUPnP) WARN_LOG(SCENET, "PortManager::Clear - the init was not done !");
 		return false;
 	}
 	//unsigned int num = 0;
@@ -374,7 +374,7 @@ bool PortManager::RefreshPortList() {
 	INFO_LOG(SCENET, "PortManager::RefreshPortList()");
 	if (urls == NULL || urls->controlURL == NULL || urls->controlURL[0] == '\0')
 	{
-		if (g_Config.bEnableUPnP) WARN_LOG(SCENET, "PortManager::RefreshPortList - the init was not done !");
+		if (g_PConfig.bEnableUPnP) WARN_LOG(SCENET, "PortManager::RefreshPortList - the init was not done !");
 		return false;
 	}
 	m_portList.clear();
@@ -419,11 +419,11 @@ int upnpService(const unsigned int timeout)
 	// Service Loop
 	while (upnpServiceRunning && coreState != CORE_POWERDOWN) {
 		// Attempts to reconnect if not connected yet or got disconnected
-		if (g_Config.bEnableUPnP && g_PortManager.GetInitState() == UPNP_INITSTATE_NONE) {
+		if (g_PConfig.bEnableUPnP && g_PortManager.GetInitState() == UPNP_INITSTATE_NONE) {
 			g_PortManager.Initialize(timeout);
 		}
 
-		if (g_Config.bEnableUPnP && g_PortManager.GetInitState() == UPNP_INITSTATE_DONE && !upnpReqs.empty()) {
+		if (g_PConfig.bEnableUPnP && g_PortManager.GetInitState() == UPNP_INITSTATE_DONE && !upnpReqs.empty()) {
 			upnpLock.lock();
 			UPnPArgs arg = upnpReqs.front();
 			upnpLock.unlock();
@@ -452,7 +452,7 @@ int upnpService(const unsigned int timeout)
 		sleep_ms(1);
 	}
 
-	// Cleaning up regardless of g_Config.bEnableUPnP to prevent lingering open ports on the router
+	// Cleaning up regardless of g_PConfig.bEnableUPnP to prevent lingering open ports on the router
 	if (g_PortManager.GetInitState() == UPNP_INITSTATE_DONE) {
 		g_PortManager.Clear();
 		g_PortManager.Restore();

@@ -180,7 +180,7 @@ void TextureCacheDX9::UpdateSamplingParams(TexCacheEntry &entry, bool force) {
 	D3DTEXTUREFILTERTYPE mipf = (D3DTEXTUREFILTERTYPE)MipFilt[minFilt];
 	D3DTEXTUREFILTERTYPE magf = (D3DTEXTUREFILTERTYPE)MagFilt[magFilt];
 
-	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_Config.iAnisotropyLevel > 0 && minf == D3DTEXF_LINEAR) {
+	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_PConfig.iAnisotropyLevel > 0 && minf == D3DTEXF_LINEAR) {
 		minf = D3DTEXF_ANISOTROPIC;
 	}
 
@@ -234,7 +234,7 @@ void TextureCacheDX9::StartFrame() {
 	}
 
 	if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY)) {
-		DWORD aniso = 1 << g_Config.iAnisotropyLevel;
+		DWORD aniso = 1 << g_PConfig.iAnisotropyLevel;
 		DWORD anisotropyLevel = aniso > maxAnisotropyLevel ? maxAnisotropyLevel : aniso;
 		device_->SetSamplerState(0, D3DSAMP_MAXANISOTROPY, anisotropyLevel);
 	}
@@ -418,7 +418,7 @@ protected:
 void TextureCacheDX9::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFramebuffer *framebuffer) {
 	LPDIRECT3DPIXELSHADER9 pshader = nullptr;
 	uint32_t clutMode = gstate.clutformat & 0xFFFFFF;
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
 		pshader = depalShaderCache_->GetDepalettizePixelShader(clutMode, framebuffer->drawnFormat);
 	}
 

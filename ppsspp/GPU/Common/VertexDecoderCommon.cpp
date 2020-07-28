@@ -1083,7 +1083,7 @@ void VertexDecoder::SetVertexType(u32 fmt, const VertexDecoderOptions &options, 
 		DEBUG_LOG(G3D, "VTYPE: THRU=%i TC=%i COL=%i POS=%i NRM=%i WT=%i NW=%i IDX=%i MC=%i", (int)throughmode, tc, col, pos, nrm, weighttype, nweights, idx, morphcount);
 	}
 
-	bool skinInDecode = weighttype != 0 && g_Config.bSoftwareSkinning;
+	bool skinInDecode = weighttype != 0 && g_PConfig.bSoftwareSkinning;
 
 	if (weighttype) { // && nweights?
 		weightoff = size;
@@ -1266,7 +1266,7 @@ void VertexDecoder::SetVertexType(u32 fmt, const VertexDecoderOptions &options, 
 
 	// Attempt to JIT as well. But only do that if the main CPU JIT is enabled, in order to aid
 	// debugging attempts - if the main JIT doesn't work, this one won't do any better, probably.
-	if (jitCache && g_Config.bVertexDecoderJit && g_Config.iCpuCore == (int)CPUCore::JIT) {
+	if (jitCache && g_PConfig.bVertexDecoderJit && g_PConfig.iCpuCore == (int)CPUCore::JIT) {
 		jitted_ = jitCache->Compile(*this, &jittedSize_);
 		if (!jitted_) {
 			WARN_LOG(G3D, "Vertex decoder JIT failed! fmt = %08x (%s)", fmt_, GetString(SHADER_STRING_SHORT_DESC).c_str());

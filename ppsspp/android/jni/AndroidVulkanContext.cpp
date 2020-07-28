@@ -21,7 +21,7 @@ AndroidVulkanContext::~AndroidVulkanContext() {
 }
 
 static uint32_t FlagsFromConfig() {
-	if (g_Config.bVSync) {
+	if (g_PConfig.bVSync) {
 		return VULKAN_FLAG_PRESENT_FIFO;
 	}
 	return VULKAN_FLAG_PRESENT_MAILBOX | VULKAN_FLAG_PRESENT_FIFO_RELAXED;
@@ -101,14 +101,14 @@ bool AndroidVulkanContext::InitFromRenderThread(ANativeWindow *wnd, int desiredB
 
 	bool success = true;
 	if (g_Vulkan->InitSwapchain()) {
-		draw_ = Draw::T3DCreateVulkanContext(g_Vulkan, g_Config.bGfxDebugSplitSubmit);
+		draw_ = Draw::T3DCreateVulkanContext(g_Vulkan, g_PConfig.bGfxDebugSplitSubmit);
 		SetGPUBackend(GPUBackend::VULKAN);
 		success = draw_->CreatePresets();  // Doesn't fail, we ship the compiler.
 		_assert_msg_(success, "Failed to compile preset shaders");
 		draw_->HandleEvent(Draw::Event::GOT_BACKBUFFER, g_Vulkan->GetBackbufferWidth(), g_Vulkan->GetBackbufferHeight());
 
 		VulkanRenderManager *renderManager = (VulkanRenderManager *)draw_->GetNativeObject(Draw::NativeObject::RENDER_MANAGER);
-		renderManager->SetInflightFrames(g_Config.iInflightFrames);
+		renderManager->SetInflightFrames(g_PConfig.iInflightFrames);
 		success = renderManager->HasBackbuffers();
 	} else {
 		success = false;

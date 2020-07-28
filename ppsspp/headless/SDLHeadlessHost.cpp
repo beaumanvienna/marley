@@ -155,7 +155,7 @@ bool GLDummyGraphicsContext::InitFromRenderThread(std::string *errorMessage) {
 	CheckGLExtensions();
 	draw_ = Draw::T3DCreateGLContext();
 	renderManager_ = (GLRenderManager *)draw_->GetNativeObject(Draw::NativeObject::RENDER_MANAGER);
-	renderManager_->SetInflightFrames(g_Config.iInflightFrames);
+	renderManager_->SetInflightFrames(g_PConfig.iInflightFrames);
 	SetGPUBackend(GPUBackend::OPENGL);
 	bool success = draw_->CreatePresets();
 	assert(success);

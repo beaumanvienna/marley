@@ -697,7 +697,7 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 					case GE_PROJMAP_UV:  // Use unscaled UV as source
 						{
 							if (hasTexcoord) {
-								temp_tc = StringFromFormat("float4(In.texcoord.xy, 0.0, 1.0)");
+								temp_tc = PStringFromFormat("float4(In.texcoord.xy, 0.0, 1.0)");
 							} else {
 								temp_tc = "float4(0.0, 0.0, 0.0, 1.0)";
 							}
@@ -723,8 +723,8 @@ void GenerateVertexShaderHLSL(const VShaderID &id, char *buffer, ShaderLanguage 
 
 			case GE_TEXMAP_ENVIRONMENT_MAP:  // Shade mapping - use dots from light sources.
 				{
-					std::string lightFactor0 = StringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls0, ls0);
-					std::string lightFactor1 = StringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls1, ls1);
+					std::string lightFactor0 = PStringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls0, ls0);
+					std::string lightFactor1 = PStringFromFormat("(length(u_lightpos%i) == 0.0 ? worldnormal.z : dot(normalize(u_lightpos%i), worldnormal))", ls1, ls1);
 					WRITE(p, "  Out.v_texcoord = float3(u_uvscaleoffset.xy * float2(1.0 + %s, 1.0 + %s) * 0.5, 1.0);\n", lightFactor0.c_str(), lightFactor1.c_str());
 				}
 				break;

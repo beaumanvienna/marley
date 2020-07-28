@@ -472,7 +472,7 @@ std::string PipelineManagerVulkan::DebugGetObjectString(std::string id, DebugSha
 	}
 
 	std::string str = pipelineKey.GetDescription(stringType);
-	return StringFromFormat("%p: %s", iter, str.c_str());
+	return PStringFromFormat("%p: %s", iter, str.c_str());
 }
 
 std::string VulkanPipelineKey::GetDescription(DebugShaderStringType stringType) const {
@@ -526,7 +526,7 @@ std::string VulkanPipelineKey::GetDescription(DebugShaderStringType stringType) 
 			str << "HWX ";
 		}
 		if (vtxFmtId) {
-			str << "V(" << StringFromFormat("%08x", vtxFmtId) << ") ";  // TODO: Format nicer.
+			str << "V(" << PStringFromFormat("%08x", vtxFmtId) << ") ";  // TODO: Format nicer.
 		} else {
 			str << "SWX ";
 		}

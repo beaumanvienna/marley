@@ -164,16 +164,16 @@ namespace Reporting
 	// Returns the full host (e.g. report.ppsspp.org:80.)
 	std::string ServerHost()
 	{
-		if (g_Config.sReportHost.compare("default") == 0)
+		if (g_PConfig.sReportHost.compare("default") == 0)
 			return "";
-		return g_Config.sReportHost;
+		return g_PConfig.sReportHost;
 	}
 
 	// Returns the length of the hostname part (e.g. before the :80.)
 	static size_t ServerHostnameLength()
 	{
 		if (!IsEnabled())
-			return g_Config.sReportHost.npos;
+			return g_PConfig.sReportHost.npos;
 
 		// IPv6 literal?
 		std::string hostString = ServerHost();
@@ -384,7 +384,7 @@ namespace Reporting
 		postdata.Add("pixel_width", PSP_CoreParameter().pixelWidth);
 		postdata.Add("pixel_height", PSP_CoreParameter().pixelHeight);
 
-		g_Config.GetReportingInfo(postdata);
+		g_PConfig.GetReportingInfo(postdata);
 	}
 
 	void AddGameplayInfo(UrlEncoder &postdata)
@@ -447,10 +447,10 @@ namespace Reporting
 			postdata.Add("compat", payload.string1);
 			// We tend to get corrupted data, this acts as a very primitive verification check.
 			postdata.Add("verify", payload.string1);
-			postdata.Add("graphics", StringFromFormat("%d", payload.int1));
-			postdata.Add("speed", StringFromFormat("%d", payload.int2));
-			postdata.Add("gameplay", StringFromFormat("%d", payload.int3));
-			postdata.Add("crc", StringFromFormat("%08x", Core_GetPowerSaving() ? 0 : RetrieveCRC()));
+			postdata.Add("graphics", PStringFromFormat("%d", payload.int1));
+			postdata.Add("speed", PStringFromFormat("%d", payload.int2));
+			postdata.Add("gameplay", PStringFromFormat("%d", payload.int3));
+			postdata.Add("crc", PStringFromFormat("%08x", Core_GetPowerSaving() ? 0 : RetrieveCRC()));
 			postdata.Add("suggestions", payload.string1 != "perfect" && payload.string1 != "playable" ? "1" : "0");
 			AddScreenshotData(postdata, payload.string2);
 			payload.string1.clear();
@@ -486,9 +486,9 @@ namespace Reporting
 		// Disabled when using certain hacks, because they make for poor reports.
 		if (CheatsInEffect())
 			return false;
-		if (g_Config.iLockedCPUSpeed != 0)
+		if (g_PConfig.iLockedCPUSpeed != 0)
 			return false;
-		if (g_Config.uJitDisableFlags != 0)
+		if (g_PConfig.uJitDisableFlags != 0)
 			return false;
 		// Don't allow builds without version info from git.  They're useless for reporting.
 		if (strcmp(PPSSPP_GIT_VERSION, "unknown") == 0)
@@ -497,7 +497,7 @@ namespace Reporting
 		// Some users run the exe from a zip or something, and don't have fonts.
 		// This breaks things, but let's not report it since it's confusing.
 #if defined(USING_WIN_UI) || defined(APPLE)
-		if (!PFile::Exists(g_Config.flash0Directory + "/font/jpn0.pgf"))
+		if (!PFile::Exists(g_PConfig.flash0Directory + "/font/jpn0.pgf"))
 			return false;
 #else
 		FileInfo fo;
@@ -510,10 +510,10 @@ namespace Reporting
 
 	bool IsEnabled()
 	{
-		if (g_Config.sReportHost.empty() || (!currentSupported && PSP_IsInited()))
+		if (g_PConfig.sReportHost.empty() || (!currentSupported && PSP_IsInited()))
 			return false;
 		// Disabled by default for now.
-		if (g_Config.sReportHost.compare("default") == 0)
+		if (g_PConfig.sReportHost.compare("default") == 0)
 			return false;
 		return true;
 	}
@@ -524,7 +524,7 @@ namespace Reporting
 		{
 			// "" means explicitly disabled.  Don't ever turn on by default.
 			// "default" means it's okay to turn it on by default.
-			g_Config.sReportHost = flag ? host : "";
+			g_PConfig.sReportHost = flag ? host : "";
 			return true;
 		}
 		return false;
@@ -532,7 +532,7 @@ namespace Reporting
 
 	void EnableDefault()
 	{
-		g_Config.sReportHost = "default";
+		g_PConfig.sReportHost = "default";
 	}
 
 	ReportStatus GetStatus()

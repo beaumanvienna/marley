@@ -37,7 +37,7 @@
 #include "Windows/CaptureDevice.h"
 #endif
 
-Camera::Config *config;
+Camera::Config *Pconfig;
 
 unsigned int videoBufferLength = 0;
 unsigned int nextVideoFrame = 0;
@@ -49,9 +49,9 @@ enum {
 };
 
 void __UsbCamInit() {
-	config       = new Camera::Config;
-	config->mode = Camera::Mode::Unused;
-	config->type = Camera::ConfigType::CfNone;
+	Pconfig       = new Camera::Config;
+	Pconfig->mode = Camera::Mode::Unused;
+	Pconfig->type = Camera::ConfigType::CfNone;
 	videoBuffer  = new uint8_t[VIDEO_BUFFER_SIZE];
 }
 
@@ -61,21 +61,21 @@ void __UsbCamDoState(PointerWrap &p) {
 		return;
 	}
 
-	p.Do(*config);
-	if (config->mode == Camera::Mode::Video) { // stillImage? TBD
+	p.Do(*Pconfig);
+	if (Pconfig->mode == Camera::Mode::Video) { // stillImage? TBD
 		Camera::stopCapture();
 		Camera::startCapture();
 	}
 }
 
 void __UsbCamShutdown() {
-	if (config->mode == Camera::Mode::Video) { // stillImage? TBD
+	if (Pconfig->mode == Camera::Mode::Video) { // stillImage? TBD
 		Camera::stopCapture();
 	}
 	delete[] videoBuffer;
 	videoBuffer = nullptr;
-	delete[] config;
-	config = nullptr;
+	delete[] Pconfig;
+	Pconfig = nullptr;
 }
 
 // TODO: Technically, we should store the videoBuffer into the savestate, if this
@@ -83,7 +83,7 @@ void __UsbCamShutdown() {
 
 static int getCameraResolution(Camera::ConfigType type, int *width, int *height) {
 	if (type == Camera::ConfigType::CfStill || type == Camera::ConfigType::CfVideo) {
-		switch(config->stillParam.resolution) {
+		switch(Pconfig->stillParam.resolution) {
 			case 0: *width  = 160; *height = 120; return 0;
 			case 1: *width  = 176; *height = 144; return 0;
 			case 2: *width  = 320; *height = 240; return 0;
@@ -95,7 +95,7 @@ static int getCameraResolution(Camera::ConfigType type, int *width, int *height)
 			case 8: *width  = 360; *height = 272; return 0;
 		}
 	} else if (type == Camera::ConfigType::CfStillEx || type == Camera::ConfigType::CfVideoEx) {
-		switch(config->stillExParam.resolution) {
+		switch(Pconfig->stillExParam.resolution) {
 			case 0: *width  = 160; *height = 120; return 0;
 			case 1: *width  = 176; *height = 144; return 0;
 			case 2: *width  = 320; *height = 240; return 0;
@@ -114,7 +114,7 @@ static int getCameraResolution(Camera::ConfigType type, int *width, int *height)
 static int sceUsbCamSetupMic(u32 paramAddr, u32 workareaAddr, int wasize) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupMic");
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupMicParam))) {
-		PMemory::ReadStruct(paramAddr, &config->micParam);
+		PMemory::ReadStruct(paramAddr, &Pconfig->micParam);
 	}
 	return 0;
 }
@@ -136,23 +136,23 @@ static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 			PMemory::Write_U8(i & 0xFF, bufAddr + i);
 		}
 	}
-	hleEatMicro(1000000 / config->micParam.frequency * (size / 2));
+	hleEatMicro(1000000 / Pconfig->micParam.frequency * (size / 2));
 	return size;
 }
 
 static int sceUsbCamSetupVideo(u32 paramAddr, u32 workareaAddr, int wasize) {
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoParam))) {
-		PMemory::ReadStruct(paramAddr, &config->videoParam);
+		PMemory::ReadStruct(paramAddr, &Pconfig->videoParam);
 	}
-	config->type = Camera::ConfigType::CfVideo;
+	Pconfig->type = Camera::ConfigType::CfVideo;
 	return 0;
 }
 
 static int sceUsbCamSetupVideoEx(u32 paramAddr, u32 workareaAddr, int wasize) {
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupVideoExParam))) {
-		PMemory::ReadStruct(paramAddr, &config->videoExParam);
+		PMemory::ReadStruct(paramAddr, &Pconfig->videoExParam);
 	}
-	config->type = Camera::ConfigType::CfVideoEx;
+	Pconfig->type = Camera::ConfigType::CfVideoEx;
 	return 0;
 }
 
@@ -160,7 +160,7 @@ static int sceUsbCamStartVideo() {
 	std::lock_guard<std::mutex> lock(videoBufferMutex);
 
 	int width, height;
-	getCameraResolution(config->type, &width, &height);
+	getCameraResolution(Pconfig->type, &width, &height);
 
 	unsigned char* jpegData = nullptr;
 	int jpegLen = 0;
@@ -209,18 +209,18 @@ static int sceUsbCamPollReadVideoFrameEnd() {
 static int sceUsbCamSetupStill(u32 paramAddr) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupStill");
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillParam))) {
-		PMemory::ReadStruct(paramAddr, &config->stillParam);
+		PMemory::ReadStruct(paramAddr, &Pconfig->stillParam);
 	}
-	config->type = Camera::ConfigType::CfStill;
+	Pconfig->type = Camera::ConfigType::CfStill;
 	return 0;
 }
 
 static int sceUsbCamSetupStillEx(u32 paramAddr) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupStillEx");
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupStillExParam))) {
-		PMemory::ReadStruct(paramAddr, &config->stillExParam);
+		PMemory::ReadStruct(paramAddr, &Pconfig->stillExParam);
 	}
-	config->type = Camera::ConfigType::CfStillEx;
+	Pconfig->type = Camera::ConfigType::CfStillEx;
 	return 0;
 }
 
@@ -320,10 +320,10 @@ std::vector<std::string> Camera::getDeviceList() {
 
 int Camera::startCapture() {
 	int width, height;
-	getCameraResolution(config->type, &width, &height);
+	getCameraResolution(Pconfig->type, &width, &height);
 	INFO_LOG(HLE, "%s resolution: %dx%d", __FUNCTION__, width, height);
 
-	config->mode = Camera::Mode::Video;
+	Pconfig->mode = Camera::Mode::Video;
    #ifdef HAVE_WIN32_CAMERA
 		if (winCamera) {
 			if (winCamera->isShutDown()) {
@@ -359,12 +359,12 @@ int Camera::stopCapture() {
 	#else
 		ERROR_LOG(HLE, "%s not implemented", __FUNCTION__);
 	#endif
-	config->mode = Camera::Mode::Unused;
+	Pconfig->mode = Camera::Mode::Unused;
 	return 0;
 }
 
 void Camera::onCameraDeviceChange() {
-	if (config != nullptr && config->mode == Camera::Mode::Video) {
+	if (Pconfig != nullptr && Pconfig->mode == Camera::Mode::Video) {
 		stopCapture();
 		startCapture();
 	}

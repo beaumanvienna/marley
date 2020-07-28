@@ -40,7 +40,7 @@ static const char level_to_char[8] = "-NEWIDV";
 #endif
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char *file, int line, const char* fmt, ...) {
-	if (!g_Config.bEnableLogging)
+	if (!g_PConfig.bEnableLogging)
 		return;
 	va_list args;
 	va_start(args, fmt);
@@ -53,7 +53,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char 
 
 bool GenericLogEnabled(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type) {
 	if (LogManager::GetInstance())
-		return g_Config.bEnableLogging && LogManager::GetInstance()->IsEnabled(level, type);
+		return g_PConfig.bEnableLogging && LogManager::GetInstance()->IsEnabled(level, type);
 	return false;
 }
 
@@ -185,14 +185,14 @@ void LogManager::ChangeFileLog(const char *filename) {
 	}
 }
 
-void LogManager::SaveConfig(IniFile::Section *section) {
+void LogManager::SaveConfig(PIniFile::Section *section) {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++) {
 		section->Set((std::string(log_[i].m_shortName) + "Enabled").c_str(), log_[i].enabled);
 		section->Set((std::string(log_[i].m_shortName) + "Level").c_str(), (int)log_[i].level);
 	}
 }
 
-void LogManager::LoadConfig(IniFile::Section *section, bool debugDefaults) {
+void LogManager::LoadConfig(PIniFile::Section *section, bool debugDefaults) {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++) {
 		bool enabled = false;
 		int level = 0;

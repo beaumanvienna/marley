@@ -46,7 +46,7 @@ PDiscord::~PDiscord() {
 }
 
 bool PDiscord::IsEnabled() const {
-	return g_Config.bDiscordPresence;
+	return g_PConfig.bDiscordPresence;
 }
 
 void PDiscord::Init() {

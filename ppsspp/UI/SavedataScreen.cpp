@@ -90,7 +90,7 @@ public:
 			LinearLayout *topright = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT, 1.0f));
 			topright->SetSpacing(1.0f);
 			topright->Add(new TextView(savedata_title, ALIGN_LEFT | FLAG_WRAP_TEXT, false))->SetTextColor(textStyle.fgColor);
-			topright->Add(new TextView(StringFromFormat("%d kB", ginfo->gameSize / 1024), 0, true))->SetTextColor(textStyle.fgColor);
+			topright->Add(new TextView(PStringFromFormat("%d kB", ginfo->gameSize / 1024), 0, true))->SetTextColor(textStyle.fgColor);
 			topright->Add(new TextView(GetFileDateAsString(savePath_ + "/PARAM.SFO"), 0, true))->SetTextColor(textStyle.fgColor);
 			toprow->Add(topright);
 			content->Add(new Spacer(3.0));
@@ -279,7 +279,7 @@ void SavedataButton::Draw(UIContext &dc) {
 	}
 	if (subtitle_.empty() && ginfo->gameSize > 0) {
 		std::string savedata_title = ginfo->paramSFO.GetValueString("SAVEDATA_TITLE");
-		subtitle_ = CleanSaveString(savedata_title) + StringFromFormat(" (%d kB)", ginfo->gameSize / 1024);
+		subtitle_ = CleanSaveString(savedata_title) + PStringFromFormat(" (%d kB)", ginfo->gameSize / 1024);
 	}
 
 	dc.MeasureText(dc.GetFontStyle(), 1.0f, 1.0f, title_.c_str(), &tw, &th, 0);

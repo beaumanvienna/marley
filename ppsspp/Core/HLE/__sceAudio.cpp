@@ -178,7 +178,7 @@ void __AudioShutdown() {
 		chans[i].clear();
 
 #ifndef MOBILE_DEVICE
-	if (g_Config.bDumpAudio) {
+	if (g_PConfig.bDumpAudio) {
 		__StopLogAudio();
 	}
 #endif
@@ -412,13 +412,13 @@ void __AudioUpdate(bool resetRecording) {
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 	}
 
-	if (g_Config.bEnableSound) {
+	if (g_PConfig.bEnableSound) {
 		resampler.PushSamples(mixBuffer, hwBlockSize);
 #ifndef MOBILE_DEVICE
-		if (g_Config.bSaveLoadResetsAVdumping && resetRecording) {
+		if (g_PConfig.bSaveLoadResetsAVdumping && resetRecording) {
 			__StopLogAudio();
 			std::string discID = g_paramSFO.GetDiscID();
-			std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+			std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 			INFO_LOG(COMMON, "Restarted audio recording to: %s", audio_file_name.c_str());
 			if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
 				PFile::CreateDir(GetSysDirectory(DIRECTORY_AUDIO));
@@ -426,10 +426,10 @@ void __AudioUpdate(bool resetRecording) {
 			__StartLogAudio(audio_file_name);
 		}
 		if (!m_logAudio) {
-			if (g_Config.bDumpAudio) {
+			if (g_PConfig.bDumpAudio) {
 				// Use gameID_EmulatedTimestamp for filename
 				std::string discID = g_paramSFO.GetDiscID();
-				std::string audio_file_name = StringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
+				std::string audio_file_name = PStringFromFormat("%s%s_%s.wav", GetSysDirectory(DIRECTORY_AUDIO).c_str(), discID.c_str(), KernelTimeNowFormatted().c_str()).c_str();
 				INFO_LOG(COMMON,"Recording audio to: %s", audio_file_name.c_str());
 				// Create the path just in case it doesn't exist
 				if (!PFile::Exists(GetSysDirectory(DIRECTORY_AUDIO)))
@@ -438,7 +438,7 @@ void __AudioUpdate(bool resetRecording) {
 				__StartLogAudio(audio_file_name);
 			}
 		} else {
-			if (g_Config.bDumpAudio) {
+			if (g_PConfig.bDumpAudio) {
 				for (int i = 0; i < hwBlockSize * 2; i++) {
 					clampedMixBuffer[i] = clamp_s16(mixBuffer[i]);
 				}

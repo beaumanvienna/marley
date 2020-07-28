@@ -156,7 +156,7 @@ void DrawEngineGLES::ApplyDrawState(int prim) {
 
 	if (gstate_c.IsDirty(DIRTY_BLEND_STATE)) {
 		gstate_c.Clean(DIRTY_BLEND_STATE);
-		gstate_c.SetAllowShaderBlend(!g_Config.bDisableSlowFramebufEffects);
+		gstate_c.SetAllowShaderBlend(!g_PConfig.bDisableSlowFramebufEffects);
 
 		if (gstate.isModeClear()) {
 			// Color Test

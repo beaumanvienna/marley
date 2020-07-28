@@ -196,12 +196,12 @@ bool CPU_Init() {
 
 	g_RemasterMode = false;
 	g_DoubleTextureCoordinates = false;
-	PMemory::g_PSPModel = g_Config.iPSPModel;
+	PMemory::g_PSPModel = g_PConfig.iPSPModel;
 
 	std::string filename = coreParameter.fileToStart;
 	loadedFile = ResolveFileLoaderTarget(ConstructFileLoader(filename));
 #ifdef _M_X64
-	if (g_Config.bCacheFullIsoInRam) {
+	if (g_PConfig.bCacheFullIsoInRam) {
 		loadedFile = new RamCachingFileLoader(loadedFile);
 	}
 #endif
@@ -271,7 +271,7 @@ bool CPU_Init() {
 	}
 
 	if (coreParameter.updateRecent) {
-		g_Config.AddRecent(filename);
+		g_PConfig.AddRecent(filename);
 	}
 
 	InstallExceptionHandler(&PMemory::HandleFault);
@@ -293,7 +293,7 @@ void CPU_Shutdown() {
 	PSP_LoadingLock lock;
 	PSPLoaders_Shutdown();
 
-	if (g_Config.bAutoSaveSymbolMap) {
+	if (g_PConfig.bAutoSaveSymbolMap) {
 		host->SaveSymbolMap();
 	}
 
@@ -371,7 +371,7 @@ bool PSP_InitStart(const CoreParameter &coreParam, std::string *error_string) {
 	}
 
 	// Compat flags get loaded in CPU_Init (which is a bit of a misnomer) so we check for SW renderer here.
-	if (g_Config.bSoftwareRendering || PSP_CoreParameter().compat.flags().ForceSoftwareRenderer) {
+	if (g_PConfig.bSoftwareRendering || PSP_CoreParameter().compat.flags().ForceSoftwareRenderer) {
 		coreParameter.gpuCore = GPUCORE_SOFTWARE;
 	}
 
@@ -448,7 +448,7 @@ void PSP_Shutdown() {
 		Core_UpdateState(CORE_POWERDOWN);
 
 #ifndef MOBILE_DEVICE
-	if (g_Config.bFuncHashMap) {
+	if (g_PConfig.bFuncHashMap) {
 		MIPSAnalyst::StoreHashMap();
 	}
 #endif
@@ -464,7 +464,7 @@ void PSP_Shutdown() {
 	pspIsInited = false;
 	pspIsIniting = false;
 	pspIsQuitting = false;
-	g_Config.unloadGameConfig();
+	g_PConfig.unloadGameConfig();
 	Core_NotifyLifecycle(CoreLifecycle::STOPPED);
 }
 
@@ -530,59 +530,59 @@ CoreParameter &PSP_CoreParameter() {
 std::string GetSysDirectory(PSPDirectories directoryType) {
 	switch (directoryType) {
 	case DIRECTORY_CHEATS:
-		return g_Config.memStickDirectory + "PSP/Cheats/";
+		return g_PConfig.memStickDirectory + "PSP/Cheats/";
 	case DIRECTORY_GAME:
-		return g_Config.memStickDirectory + "PSP/GAME/";
+		return g_PConfig.memStickDirectory + "PSP/GAME/";
 	case DIRECTORY_SAVEDATA:
-		return g_Config.memStickDirectory + "PSP/SAVEDATA/";
+		return g_PConfig.memStickDirectory + "PSP/SAVEDATA/";
 	case DIRECTORY_SCREENSHOT:
-		return g_Config.memStickDirectory + "PSP/SCREENSHOT/";
+		return g_PConfig.memStickDirectory + "PSP/SCREENSHOT/";
 	case DIRECTORY_SYSTEM:
-		return g_Config.memStickDirectory + "PSP/SYSTEM/";
+		return g_PConfig.memStickDirectory + "PSP/SYSTEM/";
 	case DIRECTORY_PAUTH:
-		return g_Config.memStickDirectory + "PAUTH/";
+		return g_PConfig.memStickDirectory + "PAUTH/";
 	case DIRECTORY_DUMP:
-		return g_Config.memStickDirectory + "PSP/SYSTEM/DUMP/";
+		return g_PConfig.memStickDirectory + "PSP/SYSTEM/DUMP/";
 	case DIRECTORY_SAVESTATE:
-		return g_Config.memStickDirectory + "PSP/PPSSPP_STATE/";
+		return g_PConfig.memStickDirectory + "PSP/PPSSPP_STATE/";
 	case DIRECTORY_CACHE:
-		return g_Config.memStickDirectory + "PSP/SYSTEM/CACHE/";
+		return g_PConfig.memStickDirectory + "PSP/SYSTEM/CACHE/";
 	case DIRECTORY_TEXTURES:
-		return g_Config.memStickDirectory + "PSP/TEXTURES/";
+		return g_PConfig.memStickDirectory + "PSP/TEXTURES/";
 	case DIRECTORY_APP_CACHE:
-		if (!g_Config.appCacheDirectory.empty()) {
-			return g_Config.appCacheDirectory;
+		if (!g_PConfig.appCacheDirectory.empty()) {
+			return g_PConfig.appCacheDirectory;
 		}
-		return g_Config.memStickDirectory + "PSP/SYSTEM/CACHE/";
+		return g_PConfig.memStickDirectory + "PSP/SYSTEM/CACHE/";
 	case DIRECTORY_VIDEO:
-		return g_Config.memStickDirectory + "PSP/VIDEO/";
+		return g_PConfig.memStickDirectory + "PSP/VIDEO/";
 	case DIRECTORY_AUDIO:
-		return g_Config.memStickDirectory + "PSP/AUDIO/";
+		return g_PConfig.memStickDirectory + "PSP/AUDIO/";
 	// Just return the memory stick root if we run into some sort of problem.
 	default:
 		ERROR_LOG(FILESYS, "Unknown directory type.");
-		return g_Config.memStickDirectory;
+		return g_PConfig.memStickDirectory;
 	}
 }
 
 #if defined(_WIN32)
 // Run this at startup time. Please use GetSysDirectory if you need to query where folders are.
 void InitSysDirectories() {
-	if (!g_Config.memStickDirectory.empty() && !g_Config.flash0Directory.empty())
+	if (!g_PConfig.memStickDirectory.empty() && !g_PConfig.flash0Directory.empty())
 		return;
 
 	const std::string path = PFile::GetExeDirectory();
 
 	// Mount a filesystem
-	g_Config.flash0Directory = path + "assets/flash0/";
+	g_PConfig.flash0Directory = path + "assets/flash0/";
 
 	// Detect the "My Documents"(XP) or "Documents"(on Vista/7/8) folder.
 #if PPSSPP_PLATFORM(UWP)
-	// We set g_Config.memStickDirectory outside.
+	// We set g_PConfig.memStickDirectory outside.
 
 #else
 	// Caller sets this to the Documents folder.
-	const std::string rootMyDocsPath = g_Config.internalDataDirectory;
+	const std::string rootMyDocsPath = g_PConfig.internalDataDirectory;
 	const std::string myDocsPath = rootMyDocsPath + "/PPSSPP/";
 	const std::string installedFile = path + "installed.txt";
 	const bool installed = PFile::Exists(installedFile);
@@ -604,35 +604,35 @@ void InitSysDirectories() {
 			if (tempString.substr(0, 3) == "\xEF\xBB\xBF")
 				tempString = tempString.substr(3);
 
-			g_Config.memStickDirectory = tempString;
+			g_PConfig.memStickDirectory = tempString;
 		}
 		inputFile.close();
 
 		// Check if the file is empty first, before appending the slash.
-		if (g_Config.memStickDirectory.empty())
-			g_Config.memStickDirectory = myDocsPath;
+		if (g_PConfig.memStickDirectory.empty())
+			g_PConfig.memStickDirectory = myDocsPath;
 
-		size_t lastSlash = g_Config.memStickDirectory.find_last_of("/");
-		if (lastSlash != (g_Config.memStickDirectory.length() - 1))
-			g_Config.memStickDirectory.append("/");
+		size_t lastSlash = g_PConfig.memStickDirectory.find_last_of("/");
+		if (lastSlash != (g_PConfig.memStickDirectory.length() - 1))
+			g_PConfig.memStickDirectory.append("/");
 	} else {
-		g_Config.memStickDirectory = path + "memstick/";
+		g_PConfig.memStickDirectory = path + "memstick/";
 	}
 
 	// Create the memstickpath before trying to write to it, and fall back on Documents yet again
 	// if we can't make it.
-	if (!PFile::Exists(g_Config.memStickDirectory)) {
-		if (!PFile::CreateDir(g_Config.memStickDirectory))
-			g_Config.memStickDirectory = myDocsPath;
-		INFO_LOG(COMMON, "Memstick directory not present, creating at '%s'", g_Config.memStickDirectory.c_str());
+	if (!PFile::Exists(g_PConfig.memStickDirectory)) {
+		if (!PFile::CreateDir(g_PConfig.memStickDirectory))
+			g_PConfig.memStickDirectory = myDocsPath;
+		INFO_LOG(COMMON, "Memstick directory not present, creating at '%s'", g_PConfig.memStickDirectory.c_str());
 	}
 
-	const std::string testFile = g_Config.memStickDirectory + "_writable_test.$$$";
+	const std::string testFile = g_PConfig.memStickDirectory + "_writable_test.$$$";
 
 	// If any directory is read-only, fall back to the Documents directory.
 	// We're screwed anyway if we can't write to Documents, or can't detect it.
 	if (!PFile::CreateEmptyFile(testFile))
-		g_Config.memStickDirectory = myDocsPath;
+		g_PConfig.memStickDirectory = myDocsPath;
 
 	// Clean up our mess.
 	if (PFile::Exists(testFile))
@@ -641,14 +641,14 @@ void InitSysDirectories() {
 
 	// Create the default directories that a real PSP creates. Good for homebrew so they can
 	// expect a standard environment. Skipping THEME though, that's pointless.
-	PFile::CreateDir(g_Config.memStickDirectory + "PSP");
-	PFile::CreateDir(g_Config.memStickDirectory + "PSP/COMMON");
+	PFile::CreateDir(g_PConfig.memStickDirectory + "PSP");
+	PFile::CreateDir(g_PConfig.memStickDirectory + "PSP/COMMON");
 	PFile::CreateDir(GetSysDirectory(DIRECTORY_GAME));
 	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVEDATA));
 	PFile::CreateDir(GetSysDirectory(DIRECTORY_SAVESTATE));
 
-	if (g_Config.currentDirectory.empty()) {
-		g_Config.currentDirectory = GetSysDirectory(DIRECTORY_GAME);
+	if (g_PConfig.currentDirectory.empty()) {
+		g_PConfig.currentDirectory = GetSysDirectory(DIRECTORY_GAME);
 	}
 }
 #endif

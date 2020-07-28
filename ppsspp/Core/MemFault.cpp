@@ -146,7 +146,7 @@ bool HandleFault(uintptr_t hostAddress, void *ctx) {
 		type = MemoryExceptionType::UNKNOWN;
 	}
 
-	if (success && g_Config.bIgnoreBadMemAccess) {
+	if (success && g_PConfig.bIgnoreBadMemAccess) {
 		if (!info.isMemoryWrite) {
 			// It was a read. Fill the destination register with 0.
 			// TODO

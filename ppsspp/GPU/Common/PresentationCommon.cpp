@@ -49,7 +49,7 @@ FRect GetScreenFrame(float pixelWidth, float pixelHeight) {
 		pixelHeight,
 	};
 
-	bool applyInset = !g_Config.bIgnoreScreenInsets;
+	bool applyInset = !g_PConfig.bIgnoreScreenInsets;
 
 	if (applyInset) {
 		// Remove the DPI scale to get back to pixels.
@@ -73,18 +73,18 @@ void CenterDisplayOutputRect(FRect *rc, float origW, float origH, const FRect &f
 
 	bool rotated = rotation == ROTATION_LOCKED_VERTICAL || rotation == ROTATION_LOCKED_VERTICAL180;
 
-	if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
+	if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
 		outW = frame.w;
 		outH = frame.h;
 	} else {
-		if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::MANUAL) {
-			float offsetX = (g_Config.fSmallDisplayOffsetX - 0.5f) * 2.0f * frame.w + frame.x;
-			float offsetY = (g_Config.fSmallDisplayOffsetY - 0.5f) * 2.0f * frame.h + frame.y;
+		if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::MANUAL) {
+			float offsetX = (g_PConfig.fSmallDisplayOffsetX - 0.5f) * 2.0f * frame.w + frame.x;
+			float offsetY = (g_PConfig.fSmallDisplayOffsetY - 0.5f) * 2.0f * frame.h + frame.y;
 			// Have to invert Y for GL
 			if (GetGPUBackend() == GPUBackend::OPENGL) {
 				offsetY = offsetY * -1.0f;
 			}
-			float customZoom = g_Config.fSmallDisplayZoomLevel;
+			float customZoom = g_PConfig.fSmallDisplayZoomLevel;
 			float smallDisplayW = origW * customZoom;
 			float smallDisplayH = origH * customZoom;
 			if (!rotated) {
@@ -100,7 +100,7 @@ void CenterDisplayOutputRect(FRect *rc, float origW, float origH, const FRect &f
 				rc->h = floorf(smallDisplayW);
 				return;
 			}
-		} else if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
+		} else if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
 			// Stretch to 1080 for 272*4.  But don't distort if not widescreen (i.e. ultrawide of halfwide.)
 			float pixelCrop = frame.h / 270.0f;
 			float resCommonWidescreen = pixelCrop - floor(pixelCrop);
@@ -121,13 +121,13 @@ void CenterDisplayOutputRect(FRect *rc, float origW, float origH, const FRect &f
 			outW = frame.w;
 			outH = frame.w / origRatio;
 			// Stretch a little bit
-			if (!rotated && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
+			if (!rotated && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
 				outH = (frame.h + outH) / 2.0f; // (408 + 720) / 2 = 564
 		} else {
 			// Image is taller than frame. Center horizontally.
 			outW = frame.h * origRatio;
 			outH = frame.h;
-			if (rotated && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
+			if (rotated && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH)
 				outW = (frame.h + outH) / 2.0f; // (408 + 720) / 2 = 564
 		}
 	}
@@ -147,20 +147,20 @@ PresentationCommon::~PresentationCommon() {
 }
 
 void PresentationCommon::GetCardboardSettings(CardboardSettings *cardboardSettings) {
-	if (!g_Config.bEnableCardboardVR) {
+	if (!g_PConfig.bEnableCardboardVR) {
 		cardboardSettings->enabled = false;
 		return;
 	}
 	// Calculate Cardboard Settings
-	float cardboardScreenScale = g_Config.iCardboardScreenSize / 100.0f;
+	float cardboardScreenScale = g_PConfig.iCardboardScreenSize / 100.0f;
 	float cardboardScreenWidth = pixelWidth_ / 2.0f * cardboardScreenScale;
 	float cardboardScreenHeight = pixelHeight_ / 2.0f * cardboardScreenScale;
 	float cardboardMaxXShift = (pixelWidth_ / 2.0f - cardboardScreenWidth) / 2.0f;
-	float cardboardUserXShift = g_Config.iCardboardXShift / 100.0f * cardboardMaxXShift;
+	float cardboardUserXShift = g_PConfig.iCardboardXShift / 100.0f * cardboardMaxXShift;
 	float cardboardLeftEyeX = cardboardMaxXShift + cardboardUserXShift;
 	float cardboardRightEyeX = pixelWidth_ / 2.0f + cardboardMaxXShift - cardboardUserXShift;
 	float cardboardMaxYShift = pixelHeight_ / 2.0f - cardboardScreenHeight / 2.0f;
-	float cardboardUserYShift = g_Config.iCardboardYShift / 100.0f * cardboardMaxYShift;
+	float cardboardUserYShift = g_PConfig.iCardboardYShift / 100.0f * cardboardMaxYShift;
 	float cardboardScreenY = cardboardMaxYShift + cardboardUserYShift;
 
 	cardboardSettings->enabled = true;
@@ -191,10 +191,10 @@ void PresentationCommon::CalculatePostShaderUniforms(int bufferWidth, int buffer
 	uniforms->gl_HalfPixel[0] = u_pixel_delta * 0.5f;
 	uniforms->gl_HalfPixel[1] = v_pixel_delta * 0.5f;
 
-	uniforms->setting[0] = g_Config.mPostShaderSetting[shaderInfo->section + "SettingValue1"];;
-	uniforms->setting[1] = g_Config.mPostShaderSetting[shaderInfo->section + "SettingValue2"];
-	uniforms->setting[2] = g_Config.mPostShaderSetting[shaderInfo->section + "SettingValue3"];
-	uniforms->setting[3] = g_Config.mPostShaderSetting[shaderInfo->section + "SettingValue4"];
+	uniforms->setting[0] = g_PConfig.mPostShaderSetting[shaderInfo->section + "SettingValue1"];;
+	uniforms->setting[1] = g_PConfig.mPostShaderSetting[shaderInfo->section + "SettingValue2"];
+	uniforms->setting[2] = g_PConfig.mPostShaderSetting[shaderInfo->section + "SettingValue3"];
+	uniforms->setting[3] = g_PConfig.mPostShaderSetting[shaderInfo->section + "SettingValue4"];
 }
 
 static std::string ReadShaderSrc(const std::string &filename) {
@@ -211,9 +211,9 @@ static std::string ReadShaderSrc(const std::string &filename) {
 // Note: called on resize and settings changes.
 bool PresentationCommon::UpdatePostShader() {
 	std::vector<const ShaderInfo *> shaderInfo;
-	if (g_Config.sPostShaderName != "Off") {
+	if (g_PConfig.sPostShaderName != "Off") {
 		ReloadAllPostShaderInfo();
-		shaderInfo = GetPostShaderChain(g_Config.sPostShaderName);
+		shaderInfo = GetPostShaderChain(g_PConfig.sPostShaderName);
 	}
 
 	DestroyPostShader();
@@ -275,7 +275,7 @@ bool PresentationCommon::BuildPostShader(const ShaderInfo *shaderInfo, const Sha
 
 		if (next && next->isUpscalingFilter) {
 			// Force 1x for this shader, so the next can upscale.
-			const bool isPortrait = g_Config.IsPortrait();
+			const bool isPortrait = g_PConfig.IsPortrait();
 			nextWidth = isPortrait ? 272 : 480;
 			nextHeight = isPortrait ? 480 : 272;
 		} else if (next && next->SSAAFilterLevel >= 2) {
@@ -286,7 +286,7 @@ bool PresentationCommon::BuildPostShader(const ShaderInfo *shaderInfo, const Sha
 			// If the current shader uses output res (not next), we will use output res for it.
 			FRect rc;
 			FRect frame = GetScreenFrame((float)pixelWidth_, (float)pixelHeight_);
-			CenterDisplayOutputRect(&rc, 480.0f, 272.0f, frame, g_Config.iInternalScreenRotation);
+			CenterDisplayOutputRect(&rc, 480.0f, 272.0f, frame, g_PConfig.iInternalScreenRotation);
 			nextWidth = (int)rc.w;
 			nextHeight = (int)rc.h;
 		}
@@ -755,9 +755,9 @@ void PresentationCommon::CopyToOutput(OutputFlags flags, int uvRotation, float u
 void PresentationCommon::CalculateRenderResolution(int *width, int *height, bool *upscaling, bool *ssaa) {
 	// Check if postprocessing shader is doing upscaling as it requires native resolution
 	std::vector<const ShaderInfo *> shaderInfo;
-	if (g_Config.sPostShaderName != "Off") {
+	if (g_PConfig.sPostShaderName != "Off") {
 		ReloadAllPostShaderInfo();
-		shaderInfo = GetPostShaderChain(g_Config.sPostShaderName);
+		shaderInfo = GetPostShaderChain(g_PConfig.sPostShaderName);
 	}
 
 	bool firstIsUpscalingFilter = shaderInfo.empty() ? false : shaderInfo.front()->isUpscalingFilter;
@@ -765,10 +765,10 @@ void PresentationCommon::CalculateRenderResolution(int *width, int *height, bool
 
 	// Actually, auto mode should be more granular...
 	// Round up to a zoom factor for the render size.
-	int zoom = g_Config.iInternalResolution;
+	int zoom = g_PConfig.iInternalResolution;
 	if (zoom == 0 || firstSSAAFilterLevel >= 2) {
 		// auto mode, use the longest dimension
-		if (!g_Config.IsPortrait()) {
+		if (!g_PConfig.IsPortrait()) {
 			zoom = (PSP_CoreParameter().pixelWidth + 479) / 480;
 		} else {
 			zoom = (PSP_CoreParameter().pixelHeight + 479) / 480;
@@ -792,7 +792,7 @@ void PresentationCommon::CalculateRenderResolution(int *width, int *height, bool
 		}
 	}
 
-	if (g_Config.IsPortrait()) {
+	if (g_PConfig.IsPortrait()) {
 		*width = 272 * zoom;
 		*height = 480 * zoom;
 	} else {

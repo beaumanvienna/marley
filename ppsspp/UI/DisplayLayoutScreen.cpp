@@ -38,7 +38,7 @@ static const float orgRatio = 1.764706f;
 
 static const float UI_DISPLAY_SCALE = 8.0f;
 static float ScaleSettingToUI() {
-	float scale = g_Config.fSmallDisplayZoomLevel * UI_DISPLAY_SCALE;
+	float scale = g_PConfig.fSmallDisplayZoomLevel * UI_DISPLAY_SCALE;
 	// Account for 1x display doubling dps.
 	if (g_dpi_scale_x > 1.0f) {
 		scale *= g_dpi_scale_x;
@@ -51,7 +51,7 @@ static void UpdateScaleSetting(float scale) {
 	if (g_dpi_scale_x > 1.0f) {
 		scale /= g_dpi_scale_x;
 	}
-	g_Config.fSmallDisplayZoomLevel = scale;
+	g_PConfig.fSmallDisplayZoomLevel = scale;
 }
 
 static void UpdateScaleSettingFromUI(float scale) {
@@ -94,7 +94,7 @@ bool DisplayLayoutScreen::touch(const TouchInput &touch) {
 	using namespace UI;
 
 	int mode = mode_ ? mode_->GetSelection() : 0;
-	if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
+	if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
 		mode = -1;
 	}
 
@@ -106,8 +106,8 @@ bool DisplayLayoutScreen::touch(const TouchInput &touch) {
 			const auto &prevParams = displayRepresentation_->GetLayoutParams()->As<AnchorLayoutParams>();
 			Point newPos(prevParams->left, prevParams->top);
 
-			int limitX = g_Config.fSmallDisplayZoomLevel * 120;
-			int limitY = g_Config.fSmallDisplayZoomLevel * 68;
+			int limitX = g_PConfig.fSmallDisplayZoomLevel * 120;
+			int limitY = g_PConfig.fSmallDisplayZoomLevel * 68;
 
 			const int quarterResX = screen_bounds.w / 4;
 			const int quarterResY = screen_bounds.h / 4;
@@ -184,26 +184,26 @@ void DisplayLayoutScreen::resized() {
 }
 
 void DisplayLayoutScreen::onFinish(DialogResult reason) {
-	g_Config.Save("DisplayLayoutScreen::onFinish");
+	g_PConfig.Save("DisplayLayoutScreen::onFinish");
 }
 
 UI::EventReturn DisplayLayoutScreen::OnCenter(UI::EventParams &e) {
 	if (!stickToEdgeX_ || (stickToEdgeX_ && stickToEdgeY_))
-		g_Config.fSmallDisplayOffsetX = 0.5f;
+		g_PConfig.fSmallDisplayOffsetX = 0.5f;
 	if (!stickToEdgeY_ || (stickToEdgeX_ && stickToEdgeY_))
-		g_Config.fSmallDisplayOffsetY = 0.5f;
+		g_PConfig.fSmallDisplayOffsetY = 0.5f;
 	RecreateViews();
 	return UI::EVENT_DONE;
 };
 
 UI::EventReturn DisplayLayoutScreen::OnZoomTypeChange(UI::EventParams &e) {
-	if (g_Config.iSmallDisplayZoomType < (int)SmallDisplayZoom::MANUAL) {
+	if (g_PConfig.iSmallDisplayZoomType < (int)SmallDisplayZoom::MANUAL) {
 		const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 		float autoBound = bounds.w / 480.0f;
 		UpdateScaleSetting(autoBound);
 		displayRepresentation_->UpdateScale(ScaleSettingToUI());
-		g_Config.fSmallDisplayOffsetX = 0.5f;
-		g_Config.fSmallDisplayOffsetY = 0.5f;
+		g_PConfig.fSmallDisplayOffsetX = 0.5f;
+		g_PConfig.fSmallDisplayOffsetY = 0.5f;
 	}
 	RecreateViews();
 	return UI::EVENT_DONE;
@@ -264,16 +264,16 @@ void DisplayLayoutScreen::CreateViews() {
 	root_->Add(new Boundary(new AnchorLayoutParams(previewWidth, vertBoundariesHeight, horizPreviewPadding, vertPreviewPadding - vertBoundariesHeight, NONE, NONE)));
 	root_->Add(new Boundary(new AnchorLayoutParams(previewWidth, vertBoundariesHeight, horizPreviewPadding, vertPreviewPadding + previewHeight, NONE, NONE)));
 
-	bool displayRotEnable = (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE) || g_Config.bSoftwareRendering;
+	bool displayRotEnable = (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE) || g_PConfig.bSoftwareRendering;
 	bRotated_ = false;
-	if (displayRotEnable && (g_Config.iInternalScreenRotation == ROTATION_LOCKED_VERTICAL || g_Config.iInternalScreenRotation == ROTATION_LOCKED_VERTICAL180)) {
+	if (displayRotEnable && (g_PConfig.iInternalScreenRotation == ROTATION_LOCKED_VERTICAL || g_PConfig.iInternalScreenRotation == ROTATION_LOCKED_VERTICAL180)) {
 		bRotated_ = true;
 	}
 
 	HighlightLabel *label = nullptr;
 	mode_ = nullptr;
-	if (g_Config.iSmallDisplayZoomType >= (int)SmallDisplayZoom::AUTO) { // Scaling
-		if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
+	if (g_PConfig.iSmallDisplayZoomType >= (int)SmallDisplayZoom::AUTO) { // Scaling
+		if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::AUTO) {
 			label = new HighlightLabel(gr->T("Auto Scaling"), new AnchorLayoutParams(WRAP_CONTENT, 64.0f, bounds.w / 2.0f, bounds.h / 2.0f, NONE, NONE, true));
 			float autoBound = bounds.h / 270.0f;
 			// Case of screen rotated ~ only works with buffered rendering
@@ -292,8 +292,8 @@ void DisplayLayoutScreen::CreateViews() {
 				}
 			}
 			UpdateScaleSetting(autoBound);
-			g_Config.fSmallDisplayOffsetX = 0.5f;
-			g_Config.fSmallDisplayOffsetY = 0.5f;
+			g_PConfig.fSmallDisplayOffsetX = 0.5f;
+			g_PConfig.fSmallDisplayOffsetY = 0.5f;
 		} else { // Manual Scaling
 			Choice *center = new Choice(di->T("Center"), "", false, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10 + leftInset, NONE, NONE, 74));
 			center->OnClick.Handle(this, &DisplayLayoutScreen::OnCenter);
@@ -302,22 +302,22 @@ void DisplayLayoutScreen::CreateViews() {
 			if (g_dpi_scale_x > 1.0f) {
 				minZoom /= g_dpi_scale_x;
 			}
-			PopupSliderChoiceFloat *zoomlvl = new PopupSliderChoiceFloat(&g_Config.fSmallDisplayZoomLevel, minZoom, 10.0f, di->T("Zoom"), 1.0f, screenManager(), di->T("* PSP res"), new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10 + leftInset, NONE, NONE, 10 + 64 + 64));
+			PopupSliderChoiceFloat *zoomlvl = new PopupSliderChoiceFloat(&g_PConfig.fSmallDisplayZoomLevel, minZoom, 10.0f, di->T("Zoom"), 1.0f, screenManager(), di->T("* PSP res"), new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10 + leftInset, NONE, NONE, 10 + 64 + 64));
 			root_->Add(zoomlvl);
 			mode_ = new ChoiceStrip(ORIENT_VERTICAL, new AnchorLayoutParams(leftColumnWidth, WRAP_CONTENT, 10 + leftInset, NONE, NONE, 158 + 64 + 10));
 			mode_->AddChoice(di->T("Move"));
 			mode_->AddChoice(di->T("Resize"));
 			mode_->SetSelection(0);
 		}
-		displayRepresentation_ = new DragDropDisplay(g_Config.fSmallDisplayOffsetX, g_Config.fSmallDisplayOffsetY, ImageID("I_PSP_DISPLAY"), ScaleSettingToUI(), bounds);
+		displayRepresentation_ = new DragDropDisplay(g_PConfig.fSmallDisplayOffsetX, g_PConfig.fSmallDisplayOffsetY, ImageID("I_PSP_DISPLAY"), ScaleSettingToUI(), bounds);
 		displayRepresentation_->SetVisibility(V_VISIBLE);
 	} else { // Stretching
 		label = new HighlightLabel(gr->T("Stretching"), new AnchorLayoutParams(WRAP_CONTENT, 64.0f, bounds.w / 2.0f, bounds.h / 2.0f, NONE, NONE, true));
-		displayRepresentation_ = new DragDropDisplay(g_Config.fSmallDisplayOffsetX, g_Config.fSmallDisplayOffsetY, ImageID("I_PSP_DISPLAY"), ScaleSettingToUI(), bounds);
+		displayRepresentation_ = new DragDropDisplay(g_PConfig.fSmallDisplayOffsetX, g_PConfig.fSmallDisplayOffsetY, ImageID("I_PSP_DISPLAY"), ScaleSettingToUI(), bounds);
 		displayRepresentation_->SetVisibility(V_INVISIBLE);
 		float width = previewWidth;
 		float height = previewHeight;
-		if (g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
+		if (g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::STRETCH) {
 			Choice *stretched = new Choice("", "", false, new AnchorLayoutParams(width, height, width - width / 2.0f, NONE, NONE, height - height / 2.0f));
 			stretched->SetEnabled(false);
 			root_->Add(stretched);
@@ -326,12 +326,12 @@ void DisplayLayoutScreen::CreateViews() {
 			float frameRatio = width / height;
 			if (origRatio > frameRatio) {
 				height = width / origRatio;
-				if (!bRotated_ && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH) {
+				if (!bRotated_ && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH) {
 					height = (272.0f + height) / 2.0f;
 				}
 			} else {
 				width = height * origRatio;
-				if (bRotated_ && g_Config.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH) {
+				if (bRotated_ && g_PConfig.iSmallDisplayZoomType == (int)SmallDisplayZoom::PARTIAL_STRETCH) {
 					width = (272.0f + height) / 2.0f;
 				}
 			}
@@ -353,14 +353,14 @@ void DisplayLayoutScreen::CreateViews() {
 	}
 
 	static const char *zoomLevels[] = { "Stretching", "Partial Stretch", "Auto Scaling", "Manual Scaling" };
-	auto zoom = new PopupMultiChoice(&g_Config.iSmallDisplayZoomType, di->T("Options"), zoomLevels, 0, ARRAY_SIZE(zoomLevels), gr->GetName(), screenManager(), new AnchorLayoutParams(400, WRAP_CONTENT, previewWidth - 200.0f, NONE, NONE, 10));
+	auto zoom = new PopupMultiChoice(&g_PConfig.iSmallDisplayZoomType, di->T("Options"), zoomLevels, 0, ARRAY_SIZE(zoomLevels), gr->GetName(), screenManager(), new AnchorLayoutParams(400, WRAP_CONTENT, previewWidth - 200.0f, NONE, NONE, 10));
 	zoom->OnChoice.Handle(this, &DisplayLayoutScreen::OnZoomTypeChange);
 	root_->Add(zoom);
 
 	static const char *displayRotation[] = { "Landscape", "Portrait", "Landscape Reversed", "Portrait Reversed" };
-	auto rotation = new PopupMultiChoice(&g_Config.iInternalScreenRotation, gr->T("Rotation"), displayRotation, 1, ARRAY_SIZE(displayRotation), co->GetName(), screenManager(), new AnchorLayoutParams(400, WRAP_CONTENT, previewWidth - 200.0f, 10, NONE, bounds.h - 64 - 10));
+	auto rotation = new PopupMultiChoice(&g_PConfig.iInternalScreenRotation, gr->T("Rotation"), displayRotation, 1, ARRAY_SIZE(displayRotation), co->GetName(), screenManager(), new AnchorLayoutParams(400, WRAP_CONTENT, previewWidth - 200.0f, 10, NONE, bounds.h - 64 - 10));
 	rotation->SetEnabledFunc([] {
-		return g_Config.iRenderingMode != FB_NON_BUFFERED_MODE || g_Config.bSoftwareRendering;
+		return g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE || g_PConfig.bSoftwareRendering;
 	});
 	root_->Add(rotation);
 

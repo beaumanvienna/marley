@@ -132,7 +132,7 @@ void GameScreen::CreateViews() {
 #if PPSSPP_PLATFORM(WINDOWS) && !PPSSPP_PLATFORM(UWP)
 	rightColumnItems->Add(AddOtherChoice(new Choice(ga->T("Show In Folder"))))->OnClick.Handle(this, &GameScreen::OnShowInFolder);
 #endif
-	if (g_Config.bEnableCheats) {
+	if (g_PConfig.bEnableCheats) {
 		rightColumnItems->Add(AddOtherChoice(new Choice(pa->T("Cheats"))))->OnClick.Handle(this, &GameScreen::OnCwCheat);
 	}
 
@@ -153,8 +153,8 @@ UI::EventReturn GameScreen::OnCreateConfig(UI::EventParams &e) {
 	if (!info) {
 		return UI::EVENT_SKIPPED;
 	}
-	g_Config.createGameConfig(info->id);
-	g_Config.saveGameConfig(info->id, info->GetTitle());
+	g_PConfig.createGameConfig(info->id);
+	g_PConfig.saveGameConfig(info->id, info->GetTitle());
 	info->hasConfig = true;
 
 	screenManager()->topScreen()->RecreateViews();
@@ -167,7 +167,7 @@ void GameScreen::CallbackDeleteConfig(bool yes) {
 		if (!info) {
 			return;
 		}
-		g_Config.deleteGameConfig(info->id);
+		g_PConfig.deleteGameConfig(info->id);
 		info->hasConfig = false;
 		screenManager()->RecreateAllViews();
 	}
@@ -339,11 +339,11 @@ UI::EventReturn GameScreen::OnCreateShortcut(UI::EventParams &e) {
 }
 
 bool GameScreen::isRecentGame(const std::string &gamePath) {
-	if (g_Config.iMaxRecent <= 0)
+	if (g_PConfig.iMaxRecent <= 0)
 		return false;
 
 	const std::string resolved = PFile::ResolvePath(gamePath);
-	for (auto it = g_Config.recentIsos.begin(); it != g_Config.recentIsos.end(); ++it) {
+	for (auto it = g_PConfig.recentIsos.begin(); it != g_PConfig.recentIsos.end(); ++it) {
 		const std::string recent = PFile::ResolvePath(*it);
 		if (resolved == recent)
 			return true;
@@ -352,7 +352,7 @@ bool GameScreen::isRecentGame(const std::string &gamePath) {
 }
 
 UI::EventReturn GameScreen::OnRemoveFromRecent(UI::EventParams &e) {
-	g_Config.RemoveRecent(gamePath_);
+	g_PConfig.RemoveRecent(gamePath_);
 	screenManager()->switchScreen(new MainScreen());
 	return UI::EVENT_DONE;
 }

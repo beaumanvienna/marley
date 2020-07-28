@@ -12,5 +12,5 @@ void GlobalThreadPool::Loop(const std::function<void(int,int)>& loop, int lower,
 }
 
 void GlobalThreadPool::Inititialize() {
-	pool = make_unique<ThreadPool>(g_Config.iNumWorkerThreads);
+	pool = make_unique<ThreadPool>(g_PConfig.iNumWorkerThreads);
 }

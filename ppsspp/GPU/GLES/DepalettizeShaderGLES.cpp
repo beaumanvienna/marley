@@ -80,7 +80,7 @@ bool DepalShaderCacheGLES::CreateVertexShader() {
 		prelude = useGL3_ ? "#version 300 es\n" : "#version 100\n";
 	} else {
 		// We need to add a corresponding #version.  Apple drivers fail without an exact match.
-		prelude = StringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
+		prelude = PStringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
 	}
 	vertexShader_ = render_->CreateShader(GL_VERTEX_SHADER, prelude + src, "depal");
 	return true;
@@ -198,7 +198,7 @@ DepalShader *DepalShaderCacheGLES::GetDepalettizeShader(uint32_t clutMode, GEBuf
 std::vector<std::string> DepalShaderCacheGLES::DebugGetShaderIDs(DebugShaderType type) {
 	std::vector<std::string> ids;
 	for (auto &iter : cache_) {
-		ids.push_back(StringFromFormat("%08x", iter.first));
+		ids.push_back(PStringFromFormat("%08x", iter.first));
 	}
 	return ids;
 }

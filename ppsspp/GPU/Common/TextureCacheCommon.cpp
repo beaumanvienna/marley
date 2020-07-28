@@ -178,22 +178,22 @@ void TextureCacheCommon::GetSamplingParams(int &minFilt, int &magFilt, bool &sCl
 		lodBias = 0.0f;
 	}
 
-	if (g_Config.iTexFiltering == TEX_FILTER_LINEAR_VIDEO) {
+	if (g_PConfig.iTexFiltering == TEX_FILTER_LINEAR_VIDEO) {
 		bool isVideo = videos_.find(addr & 0x3FFFFFFF) != videos_.end();
 		if (isVideo) {
 			magFilt |= 1;
 			minFilt |= 1;
 		}
 	}
-	if (g_Config.iTexFiltering == TEX_FILTER_LINEAR && (!gstate.isColorTestEnabled() || IsColorTestTriviallyTrue())) {
+	if (g_PConfig.iTexFiltering == TEX_FILTER_LINEAR && (!gstate.isColorTestEnabled() || IsColorTestTriviallyTrue())) {
 		if (!gstate.isAlphaTestEnabled() || IsAlphaTestTriviallyTrue()) {
 			magFilt |= 1;
 			minFilt |= 1;
 		}
 	}
-	bool forceNearest = g_Config.iTexFiltering == TEX_FILTER_NEAREST;
+	bool forceNearest = g_PConfig.iTexFiltering == TEX_FILTER_NEAREST;
 	// Force Nearest when color test enabled and rendering resolution greater than 480x272
-	if ((gstate.isColorTestEnabled() && !IsColorTestTriviallyTrue()) && g_Config.iInternalResolution != 1 && gstate.isModeThrough()) {
+	if ((gstate.isColorTestEnabled() && !IsColorTestTriviallyTrue()) && g_PConfig.iInternalResolution != 1 && gstate.isModeThrough()) {
 		// Some games use 0 as the color test color, which won't be too bad if it bleeds.
 		// Fuchsia and green, etc. are the problem colors.
 		if (gstate.getColorTestRef() != 0) {
@@ -234,7 +234,7 @@ void TextureCacheCommon::UpdateSamplingParams(TexCacheEntry &entry, SamplerCache
 			key.maxLevel = entry.maxLevel * 256;
 			key.minLevel = 0;
 			key.lodBias = (int)(lodBias * 256.0f);
-			if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_Config.iAnisotropyLevel > 0) {
+			if (gstate_c.Supports(GPU_SUPPORTS_ANISOTROPY) && g_PConfig.iAnisotropyLevel > 0) {
 				key.aniso = true;
 			}
 			break;
@@ -481,7 +481,7 @@ void TextureCacheCommon::SetTexture(bool force) {
 		}
 
 		entry = entryNew;
-		if (g_Config.bTextureBackoffCache) {
+		if (g_PConfig.bTextureBackoffCache) {
 			entry->status = TexCacheEntry::STATUS_HASHING;
 		} else {
 			entry->status = TexCacheEntry::STATUS_UNRELIABLE;
@@ -571,7 +571,7 @@ void TextureCacheCommon::Decimate(bool forcePressure) {
 	}
 
 	// If enabled, we also need to clear the secondary cache.
-	if (g_Config.bTextureSecondaryCache && (forcePressure || secondCacheSizeEstimate_ >= TEXCACHE_SECOND_MIN_PRESSURE)) {
+	if (g_PConfig.bTextureSecondaryCache && (forcePressure || secondCacheSizeEstimate_ >= TEXCACHE_SECOND_MIN_PRESSURE)) {
 		const u32 had = secondCacheSizeEstimate_;
 
 		for (TexCache::iterator iter = secondCache_.begin(); iter != secondCache_.end(); ) {
@@ -952,11 +952,11 @@ void TextureCacheCommon::NotifyConfigChanged() {
 	int scaleFactor;
 
 	// 0 means automatic texture scaling, up to 5x, based on resolution.
-	if (g_Config.iTexScalingLevel == 0) {
-		scaleFactor = g_Config.iInternalResolution;
+	if (g_PConfig.iTexScalingLevel == 0) {
+		scaleFactor = g_PConfig.iInternalResolution;
 		// Automatic resolution too?  Okay.
 		if (scaleFactor == 0) {
-			if (!g_Config.IsPortrait()) {
+			if (!g_PConfig.IsPortrait()) {
 				scaleFactor = (PSP_CoreParameter().pixelWidth + 479) / 480;
 			} else {
 				scaleFactor = (PSP_CoreParameter().pixelHeight + 479) / 480;
@@ -965,7 +965,7 @@ void TextureCacheCommon::NotifyConfigChanged() {
 
 		scaleFactor = std::min(5, scaleFactor);
 	} else {
-		scaleFactor = g_Config.iTexScalingLevel;
+		scaleFactor = g_PConfig.iTexScalingLevel;
 	}
 
 	if (!gstate_c.Supports(GPU_SUPPORTS_OES_TEXTURE_NPOT)) {
@@ -1026,7 +1026,7 @@ void TextureCacheCommon::LoadClut(u32 clutAddr, u32 loadBytes) {
 
 		// It's possible for a game to (successfully) access outside valid memory.
 		u32 bytes = PMemory::ValidSize(clutAddr, loadBytes);
-		if (clutRenderAddress_ != 0xFFFFFFFF && !g_Config.bDisableSlowFramebufEffects) {
+		if (clutRenderAddress_ != 0xFFFFFFFF && !g_PConfig.bDisableSlowFramebufEffects) {
 			framebufferManager_->DownloadFramebufferForClut(clutRenderAddress_, clutRenderOffset_ + bytes);
 			PMemory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 			if (bytes < loadBytes) {
@@ -1612,7 +1612,7 @@ bool TextureCacheCommon::CheckFullHash(TexCacheEntry *entry, bool &doDelete) {
 	}
 
 	if (fullhash == entry->fullhash) {
-		if (g_Config.bTextureBackoffCache) {
+		if (g_PConfig.bTextureBackoffCache) {
 			if (entry->GetHashStatus() != TexCacheEntry::STATUS_HASHING && entry->numFrames > TexCacheEntry::FRAMES_REGAIN_TRUST) {
 				// Reset to STATUS_HASHING.
 				entry->SetHashStatus(TexCacheEntry::STATUS_HASHING);
@@ -1626,7 +1626,7 @@ bool TextureCacheCommon::CheckFullHash(TexCacheEntry *entry, bool &doDelete) {
 	}
 
 	// Don't give up just yet.  Let's try the secondary cache if it's been invalidated before.
-	if (g_Config.bTextureSecondaryCache) {
+	if (g_PConfig.bTextureSecondaryCache) {
 		// Don't forget this one was unreliable (in case we match a secondary entry.)
 		entry->status |= TexCacheEntry::STATUS_UNRELIABLE;
 
@@ -1696,7 +1696,7 @@ void TextureCacheCommon::Invalidate(u32 addr, int size, GPUInvalidationType type
 	}
 
 	// If we're hashing every use, without backoff, then this isn't needed.
-	if (!g_Config.bTextureBackoffCache) {
+	if (!g_PConfig.bTextureBackoffCache) {
 		return;
 	}
 
@@ -1735,7 +1735,7 @@ void TextureCacheCommon::Invalidate(u32 addr, int size, GPUInvalidationType type
 
 void TextureCacheCommon::InvalidateAll(GPUInvalidationType /*unused*/) {
 	// If we're hashing every use, without backoff, then this isn't needed.
-	if (!g_Config.bTextureBackoffCache) {
+	if (!g_PConfig.bTextureBackoffCache) {
 		return;
 	}
 

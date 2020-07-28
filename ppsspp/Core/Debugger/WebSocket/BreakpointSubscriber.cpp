@@ -75,7 +75,7 @@ struct WebSocketCPUBreakpointParams {
 			if (!req.ParamString("condition", &condition))
 				return false;
 			if (!currentDebugMIPS->initExpression(condition.c_str(), compiledCondition)) {
-				req.Fail(StringFromFormat("Could not parse expression syntax: %s", getExpressionError()));
+				req.Fail(PStringFromFormat("Could not parse expression syntax: %s", getExpressionError()));
 				return false;
 			}
 		}

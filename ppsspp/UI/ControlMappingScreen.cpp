@@ -124,7 +124,7 @@ void ControlMapper::Refresh() {
 
 	Choice *p = root->Add(new Choice(" + ", new LayoutParams(WRAP_CONTENT, itemH)));
 	p->OnClick.Handle(this, &ControlMapper::OnAdd);
-	if (g_Config.bMouseControl) {
+	if (g_PConfig.bMouseControl) {
 		Choice *p = root->Add(new Choice("M", new LayoutParams(WRAP_CONTENT, itemH)));
 		p->OnClick.Handle(this, &ControlMapper::OnAddMouse);
 	}
@@ -178,7 +178,7 @@ void ControlMapper::MappedCallback(KeyDef kdf) {
 	default:
 		;
 	}
-	g_Config.bMapMouse = false;
+	g_PConfig.bMapMouse = false;
 	refresh_ = true;
 	ctrlScreen_->KeyMapped(pspKey_);
 	// After this, we do not exist any more. So the refresh_ = true is probably irrelevant.
@@ -207,7 +207,7 @@ UI::EventReturn ControlMapper::OnAdd(UI::EventParams &params) {
 }
 UI::EventReturn ControlMapper::OnAddMouse(UI::EventParams &params) {
 	action_ = ADD;
-	g_Config.bMapMouse = true;
+	g_PConfig.bMapMouse = true;
 	auto km = GetI18NCategory("KeyMapping");
 	scrm_->push(new KeyMappingNewMouseKeyDialog(pspKey_, true, std::bind(&ControlMapper::MappedCallback, this, std::placeholders::_1), km));
 	return UI::EVENT_DONE;
@@ -346,14 +346,14 @@ bool KeyMappingNewMouseKeyDialog::key(const KeyInput &key) {
 	if (key.flags & KEY_DOWN) {
 		if (key.keyCode == NKCODE_ESCAPE) {
 			TriggerFinish(DR_OK);
-			g_Config.bMapMouse = false;
+			g_PConfig.bMapMouse = false;
 			return false;
 		}
 
 		mapped_ = true;
 		KeyDef kdf(key.deviceId, key.keyCode);
 		TriggerFinish(DR_OK);
-		g_Config.bMapMouse = false;
+		g_PConfig.bMapMouse = false;
 		if (callback_)
 			callback_(kdf);
 	}
@@ -639,23 +639,23 @@ void TouchTestScreen::CreateViews() {
 
 #if !PPSSPP_PLATFORM(UWP)
 	static const char *renderingBackend[] = { "OpenGL", "Direct3D 9", "Direct3D 11", "Vulkan" };
-	PopupMultiChoice *renderingBackendChoice = root_->Add(new PopupMultiChoice(&g_Config.iGPUBackend, gr->T("Backend"), renderingBackend, (int)GPUBackend::OPENGL, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
+	PopupMultiChoice *renderingBackendChoice = root_->Add(new PopupMultiChoice(&g_PConfig.iGPUBackend, gr->T("Backend"), renderingBackend, (int)GPUBackend::OPENGL, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
 	renderingBackendChoice->OnChoice.Handle(this, &TouchTestScreen::OnRenderingBackend);
 
-	if (!g_Config.IsBackendEnabled(GPUBackend::OPENGL))
+	if (!g_PConfig.IsBackendEnabled(GPUBackend::OPENGL))
 		renderingBackendChoice->HideChoice((int)GPUBackend::OPENGL);
-	if (!g_Config.IsBackendEnabled(GPUBackend::DIRECT3D9))
+	if (!g_PConfig.IsBackendEnabled(GPUBackend::DIRECT3D9))
 		renderingBackendChoice->HideChoice((int)GPUBackend::DIRECT3D9);
-	if (!g_Config.IsBackendEnabled(GPUBackend::DIRECT3D11))
+	if (!g_PConfig.IsBackendEnabled(GPUBackend::DIRECT3D11))
 		renderingBackendChoice->HideChoice((int)GPUBackend::DIRECT3D11);
-	if (!g_Config.IsBackendEnabled(GPUBackend::VULKAN))
+	if (!g_PConfig.IsBackendEnabled(GPUBackend::VULKAN))
 		renderingBackendChoice->HideChoice((int)GPUBackend::VULKAN);
 #endif
 
 #if PPSSPP_PLATFORM(ANDROID)
 	root_->Add(new Choice(gr->T("Recreate Activity")))->OnClick.Handle(this, &TouchTestScreen::OnRecreateActivity);
 #endif
-	root_->Add(new CheckBox(&g_Config.bImmersiveMode, gr->T("FullScreen", "Full Screen")))->OnClick.Handle(this, &TouchTestScreen::OnImmersiveModeChange);
+	root_->Add(new CheckBox(&g_PConfig.bImmersiveMode, gr->T("FullScreen", "Full Screen")))->OnClick.Handle(this, &TouchTestScreen::OnImmersiveModeChange);
 	root_->Add(new Button(di->T("Back")))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 }
 
@@ -714,14 +714,14 @@ void RecreateActivity();
 
 UI::EventReturn TouchTestScreen::OnImmersiveModeChange(UI::EventParams &e) {
 	System_SendMessage("immersive", "");
-	if (g_Config.iAndroidHwScale != 0) {
+	if (g_PConfig.iAndroidHwScale != 0) {
 		RecreateActivity();
 	}
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn TouchTestScreen::OnRenderingBackend(UI::EventParams &e) {
-	g_Config.Save("GameSettingsScreen::RenderingBackend");
+	g_PConfig.Save("GameSettingsScreen::RenderingBackend");
 	System_SendMessage("graphics_restart", "--touchscreentest");
 	return UI::EVENT_DONE;
 }

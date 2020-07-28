@@ -71,13 +71,13 @@ static std::string GenRecordingFilename() {
 	PFile::CreateFullPath(dumpDir);
 
 	for (int n = 1; n < 10000; ++n) {
-		std::string filename = StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
+		std::string filename = PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), n);
 		if (!PFile::Exists(filename)) {
 			return filename;
 		}
 	}
 
-	return StringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
+	return PStringFromFormat("%s_%04d.ppdmp", prefix.c_str(), 9999);
 }
 
 static void BeginRecording() {

@@ -72,28 +72,28 @@ void TouchControlVisibilityScreen::CreateViews() {
 
 	static const char* rightAnalogKey = "Right Analog Stick (tap to customize)";
 	toggles_.clear();
-	toggles_.push_back({ "Circle", &g_Config.bShowTouchCircle, ImageID("I_CIRCLE") });
-	toggles_.push_back({ "Cross", &g_Config.bShowTouchCross, ImageID("I_CROSS") });
-	toggles_.push_back({ "Square", &g_Config.bShowTouchSquare, ImageID("I_SQUARE") });
-	toggles_.push_back({ "Triangle", &g_Config.bShowTouchTriangle, ImageID("I_TRIANGLE") });
-	toggles_.push_back({ "L", &g_Config.touchLKey.show, ImageID("I_L") });
-	toggles_.push_back({ "R", &g_Config.touchRKey.show, ImageID("I_R") });
-	toggles_.push_back({ "Start", &g_Config.touchStartKey.show, ImageID("I_START") });
-	toggles_.push_back({ "Select", &g_Config.touchSelectKey.show, ImageID("I_SELECT") });
-	toggles_.push_back({ "Dpad", &g_Config.touchDpad.show, ImageID::invalid() });
-	toggles_.push_back({ "Analog Stick", &g_Config.touchAnalogStick.show, ImageID::invalid() });
-	toggles_.push_back({ rightAnalogKey, &g_Config.touchRightAnalogStick.show, ImageID::invalid() });
-	toggles_.push_back({ "Unthrottle", &g_Config.touchUnthrottleKey.show, ImageID::invalid() });
-	toggles_.push_back({ "Combo0", &g_Config.touchCombo0.show, ImageID("I_1") });
-	toggles_.push_back({ "Combo1", &g_Config.touchCombo1.show, ImageID("I_2") });
-	toggles_.push_back({ "Combo2", &g_Config.touchCombo2.show, ImageID("I_3") });
-	toggles_.push_back({ "Combo3", &g_Config.touchCombo3.show, ImageID("I_4") });
-	toggles_.push_back({ "Combo4", &g_Config.touchCombo4.show, ImageID("I_5") });
-	toggles_.push_back({ "Alt speed 1", &g_Config.touchSpeed1Key.show, ImageID::invalid() });
-	toggles_.push_back({ "Alt speed 2", &g_Config.touchSpeed2Key.show, ImageID::invalid() });
-	toggles_.push_back({ "RapidFire", &g_Config.touchRapidFireKey.show, ImageID::invalid() });
-	toggles_.push_back({ "Auto Analog Rotation (CW)", &g_Config.touchAnalogRotationCWKey.show, ImageID::invalid() });
-	toggles_.push_back({ "Auto Analog Rotation (CCW)", &g_Config.touchAnalogRotationCCWKey.show, ImageID::invalid() });
+	toggles_.push_back({ "Circle", &g_PConfig.bShowTouchCircle, ImageID("I_CIRCLE") });
+	toggles_.push_back({ "Cross", &g_PConfig.bShowTouchCross, ImageID("I_CROSS") });
+	toggles_.push_back({ "Square", &g_PConfig.bShowTouchSquare, ImageID("I_SQUARE") });
+	toggles_.push_back({ "Triangle", &g_PConfig.bShowTouchTriangle, ImageID("I_TRIANGLE") });
+	toggles_.push_back({ "L", &g_PConfig.touchLKey.show, ImageID("I_L") });
+	toggles_.push_back({ "R", &g_PConfig.touchRKey.show, ImageID("I_R") });
+	toggles_.push_back({ "Start", &g_PConfig.touchStartKey.show, ImageID("I_START") });
+	toggles_.push_back({ "Select", &g_PConfig.touchSelectKey.show, ImageID("I_SELECT") });
+	toggles_.push_back({ "Dpad", &g_PConfig.touchDpad.show, ImageID::invalid() });
+	toggles_.push_back({ "Analog Stick", &g_PConfig.touchAnalogStick.show, ImageID::invalid() });
+	toggles_.push_back({ rightAnalogKey, &g_PConfig.touchRightAnalogStick.show, ImageID::invalid() });
+	toggles_.push_back({ "Unthrottle", &g_PConfig.touchUnthrottleKey.show, ImageID::invalid() });
+	toggles_.push_back({ "Combo0", &g_PConfig.touchCombo0.show, ImageID("I_1") });
+	toggles_.push_back({ "Combo1", &g_PConfig.touchCombo1.show, ImageID("I_2") });
+	toggles_.push_back({ "Combo2", &g_PConfig.touchCombo2.show, ImageID("I_3") });
+	toggles_.push_back({ "Combo3", &g_PConfig.touchCombo3.show, ImageID("I_4") });
+	toggles_.push_back({ "Combo4", &g_PConfig.touchCombo4.show, ImageID("I_5") });
+	toggles_.push_back({ "Alt speed 1", &g_PConfig.touchSpeed1Key.show, ImageID::invalid() });
+	toggles_.push_back({ "Alt speed 2", &g_PConfig.touchSpeed2Key.show, ImageID::invalid() });
+	toggles_.push_back({ "RapidFire", &g_PConfig.touchRapidFireKey.show, ImageID::invalid() });
+	toggles_.push_back({ "Auto Analog Rotation (CW)", &g_PConfig.touchAnalogRotationCWKey.show, ImageID::invalid() });
+	toggles_.push_back({ "Auto Analog Rotation (CCW)", &g_PConfig.touchAnalogRotationCCWKey.show, ImageID::invalid() });
 
 	auto mc = GetI18NCategory("MappableControls");
 	for (auto toggle : toggles_) {
@@ -122,7 +122,7 @@ void TouchControlVisibilityScreen::CreateViews() {
 }
 
 void TouchControlVisibilityScreen::onFinish(DialogResult result) {
-	g_Config.Save("TouchControlVisibilityScreen::onFinish");
+	g_PConfig.Save("TouchControlVisibilityScreen::onFinish");
 }
 
 void RightAnalogMappingScreen::CreateViews() {
@@ -144,18 +144,18 @@ void RightAnalogMappingScreen::CreateViews() {
 
 	static const char *rightAnalogButton[] = {"None", "L", "R", "Square", "Triangle", "Circle", "Cross", "D-pad up", "D-pad down", "D-pad left", "D-pad right", "Start", "Select"};
 
-	vert->Add(new CheckBox(&g_Config.bRightAnalogCustom, co->T("Use custom right analog")));
-	PopupMultiChoice *rightAnalogUp = vert->Add(new PopupMultiChoice(&g_Config.iRightAnalogUp, mc->T("RightAn.Up"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
-	PopupMultiChoice *rightAnalogDown = vert->Add(new PopupMultiChoice(&g_Config.iRightAnalogDown, mc->T("RightAn.Down"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
-	PopupMultiChoice *rightAnalogLeft = vert->Add(new PopupMultiChoice(&g_Config.iRightAnalogLeft, mc->T("RightAn.Left"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
-	PopupMultiChoice *rightAnalogRight = vert->Add(new PopupMultiChoice(&g_Config.iRightAnalogRight, mc->T("RightAn.Right"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
-	PopupMultiChoice *rightAnalogPress = vert->Add(new PopupMultiChoice(&g_Config.iRightAnalogPress, co->T("Keep this button pressed when right analog is pressed"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
-	vert->Add(new CheckBox(&g_Config.touchRightAnalogStick.show, co->T("Show right analog")));
-	rightAnalogUp->SetEnabledPtr(&g_Config.bRightAnalogCustom);
-	rightAnalogDown->SetEnabledPtr(&g_Config.bRightAnalogCustom);
-	rightAnalogLeft->SetEnabledPtr(&g_Config.bRightAnalogCustom);
-	rightAnalogRight->SetEnabledPtr(&g_Config.bRightAnalogCustom);
-	rightAnalogPress->SetEnabledPtr(&g_Config.bRightAnalogCustom);
+	vert->Add(new CheckBox(&g_PConfig.bRightAnalogCustom, co->T("Use custom right analog")));
+	PopupMultiChoice *rightAnalogUp = vert->Add(new PopupMultiChoice(&g_PConfig.iRightAnalogUp, mc->T("RightAn.Up"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
+	PopupMultiChoice *rightAnalogDown = vert->Add(new PopupMultiChoice(&g_PConfig.iRightAnalogDown, mc->T("RightAn.Down"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
+	PopupMultiChoice *rightAnalogLeft = vert->Add(new PopupMultiChoice(&g_PConfig.iRightAnalogLeft, mc->T("RightAn.Left"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
+	PopupMultiChoice *rightAnalogRight = vert->Add(new PopupMultiChoice(&g_PConfig.iRightAnalogRight, mc->T("RightAn.Right"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
+	PopupMultiChoice *rightAnalogPress = vert->Add(new PopupMultiChoice(&g_PConfig.iRightAnalogPress, co->T("Keep this button pressed when right analog is pressed"), rightAnalogButton, 0, ARRAY_SIZE(rightAnalogButton), mc->GetName(), screenManager()));
+	vert->Add(new CheckBox(&g_PConfig.touchRightAnalogStick.show, co->T("Show right analog")));
+	rightAnalogUp->SetEnabledPtr(&g_PConfig.bRightAnalogCustom);
+	rightAnalogDown->SetEnabledPtr(&g_PConfig.bRightAnalogCustom);
+	rightAnalogLeft->SetEnabledPtr(&g_PConfig.bRightAnalogCustom);
+	rightAnalogRight->SetEnabledPtr(&g_PConfig.bRightAnalogCustom);
+	rightAnalogPress->SetEnabledPtr(&g_PConfig.bRightAnalogCustom);
 }
 
 UI::EventReturn TouchControlVisibilityScreen::OnToggleAll(UI::EventParams &e) {

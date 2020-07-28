@@ -917,7 +917,7 @@ skip:
 	}
 
 	void PrecompileFunctions() {
-		if (!g_Config.bPreloadFunctions) {
+		if (!g_PConfig.bPreloadFunctions) {
 			return;
 		}
 		std::lock_guard<std::recursive_mutex> guard(functions_lock);
@@ -1179,16 +1179,16 @@ skip:
 		HashFunctions();
 
 		std::string hashMapFilename = GetSysDirectory(DIRECTORY_SYSTEM) + "knownfuncs.ini";
-		if (g_Config.bFuncHashMap || g_Config.bFuncReplacements) {
+		if (g_PConfig.bFuncHashMap || g_PConfig.bFuncReplacements) {
 			LoadBuiltinHashMap();
-			if (g_Config.bFuncHashMap) {
+			if (g_PConfig.bFuncHashMap) {
 				LoadHashMap(hashMapFilename);
 				StoreHashMap(hashMapFilename);
 			}
 			if (insertSymbols) {
 				ApplyHashMap();
 			}
-			if (g_Config.bFuncReplacements) {
+			if (g_PConfig.bFuncReplacements) {
 				ReplaceFunctions();
 			}
 		}

@@ -165,7 +165,7 @@ void GPU_D3D11::CheckGPUFeatures() {
 		features |= GPU_SUPPORTS_LOGIC_OP;
 	}
 
-	if (!g_Config.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
+	if (!g_PConfig.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 		// Use fragment rounding on desktop and GLES3, most accurate.

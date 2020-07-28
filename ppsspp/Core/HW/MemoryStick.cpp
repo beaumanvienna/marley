@@ -75,7 +75,7 @@ void MemoryStick_SetState(MemStickState state) {
 }
 
 void MemoryStick_Init() {
-	if (g_Config.bMemStickInserted) {
+	if (g_PConfig.bMemStickInserted) {
 		memStickState = PSP_MEMORYSTICK_STATE_INSERTED;
 		memStickFatState = PSP_FAT_MEMORYSTICK_STATE_ASSIGNED;
 	} else {

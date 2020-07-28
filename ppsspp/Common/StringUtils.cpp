@@ -49,7 +49,7 @@ long parseLong(std::string s) {
 	return value;
 }
 
-bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
+bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
 	int writtenCount = vsnprintf(out, outsize, format, args);
 

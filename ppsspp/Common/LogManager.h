@@ -181,6 +181,6 @@ public:
 
 	void ChangeFileLog(const char *filename);
 
-	void SaveConfig(IniFile::Section *section);
-	void LoadConfig(IniFile::Section *section, bool debugDefaults);
+	void SaveConfig(PIniFile::Section *section);
+	void LoadConfig(PIniFile::Section *section, bool debugDefaults);
 };

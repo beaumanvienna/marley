@@ -740,7 +740,7 @@ void Jit::WriteExitDestInReg(X64Reg reg) {
 	WriteDowncount();
 
 	// Validate the jump to avoid a crash?
-	if (!g_Config.bFastMemory) {
+	if (!g_PConfig.bFastMemory) {
 		CMP(32, R(reg), Imm32(PSP_GetKernelMemoryBase()));
 		FixupBranch tooLow = J_CC(CC_B);
 		CMP(32, R(reg), Imm32(PSP_GetUserMemoryEnd()));

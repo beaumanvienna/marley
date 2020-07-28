@@ -99,7 +99,7 @@ void WebSocketDisasmState::WriteDisasmLine(JsonWriter &json, const DisassemblyLi
 		json.writeNull("macroEncoding");
 	}
 	int c = currentDebugMIPS->getColor(addr) & 0x00FFFFFF;
-	json.writeString("backgroundColor", StringFromFormat("#%02x%02x%02x", c & 0xFF, (c >> 8) & 0xFF, c >> 16));
+	json.writeString("backgroundColor", PStringFromFormat("#%02x%02x%02x", c & 0xFF, (c >> 8) & 0xFF, c >> 16));
 	json.writeString("name", l.name);
 	json.writeString("params", l.params);
 
@@ -260,7 +260,7 @@ uint32_t WebSocketDisasmState::RoundAddressUp(uint32_t addr) {
 //  - addressHex: string indicating base address in hexadecimal (may be 64 bit.)
 void WebSocketDisasmState::Base(DebuggerRequest &req) {
 	JsonWriter &json = req.Respond();
-	json.writeString("addressHex", StringFromFormat("%016llx", PMemory::base));
+	json.writeString("addressHex", PStringFromFormat("%016llx", PMemory::base));
 }
 
 // Disassemble a range of memory as CPU instructions (memory.disasm)
@@ -471,7 +471,7 @@ void WebSocketDisasmState::Assemble(DebuggerRequest &req) {
 		return;
 
 	if (!MIPSAsm::MipsAssembleOpcode(code.c_str(), currentDebugMIPS, address))
-		return req.Fail(StringFromFormat("Could not assemble: %s", ConvertWStringToUTF8(MIPSAsm::GetAssembleError()).c_str()));
+		return req.Fail(PStringFromFormat("Could not assemble: %s", ConvertWStringToUTF8(MIPSAsm::GetAssembleError()).c_str()));
 
 	JsonWriter &json = req.Respond();
 	json.writeUint("encoding", PMemory::Read_Instruction(address).encoding);

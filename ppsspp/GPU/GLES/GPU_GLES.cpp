@@ -107,7 +107,7 @@ GPU_GLES::GPU_GLES(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 		shaderManagerGL_->Load(shaderCachePath_);
 	}
 
-	if (g_Config.bHardwareTessellation) {
+	if (g_PConfig.bHardwareTessellation) {
 		// Disable hardware tessellation if device is unsupported.
 		if (!drawEngine_.SupportsHWTessellation()) {
 			ERROR_LOG(G3D, "Hardware Tessellation is unsupported, falling back to software tessellation");
@@ -154,7 +154,7 @@ void GPU_GLES::CheckGPUFeatures() {
 	}
 
 	if (gl_extensions.ARB_blend_func_extended || gl_extensions.EXT_blend_func_extended) {
-		if (!g_Config.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
+		if (!g_PConfig.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
 			features |= GPU_SUPPORTS_DUALSOURCE_BLEND;
 		}
 	}
@@ -246,7 +246,7 @@ void GPU_GLES::CheckGPUFeatures() {
 	// If we already have a 16-bit depth buffer, we don't need to round.
 	bool prefer24 = draw_->GetDeviceCaps().preferredDepthBufferFormat == Draw::DataFormat::D24_S8;
 	if (prefer24) {
-		if (!g_Config.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
+		if (!g_PConfig.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
 			features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 		} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 			if (!gl_extensions.IsGLES || gl_extensions.GLES3) {

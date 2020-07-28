@@ -137,7 +137,7 @@ static std::string RemotePathForRecent(const std::string &filename) {
 }
 
 static std::string LocalFromRemotePath(const std::string &path) {
-	for (const std::string &filename : g_Config.recentIsos) {
+	for (const std::string &filename : g_PConfig.recentIsos) {
 		std::string basename = RemotePathForRecent(filename);
 		if (basename == path) {
 			return filename;
@@ -203,7 +203,7 @@ static void HandleListing(const http::Request &request) {
 	request.Out()->Printf("/\n");
 	if (serverFlags & (int)WebServerFlags::DISCS) {
 		// List the current discs in their recent order.
-		for (const std::string &filename : g_Config.recentIsos) {
+		for (const std::string &filename : g_PConfig.recentIsos) {
 			std::string basename = RemotePathForRecent(filename);
 			if (!basename.empty()) {
 				request.Out()->Printf("%s\n", basename.c_str());
@@ -246,7 +246,7 @@ static void ExecuteWebServer() {
 	http->SetFallbackHandler(&HandleFallback);
 	http->RegisterHandler("/debugger", &ForwardDebuggerRequest);
 
-	if (!http->Listen(g_Config.iRemoteISOPort)) {
+	if (!http->Listen(g_PConfig.iRemoteISOPort)) {
 		if (!http->Listen(0)) {
 			ERROR_LOG(FILESYS, "Unable to listen on any port");
 			UpdateStatus(ServerStatus::FINISHED);
@@ -255,7 +255,7 @@ static void ExecuteWebServer() {
 	}
 	UpdateStatus(ServerStatus::RUNNING);
 
-	g_Config.iRemoteISOPort = http->Port();
+	g_PConfig.iRemoteISOPort = http->Port();
 	RegisterServer(http->Port());
 	double lastRegister = real_time_now();
 	while (RetrieveStatus() == ServerStatus::RUNNING) {

@@ -22,7 +22,7 @@ static const bool g_Validate = false;
 
 static uint32_t FlagsFromConfig() {
 	uint32_t flags = 0;
-	flags = g_Config.bVSync ? VULKAN_FLAG_PRESENT_FIFO : VULKAN_FLAG_PRESENT_MAILBOX;
+	flags = g_PConfig.bVSync ? VULKAN_FLAG_PRESENT_FIFO : VULKAN_FLAG_PRESENT_MAILBOX;
 	if (g_Validate) {
 		flags |= VULKAN_FLAG_VALIDATE;
 	}
@@ -121,7 +121,7 @@ bool SDLVulkanGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode,
 	draw_->HandleEvent(Draw::Event::GOT_BACKBUFFER, vulkan_->GetBackbufferWidth(), vulkan_->GetBackbufferHeight());
 
 	renderManager_ = (VulkanRenderManager *)draw_->GetNativeObject(Draw::NativeObject::RENDER_MANAGER);
-	renderManager_->SetInflightFrames(g_Config.iInflightFrames);
+	renderManager_->SetInflightFrames(g_PConfig.iInflightFrames);
 
 	return true;
 }

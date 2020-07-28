@@ -84,7 +84,7 @@ StereoResampler::~StereoResampler() {
 }
 
 void StereoResampler::UpdateBufferSize() {
-	if (g_Config.bExtraAudioBuffering) {
+	if (g_PConfig.bExtraAudioBuffering) {
 		m_maxBufsize = MAX_BUFSIZE_EXTRA;
 		m_targetBufsize = TARGET_BUFSIZE_EXTRA;
 	} else {
@@ -141,10 +141,10 @@ inline void ClampBufferToS16(s16 *out, const s32 *in, size_t size, s8 volShift) 
 }
 
 inline void ClampBufferToS16WithVolume(s16 *out, const s32 *in, size_t size) {
-	int volume = g_Config.iGlobalVolume;
+	int volume = g_PConfig.iGlobalVolume;
 	if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL || PSP_CoreParameter().unthrottle) {
-		if (g_Config.iAltSpeedVolume != -1) {
-			volume = g_Config.iAltSpeedVolume;
+		if (g_PConfig.iAltSpeedVolume != -1) {
+			volume = g_PConfig.iAltSpeedVolume;
 		}
 	}
 

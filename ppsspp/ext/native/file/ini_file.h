@@ -1,4 +1,4 @@
-// IniFile
+// PIniFile
 // Taken from Dolphin but relicensed by me, Henrik Rydgard, under the MIT
 // license as I wrote the whole thing originally and it has barely changed.
 
@@ -10,12 +10,12 @@
 
 #include "base/stringutil.h"
 
-class IniFile
+class PIniFile
 {
 public:
 	class Section
 	{
-		friend class IniFile;
+		friend class PIniFile;
 
 	public:
 		Section() {}
@@ -38,14 +38,14 @@ public:
 		bool Get(const char* key, std::string* value, const char* defaultValue);
 
 		void Set(const char* key, uint32_t newValue) {
-			Set(key, StringFromFormat("0x%08x", newValue).c_str());
+			Set(key, PStringFromFormat("0x%08x", newValue).c_str());
 		}
 		void Set(const char* key, float newValue) {
-			Set(key, StringFromFormat("%f", newValue).c_str());
+			Set(key, PStringFromFormat("%f", newValue).c_str());
 		}
 		void Set(const char* key, const float newValue, const float defaultValue);
 		void Set(const char* key, double newValue) {
-			Set(key, StringFromFormat("%f", newValue).c_str());
+			Set(key, PStringFromFormat("%f", newValue).c_str());
 		}
 		
 		void Set(const char* key, int newValue, int defaultValue);
@@ -101,9 +101,9 @@ public:
 					continue;
 				U mapKey;
 				V mapValue;
-				if(!TryParse<U>(key_val[0],&mapKey))
+				if(!PTryParse<U>(key_val[0],&mapKey))
 					continue;
-				if(!TryParse<V>(key_val[1],&mapValue))
+				if(!PTryParse<V>(key_val[1],&mapValue))
 					continue;
 				values[mapKey] = mapValue;
 			}

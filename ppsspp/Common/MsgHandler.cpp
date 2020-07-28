@@ -39,7 +39,7 @@ bool MsgAlert(bool yes_no, int Style, const char *file, int line, const char* fo
 	const char *caption = captions[Style];
 	va_list args;
 	va_start(args, format);
-	CharArrayFromFormatV(buffer, sizeof(buffer)-1, format, args);
+	PCharArrayFromFormatV(buffer, sizeof(buffer)-1, format, args);
 	va_end(args);
 	// Normal logging (will also log to Android log)
 	ERROR_LOG(SYSTEM, "(%s:%d) %s: %s", file, line, caption, buffer);

@@ -139,7 +139,7 @@ int __qt_startCapture(int width, int height) {
 	}
 
 	char selectedCamera[80];
-	sscanf(g_Config.sCameraDevice.c_str(), "%80s ", &selectedCamera[0]);
+	sscanf(g_PConfig.sCameraDevice.c_str(), "%80s ", &selectedCamera[0]);
 
 	const QList<QCameraInfo> availableCameras = QCameraInfo::availableCameras();
 	if (availableCameras.size() < 1) {
@@ -282,7 +282,7 @@ int __v4l_startCapture(int ideal_width, int ideal_height) {
 
 	int dev_index = 0;
 	char dev_name[64];
-	sscanf(g_Config.sCameraDevice.c_str(), "%d:", &dev_index);
+	sscanf(g_PConfig.sCameraDevice.c_str(), "%d:", &dev_index);
 	snprintf(dev_name, sizeof(dev_name), "/dev/video%d", dev_index);
 
 	if ((v4l_fd = open(dev_name, O_RDWR)) == -1) {

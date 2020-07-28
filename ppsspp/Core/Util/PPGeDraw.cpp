@@ -305,7 +305,7 @@ void __PPGeDoState(PointerWrap &p)
 			textDrawerImages.clear();
 			for (uint32_t i = 0; i < sz; ++i) {
 				// We only care about the pointers, so we can free them.  We'll decimate right away.
-				PPGeTextDrawerCacheKey key{ StringFromFormat("__savestate__%d", i), -1, -1 };
+				PPGeTextDrawerCacheKey key{ PStringFromFormat("__savestate__%d", i), -1, -1 };
 				textDrawerImages[key] = PPGeTextDrawerImage{};
 				p.Do(textDrawerImages[key].ptr);
 			}
@@ -709,7 +709,7 @@ static bool HasTextDrawer() {
 	if (textDrawer) {
 		textDrawer->SetFontScale(1.0f, 1.0f);
 		textDrawer->SetForcedDPIScale(1.0f);
-		textDrawer->SetFont(g_Config.sFont.c_str(), 18, 0);
+		textDrawer->SetFont(g_PConfig.sFont.c_str(), 18, 0);
 	}
 	textDrawerInited = true;
 	return textDrawer != nullptr;

@@ -88,9 +88,9 @@ static int InitLocalhostIP() {
 	in_addr serverIp;
 	serverIp.s_addr = INADDR_NONE;
 
-	iResult = getaddrinfo(g_Config.proAdhocServer.c_str(), 0, NULL, &resultAddr);
+	iResult = getaddrinfo(g_PConfig.proAdhocServer.c_str(), 0, NULL, &resultAddr);
 	if (iResult != 0) {
-		ERROR_LOG(SCENET, "DNS Error (%s)\n", g_Config.proAdhocServer.c_str());
+		ERROR_LOG(SCENET, "DNS Error (%s)\n", g_PConfig.proAdhocServer.c_str());
 		return iResult;
 	}
 	for (ptr = resultAddr; ptr != NULL; ptr = ptr->ai_next) {
@@ -117,9 +117,9 @@ static void __ResetInitNetLib() {
 
 void __NetInit() {
 	// Windows: Assuming WSAStartup already called beforehand
-	portOffset = g_Config.iPortOffset;
-	isOriPort = g_Config.bEnableUPnP && g_Config.bUPnPUseOriginalPort;
-	minSocketTimeoutUS = g_Config.iMinTimeout * 1000UL;
+	portOffset = g_PConfig.iPortOffset;
+	isOriPort = g_PConfig.bEnableUPnP && g_PConfig.bUPnPUseOriginalPort;
+	minSocketTimeoutUS = g_PConfig.iMinTimeout * 1000UL;
 
 	InitLocalhostIP();
 
@@ -336,8 +336,8 @@ static u32 sceWlanGetEtherAddr(u32 addrAddr) {
 	}
 	else
 	// Read MAC Address from config
-	if (!ParseMacAddress(g_Config.sMACAddress.c_str(), addr)) {
-		ERROR_LOG(SCENET, "Error parsing mac address %s", g_Config.sMACAddress.c_str());
+	if (!ParseMacAddress(g_PConfig.sMACAddress.c_str(), addr)) {
+		ERROR_LOG(SCENET, "Error parsing mac address %s", g_PConfig.sMACAddress.c_str());
 		PMemory::Memset(addrAddr, 0, 6);
 	} else {
 		CBreakPoints::ExecMemCheck(addrAddr, true, 6, currentMIPS->pc);
@@ -351,11 +351,11 @@ static u32 sceNetGetLocalEtherAddr(u32 addrAddr) {
 }
 
 static u32 sceWlanDevIsPowerOn() {
-	return hleLogSuccessVerboseI(SCENET, g_Config.bEnableWlan ? 1 : 0);
+	return hleLogSuccessVerboseI(SCENET, g_PConfig.bEnableWlan ? 1 : 0);
 }
 
 static u32 sceWlanGetSwitchState() {
-	return hleLogSuccessVerboseI(SCENET, g_Config.bEnableWlan ? 1 : 0);
+	return hleLogSuccessVerboseI(SCENET, g_PConfig.bEnableWlan ? 1 : 0);
 }
 
 // Probably a void function, but often returns a useful value.

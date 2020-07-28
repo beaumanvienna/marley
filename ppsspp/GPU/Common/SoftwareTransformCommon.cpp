@@ -564,7 +564,7 @@ void SoftwareTransform::BuildDrawingParams(int prim, int vertexCount, u32 vertTy
 	FramebufferManagerCommon *fbman = params_.fbman;
 	bool useBufferedRendering = fbman->UseBufferedRendering();
 
-	bool flippedY = g_Config.iGPUBackend == (int)GPUBackend::OPENGL && !useBufferedRendering;
+	bool flippedY = g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL && !useBufferedRendering;
 
 	if (prim != GE_PRIM_RECTANGLES) {
 		// We can simply draw the unexpanded buffer.

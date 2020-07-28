@@ -424,7 +424,7 @@ bool Arm64Jit::DescribeCodePtr(const u8 *ptr, std::string &name) {
 		if (!numbers.empty()) {
 			const JitBlock *block = blocks.GetBlock(numbers[0]);
 			if (block) {
-				name = StringFromFormat("(block %d at %08x)", numbers[0], block->originalAddress);
+				name = PStringFromFormat("(block %d at %08x)", numbers[0], block->originalAddress);
 				return true;
 			}
 		}

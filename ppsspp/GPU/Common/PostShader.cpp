@@ -70,7 +70,7 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 		}
 
 		for (size_t f = 0; f < fileInfo.size(); f++) {
-			IniFile ini;
+			PIniFile ini;
 			bool success = false;
 			std::string name = fileInfo[f].fullName;
 			std::string path = directories[d];
@@ -89,7 +89,7 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 
 			// Alright, let's loop through the sections and see if any is a shader.
 			for (size_t i = 0; i < ini.Sections().size(); i++) {
-				IniFile::Section &section = ini.Sections()[i];
+				PIniFile::Section &section = ini.Sections()[i];
 				if (section.Exists("Fragment") && section.Exists("Vertex")) {
 					// Valid shader!
 					ShaderInfo info;
@@ -109,16 +109,16 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 
 					for (size_t i = 0; i < ARRAY_SIZE(info.settings); ++i) {
 						auto &setting = info.settings[i];
-						section.Get(StringFromFormat("SettingName%d", i + 1).c_str(), &setting.name, "");
-						section.Get(StringFromFormat("SettingDefaultValue%d", i + 1).c_str(), &setting.value, 0.0f);
-						section.Get(StringFromFormat("SettingMinValue%d", i + 1).c_str(), &setting.minValue, -1.0f);
-						section.Get(StringFromFormat("SettingMaxValue%d", i + 1).c_str(), &setting.maxValue, 1.0f);
-						section.Get(StringFromFormat("SettingStep%d", i + 1).c_str(), &setting.step, 0.01f);
+						section.Get(PStringFromFormat("SettingName%d", i + 1).c_str(), &setting.name, "");
+						section.Get(PStringFromFormat("SettingDefaultValue%d", i + 1).c_str(), &setting.value, 0.0f);
+						section.Get(PStringFromFormat("SettingMinValue%d", i + 1).c_str(), &setting.minValue, -1.0f);
+						section.Get(PStringFromFormat("SettingMaxValue%d", i + 1).c_str(), &setting.maxValue, 1.0f);
+						section.Get(PStringFromFormat("SettingStep%d", i + 1).c_str(), &setting.step, 0.01f);
 
 						// Populate the default setting value.
-						std::string section = StringFromFormat("%sSettingValue%d", info.section.c_str(), i + 1);
-						if (!setting.name.empty() && g_Config.mPostShaderSetting.find(section) == g_Config.mPostShaderSetting.end()) {
-							g_Config.mPostShaderSetting.insert(std::pair<std::string, float>(section, setting.value));
+						std::string section = PStringFromFormat("%sSettingValue%d", info.section.c_str(), i + 1);
+						if (!setting.name.empty() && g_PConfig.mPostShaderSetting.find(section) == g_PConfig.mPostShaderSetting.end()) {
+							g_PConfig.mPostShaderSetting.insert(std::pair<std::string, float>(section, setting.value));
 						}
 					}
 
@@ -150,7 +150,7 @@ void LoadPostShaderInfo(std::vector<std::string> directories) {
 void ReloadAllPostShaderInfo() {
 	std::vector<std::string> directories;
 	directories.push_back("shaders");
-	directories.push_back(g_Config.memStickDirectory + "PSP/shaders");
+	directories.push_back(g_PConfig.memStickDirectory + "PSP/shaders");
 	LoadPostShaderInfo(directories);
 }
 

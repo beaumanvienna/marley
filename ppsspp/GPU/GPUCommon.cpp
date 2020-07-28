@@ -416,7 +416,7 @@ GPUCommon::~GPUCommon() {
 }
 
 void GPUCommon::UpdateCmdInfo() {
-	if (g_Config.bSoftwareSkinning) {
+	if (g_PConfig.bSoftwareSkinning) {
 		cmdInfo_[GE_CMD_VERTEXTYPE].flags &= ~FLAG_FLUSHBEFOREONCHANGE;
 		cmdInfo_[GE_CMD_VERTEXTYPE].func = &GPUCommon::Execute_VertexTypeSkinning;
 	} else {
@@ -424,7 +424,7 @@ void GPUCommon::UpdateCmdInfo() {
 		cmdInfo_[GE_CMD_VERTEXTYPE].func = &GPUCommon::Execute_VertexType;
 	}
 
-	if (g_Config.bFastMemory) {
+	if (g_PConfig.bFastMemory) {
 		cmdInfo_[GE_CMD_JUMP].func = &GPUCommon::Execute_JumpFast;
 		cmdInfo_[GE_CMD_CALL].func = &GPUCommon::Execute_CallFast;
 	} else {
@@ -468,12 +468,12 @@ void GPUCommon::Reinitialize() {
 
 void GPUCommon::UpdateVsyncInterval(bool force) {
 #if !(PPSSPP_PLATFORM(ANDROID) || defined(USING_QT_UI) || PPSSPP_PLATFORM(UWP) || PPSSPP_PLATFORM(IOS))
-	int desiredVSyncInterval = g_Config.bVSync ? 1 : 0;
+	int desiredVSyncInterval = g_PConfig.bVSync ? 1 : 0;
 	if (PSP_CoreParameter().unthrottle) {
 		desiredVSyncInterval = 0;
 	}
 	if (PSP_CoreParameter().fpsLimit != FPSLimit::NORMAL) {
-		int limit = PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 ? g_Config.iFpsLimit1 : g_Config.iFpsLimit2;
+		int limit = PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 ? g_PConfig.iFpsLimit1 : g_PConfig.iFpsLimit2;
 		// For an alternative speed that is a clean factor of 60, the user probably still wants vsync.
 		if (limit == 0 || (limit >= 0 && limit != 15 && limit != 30 && limit != 60)) {
 			desiredVSyncInterval = 0;
@@ -1634,7 +1634,7 @@ void GPUCommon::Execute_Prim(u32 op, u32 diff) {
 	// right here to still be able to join draw calls.
 
 	uint32_t vtypeCheckMask = ~GE_VTYPE_WEIGHTCOUNT_MASK;
-	if (!g_Config.bSoftwareSkinning)
+	if (!g_PConfig.bSoftwareSkinning)
 		vtypeCheckMask = 0xFFFFFFFF;
 
 	if (debugRecording_ || GPUDebug::IsActive())
@@ -2157,7 +2157,7 @@ void GPUCommon::Execute_BoneMtxNum(u32 op, u32 diff) {
 
 	if (fastLoad) {
 		// If we can't use software skinning, we have to flush and dirty.
-		if (!g_Config.bSoftwareSkinning) {
+		if (!g_PConfig.bSoftwareSkinning) {
 			while ((src[i] >> 24) == GE_CMD_BONEMATRIXDATA) {
 				const u32 newVal = src[i] << 8;
 				if (dst[i] != newVal) {
@@ -2202,7 +2202,7 @@ void GPUCommon::Execute_BoneMtxData(u32 op, u32 diff) {
 	u32 newVal = op << 8;
 	if (num < 96 && newVal != ((const u32 *)gstate.boneMatrix)[num]) {
 		// Bone matrices should NOT flush when software skinning is enabled!
-		if (!g_Config.bSoftwareSkinning) {
+		if (!g_PConfig.bSoftwareSkinning) {
 			Flush();
 			gstate_c.Dirty(DIRTY_BONEMATRIX0 << (num / 12));
 		} else {
@@ -2353,7 +2353,7 @@ void GPUCommon::FastLoadBoneMatrix(u32 target) {
 		uniformsToDirty |= DIRTY_BONEMATRIX0 << ((mtxNum + 1) & 7);
 	}
 
-	if (!g_Config.bSoftwareSkinning) {
+	if (!g_PConfig.bSoftwareSkinning) {
 		Flush();
 		gstate_c.Dirty(uniformsToDirty);
 	} else {

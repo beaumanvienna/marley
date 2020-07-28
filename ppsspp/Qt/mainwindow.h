@@ -79,7 +79,7 @@ private slots:
 	void loadAct();
 	void closeAct();
 	void openmsAct();
-	void saveStateGroup_triggered(QAction *action) { g_Config.iCurrentStateSlot = action->data().toInt(); }
+	void saveStateGroup_triggered(QAction *action) { g_PConfig.iCurrentStateSlot = action->data().toInt(); }
 	void qlstateAct();
 	void qsstateAct();
 	void lstateAct();
@@ -96,11 +96,11 @@ private slots:
 	void stopAct();
 	void resetAct();
 	void switchUMDAct();
-	void displayRotationGroup_triggered(QAction *action) { g_Config.iInternalScreenRotation = action->data().toInt(); }
+	void displayRotationGroup_triggered(QAction *action) { g_PConfig.iInternalScreenRotation = action->data().toInt(); }
 
 	// Debug
 	void breakonloadAct();
-	void ignoreIllegalAct() { g_Config.bIgnoreBadMemAccess = !g_Config.bIgnoreBadMemAccess; }
+	void ignoreIllegalAct() { g_PConfig.bIgnoreBadMemAccess = !g_PConfig.bIgnoreBadMemAccess; }
 	void lmapAct();
 	void smapAct();
 	void lsymAct();
@@ -117,69 +117,69 @@ private slots:
 	void moreSettingsAct() { NativeMessageReceived("settings", ""); }
 
 	void bufferRenderAct() {
-		g_Config.iRenderingMode = !g_Config.iRenderingMode;
+		g_PConfig.iRenderingMode = !g_PConfig.iRenderingMode;
 		NativeMessageReceived("gpu_resized", "");
 	}
-	void linearAct() { g_Config.iTexFiltering = (g_Config.iTexFiltering != 0) ? 0 : 3; }
+	void linearAct() { g_PConfig.iTexFiltering = (g_PConfig.iTexFiltering != 0) ? 0 : 3; }
 
 	void renderingResolutionGroup_triggered(QAction *action) {
-		g_Config.iInternalResolution = action->data().toInt();
+		g_PConfig.iInternalResolution = action->data().toInt();
 		NativeMessageReceived("gpu_resized", "");
-		if (g_Config.iTexScalingLevel == TEXSCALING_AUTO) {
+		if (g_PConfig.iTexScalingLevel == TEXSCALING_AUTO) {
 			NativeMessageReceived("gpu_clearCache", "");
 		}
 	}
 	void windowGroup_triggered(QAction *action) { SetWindowScale(action->data().toInt()); }
 
 	void displayLayoutGroup_triggered(QAction *action) {
-		g_Config.iSmallDisplayZoomType = action->data().toInt();
+		g_PConfig.iSmallDisplayZoomType = action->data().toInt();
 		NativeMessageReceived("gpu_resized", "");
 	}
 	void renderingModeGroup_triggered(QAction *action) {
-		g_Config.iRenderingMode = action->data().toInt();
-		g_Config.bAutoFrameSkip = false;
+		g_PConfig.iRenderingMode = action->data().toInt();
+		g_PConfig.bAutoFrameSkip = false;
 		NativeMessageReceived("gpu_resized", "");
 	}
 	void autoframeskipAct() {
-		g_Config.bAutoFrameSkip = !g_Config.bAutoFrameSkip;
-		if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
-			g_Config.iRenderingMode = FB_BUFFERED_MODE;
+		g_PConfig.bAutoFrameSkip = !g_PConfig.bAutoFrameSkip;
+		if (g_PConfig.iRenderingMode == FB_NON_BUFFERED_MODE) {
+			g_PConfig.iRenderingMode = FB_BUFFERED_MODE;
 			NativeMessageReceived("gpu_resized", "");
 		}
 	}
-	void frameSkippingGroup_triggered(QAction *action) { g_Config.iFrameSkip = action->data().toInt(); }
-	void frameSkippingTypeGroup_triggered(QAction *action) { g_Config.iFrameSkipType = action->data().toInt(); }
-	void textureFilteringGroup_triggered(QAction *action) { g_Config.iTexFiltering = action->data().toInt(); }
-	void screenScalingFilterGroup_triggered(QAction *action) { g_Config.iBufFilter = action->data().toInt(); }
+	void frameSkippingGroup_triggered(QAction *action) { g_PConfig.iFrameSkip = action->data().toInt(); }
+	void frameSkippingTypeGroup_triggered(QAction *action) { g_PConfig.iFrameSkipType = action->data().toInt(); }
+	void textureFilteringGroup_triggered(QAction *action) { g_PConfig.iTexFiltering = action->data().toInt(); }
+	void screenScalingFilterGroup_triggered(QAction *action) { g_PConfig.iBufFilter = action->data().toInt(); }
 	void textureScalingLevelGroup_triggered(QAction *action) {
-		g_Config.iTexScalingLevel = action->data().toInt();
+		g_PConfig.iTexScalingLevel = action->data().toInt();
 		NativeMessageReceived("gpu_clearCache", "");
 	}
 	void textureScalingTypeGroup_triggered(QAction *action) {
-		g_Config.iTexScalingType = action->data().toInt();
+		g_PConfig.iTexScalingType = action->data().toInt();
 		NativeMessageReceived("gpu_clearCache", "");
 	}
 	void deposterizeAct() {
-		g_Config.bTexDeposterize = !g_Config.bTexDeposterize;
+		g_PConfig.bTexDeposterize = !g_PConfig.bTexDeposterize;
 		NativeMessageReceived("gpu_clearCache", "");
 	}
 	void transformAct() {
-		g_Config.bHardwareTransform = !g_Config.bHardwareTransform;
+		g_PConfig.bHardwareTransform = !g_PConfig.bHardwareTransform;
 		NativeMessageReceived("gpu_resized", "");
 	}
-	void vertexCacheAct() { g_Config.bVertexCache = !g_Config.bVertexCache; }
-	void frameskipAct() { g_Config.iFrameSkip = !g_Config.iFrameSkip; }
-	void frameskipTypeAct() { g_Config.iFrameSkipType = !g_Config.iFrameSkipType; }
+	void vertexCacheAct() { g_PConfig.bVertexCache = !g_PConfig.bVertexCache; }
+	void frameskipAct() { g_PConfig.iFrameSkip = !g_PConfig.iFrameSkip; }
+	void frameskipTypeAct() { g_PConfig.iFrameSkipType = !g_PConfig.iFrameSkipType; }
 
 	// Sound
 	void audioAct() {
-		g_Config.bEnableSound = !g_Config.bEnableSound;
+		g_PConfig.bEnableSound = !g_PConfig.bEnableSound;
 		if (PSP_IsInited() && !IsAudioInitialised())
 			Audio_Init();
 	}
 
 	// Cheats
-	void cheatsAct() { g_Config.bEnableCheats = !g_Config.bEnableCheats; }
+	void cheatsAct() { g_PConfig.bEnableCheats = !g_PConfig.bEnableCheats; }
 
 	// Chat
 	void chatAct() { NativeMessageReceived("chat screen", ""); }
@@ -187,10 +187,10 @@ private slots:
 	void fullscrAct();
 	void raiseTopMost();
 	void statsAct() {
-		g_Config.bShowDebugStats = !g_Config.bShowDebugStats;
+		g_PConfig.bShowDebugStats = !g_PConfig.bShowDebugStats;
 		NativeMessageReceived("clear jit", "");
 	}
-	void showFPSAct() { g_Config.iShowFPSCounter = g_Config.iShowFPSCounter ? 0 : 3; } // 3 = both speed and FPS
+	void showFPSAct() { g_PConfig.iShowFPSCounter = g_PConfig.iShowFPSCounter ? 0 : 3; } // 3 = both speed and FPS
 
 	// Help
 	void websiteAct();

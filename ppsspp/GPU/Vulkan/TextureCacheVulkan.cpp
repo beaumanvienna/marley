@@ -526,7 +526,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 	samp.mipmapMode = key.mipFilt ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
 	if (key.aniso) {
 		// Docs say the min of this value and the supported max are used.
-		samp.maxAnisotropy = 1 << g_Config.iAnisotropyLevel;
+		samp.maxAnisotropy = 1 << g_PConfig.iAnisotropyLevel;
 		samp.anisotropyEnable = true;
 	} else {
 		samp.maxAnisotropy = 1.0f;
@@ -545,7 +545,7 @@ VkSampler SamplerCache::GetOrCreateSampler(const SamplerCacheKey &key) {
 std::string SamplerCache::DebugGetSamplerString(std::string id, DebugShaderStringType stringType) {
 	SamplerCacheKey key;
 	key.FromString(id);
-	return StringFromFormat("%s/%s mag:%s min:%s mip:%s maxLod:%f minLod:%f bias:%f",
+	return PStringFromFormat("%s/%s mag:%s min:%s mip:%s maxLod:%f minLod:%f bias:%f",
 		key.sClamp ? "Clamp" : "Wrap",
 		key.tClamp ? "Clamp" : "Wrap",
 		key.magFilt ? "Linear" : "Nearest",
@@ -649,10 +649,10 @@ void TextureCacheVulkan::DeviceRestore(VulkanContext *vulkan, Draw::DrawContext 
 	PvkCreateSampler(vulkan_->GetDevice(), &samp, nullptr, &samplerNearest_);
 
 	std::string error;
-	std::string fullUploadShader = StringFromFormat(uploadShader, shader4xbrz);
-	std::string fullCopyShader = StringFromFormat(copyShader, shader4xbrz);
+	std::string fullUploadShader = PStringFromFormat(uploadShader, shader4xbrz);
+	std::string fullCopyShader = PStringFromFormat(copyShader, shader4xbrz);
 
-	if (g_Config.bTexHardwareScaling) {
+	if (g_PConfig.bTexHardwareScaling) {
 		uploadCS_ = CompileShaderModule(vulkan_, VK_SHADER_STAGE_COMPUTE_BIT, fullUploadShader.c_str(), &error);
 		_dbg_assert_msg_(uploadCS_ != VK_NULL_HANDLE, "failed to compile upload shader");
 		copyCS_ = CompileShaderModule(vulkan_, VK_SHADER_STAGE_COMPUTE_BIT, fullCopyShader.c_str(), &error);
@@ -724,9 +724,9 @@ void TextureCacheVulkan::StartFrame() {
 		clearCacheNextFrame_ = false;
 	} else {
 		int slabPressureLimit = TEXCACHE_SLAB_PRESSURE;
-		if (g_Config.iTexScalingLevel > 1) {
+		if (g_PConfig.iTexScalingLevel > 1) {
 			// Since textures are 2D maybe we should square this, but might get too non-aggressive.
-			slabPressureLimit *= g_Config.iTexScalingLevel;
+			slabPressureLimit *= g_PConfig.iTexScalingLevel;
 		}
 		Decimate(allocator_->GetSlabCount() > slabPressureLimit);
 	}
@@ -809,7 +809,7 @@ void TextureCacheVulkan::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFr
 	bool useShaderDepal = framebufferManager_->GetCurrentRenderVFB() != framebuffer;
 	bool expand32 = !gstate_c.Supports(GPU_SUPPORTS_16BIT_FORMATS);
 
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
 		if (useShaderDepal) {
 			depalShaderCache_->SetPushBuffer(drawEngine_->GetPushBufferForTextureData());
 			const GEPaletteFormat clutFormat = gstate.getClutPaletteFormat();
@@ -1001,7 +1001,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 		}
 	}
 
-	// In addition, simply don't load more than level 0 if g_Config.bMipMap is false.
+	// In addition, simply don't load more than level 0 if g_PConfig.bMipMap is false.
 	if (badMipSizes) {
 		maxLevel = 0;
 	}
@@ -1032,14 +1032,14 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 	// Don't scale the PPGe texture.
 	if (entry->addr > 0x05000000 && entry->addr < PSP_GetKernelMemoryEnd())
 		scaleFactor = 1;
-	if ((entry->status & TexCacheEntry::STATUS_CHANGE_FREQUENT) != 0 && scaleFactor != 1 && !g_Config.bTexHardwareScaling) {
+	if ((entry->status & TexCacheEntry::STATUS_CHANGE_FREQUENT) != 0 && scaleFactor != 1 && !g_PConfig.bTexHardwareScaling) {
 		// Remember for later that we /wanted/ to scale this texture.
 		entry->status |= TexCacheEntry::STATUS_TO_SCALE;
 		scaleFactor = 1;
 	}
 
 	if (scaleFactor != 1) {
-		if (texelsScaledThisFrame_ >= TEXCACHE_MAX_TEXELS_SCALED && !g_Config.bTexHardwareScaling) {
+		if (texelsScaledThisFrame_ >= TEXCACHE_MAX_TEXELS_SCALED && !g_PConfig.bTexHardwareScaling) {
 			entry->status |= TexCacheEntry::STATUS_TO_SCALE;
 			scaleFactor = 1;
 		} else {
@@ -1091,7 +1091,7 @@ void TextureCacheVulkan::BuildTexture(TexCacheEntry *const entry) {
 		// If we want to use the GE debugger, we should add VK_IMAGE_USAGE_TRANSFER_SRC_BIT too...
 
 		// Compute experiment
-		if (actualFmt == VULKAN_8888_FORMAT && scaleFactor > 1 && g_Config.bTexHardwareScaling) {
+		if (actualFmt == VULKAN_8888_FORMAT && scaleFactor > 1 && g_PConfig.bTexHardwareScaling) {
 			// Enable the experiment you want.
 			if (uploadCS_ != VK_NULL_HANDLE)
 				computeUpload = true;

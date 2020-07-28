@@ -68,7 +68,7 @@ struct SurfaceInfo {
 		if (tess_u < 1) tess_u = 1;
 		if (tess_v < 1) tess_v = 1;
 
-		switch (g_Config.iSplineBezierQuality) {
+		switch (g_PConfig.iSplineBezierQuality) {
 		case LOW_QUALITY:
 			tess_u = 2;
 			tess_v = 2;

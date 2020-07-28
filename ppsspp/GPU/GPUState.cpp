@@ -245,7 +245,7 @@ void GPUgstate::Restore(u32_le *ptr) {
 }
 
 bool vertTypeIsSkinningEnabled(u32 vertType) {
-	if (g_Config.bSoftwareSkinning)
+	if (g_PConfig.bSoftwareSkinning)
 		return false;
 	else
 		return ((vertType & GE_VTYPE_WEIGHT_MASK) != GE_VTYPE_WEIGHT_NONE);

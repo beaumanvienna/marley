@@ -354,9 +354,9 @@ void DrawEngineD3D11::DoFlush() {
 		bool useElements = true;
 
 		// Cannot cache vertex data with morph enabled.
-		bool useCache = g_Config.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
+		bool useCache = g_PConfig.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
 		// Also avoid caching when software skinning.
-		if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK))
+		if (g_PConfig.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK))
 			useCache = false;
 
 		if (useCache) {

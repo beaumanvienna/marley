@@ -614,7 +614,7 @@ static const D3DVERTEXELEMENT9 g_FramebufferVertexElements[] = {
 				w = vfb->width * maxRes;
 				h = vfb->height * maxRes;
 				tempFBO = draw_->CreateFramebuffer({ w, h, 1, 1, false, Draw::FBO_8888 });
-				if (draw_->BlitFramebuffer(vfb->fbo, 0, 0, vfb->renderWidth, vfb->renderHeight, tempFBO, 0, 0, w, h, Draw::FB_COLOR_BIT, g_Config.iBufFilter == SCALE_LINEAR ? Draw::FB_BLIT_LINEAR : Draw::FB_BLIT_NEAREST, "GetFramebuffer")) {
+				if (draw_->BlitFramebuffer(vfb->fbo, 0, 0, vfb->renderWidth, vfb->renderHeight, tempFBO, 0, 0, w, h, Draw::FB_COLOR_BIT, g_PConfig.iBufFilter == SCALE_LINEAR ? Draw::FB_BLIT_LINEAR : Draw::FB_BLIT_NEAREST, "GetFramebuffer")) {
 					renderTarget = (LPDIRECT3DSURFACE9)draw_->GetFramebufferAPITexture(tempFBO, Draw::FB_COLOR_BIT | Draw::FB_SURFACE_BIT, 0);
 				}
 			}

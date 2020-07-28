@@ -403,7 +403,7 @@ int SavedataParam::Save(SceUtilitySavedataParam* param, const std::string &saveD
 	memset(cryptedHash,0,0x10);
 	// Encrypt save.
 	// TODO: Is this the correct difference between MAKEDATA and MAKEDATASECURE?
-	if (param->dataBuf.IsValid() && g_Config.bEncryptSave && secureMode)
+	if (param->dataBuf.IsValid() && g_PConfig.bEncryptSave && secureMode)
 	{
 		cryptedSize = param->dataSize;
 		if(cryptedSize == 0 || (SceSize)cryptedSize > param->dataBufSize)
@@ -688,7 +688,7 @@ void SavedataParam::LoadCryptedSave(SceUtilitySavedataParam *param, u8 *data, co
 			decryptMode = prevCryptMode;
 
 			// Don't notify the user if we're not going to upgrade the save.
-			if (!g_Config.bEncryptSave) {
+			if (!g_PConfig.bEncryptSave) {
 				auto di = GetI18NCategory("Dialog");
 				host->NotifyUserMessage(di->T("When you save, it will load on a PSP, but not an older PPSSPP"), 6.0f);
 				host->NotifyUserMessage(di->T("Old savedata detected"), 6.0f);
@@ -699,7 +699,7 @@ void SavedataParam::LoadCryptedSave(SceUtilitySavedataParam *param, u8 *data, co
 			} else {
 				WARN_LOG_REPORT(SCEUTILITY, "Savedata loading with detected hashmode %d instead of file's %d", decryptMode, prevCryptMode);
 			}
-			if (g_Config.bSavedataUpgrade) {
+			if (g_PConfig.bSavedataUpgrade) {
 				decryptMode = prevCryptMode;
 				auto di = GetI18NCategory("Dialog");
 				host->NotifyUserMessage(di->T("When you save, it will not work on outdated PSP Firmware anymore"), 6.0f);
@@ -1075,7 +1075,7 @@ int SavedataParam::GetSizes(SceUtilitySavedataParam *param)
 		// Add the size of the data itself (don't forget encryption overhead.)
 		// This is only added if a filename is specified.
 		if (param->fileName[0] != 0) {
-			if (g_Config.bEncryptSave) {
+			if (g_PConfig.bEncryptSave) {
 				total_size += getSizeNormalized((u32)param->dataSize + 16);
 			} else {
 				total_size += getSizeNormalized((u32)param->dataSize);

@@ -197,7 +197,7 @@ void SoftGPU::CopyToCurrentFboFromDisplayRam(int srcwidth, int srcheight) {
 	desc.tag = "SoftGPU";
 	bool hasImage = true;
 
-	OutputFlags outputFlags = g_Config.iBufFilter == SCALE_NEAREST ? OutputFlags::NEAREST : OutputFlags::LINEAR;
+	OutputFlags outputFlags = g_PConfig.iBufFilter == SCALE_NEAREST ? OutputFlags::NEAREST : OutputFlags::LINEAR;
 	bool hasPostShader = presentation_->HasPostShader();
 
 	if (PSP_CoreParameter().compat.flags().DarkStalkersPresentHack && displayFormat_ == GE_FORMAT_5551 && g_DarkStalkerStretch != DSStretch::Off) {
@@ -279,7 +279,7 @@ void SoftGPU::CopyToCurrentFboFromDisplayRam(int srcwidth, int srcheight) {
 	}
 
 	presentation_->SourceTexture(fbTex, desc.width, desc.height);
-	presentation_->CopyToOutput(outputFlags, g_Config.iInternalScreenRotation, u0, v0, u1, v1);
+	presentation_->CopyToOutput(outputFlags, g_PConfig.iInternalScreenRotation, u0, v0, u1, v1);
 }
 
 void SoftGPU::CopyDisplayToOutput(bool reallyDirty) {
@@ -290,7 +290,7 @@ void SoftGPU::CopyDisplayToOutput(bool reallyDirty) {
 
 void SoftGPU::Resized() {
 	// Force the render params to 480x272 so other things work.
-	if (g_Config.IsPortrait()) {
+	if (g_PConfig.IsPortrait()) {
 		PSP_CoreParameter().renderWidth = 272;
 		PSP_CoreParameter().renderHeight = 480;
 	} else {
@@ -926,7 +926,7 @@ bool SoftGPU::PerformStencilUpload(u32 dest, int size)
 }
 
 bool SoftGPU::FramebufferDirty() {
-	if (g_Config.iFrameSkip != 0) {
+	if (g_PConfig.iFrameSkip != 0) {
 		bool dirty = framebufferDirty_;
 		framebufferDirty_ = false;
 		return dirty;

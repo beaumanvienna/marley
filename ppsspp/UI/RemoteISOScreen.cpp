@@ -91,8 +91,8 @@ static ServerAllowStatus IsServerAllowed(int port) {
 }
 
 static std::string RemoteSubdir() {
-	if (g_Config.bRemoteISOManual) {
-		return g_Config.sRemoteISOSubdir;
+	if (g_PConfig.bRemoteISOManual) {
+		return g_PConfig.sRemoteISOSubdir;
 	}
 
 	return "/";
@@ -108,7 +108,7 @@ bool RemoteISOConnectScreen::FindServer(std::string &resultHost, int &resultPort
 
 	auto ri = GetI18NCategory("RemoteISO");
 	auto SetStatus = [&](const std::string &key, const std::string &host, int port) {
-		std::string formatted = ReplaceAll(ri->T(key), "[URL]", StringFromFormat("http://%s:%d/", host.c_str(), port));
+		std::string formatted = ReplaceAll(ri->T(key), "[URL]", PStringFromFormat("http://%s:%d/", host.c_str(), port));
 
 		std::lock_guard<std::mutex> guard(statusLock_);
 		statusMessage_ = formatted;
@@ -169,14 +169,14 @@ bool RemoteISOConnectScreen::FindServer(std::string &resultHost, int &resultPort
 	};
 
 	// Try last server first, if it is set
-	if (g_Config.iLastRemoteISOPort && g_Config.sLastRemoteISOServer != "") {
-		if (TryServer(g_Config.sLastRemoteISOServer.c_str(), g_Config.iLastRemoteISOPort)) {
+	if (g_PConfig.iLastRemoteISOPort && g_PConfig.sLastRemoteISOServer != "") {
+		if (TryServer(g_PConfig.sLastRemoteISOServer.c_str(), g_PConfig.iLastRemoteISOPort)) {
 			return true;
 		}
 	}
 
 	// Don't scan if in manual mode.
-	if (g_Config.bRemoteISOManual || scanCancelled) {
+	if (g_PConfig.bRemoteISOManual || scanCancelled) {
 		return false;
 	}
 
@@ -259,7 +259,7 @@ void RemoteISOScreen::update() {
 	UIScreenWithBackground::update();
 
 	if (!WebServerStopped(WebServerFlags::DISCS)) {
-		auto result = IsServerAllowed(g_Config.iRemoteISOPort);
+		auto result = IsServerAllowed(g_PConfig.iRemoteISOPort);
 		if (result == ServerAllowStatus::NO) {
 			firewallWarning_->SetVisibility(V_VISIBLE);
 		} else if (result == ServerAllowStatus::YES) {
@@ -474,15 +474,15 @@ ScanStatus RemoteISOConnectScreen::GetStatus() {
 
 void RemoteISOConnectScreen::ExecuteLoad() {
 	std::string subdir = RemoteSubdir();
-	url_ = StringFromFormat("http://%s:%d%s", host_.c_str(), port_, subdir.c_str());
+	url_ = PStringFromFormat("http://%s:%d%s", host_.c_str(), port_, subdir.c_str());
 	bool result = LoadGameList(url_, games_);
 	if (scanAborted) {
 		return;
 	}
 
-	if (result && !games_.empty() && !g_Config.bRemoteISOManual) {
-		g_Config.sLastRemoteISOServer = host_;
-		g_Config.iLastRemoteISOPort = port_;
+	if (result && !games_.empty() && !g_PConfig.bRemoteISOManual) {
+		g_PConfig.sLastRemoteISOServer = host_;
+		g_PConfig.iLastRemoteISOPort = port_;
 	}
 
 	std::lock_guard<std::mutex> guard(statusLock_);
@@ -535,7 +535,7 @@ void RemoteISOBrowseScreen::CreateViews() {
 	ScrollView *scrollRecentGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	scrollRecentGames->SetTag("RemoteGamesTab");
 	RemoteGameBrowser *tabRemoteGames = new RemoteGameBrowser(
-		url_, games_, BrowseFlags::PIN, &g_Config.bGridView1, screenManager(), "", "",
+		url_, games_, BrowseFlags::PIN, &g_PConfig.bGridView1, screenManager(), "", "",
 		new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 	scrollRecentGames->Add(tabRemoteGames);
 	gameBrowsers_.push_back(tabRemoteGames);
@@ -595,29 +595,29 @@ void RemoteISOSettingsScreen::CreateViews() {
 	remoteisoSettingsScroll->Add(remoteisoSettings);
 
 	remoteisoSettings->Add(new ItemHeader(ri->T("Remote disc streaming")));
-	remoteisoSettings->Add(new CheckBox(&g_Config.bRemoteShareOnStartup, ri->T("Share on PPSSPP startup")));
-	remoteisoSettings->Add(new CheckBox(&g_Config.bRemoteISOManual, ri->T("Manual Mode Client", "Manually configure client")));
+	remoteisoSettings->Add(new CheckBox(&g_PConfig.bRemoteShareOnStartup, ri->T("Share on PPSSPP startup")));
+	remoteisoSettings->Add(new CheckBox(&g_PConfig.bRemoteISOManual, ri->T("Manual Mode Client", "Manually configure client")));
 #if !defined(MOBILE_DEVICE)
-	PopupTextInputChoice *remoteServer = remoteisoSettings->Add(new PopupTextInputChoice(&g_Config.sLastRemoteISOServer, ri->T("Remote Server"), "", 255, screenManager()));
+	PopupTextInputChoice *remoteServer = remoteisoSettings->Add(new PopupTextInputChoice(&g_PConfig.sLastRemoteISOServer, ri->T("Remote Server"), "", 255, screenManager()));
 #else
-	ChoiceWithValueDisplay *remoteServer = new ChoiceWithValueDisplay(&g_Config.sLastRemoteISOServer, ri->T("Remote Server"), (const char *)nullptr);
+	ChoiceWithValueDisplay *remoteServer = new ChoiceWithValueDisplay(&g_PConfig.sLastRemoteISOServer, ri->T("Remote Server"), (const char *)nullptr);
 	remoteisoSettings->Add(remoteServer);
 	remoteServer->OnClick.Handle(this, &RemoteISOSettingsScreen::OnClickRemoteServer);
 #endif
-	remoteServer->SetEnabledPtr(&g_Config.bRemoteISOManual);
-	PopupSliderChoice *remotePort = remoteisoSettings->Add(new PopupSliderChoice(&g_Config.iLastRemoteISOPort, 0, 65535, ri->T("Remote Port", "Remote Port"), 100, screenManager()));
-	remotePort->SetEnabledPtr(&g_Config.bRemoteISOManual);
+	remoteServer->SetEnabledPtr(&g_PConfig.bRemoteISOManual);
+	PopupSliderChoice *remotePort = remoteisoSettings->Add(new PopupSliderChoice(&g_PConfig.iLastRemoteISOPort, 0, 65535, ri->T("Remote Port", "Remote Port"), 100, screenManager()));
+	remotePort->SetEnabledPtr(&g_PConfig.bRemoteISOManual);
 #if !defined(MOBILE_DEVICE)
-	PopupTextInputChoice *remoteSubdir = remoteisoSettings->Add(new PopupTextInputChoice(&g_Config.sRemoteISOSubdir, ri->T("Remote Subdirectory"), "", 255, screenManager()));
+	PopupTextInputChoice *remoteSubdir = remoteisoSettings->Add(new PopupTextInputChoice(&g_PConfig.sRemoteISOSubdir, ri->T("Remote Subdirectory"), "", 255, screenManager()));
 	remoteSubdir->OnChange.Handle(this, &RemoteISOSettingsScreen::OnChangeRemoteISOSubdir);
 #else
 	ChoiceWithValueDisplay *remoteSubdir = remoteisoSettings->Add(
-			new ChoiceWithValueDisplay(&g_Config.sRemoteISOSubdir, ri->T("Remote Subdirectory"), (const char *)nullptr));
+			new ChoiceWithValueDisplay(&g_PConfig.sRemoteISOSubdir, ri->T("Remote Subdirectory"), (const char *)nullptr));
 	remoteSubdir->OnClick.Handle(this, &RemoteISOSettingsScreen::OnClickRemoteISOSubdir);
 #endif
-	remoteSubdir->SetEnabledPtr(&g_Config.bRemoteISOManual);
+	remoteSubdir->SetEnabledPtr(&g_PConfig.bRemoteISOManual);
 
-	PopupSliderChoice *portChoice = new PopupSliderChoice(&g_Config.iRemoteISOPort, 0, 65535, ri->T("Local Server Port", "Local Server Port"), 100, screenManager());
+	PopupSliderChoice *portChoice = new PopupSliderChoice(&g_PConfig.iRemoteISOPort, 0, 65535, ri->T("Local Server Port", "Local Server Port"), 100, screenManager());
 	remoteisoSettings->Add(portChoice);
 	portChoice->SetDisabledPtr(&serverRunning_);
 	remoteisoSettings->Add(new Spacer(25.0));
@@ -630,8 +630,8 @@ void RemoteISOSettingsScreen::CreateViews() {
 UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteServer(UI::EventParams &e) {
 #if PPSSPP_PLATFORM(WINDOWS) || defined(USING_QT_UI) || defined(__ANDROID__)
 	auto ri = GetI18NCategory("RemoteISO");
-	System_InputBoxGetString(ri->T("Remote Server"), g_Config.sLastRemoteISOServer, [](bool result, const std::string &value) {
-		g_Config.sLastRemoteISOServer = value;
+	System_InputBoxGetString(ri->T("Remote Server"), g_PConfig.sLastRemoteISOServer, [](bool result, const std::string &value) {
+		g_PConfig.sLastRemoteISOServer = value;
 	});
 #endif
 	return UI::EVENT_DONE;
@@ -640,8 +640,8 @@ UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteServer(UI::EventParams &e)
 UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteISOSubdir(UI::EventParams &e) {
 #if PPSSPP_PLATFORM(WINDOWS) || defined(USING_QT_UI) || defined(__ANDROID__)
 	auto ri = GetI18NCategory("RemoteISO");
-	System_InputBoxGetString(ri->T("Remote Subdirectory"), g_Config.sRemoteISOSubdir, [](bool result, const std::string &value) {
-		g_Config.sRemoteISOSubdir = value;
+	System_InputBoxGetString(ri->T("Remote Subdirectory"), g_PConfig.sRemoteISOSubdir, [](bool result, const std::string &value) {
+		g_PConfig.sRemoteISOSubdir = value;
 	});
 #endif
 	return UI::EVENT_DONE;
@@ -649,11 +649,11 @@ UI::EventReturn RemoteISOSettingsScreen::OnClickRemoteISOSubdir(UI::EventParams 
 
 UI::EventReturn RemoteISOSettingsScreen::OnChangeRemoteISOSubdir(UI::EventParams &e) {
 	//Conform to HTTP standards
-	ReplaceAll(g_Config.sRemoteISOSubdir, " ", "%20");
-	ReplaceAll(g_Config.sRemoteISOSubdir, "\\", "/");
+	ReplaceAll(g_PConfig.sRemoteISOSubdir, " ", "%20");
+	ReplaceAll(g_PConfig.sRemoteISOSubdir, "\\", "/");
 	//Make sure it begins with /
-	if (g_Config.sRemoteISOSubdir.empty() || g_Config.sRemoteISOSubdir[0] != '/')
-		g_Config.sRemoteISOSubdir = "/" + g_Config.sRemoteISOSubdir;
+	if (g_PConfig.sRemoteISOSubdir.empty() || g_PConfig.sRemoteISOSubdir[0] != '/')
+		g_PConfig.sRemoteISOSubdir = "/" + g_PConfig.sRemoteISOSubdir;
 	
 	return UI::EVENT_DONE;
 }

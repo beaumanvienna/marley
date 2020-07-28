@@ -306,8 +306,8 @@ void UpdateNativeMenuKeys() {
 	std::vector<KeyDef> tabLeft, tabRight;
 	std::vector<KeyDef> upKeys, downKeys, leftKeys, rightKeys;
 
-	int confirmKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
-	int cancelKey = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
+	int confirmKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
+	int cancelKey = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CIRCLE : CTRL_CROSS;
 
 	// Mouse mapping might be problematic in UI, so let's ignore mouse for UI
 	KeyFromPspButton(confirmKey, &confirmKeys, true);
@@ -725,7 +725,7 @@ static std::string FindName(int key, const KeyMap_IntStrPair list[], size_t size
 	for (size_t i = 0; i < size; i++)
 		if (list[i].key == key)
 			return list[i].name;
-	return StringFromFormat("%02x?", key);
+	return PStringFromFormat("%02x?", key);
 }
 
 std::string GetKeyName(int keyCode) {
@@ -915,13 +915,13 @@ void RestoreDefault() {
 }
 
 // TODO: Make the ini format nicer.
-void LoadFromIni(IniFile &file) {
+void LoadFromIni(PIniFile &file) {
 	RestoreDefault();
 	if (!file.HasSection("ControlMapping")) {
 		return;
 	}
 
-	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::string value;
 		controls->Get(psp_button_names[i].name, &value, "");
@@ -947,8 +947,8 @@ void LoadFromIni(IniFile &file) {
 	UpdateNativeMenuKeys();
 }
 
-void SaveToIni(IniFile &file) {
-	IniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
+void SaveToIni(PIniFile &file) {
+	PIniFile::Section *controls = file.GetOrCreateSection("ControlMapping");
 
 	for (size_t i = 0; i < ARRAY_SIZE(psp_button_names); i++) {
 		std::vector<KeyDef> keys;

@@ -104,7 +104,7 @@ static void InitSDLAudioDevice(const std::string &name = "") {
 
 	std::string startDevice = name;
 	if (startDevice.empty()) {
-		startDevice = g_Config.sAudioDevice;
+		startDevice = g_PConfig.sAudioDevice;
 	}
 
 	audioDev = 0;
@@ -588,11 +588,11 @@ static SDL_AudioSpec g_retFmt;
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
         pixel_xres = g_DesktopWidth;
         pixel_yres = g_DesktopHeight;
-		g_Config.bFullScreen = true;
+		g_PConfig.bFullScreen = true;
 	} else {
         pixel_xres = WINDOW_WIDTH;
         pixel_yres = WINDOW_HEIGHT;
-		g_Config.bFullScreen = false;
+		g_PConfig.bFullScreen = false;
 	}
 
 	set_dpi = 1.0f / set_dpi;
@@ -646,7 +646,7 @@ static SDL_AudioSpec g_retFmt;
     SDL_GetWindowPosition(gWindow,&x,&y);
     /*
 	// Use the setting from the config when initing the window.
-	if (g_Config.bFullScreen)
+	if (g_PConfig.bFullScreen)
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	int x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(getDisplayNumber());
@@ -666,18 +666,18 @@ static SDL_AudioSpec g_retFmt;
 	SDL_Window *window = gWindow;
 
 	std::string error_message;
-	if (g_Config.iGPUBackend == (int)GPUBackend::OPENGL) {
+	if (g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL) {
 		SDLGLGraphicsContext *ctx = new SDLGLGraphicsContext();
 		if (ctx->Init(window, x, y, mode, &error_message) != 0) {
 			printf("GL init error '%s'\n", error_message.c_str());
 		}
 		graphicsContext = ctx;
-	} else if (g_Config.iGPUBackend == (int)GPUBackend::VULKAN) {
+	} else if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) {
 		SDLVulkanGraphicsContext *ctx = new SDLVulkanGraphicsContext();
 		if (!ctx->Init(window, x, y, mode, &error_message)) {
 			printf("Vulkan init error '%s' - falling back to GL\n", error_message.c_str());
-			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
-			SetGPUBackend((GPUBackend)g_Config.iGPUBackend);
+			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
+			SetGPUBackend((GPUBackend)g_PConfig.iGPUBackend);
 			delete ctx;
 			SDLGLGraphicsContext *glctx = new SDLGLGraphicsContext();
 			glctx->Init(window, x, y, mode, &error_message);
@@ -687,7 +687,7 @@ static SDL_AudioSpec g_retFmt;
 		}
 	}
 
-	bool useEmuThread = g_Config.iGPUBackend == (int)GPUBackend::OPENGL;
+	bool useEmuThread = g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL;
 
 	SDL_SetWindowTitle(window, "PPSSPP Marley");
 
@@ -798,10 +798,10 @@ static SDL_AudioSpec g_retFmt;
 					UpdateScreenScale(new_width, new_height);
 
 					// Set variable here in case fullscreen was toggled by hotkey
-					g_Config.bFullScreen = fullscreen;
+					g_PConfig.bFullScreen = fullscreen;
 
 					// Hide/Show cursor correctly toggling fullscreen
-					if (lastUIState == UISTATE_INGAME && fullscreen && !g_Config.bShowTouchControls) {
+					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) {
 						SDL_ShowCursor(SDL_DISABLE);
 					} else if (lastUIState != UISTATE_INGAME || !fullscreen) {
 						SDL_ShowCursor(SDL_ENABLE);
@@ -1047,8 +1047,8 @@ static SDL_AudioSpec g_retFmt;
 						break;
 					}
 					// Don't start auto switching for a second, because some devices init on start.
-					bool doAutoSwitch = g_Config.bAutoAudioDevice && framecount > 60;
-					if (doAutoSwitch || g_Config.sAudioDevice == name) {
+					bool doAutoSwitch = g_PConfig.bAutoAudioDevice && framecount > 60;
+					if (doAutoSwitch || g_PConfig.sAudioDevice == name) {
 						StopSDLAudioDevice();
 						InitSDLAudioDevice(name ? name : "");
 					}
@@ -1080,17 +1080,17 @@ static SDL_AudioSpec g_retFmt;
 #if !defined(MOBILE_DEVICE)
 		if (lastUIState != GetUIState()) {
 			lastUIState = GetUIState();
-			if (lastUIState == UISTATE_INGAME && g_Config.bFullScreen && !g_Config.bShowTouchControls)
+			if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !g_PConfig.bShowTouchControls)
 				SDL_ShowCursor(SDL_DISABLE);
-			if (lastUIState != UISTATE_INGAME || !g_Config.bFullScreen)
+			if (lastUIState != UISTATE_INGAME || !g_PConfig.bFullScreen)
 				SDL_ShowCursor(SDL_ENABLE);
 		}
 #endif
 
 		// Disabled by default, needs a workaround to map to psp keys.
-		if (g_Config.bMouseControl) {
-			float scaleFactor_x = g_dpi_scale_x * 0.1 * g_Config.fMouseSensitivity;
-			float scaleFactor_y = g_dpi_scale_y * 0.1 * g_Config.fMouseSensitivity;
+		if (g_PConfig.bMouseControl) {
+			float scaleFactor_x = g_dpi_scale_x * 0.1 * g_PConfig.fMouseSensitivity;
+			float scaleFactor_y = g_dpi_scale_y * 0.1 * g_PConfig.fMouseSensitivity;
 
 			AxisInput axisX, axisY;
 			axisX.axisId = JOYSTICK_AXIS_MOUSE_REL_X;
@@ -1100,14 +1100,14 @@ static SDL_AudioSpec g_retFmt;
 			axisY.deviceId = DEVICE_ID_MOUSE;
 			axisY.value = std::max(-1.0f, std::min(1.0f, mouseDeltaY * scaleFactor_y));
 
-			if (GetUIState() == UISTATE_INGAME || g_Config.bMapMouse) {
+			if (GetUIState() == UISTATE_INGAME || g_PConfig.bMapMouse) {
 				NativeAxis(axisX);
 				NativeAxis(axisY);
 			}
-			mouseDeltaX *= g_Config.fMouseSmoothing;
-			mouseDeltaY *= g_Config.fMouseSmoothing;
+			mouseDeltaX *= g_PConfig.fMouseSmoothing;
+			mouseDeltaY *= g_PConfig.fMouseSmoothing;
 		}
-		bool captureMouseCondition = g_Config.bMouseControl && ((GetUIState() == UISTATE_INGAME && g_Config.bMouseConfine) || g_Config.bMapMouse);
+		bool captureMouseCondition = g_PConfig.bMouseControl && ((GetUIState() == UISTATE_INGAME && g_PConfig.bMouseConfine) || g_PConfig.bMapMouse);
 		if (mouseCaptured != captureMouseCondition) {
 			mouseCaptured = captureMouseCondition;
 			if (captureMouseCondition)
@@ -1120,7 +1120,7 @@ static SDL_AudioSpec g_retFmt;
 			// glsl_refresh(); // auto-reloads modified GLSL shaders once per second.
 		}
 
-		bool renderThreadPaused = windowHidden && g_Config.bPauseWhenMinimized && emuThreadState != (int)EmuThreadState::DISABLED;
+		bool renderThreadPaused = windowHidden && g_PConfig.bPauseWhenMinimized && emuThreadState != (int)EmuThreadState::DISABLED;
 		if (emuThreadState != (int)EmuThreadState::DISABLED && !renderThreadPaused) {
 			if (!graphicsContext->ThreadFrame())
 				break;

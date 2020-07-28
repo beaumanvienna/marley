@@ -90,8 +90,8 @@ public:
 private:
 	std::string GetIniPath(const std::string &languageID) const;
 	void Clear();
-	I18NCategory *LoadSection(const IniFile::Section *section, const char *name);
-	void SaveSection(IniFile &ini, IniFile::Section *section, std::shared_ptr<I18NCategory> cat);
+	I18NCategory *LoadSection(const PIniFile::Section *section, const char *name);
+	void SaveSection(PIniFile &ini, PIniFile::Section *section, std::shared_ptr<I18NCategory> cat);
 
 	mutable std::mutex catsLock_;
 	std::map<std::string, std::shared_ptr<I18NCategory>> cats_;

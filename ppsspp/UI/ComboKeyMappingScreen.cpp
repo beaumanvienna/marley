@@ -69,33 +69,33 @@ void ComboKeyScreen::CreateViews() {
 	memset(array, 0, sizeof(array));
 	switch (*mode) {
 	case 0: 
-		toggle = &g_Config.bComboToggle0;
+		toggle = &g_PConfig.bComboToggle0;
 		for (int i = 0; i < 16; i++)
-			array[i] = (0x01 == ((g_Config.iCombokey0 >> i) & 0x01));
+			array[i] = (0x01 == ((g_PConfig.iCombokey0 >> i) & 0x01));
 		break;
 	case 1:
-		toggle = &g_Config.bComboToggle1;
+		toggle = &g_PConfig.bComboToggle1;
 		for (int i = 0; i < 16; i++)
-			array[i] = (0x01 == ((g_Config.iCombokey1 >> i) & 0x01));
+			array[i] = (0x01 == ((g_PConfig.iCombokey1 >> i) & 0x01));
 		break;
 	case 2:
-		toggle = &g_Config.bComboToggle2;
+		toggle = &g_PConfig.bComboToggle2;
 		for (int i = 0; i < 16; i++)
-			array[i] = (0x01 == ((g_Config.iCombokey2 >> i) & 0x01));
+			array[i] = (0x01 == ((g_PConfig.iCombokey2 >> i) & 0x01));
 		break;
 	case 3:
-		toggle = &g_Config.bComboToggle3;
+		toggle = &g_PConfig.bComboToggle3;
 		for (int i = 0; i < 16; i++)
-			array[i] = (0x01 == ((g_Config.iCombokey3 >> i) & 0x01));
+			array[i] = (0x01 == ((g_PConfig.iCombokey3 >> i) & 0x01));
 		break;
 	case 4:
-		toggle = &g_Config.bComboToggle4;
+		toggle = &g_PConfig.bComboToggle4;
 		for (int i = 0; i < 16; i++)
-			array[i] = (0x01 == ((g_Config.iCombokey4 >> i) & 0x01));
+			array[i] = (0x01 == ((g_PConfig.iCombokey4 >> i) & 0x01));
 		break;
 	default:
 		// This shouldn't happen, let's just not crash.
-		toggle = &g_Config.bComboToggle0;
+		toggle = &g_PConfig.bComboToggle0;
 		break;
 	}
 
@@ -178,22 +178,22 @@ static int arrayToInt(bool ary[16]) {
 void ComboKeyScreen::onFinish(DialogResult result) {
 	switch (*mode) {
 	case 0:
-		g_Config.iCombokey0 = arrayToInt(array);
+		g_PConfig.iCombokey0 = arrayToInt(array);
 		break;
 	case 1:
-		g_Config.iCombokey1 = arrayToInt(array);
+		g_PConfig.iCombokey1 = arrayToInt(array);
 		break;
 	case 2:
-		g_Config.iCombokey2 = arrayToInt(array);
+		g_PConfig.iCombokey2 = arrayToInt(array);
 		break;
 	case 3:
-		g_Config.iCombokey3 = arrayToInt(array);
+		g_PConfig.iCombokey3 = arrayToInt(array);
 		break;
 	case 4:
-		g_Config.iCombokey4 = arrayToInt(array);
+		g_PConfig.iCombokey4 = arrayToInt(array);
 		break;
 	}
-	g_Config.Save("ComboKeyScreen::onFInish");
+	g_PConfig.Save("ComboKeyScreen::onFInish");
 }
 
 UI::EventReturn ComboKeyScreen::ChoiceEventHandler::onChoiceClick(UI::EventParams &e){
@@ -205,15 +205,15 @@ UI::EventReturn ComboKeyScreen::ChoiceEventHandler::onChoiceClick(UI::EventParam
 
 UI::EventReturn ComboKeyScreen::onCombo(UI::EventParams &e) {
 	switch (*mode){
-	case 0:g_Config.iCombokey0 = arrayToInt(array);
+	case 0:g_PConfig.iCombokey0 = arrayToInt(array);
 		break;
-	case 1:g_Config.iCombokey1 = arrayToInt(array);
+	case 1:g_PConfig.iCombokey1 = arrayToInt(array);
 		break;
-	case 2:g_Config.iCombokey2 = arrayToInt(array);
+	case 2:g_PConfig.iCombokey2 = arrayToInt(array);
 		break;
-	case 3:g_Config.iCombokey3 = arrayToInt(array);
+	case 3:g_PConfig.iCombokey3 = arrayToInt(array);
 		break;
-	case 4:g_Config.iCombokey4 = arrayToInt(array);
+	case 4:g_PConfig.iCombokey4 = arrayToInt(array);
 	}
 	*mode = comboselect->GetSelection();
 	CreateViews();

@@ -218,7 +218,7 @@ void GPU_Vulkan::CheckGPUFeatures() {
 	}
 
 	// Might enable this later - in the first round we are mostly looking at depth/stencil/discard.
-	// if (g_Config.bDisableVendorBugChecks)
+	// if (g_PConfig.bDisableVendorBugChecks)
 	// 	features |= GPU_SUPPORTS_ACCURATE_DEPTH;
 
 	// Mandatory features on Vulkan, which may be checked in "centralized" code
@@ -240,7 +240,7 @@ void GPU_Vulkan::CheckGPUFeatures() {
 		features |= GPU_SUPPORTS_DEPTH_CLAMP;
 	}
 	if (vulkan_->GetDeviceFeatures().enabled.dualSrcBlend) {
-		if (!g_Config.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
+		if (!g_PConfig.bVendorBugChecksEnabled || !draw_->GetBugs().Has(Draw::Bugs::DUAL_SOURCE_BLENDING_BROKEN)) {
 			features |= GPU_SUPPORTS_DUALSOURCE_BLEND;
 		}
 	}
@@ -264,7 +264,7 @@ void GPU_Vulkan::CheckGPUFeatures() {
 		features |= GPU_USE_CLEAR_RAM_HACK;
 	}
 
-	if (!g_Config.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
+	if (!g_PConfig.bHighQualityDepth && (features & GPU_SUPPORTS_ACCURATE_DEPTH) != 0) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	}
 	else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {

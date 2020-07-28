@@ -95,7 +95,7 @@ GPU_DX9::GPU_DX9(GraphicsContext *gfxCtx, Draw::DrawContext *draw)
 	dxstate.Restore();
 	textureCache_->NotifyConfigChanged();
 
-	if (g_Config.bHardwareTessellation) {
+	if (g_PConfig.bHardwareTessellation) {
 		// Disable hardware tessellation bacause DX9 is still unsupported.
 		ERROR_LOG(G3D, "Hardware Tessellation is unsupported, falling back to software tessellation");
 		auto gr = GetI18NCategory("Graphics");
@@ -209,7 +209,7 @@ void GPU_DX9::CheckGPUFeatures() {
 			features |= GPU_SUPPORTS_OES_TEXTURE_NPOT;
 	}
 
-	if (!g_Config.bHighQualityDepth) {
+	if (!g_PConfig.bHighQualityDepth) {
 		features |= GPU_SCALE_DEPTH_FROM_24BIT_TO_16BIT;
 	} else if (PSP_CoreParameter().compat.flags().PixelDepthRounding) {
 		// Assume we always have a 24-bit depth buffer.

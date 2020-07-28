@@ -80,7 +80,7 @@ bool I18NRepo::IniExists(const std::string &languageID) const {
 }
 
 bool I18NRepo::LoadIni(const std::string &languageID, const std::string &overridePath) {
-	IniFile ini;
+	PIniFile ini;
 	std::string iniPath;
 
 //	ILOG("Loading lang ini %s", iniPath.c_str());
@@ -95,7 +95,7 @@ bool I18NRepo::LoadIni(const std::string &languageID, const std::string &overrid
 
 	Clear();
 
-	const std::vector<IniFile::Section> &sections = ini.Sections();
+	const std::vector<PIniFile::Section> &sections = ini.Sections();
 
 	std::lock_guard<std::mutex> guard(catsLock_);
 	for (auto iter = sections.begin(); iter != sections.end(); ++iter) {
@@ -108,7 +108,7 @@ bool I18NRepo::LoadIni(const std::string &languageID, const std::string &overrid
 	return true;
 }
 
-I18NCategory *I18NRepo::LoadSection(const IniFile::Section *section, const char *name) {
+I18NCategory *I18NRepo::LoadSection(const PIniFile::Section *section, const char *name) {
 	I18NCategory *cat = new I18NCategory(this, name);
 	std::map<std::string, std::string> sectionMap = section->ToMap();
 	cat->SetMap(sectionMap);
@@ -118,18 +118,18 @@ I18NCategory *I18NRepo::LoadSection(const IniFile::Section *section, const char 
 // This is a very light touched save variant - it won't overwrite 
 // anything, only create new entries.
 void I18NRepo::SaveIni(const std::string &languageID) {
-	IniFile ini;
+	PIniFile ini;
 	ini.Load(GetIniPath(languageID));
 	std::lock_guard<std::mutex> guard(catsLock_);
 	for (auto iter = cats_.begin(); iter != cats_.end(); ++iter) {
 		std::string categoryName = iter->first;
-		IniFile::Section *section = ini.GetOrCreateSection(categoryName.c_str());
+		PIniFile::Section *section = ini.GetOrCreateSection(categoryName.c_str());
 		SaveSection(ini, section, iter->second);
 	}
 	ini.Save(GetIniPath(languageID));
 }
 
-void I18NRepo::SaveSection(IniFile &ini, IniFile::Section *section, std::shared_ptr<I18NCategory> cat) {
+void I18NRepo::SaveSection(PIniFile &ini, PIniFile::Section *section, std::shared_ptr<I18NCategory> cat) {
 	const std::map<std::string, std::string> &missed = cat->Missed();
 
 	for (auto iter = missed.begin(); iter != missed.end(); ++iter) {

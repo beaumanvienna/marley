@@ -527,5 +527,5 @@ std::string CreateRandMAC();
 
 // TODO: Find a better place for this.
 extern http::Downloader g_DownloadManager;
-extern Config g_Config;
+extern Config g_PConfig;
 

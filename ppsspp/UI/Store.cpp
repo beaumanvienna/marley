@@ -340,7 +340,7 @@ UI::EventReturn ProductView::OnLaunchClick(UI::EventParams &e) {
 StoreScreen::StoreScreen() {
 	StoreFilter noFilter;
 	SetFilter(noFilter);
-	lang_ = g_Config.sLanguageIni;
+	lang_ = g_PConfig.sLanguageIni;
 	loading_ = true;
 
 	std::string indexPath = storeBaseUrl + "index.json";

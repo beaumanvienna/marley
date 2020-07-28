@@ -75,14 +75,14 @@ void FramebufferManagerCommon::Init() {
 
 bool FramebufferManagerCommon::UpdateSize() {
 	const bool newRender = renderWidth_ != (float)PSP_CoreParameter().renderWidth || renderHeight_ != (float)PSP_CoreParameter().renderHeight;
-	const bool newSettings = bloomHack_ != g_Config.iBloomHack || useBufferedRendering_ != (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE);
+	const bool newSettings = bloomHack_ != g_PConfig.iBloomHack || useBufferedRendering_ != (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE);
 
 	renderWidth_ = (float)PSP_CoreParameter().renderWidth;
 	renderHeight_ = (float)PSP_CoreParameter().renderHeight;
 	pixelWidth_ = PSP_CoreParameter().pixelWidth;
 	pixelHeight_ = PSP_CoreParameter().pixelHeight;
-	bloomHack_ = g_Config.iBloomHack;
-	useBufferedRendering_ = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bloomHack_ = g_PConfig.iBloomHack;
+	useBufferedRendering_ = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 
 	presentation_->UpdateSize(pixelWidth_, pixelHeight_, renderWidth_, renderHeight_);
 
@@ -377,7 +377,7 @@ VirtualFramebuffer *FramebufferManagerCommon::DoSetRenderFrameBuffer(const Frame
 		vfbs_.push_back(vfb);
 		currentRenderVfb_ = vfb;
 
-		if (useBufferedRendering_ && !g_Config.bDisableSlowFramebufEffects) {
+		if (useBufferedRendering_ && !g_PConfig.bDisableSlowFramebufEffects) {
 			gpu->PerformMemoryUpload(params.fb_address, byteSize);
 			NotifyStencilUpload(params.fb_address, byteSize, StencilUpload::STENCIL_IS_ZERO);
 			// TODO: Is it worth trying to upload the depth buffer?
@@ -658,7 +658,7 @@ void FramebufferManagerCommon::DrawPixels(VirtualFramebuffer *vfb, int dstX, int
 		// Should more of this be handled by the presentation engine?
 		if (needBackBufferYSwap_)
 			std::swap(v0, v1);
-		flags = g_Config.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
+		flags = g_PConfig.iBufFilter == SCALE_LINEAR ? DRAWTEX_LINEAR : DRAWTEX_NEAREST;
 		flags = flags | DRAWTEX_TO_BACKBUFFER;
 		FRect frame = GetScreenFrame(pixelWidth_, pixelHeight_);
 		FRect rc;
@@ -784,8 +784,8 @@ void FramebufferManagerCommon::DrawFramebufferToOutput(const u8 *srcPixels, GEBu
 	if (!pixelsTex)
 		return;
 
-	int uvRotation = useBufferedRendering_ ? g_Config.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
-	OutputFlags flags = g_Config.iBufFilter == SCALE_LINEAR ? OutputFlags::LINEAR : OutputFlags::NEAREST;
+	int uvRotation = useBufferedRendering_ ? g_PConfig.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
+	OutputFlags flags = g_PConfig.iBufFilter == SCALE_LINEAR ? OutputFlags::LINEAR : OutputFlags::NEAREST;
 	if (needBackBufferYSwap_) {
 		flags |= OutputFlags::BACKBUFFER_FLIPPED;
 	}
@@ -808,7 +808,7 @@ void FramebufferManagerCommon::DownloadFramebufferOnSwitch(VirtualFramebuffer *v
 		// Some games will draw to some memory once, and use it as a render-to-texture later.
 		// To support this, we save the first frame to memory when we have a safe w/h.
 		// Saving each frame would be slow.
-		if (!g_Config.bDisableSlowFramebufEffects) {
+		if (!g_PConfig.bDisableSlowFramebufEffects) {
 			ReadFramebufferToMemory(vfb, true, 0, 0, vfb->safeWidth, vfb->safeHeight);
 			vfb->usageFlags = (vfb->usageFlags | FB_USAGE_DOWNLOAD) & ~FB_USAGE_DOWNLOAD_CLEAR;
 			vfb->firstFrameSaved = true;
@@ -938,8 +938,8 @@ void FramebufferManagerCommon::CopyDisplayToOutput(bool reallyDirty) {
 
 		textureCache_->ForgetLastTexture();
 
-		int uvRotation = useBufferedRendering_ ? g_Config.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
-		OutputFlags flags = g_Config.iBufFilter == SCALE_LINEAR ? OutputFlags::LINEAR : OutputFlags::NEAREST;
+		int uvRotation = useBufferedRendering_ ? g_PConfig.iInternalScreenRotation : ROTATION_LOCKED_HORIZONTAL;
+		OutputFlags flags = g_PConfig.iBufFilter == SCALE_LINEAR ? OutputFlags::LINEAR : OutputFlags::NEAREST;
 		if (needBackBufferYSwap_) {
 			flags |= OutputFlags::BACKBUFFER_FLIPPED;
 		}
@@ -1186,7 +1186,7 @@ bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size,
 		FlushBeforeCopy();
 		if (srcH == 0 || srcY + srcH > srcBuffer->bufferHeight) {
 			WARN_LOG_REPORT_ONCE(btdcpyheight, G3D, "Memcpy fbo download %08x -> %08x skipped, %d+%d is taller than %d", src, dst, srcY, srcH, srcBuffer->bufferHeight);
-		} else if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated && !PSP_CoreParameter().compat.flags().DisableReadbacks) {
+		} else if (g_PConfig.bBlockTransferGPU && !srcBuffer->memoryUpdated && !PSP_CoreParameter().compat.flags().DisableReadbacks) {
 			ReadFramebufferToMemory(srcBuffer, true, 0, srcY, srcBuffer->width, srcH);
 			srcBuffer->usageFlags = (srcBuffer->usageFlags | FB_USAGE_DOWNLOAD) & ~FB_USAGE_DOWNLOAD_CLEAR;
 		}
@@ -1578,7 +1578,7 @@ bool FramebufferManagerCommon::NotifyBlockTransferBefore(u32 dstBasePtr, int dst
 	} else if (srcBuffer) {
 		WARN_LOG_ONCE(btd, G3D, "Block transfer download %08x -> %08x", srcBasePtr, dstBasePtr);
 		FlushBeforeCopy();
-		if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated) {
+		if (g_PConfig.bBlockTransferGPU && !srcBuffer->memoryUpdated) {
 			const int srcBpp = srcBuffer->format == GE_FORMAT_8888 ? 4 : 2;
 			const float srcXFactor = (float)bpp / srcBpp;
 			const bool tooTall = srcY + srcHeight > srcBuffer->bufferHeight;
@@ -1669,7 +1669,7 @@ void FramebufferManagerCommon::SetRenderSize(VirtualFramebuffer *vfb) {
 		force1x = true;
 	}
 
-	if (force1x && g_Config.iInternalResolution != 1) {
+	if (force1x && g_PConfig.iInternalResolution != 1) {
 		vfb->renderWidth = vfb->bufferWidth;
 		vfb->renderHeight = vfb->bufferHeight;
 	} else {
@@ -1703,7 +1703,7 @@ void FramebufferManagerCommon::Resized() {
 
 #ifdef _WIN32
 	// Seems related - if you're ok with numbers all the time, show some more :)
-	if (g_Config.iShowFPSCounter != 0) {
+	if (g_PConfig.iShowFPSCounter != 0) {
 		ShowScreenResolution();
 	}
 #endif

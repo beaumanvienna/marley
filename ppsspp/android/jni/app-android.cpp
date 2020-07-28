@@ -564,7 +564,7 @@ retry:
 	// Now that we've loaded config, set javaGL.
 	javaGL = NativeQueryConfig("androidJavaGL") == "true";
 
-	switch (g_Config.iGPUBackend) {
+	switch (g_PConfig.iGPUBackend) {
 	case (int)GPUBackend::OPENGL:
 		useCPUThread = true;
 		if (javaGL) {
@@ -582,7 +582,7 @@ retry:
 		AndroidVulkanContext *ctx = new AndroidVulkanContext();
 		if (!ctx->InitAPI()) {
 			ILOG("Failed to initialize Vulkan, switching to OpenGL");
-			g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+			g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 			SetGPUBackend(GPUBackend::OPENGL);
 			goto retry;
 		} else {
@@ -591,8 +591,8 @@ retry:
 		break;
 	}
 	default:
-		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_Config.iGPUBackend);
-		g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+		ELOG("NativeApp.init(): iGPUBackend %d not supported. Switching to OpenGL.", (int)g_PConfig.iGPUBackend);
+		g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 		goto retry;
 		// Crash();
 	}
@@ -779,7 +779,7 @@ void System_InputBoxGetString(const std::string &title, const std::string &defau
 	int seq = inputBoxSequence++;
 	inputBoxCallbacks[seq] = cb;
 
-	std::string serialized = StringFromFormat("%d:@:%s:@:%s", seq, title.c_str(), defaultValue.c_str());
+	std::string serialized = PStringFromFormat("%d:@:%s:@:%s", seq, title.c_str(), defaultValue.c_str());
 	System_SendMessage("inputbox", serialized.c_str());
 }
 
@@ -796,7 +796,7 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendInputBox(JNIEnv *en
 	lastSeqID = seqID;
 
 	int seq = 0;
-	if (!TryParse(seqID, &seq)) {
+	if (!PTryParse(seqID, &seq)) {
 		ELOG("Invalid inputbox seqID value: %s", seqID.c_str());
 		return;
 	}
@@ -928,7 +928,7 @@ extern "C" jboolean Java_org_ppsspp_ppsspp_NativeApp_joystickAxis(
 	axis.deviceId = deviceId;
 	axis.value = value;
 
-	float sensitivity = g_Config.fXInputAnalogSensitivity;
+	float sensitivity = g_PConfig.fXInputAnalogSensitivity;
 	axis.value *= sensitivity;
 
 	return NativeAxis(axis);
@@ -1113,7 +1113,7 @@ std::vector<std::string> __cameraGetDeviceList() {
 
 extern "C" jint Java_org_ppsspp_ppsspp_NativeApp_getSelectedCamera(JNIEnv *, jclass) {
 	int cameraId = 0;
-	sscanf(g_Config.sCameraDevice.c_str(), "%d:", &cameraId);
+	sscanf(g_PConfig.sCameraDevice.c_str(), "%d:", &cameraId);
 	return cameraId;
 }
 
@@ -1183,10 +1183,10 @@ extern "C" bool JNICALL Java_org_ppsspp_ppsspp_NativeActivity_runEGLRenderLoop(J
 
 	bool initSuccess = tryInit();
 	if (!initSuccess) {
-		if (!exitRenderLoop && g_Config.iGPUBackend == (int)GPUBackend::VULKAN) {
+		if (!exitRenderLoop && g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN) {
 			ILOG("Trying again, this time with OpenGL.");
 			SetGPUBackend(GPUBackend::OPENGL);
-			g_Config.iGPUBackend = (int)GetGPUBackend();
+			g_PConfig.iGPUBackend = (int)GetGPUBackend();
 
 			// If we were still supporting EGL for GL, we'd retry here:
 			//initSuccess = tryInit();

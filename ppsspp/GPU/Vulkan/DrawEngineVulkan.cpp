@@ -634,11 +634,11 @@ void DrawEngineVulkan::DoFlush() {
 		bool useElements = true;
 
 		// Cannot cache vertex data with morph enabled.
-		bool useCache = g_Config.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
+		bool useCache = g_PConfig.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
 		// Also avoid caching when software skinning.
 		VkBuffer vbuf = VK_NULL_HANDLE;
 		VkBuffer ibuf = VK_NULL_HANDLE;
-		if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
+		if (g_PConfig.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
 			useCache = false;
 		}
 
@@ -780,7 +780,7 @@ void DrawEngineVulkan::DoFlush() {
 				break;
 			}
 		} else {
-			if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
+			if (g_PConfig.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK)) {
 				// If software skinning, we've already predecoded into "decoded". So push that content.
 				VkDeviceSize size = decodedVerts_ * dec_->GetDecVtxFmt().stride;
 				u8 *dest = (u8 *)frame->pushVertex->Push(size, &vbOffset, &vbuf);

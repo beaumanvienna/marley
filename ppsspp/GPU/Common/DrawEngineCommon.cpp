@@ -37,8 +37,8 @@ DrawEngineCommon::DrawEngineCommon() : decoderMap_(16) {
 	decJitCache_ = new VertexDecoderJitCache();
 	transformed = (TransformedVertex *)AllocateMemoryPages(TRANSFORMED_VERTEX_BUFFER_SIZE, MEM_PROT_READ | MEM_PROT_WRITE);
 	transformedExpanded = (TransformedVertex *)AllocateMemoryPages(3 * TRANSFORMED_VERTEX_BUFFER_SIZE, MEM_PROT_READ | MEM_PROT_WRITE);
-	useHWTransform_ = g_Config.bHardwareTransform;
-	useHWTessellation_ = UpdateUseHWTessellation(g_Config.bHardwareTessellation);
+	useHWTransform_ = g_PConfig.bHardwareTransform;
+	useHWTessellation_ = UpdateUseHWTessellation(g_PConfig.bHardwareTessellation);
 }
 
 DrawEngineCommon::~DrawEngineCommon() {
@@ -174,8 +174,8 @@ void DrawEngineCommon::Resized() {
 	decoderMap_.Clear();
 	ClearTrackedVertexArrays();
 
-	useHWTransform_ = g_Config.bHardwareTransform;
-	useHWTessellation_ = UpdateUseHWTessellation(g_Config.bHardwareTessellation);
+	useHWTransform_ = g_PConfig.bHardwareTransform;
+	useHWTessellation_ = UpdateUseHWTessellation(g_PConfig.bHardwareTessellation);
 }
 
 u32 DrawEngineCommon::NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, int lowerBound, int upperBound, u32 vertType, int *vertexSize) {
@@ -402,7 +402,7 @@ u32 DrawEngineCommon::NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr,
 	};
 
 	// Let's have two separate loops, one for non skinning and one for skinning.
-	if (!g_Config.bSoftwareSkinning && (vertType & GE_VTYPE_WEIGHT_MASK) != GE_VTYPE_WEIGHT_NONE) {
+	if (!g_PConfig.bSoftwareSkinning && (vertType & GE_VTYPE_WEIGHT_MASK) != GE_VTYPE_WEIGHT_NONE) {
 		int numBoneWeights = vertTypeGetNumBoneWeights(vertType);
 		for (int i = lowerBound; i <= upperBound; i++) {
 			reader.Goto(i - lowerBound);
@@ -702,7 +702,7 @@ void DrawEngineCommon::SubmitPrim(void *verts, void *inds, GEPrimitiveType prim,
 	if ((vertexCount < 2 && prim > 0) || (vertexCount < 3 && prim > 2 && prim != GE_PRIM_RECTANGLES))
 		return;
 
-	if (g_Config.bVertexCache) {
+	if (g_PConfig.bVertexCache) {
 		u32 dhash = dcid_;
 		dhash = __rotl(dhash ^ (u32)(uintptr_t)verts, 13);
 		dhash = __rotl(dhash ^ (u32)(uintptr_t)inds, 13);
@@ -730,7 +730,7 @@ void DrawEngineCommon::SubmitPrim(void *verts, void *inds, GEPrimitiveType prim,
 	numDrawCalls++;
 	vertexCountInDrawCalls_ += vertexCount;
 
-	if (g_Config.bSoftwareSkinning && (vertTypeID & GE_VTYPE_WEIGHT_MASK)) {
+	if (g_PConfig.bSoftwareSkinning && (vertTypeID & GE_VTYPE_WEIGHT_MASK)) {
 		DecodeVertsStep(decoded, decodeCounter_, decodedVerts_);
 		decodeCounter_++;
 	}

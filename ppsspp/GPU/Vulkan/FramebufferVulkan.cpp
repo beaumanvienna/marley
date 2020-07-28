@@ -236,10 +236,10 @@ void FramebufferManagerVulkan::Bind2DShader() {
 }
 
 int FramebufferManagerVulkan::GetLineWidth() {
-	if (g_Config.iInternalResolution == 0) {
+	if (g_PConfig.iInternalResolution == 0) {
 		return std::max(1, (int)(renderWidth_ / 480));
 	} else {
-		return g_Config.iInternalResolution;
+		return g_PConfig.iInternalResolution;
 	}
 }
 

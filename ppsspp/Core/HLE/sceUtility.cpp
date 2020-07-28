@@ -676,9 +676,9 @@ static u32 sceUtilityGetSystemParamString(u32 id, u32 destaddr, int destSize)
 	switch (id) {
 	case PSP_SYSTEMPARAM_ID_STRING_NICKNAME:
 		// If there's not enough space for the string and null terminator, fail.
-		if (destSize <= (int)g_Config.sNickName.length())
+		if (destSize <= (int)g_PConfig.sNickName.length())
 			return PSP_SYSTEMPARAM_RETVAL_STRING_TOO_LONG;
-		strncpy(buf, g_Config.sNickName.c_str(), destSize);
+		strncpy(buf, g_PConfig.sNickName.c_str(), destSize);
 		break;
 
 	default:
@@ -713,34 +713,34 @@ static u32 sceUtilityGetSystemParamInt(u32 id, u32 destaddr)
 	u32 param = 0;
 	switch (id) {
 	case PSP_SYSTEMPARAM_ID_INT_ADHOC_CHANNEL:
-		param = g_Config.iWlanAdhocChannel;
+		param = g_PConfig.iWlanAdhocChannel;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_WLAN_POWERSAVE:
-		param = g_Config.bWlanPowerSave?PSP_SYSTEMPARAM_WLAN_POWERSAVE_ON:PSP_SYSTEMPARAM_WLAN_POWERSAVE_OFF;
+		param = g_PConfig.bWlanPowerSave?PSP_SYSTEMPARAM_WLAN_POWERSAVE_ON:PSP_SYSTEMPARAM_WLAN_POWERSAVE_OFF;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_DATE_FORMAT:
-		param = g_Config.iDateFormat;
+		param = g_PConfig.iDateFormat;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT:
-		if (g_Config.iTimeFormat == PSP_SYSTEMPARAM_TIME_FORMAT_12HR)
+		if (g_PConfig.iTimeFormat == PSP_SYSTEMPARAM_TIME_FORMAT_12HR)
 			param = PSP_SYSTEMPARAM_TIME_FORMAT_12HR;
 		else
 			param = PSP_SYSTEMPARAM_TIME_FORMAT_24HR;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_TIMEZONE:
-		param = g_Config.iTimeZone;
+		param = g_PConfig.iTimeZone;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_DAYLIGHTSAVINGS:
-		param = g_Config.bDayLightSavings?PSP_SYSTEMPARAM_DAYLIGHTSAVINGS_SAVING:PSP_SYSTEMPARAM_DAYLIGHTSAVINGS_STD;
+		param = g_PConfig.bDayLightSavings?PSP_SYSTEMPARAM_DAYLIGHTSAVINGS_SAVING:PSP_SYSTEMPARAM_DAYLIGHTSAVINGS_STD;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_LANGUAGE:
-		param = g_Config.iLanguage;
+		param = g_PConfig.iLanguage;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_BUTTON_PREFERENCE:
-		param = g_Config.iButtonPreference;
+		param = g_PConfig.iButtonPreference;
 		break;
 	case PSP_SYSTEMPARAM_ID_INT_LOCK_PARENTAL_LEVEL:
-		param = g_Config.iLockParentalLevel;
+		param = g_PConfig.iLockParentalLevel;
 		break;
 	default:
 		return PSP_SYSTEMPARAM_RETVAL_FAIL;

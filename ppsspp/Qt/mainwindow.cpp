@@ -55,9 +55,9 @@ void MainWindow::newFrame()
 {
 	if (lastUIState != GetUIState()) {
 		lastUIState = GetUIState();
-		if (lastUIState == UISTATE_INGAME && g_Config.bFullScreen && !QApplication::overrideCursor() && !g_Config.bShowTouchControls)
+		if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !QApplication::overrideCursor() && !g_PConfig.bShowTouchControls)
 			QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-		if (lastUIState != UISTATE_INGAME && g_Config.bFullScreen && QApplication::overrideCursor())
+		if (lastUIState != UISTATE_INGAME && g_PConfig.bFullScreen && QApplication::overrideCursor())
 			QApplication::restoreOverrideCursor();
 
 		updateMenus();
@@ -87,21 +87,21 @@ void MainWindow::updateMenuGroupInt(QActionGroup *group, int value) {
 
 void MainWindow::updateMenus()
 {
-	updateMenuGroupInt(saveStateGroup, g_Config.iCurrentStateSlot);
-	updateMenuGroupInt(displayRotationGroup, g_Config.iInternalScreenRotation);
-	updateMenuGroupInt(renderingResolutionGroup, g_Config.iInternalResolution);
-	updateMenuGroupInt(renderingModeGroup, g_Config.iRenderingMode);
-	updateMenuGroupInt(frameSkippingGroup, g_Config.iFrameSkip);
-	updateMenuGroupInt(frameSkippingTypeGroup, g_Config.iFrameSkipType);
-	updateMenuGroupInt(textureFilteringGroup, g_Config.iTexFiltering);
-	updateMenuGroupInt(screenScalingFilterGroup, g_Config.iBufFilter);
-	updateMenuGroupInt(textureScalingLevelGroup, g_Config.iTexScalingLevel);
-	updateMenuGroupInt(textureScalingTypeGroup, g_Config.iTexScalingType);
+	updateMenuGroupInt(saveStateGroup, g_PConfig.iCurrentStateSlot);
+	updateMenuGroupInt(displayRotationGroup, g_PConfig.iInternalScreenRotation);
+	updateMenuGroupInt(renderingResolutionGroup, g_PConfig.iInternalResolution);
+	updateMenuGroupInt(renderingModeGroup, g_PConfig.iRenderingMode);
+	updateMenuGroupInt(frameSkippingGroup, g_PConfig.iFrameSkip);
+	updateMenuGroupInt(frameSkippingTypeGroup, g_PConfig.iFrameSkipType);
+	updateMenuGroupInt(textureFilteringGroup, g_PConfig.iTexFiltering);
+	updateMenuGroupInt(screenScalingFilterGroup, g_PConfig.iBufFilter);
+	updateMenuGroupInt(textureScalingLevelGroup, g_PConfig.iTexScalingLevel);
+	updateMenuGroupInt(textureScalingTypeGroup, g_PConfig.iTexScalingType);
 
 	foreach(QAction * action, windowGroup->actions()) {
-		int width = (g_Config.IsPortrait() ? 272 : 480) * action->data().toInt();
-		int height = (g_Config.IsPortrait() ? 480 : 272) * action->data().toInt();
-		if (g_Config.iWindowWidth == width && g_Config.iWindowHeight == height) {
+		int width = (g_PConfig.IsPortrait() ? 272 : 480) * action->data().toInt();
+		int height = (g_PConfig.IsPortrait() ? 480 : 272) * action->data().toInt();
+		if (g_PConfig.iWindowWidth == width && g_PConfig.iWindowHeight == height) {
 			action->setChecked(true);
 			break;
 		}
@@ -111,8 +111,8 @@ void MainWindow::updateMenus()
 
 void MainWindow::bootDone()
 {
-	if (g_Config.bFullScreen != isFullScreen())
-		SetFullScreen(g_Config.bFullScreen);
+	if (g_PConfig.bFullScreen != isFullScreen())
+		SetFullScreen(g_PConfig.bFullScreen);
 
 	if (nextState == CORE_RUNNING)
 		runAct();
@@ -122,11 +122,11 @@ void MainWindow::bootDone()
 /* SIGNALS */
 void MainWindow::loadAct()
 {
-	QString filename = QFileDialog::getOpenFileName(NULL, "Load File", g_Config.currentDirectory.c_str(), "PSP ROMs (*.pbp *.elf *.iso *.cso *.prx)");
+	QString filename = QFileDialog::getOpenFileName(NULL, "Load File", g_PConfig.currentDirectory.c_str(), "PSP ROMs (*.pbp *.elf *.iso *.cso *.prx)");
 	if (QFile::exists(filename))
 	{
 		QFileInfo info(filename);
-		g_Config.currentDirectory = info.absolutePath().toStdString();
+		g_PConfig.currentDirectory = info.absolutePath().toStdString();
 		NativeMessageReceived("boot", filename.toStdString().c_str());
 	}
 }
@@ -203,22 +203,22 @@ void MainWindow::sstateAct()
 
 void MainWindow::recordDisplayAct()
 {
-	g_Config.bDumpFrames = !g_Config.bDumpFrames;
+	g_PConfig.bDumpFrames = !g_PConfig.bDumpFrames;
 }
 
 void MainWindow::useLosslessVideoCodecAct()
 {
-	g_Config.bUseFFV1 = !g_Config.bUseFFV1;
+	g_PConfig.bUseFFV1 = !g_PConfig.bUseFFV1;
 }
 
 void MainWindow::useOutputBufferAct()
 {
-	g_Config.bDumpVideoOutput = !g_Config.bDumpVideoOutput;
+	g_PConfig.bDumpVideoOutput = !g_PConfig.bDumpVideoOutput;
 }
 
 void MainWindow::recordAudioAct()
 {
-	g_Config.bDumpAudio = !g_Config.bDumpAudio;
+	g_PConfig.bDumpAudio = !g_PConfig.bDumpAudio;
 }
 
 void MainWindow::exitAct()
@@ -252,18 +252,18 @@ void MainWindow::resetAct()
 
 void MainWindow::switchUMDAct()
 {
-	QString filename = QFileDialog::getOpenFileName(NULL, "Switch UMD", g_Config.currentDirectory.c_str(), "PSP ROMs (*.pbp *.elf *.iso *.cso *.prx)");
+	QString filename = QFileDialog::getOpenFileName(NULL, "Switch UMD", g_PConfig.currentDirectory.c_str(), "PSP ROMs (*.pbp *.elf *.iso *.cso *.prx)");
 	if (QFile::exists(filename))
 	{
 		QFileInfo info(filename);
-		g_Config.currentDirectory = info.absolutePath().toStdString();
+		g_PConfig.currentDirectory = info.absolutePath().toStdString();
 		__UmdReplace(filename.toStdString().c_str());
 	}
 }
 
 void MainWindow::breakonloadAct()
 {
-	g_Config.bAutoRun = !g_Config.bAutoRun;
+	g_PConfig.bAutoRun = !g_PConfig.bAutoRun;
 }
 
 void MainWindow::lmapAct()
@@ -374,7 +374,7 @@ void MainWindow::SetFullScreen(bool fullscreen) {
 		showFullScreen();
 		InitPadLayout(dp_xres, dp_yres);
 
-		if (GetUIState() == UISTATE_INGAME && !g_Config.bShowTouchControls)
+		if (GetUIState() == UISTATE_INGAME && !g_PConfig.bShowTouchControls)
 			QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 	} else {
 #if !PPSSPP_PLATFORM(MAC)
@@ -394,8 +394,8 @@ void MainWindow::SetFullScreen(bool fullscreen) {
 void MainWindow::fullscrAct()
 {
 	// Toggle the current state.
-	g_Config.bFullScreen = !isFullScreen();
-	SetFullScreen(g_Config.bFullScreen);
+	g_PConfig.bFullScreen = !isFullScreen();
+	SetFullScreen(g_PConfig.bFullScreen);
 
 	QTimer::singleShot(1000, this, SLOT(raiseTopMost()));
 }
@@ -446,14 +446,14 @@ void MainWindow::SetWindowScale(int zoom) {
 		fullscrAct();
 
 	int width, height;
-	if (zoom == -1 && (g_Config.iWindowWidth <= 0 || g_Config.iWindowHeight <= 0)) {
+	if (zoom == -1 && (g_PConfig.iWindowWidth <= 0 || g_PConfig.iWindowHeight <= 0)) {
 		// Default to zoom level 2.
 		zoom = 2;
 	}
 	if (zoom == -1) {
 		// Take the last setting.
-		width = g_Config.iWindowWidth;
-		height = g_Config.iWindowHeight;
+		width = g_PConfig.iWindowWidth;
+		height = g_PConfig.iWindowHeight;
 	} else {
 		// Update to the specified factor.  Let's clamp first.
 		if (zoom < 1)
@@ -461,20 +461,20 @@ void MainWindow::SetWindowScale(int zoom) {
 		if (zoom > 10)
 			zoom = 10;
 
-		width = (g_Config.IsPortrait() ? 272 : 480) * zoom;
-		height = (g_Config.IsPortrait() ? 480 : 272) * zoom;
+		width = (g_PConfig.IsPortrait() ? 272 : 480) * zoom;
+		height = (g_PConfig.IsPortrait() ? 480 : 272) * zoom;
 	}
 
-	g_Config.iWindowWidth = width;
-	g_Config.iWindowHeight = height;
+	g_PConfig.iWindowWidth = width;
+	g_PConfig.iWindowHeight = height;
 
 #if !PPSSPP_PLATFORM(MAC)
-	emugl->setFixedSize(g_Config.iWindowWidth, g_Config.iWindowHeight);
+	emugl->setFixedSize(g_PConfig.iWindowWidth, g_PConfig.iWindowHeight);
 	// TODO: Shouldn't this be scaled size?
-	emugl->resizeGL(g_Config.iWindowWidth, g_Config.iWindowHeight);
+	emugl->resizeGL(g_PConfig.iWindowWidth, g_PConfig.iWindowHeight);
 	setFixedSize(sizeHint());
 #else
-	resize(g_Config.iWindowWidth, g_Config.iWindowHeight);
+	resize(g_PConfig.iWindowWidth, g_PConfig.iWindowHeight);
 #endif
 }
 
@@ -527,14 +527,14 @@ void MainWindow::createMenus()
 		->addDisableState(UISTATE_MENU);
 	MenuTree* recordMenu = new MenuTree(this, fileMenu, QT_TR_NOOP("&Record"));
 	recordMenu->add(new MenuAction(this, SLOT(recordDisplayAct()),         QT_TR_NOOP("Record &display")))
-		->addEventChecked(&g_Config.bDumpFrames);
+		->addEventChecked(&g_PConfig.bDumpFrames);
 	recordMenu->add(new MenuAction(this, SLOT(useLosslessVideoCodecAct()), QT_TR_NOOP("&Use lossless video codec (FFV1)")))
-		->addEventChecked(&g_Config.bUseFFV1);
+		->addEventChecked(&g_PConfig.bUseFFV1);
 	recordMenu->add(new MenuAction(this, SLOT(useOutputBufferAct()),       QT_TR_NOOP("Use output buffer for video")))
-		->addEventChecked(&g_Config.bDumpVideoOutput);
+		->addEventChecked(&g_PConfig.bDumpVideoOutput);
 	recordMenu->addSeparator();
 	recordMenu->add(new MenuAction(this, SLOT(recordAudioAct()),        QT_TR_NOOP("Record &audio")))
-		->addEventChecked(&g_Config.bDumpAudio);
+		->addEventChecked(&g_PConfig.bDumpAudio);
 	fileMenu->addSeparator();
 	fileMenu->add(new MenuAction(this, SLOT(exitAct()),       QT_TR_NOOP("E&xit"), QKeySequence::Quit));
 
@@ -556,9 +556,9 @@ void MainWindow::createMenus()
 	// Debug
 	MenuTree* debugMenu = new MenuTree(this, menuBar(),   QT_TR_NOOP("&Debug"));
 	debugMenu->add(new MenuAction(this, SLOT(breakonloadAct()),   QT_TR_NOOP("Break on load")))
-		->addEventUnchecked(&g_Config.bAutoRun);
+		->addEventUnchecked(&g_PConfig.bAutoRun);
 	debugMenu->add(new MenuAction(this, SLOT(ignoreIllegalAct()),  QT_TR_NOOP("&Ignore illegal reads/writes")))
-		->addEventChecked(&g_Config.bIgnoreBadMemAccess);
+		->addEventChecked(&g_PConfig.bIgnoreBadMemAccess);
 	debugMenu->addSeparator();
 	debugMenu->add(new MenuAction(this, SLOT(lmapAct()),      QT_TR_NOOP("&Load MAP file...")))
 		->addDisableState(UISTATE_MENU);
@@ -576,7 +576,7 @@ void MainWindow::createMenus()
 	debugMenu->add(new MenuAction(this, SLOT(dumpNextAct()),  QT_TR_NOOP("D&ump next frame to log")))
 		->addDisableState(UISTATE_MENU);
 	debugMenu->add(new MenuAction(this, SLOT(statsAct()),   QT_TR_NOOP("Show debu&g statistics")))
-		->addEventChecked(&g_Config.bShowDebugStats);
+		->addEventChecked(&g_PConfig.bShowDebugStats);
 	debugMenu->addSeparator();
 	debugMenu->add(new MenuAction(this, SLOT(consoleAct()),   QT_TR_NOOP("&Log console"), Qt::CTRL + Qt::Key_L))
 		->addDisableState(UISTATE_MENU);
@@ -593,7 +593,7 @@ void MainWindow::createMenus()
 #else
 	gameSettingsMenu->add(new MenuAction(this, SLOT(fullscrAct()), QT_TR_NOOP("Fu&llscreen"), QKeySequence::FullScreen))
 #endif
-		->addEventChecked(&g_Config.bFullScreen);
+		->addEventChecked(&g_PConfig.bFullScreen);
 	MenuTree* renderingResolutionMenu = new MenuTree(this, gameSettingsMenu, QT_TR_NOOP("&Rendering resolution"));
 	renderingResolutionGroup = new MenuActionGroup(this, renderingResolutionMenu, SLOT(renderingResolutionGroup_triggered(QAction *)),
 		QStringList() << "&Auto" << "&1x" << "&2x" << "&3x" << "&4x" << "&5x" << "&6x" << "&7x" << "&8x" << "&9x" << "1&0x",
@@ -610,7 +610,7 @@ void MainWindow::createMenus()
 		QList<int>() << 0 << 1);
 	MenuTree* frameSkippingMenu = new MenuTree(this, gameSettingsMenu, QT_TR_NOOP("&Frame skipping"));
 	frameSkippingMenu->add(new MenuAction(this, SLOT(autoframeskipAct()),        QT_TR_NOOP("&Auto")))
-		->addEventChecked(&g_Config.bAutoFrameSkip);
+		->addEventChecked(&g_PConfig.bAutoFrameSkip);
 	frameSkippingMenu->addSeparator();
 	frameSkippingGroup = new MenuActionGroup(this, frameSkippingMenu, SLOT(frameSkippinGroup_triggered(QAction *)),
 		QStringList() << "&Off" << "&1" << "&2" << "&3" << "&4" << "&5" << "&6" << "&7" << "&8",
@@ -638,20 +638,20 @@ void MainWindow::createMenus()
 		QList<int>() << 0 << 1 << 2 << 3);
 	textureScalingMenu->addSeparator();
 	textureScalingMenu->add(new MenuAction(this, SLOT(deposterizeAct()),        QT_TR_NOOP("&Deposterize")))
-		->addEventChecked(&g_Config.bTexDeposterize);
+		->addEventChecked(&g_PConfig.bTexDeposterize);
 
 	gameSettingsMenu->add(new MenuAction(this, SLOT(transformAct()),     QT_TR_NOOP("&Hardware transform")))
-		->addEventChecked(&g_Config.bHardwareTransform);
+		->addEventChecked(&g_PConfig.bHardwareTransform);
 	gameSettingsMenu->add(new MenuAction(this, SLOT(vertexCacheAct()),   QT_TR_NOOP("&Vertex cache")))
-		->addEventChecked(&g_Config.bVertexCache);
+		->addEventChecked(&g_PConfig.bVertexCache);
 	gameSettingsMenu->add(new MenuAction(this, SLOT(showFPSAct()), QT_TR_NOOP("&Show FPS counter")))
-		->addEventChecked(&g_Config.iShowFPSCounter);
+		->addEventChecked(&g_PConfig.iShowFPSCounter);
 	gameSettingsMenu->addSeparator();
 	gameSettingsMenu->add(new MenuAction(this, SLOT(audioAct()),   QT_TR_NOOP("Enable s&ound")))
-		->addEventChecked(&g_Config.bEnableSound);
+		->addEventChecked(&g_PConfig.bEnableSound);
 	gameSettingsMenu->addSeparator();
 	gameSettingsMenu->add(new MenuAction(this, SLOT(cheatsAct()),   QT_TR_NOOP("Enable &cheats"), Qt::CTRL + Qt::Key_T))
-		->addEventChecked(&g_Config.bEnableCheats);
+		->addEventChecked(&g_PConfig.bEnableCheats);
 	gameSettingsMenu->addSeparator();
 	gameSettingsMenu->add(new MenuAction(this, SLOT(chatAct()),   QT_TR_NOOP("Enable chat"), Qt::CTRL + Qt::Key_C));
 

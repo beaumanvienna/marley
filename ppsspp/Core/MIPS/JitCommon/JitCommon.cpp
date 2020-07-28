@@ -111,14 +111,14 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 			bkpt_count++;
 		} else {
 			if (bkpt_count) {
-				lines.push_back(StringFromFormat("BKPT 1 (x%d)", bkpt_count));
+				lines.push_back(PStringFromFormat("BKPT 1 (x%d)", bkpt_count));
 				bkpt_count = 0;
 			}
 			lines.push_back(buf);
 		}
 	}
 	if (bkpt_count) {
-		lines.push_back(StringFromFormat("BKPT 1 (x%d)", bkpt_count));
+		lines.push_back(PStringFromFormat("BKPT 1 (x%d)", bkpt_count));
 	}
 	return lines;
 }
@@ -173,7 +173,7 @@ std::vector<std::string> DisassembleArm64(const u8 *data, int size) {
 			bkpt_count++;
 		} else {
 			if (bkpt_count) {
-				lines.push_back(StringFromFormat("BKPT 1 (x%d)", bkpt_count));
+				lines.push_back(PStringFromFormat("BKPT 1 (x%d)", bkpt_count));
 				bkpt_count = 0;
 			}
 			if (true) {
@@ -183,7 +183,7 @@ std::vector<std::string> DisassembleArm64(const u8 *data, int size) {
 		}
 	}
 	if (bkpt_count) {
-		lines.push_back(StringFromFormat("BKPT 1 (x%d)", bkpt_count));
+		lines.push_back(PStringFromFormat("BKPT 1 (x%d)", bkpt_count));
 	}
 	return lines;
 }
@@ -256,14 +256,14 @@ std::vector<std::string> DisassembleX86(const u8 *data, int size) {
 			int3_count++;
 		} else {
 			if (int3_count) {
-				lines.push_back(StringFromFormat("int3 (x%d)", int3_count));
+				lines.push_back(PStringFromFormat("int3 (x%d)", int3_count));
 				int3_count = 0;
 			}
 			lines.push_back(str);
 		}
 	}
 	if (int3_count) {
-		lines.push_back(StringFromFormat("int3 (x%d)", int3_count));
+		lines.push_back(PStringFromFormat("int3 (x%d)", int3_count));
 	}
 	return lines;
 }

@@ -68,10 +68,10 @@ static void InitSDLAudioDevice() {
 	fmt.userdata = nullptr;
 
 	audioDev = 0;
-	if (!g_Config.sAudioDevice.empty()) {
-		audioDev = SDL_OpenAudioDevice(g_Config.sAudioDevice.c_str(), 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+	if (!g_PConfig.sAudioDevice.empty()) {
+		audioDev = SDL_OpenAudioDevice(g_PConfig.sAudioDevice.c_str(), 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
 		if (audioDev <= 0) {
-			WLOG("Failed to open preferred audio device %s", g_Config.sAudioDevice.c_str());
+			WLOG("Failed to open preferred audio device %s", g_PConfig.sAudioDevice.c_str());
 		}
 	}
 	if (audioDev <= 0) {
@@ -425,7 +425,7 @@ bool MainUI::event(QEvent *e) {
 		}
 		break;
 	case QEvent::MouseButtonDblClick:
-		if (!g_Config.bShowTouchControls || GetUIState() != UISTATE_INGAME)
+		if (!g_PConfig.bShowTouchControls || GetUIState() != UISTATE_INGAME)
 			emit doubleClick();
 		break;
 	case QEvent::MouseButtonPress:
@@ -500,18 +500,18 @@ bool MainUI::event(QEvent *e) {
 
 	default:
 		if (e->type() == browseFileEvent) {
-			QString fileName = QFileDialog::getOpenFileName(nullptr, "Load ROM", g_Config.currentDirectory.c_str(), "PSP ROMs (*.iso *.cso *.pbp *.elf *.zip *.ppdmp)");
+			QString fileName = QFileDialog::getOpenFileName(nullptr, "Load ROM", g_PConfig.currentDirectory.c_str(), "PSP ROMs (*.iso *.cso *.pbp *.elf *.zip *.ppdmp)");
 			if (QFile::exists(fileName)) {
 				QDir newPath;
-				g_Config.currentDirectory = newPath.filePath(fileName).toStdString();
-				g_Config.Save("browseFileEvent");
+				g_PConfig.currentDirectory = newPath.filePath(fileName).toStdString();
+				g_PConfig.Save("browseFileEvent");
 
 				NativeMessageReceived("boot", fileName.toStdString().c_str());
 			}
 			break;
 		} else if (e->type() == browseFolderEvent) {
 			auto mm = GetI18NCategory("MainMenu");
-			QString fileName = QFileDialog::getExistingDirectory(nullptr, mm->T("Choose folder"), g_Config.currentDirectory.c_str());
+			QString fileName = QFileDialog::getExistingDirectory(nullptr, mm->T("Choose folder"), g_PConfig.currentDirectory.c_str());
 			if (QDir(fileName).exists()) {
 				NativeMessageReceived("browse_folderSelect", fileName.toStdString().c_str());
 			}
@@ -524,9 +524,9 @@ bool MainUI::event(QEvent *e) {
 }
 
 void MainUI::initializeGL() {
-	if (g_Config.iGPUBackend != (int)GPUBackend::OPENGL) {
+	if (g_PConfig.iGPUBackend != (int)GPUBackend::OPENGL) {
 		ILOG("Only GL supported under Qt - switching.");
-		g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+		g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 	}
 
 	SetGLCoreContext(format().profile() == QGLFormat::CoreProfile);
@@ -543,14 +543,14 @@ void MainUI::initializeGL() {
 		glGetError();
 	}
 #endif
-	if (g_Config.iGPUBackend == (int)GPUBackend::OPENGL) {
+	if (g_PConfig.iGPUBackend == (int)GPUBackend::OPENGL) {
 		// OpenGL uses a background thread to do the main processing and only renders on the gl thread.
 		ILOG("Initializing GL graphics context");
 		graphicsContext = new QtGLGraphicsContext();
 		ILOG("Using thread, starting emu thread");
 		EmuThreadStart();
 	} else {
-		ILOG("Not using thread, backend=%d", (int)g_Config.iGPUBackend);
+		ILOG("Not using thread, backend=%d", (int)g_PConfig.iGPUBackend);
 	}
 	graphicsContext->ThreadStart();
 }
@@ -711,7 +711,7 @@ int main(int argc, char *argv[])
 	NativeInit(argc, (const char **)argv, savegame_dir.c_str(), external_dir.c_str(), nullptr);
 
 	// TODO: Support other backends than GL, like Vulkan, in the Qt backend.
-	g_Config.iGPUBackend = (int)GPUBackend::OPENGL;
+	g_PConfig.iGPUBackend = (int)GPUBackend::OPENGL;
 
 	int ret = mainInternal(a);
 	ILOG("Left mainInternal here.");

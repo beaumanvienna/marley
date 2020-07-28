@@ -59,7 +59,7 @@ JitSafeMem::JitSafeMem(Jit *jit, MIPSGPReg raddr, s32 offset, u32 alignMask)
 	else
 		iaddr_ = (u32) -1;
 
-	fast_ = g_Config.bFastMemory || raddr == MIPS_REG_SP;
+	fast_ = g_PConfig.bFastMemory || raddr == MIPS_REG_SP;
 
 	// If raddr_ is going to get loaded soon, load it now for more optimal code.
 	// We assume that it was already locked.
@@ -259,7 +259,7 @@ void JitSafeMem::DoSlowWrite(const void *safeFunc, const OpArg& src, int suboffs
 	if (!src.IsSimpleReg(EDX)) {
 		jit_->MOV(32, R(EDX), src);
 	}
-	if (!g_Config.bIgnoreBadMemAccess) {
+	if (!g_PConfig.bIgnoreBadMemAccess) {
 		jit_->MOV(32, MIPSSTATE_VAR(pc), Imm32(jit_->GetCompilerPC()));
 	}
 	// This is a special jit-ABI'd function.
@@ -289,7 +289,7 @@ bool JitSafeMem::PrepareSlowRead(const void *safeFunc)
 				jit_->AND(32, R(EAX), Imm32(alignMask_));
 		}
 
-		if (!g_Config.bIgnoreBadMemAccess) {
+		if (!g_PConfig.bIgnoreBadMemAccess) {
 			jit_->MOV(32, MIPSSTATE_VAR(pc), Imm32(jit_->GetCompilerPC()));
 		}
 		// This is a special jit-ABI'd function.
@@ -323,7 +323,7 @@ void JitSafeMem::NextSlowRead(const void *safeFunc, int suboffset)
 			jit_->AND(32, R(EAX), Imm32(alignMask_));
 	}
 
-	if (!g_Config.bIgnoreBadMemAccess) {
+	if (!g_PConfig.bIgnoreBadMemAccess) {
 		jit_->MOV(32, MIPSSTATE_VAR(pc), Imm32(jit_->GetCompilerPC()));
 	}
 	// This is a special jit-ABI'd function.
@@ -338,7 +338,7 @@ bool JitSafeMem::ImmValid()
 void JitSafeMem::Finish()
 {
 	// PMemory::Read_U32/etc. may have tripped coreState.
-	if (needsCheck_ && !g_Config.bIgnoreBadMemAccess)
+	if (needsCheck_ && !g_PConfig.bIgnoreBadMemAccess)
 		jit_->js.afterOp |= JitState::AFTER_CORE_STATE;
 	if (needsSkip_)
 		jit_->SetJumpTarget(skip_);

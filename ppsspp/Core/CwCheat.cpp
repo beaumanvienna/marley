@@ -106,7 +106,7 @@ bool CheatFileParser::Parse() {
 		} else if (line.length() >= 1 && line[0] == '#') {
 			// Comment, ignore.
 		} else if (line.length() > 0) {
-			errors_.push_back(StringFromFormat("Unrecognized content on line %d: expecting _", line_));
+			errors_.push_back(PStringFromFormat("Unrecognized content on line %d: expecting _", line_));
 		}
 	}
 
@@ -132,7 +132,7 @@ void CheatFileParser::FlushCheatInfo() {
 }
 
 void CheatFileParser::AddError(const std::string &err) {
-	errors_.push_back(StringFromFormat("Error on line %d: %s", line_, err.c_str()));
+	errors_.push_back(PStringFromFormat("Error on line %d: %s", line_, err.c_str()));
 }
 
 void CheatFileParser::ParseLine(const std::string &line) {
@@ -263,12 +263,12 @@ static void __CheatStart() {
 	}
 
 	cheatEngine->ParseCheats();
-	g_Config.bReloadCheats = false;
+	g_PConfig.bReloadCheats = false;
 	cheatsEnabled = true;
 }
 
 static int GetRefreshMs() {
-	int refresh = g_Config.iCwCheatRefreshRate;
+	int refresh = g_PConfig.iCwCheatRefreshRate;
 
 	if (!cheatsEnabled)
 		refresh = 1000;
@@ -286,7 +286,7 @@ void __CheatInit() {
 	// Always register the event, want savestates to be compatible whether cheats on or off.
 	CheatEvent = PCoreTiming::RegisterEvent("CheatEvent", &hleCheat);
 
-	if (g_Config.bEnableCheats) {
+	if (g_PConfig.bEnableCheats) {
 		__CheatStart();
 	}
 
@@ -316,9 +316,9 @@ void __CheatDoState(PointerWrap &p) {
 }
 
 void hleCheat(u64 userdata, int cyclesLate) {
-	if (cheatsEnabled != g_Config.bEnableCheats) {
+	if (cheatsEnabled != g_PConfig.bEnableCheats) {
 		// Okay, let's move to the desired state, then.
-		if (g_Config.bEnableCheats) {
+		if (g_PConfig.bEnableCheats) {
 			__CheatStart();
 		} else {
 			__CheatStop();
@@ -349,9 +349,9 @@ void hleCheat(u64 userdata, int cyclesLate) {
 	if (!cheatEngine || !cheatsEnabled)
 		return;
 
-	if (g_Config.bReloadCheats) { //Checks if the "reload cheats" button has been pressed.
+	if (g_PConfig.bReloadCheats) { //Checks if the "reload cheats" button has been pressed.
 		cheatEngine->ParseCheats();
-		g_Config.bReloadCheats = false;
+		g_PConfig.bReloadCheats = false;
 	}
 	cheatEngine->Run();
 }
@@ -950,18 +950,18 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 
 	case CheatOp::PostShader:
 		{
-			auto shaderChain = GetPostShaderChain(g_Config.sPostShaderName);
+			auto shaderChain = GetPostShaderChain(g_PConfig.sPostShaderName);
 			if (op.PostShaderUniform.shader < shaderChain.size()) {
 				std::string shaderName = shaderChain[op.PostShaderUniform.shader]->section;
 				if (shaderName != "Off")
-					g_Config.mPostShaderSetting[StringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = op.PostShaderUniform.value.f;
+					g_PConfig.mPostShaderSetting[PStringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = op.PostShaderUniform.value.f;
 			}
 		}
 		break;
 
 	case CheatOp::PostShaderFromMemory:
 		{
-			auto shaderChain = GetPostShaderChain(g_Config.sPostShaderName);
+			auto shaderChain = GetPostShaderChain(g_PConfig.sPostShaderName);
 			if (PMemory::IsValidAddress(op.addr) && op.PostShaderUniform.shader < shaderChain.size()) {
 				union {
 					float f;
@@ -972,16 +972,16 @@ void CWCheatEngine::ExecuteOp(const CheatOperation &op, const CheatCode &cheat, 
 				if (shaderName != "Off") {
 					switch (op.PostShaderUniform.format) {
 					case 0:
-						g_Config.mPostShaderSetting[StringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u & 0x000000FF;
+						g_PConfig.mPostShaderSetting[PStringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u & 0x000000FF;
 						break;
 					case 1:
-						g_Config.mPostShaderSetting[StringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u & 0x0000FFFF;
+						g_PConfig.mPostShaderSetting[PStringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u & 0x0000FFFF;
 						break;
 					case 2:
-						g_Config.mPostShaderSetting[StringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u;
+						g_PConfig.mPostShaderSetting[PStringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.u;
 						break;
 					case 3:
-						g_Config.mPostShaderSetting[StringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.f;
+						g_PConfig.mPostShaderSetting[PStringFromFormat("%sSettingValue%d", shaderName.c_str(), op.PostShaderUniform.uniform + 1)] = value.f;
 						break;
 					}
 				}

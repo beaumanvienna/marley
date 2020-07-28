@@ -186,7 +186,7 @@ int __DisplayGetNumVblanks() { return numVBlanks; }
 void __DisplayFlip(int cyclesLate);
 
 static void ScheduleLagSync(int over = 0) {
-	lagSyncScheduled = g_Config.bForceLagSync;
+	lagSyncScheduled = g_PConfig.bForceLagSync;
 	if (lagSyncScheduled) {
 		// Reset over if it became too high, such as after pausing or initial loading.
 		// There's no real sense in it being more than 1/60th of a second.
@@ -299,7 +299,7 @@ void __DisplayDoState(PointerWrap &p) {
 		p.Do(lagSyncScheduled);
 		PCoreTiming::RestoreRegisterEvent(lagSyncEvent, "LagSync", &hleLagSync);
 		lastLagSync = real_time_now();
-		if (lagSyncScheduled != g_Config.bForceLagSync) {
+		if (lagSyncScheduled != g_PConfig.bForceLagSync) {
 			ScheduleLagSync();
 		}
 	} else {
@@ -475,7 +475,7 @@ static void CalculateFPS() {
 		}
 	}
 
-	if (g_Config.bDrawFrameGraph) {
+	if (g_PConfig.bDrawFrameGraph) {
 		frameTimeHistory[frameTimeHistoryPos++] = now - lastFrameTimeHistory;
 		lastFrameTimeHistory = now;
 		frameTimeHistoryPos = frameTimeHistoryPos % frameTimeHistorySize;
@@ -516,10 +516,10 @@ void __DisplaySetWasPaused() {
 }
 
 static bool FrameTimingThrottled() {
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 == 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 == 0) {
 		return false;
 	}
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 == 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 == 0) {
 		return false;
 	}
 	return !PSP_CoreParameter().unthrottle;
@@ -537,12 +537,12 @@ static void DoFrameDropLogging(float scaledTimestep) {
 
 static int CalculateFrameSkip() {
 	int frameSkipNum;
-	if (g_Config.iFrameSkipType == 1) {
+	if (g_PConfig.iFrameSkipType == 1) {
 		// Calculate the frames to skip dynamically using the set percentage of the current fps
-		frameSkipNum = ceil( flips * (static_cast<double>(g_Config.iFrameSkip) / 100.00) );
+		frameSkipNum = ceil( flips * (static_cast<double>(g_PConfig.iFrameSkip) / 100.00) );
 	} else {
 		// Use the set number of frames to skip
-		frameSkipNum = g_Config.iFrameSkip;
+		frameSkipNum = g_PConfig.iFrameSkip;
 	}
 	return frameSkipNum;
 }
@@ -553,16 +553,16 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 	FPSLimit fpsLimiter = PSP_CoreParameter().fpsLimit;
 	int fpsLimit = 60;
 	if (fpsLimiter != FPSLimit::NORMAL)
-		fpsLimit = fpsLimiter == FPSLimit::CUSTOM1 ? g_Config.iFpsLimit1 : g_Config.iFpsLimit2;
+		fpsLimit = fpsLimiter == FPSLimit::CUSTOM1 ? g_PConfig.iFpsLimit1 : g_PConfig.iFpsLimit2;
 	throttle = FrameTimingThrottled();
 	skipFrame = false;
 
 	// Check if the frameskipping code should be enabled. If neither throttling or frameskipping is on,
 	// we have nothing to do here.
-	bool doFrameSkip = g_Config.iFrameSkip != 0;
+	bool doFrameSkip = g_PConfig.iFrameSkip != 0;
 
-	bool unthrottleNeedsSkip = g_Config.iUnthrottleMode == (int)UnthrottleMode::SKIP_DRAW;
-	if (g_Config.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
+	bool unthrottleNeedsSkip = g_PConfig.iUnthrottleMode == (int)UnthrottleMode::SKIP_DRAW;
+	if (g_PConfig.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
 		// Vulkan doesn't support the interval setting, so we force frameskip.
 		unthrottleNeedsSkip = true;
 		// If it's not a clean multiple of 60, we may need frameskip to achieve it.
@@ -600,15 +600,15 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 	}
 	curFrameTime = time_now_d();
 
-	if (g_Config.bLogFrameDrops) {
+	if (g_PConfig.bLogFrameDrops) {
 		DoFrameDropLogging(scaledTimestep);
 	}
 
 	// Auto-frameskip automatically if speed limit is set differently than the default.
-	bool useAutoFrameskip = g_Config.bAutoFrameSkip && g_Config.iRenderingMode != FB_NON_BUFFERED_MODE;
+	bool useAutoFrameskip = g_PConfig.bAutoFrameSkip && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE;
 	bool forceFrameskip = fpsLimit > 60 && unthrottleNeedsSkip;
 	int frameSkipNum = CalculateFrameSkip();
-	if (g_Config.bAutoFrameSkip || forceFrameskip) {
+	if (g_PConfig.bAutoFrameSkip || forceFrameskip) {
 		// autoframeskip
 		// Argh, we are falling behind! Let's skip a frame and see if we catch up.
 		if (curFrameTime > nextFrameTime && doFrameSkip) {
@@ -650,7 +650,7 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 
 static void DoFrameIdleTiming() {
 	PROFILE_THIS_SCOPE("timing");
-	if (!FrameTimingThrottled() || !g_Config.bEnableSound || wasPaused) {
+	if (!FrameTimingThrottled() || !g_PConfig.bEnableSound || wasPaused) {
 		return;
 	}
 
@@ -664,11 +664,11 @@ static void DoFrameIdleTiming() {
 	}
 
 	float scaledVblank = timePerVblank;
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 > 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 0) {
 		// 0 is handled in FrameTimingThrottled().
-		scaledVblank *= 60.0f / g_Config.iFpsLimit1;
-	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 > 0) {
-		scaledVblank *= 60.0f / g_Config.iFpsLimit2;
+		scaledVblank *= 60.0f / g_PConfig.iFpsLimit1;
+	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 0) {
+		scaledVblank *= 60.0f / g_PConfig.iFpsLimit2;
 	}
 
 	// If we have over at least a vblank of spare time, maintain at least 30fps in delay.
@@ -686,7 +686,7 @@ static void DoFrameIdleTiming() {
 			time_update();
 		}
 
-		if (g_Config.bDrawFrameGraph) {
+		if (g_PConfig.bDrawFrameGraph) {
 			frameSleepHistory[frameTimeHistoryPos] += time_now_d() - before;
 		}
 	}
@@ -751,21 +751,21 @@ void __DisplayFlip(int cyclesLate) {
 	// non-buffered rendering. The interaction with frame skipping seems to need
 	// some work.
 	// But, let's flip at least once every 10 vblanks, to update fps, etc.
-	const bool noRecentFlip = g_Config.iRenderingMode != FB_NON_BUFFERED_MODE && numVBlanksSinceFlip >= 10;
+	const bool noRecentFlip = g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE && numVBlanksSinceFlip >= 10;
 	// Also let's always flip for animated shaders.
-	const ShaderInfo *shaderInfo = g_Config.sPostShaderName == "Off" ? nullptr : GetPostShaderInfo(g_Config.sPostShaderName);
+	const ShaderInfo *shaderInfo = g_PConfig.sPostShaderName == "Off" ? nullptr : GetPostShaderInfo(g_PConfig.sPostShaderName);
 	bool postEffectRequiresFlip = false;
 
-	bool duplicateFrames = g_Config.bRenderDuplicateFrames && g_Config.iFrameSkip == 0;
+	bool duplicateFrames = g_PConfig.bRenderDuplicateFrames && g_PConfig.iFrameSkip == 0;
 
-	bool unthrottleNeedsSkip = g_Config.iUnthrottleMode != (int)UnthrottleMode::CONTINUOUS;
-	if (g_Config.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
+	bool unthrottleNeedsSkip = g_PConfig.iUnthrottleMode != (int)UnthrottleMode::CONTINUOUS;
+	if (g_PConfig.bVSync && GetGPUBackend() == GPUBackend::VULKAN) {
 		// Vulkan doesn't support the interval setting, so we force frameskip.
 		unthrottleNeedsSkip = true;
 	}
 
 	// postEffectRequiresFlip is not compatible with frameskip unthrottling, see #12325.
-	if (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE && !(unthrottleNeedsSkip && !FrameTimingThrottled())) {
+	if (g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE && !(unthrottleNeedsSkip && !FrameTimingThrottled())) {
 		if (shaderInfo) {
 			postEffectRequiresFlip = (shaderInfo->requires60fps || duplicateFrames);
 		} else {
@@ -782,10 +782,10 @@ void __DisplayFlip(int cyclesLate) {
 		// Let the user know if we're running slow, so they know to adjust settings.
 		// Sometimes users just think the sound emulation is broken.
 		static bool hasNotifiedSlow = false;
-		if (!g_Config.bHideSlowWarnings && !hasNotifiedSlow && PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && IsRunningSlow()) {
+		if (!g_PConfig.bHideSlowWarnings && !hasNotifiedSlow && PSP_CoreParameter().fpsLimit == FPSLimit::NORMAL && IsRunningSlow()) {
 #ifndef _DEBUG
 			auto err = GetI18NCategory("Error");
-			if (g_Config.bSoftwareRendering) {
+			if (g_PConfig.bSoftwareRendering) {
 				host->NotifyUserMessage(err->T("Running slow: Try turning off Software Rendering"), 6.0f, 0xFF30D0D0);
 			} else {
 				host->NotifyUserMessage(err->T("Running slow: try frameskip, sound is choppy when slow"), 6.0f, 0xFF30D0D0);
@@ -797,7 +797,7 @@ void __DisplayFlip(int cyclesLate) {
 		bool forceNoFlip = false;
 		// Alternative to frameskip unthrottle, where we draw everything.
 		// Useful if skipping a frame breaks graphics or for checking drawing speed.
-		if (g_Config.iUnthrottleMode == (int)UnthrottleMode::SKIP_FLIP && !FrameTimingThrottled()) {
+		if (g_PConfig.iUnthrottleMode == (int)UnthrottleMode::SKIP_FLIP && !FrameTimingThrottled()) {
 			static double lastFlip = 0;
 			double now = time_now_d();
 			if ((now - lastFlip) < 1.0f / System_GetPropertyFloat(SYSPROP_DISPLAY_REFRESH_RATE)) {
@@ -851,7 +851,7 @@ void __DisplayFlip(int cyclesLate) {
 		PCoreTiming::ScheduleEvent(0 - cyclesLate, afterFlipEvent, 0);
 		numVBlanksSinceFlip = 0;
 
-		if (g_Config.bDrawFrameGraph) {
+		if (g_PConfig.bDrawFrameGraph) {
 			// Track how long we sleep (whether vsync or sleep_ms.)
 			frameSleepHistory[frameSleepPos] += real_time_now() - lastFrameTimeHistory;
 		}
@@ -866,7 +866,7 @@ void hleAfterFlip(u64 userdata, int cyclesLate) {
 	PPGeNotifyFrame();
 
 	// This seems like as good a time as any to check if the config changed.
-	if (lagSyncScheduled != g_Config.bForceLagSync) {
+	if (lagSyncScheduled != g_PConfig.bForceLagSync) {
 		ScheduleLagSync();
 	}
 }
@@ -893,11 +893,11 @@ void hleLagSync(u64 userdata, int cyclesLate) {
 	}
 
 	float scale = 1.0f;
-	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_Config.iFpsLimit1 > 0) {
+	if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM1 && g_PConfig.iFpsLimit1 > 0) {
 		// 0 is handled in FrameTimingThrottled().
-		scale = 60.0f / g_Config.iFpsLimit1;
-	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_Config.iFpsLimit2 > 0) {
-		scale = 60.0f / g_Config.iFpsLimit2;
+		scale = 60.0f / g_PConfig.iFpsLimit1;
+	} else if (PSP_CoreParameter().fpsLimit == FPSLimit::CUSTOM2 && g_PConfig.iFpsLimit2 > 0) {
+		scale = 60.0f / g_PConfig.iFpsLimit2;
 	}
 
 	const double goal = lastLagSync + (scale / 1000.0f);
@@ -916,7 +916,7 @@ void hleLagSync(u64 userdata, int cyclesLate) {
 	const int over = (int)((time_now_d() - goal) * 1000000);
 	ScheduleLagSync(over - emuOver);
 
-	if (g_Config.bDrawFrameGraph) {
+	if (g_PConfig.bDrawFrameGraph) {
 		frameSleepHistory[frameTimeHistoryPos] += time_now_d() - before;
 	}
 }
@@ -980,7 +980,7 @@ void __DisplaySetFramebuf(u32 topaddr, int linesize, int pixelFormat, int sync) 
 		// IMMEDIATE means that the buffer is fine. We can just flip immediately.
 		// Doing it in non-buffered though creates problems (black screen) on occasion though
 		// so let's not.
-		if (!flippedThisFrame && g_Config.iRenderingMode != FB_NON_BUFFERED_MODE)
+		if (!flippedThisFrame && g_PConfig.iRenderingMode != FB_NON_BUFFERED_MODE)
 			__DisplayFlip(0);
 	} else {
 		// Delay the write until vblank

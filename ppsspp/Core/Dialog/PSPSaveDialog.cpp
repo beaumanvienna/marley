@@ -398,7 +398,7 @@ void PSPSaveDialog::DisplaySaveIcon(bool checkExists)
 static void FormatSaveHourMin(char *hour_time, size_t sz, const tm &t) {
 	const char *am_pm = "AM";
 	int hour = t.tm_hour;
-	switch (g_Config.iTimeFormat) {
+	switch (g_PConfig.iTimeFormat) {
 	case 1:
 		if (hour == 12) {
 			am_pm = "PM";
@@ -420,7 +420,7 @@ static void FormatSaveHourMin(char *hour_time, size_t sz, const tm &t) {
 static void FormatSaveDate(char *date, size_t sz, const tm &t) {
 	int year = t.tm_year + 1900;
 	int month = t.tm_mon + 1;
-	switch (g_Config.iDateFormat) {
+	switch (g_PConfig.iDateFormat) {
 	case 1:
 		snprintf(date, sz, "%02d/%02d/%04d", month, t.tm_mday, year);
 		break;
@@ -453,7 +453,7 @@ void PSPSaveDialog::DisplaySaveDataInfo1() {
 
 		PPGeDrawRect(180, 136, 480, 137, CalcFadedColor(0xFFFFFFFF));
 		std::string titleTxt = saveInfo.title;
-		std::string timeTxt = StringFromFormat("%s   %s  %lld KB", date_year, hour_time, sizeK);
+		std::string timeTxt = PStringFromFormat("%s   %s  %lld KB", date_year, hour_time, sizeK);
 		std::string saveTitleTxt = saveInfo.saveTitle;
 		std::string saveDetailTxt = saveInfo.saveDetail;
 
@@ -498,7 +498,7 @@ void PSPSaveDialog::DisplaySaveDataInfo2(bool showNewData) {
 	s64 sizeK = data_size / 1024;
 
 	PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_LEFT, 0.5f);
-	std::string saveinfoTxt = StringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date_year, hour_time, sizeK);
+	std::string saveinfoTxt = PStringFromFormat("%.128s\n%s  %s\n%lld KB", save_title, date_year, hour_time, sizeK);
 	PPGeDrawText(saveinfoTxt.c_str(), 8, 200, textStyle);
 }
 

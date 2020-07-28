@@ -83,8 +83,8 @@ int PSPNetconfDialog::Update(int animSpeed) {
 	auto di = GetI18NCategory("Dialog");
 	auto err = GetI18NCategory("Error");
 	const float WRAP_WIDTH = 254.0f;
-	const ImageID confirmBtnImage = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? ImageID("I_CROSS") : ImageID("I_CIRCLE");
-	const int confirmBtn = g_Config.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
+	const ImageID confirmBtnImage = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? ImageID("I_CROSS") : ImageID("I_CIRCLE");
+	const int confirmBtn = g_PConfig.iButtonPreference == PSP_SYSTEMPARAM_BUTTON_CROSS ? CTRL_CROSS : CTRL_CIRCLE;
 
 	PPGeStyle textStyle = FadedStyle(PPGeAlign::BOX_CENTER, 0.5f);
 	PPGeStyle buttonStyle = FadedStyle(PPGeAlign::BOX_LEFT, 0.5f);

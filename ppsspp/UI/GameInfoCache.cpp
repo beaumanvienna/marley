@@ -66,7 +66,7 @@ bool GameInfo::Delete() {
 			// Just delete the one file (TODO: handle two-disk games as well somehow).
 			const char *fileToRemove = filePath_.c_str();
 			PFile::Delete(fileToRemove);
-			g_Config.RemoveRecent(filePath_);
+			g_PConfig.RemoveRecent(filePath_);
 			return true;
 		}
 	case IdentifiedFileType::PSP_PBP_DIRECTORY:
@@ -79,7 +79,7 @@ bool GameInfo::Delete() {
 				ERROR_LOG(SYSTEM, "Failed to delete file");
 				return false;
 			}
-			g_Config.CleanRecent();
+			g_PConfig.CleanRecent();
 			return true;
 		}
 	case IdentifiedFileType::PSP_ELF:
@@ -92,7 +92,7 @@ bool GameInfo::Delete() {
 		{
 			const std::string &fileToRemove = filePath_;
 			PFile::Delete(fileToRemove);
-			g_Config.RemoveRecent(filePath_);
+			g_PConfig.RemoveRecent(filePath_);
 			return true;
 		}
 
@@ -623,7 +623,7 @@ handleELF:
 				break;
 		}
 
-		info_->hasConfig = g_Config.hasGameConfig(info_->id);
+		info_->hasConfig = g_PConfig.hasGameConfig(info_->id);
 
 		if (info_->wantFlags & GAMEINFO_WANTSIZE) {
 			std::lock_guard<std::mutex> lock(info_->lock);

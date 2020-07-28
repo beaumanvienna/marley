@@ -65,7 +65,7 @@ ID3D11SamplerState *SamplerCacheD3D11::GetOrCreateSampler(ID3D11Device *device, 
 	samp.AddressV = key.tClamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP;
 	samp.AddressW = samp.AddressU;  // Mali benefits from all clamps being the same, and this one is irrelevant.
 	if (key.aniso) {
-		samp.MaxAnisotropy = (float)(1 << g_Config.iAnisotropyLevel);
+		samp.MaxAnisotropy = (float)(1 << g_PConfig.iAnisotropyLevel);
 	} else {
 		samp.MaxAnisotropy = 1.0f;
 	}
@@ -379,7 +379,7 @@ protected:
 void TextureCacheD3D11::ApplyTextureFramebuffer(TexCacheEntry *entry, VirtualFramebuffer *framebuffer) {
 	ID3D11PixelShader *pshader = nullptr;
 	uint32_t clutMode = gstate.clutformat & 0xFFFFFF;
-	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_Config.bDisableSlowFramebufEffects) {
+	if ((entry->status & TexCacheEntry::STATUS_DEPALETTIZE) && !g_PConfig.bDisableSlowFramebufEffects) {
 		pshader = depalShaderCache_->GetDepalettizePixelShader(clutMode, framebuffer->drawnFormat);
 	}
 

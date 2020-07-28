@@ -24,7 +24,7 @@ void ChatMenu::CreatePopupContents(UI::ViewGroup *parent) {
 	chatEdit_ = bottom->Add(new TextEdit("", n->T("Chat Here"), new LinearLayoutParams(1.0)));
 #if defined(USING_WIN_UI)
 	//freeze  the ui when using ctrl + C hotkey need workaround
-	if (g_Config.bBypassOSKWithKeyboard && !g_Config.bFullScreen) {
+	if (g_PConfig.bBypassOSKWithKeyboard && !g_PConfig.bFullScreen) {
 		System_InputBoxGetString(n->T("Chat"), n->T("Chat Here"), [](bool result, const std::string &value) {
 			if (result) {
 				sendChat(value);
@@ -39,7 +39,7 @@ void ChatMenu::CreatePopupContents(UI::ViewGroup *parent) {
 	bottom->Add(new Button(n->T("Send")))->OnClick.Handle(this, &ChatMenu::OnSubmit);
 #endif
 
-	if (g_Config.bEnableQuickChat) {
+	if (g_PConfig.bEnableQuickChat) {
 		LinearLayout *quickChat = outer->Add(new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 		quickChat->Add(new Button("1", new LinearLayoutParams(1.0)))->OnClick.Handle(this, &ChatMenu::OnQuickChat1);
 		quickChat->Add(new Button("2", new LinearLayoutParams(1.0)))->OnClick.Handle(this, &ChatMenu::OnQuickChat2);
@@ -64,7 +64,7 @@ void ChatMenu::CreateViews() {
 
 	float yres = screenManager()->getUIContext()->GetBounds().h;
 
-	switch (g_Config.iChatScreenPosition) {
+	switch (g_PConfig.iChatScreenPosition) {
 	// the chat screen size is still static 280x240 need a dynamic size based on device resolution 
 	case 0:
 		box_ = new LinearLayout(ORIENT_VERTICAL, new AnchorLayoutParams(PopupWidth(), FillVertical() ? yres - 30 : WRAP_CONTENT, 280, NONE, NONE, 240, true));
@@ -135,27 +135,27 @@ UI::EventReturn ChatMenu::OnSubmit(UI::EventParams &e) {
 }
 
 UI::EventReturn ChatMenu::OnQuickChat1(UI::EventParams &e) {
-	sendChat(g_Config.sQuickChat0);
+	sendChat(g_PConfig.sQuickChat0);
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn ChatMenu::OnQuickChat2(UI::EventParams &e) {
-	sendChat(g_Config.sQuickChat1);
+	sendChat(g_PConfig.sQuickChat1);
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn ChatMenu::OnQuickChat3(UI::EventParams &e) {
-	sendChat(g_Config.sQuickChat2);
+	sendChat(g_PConfig.sQuickChat2);
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn ChatMenu::OnQuickChat4(UI::EventParams &e) {
-	sendChat(g_Config.sQuickChat3);
+	sendChat(g_PConfig.sQuickChat3);
 	return UI::EVENT_DONE;
 }
 
 UI::EventReturn ChatMenu::OnQuickChat5(UI::EventParams &e) {
-	sendChat(g_Config.sQuickChat4);
+	sendChat(g_PConfig.sQuickChat4);
 	return UI::EVENT_DONE;
 }
 
@@ -204,7 +204,7 @@ void ChatMenu::UpdateChat() {
 			uint32_t textcolor = 0xFFFFFF;
 			uint32_t infocolor = 0xFDD835;
 
-			std::string name = g_Config.sNickName.c_str();
+			std::string name = g_PConfig.sNickName.c_str();
 			std::string displayname = i.substr(0, i.find(':'));
 			std::string chattext = i.substr(displayname.length());
 			

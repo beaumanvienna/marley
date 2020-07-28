@@ -518,7 +518,7 @@ void __KernelModuleDoState(PointerWrap &p)
 		}
 	}
 
-	if (g_Config.bFuncReplacements) {
+	if (g_PConfig.bFuncReplacements) {
 		MIPSAnalyst::ReplaceFunctions();
 	}
 }
@@ -1133,7 +1133,7 @@ static PSPModule *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 load
 		// Kind of odd.
 		u32 size = head->psp_size;
 		if (size > elfSize) {
-			*error_string = StringFromFormat("ELF/PRX truncated: %d > %d", (int)size, (int)elfSize);
+			*error_string = PStringFromFormat("ELF/PRX truncated: %d > %d", (int)size, (int)elfSize);
 			module->Cleanup();
 			kernelObjects.Destroy<PSPModule>(module->GetUID());
 			return nullptr;
@@ -1194,7 +1194,7 @@ static PSPModule *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 load
 			}
 
 			// If we've made it this far, it should be safe to dump.
-			if (g_Config.bDumpDecryptedEboot) {
+			if (g_PConfig.bDumpDecryptedEboot) {
 				INFO_LOG(SCEMODULE, "Dumping decrypted EBOOT.BIN to file.");
 				const u32 dumpLength = ret;
 				__SaveDecryptedEbootToStorageMedia(ptr, dumpLength);
@@ -1309,7 +1309,7 @@ static PSPModule *__KernelLoadELFFromPtr(const u8 *ptr, size_t elfSize, u32 load
 	if (!module->isFake) {
 		bool scan = true;
 #if defined(MOBILE_DEVICE)
-		scan = g_Config.bFuncReplacements;
+		scan = g_PConfig.bFuncReplacements;
 #endif
 
 		// If the ELF has debug symbols, don't add entries to the symbol table.
@@ -1677,7 +1677,7 @@ bool __KernelLoadExec(const char *filename, u32 paramPtr, std::string *error_str
 	PSPFileInfo info = pspFileSystem.GetFileInfo(filename);
 	if (!info.exists) {
 		ERROR_LOG(LOADER, "Failed to load executable %s - file doesn't exist", filename);
-		*error_string = StringFromFormat("Could not find executable %s", filename);
+		*error_string = PStringFromFormat("Could not find executable %s", filename);
 		if (paramPtr) {
 			if (param_argp) delete[] param_argp;
 			if (param_key) delete[] param_key;
