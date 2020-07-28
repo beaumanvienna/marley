@@ -113,7 +113,7 @@ static bool PTryParse(const std::string &str, N *const output)
 	else
 		return false;
 }
-void SplitString(const std::string& str, const char delim, std::vector<std::string>& output);
+void PSplitString(const std::string& str, const char delim, std::vector<std::string>& output);
 
 void GetQuotedStrings(const std::string& str, std::vector<std::string>& output);
 

@@ -102,7 +102,7 @@ struct LogChannel {
 	bool enabled;
 };
 
-class ConsoleListener;
+class PConsoleListener;
 
 class LogManager {
 private:
@@ -115,7 +115,7 @@ private:
 
 	LogChannel log_[LogTypes::NUMBER_OF_LOGS];
 	FileLogListener *fileLog_ = nullptr;
-	ConsoleListener *consoleLog_ = nullptr;
+	PConsoleListener *consoleLog_ = nullptr;
 	OutputDebugStringLogListener *debuggerLog_ = nullptr;
 	RingbufferLogListener *ringLog_ = nullptr;
 	static LogManager *logManager_;  // Singleton. Ugh.
@@ -156,7 +156,7 @@ public:
 		return log_[type].level;
 	}
 
-	ConsoleListener *GetConsoleListener() const {
+	PConsoleListener *GetPConsoleListener() const {
 		return consoleLog_;
 	}
 

@@ -146,7 +146,7 @@ bool RemoteISOConnectScreen::FindServer(std::string &resultHost, int &resultPort
 		std::string listing;
 		std::vector<std::string> items;
 		result.TakeAll(&listing);
-		SplitString(listing, '\n', items);
+		PSplitString(listing, '\n', items);
 
 		bool supported = false;
 		for (const std::string &item : items) {

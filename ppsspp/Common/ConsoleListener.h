@@ -25,10 +25,10 @@
 #include "CommonWindows.h"
 #endif
 
-class ConsoleListener : public LogListener {
+class PConsoleListener : public LogListener {
 public:
-	ConsoleListener();
-	~ConsoleListener();
+	PConsoleListener();
+	~PConsoleListener();
 
 	void Init(bool AutoOpen = true, int Width = 200, int Height = 100, const char * Name = "DebugConsole (PPSSPP)");
 	void Open();

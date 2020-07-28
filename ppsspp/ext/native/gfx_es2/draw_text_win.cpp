@@ -164,7 +164,7 @@ void TextDrawerWin32::MeasureStringRect(const char *str, size_t len, const Bound
 	GetTextMetrics(ctx_->hDC, &metrics);
 
 	std::vector<std::string> lines;
-	SplitString(toMeasure, '\n', lines);
+	PSplitString(toMeasure, '\n', lines);
 	float total_w = 0.0f;
 	float total_h = 0.0f;
 	for (size_t i = 0; i < lines.size(); i++) {

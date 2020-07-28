@@ -110,10 +110,10 @@ public:
 	virtual ~JitBlockCacheDebugInterface() {}
 };
 
-class JitBlockCache : public JitBlockCacheDebugInterface {
+class PJitBlockCache : public JitBlockCacheDebugInterface {
 public:
-	JitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
-	~JitBlockCache();
+	PJitBlockCache(MIPSState *mips_, CodeBlockCommon *codeBlock);
+	~PJitBlockCache();
 
 	int AllocateBlock(u32 em_address);
 	// When a proxy block is invalidated, the block located at the rootAddress is invalidated too.

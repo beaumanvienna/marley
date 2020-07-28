@@ -188,9 +188,9 @@ bool TextureReplacer::LoadIniValues(PIniFile &ini, bool isOverride) {
 
 void TextureReplacer::ParseHashRange(const std::string &key, const std::string &value) {
 	std::vector<std::string> keyParts;
-	SplitString(key, ',', keyParts);
+	PSplitString(key, ',', keyParts);
 	std::vector<std::string> valueParts;
-	SplitString(value, ',', valueParts);
+	PSplitString(value, ',', valueParts);
 
 	if (keyParts.size() != 3 || valueParts.size() != 2) {
 		ERROR_LOG(G3D, "Ignoring invalid hashrange %s = %s, expecting addr,w,h = w,h", key.c_str(), value.c_str());

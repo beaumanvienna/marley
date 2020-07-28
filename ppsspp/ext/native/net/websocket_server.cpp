@@ -61,7 +61,7 @@ static inline std::string TrimString(const std::string &s) {
 
 static bool ListContainsNoCase(const std::string &list, const std::string value) {
 	std::vector<std::string> split;
-	SplitString(list, ',', split);
+	PSplitString(list, ',', split);
 
 	for (auto item : split) {
 		std::transform(item.begin(), item.end(), item.begin(), tolower);

@@ -65,7 +65,7 @@ bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list a
 	}
 }
 
-bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
+bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
 {
 	if (full_path.empty())
 		return false;

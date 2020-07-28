@@ -48,7 +48,7 @@
 // TODO: Find a better place for this.
 http::Downloader g_DownloadManager;
 
-Config g_PConfig;
+PConfig g_PConfig;
 
 bool jitForcedOff;
 
@@ -587,11 +587,11 @@ static int DefaultGPUBackend() {
 	return (int)GPUBackend::OPENGL;
 }
 
-int Config::NextValidBackend() {
+int PConfig::NextValidBackend() {
 	std::vector<std::string> split;
 	std::set<GPUBackend> failed;
 
-	SplitString(sFailedGPUBackends, ',', split);
+	PSplitString(sFailedGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (!str.empty() && str != "ALL") {
 			failed.insert(GPUBackendFromString(str));
@@ -599,7 +599,7 @@ int Config::NextValidBackend() {
 	}
 
 	// Count these as "failed" too so we don't pick them.
-	SplitString(sDisabledGPUBackends, ',', split);
+	PSplitString(sDisabledGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (!str.empty()) {
 			failed.insert(GPUBackendFromString(str));
@@ -643,10 +643,10 @@ int Config::NextValidBackend() {
 	return iGPUBackend;
 }
 
-bool Config::IsBackendEnabled(GPUBackend backend, bool validate) {
+bool PConfig::IsBackendEnabled(GPUBackend backend, bool validate) {
 	std::vector<std::string> split;
 
-	SplitString(sDisabledGPUBackends, ',', split);
+	PSplitString(sDisabledGPUBackends, ',', split);
 	for (const auto &str : split) {
 		if (str.empty())
 			continue;
@@ -1114,11 +1114,11 @@ static void IterateSettings(PIniFile &iniFile, std::function<void(PIniFile::Sect
 	}
 }
 
-Config::Config() : bGameSpecific(false) {
+PConfig::PConfig() : bGameSpecific(false) {
 	InitInstanceCounter();
 }
 
-Config::~Config() {
+PConfig::~PConfig() {
 	ShutdownInstanceCounter();
 }
 
@@ -1160,13 +1160,13 @@ std::map<std::string, std::pair<std::string, int>> GetLangValuesMapping() {
 	return langValuesMapping;
 }
 
-void Config::Reload() {
+void PConfig::Reload() {
 	reload_ = true;
 	Load();
 	reload_ = false;
 }
 
-void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
+void PConfig::Load(const char *iniFileName, const char *controllerIniFilename) {
 	const bool useIniFilename = iniFileName != nullptr && strlen(iniFileName) > 0;
 	iniFilename_ = FindConfigFile(useIniFilename ? iniFileName : "ppsspp.ini");
 
@@ -1311,7 +1311,7 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	INFO_LOG(LOADER, "Config loaded: '%s'", iniFilename_.c_str());
 }
 
-void Config::Save(const char *saveReason) {
+void PConfig::Save(const char *saveReason) {
 	if (!IsFirstInstance()) {
 		// TODO: Should we allow saving config if started from a different directory?
 		// How do we tell?
@@ -1401,7 +1401,7 @@ void Config::Save(const char *saveReason) {
 		INFO_LOG(LOADER, "Not saving config");
 	}
 	if (jitForcedOff) {
-		// force JIT off again just in case Config::Save() is called without exiting PPSSPP
+		// force JIT off again just in case PConfig::Save() is called without exiting PPSSPP
 		g_PConfig.iCpuCore = (int)CPUCore::INTERPRETER;
 	}
 }
@@ -1411,7 +1411,7 @@ void Config::Save(const char *saveReason) {
 #define PPSSPP_GIT_VERSION "v0.0.1-gaaaaaaaaa"
 #endif
 
-void Config::DownloadCompletedCallback(http::Download &download) {
+void PConfig::DownloadCompletedCallback(http::Download &download) {
 	if (download.ResultCode() != 200) {
 		ERROR_LOG(LOADER, "Failed to download %s: %d", download.url().c_str(), download.ResultCode());
 		return;
@@ -1461,11 +1461,11 @@ void Config::DownloadCompletedCallback(http::Download &download) {
 	}
 }
 
-void Config::DismissUpgrade() {
+void PConfig::DismissUpgrade() {
 	g_PConfig.dismissedVersion = g_PConfig.upgradeVersion;
 }
 
-void Config::AddRecent(const std::string &file) {
+void PConfig::AddRecent(const std::string &file) {
 	// Don't bother with this if the user disabled recents (it's -1).
 	if (iMaxRecent <= 0)
 		return;
@@ -1479,7 +1479,7 @@ void Config::AddRecent(const std::string &file) {
 		recentIsos.resize(iMaxRecent);
 }
 
-void Config::RemoveRecent(const std::string &file) {
+void PConfig::RemoveRecent(const std::string &file) {
 	// Don't bother with this if the user disabled recents (it's -1).
 	if (iMaxRecent <= 0)
 		return;
@@ -1496,7 +1496,7 @@ void Config::RemoveRecent(const std::string &file) {
 	}
 }
 
-void Config::CleanRecent() {
+void PConfig::CleanRecent() {
 	std::vector<std::string> cleanedRecent;
 	for (size_t i = 0; i < recentIsos.size(); i++) {
 		FileLoader *loader = ConstructFileLoader(recentIsos[i]);
@@ -1512,15 +1512,15 @@ void Config::CleanRecent() {
 	recentIsos = cleanedRecent;
 }
 
-void Config::SetDefaultPath(const std::string &defaultPath) {
+void PConfig::SetDefaultPath(const std::string &defaultPath) {
 	defaultPath_ = defaultPath;
 }
 
-void Config::AddSearchPath(const std::string &path) {
+void PConfig::AddSearchPath(const std::string &path) {
 	searchPath_.push_back(path);
 }
 
-const std::string Config::FindConfigFile(const std::string &baseFilename) {
+const std::string PConfig::FindConfigFile(const std::string &baseFilename) {
 	// Don't search for an absolute path.
 	if (baseFilename.size() > 1 && baseFilename[0] == '/') {
 		return baseFilename;
@@ -1541,7 +1541,7 @@ const std::string Config::FindConfigFile(const std::string &baseFilename) {
 	const std::string filename = defaultPath_.empty() ? baseFilename : defaultPath_ + baseFilename;
 	if (!PFile::Exists(filename)) {
 		std::string path;
-		SplitPath(filename, &path, NULL, NULL);
+		PSplitPath(filename, &path, NULL, NULL);
 		if (createdPath_ != path) {
 			PFile::CreateFullPath(path);
 			createdPath_ = path;
@@ -1550,7 +1550,7 @@ const std::string Config::FindConfigFile(const std::string &baseFilename) {
 	return filename;
 }
 
-void Config::RestoreDefaults() {
+void PConfig::RestoreDefaults() {
 	if (bGameSpecific) {
 		deleteGameConfig(gameId_);
 		createGameConfig(gameId_);
@@ -1563,12 +1563,12 @@ void Config::RestoreDefaults() {
 	Load();
 }
 
-bool Config::hasGameConfig(const std::string &pGameId) {
+bool PConfig::hasGameConfig(const std::string &pGameId) {
 	std::string fullIniFilePath = getGameConfigFile(pGameId);
 	return PFile::Exists(fullIniFilePath);
 }
 
-void Config::changeGameSpecific(const std::string &pGameId, const std::string &title) {
+void PConfig::changeGameSpecific(const std::string &pGameId, const std::string &title) {
 	if (!reload_)
 		Save("changeGameSpecific");
 	gameId_ = pGameId;
@@ -1576,7 +1576,7 @@ void Config::changeGameSpecific(const std::string &pGameId, const std::string &t
 	bGameSpecific = !pGameId.empty();
 }
 
-bool Config::createGameConfig(const std::string &pGameId) {
+bool PConfig::createGameConfig(const std::string &pGameId) {
 	std::string fullIniFilePath = getGameConfigFile(pGameId);
 
 	if (hasGameConfig(pGameId)) {
@@ -1588,21 +1588,21 @@ bool Config::createGameConfig(const std::string &pGameId) {
 	return true;
 }
 
-bool Config::deleteGameConfig(const std::string& pGameId) {
+bool PConfig::deleteGameConfig(const std::string& pGameId) {
 	std::string fullIniFilePath = getGameConfigFile(pGameId);
 
 	PFile::Delete(fullIniFilePath);
 	return true;
 }
 
-std::string Config::getGameConfigFile(const std::string &pGameId) {
+std::string PConfig::getGameConfigFile(const std::string &pGameId) {
 	std::string iniFileName = pGameId + "_ppsspp.ini";
 	std::string iniFileNameFull = FindConfigFile(iniFileName);
 
 	return iniFileNameFull;
 }
 
-bool Config::saveGameConfig(const std::string &pGameId, const std::string &title) {
+bool PConfig::saveGameConfig(const std::string &pGameId, const std::string &title) {
 	if (pGameId.empty()) {
 		return false;
 	}
@@ -1632,7 +1632,7 @@ bool Config::saveGameConfig(const std::string &pGameId, const std::string &title
 	return true;
 }
 
-bool Config::loadGameConfig(const std::string &pGameId, const std::string &title) {
+bool PConfig::loadGameConfig(const std::string &pGameId, const std::string &title) {
 	std::string iniFileNameFull = getGameConfigFile(pGameId);
 
 	if (!hasGameConfig(pGameId)) {
@@ -1660,7 +1660,7 @@ bool Config::loadGameConfig(const std::string &pGameId, const std::string &title
 	return true;
 }
 
-void Config::unloadGameConfig() {
+void PConfig::unloadGameConfig() {
 	if (bGameSpecific) {
 		changeGameSpecific();
 
@@ -1684,7 +1684,7 @@ void Config::unloadGameConfig() {
 	}
 }
 
-void Config::LoadStandardControllerIni() {
+void PConfig::LoadStandardControllerIni() {
 	PIniFile controllerIniFile;
 	if (!controllerIniFile.Load(controllerIniFilename_)) {
 		ERROR_LOG(LOADER, "Failed to read %s. Setting controller config to default.", controllerIniFilename_.c_str());
@@ -1695,7 +1695,7 @@ void Config::LoadStandardControllerIni() {
 	}
 }
 
-void Config::ResetControlLayout() {
+void PConfig::ResetControlLayout() {
 	auto reset = [](ConfigTouchPos &pos) {
 		pos.x = defaultTouchPosShow.x;
 		pos.y = defaultTouchPosShow.y;
@@ -1724,7 +1724,7 @@ void Config::ResetControlLayout() {
 	reset(g_PConfig.touchAnalogRotationCCWKey);
 }
 
-void Config::GetReportingInfo(UrlEncoder &data) {
+void PConfig::GetReportingInfo(UrlEncoder &data) {
 	for (size_t i = 0; i < ARRAY_SIZE(sections); ++i) {
 		const std::string prefix = std::string("config.") + sections[i].section;
 		for (auto setting = sections[i].settings; setting->HasMore(); ++setting) {
@@ -1733,6 +1733,6 @@ void Config::GetReportingInfo(UrlEncoder &data) {
 	}
 }
 
-bool Config::IsPortrait() const {
+bool PConfig::IsPortrait() const {
 	return (iInternalScreenRotation == ROTATION_LOCKED_VERTICAL || iInternalScreenRotation == ROTATION_LOCKED_VERTICAL180) && iRenderingMode != FB_NON_BUFFERED_MODE;
 }

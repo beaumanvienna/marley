@@ -506,7 +506,7 @@ void DrawBuffer::DrawTextRect(FontID font, const char *text, float x, float y, f
 	MeasureTextRect(font, toDraw.c_str(), (int)toDraw.size(), Bounds(x, y, w, h), &totalWidth, &totalHeight, align);
 
 	std::vector<std::string> lines;
-	SplitString(toDraw, '\n', lines);
+	PSplitString(toDraw, '\n', lines);
 
 	float baseY = y;
 	if (align & ALIGN_VCENTER) {

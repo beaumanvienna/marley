@@ -350,7 +350,7 @@ bool Load_PSP_ELF_PBP(FileLoader *fileLoader, std::string *error_string) {
 
 	std::string full_path = fileLoader->Path();
 	std::string path, file, extension;
-	SplitPath(ReplaceAll(full_path, "\\", "/"), &path, &file, &extension);
+	PSplitPath(ReplaceAll(full_path, "\\", "/"), &path, &file, &extension);
 
 	size_t pos = path.find("/PSP/GAME/");
 	std::string ms_path;

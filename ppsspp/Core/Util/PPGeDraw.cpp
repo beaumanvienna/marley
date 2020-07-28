@@ -931,7 +931,7 @@ static std::string StripTrailingWhite(const std::string &s) {
 
 static std::string CropLinesToCount(const std::string &s, int numLines) {
 	std::vector<std::string> lines;
-	SplitString(s, '\n', lines);
+	PSplitString(s, '\n', lines);
 	if ((int)lines.size() <= numLines) {
 		return s;
 	}

@@ -932,11 +932,11 @@ void LoadFromIni(PIniFile &file) {
 			continue;
 
 		std::vector<std::string> mappings;
-		SplitString(value, ',', mappings);
+		PSplitString(value, ',', mappings);
 
 		for (size_t j = 0; j < mappings.size(); j++) {
 			std::vector<std::string> parts;
-			SplitString(mappings[j], '-', parts);
+			PSplitString(mappings[j], '-', parts);
 			int deviceId = atoi(parts[0].c_str());
 			int keyCode = atoi(parts[1].c_str());
 

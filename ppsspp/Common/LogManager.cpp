@@ -132,7 +132,7 @@ LogManager::LogManager() {
 #else
 #if !defined(MOBILE_DEVICE) || defined(_DEBUG)
 	fileLog_ = new FileLogListener("");
-	consoleLog_ = new ConsoleListener();
+	consoleLog_ = new PConsoleListener();
 #ifdef _WIN32
 	if (IsDebuggerPresent())
 		debuggerLog_ = new OutputDebugStringLogListener();

@@ -549,7 +549,7 @@ void GameSettingsScreen::CreateViews() {
 
 #if defined(SDL)
 	std::vector<std::string> audioDeviceList;
-	SplitString(System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
+	PSplitString(System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
 	audioDeviceList.insert(audioDeviceList.begin(), a->T("Auto"));
 	PopupMultiChoiceDynamic *audioDevice = audioSettings->Add(new PopupMultiChoiceDynamic(&g_PConfig.sAudioDevice, a->T("Device"), audioDeviceList, nullptr, screenManager()));
 	audioDevice->OnChoice.Handle(this, &GameSettingsScreen::OnAudioDevice);

@@ -128,7 +128,7 @@ public:
 
 	void Comp_Vbfy(MIPSOpcode op) {}
 
-	JitBlockCache *GetBlockCache() override { return &blocks; }
+	PJitBlockCache *GetBlockCache() override { return &blocks; }
 	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks; }
 
 	std::vector<u32> SaveAndClearEmuHackOps() override { return blocks.SaveAndClearEmuHackOps(); }
@@ -162,7 +162,7 @@ private:
 	void WriteExitDestInR(MIPSReg Reg);
 	void WriteSyscallExit();
 
-	JitBlockCache blocks;
+	PJitBlockCache blocks;
 	JitOptions jo;
 	JitState js;
 

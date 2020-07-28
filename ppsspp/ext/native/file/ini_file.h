@@ -96,7 +96,7 @@ public:
 			for(size_t i = 0; i < temp.size(); i++)
 			{
 				std::vector<std::string> key_val;
-				SplitString(temp[i],'_',key_val);
+				PSplitString(temp[i],'_',key_val);
 				if(key_val.size() < 2)
 					continue;
 				U mapKey;

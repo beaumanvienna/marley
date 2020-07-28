@@ -398,7 +398,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 		}
 
 		// Safety check, in case we get a bunch of really large jit ops without a lot of branching.
-		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS) {
+		if (GetSpaceLeft() < 0x800 || js.numInstructions >= PJitBlockCache::MAX_BLOCK_INSTRUCTIONS) {
 			FlushAll();
 			WriteExit(GetCompilerPC(), js.nextExit++);
 			js.compiling = false;
@@ -493,7 +493,7 @@ void Jit::LinkBlock(u8 *exitPoint, const u8 *checkedEntry) {
 	emit.JMP(checkedEntry, true);
 	if (!prelinked) {
 		ptrdiff_t actualSize = emit.GetWritableCodePtr() - exitPoint;
-		int pad = JitBlockCache::GetBlockExitSize() - (int)actualSize;
+		int pad = PJitBlockCache::GetBlockExitSize() - (int)actualSize;
 		for (int i = 0; i < pad; ++i) {
 			emit.INT3();
 		}
@@ -707,7 +707,7 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 		// Normally, exits are 15 bytes (MOV + &pc + dest + JMP + dest) on 64 or 32 bit.
 		// But just in case we somehow optimized, pad.
 		ptrdiff_t actualSize = GetWritableCodePtr() - b->exitPtrs[exit_num];
-		int pad = JitBlockCache::GetBlockExitSize() - (int)actualSize;
+		int pad = PJitBlockCache::GetBlockExitSize() - (int)actualSize;
 		for (int i = 0; i < pad; ++i) {
 			INT3();
 		}
@@ -836,7 +836,7 @@ void Jit::CallProtectedFunction(const void *func, const OpArg &arg1, const u32 a
 void Jit::Comp_DoNothing(MIPSOpcode op) { }
 
 MIPSOpcode Jit::GetOriginalOp(MIPSOpcode op) {
-	JitBlockCache *bc = GetBlockCache();
+	PJitBlockCache *bc = GetBlockCache();
 	int block_num = bc->GetBlockNumberFromEmuHackOp(op, true);
 	if (block_num >= 0) {
 		return bc->GetOriginalFirstOp(block_num);

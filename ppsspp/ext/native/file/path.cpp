@@ -51,7 +51,7 @@ bool LoadRemoteFileList(const std::string &url, bool *cancel, std::vector<FileIn
 
 	if (parseText) {
 		// Plain text format - easy.
-		SplitString(listing, '\n', items);
+		PSplitString(listing, '\n', items);
 	} else if (parseHtml) {
 		// Try to extract from an automatic webserver directory listing...
 		GetQuotedStrings(listing, items);

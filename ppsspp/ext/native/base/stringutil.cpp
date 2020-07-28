@@ -266,7 +266,7 @@ bool PTryParse(const std::string &str, bool *const output)
 	return true;
 }
 
-void SplitString(const std::string& str, const char delim, std::vector<std::string>& output)
+void PSplitString(const std::string& str, const char delim, std::vector<std::string>& output)
 {
 	size_t next = 0;
 	for (size_t pos = 0, len = str.length(); pos < len; ++pos) {

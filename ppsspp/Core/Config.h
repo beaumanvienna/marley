@@ -53,10 +53,10 @@ struct ConfigTouchPos {
 	bool show;
 };
 
-struct Config {
+struct PConfig {
 public:
-	Config();
-	~Config();
+	PConfig();
+	~PConfig();
 
 	// Whether to save the config on close.
 	bool bSaveSettings;
@@ -527,5 +527,5 @@ std::string CreateRandMAC();
 
 // TODO: Find a better place for this.
 extern http::Downloader g_DownloadManager;
-extern Config g_PConfig;
+extern PConfig g_PConfig;
 

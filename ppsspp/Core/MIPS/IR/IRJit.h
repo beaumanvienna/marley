@@ -149,7 +149,7 @@ public:
 
 	bool DescribeCodePtr(const u8 *ptr, std::string &name) override;
 	// Not using a regular block cache.
-	JitBlockCache *GetBlockCache() override { return nullptr; }
+	PJitBlockCache *GetBlockCache() override { return nullptr; }
 	JitBlockCacheDebugInterface *GetBlockCacheDebugInterface() override { return &blocks_; }
 	MIPSOpcode GetOriginalOp(MIPSOpcode op) override;
 
