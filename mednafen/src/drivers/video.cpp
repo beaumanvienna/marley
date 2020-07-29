@@ -588,7 +588,6 @@ static void GenerateWindowedDestRect(void)
 
 static bool GenerateFullscreenDestRect(void)
 {
-   printf("jc bool GenerateFullscreenDestRect(void)\n");
    #warning "JC: modified"
    int w,h;
    SDL_GetWindowSize(gWindow,&w,&h);
@@ -1337,7 +1336,6 @@ void Video_Sync(MDFNGI *gi)
 
 void Video_Init(void)
 {
-    printf("jc void Video_Init(void)\n");
  firstRun=true;
  winpos_x = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.x");
  winpos_y = SDL_WINDOWPOS_CENTERED; //MDFN_GetSettingI("video.window.y");

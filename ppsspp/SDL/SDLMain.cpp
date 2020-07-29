@@ -710,9 +710,6 @@ static SDL_AudioSpec g_retFmt;
 		printf("Init from thread error: '%s'\n", error_message.c_str());
 	}
 
-#ifdef MOBILE_DEVICE
-	SDL_ShowCursor(SDL_DISABLE);
-#endif
 
 	if (!useEmuThread) {
 		NativeInitGraphics(graphicsContext);
@@ -800,12 +797,6 @@ static SDL_AudioSpec g_retFmt;
 					// Set variable here in case fullscreen was toggled by hotkey
 					g_PConfig.bFullScreen = fullscreen;
 
-					// Hide/Show cursor correctly toggling fullscreen
-					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) {
-						SDL_ShowCursor(SDL_DISABLE);
-					} else if (lastUIState != UISTATE_INGAME || !fullscreen) {
-						SDL_ShowCursor(SDL_ENABLE);
-					}
 					break;
 				}
 
@@ -1080,10 +1071,7 @@ static SDL_AudioSpec g_retFmt;
 #if !defined(MOBILE_DEVICE)
 		if (lastUIState != GetUIState()) {
 			lastUIState = GetUIState();
-			if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !g_PConfig.bShowTouchControls)
-				SDL_ShowCursor(SDL_DISABLE);
-			if (lastUIState != UISTATE_INGAME || !g_PConfig.bFullScreen)
-				SDL_ShowCursor(SDL_ENABLE);
+
 		}
 #endif
 
