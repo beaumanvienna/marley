@@ -2122,7 +2122,7 @@ endif()
 
 # installs
 if(NOT ANDROID)
-	file(INSTALL ${NativeAssets} DESTINATION assets)
+#	file(INSTALL ${NativeAssets} DESTINATION assets)
 	file(INSTALL assets/flash0 DESTINATION assets)
 endif()
 # packaging and code signing
