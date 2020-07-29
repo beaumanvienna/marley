@@ -3,7 +3,7 @@
 # and "make"
 
 
-AC_INIT([marley], 0.1.0)
+AC_INIT([marley], 0.1.2)
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE
 AM_EXTRA_RECURSIVE_TARGETS([mednafen_marley])

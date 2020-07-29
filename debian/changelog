@@ -1,3 +1,14 @@
+marley (0.1.2) bionic; urgency=medium
+
+  * PPSSPP rebased
+  * All five emulators for 1.0 release online :-)
+  * Bios file management for PCSX2 not yet implemented.
+  * This is a test version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, MD (Sega Genesis)
+   
+ -- JC <beaumanvienna@gmail.com>  Thu, 28 JUL 2020 18:00:00 -0800
+
 marley (0.1.1.2) focal; urgency=medium
 
   * PCSX2 added
