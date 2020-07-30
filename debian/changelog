@@ -1,4 +1,4 @@
-marley (0.1.2.4) bionic; urgency=medium
+marley (0.1.2.4) focal; urgency=medium
 
   * PPSSPP rebased
   * All five emulators for 1.0 release online :-)
