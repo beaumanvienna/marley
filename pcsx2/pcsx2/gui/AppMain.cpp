@@ -97,7 +97,9 @@ int pcsx2_main(int argc_local, char* argv_local[])
     iCoreInit();
     initCOP0();
     initCounters();
+#ifdef PCSX2_DEVBUILD
     initGSState();
+#endif
     initHW();
     initIopCounters();
     initIopMem();
