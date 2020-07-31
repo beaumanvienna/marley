@@ -1,5 +1,5 @@
 #standalone dolphin test version
-COMPILER_ARTIFACTS = -I/usr/include/SDL2
+COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2 -I../../dolphin/Source/Core
 
 LINKER_OBJECTS 	 = ../../dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/Core/libcore.a 

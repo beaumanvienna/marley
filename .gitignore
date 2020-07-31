@@ -385,3 +385,4 @@ ppsspp/ffmpeg/libswscale/x86/swscale.d
 ppsspp/ffmpeg/libswscale/x86/yuv2rgb.d
 ppsspp/ffmpeg/libswscale/yuv2rgb.d
 ppsspp/ffmpeg/linux/x86_64/lib/
+tests/dolphin/DOLPHIN

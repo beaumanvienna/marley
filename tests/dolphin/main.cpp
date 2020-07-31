@@ -1,3 +1,7 @@
+#define DOLPHIN_HEADRES_FOR_WIIMOTE 1
+#include "../../include/wii.h"
+
+
 #include <stdio.h>
 #include <fstream>
 #include <string>
@@ -5,6 +9,7 @@
 #include <cstring>
 #include <SDL.h>
 #include "../../include/controller.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -13,6 +18,8 @@
 #include <string>
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
+
+
 using namespace std;
 
 int WINDOW_WIDTH = 1280;
@@ -525,6 +532,6 @@ int main(int argc, char* argv[])
 
     dolphin_main(dolphin_argc,dolphin_argv);
     printf("jc exit test\n");
-
+    UICommon::Shutdown();
     return 0;
 }
