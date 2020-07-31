@@ -50,3 +50,6 @@ GSdx_opengl_debug_hw.txt
 pcsx2/build/
 tests/pcsx2/PCSX2
 tests/ppsspp/PPSSPP
+*.o
+*.a
+*.so

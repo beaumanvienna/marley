@@ -469,8 +469,8 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 #if !defined(MOBILE_DEVICE) && !defined(_WIN32) && !PPSSPP_PLATFORM(SWITCH)
 	VFSRegister("", new DirectoryAssetReader((PFile::GetExeDirectory() + "assets/").c_str()));
 	VFSRegister("", new DirectoryAssetReader((PFile::GetExeDirectory()).c_str()));
-	VFSRegister("", new DirectoryAssetReader("/usr/local/share/ppsspp/assets/"));
-	VFSRegister("", new DirectoryAssetReader("/usr/local/share/games/ppsspp/assets/"));
+	VFSRegister("", new DirectoryAssetReader("ppsspp/assets/"));
+	VFSRegister("", new DirectoryAssetReader("/usr/games/Marley/assets/"));
 	VFSRegister("", new DirectoryAssetReader("/usr/share/ppsspp/assets/"));
 	VFSRegister("", new DirectoryAssetReader("/usr/share/games/ppsspp/assets/"));
 #endif

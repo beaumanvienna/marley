@@ -1,4 +1,8 @@
 #!/bin/sh
+FILE=linux/x86_64/lib/libavcodec.a
+if test -f "$FILE"; then
+    exit 0
+fi
 
 rm -f config.h
 echo "Building for Linux"
