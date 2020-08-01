@@ -28,7 +28,7 @@ The Wiimote is an exception and needs to be directly paired with Marley. On newe
 Wiimotes, you need to press 1 and 2 at the same time. For older Wiimote models, 
 you need to press a small button in the battery compartment. <br />
 <br />
-To contact us, open a ticket on the issue tab. <br /> Pull requests are welcome! <br />
+To contact us, open a ticket on the issue tab. Pull requests are welcome! <br />
 <br />
 Happy retro gaming! <br />
 <br />
@@ -49,10 +49,12 @@ Use "ESC" to exit.<br />
 Use "p" to print the current gamepad mapping(s).<br />
 <br />
 Use "l" to print a list of detected controllers to the command line.<br />
-
+<br />
+command line options: <br />
+<br />
   --version             : print version <br />
   --fullscreen, -f      : start in fullscreen mode<br />
-
+<br />
 ## *** Installation for Ubuntu 18.04 and 20.04 ***
 
 sudo add-apt-repository ppa:beauman/marley <br />
