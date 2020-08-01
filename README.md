@@ -38,17 +38,17 @@ Team Marley
 <br />
 Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
 <br />
-Use "f" to toggle fullscreen.<br />
+Use "f" to toggle fullscreen in-game or in the front end.<br />
 <br />
 Use "F5" to save and "F7" to load game states while playing.<br />
 <br />
 Use the guide button to exit a game with no questions asked. The guide button is the big one in the middle.<br />
 <br />
-Use "ESC" to exit.<br />
+Use "ESC" to exit. Same as guide button.<br />
 <br />
-Use "p" to print the current gamepad mapping(s).<br />
+Use "p" to print the current gamepad mapping(s) while in the front-end.<br />
 <br />
-Use "l" to print a list of detected controllers to the command line.<br />
+Use "l" to print a list of detected controllers to the command line while in the front-end.<br />
 <br />
 command line options: <br />
 <br />
