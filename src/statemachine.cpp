@@ -549,7 +549,7 @@ void statemachine(int cmd)
 
 #ifdef DOLPHIN
                             
-                            if ((ext == "iso") && ((str.find("wii") != string::npos)||(str.find("gamecube") != string::npos)))
+                            if (((ext == "iso") ||(ext == "wbfs")) && ((str.find("wii") != string::npos)||(str.find("gamecube") != string::npos)))
                             {
                                 
                                 
