@@ -28,7 +28,7 @@ The Wiimote is an exception and needs to be directly paired with Marley. On newe
 Wiimotes, you need to press 1 and 2 at the same time. For older Wiimote models, 
 you need to press a small button in the battery compartment. <br />
 <br />
-There is a setup screen to configure Marley. The folder path the ROM collections needs to be entered with a keyboard, as well as a path to the firmware of the PS1 and PS2.<br />
+There is a setup screen to configure Marley. The folder path to the ROM collections needs to be entered with a keyboard, as well as a path to the firmware of the PS1 and PS2. All other settings are configured automatically.<br />
 <br />
 To contact us, open a ticket on the issue tab. Pull requests are welcome! <br />
 <br />
