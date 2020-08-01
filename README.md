@@ -48,9 +48,9 @@ Use the guide button to exit a game with no questions asked. The guide button is
 <br />
 Use "ESC" to exit. Same as guide button.<br />
 <br />
-Use "p" to print the current gamepad mapping(s) while in the front-end.<br />
+Use "p" to print the current gamepad mapping(s) while in the front end.<br />
 <br />
-Use "l" to print a list of detected controllers to the command line while in the front-end.<br />
+Use "l" to print a list of detected controllers to the command line while in the front end.<br />
 <br />
 command line options: <br />
 <br />
@@ -126,16 +126,16 @@ Marley is using five core plugins that are linked as static libraries. This way,
 <br />
 Difficulties arise when changing the previously standalone emulators into libraries that can get called multiple times. For all five core plugins the initialization was reworked to remove any dependencies from globally initialized signals. <br />
 <br />
-Marley knows only big-ṕicture mode. This is to resemble a gaming console. It is designed to be a "sofa" application or could be used for a DIY arcade machine. Marley does not have mouse support or allow pop-up windows. All core modules render into an SDL Open GL context in the main window. While Mednafen, PPSSPP, and Mupen64Plus were doing this already and easy to integrate, Dolphin was changed from an X11 Open GL context and PCSX2 was changed from a wxWidgets context. <br />
+Marley knows only big-ṕicture mode. This is to resemble a gaming console. It is designed to be a "sofa" application or could be used for a DIY arcade machine. Marley does not have mouse support or allow pop-up windows. All core modules render into an SDL Open GL context in the main window. While Mednafen, PPSSPP, and Mupen64Plus were doing this already and were easy to integrate, Dolphin was changed from an X11 Open GL context and PCSX2 was changed from a wxWidgets context. <br />
 <br />
-The mapping of the game controllers happens entirely in the front-end. Unlike the old SDL_Joystick, the SDL_Gamecontroller has a fixed mapping. Marley is taking advantage of this. The default settings in the core modules are hard-coded to the SDL_Gamecontroller. This way, the very first run of a core module automatically generates the correct ini files. Marley is using the SDL game controller database and a niftly little trick to find similar controllers in the database when there is no exact match. Marley supports standard PS/X-Box controllers, as well as less-than 15-buttons controllers such as the NES gamepads. It also supports the Nintendo Wiimote by using Dolphin's built-in drivers in the front end.<br />
+The mapping of the game controllers happens entirely in the front end. Unlike the old SDL_Joystick, the SDL_Gamecontroller has a fixed mapping. Marley is taking advantage of this. The default settings in the core modules are hard-coded to the SDL_Gamecontroller. This way, the very first run of a core module automatically generates the correct ini files. Marley is using the SDL game controller database and a niftly little trick to find similar controllers in the database when there is no exact match. Marley supports standard PS/X-Box controllers, as well as less-than 15-button controllers such as the NES gamepads. It also supports the Nintendo Wiimote by using Dolphin's built-in drivers in the front end.<br />
 <br />
 Needless to say, Marley has a configuration folder in which the core modules save their settings. Marley is completely isolated from other emulators installations. <br />
 <br />
-The project build system is autoconf, however, most emulator modules use cmake. The build process is chained together and takes about 70 minutes on Launchpad. We tried integrating Travis into the Github repository. Unfortunately, the build was too long (or their build server too slow) and it got canceled.  Github CI has yet to be looked into. There are no intentions to set this project up for Windows. Since most people prefer gaming under Windows, pull requests in this regard are welcome, though. The emulators should work fine under Windows as well, except for PCSX2, for which the latest x64 version supporting both Linux and Windows did not work. This PCSX2 version is trying to allocate memory close to the program code, which unfortunately fails when the other core modules are present. This issue could be solved with a few defines. <br />
+The project build system is autoconf, however, most emulator modules use cmake. The build process is chained together and takes about 70 minutes on Launchpad. We tried integrating Travis into the Github repository. Unfortunately, the build was too long (or their build server too slow) and it got canceled.  Github CI has yet to be looked into. There are no intentions to set this project up for Windows. Since most people prefer gaming under Windows, pull requests in this regard are welcome, though. The emulators should work fine under Windows, except for PCSX2, for which the latest x64 version supporting both Linux and Windows did not work. This PCSX2 version is trying to allocate memory close to the program code, which unfortunately fails when the other core modules are present. This issue could be solved with a few defines. <br />
 <br />
 Currently, development takes place under Ubuntu. Testing is happening under Bionic and Focal, and soon also under Arch, Fedora, and Gentoo. <br />
 <br />
 There is a unit test for each core emulator available to help isolate faults, improve debugging and decrease compile time during development.<br />
 <br />
-In general, pull requests are welcome. The project needs Open GL / Game programmers to bring more life into the frontend. It should feel like an actual retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM, Stella or Mame, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.
+In general, pull requests are welcome. The project needs Open GL / Game programmers to bring more life into the front end. It should feel like an actual retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM, Stella or Mame, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.
