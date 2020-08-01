@@ -69,7 +69,7 @@ sudo apt install marley <br />
 #clone & and check out revision <br />
 git clone https://github.com/beaumanvienna/marley  <br />
 cd marley <br />
-#change to the version you like to work with (currently only 'master')  <br />
+#change to the branch you like to work with (currently only 'master')  <br />
 git checkout master <br />
 
 #Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
