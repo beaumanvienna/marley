@@ -55,6 +55,7 @@ command line options: <br />
   --version             : print version <br />
   --fullscreen, -f      : start in fullscreen mode<br />
 <br />
+
 ## *** Installation for Ubuntu 18.04 and 20.04 ***
 
 sudo add-apt-repository ppa:beauman/marley <br />
