@@ -1,11 +1,23 @@
-#this file is required to chain the autoconf run in ../ with the test subfolders
+# Makefile for unit tests
 
 all: 
 
 clean:
 	$(info   *************** tests clean ***************)
 	$(MAKE) -C pcsx2 $@
+	$(MAKE) -C ppsspp $@
+	$(MAKE) -C mupen64plus $@
+	$(MAKE) -C mednafen $@
+	$(MAKE) -C dolphin $@
+
+unit_tests:
+	$(info   *************** make all unit tests ***************)
+	$(MAKE) -C pcsx2 all
+	$(MAKE) -C ppsspp all
+	$(MAKE) -C mupen64plus all
+	$(MAKE) -C mednafen all
+	$(MAKE) -C dolphin all
 
 check: all
 
-.PHONY: all
+.PHONY: all unit_tests clean

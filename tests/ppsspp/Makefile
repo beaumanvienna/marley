@@ -45,9 +45,11 @@ LINKER_OBJECTS 	+= -lrt
 LINKER_OBJECTS 	+= -lpng
 LINKER_OBJECTS 	+= -lGLU
 
-all:
+all: PPSSPP
+
+PPSSPP: 
 	$(info   *************** tests make ppsspp ***************)
-	$(MAKE) -C ../../ppsspp/build $@ -j8
+	$(MAKE) -C ../../ppsspp/build all -j8
 	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PPSSPP main.cpp $(LINKER_OBJECTS) $(LINKER_OBJECTS) $(LINKER_OBJECTS)
 
 clean:

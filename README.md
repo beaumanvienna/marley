@@ -136,6 +136,6 @@ The project build system is autoconf, however, most emulator modules use cmake. 
 <br />
 Currently, development takes place under Ubuntu. Testing is happening under Bionic and Focal, and soon also under Arch, Fedora, and Gentoo. <br />
 <br />
-There is a unit test for each core emulator available to help isolate faults, improve debugging and decrease compile time during development.<br />
+There is a unit test for each core emulator available to help isolate faults, improve debugging and decrease compile time during development. Adding a new core module begins with creating a new unit test to get it up and running before it is added to the main application. To build the unit tests run ./configure in projet root folder and say 'make unit_tests' in the test folder.<br />
 <br />
 In general, pull requests are welcome. The project needs Open GL / Game programmers to bring more life into the front end. It should feel like an actual retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM, Stella or Mame, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.

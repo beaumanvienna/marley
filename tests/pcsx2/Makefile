@@ -48,7 +48,9 @@ LINKER_OBJECTS += -llzma
 LINKER_OBJECTS += -lSDL2
 LINKER_OBJECTS += -lX11 
 
-all: 
+all: PCSX2
+
+PCSX2: 
 	$(info   *************** tests make pcsx2 ***************)
 	$(MAKE) -C ../../pcsx2/build $@ -j8
 	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)

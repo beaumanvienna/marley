@@ -50,6 +50,9 @@ GSdx_opengl_debug_hw.txt
 pcsx2/build/
 tests/pcsx2/PCSX2
 tests/ppsspp/PPSSPP
+tests/mednafen/MEDNAFEN
+tests/mupen64plus/MUPEN64PLUS
+tests/dolphin/DOLPHIN
 *.o
 *.a
 *.so
@@ -385,4 +388,4 @@ ppsspp/ffmpeg/libswscale/x86/swscale.d
 ppsspp/ffmpeg/libswscale/x86/yuv2rgb.d
 ppsspp/ffmpeg/libswscale/yuv2rgb.d
 ppsspp/ffmpeg/linux/x86_64/lib/
-tests/dolphin/DOLPHIN
+

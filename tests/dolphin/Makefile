@@ -78,9 +78,11 @@ LINKER_OBJECTS 	+= -lGLU
 
 
 
-all:
+all: DOLPHIN
+
+DOLPHIN:
 	$(info   *************** tests make dolphin ***************)
-	$(MAKE) -C ../../dolphin/build $@ -j8
+	$(MAKE) -C ../../dolphin/build all -j8
 	g++ $(COMPILER_ARTIFACTS) -o DOLPHIN main.cpp $(LINKER_OBJECTS)
 #-g3 -O0 -ggdb
 
