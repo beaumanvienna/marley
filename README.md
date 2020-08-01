@@ -1,3 +1,4 @@
+<img src="pictures/barrel.png" />
 Marley : Many Awesome Retro Linux Emulators, Yeah!
 
 https://launchpad.net/~beauman/+archive/ubuntu/marley
