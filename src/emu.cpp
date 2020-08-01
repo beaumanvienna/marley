@@ -53,8 +53,8 @@ string gPathToFirmwarePSX;
 string gPathToFirmwarePSXX;
 string gPathToGames;
 string gBaseDir;
-vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","snes","nes","gamecube","wii","n64"}; 
-vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc"};
+vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","snes","nes","gamecube","wii","n64", "gba", "gbc"};
+vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc"};
 bool gGamesFound;
 
 void checkFirmwarePSX(void)

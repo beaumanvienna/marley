@@ -38,22 +38,31 @@ static const char* const NESGamePadConfig2[] =
     MKDEF_MARLEY(button_14),
 
 };
-/*static const char* const NESGamePadConfig[] =
-{
-         MKDEF(KP_3), MKDEF(KP_2), MKDEF(TAB), MKDEF(RETURN), MKDEF(W),MKDEF(S),
-                MKDEF(A), MKDEF(D)
-};*/
 
 static const char* const GBPadConfig[] =
 {
-         MKDEF(KP_3), MKDEF(KP_2), MKDEF(TAB), MKDEF(RETURN), MKDEF(D),MKDEF(A),
-                MKDEF(W), MKDEF(S)
+         MKDEF_MARLEY(button_0),
+         MKDEF_MARLEY(button_1),
+         MKDEF_MARLEY(button_4),
+         MKDEF_MARLEY(button_6),
+         MKDEF_MARLEY(button_14),
+         MKDEF_MARLEY(button_13),
+         MKDEF_MARLEY(button_11),
+         MKDEF_MARLEY(button_12)
 };
 
 static const char* const GBAPadConfig[] =
 {
-         MKDEF(KP_3), MKDEF(KP_2), MKDEF(TAB), MKDEF(RETURN), MKDEF(D),MKDEF(A),
-                MKDEF(W), MKDEF(S), MKDEF(KP_6), MKDEF(KP_5)
+         MKDEF_MARLEY(button_0),
+         MKDEF_MARLEY(button_1),
+         MKDEF_MARLEY(button_4),
+         MKDEF_MARLEY(button_6),
+         MKDEF_MARLEY(button_14),
+         MKDEF_MARLEY(button_13),
+         MKDEF_MARLEY(button_11),
+         MKDEF_MARLEY(button_12), 
+         MKDEF_MARLEY(button_10),
+         MKDEF_MARLEY(button_9)
 };
 
 static const char* const PCFXPadConfig[] =
