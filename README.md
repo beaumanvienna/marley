@@ -4,29 +4,24 @@
 
 # Marley : Many Awesome Retro Linux Emulators, Yeah!
 
-https://launchpad.net/~beauman/+archive/ubuntu/marley
-https://github.com/beaumanvienna/marley
+https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
+https://github.com/beaumanvienna/marley 
 
 ## *** Installation for Ubuntu 18.04 and 20.04 ***
 
-sudo add-apt-repository ppa:beauman/marley
-sudo apt update
-sudo apt upgrade
+sudo add-apt-repository ppa:beauman/marley <br />
+sudo apt update <br />
+sudo apt install marley <br />
 
-#install as binary version
-#-------------------------
-sudo apt install marley
+## Compile from source
 
-#Compile from source
-#-------------------
+#clone & and check out revision <br />
+git clone https://github.com/beaumanvienna/marley  <br />
+cd marley <br />
+#change to the version you like to work with (currently only 'master')  <br />
+git checkout master <br />
 
-#clone & and check out revision
-git clone https://github.com/beaumanvienna/marley
-cd marley
-#change to the version you like to work with (currently only 'master')
-git checkout master
-
-#Install build dependencies specified in debian/control (search for 'Build-Depends'):
+#Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
 
 | Ubuntu 18.04 | 
 | ------------ | 
@@ -64,12 +59,12 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all |
 
 ### Configure and make
-aclocal 
-autoconf
-automake --add-missing --foreign
-./configure
-make
+aclocal <br />
+autoconf <br />
+automake --add-missing --foreign <br />
+./configure <br />
+make <br />
 
 
 ### start it
-./marley
+./marley <br />
