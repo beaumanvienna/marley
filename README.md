@@ -8,7 +8,7 @@ https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 https://github.com/beaumanvienna/marley 
 
 
-Marley is a suite of console emulators plus a launcher app. 
+Marley is a bundle of console emulators plus a launcher app for Linux.
 The project is comprised of Mednafen, Dolphin, 
 Mupen64plus, PPSSPP, and PCSX2.
 Marley's launcher interface is designed to be used with 
