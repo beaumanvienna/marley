@@ -30,7 +30,7 @@ you need to press a small button in the battery compartment. <br />
 <br />
 To contact us, open a ticket on the issue tab. Pull requests are welcome! <br />
 <br />
-A big thanks to the teams of Mednafen, Dolphin and PPSSPP, Mupen64Plus, and PCSX2. Thanks for all the work you put into your projects and the awseome emulators you provide. All credits go to you guys, while this project here is just a small front end.
+A big thanks to the teams of Mednafen, Dolphin and PPSSPP, Mupen64Plus, and PCSX2. Thanks for all the work you put into your projects and the awseome emulators you provide. All credits go to you guys, while this project here is just a small front end.<br />
 <br />
 Happy retro gaming! <br />
 <br />
