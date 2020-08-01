@@ -7,6 +7,47 @@
 https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 https://github.com/beaumanvienna/marley 
 
+
+Marley is a suite of console emulators plus a launcher app. 
+The prject is comprised of Mednafen, Dolphin, 
+Mupen64plus, PPSSPP, and PCSX2.
+Marley's launcher interface is designed to be used with 
+gamepads. Gamepads can be hotplugged and automatically detetcted
+in the launcher interface. Marley also allows to configure 
+the button assignment of a controller maunally. The controller settings 
+are shared with all emulators. Marley allows to browse 
+one's ROM collection and launch games for the NES, SNES, N64, PS1, PS2, PSP,
+Sega Genesis, Gamecube, and Wii. <br />
+Please make sure to install an
+OpenGl driver for your graphics card. <br />
+If you have a Bluethooth gamepad, 
+you need to pair it with your computer first before it can be used in Marley. 
+The Wiimote is an exception and needs to be directly paired with Marley. On newer 
+Wiimotes, you need to press 1 and 2 at the same time. For older Wiimote models, 
+you need to press a small button in the battery compartment. <br />
+<br />
+To contact us, open a ticket on the issue tab. <br /> Pull requests are welcome! <br />
+Happy retro gaming! <br />
+Team Marley
+## *** Controls ***
+<br />
+Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
+<br />
+Use "f" to toggle fullscreen.<br />
+<br />
+Use "F5" to save and "F7" to load game states while playing.<br />
+<br />
+Use the guide button to exit a game with no questions asked. The guide button is the big one in the middle.<br />
+<br />
+Use "ESC" to exit.<br />
+<br />
+Use "p" to print the current gamepad mapping(s).<br />
+<br />
+Use "l" to print a list of detected controllers to the command line.<br />
+
+  --version             : print version <br />
+  --fullscreen, -f      : start in fullscreen mode<br />
+
 ## *** Installation for Ubuntu 18.04 and 20.04 ***
 
 sudo add-apt-repository ppa:beauman/marley <br />
