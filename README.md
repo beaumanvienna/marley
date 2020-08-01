@@ -17,9 +17,11 @@ in the launcher interface. Marley also allows to configure
 the button assignment of a controller maunally. The controller settings 
 are shared with all emulators. Marley allows to browse 
 one's ROM collection and launch games for the NES, SNES, N64, PS1, PS2, PSP,
-Sega Genesis, Gamecube, and Wii. <br />
+Sega Genesis, Gamecube, and Wii. <br /> 
+<br />
 Please make sure to install an
-OpenGl driver for your graphics card. <br />
+OpenGl driver for your graphics card. <br /> 
+<br />
 If you have a Bluethooth gamepad, 
 you need to pair it with your computer first before it can be used in Marley. 
 The Wiimote is an exception and needs to be directly paired with Marley. On newer 
@@ -27,8 +29,11 @@ Wiimotes, you need to press 1 and 2 at the same time. For older Wiimote models,
 you need to press a small button in the battery compartment. <br />
 <br />
 To contact us, open a ticket on the issue tab. <br /> Pull requests are welcome! <br />
+<br />
 Happy retro gaming! <br />
+<br />
 Team Marley
+<br />
 ## *** Controls ***
 <br />
 Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
