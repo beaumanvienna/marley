@@ -504,29 +504,6 @@ void Video_Kill(void)
 {
  SyncCleanup();
 
- #warning "JC: modified"
- /*
- if(window)
- {
-  if(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
-   SDL_SetWindowFullscreen(window, 0);
-  //
-  SDL_SetRelativeMouseMode(SDL_FALSE);
-  SDL_ShowCursor(SDL_TRUE);
-  SDL_SetWindowGrab(window, SDL_FALSE);
-
-  SDL_DestroyWindow(window);
-  window = nullptr;
- }
- //
- //
- //
- if(IconSurface)
- {
-  //SDL_FreeSurface(IconSurface);
-  //IconSurface = nullptr;
- }
- */
  screen = nullptr;
  VideoGI = nullptr;
  screen_w = 0;
@@ -543,7 +520,6 @@ bool Video_ErrorPopup(bool warning, const char* title, const char* text)
  {
   // Best not to drive the user stark raving mad.
   SDL_SetRelativeMouseMode(SDL_FALSE);
-  SDL_ShowCursor(SDL_TRUE);
   SDL_SetWindowGrab(window, SDL_FALSE);
   // should we or shouldn't we...: SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "0");
  }
@@ -723,26 +699,6 @@ void Video_SetWMInputBehavior(const WMInputBehavior& beeeeees)
  const bool relm = CurWMIB.MouseRel && !CurWMIB.MouseAbs && !CurWMIB.Cursor && (grab || fs);
  const bool curse = !relm && CurWMIB.Cursor;
 
- //printf("Grab: %d, RelM: %d, Curse: %d\n", grab, relm, curse);
-
- #warning "JC: modified"
- /*
- if(grab)
- {
-  SDL_ShowWindow(window);
-  SDL_RaiseWindow(window);
-  SDL_SetWindowGrab(window, SDL_TRUE);
- }
-
- SDL_ShowCursor(SDL_FALSE);
- SDL_SetRelativeMouseMode(relm ? SDL_TRUE : SDL_FALSE);
- SDL_ShowCursor(curse ? SDL_TRUE : SDL_FALSE);
-
- if(!grab)
-  SDL_SetWindowGrab(window, SDL_FALSE);
-
- SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, grab ? "1" : "0");
- */
 }
 
 #if 0

@@ -173,10 +173,6 @@ m64p_error EVidExt_Quit(void)
     if (!SDL_WasInit(SDL_INIT_VIDEO))
         return M64ERR_NOT_INIT;
 
-    //SDL_ShowCursor(SDL_ENABLE);
-    //SDL2_DestroyWindow();
-
-    //SDL_QuitSubSystem(SDL_INIT_VIDEO);
     l_pScreen = NULL;
     l_VideoOutputActive = 0;
     StateChanged(M64CORE_VIDEO_MODE, M64VIDEO_NONE);

@@ -369,7 +369,7 @@ static void doSdlKeys(const unsigned char* keystate)
                     grabmouse = !grabmouse;
                     // grab/ungrab mouse
                     SDL_SetRelativeMouseMode(grabmouse ? SDL_TRUE : SDL_FALSE);
-                    SDL_ShowCursor( grabmouse ? 0 : 1 );
+                    SDL_ShowCursor(SDL_DISABLE);
                 }
             }
             else grabtoggled = 0;

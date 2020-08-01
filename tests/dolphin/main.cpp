@@ -492,6 +492,7 @@ int main(int argc, char* argv[])
     setBaseDir();
     initJoy();
     initGUI();
+    SDL_ShowCursor(SDL_DISABLE);
     
     while( !gQuit )
     {
