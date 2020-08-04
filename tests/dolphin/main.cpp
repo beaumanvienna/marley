@@ -464,6 +464,7 @@ int main(int argc, char* argv[])
 
     char arg1[1024];
     char arg2[1024];
+    char arg3[1024];
     
     int n;
     string str;
@@ -517,7 +518,7 @@ int main(int argc, char* argv[])
 
     dolphin_argv[0] = arg1;
 
-    if (argc > 1)
+    if (argc == 2)
     {
         str = argv[1];
         n = str.length(); 
@@ -525,13 +526,36 @@ int main(int argc, char* argv[])
 
         dolphin_argv[1] = arg2;
         dolphin_argc = 2; 
+        dolphin_main(dolphin_argc,dolphin_argv);
+    }
+    else if (argc == 3)
+    {
+        str = argv[1];
+        n = str.length(); 
+        strcpy(arg2, str.c_str());
+        
+        str = argv[2];
+        n = str.length(); 
+        strcpy(arg3, str.c_str());
+
+        dolphin_argc = 2; 
+        
+        dolphin_argv[1] = arg2;
+        dolphin_main(dolphin_argc,dolphin_argv);
+        
+        dolphin_argv[1] = arg3;
+        dolphin_main(dolphin_argc,dolphin_argv);
+        
+        dolphin_argv[1] = arg3;
+        dolphin_main(dolphin_argc,dolphin_argv);
     }
     else
     {
         dolphin_argc = 1; 
+        dolphin_main(dolphin_argc,dolphin_argv);
     }
 
-    dolphin_main(dolphin_argc,dolphin_argv);
+    
     printf("jc exit test\n");
     UICommon::Shutdown();
     return 0;
