@@ -638,6 +638,15 @@ bool createRenderer(void)
     }
     else
     {
+        SDL_RendererInfo rendererInfo;
+        SDL_GetRendererInfo(gRenderer, &rendererInfo);
+        std::cout << "Renderer: " << rendererInfo.name << std::endl;
+        std::string str = rendererInfo.name;
+        if (str.compare("opengl") != 0)
+        {
+            std::cout << "OpenGL not found. Please install an OpenGL driver for your graphics card. " << std::endl;
+            exit(1);
+        }
         
         SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
         //Load media
