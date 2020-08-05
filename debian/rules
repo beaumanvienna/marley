@@ -6,6 +6,7 @@
 override_dh_auto_configure: 
 	chmod 644 pictures/* resources/* ppsspp/assets/shaders/* ppsspp/assets/flash0/font/* ppsspp/assets/lang/* ppsspp/assets/7z.png ppsspp/assets/knownfuncs.ini ppsspp/assets/langregion.ini ppsspp/assets/rargray.png ppsspp/assets/ui_atlas.zim ppsspp/assets/zip.png ppsspp/assets/compat.ini ppsspp/assets/gamecontrollerdb.txt ppsspp/assets/ppge_atlas.zim ppsspp/assets/Roboto-Condensed.ttf ppsspp/assets/ui_atlas_lowmem.zim ppsspp/assets/unknown.png 
 	chmod 755 ppsspp/assets ppsspp/assets/flash0 ppsspp/assets/flash0/font ppsspp/assets/lang ppsspp/assets/shaders
+	chmod 644 -R dolphin/Data/*
 	sed -i 's/AC_DEFINE(\[PICTURES]\,\["pictures\/"])/AC_DEFINE(\[PICTURES]\,\["\/usr\/games\/Marley\/pictures\/"])/g' configure.ac
 	sed -i 's/AC_DEFINE(\[RESOURCES]\,\["resources\/"])/AC_DEFINE(\[RESOURCES]\,\["\/usr\/games\/Marley\/resources\/"])/g' configure.ac
 	sed -i 's/Ddatadir=..\/Data/Ddatadir=\/usr\/games\/Marley\/dolphin/g' configure.ac

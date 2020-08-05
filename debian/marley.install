@@ -36,7 +36,7 @@
 ./ppsspp/assets usr/games/Marley
 
 #dolphin
-./dolphin/Data/sys usr/games/dolphin
+./dolphin/Data/sys usr/games/Marley/dolphin
 
 #assets for pcsx2
 ./pcsx2/build/plugins/libcdvdGigaherz.so usr/games/Marley/PCSX2
