@@ -17,7 +17,7 @@ License: GPL-2+, see /usr/share/common-licenses
  in any way. This emulator bundle should only be used to play games one 
  legally owns.
 
-Files: configure.ac pictures/* resources/marley.6 resources/marley.desktop tests/*
+Files: configure.ac pictures/* resources/marley.6 resources/marley.desktop tests/* README.md
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
 
