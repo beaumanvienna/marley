@@ -32,8 +32,11 @@
 ./pictures/Wiimote.png usr/games/Marley/pictures
 ./pictures/SNES-controller.png usr/games/Marley/pictures
 
-#assets for ppsspp
+#ppsspp
 ./ppsspp/assets usr/games/Marley
+
+#dolphin
+./dolphin/Data/sys usr/games/dolphin
 
 #assets for pcsx2
 ./pcsx2/build/plugins/libcdvdGigaherz.so usr/games/Marley/PCSX2
