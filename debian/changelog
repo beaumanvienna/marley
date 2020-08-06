@@ -1,4 +1,4 @@
-marley (0.1.3) bionic; urgency=medium
+marley (0.1.3.1) focal; urgency=medium
 
   * Missing data folder for Dolphin fixed
   * GBA and GBC mapping added
@@ -7,7 +7,7 @@ marley (0.1.3) bionic; urgency=medium
   * support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, MD (Sega Genesis), GBA, GBC
    
- -- JC <beaumanvienna@gmail.com>  Tue, 04 AUG 2020 20:40:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Wed, 05 AUG 2020 17:50:00 -0800
 
 marley (0.1.2.4) focal; urgency=medium
 
