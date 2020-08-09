@@ -146,4 +146,4 @@ Depends: ${shlibs:Depends},
         locales
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
- This package contains a bundle of console emulators plus a launcher front-end.
+ This package contains a bundle of console emulators and a launcher front-end.

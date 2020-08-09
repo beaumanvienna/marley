@@ -1,3 +1,13 @@
+marley (0.1.4) focal; urgency=medium
+
+  * PCSX2: gsFrame removed
+  * Bios file management for PCSX2 not yet implemented.
+  * This is a test version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, MD (Sega Genesis), GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Sat, 08 AUG 2020 20:36:00 -0800
+
 marley (0.1.3.1) focal; urgency=medium
 
   * Missing data folder for Dolphin fixed
