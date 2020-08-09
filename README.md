@@ -122,7 +122,7 @@ aclocal <br />
 autoconf <br />
 automake --add-missing --foreign <br />
 ./configure <br />
-make <br />
+make -j8<br />
 
 
 ### start it
