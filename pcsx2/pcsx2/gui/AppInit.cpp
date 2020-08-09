@@ -664,6 +664,8 @@ void Pcsx2App::CleanupResources()
 
 int Pcsx2App::OnExit()
 {
+	OnGsFrameClosed(0);
+	PrepForExit();
 	CleanupOnExit();
 	return wxApp::OnExit();
 }

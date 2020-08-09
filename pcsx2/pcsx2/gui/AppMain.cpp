@@ -1019,8 +1019,12 @@ void Pcsx2App::CloseGsPanel()
 	if (CloseViewportWithPlugins)
 	{
 		if (GSFrame* gsFrame = GetGsFramePtr())
-		if (GSPanel* woot = gsFrame->GetViewport())
-			woot->Destroy();
+		{
+			if (GSPanel* woot = gsFrame->GetViewport())
+			{
+				woot->Destroy();
+			}
+		}
 	}
 }
 

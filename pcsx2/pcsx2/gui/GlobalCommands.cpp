@@ -627,10 +627,8 @@ void shutdownExternal()
     if (CoreThread.HasPendingStateChangeRequest())
         return;
 
-    if (CoreThread.IsPaused())
-        Implementations::Sys_Resume();
-    else
-        Implementations::Sys_Suspend();    
+    Implementations::Sys_Suspend();
+
 }
 
 // --------------------------------------------------------------------------------------

@@ -1460,6 +1460,7 @@ void SysCorePlugins::Close()
 		Close( tbl_PluginInfo[i].id );
 	
 	Console.WriteLn( Color_StrongBlue, "Plugins closed successfully." );
+	Shutdown();
 }
 
 void SysCorePlugins::Init( PluginsEnum_t pid )
