@@ -12,10 +12,10 @@ Marley is a bundle of console emulators plus a launcher app for Linux.
 The project is comprised of Mednafen, Dolphin, 
 Mupen64plus, PPSSPP, and PCSX2.
 Marley's launcher interface is designed to be used with 
-gamepads. Gamepads can be hotplugged and automatically detetcted
-in the launcher interface. Marley also allows to configure 
+gamepads. Gamepads can be hotplugged and automatically detected
+in the launcher interface. Marley also allows one to configure 
 the button assignment of a controller manually. The controller settings 
-are shared with all emulators. Marley allows to browse 
+are shared with all emulators. Marley allows browsing
 one's ROM collection and launch games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
 <br />
 Please make sure to install an
@@ -31,7 +31,7 @@ There is a setup screen to configure Marley. The folder path to the ROM collecti
 <br />
 To contact us, open a ticket on the issue tab. Pull requests are welcome! <br />
 <br />
-A big thanks to the teams of Mednafen, Dolphin and PPSSPP, Mupen64Plus, and PCSX2. Thanks for all the work you put into your projects and the awseome emulators you provide. All credits go to you guys, while this project here is just a small front end.<br />
+A big thanks to the teams of Mednafen, Dolphin and PPSSPP, Mupen64Plus, and PCSX2. Thanks for all the work you put into your projects and the awesome emulators you provide. All credits go to you guys, while this project here is just a small front end.<br />
 <br />
 Happy retro gaming! <br />
 <br />
@@ -125,18 +125,18 @@ make <br />
 ##  *** Developer information  ***
 Marley is using five core modules that are linked as static libraries. This way, it is ensured that the core modules are always available, compiled with the same compiler / compiler version, and against the same dependencies. Resources are shared among the front end and the emulators. For the most part, these are the SDL game controller instances, the SDL main window, and the Open GL settings. <br />
 <br />
-Difficulties arise when changing the previously standalone emulators into libraries that can get called multiple times. For all five core modules the initialization was reworked to remove any dependencies from globally initialized signals. <br />
+Difficulties arise when changing the previously standalone emulators into libraries that can get called multiple times. For all five core modules, the initialization was reworked to remove any dependencies from globally initialized signals. <br />
 <br />
 Marley knows only big-ṕicture mode. This is to resemble a gaming console. It is designed to be a "sofa" application or could be used for a DIY arcade machine. Marley does not have mouse support or allow pop-up windows. All core modules render into an SDL Open GL context in the main window. While Mednafen, PPSSPP, and Mupen64Plus were doing this already and were easy to integrate, Dolphin was changed from an X11 Open GL context and PCSX2 was changed from a wxWidgets context. <br />
 <br />
-The mapping of the game controllers happens entirely in the front end. Unlike the old SDL_Joystick, the SDL_Gamecontroller has a fixed mapping. Marley is taking advantage of this. The default settings in the core modules are hard-coded to the SDL_Gamecontroller. This way, the very first run of a core module automatically generates the correct ini files. Marley is using the SDL game controller database and a niftly little trick to find similar controllers in the database when there is no exact match. Marley supports standard PS/X-Box controllers, as well as less-than 15-button controllers such as the NES gamepads. It also supports the Nintendo Wiimote by using Dolphin's built-in drivers in the front end.<br />
+The mapping of the game controllers happens entirely in the front end. Unlike the old SDL_Joystick, the SDL_Gamecontroller has a fixed mapping. Marley is taking advantage of this. The default settings in the core modules are hard-coded to the SDL_Gamecontroller. This way, the very first run of a core module automatically generates the correct ini files. Marley is using the SDL game controller database and a nifty little trick to find similar controllers in the database when there is no exact match. Marley supports standard PS/X-Box controllers, as well as less-than 15-button controllers such as the NES gamepads. It also supports the Nintendo Wiimote by using Dolphin's built-in drivers in the front end.<br />
 <br />
-Needless to say, Marley has a configuration folder in which the core modules save their settings. Marley is completely isolated from other emulators installations. <br />
+Needless to say, Marley has a configuration folder in which the core modules save their settings. Marley is completely isolated from other emulator installations. <br />
 <br />
 The project build system is autoconf, however, most emulator modules use cmake. The build processes are chained together and take about 70 minutes on Launchpad. We tried integrating Travis into the Github repository. Unfortunately, the build was too long (or their build server too slow) and it got canceled.  Github CI has yet to be looked into. There are no intentions to set this project up for Windows. Since most people prefer gaming under Windows, pull requests in this regard are welcome, though. The emulators should work fine under Windows, except for PCSX2, for which the latest x64 version supporting both Linux and Windows did not work. This PCSX2 version is trying to allocate memory close to the program code, which unfortunately fails when the other core modules are present. This issue could be solved with a few defines. <br />
 <br />
 Currently, development takes place under Ubuntu. Testing is happening under Bionic and Focal, and soon also under Arch, Fedora, and Gentoo. <br />
 <br />
-There is a unit test for each core emulator available to help isolate faults, improve debugging and decrease compile time during development. Adding a core module begins with creating a new unit test. When the unit test is up and running, the core module can be added to the main application. To build the unit tests run ./configure in the projet root folder and say 'make unit_tests' in tests/.<br />
+There is a unit test for each core emulator available to help isolate faults, improve debugging, and decrease compile time during development. Adding a core module begins with creating a new unit test. When the unit test is up and running, the core module can be added to the main application. To build the unit tests run ./configure in the project root folder and say 'make unit_tests' in tests/.<br />
 <br />
 In general, pull requests are welcome. The project needs Open GL / Game programmers to bring more life into the front end. It should feel like an actual retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM or Mame, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.
