@@ -151,11 +151,9 @@ GSPanel::GSPanel( wxWindow* parent )
 #endif
 
 	SetBackgroundColour(wxColour((unsigned long)0));
-	if( g_Conf->GSWindow.AlwaysHideMouse )
-	{
-		SetCursor( wxCursor(wxCURSOR_BLANK) );
-		m_CursorShown = false;
-	}
+
+	SetCursor( wxCursor(wxCURSOR_BLANK) );
+	m_CursorShown = false;
 
 	Bind(wxEVT_CLOSE_WINDOW, &GSPanel::OnCloseWindow, this);
 	Bind(wxEVT_SIZE, &GSPanel::OnResize, this);

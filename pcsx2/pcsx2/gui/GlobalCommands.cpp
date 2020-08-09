@@ -45,6 +45,7 @@ extern bool switchAR;
 
 static int g_Pcsx2Recording = 0; // true 1 if recording video and sound
 extern SDL_Window* gWindow;
+extern bool requestShutdown;
 
 KeyAcceleratorCode::KeyAcceleratorCode( const wxKeyEvent& evt )
 {
@@ -290,9 +291,9 @@ namespace Implementations
 		SetZoom( z );
 	}
 
-
 	void Sys_Suspend()
 	{
+		requestShutdown = true;
 		GSFrame* gsframe = wxGetApp().GetGsFramePtr();
 		if (gsframe && gsframe->IsShown() && gsframe->IsFullScreen()) {
 			// On some cases, probably due to driver bugs, if we don't exit fullscreen then
@@ -951,15 +952,15 @@ void Pcsx2App::InitDefaultGlobalAccelerators()
 	GlobalAccels->Map( AAC( WXK_F4 ),			"Framelimiter_MasterToggle");
 	GlobalAccels->Map( AAC( WXK_F4 ).Shift(),	"Frameskip_Toggle");
 
-	/*GlobalAccels->Map( AAC( WXK_ESCAPE ),		"Sys_Suspend");
-	GlobalAccels->Map( AAC( WXK_F8 ),			"Sys_TakeSnapshot");
+	GlobalAccels->Map( AAC( WXK_ESCAPE ),		"Sys_SuspendResume");
+	/*GlobalAccels->Map( AAC( WXK_F8 ),			"Sys_TakeSnapshot");
 	GlobalAccels->Map( AAC( WXK_F8 ).Shift(),	"Sys_TakeSnapshot");
 	GlobalAccels->Map( AAC( WXK_F8 ).Shift().Cmd(),"Sys_TakeSnapshot");
 	GlobalAccels->Map( AAC( WXK_F9 ),			"Sys_RenderswitchToggle");
 
 	GlobalAccels->Map( AAC( WXK_F10 ),			"Sys_LoggingToggle");
 	GlobalAccels->Map( AAC( WXK_F11 ),			"Sys_FreezeGS");
-	GlobalAccels->Map( AAC( WXK_F12 ),			"Sys_RecordingToggle");
-
-	GlobalAccels->Map( AAC( WXK_RETURN ).Alt(),	"FullscreenToggle" );*/
+	GlobalAccels->Map( AAC( WXK_F12 ),			"Sys_RecordingToggle");*/
+	const KeyAcceleratorCode FULLSCREEN_TOGGLE_ACCELERATOR_GSPANEL=(wxKeyCode)'f';
+	GlobalAccels->Map( FULLSCREEN_TOGGLE_ACCELERATOR_GSPANEL,	"FullscreenToggle" );
 }

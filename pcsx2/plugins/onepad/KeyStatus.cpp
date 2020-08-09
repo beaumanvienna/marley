@@ -96,7 +96,6 @@ void KeyStatus::release(u32 pad, u32 index)
     }
     if ((index == PAD_GUIDE) && requestShutdown)
     {
-        requestShutdown = false;
         shutdownExternal();
     }
 }

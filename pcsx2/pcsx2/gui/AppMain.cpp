@@ -88,7 +88,7 @@ void initR5900Op();
 void initVif0_Dma();
 void initVif1_Dma();
 void initNewVif_unpack();
-
+extern bool requestShutdown;
 int pcsx2_main(int argc_local, char* argv_local[])
 {
     
@@ -119,8 +119,14 @@ int pcsx2_main(int argc_local, char* argv_local[])
     delete wxTheApp;
 
     if (g_Conf) g_Conf.reset();
+    requestShutdown = false;
     
     return 0;
+}
+
+void wxRequestExit(void)
+{
+    wxTheApp->ExitMainLoop();
 }
 
 std::unique_ptr<AppConfig> g_Conf;
@@ -627,7 +633,7 @@ void Pcsx2App::LogicalVsync()
 
 	// Only call PADupdate here if we're using GSopen2.  Legacy GSopen plugins have the
 	// GS window belonging to the MTGS thread.
-	if( (PADupdate != NULL) && (GSopen2 != NULL) && (wxGetApp().GetGsFramePtr() != NULL) )
+	if( (PADupdate != NULL) && (GSopen2 != NULL) )
 		PADupdate(0);
 
 	while( const keyEvent* ev = PADkeyEvent() )
@@ -995,62 +1001,15 @@ void Pcsx2App::ReleaseVmReserve()
 {
     if (m_VmReserve) m_VmReserve.reset();
 }
-extern SDL_Window* gWindow;
+
 extern Display* XDisplay;
 extern Window Xwindow;
 void Pcsx2App::OpenGsPanel()
 {
-	if( AppRpc_TryInvoke( &Pcsx2App::OpenGsPanel ) ) return;
-
-	GSFrame* gsFrame = GetGsFramePtr();
-	if( gsFrame == NULL )
-	{
-		gsFrame = new GSFrame(GetAppName() );
-		m_id_GsFrame = gsFrame->GetId();
-
-		switch( wxGetApp().Overrides.GsWindowMode )
-		{
-			case GsWinMode_Windowed:
-				g_Conf->GSWindow.IsFullscreen = false;
-			break;
-
-			case GsWinMode_Fullscreen:
-				g_Conf->GSWindow.IsFullscreen = true;
-			break;
-
-			case GsWinMode_Unspecified:
-				g_Conf->GSWindow.IsFullscreen = g_Conf->GSWindow.DefaultToFullscreen;
-			break;
-		}
-	}
-	else
-	{
-		// This is an attempt to hackfix a bug in nvidia's 195.xx drivers: When using
-		// Aero and DX10, the driver fails to update the window after the device has changed,
-		// until some event like a hide/show or resize event is posted to the window.
-		// Presumably this forces the driver to re-cache the visibility info.
-		// Notes:
-		//   Doing an immediate hide/show didn't work.  So now I'm trying a resize.  Because
-		//   wxWidgets is "clever" (grr!) it optimizes out just force-setting the same size
-		//   over again, so instead I resize it to size-1 and then back to the original size.
-		//
-		// FIXME: Gsdx memory leaks in DX10 have been fixed.  This code may not be needed
-		// anymore.
-		
-		const wxSize oldsize( gsFrame->GetSize() );
-		wxSize newsize( oldsize );
-		newsize.DecBy(1);
-
-		gsFrame->SetSize( newsize );
-		gsFrame->SetSize( oldsize );
-	}
-	
-	pxAssertDev( !GetCorePlugins().IsOpen( PluginId_GS ), "GS Plugin must be closed prior to opening a new Gs Panel!" );
 
 	pDsp[0] = (uptr)XDisplay;
 	pDsp[1] = (uptr)Xwindow;
 
-	gsFrame->SetSize (1,1,1,1);
 }
 
 void Pcsx2App::CloseGsPanel()
