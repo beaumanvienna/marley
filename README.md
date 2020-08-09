@@ -2,11 +2,18 @@
   <img width="80" src="pictures/barrel.png">
 </p>
 
-# Marley : Many Awesome Retro Linux Emulators, Yeah!
+# Marley: Many Awesome Retro Linux Emulators, Yeah!
 
 https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 https://github.com/beaumanvienna/marley 
 
+- [User Manual](#user-manual)
+- [Controls](#controls)
+- [Installation for Ubuntu 18.04 and 20.04](#installation-for-ubuntu-1804-and-2004)
+- [Compile from source](#compile-from-source)
+- [Developer information](#developer-information)
+
+## User Manual
 
 Marley is a bundle of console emulators for Linux.
 The project is comprised of Mednafen, Dolphin, 
@@ -37,7 +44,7 @@ Happy retro gaming! <br />
 <br />
 Team Marley
 <br />
-## *** Controls ***
+## Controls
 <br />
 Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
 <br />
@@ -59,13 +66,13 @@ command line options: <br />
   --fullscreen, -f      : start in fullscreen mode<br />
 <br />
 
-## *** Installation for Ubuntu 18.04 and 20.04 ***
+## Installation for Ubuntu 18.04 and 20.04
 
 sudo add-apt-repository ppa:beauman/marley <br />
 sudo apt update <br />
 sudo apt install marley <br />
 
-##  *** Compile from source  *** 
+##  Compile from source
 
 #clone & and check out revision <br />
 git clone https://github.com/beaumanvienna/marley  <br />
@@ -122,7 +129,7 @@ make <br />
 ./marley <br />
 
 
-##  *** Developer information  ***
+## Developer information
 Marley is using five core modules that are linked as static libraries. This way, it is ensured that the core modules are always available, compiled with the same compiler / compiler version, and against the same dependencies. Resources are shared among the front end and the emulators. For the most part, these are the SDL game controller instances, the SDL main window, and the Open GL settings. <br />
 <br />
 Difficulties arise when changing the previously standalone emulators into libraries that can get called multiple times. For all five core modules, the initialization was reworked to remove any dependencies from globally initialized signals. <br />
