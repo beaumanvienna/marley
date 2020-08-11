@@ -117,6 +117,15 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
 | libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all |
 
+
+| Arch | 
+| -------------------------------------------------------------------------------------------------------------- | 
+| sudo pacman -S  libaio  libjpeg-turbo  libpcap  libpulse  portaudio  sdl2 soundtouch wxgtk2 gnu-free-fonts \ |
+| alsa-lib   bluez-libs   enet      libevdev         libpulse  libx11   libxi   libxrandr   lzo   mbedtls \ | 
+| libudev.so   libusb-1.0.so pugixml libgl \ |
+|  hidapi  qt5-base  sfml   zlib  libavcodec.so   libavformat.so   libavutil.so   libcurl.so  libminiupnpc.so   libswscale.so libpng \ |
+
+
 ### Configure and make
 aclocal <br />
 autoconf <br />
