@@ -119,11 +119,12 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 
 
 | Arch | 
-| -------------------------------------------------------------------------------------------------------------- | 
-| sudo pacman -S  libaio  libjpeg-turbo  libpcap  libpulse  portaudio  sdl2 soundtouch wxgtk2 gnu-free-fonts \ |
-| alsa-lib   bluez-libs   enet      libevdev         libpulse  libx11   libxi   libxrandr   lzo   mbedtls \ | 
-| libudev.so   libusb-1.0.so pugixml libgl \ |
-|  hidapi  qt5-base  sfml   zlib  libavcodec.so   libavformat.so   libavutil.so   libcurl.so  libminiupnpc.so   libswscale.so libpng \ |
+| ---- | 
+| sudo pacman -S libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch wxgtk2 gnu-free-fonts boost-libs \ |
+| alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa base-devel libsamplerate \ | 
+| libudev.so libusb-1.0.so pugixml libgl glew glibc zlib glu cmake git libglvnd python qt5-tools libzip freetype2 \ |
+| hidapi qt5-base sfml libavcodec.so python libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so libpng  |
+
 
 
 ### Configure and make
