@@ -124,7 +124,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa base-devel libsamplerate \ | 
 | libudev.so libusb-1.0.so pugixml libgl glew glibc zlib glu cmake git libglvnd python qt5-tools libzip freetype2 \ |
 | hidapi qt5-base sfml libavcodec.so python libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so libpng \ |
-| sdl2_image sdl2_ttf |
+| sdl2_image sdl2_ttf nasm boost |
 
 
 ### Configure and make
