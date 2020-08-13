@@ -361,7 +361,11 @@ void GSdxApp::Init()
 #ifdef _WIN32
 	m_default_configuration["osd_fontname"]                               = "C:\\Windows\\Fonts\\tahoma.ttf";
 #else
+  #ifdef _ARCH_64
+    m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/gnu-free/FreeSerif.otf";
+  #else
 	m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
+  #endif
 #endif
 	m_default_configuration["osd_color_r"]                                = "0";
 	m_default_configuration["osd_color_g"]                                = "160";
