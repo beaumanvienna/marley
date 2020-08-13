@@ -276,18 +276,18 @@ endif
 CFLAGS += $(ZLIB_CFLAGS)
 LDLIBS += $(ZLIB_LDLIBS)
 
-ifeq ($(origin MINIZIP_CFLAGS) $(origin MINIZIP_LDLIBS), undefined undefined)
-  ifeq ($(shell $(PKG_CONFIG) --modversion minizip 2>/dev/null),)
+#ifeq ($(origin MINIZIP_CFLAGS) $(origin MINIZIP_LDLIBS), undefined undefined)
+  #ifeq ($(shell $(PKG_CONFIG) --modversion minizip 2>/dev/null),)
     CFLAGS += -DNOCRYPT -DNOUNCRYPT -I$(SUBDIR)/minizip
     MINIZIP_SOURCE = \
       $(SUBDIR)/minizip/ioapi.c \
       $(SUBDIR)/minizip/zip.c \
       $(SUBDIR)/minizip/unzip.c
-  else
-    MINIZIP_CFLAGS = $(shell $(PKG_CONFIG) --cflags minizip)
-    MINIZIP_LDLIBS =  $(shell $(PKG_CONFIG) --libs minizip)
-  endif
-endif
+  #else
+  #  MINIZIP_CFLAGS = $(shell $(PKG_CONFIG) --cflags minizip)
+  #  MINIZIP_LDLIBS =  $(shell $(PKG_CONFIG) --libs minizip)
+  #endif
+#endif
 CFLAGS += $(MINIZIP_CFLAGS)
 LDLIBS += $(MINIZIP_LDLIBS)
 

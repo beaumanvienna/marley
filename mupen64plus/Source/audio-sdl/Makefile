@@ -160,22 +160,23 @@ endif
 
 # test for presence of speexdsp
 ifneq ($(NO_SPEEX), 1)
-  ifeq ($(origin SPEEX_CFLAGS) $(origin SPEEX_LDLIBS), undefined undefined)
-    ifneq ($(strip $(shell $(PKG_CONFIG) speexdsp --modversion 2> /dev/null)),)
-      # set speexdsp flags and libraries
-      SPEEX_CFLAGS += $(shell $(PKG_CONFIG) speexdsp --cflags) -DUSE_SPEEX
-      SPEEX_LDLIBS += $(shell $(PKG_CONFIG) speexdsp --libs)
-    else
-      # warn user
-      $(warning No libspeexdsp development libraries found.  Mupen64plus-sdl-audio will be built without speex-* resampler.)
-	  NO_SPEEX = 1
-    endif
-  else
-    SPEEX_CFLAGS += -DUSE_SPEEX
-  endif
-  CFLAGS += $(SPEEX_CFLAGS)
-  LDLIBS += $(SPEEX_LDLIBS)
+  #ifeq ($(origin SPEEX_CFLAGS) $(origin SPEEX_LDLIBS), undefined undefined)
+  #  ifneq ($(strip $(shell $(PKG_CONFIG) speexdsp --modversion 2> /dev/null)),)
+  #    # set speexdsp flags and libraries
+  #    SPEEX_CFLAGS += $(shell $(PKG_CONFIG) speexdsp --cflags) -DUSE_SPEEX
+  #    SPEEX_LDLIBS += $(shell $(PKG_CONFIG) speexdsp --libs)
+  #  else
+  #    # warn user
+  #    $(warning No libspeexdsp development libraries found.  Mupen64plus-sdl-audio will be built without speex-* resampler.)
+  #	  NO_SPEEX = 1
+  #  endif
+  #else
+  #  SPEEX_CFLAGS += -DUSE_SPEEX
+  #endif
+  #CFLAGS += $(SPEEX_CFLAGS)
+  #LDLIBS += $(SPEEX_LDLIBS)
 endif
+NO_SPEEX = 1
 
 # test for presence of libsamplerate
 ifneq ($(NO_SRC), 1)

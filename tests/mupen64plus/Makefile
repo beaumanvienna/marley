@@ -1,5 +1,5 @@
 #standalone mupen64plus test version
-COMPILER_ARTIFACTS = -I/usr/include/SDL2
+COMPILER_ARTIFACTS = -I/usr/include/SDL2  -fno-pie -no-pie
 
 LINKER_OBJECTS = \
 	../../mupen64plus/Source/mupen.a \

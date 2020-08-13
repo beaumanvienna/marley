@@ -67,17 +67,17 @@ dolphin/build/Source/Core/../../Externals/FreeSurround/libFreeSurround.a: dolphi
 dolphin/build/Source/Core/../../Externals/cubeb/libcubeb.a: dolphin
 dolphin/build/Source/Core/DiscIO/libdiscio.a: dolphin
 dolphin/build/Source/Core/InputCommon/libinputcommon.a: dolphin
-dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a: dolphin
+#dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a: dolphin
 dolphin/build/Source/Core/../../Externals/glslang/libglslang.a: dolphin
 dolphin/build/Source/Core/../../Externals/imgui/libimgui.a: dolphin
 dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a: dolphin
 dolphin/build/Source/Core/Common/libcommon.a: dolphin
 dolphin/build/Source/Core/../../Externals/enet/libenet.a: dolphin
-dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
+#dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
 dolphin/build/Source/Core/../../Externals/fmt/libfmt.a: dolphin
 dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
 dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
-dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
+#dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
 dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolphin
 
 dolphin:
@@ -152,46 +152,40 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/FreeSurround/libFreeS
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cubeb/libcubeb.a 
 marley_LDADD 	+= dolphin/build/Source/Core/DiscIO/libdiscio.a 
 marley_LDADD 	+= dolphin/build/Source/Core/InputCommon/libinputcommon.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a 
+#marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/glslang/libglslang.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/imgui/libimgui.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a 
 marley_LDADD 	+= dolphin/build/Source/Core/Common/libcommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/enet/libenet.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
+#marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a  
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libQt5Widgets.so
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libasound.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libpulse.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/liblzo2.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libz.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libbluetooth.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libavformat.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libavcodec.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libswscale.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libavutil.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libQt5Gui.so
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libQt5Core.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libmbedtls.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libmbedx509.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libmbedcrypto.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libcurl.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libICE.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libX11.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libXext.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libSM.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libEGL.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libOpenGL.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libGLX.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libGLU.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libminiupnpc.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libusb-1.0.so 
-marley_LDADD 	+= /usr/lib/x86_64-linux-gnu/libevdev.so 
-marley_LDADD 	+= /lib/x86_64-linux-gnu/libudev.so 
+#marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a
+marley_LDADD 	+= -lhidapi-hidraw 
+marley_LDADD 	+= -lpugixml 
+marley_LDADD 	+= -lminizip   
+marley_LDADD 	+= -lQt5Widgets
+marley_LDADD 	+= -lasound 
+marley_LDADD 	+= -llzo2
+marley_LDADD 	+= -lavformat
+marley_LDADD 	+= -lavcodec
+marley_LDADD 	+= -lswscale
+marley_LDADD 	+= -lavutil
+marley_LDADD 	+= -lQt5Gui
+marley_LDADD 	+= -lQt5Core
+marley_LDADD 	+= -lcurl  
+marley_LDADD 	+= -lICE 
+marley_LDADD 	+= -lX11
+marley_LDADD 	+= -lXext  
+marley_LDADD 	+= -lSM 
+marley_LDADD 	+= -lGLX 
+marley_LDADD 	+= -lminiupnpc 
+marley_LDADD 	+= -lusb-1.0 
+marley_LDADD 	+= -levdev 
+marley_LDADD 	+= -ludev  
 marley_LDADD 	+= -lXi 
 marley_LDADD 	+= -lsfml-network 
 marley_LDADD 	+= -lsfml-system 
@@ -202,7 +196,22 @@ marley_LDADD    += -ldl
 marley_LDADD 	+= -lrt 
 marley_LDADD 	+= -lXrandr 
 marley_LDADD 	+= -lpulse 
-marley_LDADD 	+= -lsndio 
+#marley_LDADD 	+= -lsndio
+marley_LDADD 	+= -lpthread
+marley_LDADD 	+= -lSDL2
+marley_LDADD 	+= -lz
+marley_LDADD 	+= -lEGL
+marley_LDADD 	+= -lGL
+marley_LDADD 	+= -lGLU
+marley_LDADD 	+= -lOpenGL
+marley_LDADD 	+= -ljack 
+marley_LDADD 	+= -lzstd 
+marley_LDADD 	+= -lEGL
+marley_LDADD 	+= -llzma 
+marley_LDADD 	+= -lbluetooth
+marley_LDADD 	+= -lmbedtls
+marley_LDADD 	+= -lmbedx509
+marley_LDADD 	+= -lmbedcrypto 
 
 #pcsx2
 marley_LDADD 	+= pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Cache.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/COP0.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/COP2.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Counters.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/GameDatabase.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Dump.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Elfheader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/EmuCmp.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/FiFo.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/FPU.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Gif.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Gif_Logger.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Gif_Unit.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/GS.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/GSState.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Hw.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/HwRead.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/HwWrite.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Interpreter.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopBios.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopCounters.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopDma.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopGte.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopHw.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopIrq.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopMem.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IopSio2.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Mdec.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Memory.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/MMI.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/MTGS.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/MTVU.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/MultipartFileReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/OutputIsoFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Patch.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Patch_Memory.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Pcsx2Config.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/PluginManager.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/PrecompiledHeader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R3000A.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R3000AInterpreter.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R3000AOpcodeTables.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R5900.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R5900OpcodeImpl.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/R5900OpcodeTables.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/SaveState.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ShiftJisToUnicode.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Sif.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Sif0.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Sif1.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/sif2.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Sio.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/SourceLog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/SPR.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/System.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif0_Dma.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif1_Dma.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif1_MFIFO.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif_Codes.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif_Transfer.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Vif_Unpack.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/vtlb.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VU0.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VUmicro.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VU0micro.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VU0microInterp.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VU1micro.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VU1microInterp.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VUflags.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VUmicroMem.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/VUops.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/BlockdumpFileReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CdRom.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CDVDaccess.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CDVD.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CDVDisoReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/InputIsoFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/OutputIsoFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/ChunksCache.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CompressedFileReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/CsoFileReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/GzippedFileReader.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/IsoFS/IsoFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/IsoFS/IsoFSCDVD.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/CDVD/IsoFS/IsoFS.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DebugInterface.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DisassemblyManager.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/ExpressionParser.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/MIPSAnalyst.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/MipsAssembler.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/MipsAssemblerTables.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/MipsStackWalk.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/Breakpoints.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/SymbolMap.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DisR3000A.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DisR5900asm.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DisVU0Micro.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/DisVU1Micro.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/DebugTools/BiosDebugData.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppAssert.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppConfig.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppCorePlugins.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppCoreThread.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppEventSources.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppGameDatabase.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppUserMode.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppInit.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppMain.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/AppRes.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/ConsoleLogger.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/CpuUsageProvider.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/AboutBoxDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/AssertionDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/BaseConfigurationDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/ConfirmationDialogs.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/ConvertMemoryCardDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/CreateMemoryCardDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/FirstTimeWizard.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/ImportSettingsDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/LogOptionsDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/McdConfigDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/PickUserModeDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Dialogs/SysConfigDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/BreakpointWindow.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/CtrlDisassemblyView.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/CtrlRegisterList.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/CtrlMemView.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/DebuggerLists.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/DisassemblyDialog.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Debugger/DebugEvents.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/ExecutorThread.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/FrameForGS.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/GlobalCommands.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/i18n.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/IsoDropTarget.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MainFrame.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MainMenuClicks.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MemoryCardFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MemoryCardFolder.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MessageBoxes.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/MSWstuff.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/BaseApplicableConfigPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/BiosSelectorPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/CpuPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/DirPickerPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/GameFixesPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/GSWindowPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/LogOptionsPanels.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/MemoryCardListPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/MemoryCardListView.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/MiscPanelStuff.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/PathsPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/PluginSelectorPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/SpeedhacksPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Panels/VideoPanel.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/RecentIsoList.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/Saveslots.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/SysState.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/UpdateUI.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/IPU.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/IPU_Fifo.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/IPUdither.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/IPUdma.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/mpeg2lib/Idct.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/mpeg2lib/Mpeg.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/IPU/yuv2rgb.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/BiosTools.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/pgif.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/LegacyDmac.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/Iop/IopHwRead.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/Iop/IopHwWrite.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ps2/Iop/PsxBios.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/InputRecording.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/InputRecordingFile.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/NewRecordingFrame.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/PadData.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/RecordingControls.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/RecordingInputManager.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Recording/VirtualPad.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/System/SysCoreThread.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/System/SysThreadBase.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Utilities/FileUtils.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/BaseblockEx.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iCOP0.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iCore.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iFPU.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iFPUd.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iMisc.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iMMI.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iR3000A.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iR3000Atables.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/iR5900Misc.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ir5900tables.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iCore-32.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900-32.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Arit.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900AritImm.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Branch.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Jump.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900LoadStore.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Move.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900MultDiv.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Shift.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/iR5900Templates.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/ix86-32/recVTLB.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/newVif_Dynarec.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/newVif_Unpack.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/newVif_UnpackSSE.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/x86/microVU.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ZipTools/thread_gzip.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/ZipTools/thread_lzma.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/gui/CpuUsageProviderLnx.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Linux/LnxConsolePipe.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Linux/LnxKeyCodes.cpp.o pcsx2/build/pcsx2/CMakeFiles/PCSX2.dir/Linux/LnxFlatFileReader.cpp.o
