@@ -67,17 +67,17 @@ dolphin/build/Source/Core/../../Externals/FreeSurround/libFreeSurround.a: dolphi
 dolphin/build/Source/Core/../../Externals/cubeb/libcubeb.a: dolphin
 dolphin/build/Source/Core/DiscIO/libdiscio.a: dolphin
 dolphin/build/Source/Core/InputCommon/libinputcommon.a: dolphin
-#dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a: dolphin
+dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a: dolphin
 dolphin/build/Source/Core/../../Externals/glslang/libglslang.a: dolphin
 dolphin/build/Source/Core/../../Externals/imgui/libimgui.a: dolphin
 dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a: dolphin
 dolphin/build/Source/Core/Common/libcommon.a: dolphin
 dolphin/build/Source/Core/../../Externals/enet/libenet.a: dolphin
-#dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
+dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
 dolphin/build/Source/Core/../../Externals/fmt/libfmt.a: dolphin
 dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
 dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
-#dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
+dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
 dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolphin
 
 dolphin:
@@ -163,10 +163,7 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmt.a
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a
-#marley_LDADD 	+= -lhidapi-hidraw 
-#marley_LDADD 	+= -lpugixml 
-#marley_LDADD 	+= -lminizip   
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a  
 marley_LDADD 	+= -lQt5Widgets
 marley_LDADD 	+= -lasound 
 marley_LDADD 	+= -llzo2
@@ -223,16 +220,20 @@ marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
 marley_LDADD 	+= -lwx_baseu-3.0 
 
-
-#marley_LDADD 	+= -lwx_gtk3u_core-3.0 
-#marley_LDADD 	+= -lwx_gtk3u_adv-3.0 
-#marley_LDADD 	+= -lgtk-3
-#marley_LDADD 	+= -lgdk-3
-
-marley_LDADD 	+= -lwx_gtk2u_core-3.0 
-marley_LDADD 	+= -lwx_gtk2u_adv-3.0 
-marley_LDADD 	+= -lgdk-x11-2.0
-marley_LDADD 	+= -lgtk-x11-2.0
+ GTK_FLAGS = $(shell ./pcsx2/detect_gtk_flags.sh)
+ ifeq ($(GTK_FLAGS),-DGTK3_API=ON)
+ echo "******************** gtk3 "********************"
+ marley_LDADD 	+= -lwx_gtk3u_core-3.0 
+ marley_LDADD 	+= -lwx_gtk3u_adv-3.0 
+ marley_LDADD 	+= -lgtk-3
+ marley_LDADD 	+= -lgdk-3
+ else
+ echo "******************** gtk2 "********************"
+ marley_LDADD 	+= -lwx_gtk2u_core-3.0
+ marley_LDADD 	+= -lwx_gtk2u_adv-3.0
+ marley_LDADD 	+= -lgdk-x11-2.0
+ marley_LDADD 	+= -lgtk-x11-2.0
+ endif
 
 marley_LDADD 	+= -lglib-2.0
 marley_LDADD 	+= -lgobject-2.0
