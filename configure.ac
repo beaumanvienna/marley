@@ -13,6 +13,7 @@ AC_DEFINE([PICTURES],["pictures/"])
 AC_DEFINE([RESOURCES],["resources/"])
 AC_PROG_RANLIB
 AM_INIT_AUTOMAKE([subdir-objects])
+AM_CONDITIONAL(PCSX2_USE_GTK3, test -n `./pcsx2/detect_gtk_flags.sh`)
 
 AC_CONFIG_COMMANDS_PRE([cd ppsspp/ffmpeg  && ./linux_x86-64.sh &&cd ../..])
 AC_CONFIG_COMMANDS_PRE([cd ppsspp  && mkdir -p build && cd build && cmake ..&&cd ../..])
