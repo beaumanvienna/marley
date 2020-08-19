@@ -122,14 +122,16 @@ SDL_Texture* loadTextureFromFile(string str)
     
     size_t size = 0;
     
-    GBytes *bytes = g_resource_lookup_data(res_get_resource(), "/pictures/beach.png", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+    GBytes *bytes = g_resource_lookup_data(res_get_resource(), "/pictures/beach.bmp", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
 	const void* data = g_bytes_get_data(bytes, &size);
 
 	if (data == nullptr || size == 0) {
 		printf("Failed to get data for resource\n");
 	}
+	
+	SDL_RWops* bmp_file = SDL_RWFromMem((void*) data,size);
     
-    surf = IMG_Load("res:///pictures/beach.png");
+    surf = SDL_LoadBMP_RW(bmp_file,0);
     if (!surf)
     {
         printf("File %s could not be loaded\n",str.c_str());
@@ -150,7 +152,7 @@ bool loadMedia()
 {
 	bool ok = true;
     // background
-    gTextures[TEX_BACKGROUND] = loadTextureFromFile("beach.png");
+    gTextures[TEX_BACKGROUND] = loadTextureFromFile("beach.bmp");
     if (!gTextures[TEX_BACKGROUND])
     {
         ok = false;
