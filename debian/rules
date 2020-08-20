@@ -10,8 +10,6 @@ override_dh_auto_configure:
 	find dolphin/Data -type d -exec chmod 755 {} \;
 	find dolphin/Data -type f -exec chmod 644 {} \;
 	
-	
-	sed -i 's/AC_DEFINE(\[PICTURES]\,\["pictures\/"])/AC_DEFINE(\[PICTURES]\,\["\/usr\/games\/Marley\/pictures\/"])/g' configure.ac
 	sed -i 's/AC_DEFINE(\[RESOURCES]\,\["resources\/"])/AC_DEFINE(\[RESOURCES]\,\["\/usr\/games\/Marley\/resources\/"])/g' configure.ac
 	sed -i 's/Ddatadir=..\/Data/Ddatadir=\/usr\/games\/Marley\/dolphin/g' configure.ac
               

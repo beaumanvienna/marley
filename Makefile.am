@@ -6,11 +6,19 @@ SUBDIRS += ppsspp
 SUBDIRS += tests
 
 #marley
-AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core
+AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core @GTK_HEADERS_INCLUDE@
 AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
 
 bin_PROGRAMS 	= marley		
-marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp
+marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp
+
+#generate built-in resources
+BUILT_SOURCES = resources/res.cpp
+resources/res.cpp: resources/res.xml resources/res.h @RESOURCE_LIST@
+	glib-compile-resources resources/res.xml --target=resources/res.cpp --sourcedir=resources/ --generate-source
+
+resources/res.h: resources/res.xml @RESOURCE_LIST@
+	glib-compile-resources resources/res.xml --target=resources/res.h --sourcedir=resources/ --generate-header
 
 #pcsx2
 COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so 

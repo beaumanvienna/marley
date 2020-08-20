@@ -32,6 +32,8 @@
 #include <fstream>
 #include <dirent.h>
 #include <errno.h>
+#include <gtk/gtk.h>
+#include "../resources/res.h"
 
 #define PI 3.14159
 
@@ -39,7 +41,7 @@ void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
 bool setBaseDir(void);
 
-TTF_Font* gFont = NULL;
+TTF_Font* gFont = nullptr;
 int gActiveController=-1;
 
 void test()
@@ -93,14 +95,28 @@ bool init()
         printf("We are linking against SDL version %d.%d.%d.\n",
         linked.major, linked.minor, linked.patch);
 
+		// load true type font
         TTF_Init();
-        string font = RESOURCES "font.ttf";
-        gFont = TTF_OpenFont(font.c_str(), 24);
-        if (gFont == NULL)
-        {
-            printf("%s not found\n",font.c_str());
-            ok = false;
-        }
+        string font = "/fonts/dejavu-fonts-ttf/DejaVuSansMono-Bold.ttf";
+        size_t file_size = 0;
+		GBytes *mem_access = g_resource_lookup_data(res_get_resource(), font.c_str(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+		const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
+
+		if (dataPtr != nullptr && file_size) 
+		{
+			SDL_RWops* ttf_file = SDL_RWFromMem((void*) dataPtr,file_size);
+			gFont = TTF_OpenFontRW(ttf_file, 1, 24);
+			if (gFont == nullptr)
+			{
+				printf("Could not open %s\n",font.c_str());
+				ok = false;
+			}
+		}
+		else
+		{		
+			printf("Failed to retrieve resource data for %s\n", font.c_str());
+			ok = false;
+		}
         
         setBaseDir();
         
@@ -613,7 +629,7 @@ bool setBaseDir(void)
     
     gBaseDir = "";
     
-    if ((homedir = getenv("HOME")) != NULL) 
+    if ((homedir = getenv("HOME")) != nullptr) 
     {
         filename = homedir;
         

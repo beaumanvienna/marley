@@ -26,11 +26,14 @@
 #include "../include/controller.h"
 #include "../include/emu.h"
 #include <X11/Xlib.h>
+#include <gtk/gtk.h>
+#include "../resources/res.h"
+
 //rendering window 
-SDL_Window* gWindow = NULL;
+SDL_Window* gWindow = nullptr;
 
 //window renderer
-SDL_Renderer* gRenderer = NULL;
+SDL_Renderer* gRenderer = nullptr;
 
 //textures
 SDL_Texture* gTextures[NUM_TEXTURES];
@@ -84,160 +87,160 @@ bool loadMedia()
     bool ok = true;
     
     // background
-    gTextures[TEX_BACKGROUND] = loadTextureFromFile(PICTURES "beach.png");
+    gTextures[TEX_BACKGROUND] = loadTextureFromFile("/pictures/../pictures/beach.bmp");
     if (!gTextures[TEX_BACKGROUND])
     {
         ok = false;
     }
     //barrel
-    gTextures[TEX_BARREL] = loadTextureFromFile(PICTURES "barrel.png");
+    gTextures[TEX_BARREL] = loadTextureFromFile("/pictures/../pictures/barrel.bmp");
     if (!gTextures[TEX_BARREL])
     {
         ok = false;
     }
     
     //PS3 dualshock
-    gTextures[TEX_PS3] = loadTextureFromFile(PICTURES "PS3-DualShock.png");
+    gTextures[TEX_PS3] = loadTextureFromFile("/pictures/../pictures/PS3-DualShock.bmp");
     if (!gTextures[TEX_PS3])
     {
         ok = false;
     }
     
     //PS4 dualshock
-    gTextures[TEX_PS4] = loadTextureFromFile(PICTURES "PS4-DualShock.png");
+    gTextures[TEX_PS4] = loadTextureFromFile("/pictures/../pictures/PS4-DualShock.bmp");
     if (!gTextures[TEX_PS4])
     {
         ok = false;
     }
 
     //XBox 360 controller
-    gTextures[TEX_XBOX360] = loadTextureFromFile(PICTURES "Xbox-360-S-Controller.png");
+    gTextures[TEX_XBOX360] = loadTextureFromFile("/pictures/../pictures/Xbox-360-S-Controller.bmp");
     if (!gTextures[TEX_XBOX360])
     {
         ok = false;
     }
     
     //Wiimote
-    gTextures[TEX_WIIMOTE] = loadTextureFromFile(PICTURES "Wiimote.png");
+    gTextures[TEX_WIIMOTE] = loadTextureFromFile("/pictures/../pictures/Wiimote.bmp");
     if (!gTextures[TEX_WIIMOTE])
     {
         ok = false;
     }
     
     //Generic controller
-    gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile(PICTURES "generic-controller.png");
+    gTextures[TEX_GENERIC_CTRL] = loadTextureFromFile("/pictures/../pictures/generic-controller.bmp");
     if (!gTextures[TEX_GENERIC_CTRL])
     {
         ok = false;
     }
     
     //rudder to start configuration run
-    gTextures[TEX_RUDDER] = loadTextureFromFile(PICTURES "rudder.png");
+    gTextures[TEX_RUDDER] = loadTextureFromFile("/pictures/../pictures/rudder.bmp");
     if (!gTextures[TEX_RUDDER])
     {
         ok = false;
     }
     
     //rudder to start configuration run
-    gTextures[TEX_RUDDER_GREY] = loadTextureFromFile(PICTURES "rudder_grey.png");
+    gTextures[TEX_RUDDER_GREY] = loadTextureFromFile("/pictures/../pictures/rudder_grey.bmp");
     if (!gTextures[TEX_RUDDER_GREY])
     {
         ok = false;
     }
     
     //play icon
-    gTextures[TEX_ICON_PLAY] = loadTextureFromFile(PICTURES "Play.png");
+    gTextures[TEX_ICON_PLAY] = loadTextureFromFile("/pictures/../pictures/Play.bmp");
     if (!gTextures[TEX_ICON_PLAY])
     {
         ok = false;
     }
     
     //play icon inactive
-    gTextures[TEX_ICON_PLAY_IN] = loadTextureFromFile(PICTURES "Play_inactive.png");
+    gTextures[TEX_ICON_PLAY_IN] = loadTextureFromFile("/pictures/../pictures/Play_inactive.bmp");
     if (!gTextures[TEX_ICON_PLAY_IN])
     {
         ok = false;
     }
     
     //Setup icon
-    gTextures[TEX_ICON_SETUP] = loadTextureFromFile(PICTURES "Setup.png");
+    gTextures[TEX_ICON_SETUP] = loadTextureFromFile("/pictures/../pictures/Setup.bmp");
     if (!gTextures[TEX_ICON_SETUP])
     {
         ok = false;
     }
     
     //Setup icon inactive
-    gTextures[TEX_ICON_SETUP_IN] = loadTextureFromFile(PICTURES "Setup_inactive.png");
+    gTextures[TEX_ICON_SETUP_IN] = loadTextureFromFile("/pictures/../pictures/Setup_inactive.bmp");
     if (!gTextures[TEX_ICON_SETUP_IN])
     {
         ok = false;
     }
     
     //Off icon
-    gTextures[TEX_ICON_OFF] = loadTextureFromFile(PICTURES "Off.png");
+    gTextures[TEX_ICON_OFF] = loadTextureFromFile("/pictures/../pictures/Off.bmp");
     if (!gTextures[TEX_ICON_OFF])
     {
         ok = false;
     }
     
     //Off icon inactive
-    gTextures[TEX_ICON_OFF_IN] = loadTextureFromFile(PICTURES "Off_inactive.png");
+    gTextures[TEX_ICON_OFF_IN] = loadTextureFromFile("/pictures/../pictures/Off_inactive.bmp");
     if (!gTextures[TEX_ICON_OFF_IN])
     {
         ok = false;
     }
     
     //no controller
-    gTextures[TEX_ICON_NO_CTRL] = loadTextureFromFile(PICTURES "noController.png");
+    gTextures[TEX_ICON_NO_CTRL] = loadTextureFromFile("/pictures/../pictures/noController.bmp");
     if (!gTextures[TEX_ICON_NO_CTRL])
     {
         ok = false;
     }  
     
     //no PSX firmware
-    gTextures[TEX_ICON_NO_FW_PSX] = loadTextureFromFile(PICTURES "firmware_PSX.png");
+    gTextures[TEX_ICON_NO_FW_PSX] = loadTextureFromFile("/pictures/../pictures/firmware_PSX.bmp");
     if (!gTextures[TEX_ICON_NO_FW_PSX])
     {
         ok = false;
     }
     
     //no games
-    gTextures[TEX_ICON_NO_GAMES] = loadTextureFromFile(PICTURES "noGames.png");
+    gTextures[TEX_ICON_NO_GAMES] = loadTextureFromFile("/pictures/../pictures/noGames.bmp");
     if (!gTextures[TEX_ICON_NO_GAMES])
     {
         ok = false;
     }
 
     //games folder
-    gTextures[TEX_ICON_GAMES_FLR] = loadTextureFromFile(PICTURES "path_to_games.png");
+    gTextures[TEX_ICON_GAMES_FLR] = loadTextureFromFile("/pictures/../pictures/path_to_games.bmp");
     if (!gTextures[TEX_ICON_GAMES_FLR])
     {
         ok = false;
     }
     
     //games folder
-    gTextures[TEX_ICON_GAMES_FLR_IN] = loadTextureFromFile(PICTURES "path_to_games_inactive.png");
+    gTextures[TEX_ICON_GAMES_FLR_IN] = loadTextureFromFile("/pictures/../pictures/path_to_games_inactive.bmp");
     if (!gTextures[TEX_ICON_GAMES_FLR_IN])
     {
         ok = false;
     }
     
     //firmware folder
-    gTextures[TEX_ICON_FW_FLR] = loadTextureFromFile(PICTURES "path_to_fw.png");
+    gTextures[TEX_ICON_FW_FLR] = loadTextureFromFile("/pictures/../pictures/path_to_fw.bmp");
     if (!gTextures[TEX_ICON_FW_FLR])
     {
         ok = false;
     }
     
     //firmware folder
-    gTextures[TEX_ICON_FW_FLR_IN] = loadTextureFromFile(PICTURES "path_to_fw_inactive.png");
+    gTextures[TEX_ICON_FW_FLR_IN] = loadTextureFromFile("/pictures/../pictures/path_to_fw_inactive.bmp");
     if (!gTextures[TEX_ICON_FW_FLR_IN])
     {
         ok = false;
     }
     
     //SNES controller
-    gTextures[TEX_SNES] = loadTextureFromFile(PICTURES "SNES-controller.png");
+    gTextures[TEX_SNES] = loadTextureFromFile("/pictures/../pictures/SNES-controller.bmp");
     if (!gTextures[TEX_SNES])
     {
         ok = false;
@@ -258,24 +261,38 @@ bool freeTextures(void)
 
 SDL_Texture* loadTextureFromFile(string str)
 {
-    SDL_Surface* surf = NULL;
-    SDL_Texture* texture = NULL;
+    SDL_Surface* surf = nullptr;
+    SDL_Texture* texture = nullptr;
     
-    surf = IMG_Load(str.c_str());
-    if (!surf)
-    {
-        printf("File %s could not be loaded\n",str.c_str());
-    }
-    else
-    {
-        texture =SDL_CreateTextureFromSurface(gRenderer,surf);
-        if (!texture)
-        {
-            printf("texture for background could not be created.\n");
-        }
-        SDL_FreeSurface(surf);
-    }
-    return texture;
+    size_t file_size = 0;
+    
+    GBytes *mem_access = g_resource_lookup_data(res_get_resource(), str.c_str(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+	const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
+
+	if (dataPtr != nullptr && file_size) 
+	{
+		SDL_RWops* bmp_file = SDL_RWFromMem((void*) dataPtr,file_size);
+    
+		surf = SDL_LoadBMP_RW(bmp_file,0);
+		if (!surf)
+		{
+			printf("File %s could not be loaded\n",str.c_str());
+		}
+		else
+		{
+			texture =SDL_CreateTextureFromSurface(gRenderer,surf);
+			if (!texture)
+			{
+				printf("texture for background could not be created.\n");
+			}
+			SDL_FreeSurface(surf);
+		}
+	}
+	else
+	{
+		printf("Failed to retrieve resource data for %s\n",str.c_str());
+	}
+	return texture;
 }
 
 bool initGUI(void)
@@ -362,7 +379,7 @@ bool initGUI(void)
                                 WINDOW_WIDTH, 
                                 WINDOW_HEIGHT, 
                                 windowFlags );
-    if( gWindow == NULL )
+    if( gWindow == nullptr )
     {
         printf( "Error creating main window. SDL Error: %s\n", SDL_GetError() );
         ok = false;
@@ -391,25 +408,25 @@ void closeGUI(void)
     //Destroy main window    
     SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
-    gWindow = NULL;
-    gRenderer = NULL;
+    gWindow = nullptr;
+    gRenderer = nullptr;
 }
     
 void renderIcons(void)
 {
     //render destination 
     SDL_Rect destination;
-    SDL_Surface* surfaceMessage = NULL; 
-    SDL_Texture* message = NULL;     
+    SDL_Surface* surfaceMessage = nullptr; 
+    SDL_Texture* message = nullptr;     
     
     destination = { x_offset_1068+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
     if (gState == STATE_OFF)
     {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     } 
     else
     {
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     
     if (gNumDesignatedControllers)
@@ -419,11 +436,11 @@ void renderIcons(void)
             destination = { x_offset_50+xOffset, y_offset_10+yOffset, x_offset_132, y_offset_45 };
             if (gState == STATE_PLAY)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             } 
             else
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_PLAY_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
         }
         
@@ -437,11 +454,11 @@ void renderIcons(void)
         }
         if (gState == STATE_SETUP)
         {
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
         } 
         else
         {
-            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
         }
         if (!gSetupIsRunning)
         {
@@ -486,7 +503,7 @@ void renderIcons(void)
                 int strLength = name_short.length();
                 destination = { x_offset_50+xOffset, y_offset_675+yOffset, strLength*x_offset_20, y_offset_36 };
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
             else
             {
@@ -494,7 +511,7 @@ void renderIcons(void)
                 destination = { x_offset_50+xOffset, y_offset_675+yOffset, x_offset_345, y_offset_45 };
                 //if (gState == STATE_SETUP)
                 //{
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_GAMES], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 //}
             }
         }
@@ -510,7 +527,7 @@ void renderIcons(void)
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, gConfText.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 
             }
             
@@ -518,22 +535,22 @@ void renderIcons(void)
             destination = { x_offset_50+xOffset, y_offset_620+yOffset, x_offset_530, y_offset_45 };
             if (gState == STATE_FLR_GAMES)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             } 
             else
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_GAMES_FLR_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
             
             destination = { x_offset_50+xOffset, y_offset_675+yOffset, x_offset_530, y_offset_45 };
             if (gState == STATE_FLR_FW)
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 
             } 
             else
             {
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR_IN], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_FW_FLR_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
             
             if ( (gPathToGames.length()) || (gTextInputForGamingFolder))
@@ -560,7 +577,7 @@ void renderIcons(void)
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
             
             if ( (gPathToFirmwarePSX.length()) || (gTextInputForFirmwareFolder))
@@ -587,7 +604,7 @@ void renderIcons(void)
                 SDL_Color active = {222, 81, 223};  
                 surfaceMessage = TTF_RenderText_Solid(gFont, text.c_str(), active); 
                 message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-                SDL_RenderCopyEx( gRenderer, message, NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
             }
             
         }
@@ -596,14 +613,14 @@ void renderIcons(void)
     {
         destination = { x_offset_50+xOffset, y_offset_10+yOffset, x_offset_560, y_offset_45 };
         
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     
     if (!gPSX_firmware)
     {
         destination = { x_offset_50+xOffset, y_offset_65+yOffset, x_offset_560, y_offset_45 };
         
-        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_FW_PSX], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_FW_PSX], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
 }
 
@@ -631,7 +648,7 @@ bool createRenderer(void)
     SDL_GL_ResetAttributes();
     //Create renderer for main window
     gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-    if( gRenderer == NULL )
+    if( gRenderer == nullptr )
     {
         printf( "Error creating renderer. SDL error: %s\n", SDL_GetError() );
         ok = false;
@@ -658,7 +675,7 @@ bool createRenderer(void)
         SDL_RenderClear(gRenderer);
         
         //draw backround to main window
-        SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
+        SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
         SDL_RenderPresent(gRenderer);
     }
     
@@ -699,7 +716,7 @@ void renderScreen(void)
     //Clear screen
     SDL_RenderClear( gRenderer );
     //background
-    SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],NULL,NULL);
+    SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
     
     int ctrlTex, height;
     //designated controller 0: Load image and render to screen
@@ -725,7 +742,7 @@ void renderScreen(void)
                 
                 //controller 0 barrel: Set rendering space and render to screen
                 destination = { x_offset_100+xOffset, y_offset_140+yOffset, x_offset_200, y_offset_200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0L, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], nullptr, &destination, angle0L, nullptr, SDL_FLIP_NONE );
                 
                 height=int(amplitude0R/y_offset_200);
                 if (height>y_offset_200) height=y_offset_200;
@@ -734,18 +751,18 @@ void renderScreen(void)
                 
                 //controller 0 barrel: Set rendering space and render to screen
                 destination = { x_offset_350+xOffset, y_offset_140+yOffset, x_offset_200, y_offset_200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle0R, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], nullptr, &destination, angle0R, nullptr, SDL_FLIP_NONE );
                 
                 //icon for configuration run
                 destination = { x_offset_600+xOffset, y_offset_200+yOffset, x_offset_80, y_offset_80 };
                 
                 if (gState == STATE_CONF0)
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 } 
                 else
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 }
             }
         }
@@ -753,7 +770,7 @@ void renderScreen(void)
         ctrlTex = checkType(name,nameDB);
         
         destination = { x_offset_900+xOffset, y_offset_130+yOffset, x_offset_250, y_offset_250 };
-        SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     
     //designated controller 1: load image and render to screen
@@ -782,7 +799,7 @@ void renderScreen(void)
                 
                 //controller 1 barrel: Set rendering space and render to screen
                 destination = { x_offset_100+xOffset, y_offset_390+yOffset, x_offset_200, y_offset_200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1L, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], nullptr, &destination, angle1L, nullptr, SDL_FLIP_NONE );
                 
                 height=int(amplitude1R/y_offset_200);
                 if (height>y_offset_200) height=y_offset_200;
@@ -791,18 +808,18 @@ void renderScreen(void)
                 
                 //controller 1 barrel: Set rendering space and render to screen
                 destination = { x_offset_350+xOffset, y_offset_390+yOffset, x_offset_200, y_offset_200 };
-                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], NULL, &destination, angle1R, NULL, SDL_FLIP_NONE );
+                SDL_RenderCopyEx( gRenderer, gTextures[TEX_BARREL], nullptr, &destination, angle1R, nullptr, SDL_FLIP_NONE );
                             
                 //icon for configuration run
                 destination = { x_offset_600+xOffset, y_offset_450+yOffset, x_offset_80, y_offset_80 };
                 
                 if (gState == STATE_CONF1)
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 } 
                 else
                 {
-                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+                    SDL_RenderCopyEx( gRenderer, gTextures[TEX_RUDDER_GREY], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
                 }
             }
         }
@@ -810,7 +827,7 @@ void renderScreen(void)
         ctrlTex = checkType(name,nameDB);
         
         destination = { x_offset_900+xOffset, y_offset_370+yOffset, x_offset_250, y_offset_250 };
-        SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], NULL, &destination, 0, NULL, SDL_FLIP_NONE );
+        SDL_RenderCopyEx( gRenderer, gTextures[ctrlTex], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     renderIcons();
     SDL_RenderPresent( gRenderer );

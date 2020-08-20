@@ -11,31 +11,8 @@ using namespace std;
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 750
 
-    #define NUM_TEXTURES    23
-        #define TEX_BACKGROUND          0
-        #define TEX_BARREL              1
-        #define TEX_PS3                 2
-        #define TEX_XBOX360             3
-        #define TEX_GENERIC_CTRL        4
-        #define TEX_RUDDER              5
-        #define TEX_RUDDER_GREY         6
-        #define TEX_ICON_PLAY           7
-        #define TEX_ICON_PLAY_IN        8
-        #define TEX_ICON_SETUP          9
-        #define TEX_ICON_SETUP_IN       10
-        #define TEX_ICON_OFF            11
-        #define TEX_ICON_OFF_IN         12
-        #define TEX_ICON_NO_CTRL        13
-        #define TEX_ICON_NO_FW_PSX      14
-        #define TEX_ICON_NO_GAMES       15
-        #define TEX_ICON_GAMES_FLR      16
-        #define TEX_ICON_GAMES_FLR_IN   17
-        #define TEX_ICON_FW_FLR         18
-        #define TEX_ICON_FW_FLR_IN      19
-        #define TEX_PS4                 20
-        #define TEX_WIIMOTE             21
-        #define TEX_SNES                22
-    
+    #define NUM_TEXTURES    			1
+    #define TEX_BACKGROUND          	0
 
 bool loadMedia();
 
@@ -120,31 +97,35 @@ SDL_Texture* loadTextureFromFile(string str)
     SDL_Surface* surf = nullptr;
     SDL_Texture* texture = nullptr;
     
-    size_t size = 0;
+    size_t file_size = 0;
     
-    GBytes *bytes = g_resource_lookup_data(res_get_resource(), "/pictures/beach.bmp", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
-	const void* data = g_bytes_get_data(bytes, &size);
+    GBytes *mem_access = g_resource_lookup_data(res_get_resource(), "/pictures/beach.bmp", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+	const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
 
-	if (data == nullptr || size == 0) {
-		printf("Failed to get data for resource\n");
-	}
+	if (dataPtr != nullptr && file_size) 
+	{
 	
-	SDL_RWops* bmp_file = SDL_RWFromMem((void*) data,size);
-    
-    surf = SDL_LoadBMP_RW(bmp_file,0);
-    if (!surf)
-    {
-        printf("File %s could not be loaded\n",str.c_str());
-    }
-    else
-    {
-        texture =SDL_CreateTextureFromSurface(gRenderer,surf);
-        if (!texture)
-        {
-            printf("texture for background could not be created.\n");
-        }
-        SDL_FreeSurface(surf);
-    }
+		SDL_RWops* bmp_file = SDL_RWFromMem((void*) dataPtr,file_size);
+		
+		surf = SDL_LoadBMP_RW(bmp_file,0);
+		if (!surf)
+		{
+			printf("File %s could not be loaded\n",str.c_str());
+		}
+		else
+		{
+			texture =SDL_CreateTextureFromSurface(gRenderer,surf);
+			if (!texture)
+			{
+				printf("texture for background could not be created.\n");
+			}
+			SDL_FreeSurface(surf);
+		}
+	}
+	else
+	{
+		printf("Failed to retrieve resource data\n");
+	}
     return texture;
 }
 
