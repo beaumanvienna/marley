@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="80" src="pictures/barrel.png">
+  <img width="80" src="pictures/barrel.bmp">
 </p>
 
 # Marley: Many Awesome Retro Linux Emulators, Yeah!
