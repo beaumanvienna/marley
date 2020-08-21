@@ -391,3 +391,5 @@ ppsspp/ffmpeg/linux/x86_64/lib/
 ppsspp/ffmpeg/libavcodec/vaapi.d
 ppsspp/ffmpeg/libavcodec/vdpau.d
 resources/.dirstamp
+resources/res.cpp
+resources/res.h

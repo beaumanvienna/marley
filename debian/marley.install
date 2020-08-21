@@ -2,35 +2,9 @@
 
 #resources
 ./resources/marley.desktop usr/share/applications
-./resources/gamecontrollerdb.txt  usr/games/Marley/resources
-./resources/font.ttf usr/games/Marley/resources
 
 #pictures
 ./pictures/marley.ico usr/share/icons
-
-./pictures/barrel.png usr/games/Marley/pictures
-./pictures/beach.png usr/games/Marley/pictures
-./pictures/firmware_PSX.png usr/games/Marley/pictures
-./pictures/generic-controller.png usr/games/Marley/pictures
-./pictures/noController.png usr/games/Marley/pictures
-./pictures/noGames.png usr/games/Marley/pictures
-./pictures/Off_inactive.png usr/games/Marley/pictures
-./pictures/Off.png usr/games/Marley/pictures
-./pictures/path_to_fw_inactive.png usr/games/Marley/pictures
-./pictures/path_to_fw.png usr/games/Marley/pictures
-./pictures/path_to_games_inactive.png usr/games/Marley/pictures
-./pictures/path_to_games.png usr/games/Marley/pictures
-./pictures/Play_inactive.png usr/games/Marley/pictures
-./pictures/Play.png usr/games/Marley/pictures
-./pictures/PS3-DualShock.png usr/games/Marley/pictures
-./pictures/PS4-DualShock.png usr/games/Marley/pictures
-./pictures/rudder_grey.png usr/games/Marley/pictures
-./pictures/rudder.png usr/games/Marley/pictures
-./pictures/Setup_inactive.png usr/games/Marley/pictures
-./pictures/Setup.png usr/games/Marley/pictures
-./pictures/Xbox-360-S-Controller.png usr/games/Marley/pictures
-./pictures/Wiimote.png usr/games/Marley/pictures
-./pictures/SNES-controller.png usr/games/Marley/pictures
 
 #ppsspp
 ./ppsspp/assets usr/games/Marley

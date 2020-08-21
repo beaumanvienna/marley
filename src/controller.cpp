@@ -29,6 +29,9 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <gtk/gtk.h>
+#include "../resources/res.h"
+#include <unistd.h>
 
 //Gamepad array
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
@@ -38,6 +41,7 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 //designated controllers
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
+string sdl_db, internal_db;
 
 bool initJoy(void)
 {
@@ -45,13 +49,25 @@ bool initJoy(void)
     int i;
     
     SDL_Init(SDL_INIT_GAMECONTROLLER);
-    string internal = gBaseDir;
-    internal += "internaldb.txt";
     
-    if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
-    {
-    }
-    if( SDL_GameControllerAddMappingsFromFile(RESOURCES "gamecontrollerdb.txt") == -1 )
+    string internal_db = gBaseDir;
+    internal_db += "internaldb.txt";
+    SDL_GameControllerAddMappingsFromFile(internal_db.c_str());
+    
+    sdl_db = gBaseDir;
+    sdl_db += "gamecontrollerdb.txt";
+    if (( access( sdl_db.c_str(), F_OK ) == -1 ))
+	{
+		//file does not exist
+		
+		GError *error;
+		GFile* out_file = g_file_new_for_path(sdl_db.c_str());
+		GFile* src_file = g_file_new_for_uri("resource:///database/gamecontrollerdb.txt");
+		g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+    
+	}
+
+    if( SDL_GameControllerAddMappingsFromFile(sdl_db.c_str()) == -1 )
     {
         printf( "Warning: Unable to open gamecontrollerdb.txt\n");
     }
@@ -404,7 +420,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
     //set up guidStr
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
     
-    filename = gBaseDir + "internaldb.txt";
+    filename = internal_db.c_str();
     if (findGuidInFile(filename.c_str(), guidStr,32,&line))
     {
         printf("GUID found in internal db\n");
@@ -414,7 +430,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
     {
 
         //check public db
-        mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt", guidStr,32,&line);
+        mappingOK[0] = findGuidInFile(sdl_db.c_str(), guidStr,32,&line);
         
         if (mappingOK[0])
         {
@@ -428,7 +444,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
             {
                 
                 //check in public db
-                mappingOK[0] = findGuidInFile(RESOURCES "gamecontrollerdb.txt",guidStr,i,&line);
+                mappingOK[0] = findGuidInFile(sdl_db.c_str(),guidStr,i,&line);
                 
                 if (mappingOK[0])
                 {
@@ -670,9 +686,7 @@ void setMapping(void)
     
     removeDuplicatesInDB();
     
-    string internal = gBaseDir;
-    internal += "internaldb.txt";
-    if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
+    if ( SDL_GameControllerAddMappingsFromFile(internal_db.c_str()) == -1 )
     {
         printf( "Warning: Unable to open internaldb.txt\n");
     }

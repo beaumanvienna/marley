@@ -1,121 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <gresources>
+    <gresource prefix="/database/">
+        <file>gamecontrollerdb.txt</file>
+    </gresource>
     <gresource prefix="/fonts/">
         <file>dejavu-fonts-ttf/DejaVuSansMono-Bold.ttf</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/beach.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/barrel.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/firmware_PSX.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/generic-controller.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/noController.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/noGames.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Off.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Off_inactive.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/path_to_fw.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/path_to_fw_inactive.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/path_to_games.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/path_to_games_inactive.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Play.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Play_inactive.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/PS3-DualShock.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/PS4-DualShock.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/rudder.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/rudder_grey.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Setup.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Setup_inactive.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/SNES-controller.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Wiimote.bmp</file>
     </gresource>
-</gresources>
-<gresources>
     <gresource prefix="/pictures/">
         <file>../pictures/Xbox-360-S-Controller.bmp</file>
     </gresource>

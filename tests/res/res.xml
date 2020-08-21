@@ -3,4 +3,7 @@
     <gresource prefix="/pictures/">
         <file>beach.bmp</file>
     </gresource>
+    <gresource prefix="/database/">
+        <file>gamecontrollerdb.txt</file>
+    </gresource>
 </gresources>
