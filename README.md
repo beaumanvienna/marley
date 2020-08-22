@@ -97,7 +97,7 @@ libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
 libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \
 libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
 libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
-libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all |
+libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all zip |
 
 
 | Ubuntu 20.04 | 
@@ -115,7 +115,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \ |
 | libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \ |
 | libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
-| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all |
+| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all zip |
 
 
 | Arch | 
@@ -124,7 +124,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa  \ | 
 | libudev.so libusb-1.0.so libgl glew glibc zlib glu cmake git libglvnd python qt5-tools  freetype2 \ |
 | qt5-base sfml libavcodec.so python libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
-| sdl2_image sdl2_ttf nasm boost libpng libsamplerate wxgtk2 libzip sndio aom |
+| sdl2_image sdl2_ttf nasm boost libpng libsamplerate wxgtk2 libzip sndio aom zip |
 
 
 ### Configure and make
