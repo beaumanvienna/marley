@@ -45,7 +45,12 @@
 #include "../include/statemachine.h"
 #include "../include/controller.h"
 
+#include <gtk/gtk.h>
+#include "../resources/pcsx2_res.h"
+
 using namespace std;
+
+bool isDirectory(const char *filename);
 
 bool gPSX_firmware;
 bool gPSXX_firmware;
@@ -128,9 +133,64 @@ void printSupportedEmus(void)
     }
 }
 
+void initPCSX2(void)
+{
+	string plugin_dir = gBaseDir;
+	plugin_dir += "PCSX2";
+	
+	DIR* dir;        
+	dir = opendir(plugin_dir.c_str());
+	if ((dir) && (isDirectory(plugin_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",plugin_dir.c_str());
+		if (mkdir(plugin_dir.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+	
+	vector<string> plugins = {
+		"libCDVDnull.so",
+		"libcdvdGigaherz.so",
+		"libUSBnull-0.7.0.so",
+		"libspu2x-2.0.0.so",
+		"libFWnull-0.7.0.so",
+		"libdev9ghzdrk-0.4.so",
+		"libdev9null-0.5.0.so"
+	};
+	
+    for (int i = 0; i < plugins.size(); i++)
+    {	
+		string plugin = gBaseDir;
+		plugin += "PCSX2/";
+		plugin += plugins[i].c_str();
+		if (( access( plugin.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			string uri = "resource:///plugins/pcsx2/";
+			uri += plugins[i].c_str();
+			GError *error;
+			GFile* out_file = g_file_new_for_path(plugin.c_str());
+			GFile* src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+	}	
+}
+
 void initEMU(void)
 {
     printSupportedEmus();
+    initPCSX2();
     
     //check for PSX firmware
     if (gPathToFirmwarePSX == "")

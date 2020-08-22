@@ -393,3 +393,6 @@ ppsspp/ffmpeg/libavcodec/vdpau.d
 resources/.dirstamp
 resources/res.cpp
 resources/res.h
+resources/pcsx2_res.cpp
+resources/pcsx2_res.h
+resources/pcsx2/

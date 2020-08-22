@@ -10,7 +10,7 @@ AM_CPPFLAGS		= --std=c++17 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -
 AM_LDFLAGS		= --std=c++17 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu 
 
 bin_PROGRAMS 	= marley		
-marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp
+marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp resources/pcsx2_res.cpp
 
 #generate built-in resources
 BUILT_SOURCES = resources/res.cpp
@@ -29,18 +29,43 @@ COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so
 COPY_FILES += pcsx2/build/plugins/libdev9ghzdrk-0.4.so 
 COPY_FILES += pcsx2/build/plugins/libdev9null-0.5.0.so 
 
-pcsx2/build/pcsx2/libPCSX2.a: pcsx2 $(COPY_FILES)
+pcsx2/build/pcsx2/libPCSX2.a: pcsx2 $(COPY_FILES) resources/pcsx2_res.cpp
 
-pcsx2/build/plugins/libCDVDnull.so: 		pcsx2/build/plugins/CDVDnull/libCDVDnull.so
-pcsx2/build/plugins/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/libcdvdGigaherz.so
-pcsx2/build/plugins/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
-pcsx2/build/plugins/libspu2x-2.0.0.so: 		pcsx2/build/plugins/spu2-x/src/libspu2x-2.0.0.so
-pcsx2/build/plugins/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.so
-pcsx2/build/plugins/libdev9ghzdrk-0.4.so: 	pcsx2/build/plugins/dev9ghzdrk/libdev9ghzdrk-0.4.so
-pcsx2/build/plugins/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
+resources/pcsx2/libCDVDnull.so: 		pcsx2/build/plugins/CDVDnull/libCDVDnull.so
+resources/pcsx2/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/libcdvdGigaherz.so
+resources/pcsx2/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
+resources/pcsx2/libspu2x-2.0.0.so: 		pcsx2/build/plugins/spu2-x/src/libspu2x-2.0.0.so
+resources/pcsx2/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.so
+resources/pcsx2/libdev9ghzdrk-0.4.so: 	pcsx2/build/plugins/dev9ghzdrk/libdev9ghzdrk-0.4.so
+resources/pcsx2/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
 
-pcsx2/build/plugins/%:
+
+#generate pcsx2 built-in resources
+
+PCSX2_RESOURCES =  resources/pcsx2/libCDVDnull.so
+PCSX2_RESOURCES += resources/pcsx2/libcdvdGigaherz.so
+PCSX2_RESOURCES += resources/pcsx2/libUSBnull-0.7.0.so
+PCSX2_RESOURCES += resources/pcsx2/libspu2x-2.0.0.so
+PCSX2_RESOURCES += resources/pcsx2/libFWnull-0.7.0.so
+PCSX2_RESOURCES += resources/pcsx2/libdev9ghzdrk-0.4.so
+PCSX2_RESOURCES += resources/pcsx2/libdev9null-0.5.0.so
+
+$(PCSX2_RESOURCES):
 	cp -f $< $@
+
+
+resources/pcsx2_res.cpp: resources/pcsx2_res.xml resources/pcsx2_res.h $(PCSX2_RESOURCES)
+	glib-compile-resources resources/pcsx2_res.xml --target=resources/pcsx2_res.cpp --sourcedir=resources/ --generate-source
+
+#the header needs to be generated upfront
+#trick glib-compile-resources with touch
+BUILT_SOURCES = resources/pcsx2_res.h
+resources/pcsx2_res.h: resources/pcsx2_res.xml
+	rm -rf resources/pcsx2/
+	mkdir resources/pcsx2/
+	touch $(PCSX2_RESOURCES)
+	glib-compile-resources resources/pcsx2_res.xml --target=resources/pcsx2_res.h --sourcedir=resources/ --generate-header
+	rm -f resources/pcsx2/*.so
 
 pcsx2:
 	$(info   ++++++++++++++++ pcsx2 ++++++++++++++++)

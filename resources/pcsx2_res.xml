@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libCDVDnull.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libcdvdGigaherz.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libUSBnull-0.7.0.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libspu2x-2.0.0.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libFWnull-0.7.0.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libdev9ghzdrk-0.4.so</file>
+    </gresource>
+    <gresource prefix="/plugins/">
+        <file>pcsx2/libdev9null-0.5.0.so</file>
+    </gresource>
+</gresources>
