@@ -398,3 +398,4 @@ resources/pcsx2_res.h
 resources/pcsx2/
 resources/ppsspp_assets.zip
 resources/dolphin_data_sys.zip
+ppsspp/ffmpeg/linux/x86_64/include/libavutil/ffversion.h
