@@ -2,15 +2,8 @@
 
 #resources
 ./resources/marley.desktop usr/share/applications
+./resources/marley.ico usr/share/icons
 
-#pictures
-./pictures/marley.ico usr/share/icons
-
-#ppsspp
-./ppsspp/assets usr/games/Marley
-
-#dolphin
-./dolphin/Data/sys usr/games/Marley/dolphin
 
 
               

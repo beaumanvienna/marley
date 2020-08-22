@@ -4,15 +4,7 @@
 	dh $@
 
 override_dh_auto_configure: 
-	chmod 644 pictures/* resources/* 
-	find ppsspp/assets -type d -exec chmod 755 {} \;
-	find ppsspp/assets -type f -exec chmod 644 {} \;
-	find dolphin/Data -type d -exec chmod 755 {} \;
-	find dolphin/Data -type f -exec chmod 644 {} \;
-	
-	sed -i 's/AC_DEFINE(\[RESOURCES]\,\["resources\/"])/AC_DEFINE(\[RESOURCES]\,\["\/usr\/games\/Marley\/resources\/"])/g' configure.ac
-	sed -i 's/Ddatadir=..\/Data/Ddatadir=\/usr\/games\/Marley\/dolphin/g' configure.ac
-              
+	chmod 644 resources/* 
 	aclocal 
 	autoconf
 	automake --add-missing --foreign

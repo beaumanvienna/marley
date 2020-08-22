@@ -396,3 +396,5 @@ resources/res.h
 resources/pcsx2_res.cpp
 resources/pcsx2_res.h
 resources/pcsx2/
+resources/ppsspp_assets.zip
+resources/dolphin_data_sys.zip

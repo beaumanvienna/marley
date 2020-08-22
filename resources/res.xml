@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
+	<gresource prefix="/app/">
+        <file>marley.ico</file>
+    </gresource>
+    <gresource prefix="/app/">
+        <file>marley.desktop</file>
+    </gresource>
+    <gresource prefix="/assets/ppsspp/">
+        <file>ppsspp_assets.zip</file>
+    </gresource>
+    <gresource prefix="/assets/dolphin/">
+        <file>dolphin_data_sys.zip</file>
+    </gresource>
     <gresource prefix="/database/">
         <file>gamecontrollerdb.txt</file>
     </gresource>

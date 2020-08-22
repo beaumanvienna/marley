@@ -37,9 +37,19 @@
 
 #define PI 3.14159
 
+double angle0L = 0;
+double angle1L = 0;
+double angle0R = 0;
+double angle1R = 0;
+double amplitude0L = 0;
+double amplitude1L = 0;
+double amplitude0R = 0;
+double amplitude1R = 0;
+
 void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
 bool setBaseDir(void);
+void initApp(void);
 
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
@@ -119,7 +129,7 @@ bool init()
 		}
         
         setBaseDir();
-        
+        initApp();
         if(!initJoy())
         {
             ok = false;
@@ -139,6 +149,92 @@ bool init()
     return ok;
 }
 
+void initApp(void)
+{
+	
+	const char *homedir;
+    string home_folder, slash, uri;
+    string app_dir, app_starter;
+    string icon_dir, app_icon;
+    GError *error;
+	GFile* out_file;
+	GFile* src_file;
+	DIR* dir;
+    
+    if ((homedir = getenv("HOME")) != nullptr) 
+    {
+        home_folder = homedir;
+        
+        // add slash to end if necessary
+        slash = home_folder.substr(home_folder.length()-1,1);
+        if (slash != "/")
+        {
+            home_folder += "/";
+        }
+	}
+	else
+	{
+		home_folder += "~/";
+	}
+	
+	app_dir = home_folder + ".local/share/applications/";
+	
+	dir = opendir(app_dir.c_str());
+
+	if ((dir) && (isDirectory(app_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+		
+		app_starter = app_dir + "marley.desktop";
+		if (( access( app_starter.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			uri = "resource:///app/marley.desktop";
+			error = nullptr;
+			out_file = g_file_new_for_path(app_starter.c_str());
+			src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+		
+		icon_dir = home_folder + ".local/share/icons/";
+
+		dir = opendir(icon_dir.c_str());
+		if ((dir) && (isDirectory(icon_dir.c_str()) ))
+		{
+			// Directory exists
+			closedir(dir);
+		}
+		else if (ENOENT == errno) 
+        {
+            // Directory does not exist
+            printf("creating directory %s ",icon_dir.c_str());
+            if (mkdir(icon_dir.c_str(), S_IRWXU ) == 0)
+            {
+                printf("(ok)\n");
+            }
+            else
+            {
+                printf("(failed)\n");
+            }
+        }
+
+		app_icon = icon_dir + "marley.ico";
+		if (( access( app_icon.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			uri = "resource:///app/marley.ico";
+		
+			error = nullptr;
+			out_file = g_file_new_for_path(app_icon.c_str());
+			src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+		
+	} 
+	 
+}
+
 //Frees media and shuts down SDL
 void closeAll()
 {
@@ -155,15 +251,6 @@ void closeAll()
     IMG_Quit();
     SDL_Quit();
 }
-
-    double angle0L = 0;
-    double angle1L = 0;
-    double angle0R = 0;
-    double angle1R = 0;
-    double amplitude0L = 0;
-    double amplitude1L = 0;
-    double amplitude0R = 0;
-    double amplitude1R = 0;
 
 int main( int argc, char* argv[] )
 {
@@ -217,7 +304,7 @@ int main( int argc, char* argv[] )
         }
         
     }
-
+	
     //Start up SDL and create window
     if( !init() )
     {
@@ -639,31 +726,36 @@ bool setBaseDir(void)
         {
             filename += "/";
         }
+	}
+	else
+	{
+		filename += "~/";
+	}
         
-        filename = filename + ".marley/";
-        
-        dir = opendir(filename.c_str());
-        if ((dir) && (isDirectory(filename.c_str()) ))
-        {
-            // Directory exists
-            closedir(dir);
-            ok = true;
-        } 
-        else if (ENOENT == errno) 
-        {
-            // Directory does not exist
-            printf("creating directory %s ",filename.c_str());
-            if (mkdir(filename.c_str(), S_IRWXU ) == 0)
-            {
-                printf("(ok)\n");
-                ok = true;
-            }
-            else
-            {
-                printf("(failed)\n");
-            }
-        }
-    }    
+	filename = filename + ".marley/";
+	
+	dir = opendir(filename.c_str());
+	if ((dir) && (isDirectory(filename.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+		ok = true;
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",filename.c_str());
+		if (mkdir(filename.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+			ok = true;
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+
     if (ok) gBaseDir=filename;
     return ok;
 }

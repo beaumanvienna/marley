@@ -14,12 +14,18 @@ marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine
 
 #generate built-in resources
 BUILT_SOURCES = resources/res.cpp
-resources/res.cpp: resources/res.xml resources/res.h @RESOURCE_LIST@
+resources/res.cpp: resources/res.xml resources/res.h @RESOURCE_LIST@ 
 	glib-compile-resources resources/res.xml --target=resources/res.cpp --sourcedir=resources/ --generate-source
 
-resources/res.h: resources/res.xml @RESOURCE_LIST@
+resources/res.h: resources/res.xml @RESOURCE_LIST@ resources/ppsspp_assets.zip resources/dolphin_data_sys.zip
 	glib-compile-resources resources/res.xml --target=resources/res.h --sourcedir=resources/ --generate-header
 
+resources/ppsspp_assets.zip: 
+	cd ppsspp && zip -r ../resources/ppsspp_assets.zip assets && cd ..
+
+resources/dolphin_data_sys.zip: 
+	cd dolphin && zip -r ../resources/dolphin_data_sys.zip Data/sys && cd ..
+	
 #pcsx2
 COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so 
 COPY_FILES += pcsx2/build/plugins/libcdvdGigaherz.so 
@@ -59,7 +65,7 @@ resources/pcsx2_res.cpp: resources/pcsx2_res.xml resources/pcsx2_res.h $(PCSX2_R
 
 #the header needs to be generated upfront
 #trick glib-compile-resources with touch
-BUILT_SOURCES = resources/pcsx2_res.h
+BUILT_SOURCES += resources/pcsx2_res.h
 resources/pcsx2_res.h: resources/pcsx2_res.xml
 	rm -rf resources/pcsx2/
 	mkdir resources/pcsx2/

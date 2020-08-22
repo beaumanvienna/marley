@@ -187,10 +187,128 @@ void initPCSX2(void)
 	}	
 }
 
+void initPPSSPP(void)
+{
+	string ppsspp_dir = gBaseDir + "ppsspp";
+	string assets_dir = gBaseDir + "ppsspp/assets";
+	string command;
+	
+	DIR* dir;        
+	dir = opendir(ppsspp_dir.c_str());
+	if ((dir) && (isDirectory(ppsspp_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",ppsspp_dir.c_str());
+		if (mkdir(ppsspp_dir.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+	
+	dir = opendir(assets_dir.c_str());
+	if ((dir) && (isDirectory(assets_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		string zip_file = gBaseDir + "ppsspp/ppsspp_assets.zip";
+		if (( access( zip_file.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			string uri = "resource:///assets/ppsspp/ppsspp_assets.zip";
+			GError *error;
+			GFile* out_file = g_file_new_for_path(zip_file.c_str());
+			GFile* src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+		
+		char cwd[1024];
+		getcwd(cwd, sizeof(cwd));
+		
+		chdir(ppsspp_dir.c_str());
+		
+		command = "unzip ppsspp_assets.zip";
+		system(command.c_str());
+		
+		chdir(cwd);
+	}
+}
+
+void initDOLPHIN(void)
+{
+	string dolphin_dir = gBaseDir + "dolphin-emu";
+	string assets_dir = gBaseDir + "dolphin-emu/Data";
+	string command;
+	
+	DIR* dir;        
+	dir = opendir(dolphin_dir.c_str());
+	if ((dir) && (isDirectory(dolphin_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",dolphin_dir.c_str());
+		if (mkdir(dolphin_dir.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+	
+	dir = opendir(assets_dir.c_str());
+	if ((dir) && (isDirectory(assets_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		string zip_file = gBaseDir + "dolphin-emu/dolphin_data_sys.zip";
+		if (( access( zip_file.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			string uri = "resource:///assets/dolphin/dolphin_data_sys.zip";
+			GError *error;
+			GFile* out_file = g_file_new_for_path(zip_file.c_str());
+			GFile* src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+		
+		char cwd[1024];
+		getcwd(cwd, sizeof(cwd));
+		
+		chdir(dolphin_dir.c_str());
+		
+		command = "unzip dolphin_data_sys.zip";
+		system(command.c_str());
+		
+		chdir(cwd);
+	}
+}
+
 void initEMU(void)
 {
     printSupportedEmus();
     initPCSX2();
+    initPPSSPP();
+    initDOLPHIN();
     
     //check for PSX firmware
     if (gPathToFirmwarePSX == "")

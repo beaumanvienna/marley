@@ -735,7 +735,7 @@ std::string GetSysDirectory()
 #endif
 #endif
 
-#if defined(__APPLE__)
+/*#if defined(__APPLE__)
   sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
@@ -746,7 +746,28 @@ std::string GetSysDirectory()
   sysDir = SYSDATA_DIR;
 #endif
   sysDir += DIR_SEP;
+*/
 
+  const char *homedir;
+  std::string foldername;
+
+  if ((homedir = getenv("HOME")) != nullptr) 
+  {
+    foldername = homedir;
+        
+    // add slash to end if necessary
+    if (foldername.substr(foldername.length()-1,1) != "/")
+    {
+      foldername += "/";
+    }
+  }
+  else
+  {
+	  foldername = "~/";
+  }
+
+  sysDir = foldername + ".marley/dolphin-emu/Data/sys/";
+  
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
 }

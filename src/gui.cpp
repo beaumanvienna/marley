@@ -632,14 +632,12 @@ void setFullscreen(void)
     SDL_GetCurrentDisplayMode(0, &DM);
     xOffset = (DM.w-WINDOW_WIDTH)/2;
     yOffset = (DM.h-WINDOW_HEIGHT)/2;
-    printf("xoff: %i, yoff: %i\n",xOffset,yOffset);
 }
 void setWindowed(void)
 {
     SDL_SetWindowFullscreen(gWindow, 0);
     xOffset = 0;
     yOffset = 0;
-    printf("xoff: %i, yoff: %i\n",xOffset,yOffset);
 }
 
 bool createRenderer(void)
