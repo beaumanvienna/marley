@@ -67,7 +67,8 @@ Build-Depends: debhelper,
         libsoundtouch-dev,
         libxml2-dev,
         libx11-dev,
-        locales | locales-all
+        locales,
+        zip
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
@@ -142,7 +143,8 @@ Depends: ${shlibs:Depends},
         libsoundtouch1,
         libxml2,
         libx11-6,
-        locales | locales-all
+        locales,
+        zip
 Homepage: https://launchpad.net/~beauman
 Description: Many Awesome Retro Linux Emulators, Yay!
  This package contains a bundle of console emulators and a launcher front-end.

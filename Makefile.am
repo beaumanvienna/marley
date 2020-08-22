@@ -27,15 +27,8 @@ resources/dolphin_data_sys.zip:
 	cd dolphin && zip -r ../resources/dolphin_data_sys.zip Data/sys && cd ..
 	
 #pcsx2
-COPY_FILES =  pcsx2/build/plugins/libCDVDnull.so 
-COPY_FILES += pcsx2/build/plugins/libcdvdGigaherz.so 
-COPY_FILES += pcsx2/build/plugins/libUSBnull-0.7.0.so 
-COPY_FILES += pcsx2/build/plugins/libspu2x-2.0.0.so
-COPY_FILES += pcsx2/build/plugins/libFWnull-0.7.0.so  
-COPY_FILES += pcsx2/build/plugins/libdev9ghzdrk-0.4.so 
-COPY_FILES += pcsx2/build/plugins/libdev9null-0.5.0.so 
 
-pcsx2/build/pcsx2/libPCSX2.a: pcsx2 $(COPY_FILES) resources/pcsx2_res.cpp
+pcsx2/build/pcsx2/libPCSX2.a: pcsx2 resources/pcsx2_res.cpp
 
 resources/pcsx2/libCDVDnull.so: 		pcsx2/build/plugins/CDVDnull/libCDVDnull.so
 resources/pcsx2/libcdvdGigaherz.so: 	pcsx2/build/plugins/cdvdGigaherz/src/libcdvdGigaherz.so

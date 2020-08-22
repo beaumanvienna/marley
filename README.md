@@ -74,17 +74,11 @@ sudo apt install marley <br />
 
 ##  Compile from source
 
-#clone & and check out revision <br />
-git clone https://github.com/beaumanvienna/marley  <br />
-cd marley <br />
-#change to the branch you like to work with (currently only 'master')  <br />
-git checkout master <br />
-
 #Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
 
 | Ubuntu 18.04 | 
 | ------------ | 
-| sudo apt install libwxgtk3.0-dev debhelper cmake chrpath \
+| sudo apt install git libwxgtk3.0-dev debhelper cmake chrpath \
 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
 autotools-dev dh-autoreconf libasound2-dev libgl1-mesa-dev \
 libjack-dev liblzo2-dev libmpcdec-dev libsamplerate0-dev libsndio-dev \
@@ -97,12 +91,12 @@ libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
 libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \
 libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
 libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
-libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all zip |
+libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip |
 
 
 | Ubuntu 20.04 | 
 | ------------ | 
-| sudo apt install libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath \ |
+| sudo apt install git libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath \ |
 | libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \ |
 | autotools-dev dh-autoreconf libasound2-dev libgl1-mesa-dev \ |
 | libjack-dev liblzo2-dev libmpcdec-dev libsamplerate0-dev libsndio-dev \ |
@@ -115,7 +109,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \ |
 | libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \ |
 | libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
-| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all zip |
+| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip |
 
 
 | Arch | 
@@ -127,17 +121,19 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | sdl2_image sdl2_ttf nasm boost libpng libsamplerate wxgtk2 libzip sndio aom zip |
 
 
+#clone & and check out revision <br />
+git clone https://github.com/beaumanvienna/marley  <br />
+cd marley <br />
+#change to the branch you like to work with (currently only 'master')  <br />
+git checkout master <br />
+
 ### Configure and make
-aclocal <br />
-autoconf <br />
-automake --add-missing --foreign <br />
-./configure <br />
+aclocal && autoconf && automake --add-missing --foreign && ./configure <br />
 make -j8<br />
 
 
 ### start it
 ./marley <br />
-
 
 ## Developer information
 Marley is using five core modules that are linked as static libraries. This way, it is ensured that the core modules are always available, compiled with the same compiler / compiler version, and against the same dependencies. Resources are shared among the front end and the emulators. For the most part, these are the SDL game controller instances, the SDL main window, and the Open GL settings. <br />
