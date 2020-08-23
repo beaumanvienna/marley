@@ -27,6 +27,7 @@ AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 if test x"$debug" = x"true"
 then
 CMAKE_BUILD_TYPE=-DCMAKE_BUILD_TYPE=Debug
+touch tests/.debug_build
 else
 CMAKE_BUILD_TYPE=-DCMAKE_BUILD_TYPE=Release
 fi

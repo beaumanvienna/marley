@@ -1,4 +1,9 @@
 #standalone dolphin test version
+
+
+DEBUG=$(shell ls ../.debug_build 2>/dev/null)
+
+
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2 -I../../dolphin/Source/Core
 
 LINKER_OBJECTS 	=  ../../dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
@@ -29,7 +34,11 @@ LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/xxhash/libxxh
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/Common/libcommon.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/enet/libenet.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
+ifeq ($(DEBUG), ../.debug_build)
+LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a 
+else
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
+endif
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
