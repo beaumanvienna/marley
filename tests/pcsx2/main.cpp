@@ -517,25 +517,35 @@ int main(int argc, char* argv[])
     n = str.length(); 
     strcpy(arg1, str.c_str()); 
 
-    str = "--spu2=/usr/games/Marley/PCSX2/libspu2x-2.0.0.so";
-    n = str.length(); 
-    strcpy(arg2, str.c_str()); 
-    
-    str = "--cdvd=/usr/games/Marley/PCSX2/libCDVDnull.so";
-    n = str.length(); 
-    strcpy(arg3, str.c_str()); 
+	str = "--spu2=";
+	str += gBaseDir;
+	str += "PCSX2/libspu2x-2.0.0.so";
+	n = str.length(); 
+	strcpy(arg2, str.c_str()); 
+	
+	str = "--cdvd=";
+	str += gBaseDir;
+	str += "PCSX2/libCDVDnull.so";
+	n = str.length(); 
+	strcpy(arg3, str.c_str()); 
 
-    str = "--usb=/usr/games/Marley/PCSX2/libUSBnull-0.7.0.so";
-    n = str.length(); 
-    strcpy(arg4, str.c_str()); 
+	str = "--usb=";
+	str += gBaseDir;
+	str += "PCSX2/libUSBnull-0.7.0.so";
+	n = str.length(); 
+	strcpy(arg4, str.c_str()); 
 
-    str = "--fw=/usr/games/Marley/PCSX2/libFWnull-0.7.0.so";
-    n = str.length(); 
-    strcpy(arg5, str.c_str()); 
+	str = "--fw=";
+	str += gBaseDir;
+	str += "PCSX2/libFWnull-0.7.0.so";
+	n = str.length(); 
+	strcpy(arg5, str.c_str()); 
 
-    str = "--dev9=/usr/games/Marley/PCSX2/libdev9null-0.5.0.so";
-    n = str.length(); 
-    strcpy(arg6, str.c_str()); 
+	str = "--dev9=";
+	str += gBaseDir;
+	str += "PCSX2/libdev9null-0.5.0.so";
+	n = str.length(); 
+	strcpy(arg6, str.c_str()); 
     
     str = "--nogui";
     n = str.length(); 

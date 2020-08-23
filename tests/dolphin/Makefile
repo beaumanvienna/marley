@@ -1,7 +1,7 @@
 #standalone dolphin test version
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2 -I../../dolphin/Source/Core
 
-LINKER_OBJECTS 	 = ../../dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
+LINKER_OBJECTS 	=  ../../dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/Core/libcore.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/UICommon/libuicommon.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/imgui/libimgui.a 
@@ -22,20 +22,17 @@ LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/FreeSurround/
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/cubeb/libcubeb.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/DiscIO/libdiscio.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/InputCommon/libinputcommon.a 
-#LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a 
-LINKER_OBJECTS 	+= -lhidapi-hidraw 
+LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/hidapi/libhidapi.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/glslang/libglslang.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/imgui/libimgui.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/Common/libcommon.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/enet/libenet.a 
-#LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a
-LINKER_OBJECTS 	+= -lpugixml 
+LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
-#LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/minizip/libminizip.a
-LINKER_OBJECTS 	+= -lminizip  
+LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a  
 LINKER_OBJECTS 	+= -lQt5Widgets
 LINKER_OBJECTS 	+= -lasound 
@@ -62,11 +59,11 @@ LINKER_OBJECTS 	+= -lsfml-system
 LINKER_OBJECTS 	+= -ludev 
 LINKER_OBJECTS 	+= -lc 
 LINKER_OBJECTS 	+= -lpng 
-LINKER_OBJECTS  += -ldl
+LINKER_OBJECTS 	+= -ldl
 LINKER_OBJECTS 	+= -lrt 
 LINKER_OBJECTS 	+= -lXrandr 
 LINKER_OBJECTS 	+= -lpulse 
-#LINKER_OBJECTS 	+= -lsndio
+LINKER_OBJECTS 	+= -lsndio
 LINKER_OBJECTS 	+= -lpthread
 LINKER_OBJECTS 	+= -lSDL2
 LINKER_OBJECTS 	+= -lz
