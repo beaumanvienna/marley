@@ -1,7 +1,7 @@
 #standalone pcsx2 test version
+BLA=1234
 
-
-USE_GTK3 = $(shell ../../pcsx2/detect_gtk_flags.sh)chr
+USE_GTK3 = $(shell ../../pcsx2/detect_gtk_flags.sh)
 
 
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2
@@ -13,17 +13,21 @@ LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
 LINKER_OBJECTS += -lwx_baseu-3.0
+
 ifeq ($(USE_GTK3), -DGTK3_API=ON)
+LINKER_OBJECTS += -lwx_gtk3u_core-3.0 
+LINKER_OBJECTS += -lwx_gtk3u_adv-3.0 
+LINKER_OBJECTS += -lgtk-3
+LINKER_OBJECTS += -lgdk-3
+GTK_VERSION    = GTK3
+else
 LINKER_OBJECTS += -lwx_gtk2u_core-3.0
 LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
 LINKER_OBJECTS += -lgdk-x11-2.0
 LINKER_OBJECTS += -lgtk-x11-2.0
-else
-LINKER_OBJECTS 	+= -lwx_gtk3u_core-3.0 
-LINKER_OBJECTS 	+= -lwx_gtk3u_adv-3.0 
-LINKER_OBJECTS 	+= -lgtk-3
-LINKER_OBJECTS 	+= -lgdk-3
+GTK_VERSION    = GTK2
 endif
+
 LINKER_OBJECTS += -lglib-2.0
 LINKER_OBJECTS += -lgobject-2.0
 LINKER_OBJECTS += -latk-1.0
@@ -57,6 +61,7 @@ all: PCSX2
 
 PCSX2: main.cpp
 	$(info   *************** tests make pcsx2 ***************)
+	$(info $(GTK_VERSION))
 	$(MAKE) -C ../../pcsx2/build $@ -j8
 	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
 
