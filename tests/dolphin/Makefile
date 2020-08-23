@@ -4,7 +4,13 @@
 DEBUG=$(shell ls ../.debug_build 2>/dev/null)
 
 
+ifeq ($(DEBUG), ../.debug_build)
+COMPILER_ARTIFACTS = --std=c++17 -g3 -O0 -ggdb -I/usr/include/SDL2 -I../../dolphin/Source/Core
+else
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2 -I../../dolphin/Source/Core
+endif
+
+
 
 LINKER_OBJECTS 	=  ../../dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/Core/libcore.a 
@@ -96,7 +102,6 @@ DOLPHIN: main.cpp
 	$(info   *************** tests make dolphin ***************)
 	$(MAKE) -C ../../dolphin/build all -j8
 	g++ $(COMPILER_ARTIFACTS) -o DOLPHIN main.cpp $(LINKER_OBJECTS)
-#-g3 -O0 -ggdb
 
 clean:
 	$(info   *************** tests dolphin clean ***************)
