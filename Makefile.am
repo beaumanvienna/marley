@@ -110,7 +110,11 @@ dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a: dolphin
 dolphin/build/Source/Core/Common/libcommon.a: dolphin
 dolphin/build/Source/Core/../../Externals/enet/libenet.a: dolphin
 dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a: dolphin
+if DEBUG
+dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a: dolphin
+else
 dolphin/build/Source/Core/../../Externals/fmt/libfmt.a: dolphin
+endif
 dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
 dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
 dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
@@ -191,7 +195,11 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/xxhash/libxxhash.a
 marley_LDADD 	+= dolphin/build/Source/Core/Common/libcommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/enet/libenet.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/pugixml/libpugixml.a 
+if DEBUG
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a 
+else
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
+endif
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
