@@ -12,6 +12,10 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_INIT_AUTOMAKE([subdir-objects])
 
+#reset flags
+AM_CXXFLAGS=
+AM_LDFLAGS=
+
 #debug option "--enable-debug"
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
