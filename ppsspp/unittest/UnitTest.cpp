@@ -571,10 +571,10 @@ TestItem availableTests[] = {
 };
 
 int main(int argc, const char *argv[]) {
-	cpu_info.bNEON = true;
-	cpu_info.bVFP = true;
-	cpu_info.bVFPv3 = true;
-	cpu_info.bVFPv4 = true;
+	Pcpu_info.bNEON = true;
+	Pcpu_info.bVFP = true;
+	Pcpu_info.bVFPv3 = true;
+	Pcpu_info.bVFPv4 = true;
 	g_PConfig.bEnableLogging = true;
 
 	bool allTests = false;

@@ -631,7 +631,7 @@ void Jit::Comp_VDot(MIPSOpcode op) {
 	if (fpr.TryMapDirtyInInVS(dregs, V_Single, sregs, sz, tregs, sz)) {
 		switch (sz) {
 		case V_Pair:
-			if (cpu_info.bSSE4_1) {
+			if (Pcpu_info.bSSE4_1) {
 				if (fpr.VSX(dregs) != fpr.VSX(sregs) && fpr.VSX(dregs) != fpr.VSX(tregs)) {
 					MOVAPS(fpr.VSX(dregs), fpr.VS(sregs));
 					DPPS(fpr.VSX(dregs), fpr.VS(tregs), 0x31);
@@ -650,7 +650,7 @@ void Jit::Comp_VDot(MIPSOpcode op) {
 			}
 			break;
 		case V_Triple:
-			if (cpu_info.bSSE4_1) {
+			if (Pcpu_info.bSSE4_1) {
 				if (fpr.VSX(dregs) != fpr.VSX(sregs) && fpr.VSX(dregs) != fpr.VSX(tregs)) {
 					MOVAPS(fpr.VSX(dregs), fpr.VS(sregs));
 					DPPS(fpr.VSX(dregs), fpr.VS(tregs), 0x71);
@@ -671,7 +671,7 @@ void Jit::Comp_VDot(MIPSOpcode op) {
 			}
 			break;
 		case V_Quad:
-			if (cpu_info.bSSE4_1) {
+			if (Pcpu_info.bSSE4_1) {
 				if (fpr.VSX(dregs) != fpr.VSX(sregs) && fpr.VSX(dregs) != fpr.VSX(tregs)) {
 					MOVAPS(fpr.VSX(dregs), fpr.VS(sregs));
 					DPPS(fpr.VSX(dregs), fpr.VS(tregs), 0xF1);
@@ -680,7 +680,7 @@ void Jit::Comp_VDot(MIPSOpcode op) {
 					DPPS(XMM0, fpr.VS(tregs), 0xF1);
 					MOVAPS(fpr.VSX(dregs), R(XMM0));
 				}
-			} /* else if (cpu_info.bSSE3) {   // This is slower than the SSE2 solution on my Ivy!
+			} /* else if (Pcpu_info.bSSE3) {   // This is slower than the SSE2 solution on my Ivy!
 				MOVAPS(XMM0, fpr.VS(sregs));
 				MOVAPS(XMM1, fpr.VS(tregs));
 				HADDPS(XMM0, R(XMM1));
@@ -1743,7 +1743,7 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 			// vuc2i is a bit special.  It spreads out the bits like this:
 			// s[0] = 0xDDCCBBAA -> d[0] = (0xAAAAAAAA >> 1), d[1] = (0xBBBBBBBB >> 1), etc.
 			MOVSS(XMM0, fpr.V(sregs[0]));
-			if (cpu_info.bSSSE3 && RipAccessible(vuc2i_shuffle)) {
+			if (Pcpu_info.bSSSE3 && RipAccessible(vuc2i_shuffle)) {
 				// Not really different speed.  Generates a bit less code.
 				PSHUFB(XMM0, M(&vuc2i_shuffle[0]));  // rip accessible
 			} else {
@@ -1753,7 +1753,7 @@ void Jit::Comp_Vx2i(MIPSOpcode op) {
 				PUNPCKLWD(XMM0, R(XMM0));
 			}
 		} else {
-			if (cpu_info.bSSSE3 && RipAccessible(vc2i_shuffle)) {
+			if (Pcpu_info.bSSSE3 && RipAccessible(vc2i_shuffle)) {
 				MOVSS(XMM0, fpr.V(sregs[0]));
 				PSHUFB(XMM0, M(&vc2i_shuffle[0]));
 			} else {
@@ -3273,7 +3273,7 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 
 	// For "u" type ops, we clamp to zero and shift off the sign bit first.
 	if (unsignedOp) {
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			if (sz == V_Quad) {
 				// Zeroed in the other case above.
 				PXOR(XMM1, R(XMM1));
@@ -3290,7 +3290,7 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 	}
 
 	// At this point, everything is aligned in the high bits of our lanes.
-	if (cpu_info.bSSSE3) {
+	if (Pcpu_info.bSSSE3) {
 		if (RipAccessible(vi2xc_shuffle)) {
 			PSHUFB(dst0, bits == 8 ? M(vi2xc_shuffle) : M(vi2xs_shuffle));  // rip accessible
 		} else {
@@ -3336,7 +3336,7 @@ void Jit::Comp_Vhoriz(MIPSOpcode op) {
 	GetVectorRegsPrefixS(sregs, sz, _VS);
 	GetVectorRegsPrefixD(dregs, V_Single, _VD);
 	if (fpr.TryMapDirtyInVS(dregs, V_Single, sregs, sz)) {
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			MOV(PTRBITS, R(TEMPREG), ImmPtr(&oneOneOneOne));
 			switch (sz) {
 			case V_Pair:

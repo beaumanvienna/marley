@@ -318,7 +318,7 @@ ReliableHash64Func DoReliableHash64 = &XXH64;
 // This has to be done after CPUDetect has done its magic.
 void SetupTextureDecoder() {
 #if PPSSPP_ARCH(ARM_NEON) && !PPSSPP_ARCH(ARM64)
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		DoQuickTexHash = &QuickTexHashNEON;
 		StableQuickTexHash = &QuickTexHashNEON;
 		DoUnswizzleTex16 = &DoUnswizzleTex16NEON;
@@ -615,7 +615,7 @@ CheckAlphaResult CheckAlphaRGBA8888Basic(const u32 *pixelData, int stride, int w
 #ifdef _M_SSE
 		return CheckAlphaRGBA8888SSE2(pixelData, stride, w, h);
 #elif PPSSPP_ARCH(ARM_NEON)
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			return CheckAlphaRGBA8888NEON(pixelData, stride, w, h);
 		}
 #endif
@@ -645,7 +645,7 @@ CheckAlphaResult CheckAlphaABGR4444Basic(const u32 *pixelData, int stride, int w
 #ifdef _M_SSE
 		return CheckAlphaABGR4444SSE2(pixelData, stride, w, h);
 #elif PPSSPP_ARCH(ARM_NEON)
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			return CheckAlphaABGR4444NEON(pixelData, stride, w, h);
 		}
 #endif
@@ -678,7 +678,7 @@ CheckAlphaResult CheckAlphaABGR1555Basic(const u32 *pixelData, int stride, int w
 #ifdef _M_SSE
 		return CheckAlphaABGR1555SSE2(pixelData, stride, w, h);
 #elif PPSSPP_ARCH(ARM_NEON)
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			return CheckAlphaABGR1555NEON(pixelData, stride, w, h);
 		}
 #endif
@@ -710,7 +710,7 @@ CheckAlphaResult CheckAlphaRGBA4444Basic(const u32 *pixelData, int stride, int w
 #ifdef _M_SSE
 		return CheckAlphaRGBA4444SSE2(pixelData, stride, w, h);
 #elif PPSSPP_ARCH(ARM_NEON)
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			return CheckAlphaRGBA4444NEON(pixelData, stride, w, h);
 		}
 #endif
@@ -743,7 +743,7 @@ CheckAlphaResult CheckAlphaRGBA5551Basic(const u32 *pixelData, int stride, int w
 #ifdef _M_SSE
 		return CheckAlphaRGBA5551SSE2(pixelData, stride, w, h);
 #elif PPSSPP_ARCH(ARM_NEON)
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			return CheckAlphaRGBA5551NEON(pixelData, stride, w, h);
 		}
 #endif

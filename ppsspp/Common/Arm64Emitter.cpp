@@ -340,7 +340,7 @@ void ARM64XEmitter::FlushIcacheSection(const u8 *start, const u8 *end)
 	// big.LITTLE architectures.
 	size_t isize, dsize;
 
-	if (cpu_info.sQuirks.bExynos8890DifferingCachelineSizes) {
+	if (Pcpu_info.sQuirks.bExynos8890DifferingCachelineSizes) {
 		// Enforce the minimum cache line size to be completely safe on these CPUs.
 		isize = 64;
 		dsize = 64;

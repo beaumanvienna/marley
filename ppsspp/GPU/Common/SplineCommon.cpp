@@ -414,7 +414,7 @@ public:
 			(origVertType & GE_VTYPE_NRM_MASK) != 0 || gstate.isLightingEnabled(),
 			(origVertType & GE_VTYPE_COL_MASK) != 0,
 			(origVertType & GE_VTYPE_TC_MASK) != 0,
-			cpu_info.bSSE4_1,
+			Pcpu_info.bSSE4_1,
 			surface.patchFacing,
 		};
 		static TemplateParameterDispatcher<TessFunc, ARRAY_SIZE(params), Tess> dispatcher; // Initialize only once

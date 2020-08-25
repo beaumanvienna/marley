@@ -1131,13 +1131,13 @@ namespace MIPSComp
 			DISABLE;
 		}
 
-		if (!cpu_info.bNEON) {
+		if (!Pcpu_info.bNEON) {
 			DISABLE;
 		}
 
 		// This multi-VCVT.F32.F16 is only available in the VFPv4 extension.
 		// The VFPv3 one is VCVTB, VCVTT which we don't yet have support for.
-		if (!(cpu_info.bHalf && cpu_info.bVFPv4)) {
+		if (!(Pcpu_info.bHalf && Pcpu_info.bVFPv4)) {
 			// No hardware support for half-to-float, fallback to interpreter
 			// TODO: Translate the fast SSE solution to standard integer/VFP stuff
 			// for the weaker CPUs.
@@ -1598,7 +1598,7 @@ namespace MIPSComp
 			DISABLE;
 		}
 
-		if (!cpu_info.bNEON) {
+		if (!Pcpu_info.bNEON) {
 			DISABLE;
 		}
 

@@ -462,7 +462,7 @@ void VertexDecoderJitCache::Jit_WeightsU8Skin() {
 	} else {
 		MOVD_xmm(XMM8, MDisp(srcReg, dec_->weightoff));
 	}
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVZXBD(XMM8, R(XMM8));
 	} else {
 		PXOR(fpScratchReg, R(fpScratchReg));
@@ -470,7 +470,7 @@ void VertexDecoderJitCache::Jit_WeightsU8Skin() {
 		PUNPCKLWD(XMM8, R(fpScratchReg));
 	}
 	if (dec_->nweights > 4) {
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVZXBD(XMM9, R(XMM9));
 		} else {
 			PUNPCKLBW(XMM9, R(fpScratchReg));
@@ -578,14 +578,14 @@ void VertexDecoderJitCache::Jit_WeightsU16Skin() {
 	} else {
 		MOVD_xmm(XMM8, MDisp(srcReg, dec_->weightoff));
 	}
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVZXWD(XMM8, R(XMM8));
 	} else {
 		PXOR(fpScratchReg, R(fpScratchReg));
 		PUNPCKLWD(XMM8, R(fpScratchReg));
 	}
 	if (dec_->nweights > 4) {
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVZXWD(XMM9, R(XMM9));
 		} else {
 			PUNPCKLWD(XMM9, R(fpScratchReg));
@@ -766,7 +766,7 @@ void VertexDecoderJitCache::Jit_TcFloatPrescale() {
 
 void VertexDecoderJitCache::Jit_TcAnyMorph(int bits) {
 	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 
@@ -786,7 +786,7 @@ void VertexDecoderJitCache::Jit_TcAnyMorph(int bits) {
 			} else {
 				MOVD_xmm(reg, src);
 			}
-			if (cpu_info.bSSE4_1) {
+			if (Pcpu_info.bSSE4_1) {
 				if (bits == 8) {
 					PMOVZXBD(reg, R(reg));
 				} else {
@@ -1044,7 +1044,7 @@ void VertexDecoderJitCache::Jit_Color5551() {
 
 void VertexDecoderJitCache::Jit_Color8888Morph() {
 	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 
@@ -1052,7 +1052,7 @@ void VertexDecoderJitCache::Jit_Color8888Morph() {
 	for (int n = 0; n < dec_->morphcount; ++n) {
 		const X64Reg reg = first ? fpScratchReg : fpScratchReg2;
 		MOVD_xmm(reg, MDisp(srcReg, dec_->onesize_ * n + dec_->coloff));
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVZXBD(reg, R(reg));
 		} else {
 			PUNPCKLBW(reg, R(fpScratchReg4));
@@ -1080,7 +1080,7 @@ alignas(16) static const float byColor4444[4] = { 255.0f / 15.0f, 255.0f / 15.0f
 
 void VertexDecoderJitCache::Jit_Color4444Morph() {
 	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 	MOV(PTRBITS, R(tempReg2), ImmPtr(color4444mask));
@@ -1099,7 +1099,7 @@ void VertexDecoderJitCache::Jit_Color4444Morph() {
 		POR(reg, R(fpScratchReg3));
 		PSRLW(reg, 4);
 
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVZXBD(reg, R(reg));
 		} else {
 			PUNPCKLBW(reg, R(fpScratchReg4));
@@ -1284,7 +1284,7 @@ void VertexDecoderJitCache::Jit_NormalS16() {
 }
 
 void VertexDecoderJitCache::Jit_NormalFloat() {
-	if (cpu_info.Mode64bit) {
+	if (Pcpu_info.Mode64bit) {
 		MOV(64, R(tempReg1), MDisp(srcReg, dec_->nrmoff));
 		MOV(32, R(tempReg3), MDisp(srcReg, dec_->nrmoff + 8));
 		MOV(64, MDisp(dstReg, dec_->decFmt.nrmoff), R(tempReg1));
@@ -1345,7 +1345,7 @@ void VertexDecoderJitCache::Jit_PosS8Through() {
 
 // Through expands into floats, always. Might want to look at changing this.
 void VertexDecoderJitCache::Jit_PosS16Through() {
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		MOVD_xmm(fpScratchReg, MDisp(srcReg, dec_->posoff));
 		MOVZX(32, 16, tempReg3, MDisp(srcReg, dec_->posoff + 4));
 		MOVD_xmm(fpScratchReg2, R(tempReg3));
@@ -1378,7 +1378,7 @@ void VertexDecoderJitCache::Jit_PosS16() {
 
 // Just copy 12 bytes.
 void VertexDecoderJitCache::Jit_PosFloat() {
-	if (cpu_info.Mode64bit) {
+	if (Pcpu_info.Mode64bit) {
 		MOV(64, R(tempReg1), MDisp(srcReg, dec_->posoff));
 		MOV(32, R(tempReg3), MDisp(srcReg, dec_->posoff + 8));
 		MOV(64, MDisp(dstReg, dec_->decFmt.posoff), R(tempReg1));
@@ -1409,11 +1409,11 @@ void VertexDecoderJitCache::Jit_PosFloatSkin() {
 }
 
 void VertexDecoderJitCache::Jit_AnyS8ToFloat(int srcoff) {
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(XMM3, R(XMM3));
 	}
 	MOVD_xmm(XMM1, MDisp(srcReg, srcoff));
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVSXBD(XMM1, R(XMM1));
 	} else {
 		PUNPCKLBW(XMM1, R(XMM3));
@@ -1431,11 +1431,11 @@ void VertexDecoderJitCache::Jit_AnyS8ToFloat(int srcoff) {
 }
 
 void VertexDecoderJitCache::Jit_AnyS16ToFloat(int srcoff) {
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(XMM3, R(XMM3));
 	}
 	MOVQ_xmm(XMM1, MDisp(srcReg, srcoff));
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVSXWD(XMM1, R(XMM1));
 	} else {
 		PUNPCKLWD(XMM1, R(XMM3));
@@ -1455,7 +1455,7 @@ void VertexDecoderJitCache::Jit_AnyU8ToFloat(int srcoff, u32 bits) {
 	_dbg_assert_msg_((bits & ~(32 | 16 | 8)) == 0, "Bits must be a multiple of 8.");
 	_dbg_assert_msg_(bits >= 8 && bits <= 32, "Bits must be a between 8 and 32.");
 
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(XMM3, R(XMM3));
 	}
 	if (bits == 32) {
@@ -1468,7 +1468,7 @@ void VertexDecoderJitCache::Jit_AnyU8ToFloat(int srcoff, u32 bits) {
 		MOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
 		MOVD_xmm(XMM1, R(tempReg1));
 	}
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVZXBD(XMM1, R(XMM1));
 	} else {
 		PUNPCKLBW(XMM1, R(XMM3));
@@ -1487,7 +1487,7 @@ void VertexDecoderJitCache::Jit_AnyU16ToFloat(int srcoff, u32 bits) {
 	_dbg_assert_msg_((bits & ~(64 | 32 | 16)) == 0, "Bits must be a multiple of 16.");
 	_dbg_assert_msg_(bits >= 16 && bits <= 64, "Bits must be a between 16 and 64.");
 
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(XMM3, R(XMM3));
 	}
 	if (bits == 64) {
@@ -1501,7 +1501,7 @@ void VertexDecoderJitCache::Jit_AnyU16ToFloat(int srcoff, u32 bits) {
 		MOVZX(32, bits, tempReg1, MDisp(srcReg, srcoff));
 		MOVD_xmm(XMM1, R(tempReg1));
 	}
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVZXWD(XMM1, R(XMM1));
 	} else {
 		PUNPCKLWD(XMM1, R(XMM3));
@@ -1517,7 +1517,7 @@ void VertexDecoderJitCache::Jit_AnyU16ToFloat(int srcoff, u32 bits) {
 
 void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 	if (RipAccessible(&by128)) {
@@ -1533,7 +1533,7 @@ void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 		const X64Reg reg = first ? fpScratchReg : fpScratchReg2;
 		// Okay, first convert to floats.
 		MOVD_xmm(reg, MDisp(srcReg, dec_->onesize_ * n + srcoff));
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVSXBD(reg, R(reg));
 		} else {
 			PUNPCKLBW(reg, R(fpScratchReg4));
@@ -1561,7 +1561,7 @@ void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 
 void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
 	MOV(PTRBITS, R(tempReg1), ImmPtr(&gstate_c.morphWeights[0]));
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(fpScratchReg4, R(fpScratchReg4));
 	}
 	if (RipAccessible(&by32768)) {
@@ -1577,7 +1577,7 @@ void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
 		const X64Reg reg = first ? fpScratchReg : fpScratchReg2;
 		// Okay, first convert to floats.
 		MOVQ_xmm(reg, MDisp(srcReg, dec_->onesize_ * n + srcoff));
-		if (cpu_info.bSSE4_1) {
+		if (Pcpu_info.bSSE4_1) {
 			PMOVSXWD(reg, R(reg));
 		} else {
 			PUNPCKLWD(reg, R(fpScratchReg4));

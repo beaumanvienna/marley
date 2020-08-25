@@ -180,7 +180,7 @@ void ConvertRGBA8888ToRGBA5551(u16 *dst, const u32 *src, u32 numPixels) {
 	__m128i *dstp = (__m128i *)dst;
 	u32 sseChunks = (numPixels / 4) & ~1;
 	// SSE 4.1 required for _mm_packus_epi32.
-	if (((intptr_t)src & 0xF) || ((intptr_t)dst & 0xF) || !cpu_info.bSSE4_1) {
+	if (((intptr_t)src & 0xF) || ((intptr_t)dst & 0xF) || !Pcpu_info.bSSE4_1) {
 		sseChunks = 0;
 	}
 	for (u32 i = 0; i < sseChunks; i += 2) {
@@ -222,7 +222,7 @@ void ConvertBGRA8888ToRGBA5551(u16 *dst, const u32 *src, u32 numPixels) {
 	__m128i *dstp = (__m128i *)dst;
 	u32 sseChunks = (numPixels / 4) & ~1;
 	// SSE 4.1 required for _mm_packus_epi32.
-	if (((intptr_t)src & 0xF) || ((intptr_t)dst & 0xF) || !cpu_info.bSSE4_1) {
+	if (((intptr_t)src & 0xF) || ((intptr_t)dst & 0xF) || !Pcpu_info.bSSE4_1) {
 		sseChunks = 0;
 	}
 	for (u32 i = 0; i < sseChunks; i += 2) {
@@ -644,7 +644,7 @@ Convert16bppTo16bppFunc ConvertRGB565ToBGR565 = &ConvertRGB565ToBGR565Basic;
 
 void SetupColorConv() {
 #if PPSSPP_ARCH(ARM_NEON) && !PPSSPP_ARCH(ARM64)
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		ConvertRGBA4444ToABGR4444 = &ConvertRGBA4444ToABGR4444NEON;
 		ConvertRGBA5551ToABGR1555 = &ConvertRGBA5551ToABGR1555NEON;
 		ConvertRGB565ToBGR565 = &ConvertRGB565ToBGR565NEON;

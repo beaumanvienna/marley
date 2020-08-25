@@ -28,7 +28,7 @@ using namespace ArmGen;
 using namespace ArmJitConstants;
 
 ArmRegCacheFPU::ArmRegCacheFPU(MIPSState *mips, MIPSComp::JitState *js, MIPSComp::JitOptions *jo) : mips_(mips), js_(js), jo_(jo), vr(mr + 32), initialReady(false) {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		numARMFpuReg_ = 32;
 	} else {
 		numARMFpuReg_ = 16;
@@ -116,7 +116,7 @@ const ARMReg *ArmRegCacheFPU::GetMIPSAllocationOrder(int &count) {
 	if (jo_->useNEONVFPU) {
 		count = sizeof(allocationOrderNEONVFPU) / sizeof(const ARMReg);
 		return allocationOrderNEONVFPU;
-	} else if (cpu_info.bNEON) {
+	} else if (Pcpu_info.bNEON) {
 		count = sizeof(allocationOrderNEON) / sizeof(const ARMReg);
 		return allocationOrderNEON;
 	} else {
@@ -406,7 +406,7 @@ void ArmRegCacheFPU::FlushR(MIPSReg r) {
 }
 
 int ArmRegCacheFPU::GetNumARMFPURegs() {
-	if (cpu_info.bNEON)
+	if (Pcpu_info.bNEON)
 		return 32;
 	else
 		return 16;

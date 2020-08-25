@@ -176,8 +176,8 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	bool prescaleStep = false;
 	bool skinning = false;
 
-	NEONSkinning = cpu_info.bNEON;
-	NEONMorphing = cpu_info.bNEON;
+	NEONSkinning = Pcpu_info.bNEON;
+	NEONMorphing = Pcpu_info.bNEON;
 
 	// Look for prescaled texcoord steps
 	for (int i = 0; i < dec.numSteps_; i++) {
@@ -206,7 +206,7 @@ JittedVertexDecoder VertexDecoderJitCache::Compile(const VertexDecoder &dec, int
 	// Keep the scale/offset in a few fp registers if we need it.
 	if (prescaleStep) {
 		MOVP2R(R3, &gstate_c.uv);
-		if (cpu_info.bNEON) {
+		if (Pcpu_info.bNEON) {
 			VLD1(F_32, neonUVScaleReg, R3, 2, ALIGN_NONE);
 			if ((dec.VertexType() & GE_VTYPE_TC_MASK) == GE_VTYPE_TC_8BIT) {
 				VMOV_neon(F_32, neonScratchReg, by128);
@@ -396,7 +396,7 @@ void VertexDecoderJitCache::Jit_ApplyWeights() {
 				break;
 			case 1:
 				// Krait likes VDUP + VFMA better than VMLA, and it's easy to do here.
-				if (cpu_info.bVFPv4) {
+				if (Pcpu_info.bVFPv4) {
 					VDUP(F_32, Q1, neonWeightRegsQ[i >> 2], i & 1);
 					VFMA(F_32, Q4, Q12, Q1);
 					VFMA(F_32, Q5, Q13, Q1);
@@ -588,7 +588,7 @@ void VertexDecoderJitCache::Jit_TcU16ThroughToFloat() {
 	updateSide(tempReg2, CC_LT, offsetof(KnownVertexBounds, minV));
 	updateSide(tempReg2, CC_GT, offsetof(KnownVertexBounds, maxV));
 
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1_lane(I_32, neonScratchReg, scratchReg, 0, false);
 		VMOVL(I_16 | I_UNSIGNED, neonScratchRegQ, neonScratchReg);  // Widen to 32-bit
@@ -613,7 +613,7 @@ void VertexDecoderJitCache::Jit_TcFloatThrough() {
 }
 
 void VertexDecoderJitCache::Jit_TcU8Prescale() {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		// TODO: Needs testing
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1_lane(I_16, neonScratchReg, scratchReg, 0, false);
@@ -642,7 +642,7 @@ void VertexDecoderJitCache::Jit_TcU8Prescale() {
 }
 
 void VertexDecoderJitCache::Jit_TcU8ToFloat() {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		// TODO: Needs testing
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1_lane(I_16, neonScratchReg, scratchReg, 0, false);
@@ -669,7 +669,7 @@ void VertexDecoderJitCache::Jit_TcU8ToFloat() {
 }
 
 void VertexDecoderJitCache::Jit_TcU16Prescale() {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		// TODO: Needs testing
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1_lane(I_32, neonScratchReg, scratchReg, 0, false);
@@ -696,7 +696,7 @@ void VertexDecoderJitCache::Jit_TcU16Prescale() {
 }
 
 void VertexDecoderJitCache::Jit_TcU16ToFloat() {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		// TODO: Needs testing
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1_lane(I_32, neonScratchReg, scratchReg, 0, false);
@@ -722,7 +722,7 @@ void VertexDecoderJitCache::Jit_TcU16ToFloat() {
 }
 
 void VertexDecoderJitCache::Jit_TcFloatPrescale() {
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		ADD(scratchReg, srcReg, dec_->tcoff);
 		VLD1(F_32, neonScratchReg, scratchReg, 1, ALIGN_NONE);
 		ADD(scratchReg2, dstReg, dec_->decFmt.uvoff);
@@ -849,7 +849,7 @@ void VertexDecoderJitCache::Jit_Color8888Morph() {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -924,7 +924,7 @@ void VertexDecoderJitCache::Jit_Color4444Morph() {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -1008,7 +1008,7 @@ void VertexDecoderJitCache::Jit_Color565Morph() {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -1092,7 +1092,7 @@ void VertexDecoderJitCache::Jit_Color5551Morph() {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -1220,7 +1220,7 @@ void VertexDecoderJitCache::Jit_PosS8Through() {
 	static const ARMReg tr[3] = { tempReg1, tempReg2, tempReg3 };
 	static const ARMReg fr[3] = { fpScratchReg, fpScratchReg2, fpScratchReg3 };
 	ADD(scratchReg, dstReg, dec_->decFmt.posoff);
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		VMOV(neonScratchReg, tempReg1, tempReg2);
 		VMOV(neonScratchReg2, tempReg3, tempReg3);
 		VCVT(F_32 | I_SIGNED, neonScratchRegQ, neonScratchRegQ);
@@ -1245,7 +1245,7 @@ void VertexDecoderJitCache::Jit_PosS16Through() {
 	static const ARMReg tr[3] = { tempReg1, tempReg2, tempReg3 };
 	static const ARMReg fr[3] = { fpScratchReg, fpScratchReg2, fpScratchReg3 };
 	ADD(scratchReg, dstReg, dec_->decFmt.posoff);
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		VMOV(neonScratchReg, tempReg1, tempReg2);
 		VMOV(neonScratchReg2, tempReg3, tempReg3);
 		VCVT(F_32 | I_SIGNED, neonScratchRegQ, neonScratchRegQ);
@@ -1455,7 +1455,7 @@ void VertexDecoderJitCache::Jit_AnyS8Morph(int srcoff, int dstoff) {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -1524,7 +1524,7 @@ void VertexDecoderJitCache::Jit_AnyS16Morph(int srcoff, int dstoff) {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);
@@ -1582,7 +1582,7 @@ void VertexDecoderJitCache::Jit_AnyFloatMorph(int srcoff, int dstoff) {
 			if (first) {
 				first = false;
 				VMUL(F_32, Q2, neonScratchRegQ, Q3);
-			} else if (cpu_info.bVFPv4) {
+			} else if (Pcpu_info.bVFPv4) {
 				VFMA(F_32, Q2, neonScratchRegQ, Q3);
 			} else {
 				VMLA(F_32, Q2, neonScratchRegQ, Q3);

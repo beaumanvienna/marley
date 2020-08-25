@@ -444,7 +444,7 @@ static void ClearFailedGPUBackends() {
 void NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
 	net::Init();  // This needs to happen before we load the config. So on Windows we also run it in Main. It's fine to call multiple times.
 
-	InitFastMath(cpu_info.bNEON);
+	InitFastMath(Pcpu_info.bNEON);
 	SetupAudioFormats();
 
 	g_Discord.SetPresenceMenu();

@@ -28,7 +28,7 @@ enum CPUVendor {
 	VENDOR_OTHER = 3,
 };
 
-struct CPUInfo {
+struct PCPUInfo {
 	CPUVendor vendor;
 
 	// Misc
@@ -104,7 +104,7 @@ struct CPUInfo {
 	} sQuirks;
 
 	// Call Detect()
-	explicit CPUInfo();
+	explicit PCPUInfo();
 
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
@@ -114,4 +114,4 @@ private:
 	void Detect();
 };
 
-extern CPUInfo cpu_info;
+extern PCPUInfo Pcpu_info;

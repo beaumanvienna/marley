@@ -98,9 +98,9 @@ void do_cpuid(u32 regs[4], u32 cpuid_leaf)
 #endif
 #endif
 
-CPUInfo cpu_info;
+PCPUInfo Pcpu_info;
 
-CPUInfo::CPUInfo() {
+PCPUInfo::PCPUInfo() {
 	Detect();
 }
 
@@ -127,7 +127,7 @@ static std::vector<int> ParseCPUList(const std::string &filename) {
 }
 
 // Detects the various cpu features
-void CPUInfo::Detect() {
+void PCPUInfo::Detect() {
 	memset(this, 0, sizeof(*this));
 #ifdef _M_IX86
 	Mode64bit = false;
@@ -401,7 +401,7 @@ void CPUInfo::Detect() {
 }
 
 // Turn the cpu info into a string we can show
-std::string CPUInfo::Summarize()
+std::string PCPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)

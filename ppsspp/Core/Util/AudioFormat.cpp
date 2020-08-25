@@ -116,7 +116,7 @@ AdjustVolumeBlockFunc AdjustVolumeBlock = &AdjustVolumeBlockStandard;
 // This has to be done after CPUDetect has done its magic.
 void SetupAudioFormats() {
 #if PPSSPP_ARCH(ARM_NEON) && !PPSSPP_ARCH(ARM64)
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		AdjustVolumeBlock = &AdjustVolumeBlockNEON;
 	}
 #endif

@@ -456,12 +456,12 @@ void SystemInfoScreen::CreateViews() {
 #endif
 
 	deviceSpecs->Add(new ItemHeader(si->T("CPU Information")));
-	deviceSpecs->Add(new InfoItem(si->T("CPU Name", "Name"), cpu_info.brand_string));
+	deviceSpecs->Add(new InfoItem(si->T("CPU Name", "Name"), Pcpu_info.brand_string));
 #if defined(ARM) || defined(ARM64) || defined(MIPS)
-	deviceSpecs->Add(new InfoItem(si->T("Cores"), StringFromInt(cpu_info.num_cores)));
+	deviceSpecs->Add(new InfoItem(si->T("Cores"), StringFromInt(Pcpu_info.num_cores)));
 #else
-	int totalThreads = cpu_info.num_cores * cpu_info.logical_cpu_count;
-	std::string cores = PStringFromFormat(si->T("%d (%d per core, %d cores)"), totalThreads, cpu_info.logical_cpu_count, cpu_info.num_cores);
+	int totalThreads = Pcpu_info.num_cores * Pcpu_info.logical_cpu_count;
+	std::string cores = PStringFromFormat(si->T("%d (%d per core, %d cores)"), totalThreads, Pcpu_info.logical_cpu_count, Pcpu_info.num_cores);
 	deviceSpecs->Add(new InfoItem(si->T("Threads"), cores));
 #endif
 	deviceSpecs->Add(new ItemHeader(si->T("GPU Information")));
@@ -617,7 +617,7 @@ void SystemInfoScreen::CreateViews() {
 
 	cpuExtensions->Add(new ItemHeader(si->T("CPU Extensions")));
 	std::vector<std::string> exts;
-	PSplitString(cpu_info.Summarize(), ',', exts);
+	PSplitString(Pcpu_info.Summarize(), ',', exts);
 	for (size_t i = 2; i < exts.size(); i++) {
 		cpuExtensions->Add(new TextView(exts[i], new LayoutParams(FILL_PARENT, WRAP_CONTENT)))->SetFocusable(true);
 	}

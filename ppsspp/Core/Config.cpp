@@ -388,7 +388,7 @@ std::string CreateRandMAC() {
 }
 
 static int DefaultNumWorkers() {
-	return cpu_info.num_cores;
+	return Pcpu_info.num_cores;
 }
 
 static int DefaultCpuCore() {
@@ -499,7 +499,7 @@ static ConfigSetting generalSettings[] = {
 };
 
 static bool DefaultSasThread() {
-	return cpu_info.num_cores > 1;
+	return Pcpu_info.num_cores > 1;
 }
 
 static ConfigSetting cpuSettings[] = {

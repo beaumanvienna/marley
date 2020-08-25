@@ -23,7 +23,7 @@
 #include "CPUDetect.h"
 #include "StringUtils.h"
 
-CPUInfo cpu_info;
+CPUInfo Pcpu_info;
 
 CPUInfo::CPUInfo() {
 	Detect();

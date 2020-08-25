@@ -177,7 +177,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	doNearestCall(12);
 
 	// Convert TL, TR, BL, BR to floats for easier blending.
-	if (!cpu_info.bSSE4_1) {
+	if (!Pcpu_info.bSSE4_1) {
 		PXOR(XMM0, R(XMM0));
 	}
 
@@ -186,7 +186,7 @@ LinearFunc SamplerJitCache::CompileLinear(const SamplerID &id) {
 	MOVD_xmm(fpScratchReg3, MDisp(RSP, 8));
 	MOVD_xmm(fpScratchReg4, MDisp(RSP, 12));
 
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		PMOVZXBD(fpScratchReg1, R(fpScratchReg1));
 		PMOVZXBD(fpScratchReg2, R(fpScratchReg2));
 		PMOVZXBD(fpScratchReg3, R(fpScratchReg3));

@@ -118,7 +118,7 @@ void ArmEmitterTest()
 	return;
 
 	// If I commit with it enabled by accident, let's not blow up.
-	if (!cpu_info.bNEON)
+	if (!Pcpu_info.bNEON)
 		return;
 
 	for (int i = 0; i < 6; i++) {

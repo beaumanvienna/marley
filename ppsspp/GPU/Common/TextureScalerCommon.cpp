@@ -328,7 +328,7 @@ void scaleBicubicTSSE41(u32* data, u32* out, int w, int h, int l, int u) {
 
 void scaleBicubicBSpline(int factor, u32* data, u32* out, int w, int h, int l, int u) {
 #if _M_SSE >= 0x401
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		switch (factor) {
 		case 2: scaleBicubicTSSE41<2, 0>(data, out, w, h, l, u); break; // when I first tested this, 
 		case 3: scaleBicubicTSSE41<3, 0>(data, out, w, h, l, u); break; // it was even slower than I had expected
@@ -352,7 +352,7 @@ void scaleBicubicBSpline(int factor, u32* data, u32* out, int w, int h, int l, i
 
 void scaleBicubicMitchell(int factor, u32* data, u32* out, int w, int h, int l, int u) {
 #if _M_SSE >= 0x401
-	if (cpu_info.bSSE4_1) {
+	if (Pcpu_info.bSSE4_1) {
 		switch (factor) {
 		case 2: scaleBicubicTSSE41<2, 1>(data, out, w, h, l, u); break;
 		case 3: scaleBicubicTSSE41<3, 1>(data, out, w, h, l, u); break;

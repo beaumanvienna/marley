@@ -23,14 +23,14 @@
 #include "CPUDetect.h"
 #include "StringUtils.h"
 
-CPUInfo cpu_info;
+PCPUInfo Pcpu_info;
 
-CPUInfo::CPUInfo() {
+PCPUInfo::PCPUInfo() {
 	Detect();
 }
 
 // Detects the various cpu features
-void CPUInfo::Detect()
+void PCPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
 	num_cores = 3;
@@ -44,7 +44,7 @@ void CPUInfo::Detect()
 }
 
 // Turn the cpu info into a string we can show
-std::string CPUInfo::Summarize()
+std::string PCPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)

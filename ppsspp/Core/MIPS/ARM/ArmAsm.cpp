@@ -138,7 +138,7 @@ void ArmJit::GenerateFixedCode() {
 	// consumed by CALL.
 	SUB(R_SP, R_SP, 4);
 	// Now we are correctly aligned and plan to stay that way.
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		VPUSH(D8, 8);
 	}
 
@@ -244,7 +244,7 @@ void ArmJit::GenerateFixedCode() {
 	RestoreRoundingMode(true);
 
 	// Doing this above the downcount for better pipelining (slightly.)
-	if (cpu_info.bNEON) {
+	if (Pcpu_info.bNEON) {
 		VPOP(D8, 8);
 	}
 

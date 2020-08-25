@@ -1013,7 +1013,7 @@ void ArmJit::CompNEON_Vi2f(MIPSOpcode op) {
 
 void ArmJit::CompNEON_Vh2f(MIPSOpcode op) {
 	CONDITIONAL_DISABLE(VFPU_VEC);
-	if (!cpu_info.bHalf) {
+	if (!Pcpu_info.bHalf) {
 		// No hardware support for half-to-float, fallback to interpreter
 		// TODO: Translate the fast SSE solution to standard integer/VFP stuff
 		// for the weaker CPUs.

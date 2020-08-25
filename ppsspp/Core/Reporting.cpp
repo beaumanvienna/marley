@@ -375,7 +375,7 @@ namespace Reporting
 		postdata.Add("version", PPSSPP_GIT_VERSION);
 		postdata.Add("gpu", gpuPrimary);
 		postdata.Add("gpu_full", gpuFull);
-		postdata.Add("cpu", cpu_info.Summarize());
+		postdata.Add("cpu", Pcpu_info.Summarize());
 		postdata.Add("platform", GetPlatformIdentifer());
 	}
 
