@@ -347,7 +347,7 @@ int SDLGLGraphicsContext::Init(SDL_Window *&window, int x, int y, int mode, std:
 
 		// Let's keep trying.  To be safe, destroy the window - docs say needed to change profile.
 		// in practice, it doesn't seem to matter, but maybe it differs by platform.
-		SDL_DestroyWindow(window);
+		//SDL_DestroyWindow(window);
 	}
 
 	if (glContext == nullptr) {

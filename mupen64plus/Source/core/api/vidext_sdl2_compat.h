@@ -380,7 +380,7 @@ static void SDL2_DestroyWindow(void)
         SDL_VideoContext = NULL;
     }
     if (SDL_VideoWindow) {
-        SDL_DestroyWindow(SDL_VideoWindow);
+        //SDL_DestroyWindow(SDL_VideoWindow);
         SDL_VideoWindow = NULL;
     }
 }

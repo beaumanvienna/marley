@@ -54,28 +54,6 @@ void initApp(void);
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
 
-void test()
-{
-    int argc_;
-    char arg1[64]; 
-    char arg2[1024];
-    char *argv_[2]; 
-    int n;
-    string str, ext;
-    argc_ = 2;
-    str = "dolphin-emu";
-    n = str.length(); 
-    strcpy(arg1, str.c_str()); 
-    
-    n = gGame[gCurrentGame].length(); 
-    strcpy(arg2, gGame[gCurrentGame].c_str()); 
-    
-    argv_[0] = arg1;
-    argv_[1] = arg2;
-    printf("arg1: %s arg2: %s \n",arg1,arg2);
-    dolphin_main(argc_,argv_);        
-}
-
 //initializes SDL and creates main window
 bool init()
 {
