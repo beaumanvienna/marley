@@ -643,7 +643,7 @@ void setWindowed(void)
 bool createRenderer(void)
 {
     bool ok = true;
-
+    SDL_GL_ResetAttributes();
     //Create renderer for main window
     gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
     if( gRenderer == nullptr )
