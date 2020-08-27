@@ -91,7 +91,7 @@ libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
 libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \
 libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
 libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
-libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip |
+libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip libzstd1-dev |
 
 
 | Ubuntu 20.04 | 
