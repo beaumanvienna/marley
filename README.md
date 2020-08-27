@@ -66,7 +66,7 @@ command line options: <br />
   --fullscreen, -f      : start in fullscreen mode<br />
 <br />
 
-## Installation for Ubuntu 18.04 and 20.04
+## Installation for Ubuntu 18.04, 20.04, and Ubuntu derivatives
 
 sudo add-apt-repository ppa:beauman/marley <br />
 sudo apt update <br />
@@ -76,7 +76,7 @@ sudo apt install marley <br />
 
 #Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
 
-| Ubuntu 18.04 | 
+| Ubuntu 18.04, Elementary OS 5.1, Linux Mint 19 | 
 | ------------ | 
 | sudo apt install git libwxgtk3.0-dev debhelper cmake chrpath \
 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
@@ -94,7 +94,7 @@ libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsna
 libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip libzstd1-dev |
 
 
-| Ubuntu 20.04 | 
+| Ubuntu 20.04, Linux Mint 20 | 
 | ------------ | 
 | sudo apt install git libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath \ |
 | libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \ |
