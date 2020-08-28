@@ -543,10 +543,8 @@ static SDL_AudioSpec g_retFmt;
 	bool landscape;
 	NativeGetAppInfo(&app_name, &app_name_nice, &landscape, &version);
 
-	bool joystick_enabled = true;
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL with joystick support. Retrying without.\n");
-		joystick_enabled = false;
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 			fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
 			return 1;
@@ -721,11 +719,8 @@ static SDL_AudioSpec g_retFmt;
 
 	InitSDLAudioDevice();
 
-	if (joystick_enabled) {
-		joystick = new SDLJoystick();
-	} else {
-		joystick = nullptr;
-	}
+	joystick = new SDLJoystick();
+	
 	EnableFZ();
 
 	int framecount = 0;
