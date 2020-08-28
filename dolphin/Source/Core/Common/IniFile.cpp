@@ -255,9 +255,16 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     if (!std::getline(in, line_str))
     {
       if (in.eof())
-        return true;
-      else
+      {
+        if (first_line) // empty file
+          return false;
+        else
+          return true; // file found with some lines in it
+      }
+      else // file not found
+      {
         return false;
+      }
     }
 
     std::string_view line = line_str;
