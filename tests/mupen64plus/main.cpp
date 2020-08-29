@@ -525,8 +525,6 @@ int main(int argc, char* argv[])
     }
 
     mupen64plus_main(mupen64plus_argc,mupen64plus_argv);
-    mupen64plus_main(mupen64plus_argc,mupen64plus_argv);
-    mupen64plus_main(mupen64plus_argc,mupen64plus_argv);
     printf("jc exit test\n");
 
     return 0;

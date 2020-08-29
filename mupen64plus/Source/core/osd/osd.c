@@ -37,7 +37,7 @@
 #include "api/m64p_vidext.h"
 #include "api/callbacks.h"
 
-#define FONT_FILENAME "font.ttf"
+#define FONT_FILENAME ".marley/fonts/font.ttf"
 
 typedef void (APIENTRYP PTRGLACTIVETEXTURE)(GLenum texture);
 static PTRGLACTIVETEXTURE pglActiveTexture = NULL;
@@ -217,6 +217,7 @@ static float get_message_offset(osd_message_t *msg, float fLinePos)
 void osd_init(int width, int height)
 {
     const char *fontpath;
+    static char path[1024] = { 0 };
     int i;
 
     osd_list_lock = SDL_CreateMutex();
@@ -230,8 +231,19 @@ void osd_init(int width, int height)
         DebugMessage(M64MSG_ERROR, "Could not initialize freetype library.");
         return;
     }
+    
+    if (getenv("HOME") != NULL)
+    {
+        strcpy(path, getenv("HOME"));
 
-    fontpath = EConfigGetSharedDataFilepath(FONT_FILENAME);
+        if (path[strlen(path)-1] != '/')
+            strcat(path, "/");
+
+        strcat(path, FONT_FILENAME);
+        
+    }
+
+    fontpath = path;
 
     l_font = OGLFT_Monochrome_create(fontpath, (float) height / 35.f);  // make font size proportional to screen height
 

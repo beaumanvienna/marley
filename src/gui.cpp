@@ -668,6 +668,9 @@ void setFullscreen(void)
 void setWindowed(void)
 {
     SDL_SetWindowFullscreen(gWindow, 0);
+    SDL_SetWindowSize(gWindow,WINDOW_WIDTH,WINDOW_HEIGHT);
+    SDL_SetWindowPosition(gWindow,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
+    
     xOffset = 0;
     yOffset = 0;
 }

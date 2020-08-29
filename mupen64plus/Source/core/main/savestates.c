@@ -916,7 +916,7 @@ static int savestates_load_m64p(struct device* dev, char *filepath)
     *r4300_cp0_last_addr(&dev->r4300.cp0) = *r4300_pc(&dev->r4300);
 
     free(savestateData);
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded from: %s", namefrompath(filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded");
     return 1;
 }
 
@@ -1290,7 +1290,7 @@ static int savestates_load_pj64_zip(struct device* dev, char *filepath)
     if (!savestates_load_pj64(dev, filepath, zipstatefile, read_data_from_zip))
         goto clean_and_exit;
 
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded from: %s", namefrompath(filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded");
     ret = 1;
 
     clean_and_exit:
@@ -1322,7 +1322,7 @@ static int savestates_load_pj64_unc(struct device* dev, char *filepath)
         return 0;
     }
 
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded from: %s", namefrompath(filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State loaded");
     fclose(f);
     return 1;
 }
@@ -1467,7 +1467,7 @@ static void savestates_save_m64p_work(struct work_struct *work)
     }
 
     gzclose(f);
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "Saved state to: %s", namefrompath(save->filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State saved");
     free(save->data);
     free(save->filepath);
     free(save);
@@ -2060,7 +2060,7 @@ static int savestates_save_pj64_zip(const struct device* dev, char *filepath)
     if (!savestates_save_pj64(dev, filepath, zipfile, write_data_to_zip))
         goto clean_and_exit;
 
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "Saved state to: %s", namefrompath(filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State saved");
 
     clean_and_exit:
         if (zipfile != NULL)
@@ -2093,7 +2093,7 @@ static int savestates_save_pj64_unc(const struct device* dev, char *filepath)
         return 0;
     }
 
-    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "Saved state to: %s", namefrompath(filepath));
+    main_message(M64MSG_STATUS, OSD_BOTTOM_LEFT, "State saved");
     fclose(f);
     return 1;
 }

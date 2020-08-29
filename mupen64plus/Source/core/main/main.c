@@ -1615,7 +1615,7 @@ m64p_error main_run(void)
 #endif
 
     /* Startup message on the OSD */
-    osd_new_message(OSD_MIDDLE_CENTER, "Mupen64Plus Started...");
+    //osd_new_message(OSD_MIDDLE_CENTER, "Mupen64Plus Started...");
 
     g_EmulatorRunning = 1;
     StateChanged(M64CORE_EMU_STATE, M64EMU_RUNNING);

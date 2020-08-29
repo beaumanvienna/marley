@@ -42,6 +42,7 @@
 #define SDL_SCANCODE_F SDLK_f
 #define SDL_SCANCODE_SLASH SDLK_SLASH
 #define SDL_SCANCODE_G SDLK_g
+#define SDL_SCANCODE_H SDLK_h
 #define SDL_SCANCODE_RETURN SDLK_RETURN
 #define SDL_SCANCODE_0 SDLK_0
 #define SDL_SCANCODE_1 SDLK_1
@@ -545,7 +546,7 @@ int event_set_core_defaults(void)
     EConfigSetDefaultFloat(l_CoreEventsConfig, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus CoreEvents config parameter set version number.  Please don't change this version number.");
     /* Keyboard presses mapped to core functions */
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdStop, sdl_native2keysym(SDL_SCANCODE_ESCAPE),          "SDL keysym for stopping the emulator");
-    EConfigSetDefaultInt(l_CoreEventsConfig, kbdFullscreen, sdl_native2keysym(SDL_NUM_SCANCODES),      "SDL keysym for switching between fullscreen/windowed modes");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdFullscreen, sdl_native2keysym(SDL_SCANCODE_F),         "SDL keysym for switching between fullscreen/windowed modes");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdSave, sdl_native2keysym(SDL_SCANCODE_F5),              "SDL keysym for saving the emulator state");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdLoad, sdl_native2keysym(SDL_SCANCODE_F7),              "SDL keysym for loading the emulator state");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrement, sdl_native2keysym(SDL_SCANCODE_UNKNOWN),    "SDL keysym for advancing the save state slot");
@@ -557,7 +558,7 @@ int event_set_core_defaults(void)
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdMute, sdl_native2keysym(SDL_SCANCODE_M),               "SDL keysym for muting/unmuting the sound");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdIncrease, sdl_native2keysym(SDL_SCANCODE_RIGHTBRACKET),"SDL keysym for increasing the volume");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdDecrease, sdl_native2keysym(SDL_SCANCODE_LEFTBRACKET), "SDL keysym for decreasing the volume");
-    EConfigSetDefaultInt(l_CoreEventsConfig, kbdForward, sdl_native2keysym(SDL_SCANCODE_F),            "SDL keysym for temporarily going really fast");
+    EConfigSetDefaultInt(l_CoreEventsConfig, kbdForward, sdl_native2keysym(SDL_SCANCODE_H),            "SDL keysym for temporarily going really fast");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdAdvance, sdl_native2keysym(SDL_SCANCODE_SLASH),        "SDL keysym for advancing by one frame when paused");
     EConfigSetDefaultInt(l_CoreEventsConfig, kbdGameshark, sdl_native2keysym(SDL_SCANCODE_G),          "SDL keysym for pressing the game shark button");
     /* Joystick events mapped to core functions */

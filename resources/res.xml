@@ -18,6 +18,9 @@
     <gresource prefix="/fonts/">
         <file>dejavu-fonts-ttf/DejaVuSansMono-Bold.ttf</file>
     </gresource>
+    <gresource prefix="/fonts/">
+        <file>mupen64plus-core/data/font.ttf</file>
+    </gresource>
     <gresource prefix="/pictures/">
         <file>../pictures/beach.bmp</file>
     </gresource>

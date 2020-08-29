@@ -133,6 +133,52 @@ void printSupportedEmus(void)
     }
 }
 
+void initMUPEN64PLUS(void)
+{
+	string font_dir = gBaseDir;
+	font_dir += "fonts";
+	
+	DIR* dir;        
+	dir = opendir(font_dir.c_str());
+	if ((dir) && (isDirectory(font_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",font_dir.c_str());
+		if (mkdir(font_dir.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+	
+	vector<string> fonts = {"mupen64plus-core/data/font.ttf"};
+	
+    for (int i = 0; i < fonts.size(); i++)
+    {	
+		string font = gBaseDir;
+		font += "fonts/font.ttf";
+		
+		if (( access( font.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			string uri = "resource:///fonts/";
+			uri += fonts[i].c_str();
+			GError *error;
+			GFile* out_file = g_file_new_for_path(font.c_str());
+			GFile* src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+	}	
+}
+
 void initPCSX2(void)
 {
 	string plugin_dir = gBaseDir;
@@ -309,6 +355,7 @@ void initEMU(void)
     initPCSX2();
     initPPSSPP();
     initDOLPHIN();
+    initMUPEN64PLUS();
     
     //check for PSX firmware
     if (gPathToFirmwarePSX == "")
