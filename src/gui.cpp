@@ -259,6 +259,37 @@ bool freeTextures(void)
     return true;
 }
 
+
+void setAppIcon(void)
+{
+    SDL_Surface* surf = nullptr;
+    
+    size_t file_size = 0;
+    
+    GBytes *mem_access = g_resource_lookup_data(res_get_resource(), "/pictures/../pictures/barrel.bmp", G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+	const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
+
+	if (dataPtr != nullptr && file_size) 
+	{
+		SDL_RWops* bmp_file = SDL_RWFromMem((void*) dataPtr,file_size);
+    
+		surf = SDL_LoadBMP_RW(bmp_file,0);
+		if (!surf)
+		{
+			printf("App icon could not be loaded\n");
+		}
+		else
+		{
+			SDL_SetWindowIcon(gWindow, surf);
+			SDL_FreeSurface(surf);
+		}
+	}
+	else
+	{
+		printf("Failed to retrieve resource data for app icon\n");
+	}
+}
+
 SDL_Texture* loadTextureFromFile(string str)
 {
     SDL_Surface* surf = nullptr;
@@ -398,6 +429,7 @@ bool initGUI(void)
             ok =false;
         }
         SDL_DisableScreenSaver();
+        setAppIcon();
     }
     return ok;
 }
@@ -643,7 +675,7 @@ void setWindowed(void)
 bool createRenderer(void)
 {
     bool ok = true;
-
+    SDL_GL_ResetAttributes();
     //Create renderer for main window
     gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
     if( gRenderer == nullptr )

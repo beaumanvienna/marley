@@ -426,6 +426,7 @@ Pcsx2Config::Pcsx2Config()
 	McdFolderAutoManage = true;
 	EnablePatches = true;
 	BackupSavestate = true;
+	ConsoleToStdio = true;
 }
 
 void Pcsx2Config::LoadSave( IniInterface& ini )

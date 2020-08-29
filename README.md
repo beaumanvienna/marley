@@ -66,7 +66,7 @@ command line options: <br />
   --fullscreen, -f      : start in fullscreen mode<br />
 <br />
 
-## Installation for Ubuntu 18.04 and 20.04
+## Installation for Ubuntu 18.04, 20.04, and Ubuntu derivatives
 
 sudo add-apt-repository ppa:beauman/marley <br />
 sudo apt update <br />
@@ -76,7 +76,7 @@ sudo apt install marley <br />
 
 #Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
 
-| Ubuntu 18.04 | 
+| Ubuntu 18.04, Elementary OS 5.1, Linux Mint 19 | 
 | ------------ | 
 | sudo apt install git libwxgtk3.0-dev debhelper cmake chrpath \
 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
@@ -91,10 +91,10 @@ libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
 libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \
 libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
 libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
-libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip |
+libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip libzstd1-dev |
 
 
-| Ubuntu 20.04 | 
+| Ubuntu 20.04, Linux Mint 20 | 
 | ------------ | 
 | sudo apt install git libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath \ |
 | libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \ |
@@ -109,10 +109,10 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev \ |
 | libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \ |
 | libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
-| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip |
+| libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip libzstd1-dev |
 
 
-| Arch | 
+| Arch, Manjaro | 
 | ---- | 
 | sudo pacman -S libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch gnu-free-fonts boost-libs \ |
 | alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa  \ | 

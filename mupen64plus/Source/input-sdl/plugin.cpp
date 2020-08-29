@@ -843,7 +843,7 @@ extern "C" void IRomClosed(void)
     // release/ungrab mouse
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
-    SDL_ShowCursor( 1 );
+    SDL_ShowCursor(SDL_DISABLE);
 
     romopen = 0;
 }
@@ -868,7 +868,7 @@ extern "C" int IRomOpen(void)
     // grab mouse
     if (controller[0].mouse || controller[1].mouse || controller[2].mouse || controller[3].mouse)
     {
-        SDL_ShowCursor( 0 );
+        SDL_ShowCursor(SDL_DISABLE);
         if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
             IDebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
         }
