@@ -1546,7 +1546,7 @@ bool SysCorePlugins::Shutdown()
 
 	for( int i=PluginId_Count-1; i>=0; --i )
 	{
-		Shutdown( tbl_PluginInfo[i].id );
+		//Shutdown( tbl_PluginInfo[i].id );
 	}
 
 	// More memorycard hacks!!
