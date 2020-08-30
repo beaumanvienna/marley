@@ -128,7 +128,7 @@ git checkout master <br />
 
 ### Configure and make
 aclocal && autoconf && automake --add-missing --foreign && ./configure <br />
-make -j8<br />
+make<br />
 
 
 ### start it
