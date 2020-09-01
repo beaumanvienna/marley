@@ -326,14 +326,9 @@ SDL_Texture* loadTextureFromFile(string str)
 	return texture;
 }
 
-bool initGUI(void)
-{
-    bool ok = true;
-    Uint32 windowFlags;
-    int imgFlags;
-    
-    SDL_ShowCursor(SDL_DISABLE);
-    
+
+void initOpenGL(void)
+{	
     SDL_GL_ResetAttributes();
   
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
@@ -346,6 +341,16 @@ bool initGUI(void)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
+}
+
+bool initGUI(void)
+{
+    bool ok = true;
+    Uint32 windowFlags;
+    int imgFlags;
+    
+    SDL_ShowCursor(SDL_DISABLE);
+    initOpenGL();
     
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);

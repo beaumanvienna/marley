@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
+#include <GL/gl.h>
 
 int gState = 0;
 int gCurrentGame;
@@ -65,6 +66,8 @@ extern Window Xwindow;
 
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
+void initOpenGL(void);
+void setAppIcon(void);
 
 void resetStatemachine(void)
 {
@@ -493,7 +496,41 @@ void statemachine(int cmd)
                                 argv[8] = arg9;
 
                                 argc = 9;
-                                
+                                const char* vendor_str = (const char*)glGetString(GL_VENDOR);
+                                const char* version_str = (const char*)glGetString(GL_VERSION);
+                                const char* renderer_str = (const char*)glGetString(GL_RENDERER);
+
+                                printf("OpenGL Version: %s, Vendor: %s, Renderer: %s\n", version_str, vendor_str, renderer_str);
+                                string renderer = renderer_str;
+                                std::transform(renderer.begin(), renderer.end(), renderer.begin(),
+                                  [](unsigned char c){ return std::tolower(c); });
+                                std::size_t found = renderer.find("mesa");
+                                if (found!=std::string::npos)
+                                {
+                                    printf("Mesa driver found, resetting OpenGL context\n");
+                                    // reset OpenGL context for Mesa driver
+                                    // destroy old
+                                    freeTextures();
+                                    SDL_DestroyRenderer( gRenderer );
+                                    SDL_DestroyWindow(gWindow);
+                                    // create new
+                                    initOpenGL();
+                                    Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
+                                    if (gFullscreen)
+                                    {
+                                        windowFlags = windowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP;
+                                    }
+
+                                    string str = "marley ";
+                                    str += PACKAGE_VERSION;
+                                    gWindow = SDL_CreateWindow( str.c_str(), 
+                                                                SDL_WINDOWPOS_CENTERED, 
+                                                                SDL_WINDOWPOS_CENTERED, 
+                                                                WINDOW_WIDTH, 
+                                                                WINDOW_HEIGHT, 
+                                                                windowFlags );
+                                    setAppIcon();
+                                }
                                 SDL_SysWMinfo sdlWindowInfo;
                                 SDL_VERSION(&sdlWindowInfo.version);
                                 if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
