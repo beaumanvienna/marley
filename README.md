@@ -2,7 +2,7 @@
   <img width="80" src="pictures/barrel.bmp">
 </p>
 
-# Marley: Many Awesome Retro Linux Emulators, Yeah!
+# Marley: Many Awesome Retro Linux Emulators, Yay!
 
 https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 https://github.com/beaumanvienna/marley 
