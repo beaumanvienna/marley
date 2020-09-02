@@ -58,6 +58,9 @@ using namespace std;
         #define TEX_WIIMOTE             21
         #define TEX_SNES                22
     
+    #define CURSOR_HIDE true
+    #define CURSOR_SHOW false
+    
     bool initGUI(void);
     bool loadMedia(void);
     void closeGUI(void);
@@ -85,7 +88,9 @@ using namespace std;
     
     extern TTF_Font* gFont;
     
-	extern int WINDOW_WIDTH;
-	extern int WINDOW_HEIGHT;
+    extern int WINDOW_WIDTH;
+    extern int WINDOW_HEIGHT;
+    extern int window_width, window_height, window_x, window_y;
+    extern Uint32 window_flags;
     
 #endif

@@ -28,6 +28,8 @@
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include "../resources/res.h"
+#include <X11/Xlib.h>
+#include <X11/extensions/Xfixes.h>
 
 //rendering window 
 SDL_Window* gWindow = nullptr;
@@ -46,6 +48,9 @@ Window Xwindow;
 
 int WINDOW_WIDTH;
 int WINDOW_HEIGHT;
+
+int window_width, window_height, window_x, window_y;
+Uint32 window_flags;
 
 int x_offset_1150;
 int x_offset_1068;
@@ -81,6 +86,24 @@ int y_offset_65;
 int y_offset_45;
 int y_offset_36;
 int y_offset_10;
+
+void hide_or_show_cursor_X11(bool hide) 
+{
+    printf("jc: void disable_cursor_X11(void)  \n");
+    Display *display   = XOpenDisplay(NULL);
+    int active_screen  = DefaultScreen(display);
+    Window active_root = RootWindow(display, active_screen);
+
+    if (hide)
+    {
+        XFixesHideCursor(display, active_root);
+    }
+    else
+    {
+        XFixesShowCursor(display, active_root);
+    }
+    XFlush(display);
+}
 
 bool loadMedia()
 {
@@ -664,6 +687,8 @@ void renderIcons(void)
 
 void setFullscreen(void)
 {
+    SDL_GetWindowSize(gWindow,&window_width,&window_height);
+    SDL_GetWindowPosition(gWindow,&window_x,&window_y);
     SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_DisplayMode DM;
     SDL_GetCurrentDisplayMode(0, &DM);
@@ -673,8 +698,8 @@ void setFullscreen(void)
 void setWindowed(void)
 {
     SDL_SetWindowFullscreen(gWindow, 0);
-    SDL_SetWindowSize(gWindow,WINDOW_WIDTH,WINDOW_HEIGHT);
-    SDL_SetWindowPosition(gWindow,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
+    SDL_SetWindowSize(gWindow,window_width,window_height);
+    SDL_SetWindowPosition(gWindow,window_x,window_y);
     
     xOffset = 0;
     yOffset = 0;

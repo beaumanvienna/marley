@@ -813,7 +813,7 @@ AppConfig::GSWindowOptions::GSWindowOptions()
 {
 	CloseOnEsc				= true;
 	DefaultToFullscreen		= false;
-	AlwaysHideMouse			= false;
+	AlwaysHideMouse			= true;
 	DisableResizeBorders	= false;
 	DisableScreenSaver		= true;
 

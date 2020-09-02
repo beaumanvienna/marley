@@ -303,3 +303,4 @@ marley_LDADD 	+= -lpangoft2-1.0
 marley_LDADD 	+= -lpangoxft-1.0
 marley_LDADD 	+= -laio
 marley_LDADD 	+= -llzma
+marley_LDADD 	+= -lXfixes
