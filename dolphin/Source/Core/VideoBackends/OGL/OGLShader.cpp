@@ -47,9 +47,6 @@ OGLShader::~OGLShader()
 
 std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, std::string_view source)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc OGLShader::CreateFromSource(ShaderStage stage, std::string_view source)\n");
-    #endif
   std::string source_str(source);
   if (stage != ShaderStage::Compute)
   {

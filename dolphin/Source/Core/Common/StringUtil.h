@@ -55,7 +55,7 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
-bool TryParse(const std::string& str, T* output)
+bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -67,9 +67,9 @@ bool TryParse(const std::string& str, T* output)
   ReadType value;
 
   if constexpr (std::is_unsigned_v<T>)
-    value = std::strtoull(str.c_str(), &end_ptr, 0);
+    value = std::strtoull(str.c_str(), &end_ptr, base);
   else
-    value = std::strtoll(str.c_str(), &end_ptr, 0);
+    value = std::strtoll(str.c_str(), &end_ptr, base);
 
   // Fail if the end of the string wasn't reached.
   if (end_ptr == nullptr || *end_ptr != '\0')
@@ -167,26 +167,29 @@ void BuildCompleteFilename(std::string& complete_filename, std::string_view path
 bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
+size_t StringUTF8CodePointCount(const std::string& str);
 
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);
 std::string UTF8ToSHIFTJIS(std::string_view str);
-std::string UTF16ToUTF8(std::wstring_view str);
+std::string WStringToUTF8(std::wstring_view str);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
+std::string UTF16ToUTF8(std::u16string_view str);
+std::u16string UTF8ToUTF16(std::string_view str);
 
 #ifdef _WIN32
 
-std::wstring UTF8ToUTF16(std::string_view str);
+std::wstring UTF8ToWString(std::string_view str);
 
 #ifdef _UNICODE
 inline std::string TStrToUTF8(std::wstring_view str)
 {
-  return UTF16ToUTF8(str);
+  return WStringToUTF8(str);
 }
 
 inline std::wstring UTF8ToTStr(std::string_view str)
 {
-  return UTF8ToUTF16(str);
+  return UTF8ToWString(str);
 }
 #else
 inline std::string TStrToUTF8(std::string_view str)
@@ -220,7 +223,7 @@ std::string ThousandSeparate(I value, int spaces = 0)
   stream << std::setw(spaces) << value;
 
 #ifdef _WIN32
-  return UTF16ToUTF8(stream.str());
+  return WStringToUTF8(stream.str());
 #else
   return stream.str();
 #endif

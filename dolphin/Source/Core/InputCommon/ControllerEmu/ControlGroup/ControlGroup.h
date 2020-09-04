@@ -49,16 +49,17 @@ enum class GroupType
 class ControlGroup
 {
 public:
-  enum class CanBeDisabled
+  enum class DefaultValue
   {
-    No,
-    Yes,
+    AlwaysEnabled,
+    Enabled,
+    Disabled,
   };
 
   explicit ControlGroup(std::string name, GroupType type = GroupType::Other,
-                        CanBeDisabled can_be_disabled = CanBeDisabled::No);
+                        DefaultValue default_value = DefaultValue::AlwaysEnabled);
   ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other,
-               CanBeDisabled can_be_disabled = CanBeDisabled::No);
+               DefaultValue default_value = DefaultValue::AlwaysEnabled);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
@@ -74,11 +75,11 @@ public:
 
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
-                  std::common_type_t<T> default_value, std::common_type_t<T> min_value = {},
+                  std::common_type_t<T> default_value_, std::common_type_t<T> min_value = {},
                   std::common_type_t<T> max_value = T(100))
   {
     numeric_settings.emplace_back(
-        std::make_unique<NumericSetting<T>>(value, details, default_value, min_value, max_value));
+        std::make_unique<NumericSetting<T>>(value, details, default_value_, min_value, max_value));
   }
 
   void AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone);
@@ -92,7 +93,7 @@ public:
   const std::string name;
   const std::string ui_name;
   const GroupType type;
-  const bool can_be_disabled;
+  const DefaultValue default_value;
 
   bool enabled = true;
   std::vector<std::unique_ptr<Control>> controls;

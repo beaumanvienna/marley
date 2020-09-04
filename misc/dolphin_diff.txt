@@ -1,0 +1,4630 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9af6600..14a9b69 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,7 +15,7 @@ project(dolphin-emu)
+ # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
+ # unofficial builds) please consider identifying your distribution with a
+ # unique name here.
+-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
++set(DISTRIBUTOR "Team Marley" CACHE STRING "Name of the distributor.")
+ 
+ if(UNIX AND NOT APPLE AND NOT ANDROID)
+   option(ENABLE_X11 "Enables X11 Support" ON)
+@@ -56,7 +56,7 @@ option(OPROFILING "Enable profiling" OFF)
+ option(DSPTOOL "Build dsptool" OFF)
+ 
+ # Enable SDL for default on operating systems that aren't Android, Linux or Windows.
+-if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT MSVC)
++if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+   option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
+ else()
+   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
+@@ -542,11 +542,11 @@ endif()
+ add_subdirectory(Externals/glslang)
+ add_subdirectory(Externals/imgui)
+ 
+-find_package(pugixml)
+-if(NOT pugixml_FOUND)
++#find_package(pugixml)
++#if(NOT pugixml_FOUND)
+   message(STATUS "Using static pugixml from Externals")
+   add_subdirectory(Externals/pugixml)
+-endif()
++#endif()
+ 
+ if(USE_SHARED_ENET)
+   check_lib(ENET libenet enet enet/enet.h QUIET)
+@@ -588,14 +588,14 @@ else()
+   add_subdirectory(Externals/zlib)
+ endif()
+ 
+-pkg_check_modules(MINIZIP minizip)
+-if(MINIZIP_FOUND)
+-  message(STATUS "Using shared minizip")
+-else()
+-  message(STATUS "Shared minizip not found, falling back to the static library")
++#pkg_check_modules(MINIZIP minizip)
++#if(MINIZIP_FOUND)
++#  message(STATUS "Using shared minizip")
++#else()
++  #message(STATUS "Shared minizip not found, falling back to the static library")
+   add_subdirectory(Externals/minizip)
+   include_directories(External/minizip)
+-endif()
++#endif()
+ 
+ if(NOT APPLE)
+   check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)
+@@ -723,11 +723,11 @@ else()
+ endif()
+ 
+ if(NOT ANDROID)
+-  find_package(HIDAPI)
+-  if(NOT HIDAPI_FOUND)
++  #find_package(HIDAPI)
++  #if(NOT HIDAPI_FOUND)
+     message(STATUS "Using static HIDAPI from Externals")
+     add_subdirectory(Externals/hidapi EXCLUDE_FROM_ALL)
+-  endif()
++  #endif()
+ endif()
+ 
+ if(USE_DISCORD_PRESENCE)
+diff --git a/Externals/Bochs_disasm/dis_decode.cc b/Externals/Bochs_disasm/dis_decode.cc
+index 77974af..d95c8b5 100644
+--- a/Externals/Bochs_disasm/dis_decode.cc
++++ b/Externals/Bochs_disasm/dis_decode.cc
+@@ -70,13 +70,13 @@ static const unsigned char instruction_has_modrm[512] = {
+   /*       0 1 2 3 4 5 6 7 8 9 a b c d e f           */
+ };
+ 
+-unsigned disassembler::disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
++unsigned DO_disassembler::disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
+ {
+   x86_insn insn = decode(is_32, is_64, cs_base, ip, instr, disbuf);
+   return insn.ilen;
+ }
+ 
+-x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
++x86_insn DO_disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf)
+ {
+   if (is_64) is_32 = 1;
+   x86_insn insn(is_32, is_64);
+@@ -345,7 +345,7 @@ x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base,
+          break;
+ 
+        default:
+-         printf("Internal disassembler error - unknown attribute !\n");
++         printf("Internal DO_disassembler error - unknown attribute !\n");
+          return x86_insn(is_32, is_64);
+     }
+ 
+@@ -429,7 +429,7 @@ x86_insn disassembler::decode(bx_bool is_32, bx_bool is_64, bx_address cs_base,
+   return insn;
+ }
+ 
+-unsigned disassembler::decode_vex(x86_insn *insn)
++unsigned DO_disassembler::decode_vex(x86_insn *insn)
+ {
+   insn->is_vex = 1;
+ 
+@@ -462,7 +462,7 @@ unsigned disassembler::decode_vex(x86_insn *insn)
+   return b2 & 0x3;
+ }
+ 
+-unsigned disassembler::decode_evex(x86_insn *insn)
++unsigned DO_disassembler::decode_evex(x86_insn *insn)
+ {
+   insn->is_evex = 1;
+ 
+@@ -509,7 +509,7 @@ unsigned disassembler::decode_evex(x86_insn *insn)
+   return sse_prefix;
+ }
+ 
+-unsigned disassembler::decode_xop(x86_insn *insn)
++unsigned DO_disassembler::decode_xop(x86_insn *insn)
+ {
+   insn->is_xop = 1;
+ 
+@@ -539,7 +539,7 @@ unsigned disassembler::decode_xop(x86_insn *insn)
+   return b2 & 0x3;
+ }
+ 
+-void disassembler::dis_sprintf(const char *fmt, ...)
++void DO_disassembler::dis_sprintf(const char *fmt, ...)
+ {
+   va_list ap;
+ 
+@@ -550,7 +550,7 @@ void disassembler::dis_sprintf(const char *fmt, ...)
+   disbufptr += strlen(disbufptr);
+ }
+ 
+-void disassembler::dis_putc(char symbol)
++void DO_disassembler::dis_putc(char symbol)
+ {
+   *disbufptr++ = symbol;
+   *disbufptr = 0;
+diff --git a/Externals/Bochs_disasm/dis_groups.cc b/Externals/Bochs_disasm/dis_groups.cc
+index 0712fa3..47ee05b 100644
+--- a/Externals/Bochs_disasm/dis_groups.cc
++++ b/Externals/Bochs_disasm/dis_groups.cc
+@@ -29,14 +29,14 @@
+ #endif
+ */
+ 
+-void disassembler::Apw(const x86_insn *insn)
++void DO_disassembler::Apw(const x86_insn *insn)
+ {
+   Bit16u imm16 = fetch_word();
+   Bit16u cs_selector = fetch_word();
+   dis_sprintf("0x%04x:%04x", (unsigned) cs_selector, (unsigned) imm16);
+ }
+ 
+-void disassembler::Apd(const x86_insn *insn)
++void DO_disassembler::Apd(const x86_insn *insn)
+ {
+   Bit32u imm32 = fetch_dword();
+   Bit16u cs_selector = fetch_word();
+@@ -44,47 +44,47 @@ void disassembler::Apd(const x86_insn *insn)
+ }
+ 
+ // 8-bit general purpose registers
+-void disassembler::AL_Reg(const x86_insn *insn) { dis_sprintf("%s", general_8bit_regname[rAX_REG]); }
+-void disassembler::CL_Reg(const x86_insn *insn) { dis_sprintf("%s", general_8bit_regname[rCX_REG]); }
++void DO_disassembler::AL_Reg(const x86_insn *insn) { dis_sprintf("%s", general_8bit_regname[rAX_REG]); }
++void DO_disassembler::CL_Reg(const x86_insn *insn) { dis_sprintf("%s", general_8bit_regname[rCX_REG]); }
+ 
+ // 16-bit general purpose registers
+-void disassembler::AX_Reg(const x86_insn *insn) {
++void DO_disassembler::AX_Reg(const x86_insn *insn) {
+   dis_sprintf("%s", general_16bit_regname[rAX_REG]);
+ }
+ 
+-void disassembler::DX_Reg(const x86_insn *insn) {
++void DO_disassembler::DX_Reg(const x86_insn *insn) {
+   dis_sprintf("%s", general_16bit_regname[rDX_REG]);
+ }
+ 
+ // 32-bit general purpose registers
+-void disassembler::EAX_Reg(const x86_insn *insn)
++void DO_disassembler::EAX_Reg(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_32bit_regname[rAX_REG]);
+ }
+ 
+ // 64-bit general purpose registers
+-void disassembler::RAX_Reg(const x86_insn *insn)
++void DO_disassembler::RAX_Reg(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_64bit_regname[rAX_REG]);
+ }
+ 
+-void disassembler::RCX_Reg(const x86_insn *insn)
++void DO_disassembler::RCX_Reg(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_64bit_regname[rCX_REG]);
+ }
+ 
+ // segment registers
+-void disassembler::CS(const x86_insn *insn) { dis_sprintf("%s", segment_name[CS_REG]); }
+-void disassembler::DS(const x86_insn *insn) { dis_sprintf("%s", segment_name[DS_REG]); }
+-void disassembler::ES(const x86_insn *insn) { dis_sprintf("%s", segment_name[ES_REG]); }
+-void disassembler::SS(const x86_insn *insn) { dis_sprintf("%s", segment_name[SS_REG]); }
+-void disassembler::FS(const x86_insn *insn) { dis_sprintf("%s", segment_name[FS_REG]); }
+-void disassembler::GS(const x86_insn *insn) { dis_sprintf("%s", segment_name[GS_REG]); }
++void DO_disassembler::CS(const x86_insn *insn) { dis_sprintf("%s", segment_name[CS_REG]); }
++void DO_disassembler::DS(const x86_insn *insn) { dis_sprintf("%s", segment_name[DS_REG]); }
++void DO_disassembler::ES(const x86_insn *insn) { dis_sprintf("%s", segment_name[ES_REG]); }
++void DO_disassembler::SS(const x86_insn *insn) { dis_sprintf("%s", segment_name[SS_REG]); }
++void DO_disassembler::FS(const x86_insn *insn) { dis_sprintf("%s", segment_name[FS_REG]); }
++void DO_disassembler::GS(const x86_insn *insn) { dis_sprintf("%s", segment_name[GS_REG]); }
+ 
+-void disassembler::Sw(const x86_insn *insn) { dis_sprintf("%s", segment_name[insn->nnn]); }
++void DO_disassembler::Sw(const x86_insn *insn) { dis_sprintf("%s", segment_name[insn->nnn]); }
+ 
+ // control register
+-void disassembler::Cd(const x86_insn *insn)
++void DO_disassembler::Cd(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("cr%d", insn->nnn);
+@@ -92,10 +92,10 @@ void disassembler::Cd(const x86_insn *insn)
+     dis_sprintf("%%cr%d", insn->nnn);
+ }
+ 
+-void disassembler::Cq(const x86_insn *insn) { Cd(insn); }
++void DO_disassembler::Cq(const x86_insn *insn) { Cd(insn); }
+ 
+ // debug register
+-void disassembler::Dd(const x86_insn *insn)
++void DO_disassembler::Dd(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("dr%d", insn->nnn);
+@@ -103,10 +103,10 @@ void disassembler::Dd(const x86_insn *insn)
+     dis_sprintf("%%dr%d", insn->nnn);
+ }
+ 
+-void disassembler::Dq(const x86_insn *insn) { Dd(insn); }
++void DO_disassembler::Dq(const x86_insn *insn) { Dd(insn); }
+ 
+ // 8-bit general purpose register
+-void disassembler::Reg8(const x86_insn *insn)
++void DO_disassembler::Reg8(const x86_insn *insn)
+ {
+   unsigned reg = (insn->b1 & 7) | insn->rex_b;
+ 
+@@ -117,25 +117,25 @@ void disassembler::Reg8(const x86_insn *insn)
+ }
+ 
+ // 16-bit general purpose register
+-void disassembler::RX(const x86_insn *insn)
++void DO_disassembler::RX(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_16bit_regname[(insn->b1 & 7) | insn->rex_b]);
+ }
+ 
+ // 32-bit general purpose register
+-void disassembler::ERX(const x86_insn *insn)
++void DO_disassembler::ERX(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_32bit_regname[(insn->b1 & 7) | insn->rex_b]);
+ }
+ 
+ // 64-bit general purpose register
+-void disassembler::RRX(const x86_insn *insn)
++void DO_disassembler::RRX(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_64bit_regname[(insn->b1 & 7) | insn->rex_b]);
+ }
+ 
+ // general purpose register or memory operand
+-void disassembler::Eb(const x86_insn *insn)
++void DO_disassembler::Eb(const x86_insn *insn)
+ {
+   if (insn->mod == 3) {
+     if (insn->rm < 4 || insn->extend8b)
+@@ -147,7 +147,7 @@ void disassembler::Eb(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, B_SIZE);
+ }
+ 
+-void disassembler::Ew(const x86_insn *insn)
++void DO_disassembler::Ew(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+     dis_sprintf("%s", general_16bit_regname[insn->rm]);
+@@ -155,7 +155,7 @@ void disassembler::Ew(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, W_SIZE);
+ }
+ 
+-void disassembler::Ed(const x86_insn *insn)
++void DO_disassembler::Ed(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+     dis_sprintf("%s", general_32bit_regname[insn->rm]);
+@@ -163,7 +163,7 @@ void disassembler::Ed(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, D_SIZE);
+ }
+ 
+-void disassembler::Eq(const x86_insn *insn)
++void DO_disassembler::Eq(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+     dis_sprintf("%s", general_64bit_regname[insn->rm]);
+@@ -171,13 +171,13 @@ void disassembler::Eq(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, Q_SIZE);
+ }
+ 
+-void disassembler::Ey(const x86_insn *insn)
++void DO_disassembler::Ey(const x86_insn *insn)
+ {
+   if (insn->os_64) Eq(insn);
+   else Ed(insn);
+ }
+ 
+-void disassembler::Ebd(const x86_insn *insn)
++void DO_disassembler::Ebd(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+     dis_sprintf("%s", general_32bit_regname[insn->rm]);
+@@ -185,7 +185,7 @@ void disassembler::Ebd(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, B_SIZE);
+ }
+ 
+-void disassembler::Ewd(const x86_insn *insn)
++void DO_disassembler::Ewd(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+     dis_sprintf("%s", general_32bit_regname[insn->rm]);
+@@ -194,7 +194,7 @@ void disassembler::Ewd(const x86_insn *insn)
+ }
+ 
+ // general purpose register
+-void disassembler::Gb(const x86_insn *insn)
++void DO_disassembler::Gb(const x86_insn *insn)
+ {
+   if (insn->nnn < 4 || insn->extend8b)
+     dis_sprintf("%s", general_8bit_regname_rex[insn->nnn]);
+@@ -202,29 +202,29 @@ void disassembler::Gb(const x86_insn *insn)
+     dis_sprintf("%s", general_8bit_regname[insn->nnn]);
+ }
+ 
+-void disassembler::Gw(const x86_insn *insn)
++void DO_disassembler::Gw(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_16bit_regname[insn->nnn]);
+ }
+ 
+-void disassembler::Gd(const x86_insn *insn)
++void DO_disassembler::Gd(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_32bit_regname[insn->nnn]);
+ }
+ 
+-void disassembler::Gq(const x86_insn *insn)
++void DO_disassembler::Gq(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_64bit_regname[insn->nnn]);
+ }
+ 
+-void disassembler::Gy(const x86_insn *insn)
++void DO_disassembler::Gy(const x86_insn *insn)
+ {
+   if (insn->os_64) Gq(insn);
+   else Gd(insn);
+ }
+ 
+ // vex encoded general purpose register
+-void disassembler::By(const x86_insn *insn)
++void DO_disassembler::By(const x86_insn *insn)
+ {
+   if (insn->os_64) 
+     dis_sprintf("%s", general_64bit_regname[insn->vex_vvv]);
+@@ -233,25 +233,25 @@ void disassembler::By(const x86_insn *insn)
+ }
+ 
+ // immediate
+-void disassembler::I1(const x86_insn *insn)
++void DO_disassembler::I1(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   dis_putc ('1');
+ }
+ 
+-void disassembler::Ib(const x86_insn *insn)
++void DO_disassembler::Ib(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   dis_sprintf("0x%02x", (unsigned) fetch_byte());
+ }
+ 
+-void disassembler::Iw(const x86_insn *insn)
++void DO_disassembler::Iw(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   dis_sprintf("0x%04x", (unsigned) fetch_word());
+ }
+ 
+-void disassembler::IbIb(const x86_insn *insn)
++void DO_disassembler::IbIb(const x86_insn *insn)
+ {
+   Bit8u ib1 = fetch_byte();
+   Bit8u ib2 = fetch_byte();
+@@ -264,7 +264,7 @@ void disassembler::IbIb(const x86_insn *insn)
+   }
+ }
+ 
+-void disassembler::IwIb(const x86_insn *insn)
++void DO_disassembler::IwIb(const x86_insn *insn)
+ {
+   Bit16u iw = fetch_word();
+   Bit8u  ib = fetch_byte();
+@@ -277,13 +277,13 @@ void disassembler::IwIb(const x86_insn *insn)
+   }
+ }
+ 
+-void disassembler::Id(const x86_insn *insn)
++void DO_disassembler::Id(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   dis_sprintf("0x%08x", (unsigned) fetch_dword());
+ }
+ 
+-void disassembler::Iq(const x86_insn *insn)
++void DO_disassembler::Iq(const x86_insn *insn)
+ {
+   Bit64u value = fetch_qword();
+ 
+@@ -292,7 +292,7 @@ void disassembler::Iq(const x86_insn *insn)
+ }
+ 
+ // sign extended immediate
+-void disassembler::sIbw(const x86_insn *insn)
++void DO_disassembler::sIbw(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   Bit16u imm16 = (Bit8s) fetch_byte();
+@@ -300,7 +300,7 @@ void disassembler::sIbw(const x86_insn *insn)
+ }
+ 
+ // sign extended immediate
+-void disassembler::sIbd(const x86_insn *insn)
++void DO_disassembler::sIbd(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   Bit32u imm32 = (Bit8s) fetch_byte();
+@@ -308,7 +308,7 @@ void disassembler::sIbd(const x86_insn *insn)
+ }
+ 
+ // sign extended immediate
+-void disassembler::sIbq(const x86_insn *insn)
++void DO_disassembler::sIbq(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   Bit64u imm64 = (Bit8s) fetch_byte();
+@@ -316,7 +316,7 @@ void disassembler::sIbq(const x86_insn *insn)
+ }
+ 
+ // sign extended immediate
+-void disassembler::sIdq(const x86_insn *insn)
++void DO_disassembler::sIdq(const x86_insn *insn)
+ {
+   if (! intel_mode) dis_putc('$');
+   Bit64u imm64 = (Bit32s) fetch_dword();
+@@ -324,7 +324,7 @@ void disassembler::sIdq(const x86_insn *insn)
+ }
+ 
+ // floating point
+-void disassembler::ST0(const x86_insn *insn)
++void DO_disassembler::ST0(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("st(0)");
+@@ -332,7 +332,7 @@ void disassembler::ST0(const x86_insn *insn)
+     dis_sprintf("%%st(0)");
+ }
+ 
+-void disassembler::STi(const x86_insn *insn)
++void DO_disassembler::STi(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("st(%d)", insn->rm & 7);
+@@ -341,31 +341,31 @@ void disassembler::STi(const x86_insn *insn)
+ }
+ 
+ // 16-bit general purpose register
+-void disassembler::Rw(const x86_insn *insn)
++void DO_disassembler::Rw(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_16bit_regname[insn->rm]);
+ }
+ 
+ // 32-bit general purpose register
+-void disassembler::Rd(const x86_insn *insn)
++void DO_disassembler::Rd(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_32bit_regname[insn->rm]);
+ }
+ 
+ // 64-bit general purpose register
+-void disassembler::Rq(const x86_insn *insn)
++void DO_disassembler::Rq(const x86_insn *insn)
+ {
+   dis_sprintf("%s", general_64bit_regname[insn->rm]);
+ }
+ 
+-void disassembler::Ry(const x86_insn *insn)
++void DO_disassembler::Ry(const x86_insn *insn)
+ {
+   if (insn->os_64) Rq(insn);
+   else Rd(insn);
+ }
+ 
+ // mmx register
+-void disassembler::Pq(const x86_insn *insn)
++void DO_disassembler::Pq(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("mm%d", insn->nnn & 0x7);
+@@ -373,7 +373,7 @@ void disassembler::Pq(const x86_insn *insn)
+     dis_sprintf("%%mm%d", insn->nnn & 0x7);
+ }
+ 
+-void disassembler::Nq(const x86_insn *insn)
++void DO_disassembler::Nq(const x86_insn *insn)
+ {
+   if (intel_mode)
+     dis_sprintf  ("mm%d", insn->rm & 0x7);
+@@ -381,7 +381,7 @@ void disassembler::Nq(const x86_insn *insn)
+     dis_sprintf("%%mm%d", insn->rm & 0x7);
+ }
+ 
+-void disassembler::Qd(const x86_insn *insn)
++void DO_disassembler::Qd(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+   {
+@@ -394,7 +394,7 @@ void disassembler::Qd(const x86_insn *insn)
+     (this->*resolve_modrm)(insn, D_SIZE);
+ }
+ 
+-void disassembler::Qq(const x86_insn *insn)
++void DO_disassembler::Qq(const x86_insn *insn)
+ {
+   if (insn->mod == 3)
+   {
+@@ -408,85 +408,85 @@ void disassembler::Qq(const x86_insn *insn)
+ }
+ 
+ // xmm/ymm register
+-void disassembler::Udq(const x86_insn *insn)
++void DO_disassembler::Udq(const x86_insn *insn)
+ {
+   dis_sprintf("%s%d", vector_reg_name[insn->vex_l], insn->rm);
+ }
+ 
+-void disassembler::Ups(const x86_insn *insn) { Udq(insn); }
+-void disassembler::Upd(const x86_insn *insn) { Udq(insn); }
+-void disassembler::Uq(const x86_insn *insn) { Udq(insn); }
++void DO_disassembler::Ups(const x86_insn *insn) { Udq(insn); }
++void DO_disassembler::Upd(const x86_insn *insn) { Udq(insn); }
++void DO_disassembler::Uq(const x86_insn *insn) { Udq(insn); }
+ 
+-void disassembler::Vq(const x86_insn *insn)
++void DO_disassembler::Vq(const x86_insn *insn)
+ {
+   dis_sprintf("%s%d", vector_reg_name[insn->vex_l], insn->nnn);
+ }
+ 
+-void disassembler::Vdq(const x86_insn *insn) { Vq(insn); }
+-void disassembler::Vss(const x86_insn *insn) { Vq(insn); }
+-void disassembler::Vsd(const x86_insn *insn) { Vq(insn); }
+-void disassembler::Vps(const x86_insn *insn) { Vq(insn); }
+-void disassembler::Vpd(const x86_insn *insn) { Vq(insn); }
++void DO_disassembler::Vdq(const x86_insn *insn) { Vq(insn); }
++void DO_disassembler::Vss(const x86_insn *insn) { Vq(insn); }
++void DO_disassembler::Vsd(const x86_insn *insn) { Vq(insn); }
++void DO_disassembler::Vps(const x86_insn *insn) { Vq(insn); }
++void DO_disassembler::Vpd(const x86_insn *insn) { Vq(insn); }
+ 
+-void disassembler::VIb(const x86_insn *insn)
++void DO_disassembler::VIb(const x86_insn *insn)
+ {
+   unsigned vreg = fetch_byte() >> 4;
+   if (! insn->is_64) vreg &= 7;
+   dis_sprintf("%s%d", vector_reg_name[insn->vex_l], vreg);
+ }
+ 
+-void disassembler::Hdq(const x86_insn *insn)
++void DO_disassembler::Hdq(const x86_insn *insn)
+ {
+   dis_sprintf("%s%d", vector_reg_name[insn->vex_l], insn->vex_vvv);
+ }
+ 
+-void disassembler::Hps(const x86_insn *insn) { Hdq(insn); }
+-void disassembler::Hpd(const x86_insn *insn) { Hdq(insn); }
+-void disassembler::Hss(const x86_insn *insn) { Hdq(insn); }
+-void disassembler::Hsd(const x86_insn *insn) { Hdq(insn); }
++void DO_disassembler::Hps(const x86_insn *insn) { Hdq(insn); }
++void DO_disassembler::Hpd(const x86_insn *insn) { Hdq(insn); }
++void DO_disassembler::Hss(const x86_insn *insn) { Hdq(insn); }
++void DO_disassembler::Hsd(const x86_insn *insn) { Hdq(insn); }
+ 
+-void disassembler::Wb(const x86_insn *insn)
++void DO_disassembler::Wb(const x86_insn *insn)
+ {
+   if (insn->mod == 3) Udq(insn);
+   else
+     (this->*resolve_modrm)(insn, B_SIZE);
+ }
+ 
+-void disassembler::Ww(const x86_insn *insn)
++void DO_disassembler::Ww(const x86_insn *insn)
+ {
+   if (insn->mod == 3) Udq(insn);
+   else
+     (this->*resolve_modrm)(insn, W_SIZE);
+ }
+ 
+-void disassembler::Wd(const x86_insn *insn)
++void DO_disassembler::Wd(const x86_insn *insn)
+ {
+   if (insn->mod == 3) Udq(insn);
+   else
+     (this->*resolve_modrm)(insn, D_SIZE);
+ }
+ 
+-void disassembler::Wq(const x86_insn *insn)
++void DO_disassembler::Wq(const x86_insn *insn)
+ {
+   if (insn->mod == 3) Udq(insn);
+   else
+     (this->*resolve_modrm)(insn, Q_SIZE);
+ }
+ 
+-void disassembler::Wdq(const x86_insn *insn)
++void DO_disassembler::Wdq(const x86_insn *insn)
+ {
+   if (insn->mod == 3) Udq(insn);
+   else
+     (this->*resolve_modrm)(insn, XMM_SIZE + insn->vex_l);
+ }
+ 
+-void disassembler::Wsd(const x86_insn *insn) { Wq(insn); }
+-void disassembler::Wss(const x86_insn *insn) { Wd(insn); }
+-void disassembler::Wpd(const x86_insn *insn) { Wdq(insn); }
+-void disassembler::Wps(const x86_insn *insn) { Wdq(insn); }
++void DO_disassembler::Wsd(const x86_insn *insn) { Wq(insn); }
++void DO_disassembler::Wss(const x86_insn *insn) { Wd(insn); }
++void DO_disassembler::Wpd(const x86_insn *insn) { Wdq(insn); }
++void DO_disassembler::Wps(const x86_insn *insn) { Wdq(insn); }
+ 
+ // direct memory access
+-void disassembler::OP_O(const x86_insn *insn, unsigned size)
++void DO_disassembler::OP_O(const x86_insn *insn, unsigned size)
+ {
+   const char *seg;
+ 
+@@ -511,13 +511,13 @@ void disassembler::OP_O(const x86_insn *insn, unsigned size)
+   }
+ }
+ 
+-void disassembler::Ob(const x86_insn *insn) { OP_O(insn, B_SIZE); }
+-void disassembler::Ow(const x86_insn *insn) { OP_O(insn, W_SIZE); }
+-void disassembler::Od(const x86_insn *insn) { OP_O(insn, D_SIZE); }
+-void disassembler::Oq(const x86_insn *insn) { OP_O(insn, Q_SIZE); }
++void DO_disassembler::Ob(const x86_insn *insn) { OP_O(insn, B_SIZE); }
++void DO_disassembler::Ow(const x86_insn *insn) { OP_O(insn, W_SIZE); }
++void DO_disassembler::Od(const x86_insn *insn) { OP_O(insn, D_SIZE); }
++void DO_disassembler::Oq(const x86_insn *insn) { OP_O(insn, Q_SIZE); }
+ 
+ // memory operand
+-void disassembler::OP_M(const x86_insn *insn, unsigned size)
++void DO_disassembler::OP_M(const x86_insn *insn, unsigned size)
+ {
+   if(insn->mod == 3)
+     dis_sprintf("(bad)");
+@@ -525,25 +525,25 @@ void disassembler::OP_M(const x86_insn *insn, unsigned size)
+     (this->*resolve_modrm)(insn, size);
+ }
+ 
+-void disassembler::Ma(const x86_insn *insn) { OP_M(insn, X_SIZE); }
+-void disassembler::Mp(const x86_insn *insn) { OP_M(insn, X_SIZE); }
+-void disassembler::Ms(const x86_insn *insn) { OP_M(insn, X_SIZE); }
+-void disassembler::Mx(const x86_insn *insn) { OP_M(insn, X_SIZE); }
++void DO_disassembler::Ma(const x86_insn *insn) { OP_M(insn, X_SIZE); }
++void DO_disassembler::Mp(const x86_insn *insn) { OP_M(insn, X_SIZE); }
++void DO_disassembler::Ms(const x86_insn *insn) { OP_M(insn, X_SIZE); }
++void DO_disassembler::Mx(const x86_insn *insn) { OP_M(insn, X_SIZE); }
+ 
+-void disassembler::Mb(const x86_insn *insn) { OP_M(insn, B_SIZE); }
+-void disassembler::Mw(const x86_insn *insn) { OP_M(insn, W_SIZE); }
+-void disassembler::Md(const x86_insn *insn) { OP_M(insn, D_SIZE); }
+-void disassembler::Mq(const x86_insn *insn) { OP_M(insn, Q_SIZE); }
+-void disassembler::Mt(const x86_insn *insn) { OP_M(insn, T_SIZE); }
++void DO_disassembler::Mb(const x86_insn *insn) { OP_M(insn, B_SIZE); }
++void DO_disassembler::Mw(const x86_insn *insn) { OP_M(insn, W_SIZE); }
++void DO_disassembler::Md(const x86_insn *insn) { OP_M(insn, D_SIZE); }
++void DO_disassembler::Mq(const x86_insn *insn) { OP_M(insn, Q_SIZE); }
++void DO_disassembler::Mt(const x86_insn *insn) { OP_M(insn, T_SIZE); }
+ 
+-void disassembler::Mdq(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
+-void disassembler::Mps(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
+-void disassembler::Mpd(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
+-void disassembler::Mss(const x86_insn *insn) { OP_M(insn, D_SIZE); }
+-void disassembler::Msd(const x86_insn *insn) { OP_M(insn, Q_SIZE); }
++void DO_disassembler::Mdq(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
++void DO_disassembler::Mps(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
++void DO_disassembler::Mpd(const x86_insn *insn) { OP_M(insn, XMM_SIZE + insn->vex_l); }
++void DO_disassembler::Mss(const x86_insn *insn) { OP_M(insn, D_SIZE); }
++void DO_disassembler::Msd(const x86_insn *insn) { OP_M(insn, Q_SIZE); }
+ 
+ // gather VSib
+-void disassembler::VSib(const x86_insn *insn)
++void DO_disassembler::VSib(const x86_insn *insn)
+ {
+   if(insn->mod == 3)
+     dis_sprintf("(bad)");
+@@ -552,7 +552,7 @@ void disassembler::VSib(const x86_insn *insn)
+ }
+ 
+ // string instructions
+-void disassembler::OP_X(const x86_insn *insn, unsigned size)
++void DO_disassembler::OP_X(const x86_insn *insn, unsigned size)
+ {
+   const char *rsi, *seg;
+ 
+@@ -579,12 +579,12 @@ void disassembler::OP_X(const x86_insn *insn, unsigned size)
+     dis_sprintf("%s:(%s)", seg, rsi);
+ }
+ 
+-void disassembler::Xb(const x86_insn *insn) { OP_X(insn, B_SIZE); }
+-void disassembler::Xw(const x86_insn *insn) { OP_X(insn, W_SIZE); }
+-void disassembler::Xd(const x86_insn *insn) { OP_X(insn, D_SIZE); }
+-void disassembler::Xq(const x86_insn *insn) { OP_X(insn, Q_SIZE); }
++void DO_disassembler::Xb(const x86_insn *insn) { OP_X(insn, B_SIZE); }
++void DO_disassembler::Xw(const x86_insn *insn) { OP_X(insn, W_SIZE); }
++void DO_disassembler::Xd(const x86_insn *insn) { OP_X(insn, D_SIZE); }
++void DO_disassembler::Xq(const x86_insn *insn) { OP_X(insn, Q_SIZE); }
+ 
+-void disassembler::OP_Y(const x86_insn *insn, unsigned size)
++void DO_disassembler::OP_Y(const x86_insn *insn, unsigned size)
+ {
+   const char *rdi;
+ 
+@@ -606,12 +606,12 @@ void disassembler::OP_Y(const x86_insn *insn, unsigned size)
+     dis_sprintf("%s:(%s)", segment_name[ES_REG], rdi);
+ }
+ 
+-void disassembler::Yb(const x86_insn *insn) { OP_Y(insn, B_SIZE); }
+-void disassembler::Yw(const x86_insn *insn) { OP_Y(insn, W_SIZE); }
+-void disassembler::Yd(const x86_insn *insn) { OP_Y(insn, D_SIZE); }
+-void disassembler::Yq(const x86_insn *insn) { OP_Y(insn, Q_SIZE); }
++void DO_disassembler::Yb(const x86_insn *insn) { OP_Y(insn, B_SIZE); }
++void DO_disassembler::Yw(const x86_insn *insn) { OP_Y(insn, W_SIZE); }
++void DO_disassembler::Yd(const x86_insn *insn) { OP_Y(insn, D_SIZE); }
++void DO_disassembler::Yq(const x86_insn *insn) { OP_Y(insn, Q_SIZE); }
+ 
+-void disassembler::OP_sY(const x86_insn *insn, unsigned size)
++void DO_disassembler::OP_sY(const x86_insn *insn, unsigned size)
+ {
+   const char *rdi, *seg;
+ 
+@@ -638,13 +638,13 @@ void disassembler::OP_sY(const x86_insn *insn, unsigned size)
+     dis_sprintf("%s:(%s)", seg, rdi);
+ }
+ 
+-void disassembler::sYq(const x86_insn *insn) { OP_sY(insn, Q_SIZE); }
+-void disassembler::sYdq(const x86_insn *insn) { OP_sY(insn, XMM_SIZE + insn->vex_l); }
++void DO_disassembler::sYq(const x86_insn *insn) { OP_sY(insn, Q_SIZE); }
++void DO_disassembler::sYdq(const x86_insn *insn) { OP_sY(insn, XMM_SIZE + insn->vex_l); }
+ 
+ #define BX_JUMP_TARGET_NOT_REQ ((bx_address)(-1))
+ 
+ // jump offset
+-void disassembler::Jb(const x86_insn *insn)
++void DO_disassembler::Jb(const x86_insn *insn)
+ {
+   Bit8s imm8 = (Bit8s) fetch_byte();
+ 
+@@ -699,7 +699,7 @@ void disassembler::Jb(const x86_insn *insn)
+   }
+ }
+ 
+-void disassembler::Jw(const x86_insn *insn)
++void DO_disassembler::Jw(const x86_insn *insn)
+ {
+   // Jw supported in 16-bit mode only
+   assert(! insn->is_64);
+@@ -719,7 +719,7 @@ void disassembler::Jw(const x86_insn *insn)
+   }
+ }
+ 
+-void disassembler::Jd(const x86_insn *insn)
++void DO_disassembler::Jd(const x86_insn *insn)
+ {
+   Bit32s imm32 = (Bit32s) fetch_dword();
+ 
+diff --git a/Externals/Bochs_disasm/dis_tables.h b/Externals/Bochs_disasm/dis_tables.h
+index 9fe9701..01d1b46 100644
+--- a/Externals/Bochs_disasm/dis_tables.h
++++ b/Externals/Bochs_disasm/dis_tables.h
+@@ -60,148 +60,148 @@
+ #define GRPSSENONE(n)   _GRPSSENONE, &n
+ /* ************************************************************************ */
+ 
+-#define Apw &disassembler::Apw
+-#define Apd &disassembler::Apd
+-
+-#define AL_Reg &disassembler::AL_Reg
+-#define CL_Reg &disassembler::CL_Reg
+-#define AX_Reg &disassembler::AX_Reg
+-#define DX_Reg &disassembler::DX_Reg
+-
+-#define EAX_Reg &disassembler::EAX_Reg
+-#define RAX_Reg &disassembler::RAX_Reg
+-#define RCX_Reg &disassembler::RCX_Reg
+-
+-#define CS &disassembler::CS
+-#define DS &disassembler::DS
+-#define ES &disassembler::ES
+-#define SS &disassembler::SS
+-#define FS &disassembler::FS
+-#define GS &disassembler::GS
+-
+-#define Sw &disassembler::Sw
+-
+-#define Cd &disassembler::Cd
+-#define Cq &disassembler::Cq
+-
+-#define Dd &disassembler::Dd
+-#define Dq &disassembler::Dq
+-
+-#define Reg8 &disassembler::Reg8
+-#define   RX &disassembler::RX
+-#define  ERX &disassembler::ERX
+-#define  RRX &disassembler::RRX
+-
+-#define Eb  &disassembler::Eb
+-#define Ew  &disassembler::Ew
+-#define Ed  &disassembler::Ed
+-#define Eq  &disassembler::Eq
+-#define Ey  &disassembler::Ey
+-#define Ebd &disassembler::Ebd
+-#define Ewd &disassembler::Ewd
+-
+-#define Gb &disassembler::Gb
+-#define Gw &disassembler::Gw
+-#define Gd &disassembler::Gd
+-#define Gq &disassembler::Gq
+-#define Gy &disassembler::Gy
+-
+-#define By &disassembler::By
+-
+-#define I1 &disassembler::I1
+-#define Ib &disassembler::Ib
+-#define Iw &disassembler::Iw
+-#define Id &disassembler::Id
+-#define Iq &disassembler::Iq
+-
+-#define IbIb &disassembler::IbIb
+-#define IwIb &disassembler::IwIb
+-
+-#define sIbw &disassembler::sIbw
+-#define sIbd &disassembler::sIbd
+-#define sIbq &disassembler::sIbq
+-#define sIdq &disassembler::sIdq
+-
+-#define ST0 &disassembler::ST0
+-#define STi &disassembler::STi
+-
+-#define Rw &disassembler::Rw
+-#define Rd &disassembler::Rd
+-#define Rq &disassembler::Rq
+-#define Ry &disassembler::Ry
+-
+-#define Pq &disassembler::Pq
+-#define Qd &disassembler::Qd
+-#define Qq &disassembler::Qq
+-#define Nq &disassembler::Nq
+-
+-#define  Vq &disassembler::Vq
+-#define Vdq &disassembler::Vdq
+-#define Vss &disassembler::Vss
+-#define Vsd &disassembler::Vsd
+-#define Vps &disassembler::Vps
+-#define Vpd &disassembler::Vpd
+-#define VIb &disassembler::VIb
+-
+-#define Ups &disassembler::Ups
+-#define Upd &disassembler::Upd
+-#define Udq &disassembler::Udq
+-#define Uq  &disassembler::Uq
+-
+-#define  Wb &disassembler::Wb
+-#define  Ww &disassembler::Ww
+-#define  Wd &disassembler::Wd
+-#define  Wq &disassembler::Wq
+-#define Wdq &disassembler::Wdq
+-#define Wss &disassembler::Wss
+-#define Wsd &disassembler::Wsd
+-#define Wps &disassembler::Wps
+-#define Wpd &disassembler::Wpd
+-
+-#define Hdq &disassembler::Hdq
+-#define Hps &disassembler::Hps
+-#define Hpd &disassembler::Hpd
+-#define Hss &disassembler::Hss
+-#define Hsd &disassembler::Hsd
+-
+-#define Ob &disassembler::Ob
+-#define Ow &disassembler::Ow
+-#define Od &disassembler::Od
+-#define Oq &disassembler::Oq
+-
+-#define  Ma &disassembler::Ma
+-#define  Mp &disassembler::Mp
+-#define  Ms &disassembler::Ms
+-#define  Mx &disassembler::Mx
+-#define  Mb &disassembler::Mb
+-#define  Mw &disassembler::Mw
+-#define  Md &disassembler::Md
+-#define  Mq &disassembler::Mq
+-#define  Mt &disassembler::Mt
+-#define Mdq &disassembler::Mdq
+-#define Mps &disassembler::Mps
+-#define Mpd &disassembler::Mpd
+-#define Mss &disassembler::Mss
+-#define Msd &disassembler::Msd
+-
+-#define VSib &disassembler::VSib
+-
+-#define Xb &disassembler::Xb
+-#define Xw &disassembler::Xw
+-#define Xd &disassembler::Xd
+-#define Xq &disassembler::Xq
+-
+-#define Yb &disassembler::Yb
+-#define Yw &disassembler::Yw
+-#define Yd &disassembler::Yd
+-#define Yq &disassembler::Yq
+-
+-#define sYq  &disassembler::sYq
+-#define sYdq &disassembler::sYdq
+-
+-#define Jb &disassembler::Jb
+-#define Jw &disassembler::Jw
+-#define Jd &disassembler::Jd
++#define Apw &DO_disassembler::Apw
++#define Apd &DO_disassembler::Apd
++
++#define AL_Reg &DO_disassembler::AL_Reg
++#define CL_Reg &DO_disassembler::CL_Reg
++#define AX_Reg &DO_disassembler::AX_Reg
++#define DX_Reg &DO_disassembler::DX_Reg
++
++#define EAX_Reg &DO_disassembler::EAX_Reg
++#define RAX_Reg &DO_disassembler::RAX_Reg
++#define RCX_Reg &DO_disassembler::RCX_Reg
++
++#define CS &DO_disassembler::CS
++#define DS &DO_disassembler::DS
++#define ES &DO_disassembler::ES
++#define SS &DO_disassembler::SS
++#define FS &DO_disassembler::FS
++#define GS &DO_disassembler::GS
++
++#define Sw &DO_disassembler::Sw
++
++#define Cd &DO_disassembler::Cd
++#define Cq &DO_disassembler::Cq
++
++#define Dd &DO_disassembler::Dd
++#define Dq &DO_disassembler::Dq
++
++#define Reg8 &DO_disassembler::Reg8
++#define   RX &DO_disassembler::RX
++#define  ERX &DO_disassembler::ERX
++#define  RRX &DO_disassembler::RRX
++
++#define Eb  &DO_disassembler::Eb
++#define Ew  &DO_disassembler::Ew
++#define Ed  &DO_disassembler::Ed
++#define Eq  &DO_disassembler::Eq
++#define Ey  &DO_disassembler::Ey
++#define Ebd &DO_disassembler::Ebd
++#define Ewd &DO_disassembler::Ewd
++
++#define Gb &DO_disassembler::Gb
++#define Gw &DO_disassembler::Gw
++#define Gd &DO_disassembler::Gd
++#define Gq &DO_disassembler::Gq
++#define Gy &DO_disassembler::Gy
++
++#define By &DO_disassembler::By
++
++#define I1 &DO_disassembler::I1
++#define Ib &DO_disassembler::Ib
++#define Iw &DO_disassembler::Iw
++#define Id &DO_disassembler::Id
++#define Iq &DO_disassembler::Iq
++
++#define IbIb &DO_disassembler::IbIb
++#define IwIb &DO_disassembler::IwIb
++
++#define sIbw &DO_disassembler::sIbw
++#define sIbd &DO_disassembler::sIbd
++#define sIbq &DO_disassembler::sIbq
++#define sIdq &DO_disassembler::sIdq
++
++#define ST0 &DO_disassembler::ST0
++#define STi &DO_disassembler::STi
++
++#define Rw &DO_disassembler::Rw
++#define Rd &DO_disassembler::Rd
++#define Rq &DO_disassembler::Rq
++#define Ry &DO_disassembler::Ry
++
++#define Pq &DO_disassembler::Pq
++#define Qd &DO_disassembler::Qd
++#define Qq &DO_disassembler::Qq
++#define Nq &DO_disassembler::Nq
++
++#define  Vq &DO_disassembler::Vq
++#define Vdq &DO_disassembler::Vdq
++#define Vss &DO_disassembler::Vss
++#define Vsd &DO_disassembler::Vsd
++#define Vps &DO_disassembler::Vps
++#define Vpd &DO_disassembler::Vpd
++#define VIb &DO_disassembler::VIb
++
++#define Ups &DO_disassembler::Ups
++#define Upd &DO_disassembler::Upd
++#define Udq &DO_disassembler::Udq
++#define Uq  &DO_disassembler::Uq
++
++#define  Wb &DO_disassembler::Wb
++#define  Ww &DO_disassembler::Ww
++#define  Wd &DO_disassembler::Wd
++#define  Wq &DO_disassembler::Wq
++#define Wdq &DO_disassembler::Wdq
++#define Wss &DO_disassembler::Wss
++#define Wsd &DO_disassembler::Wsd
++#define Wps &DO_disassembler::Wps
++#define Wpd &DO_disassembler::Wpd
++
++#define Hdq &DO_disassembler::Hdq
++#define Hps &DO_disassembler::Hps
++#define Hpd &DO_disassembler::Hpd
++#define Hss &DO_disassembler::Hss
++#define Hsd &DO_disassembler::Hsd
++
++#define Ob &DO_disassembler::Ob
++#define Ow &DO_disassembler::Ow
++#define Od &DO_disassembler::Od
++#define Oq &DO_disassembler::Oq
++
++#define  Ma &DO_disassembler::Ma
++#define  Mp &DO_disassembler::Mp
++#define  Ms &DO_disassembler::Ms
++#define  Mx &DO_disassembler::Mx
++#define  Mb &DO_disassembler::Mb
++#define  Mw &DO_disassembler::Mw
++#define  Md &DO_disassembler::Md
++#define  Mq &DO_disassembler::Mq
++#define  Mt &DO_disassembler::Mt
++#define Mdq &DO_disassembler::Mdq
++#define Mps &DO_disassembler::Mps
++#define Mpd &DO_disassembler::Mpd
++#define Mss &DO_disassembler::Mss
++#define Msd &DO_disassembler::Msd
++
++#define VSib &DO_disassembler::VSib
++
++#define Xb &DO_disassembler::Xb
++#define Xw &DO_disassembler::Xw
++#define Xd &DO_disassembler::Xd
++#define Xq &DO_disassembler::Xq
++
++#define Yb &DO_disassembler::Yb
++#define Yw &DO_disassembler::Yw
++#define Yd &DO_disassembler::Yd
++#define Yq &DO_disassembler::Yq
++
++#define sYq  &DO_disassembler::sYq
++#define sYdq &DO_disassembler::sYdq
++
++#define Jb &DO_disassembler::Jb
++#define Jw &DO_disassembler::Jw
++#define Jd &DO_disassembler::Jd
+ 
+ #define XX 0
+ 
+diff --git a/Externals/Bochs_disasm/disasm.h b/Externals/Bochs_disasm/disasm.h
+index 8b15003..e99fafc 100644
+--- a/Externals/Bochs_disasm/disasm.h
++++ b/Externals/Bochs_disasm/disasm.h
+@@ -118,11 +118,11 @@ enum {
+         INVALID_SEG2
+ };
+ 
+-class disassembler;
++class DO_disassembler;
+ struct x86_insn;
+ 
+-typedef void (disassembler::*BxDisasmPtr_t)(const x86_insn *insn);
+-typedef void (disassembler::*BxDisasmResolveModrmPtr_t)(const x86_insn *insn, unsigned attr);
++typedef void (DO_disassembler::*BxDisasmPtr_t)(const x86_insn *insn);
++typedef void (DO_disassembler::*BxDisasmResolveModrmPtr_t)(const x86_insn *insn, unsigned attr);
+ 
+ struct BxDisasmOpcodeInfo_t
+ {
+@@ -237,9 +237,9 @@ BX_CPP_INLINE x86_insn::x86_insn(bx_bool is32, bx_bool is64)
+   evex_z = 0;
+ }
+ 
+-class disassembler {
++class DO_disassembler {
+ public:
+-  disassembler(): offset_mode_hex(0), print_mem_datasize(1) { set_syntax_intel(); }
++  DO_disassembler(): offset_mode_hex(0), print_mem_datasize(1) { set_syntax_intel(); }
+ 
+   unsigned disasm(bx_bool is_32, bx_bool is_64, bx_address cs_base, bx_address ip, const Bit8u *instr, char *disbuf);
+ 
+diff --git a/Externals/Bochs_disasm/resolve.cc b/Externals/Bochs_disasm/resolve.cc
+index e72f8d1..5d56c88 100644
+--- a/Externals/Bochs_disasm/resolve.cc
++++ b/Externals/Bochs_disasm/resolve.cc
+@@ -25,7 +25,7 @@
+ #include <assert.h>
+ #include "disasm.h"
+ 
+-void disassembler::decode_modrm(x86_insn *insn)
++void DO_disassembler::decode_modrm(x86_insn *insn)
+ {
+   insn->modrm = fetch_byte();
+   BX_DECODE_MODRM(insn->modrm, insn->mod, insn->nnn, insn->rm);
+@@ -44,18 +44,18 @@ void disassembler::decode_modrm(x86_insn *insn)
+         // one byte modrm
+         switch (insn->mod) {
+           case 0:
+-            resolve_modrm = &disassembler::resolve64_mod0;
++            resolve_modrm = &DO_disassembler::resolve64_mod0;
+             if ((insn->rm & 7) == 5) /* no reg, 32-bit displacement */
+               insn->displacement.displ32 = fetch_dword();
+             break;
+           case 1:
+             /* reg, 8-bit displacement, sign extend */
+-            resolve_modrm = &disassembler::resolve64_mod1or2;
++            resolve_modrm = &DO_disassembler::resolve64_mod1or2;
+             insn->displacement.displ32 = (Bit8s) fetch_byte();
+             break;
+           case 2:
+             /* reg, 32-bit displacement */
+-            resolve_modrm = &disassembler::resolve64_mod1or2;
++            resolve_modrm = &DO_disassembler::resolve64_mod1or2;
+             insn->displacement.displ32 = fetch_dword();
+             break;
+         } /* switch (mod) */
+@@ -68,16 +68,16 @@ void disassembler::decode_modrm(x86_insn *insn)
+ 
+         switch (insn->mod) {
+           case 0:
+-            resolve_modrm = &disassembler::resolve64_mod0_rm4;
++            resolve_modrm = &DO_disassembler::resolve64_mod0_rm4;
+             if ((insn->base & 7) == 5)
+               insn->displacement.displ32 = fetch_dword();
+             break;
+           case 1:
+-            resolve_modrm = &disassembler::resolve64_mod1or2_rm4;
++            resolve_modrm = &DO_disassembler::resolve64_mod1or2_rm4;
+             insn->displacement.displ32 = (Bit8s) fetch_byte();
+             break;
+           case 2:
+-            resolve_modrm = &disassembler::resolve64_mod1or2_rm4;
++            resolve_modrm = &DO_disassembler::resolve64_mod1or2_rm4;
+             insn->displacement.displ32 = fetch_dword();
+             break;
+         }
+@@ -91,18 +91,18 @@ void disassembler::decode_modrm(x86_insn *insn)
+         // one byte modrm
+         switch (insn->mod) {
+           case 0:
+-            resolve_modrm = &disassembler::resolve32_mod0;
++            resolve_modrm = &DO_disassembler::resolve32_mod0;
+             if ((insn->rm & 7) == 5) /* no reg, 32-bit displacement */
+               insn->displacement.displ32 = fetch_dword();
+             break;
+           case 1:
+             /* reg, 8-bit displacement, sign extend */
+-            resolve_modrm = &disassembler::resolve32_mod1or2;
++            resolve_modrm = &DO_disassembler::resolve32_mod1or2;
+             insn->displacement.displ32 = (Bit8s) fetch_byte();
+             break;
+           case 2:
+             /* reg, 32-bit displacement */
+-            resolve_modrm = &disassembler::resolve32_mod1or2;
++            resolve_modrm = &DO_disassembler::resolve32_mod1or2;
+             insn->displacement.displ32 = fetch_dword();
+             break;
+         } /* switch (mod) */
+@@ -115,16 +115,16 @@ void disassembler::decode_modrm(x86_insn *insn)
+ 
+         switch (insn->mod) {
+           case 0:
+-            resolve_modrm = &disassembler::resolve32_mod0_rm4;
++            resolve_modrm = &DO_disassembler::resolve32_mod0_rm4;
+             if ((insn->base & 7) == 5)
+               insn->displacement.displ32 = fetch_dword();
+             break;
+           case 1:
+-            resolve_modrm = &disassembler::resolve32_mod1or2_rm4;
++            resolve_modrm = &DO_disassembler::resolve32_mod1or2_rm4;
+             insn->displacement.displ32 = (Bit8s) fetch_byte();
+             break;
+           case 2:
+-            resolve_modrm = &disassembler::resolve32_mod1or2_rm4;
++            resolve_modrm = &DO_disassembler::resolve32_mod1or2_rm4;
+             insn->displacement.displ32 = fetch_dword();
+             break;
+         }
+@@ -137,17 +137,17 @@ void disassembler::decode_modrm(x86_insn *insn)
+       /* 16 bit addressing modes. */
+       switch (insn->mod) {
+         case 0:
+-          resolve_modrm = &disassembler::resolve16_mod0;
++          resolve_modrm = &DO_disassembler::resolve16_mod0;
+           if(insn->rm == 6)
+             insn->displacement.displ16 = fetch_word();
+           break;
+         case 1:
+           /* reg, 8-bit displacement, sign extend */
+-          resolve_modrm = &disassembler::resolve16_mod1or2;
++          resolve_modrm = &DO_disassembler::resolve16_mod1or2;
+           insn->displacement.displ16 = (Bit8s) fetch_byte();
+           break;
+         case 2:
+-          resolve_modrm = &disassembler::resolve16_mod1or2;
++          resolve_modrm = &DO_disassembler::resolve16_mod1or2;
+           insn->displacement.displ16 = fetch_word();
+           break;
+       } /* switch (mod) ... */
+@@ -155,7 +155,7 @@ void disassembler::decode_modrm(x86_insn *insn)
+   }
+ }
+ 
+-void disassembler::resolve16_mod0(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve16_mod0(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg;
+ 
+@@ -170,7 +170,7 @@ void disassembler::resolve16_mod0(const x86_insn *insn, unsigned datasize)
+     print_memory_access16(datasize, seg, index16[insn->rm], 0);
+ }
+ 
+-void disassembler::resolve16_mod1or2(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve16_mod1or2(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg;
+ 
+@@ -182,7 +182,7 @@ void disassembler::resolve16_mod1or2(const x86_insn *insn, unsigned datasize)
+   print_memory_access16(datasize, seg, index16[insn->rm], insn->displacement.displ16);
+ }
+ 
+-void disassembler::resolve32_mod0(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve32_mod0(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg, *eip_regname = NULL;
+ 
+@@ -202,7 +202,7 @@ void disassembler::resolve32_mod0(const x86_insn *insn, unsigned datasize)
+     print_memory_access32(datasize, seg, general_32bit_regname[insn->rm], NULL, 0, 0);
+ }
+ 
+-void disassembler::resolve32_mod1or2(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve32_mod1or2(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg;
+ 
+@@ -215,7 +215,7 @@ void disassembler::resolve32_mod1or2(const x86_insn *insn, unsigned datasize)
+       general_32bit_regname[insn->rm], NULL, 0, insn->displacement.displ32);
+ }
+ 
+-void disassembler::resolve32_mod0_rm4(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve32_mod0_rm4(const x86_insn *insn, unsigned datasize)
+ {
+   char vsib_index[8];
+   const char *seg, *base = NULL, *index = NULL;
+@@ -243,7 +243,7 @@ void disassembler::resolve32_mod0_rm4(const x86_insn *insn, unsigned datasize)
+   print_memory_access32(datasize, seg, base, index, insn->scale, disp32);
+ }
+ 
+-void disassembler::resolve32_mod1or2_rm4(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve32_mod1or2_rm4(const x86_insn *insn, unsigned datasize)
+ {
+   char vsib_index[8];
+   const char *seg, *index = NULL;
+@@ -266,7 +266,7 @@ void disassembler::resolve32_mod1or2_rm4(const x86_insn *insn, unsigned datasize
+       general_32bit_regname[insn->base], index, insn->scale, insn->displacement.displ32);
+ }
+ 
+-void disassembler::resolve64_mod0(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve64_mod0(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg, *rip_regname;
+ 
+@@ -284,7 +284,7 @@ void disassembler::resolve64_mod0(const x86_insn *insn, unsigned datasize)
+     print_memory_access64(datasize, seg, general_64bit_regname[insn->rm], NULL, 0, 0);
+ }
+ 
+-void disassembler::resolve64_mod1or2(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve64_mod1or2(const x86_insn *insn, unsigned datasize)
+ {
+   const char *seg;
+ 
+@@ -297,7 +297,7 @@ void disassembler::resolve64_mod1or2(const x86_insn *insn, unsigned datasize)
+       general_64bit_regname[insn->rm], NULL, 0, (Bit32s) insn->displacement.displ32);
+ }
+ 
+-void disassembler::resolve64_mod0_rm4(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve64_mod0_rm4(const x86_insn *insn, unsigned datasize)
+ {
+   char vsib_index[8];
+   const char *seg, *base = NULL, *index = NULL;
+@@ -325,7 +325,7 @@ void disassembler::resolve64_mod0_rm4(const x86_insn *insn, unsigned datasize)
+   print_memory_access64(datasize, seg, base, index, insn->scale, disp32);
+ }
+ 
+-void disassembler::resolve64_mod1or2_rm4(const x86_insn *insn, unsigned datasize)
++void DO_disassembler::resolve64_mod1or2_rm4(const x86_insn *insn, unsigned datasize)
+ {
+   char vsib_index[8];
+   const char *seg, *index = NULL;
+@@ -348,7 +348,7 @@ void disassembler::resolve64_mod1or2_rm4(const x86_insn *insn, unsigned datasize
+       general_64bit_regname[insn->base], index, insn->scale, (Bit32s) insn->displacement.displ32);
+ }
+ 
+-void disassembler::print_datasize(unsigned size)
++void DO_disassembler::print_datasize(unsigned size)
+ {
+   if (!intel_mode || !print_mem_datasize) return;
+ 
+@@ -380,7 +380,7 @@ void disassembler::print_datasize(unsigned size)
+   };
+ }
+ 
+-void disassembler::print_memory_access16(int datasize,
++void DO_disassembler::print_memory_access16(int datasize,
+                 const char *seg, const char *index, Bit16u disp)
+ {
+   print_datasize(datasize);
+@@ -425,7 +425,7 @@ void disassembler::print_memory_access16(int datasize,
+   }
+ }
+ 
+-void disassembler::print_memory_access32(int datasize,
++void DO_disassembler::print_memory_access32(int datasize,
+         const char *seg, const char *base, const char *index, int scale, Bit32s disp)
+ {
+   print_datasize(datasize);
+@@ -559,7 +559,7 @@ void disassembler::print_memory_access32(int datasize,
+   }
+ }
+ 
+-void disassembler::print_memory_access64(int datasize,
++void DO_disassembler::print_memory_access64(int datasize,
+         const char *seg, const char *base, const char *index, int scale, Bit32s disp)
+ {
+   Bit64u disp64 = (Bit64s) disp;
+diff --git a/Externals/Bochs_disasm/syntax.cc b/Externals/Bochs_disasm/syntax.cc
+index fd6109c..6be1854 100644
+--- a/Externals/Bochs_disasm/syntax.cc
++++ b/Externals/Bochs_disasm/syntax.cc
+@@ -120,7 +120,7 @@ static const char *att_vector_reg_name[4] = {
+ 
+ #define NULL_SEGMENT_REGISTER 7
+ 
+-void disassembler::initialize_modrm_segregs()
++void DO_disassembler::initialize_modrm_segregs()
+ {
+   sreg_mod00_rm16[0] = segment_name[DS_REG];
+   sreg_mod00_rm16[1] = segment_name[DS_REG];
+@@ -179,7 +179,7 @@ void disassembler::initialize_modrm_segregs()
+ // Intel STYLE
+ //////////////////
+ 
+-void disassembler::set_syntax_intel()
++void DO_disassembler::set_syntax_intel()
+ {
+   intel_mode = 1;
+ 
+@@ -196,7 +196,7 @@ void disassembler::set_syntax_intel()
+   initialize_modrm_segregs();
+ }
+ 
+-void disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
++void DO_disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
+ {
+   // print opcode
+   dis_sprintf("%s ", entry->IntelOpcode);
+@@ -222,7 +222,7 @@ void disassembler::print_disassembly_intel(const x86_insn *insn, const BxDisasmO
+ // AT&T STYLE
+ //////////////////
+ 
+-void disassembler::set_syntax_att()
++void DO_disassembler::set_syntax_att()
+ {
+   intel_mode = 0;
+ 
+@@ -239,13 +239,13 @@ void disassembler::set_syntax_att()
+   initialize_modrm_segregs();
+ }
+ 
+-void disassembler::toggle_syntax_mode()
++void DO_disassembler::toggle_syntax_mode()
+ {
+   if (intel_mode) set_syntax_att();
+   else set_syntax_intel();
+ }
+ 
+-void disassembler::print_disassembly_att(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
++void DO_disassembler::print_disassembly_att(const x86_insn *insn, const BxDisasmOpcodeInfo_t *entry)
+ {
+   // print opcode
+   dis_sprintf("%s ", entry->AttOpcode);
+diff --git a/Externals/gettext/libgettextlib.dll b/Externals/gettext/libgettextlib.dll
+deleted file mode 100644
+index 6bc7525..0000000
+Binary files a/Externals/gettext/libgettextlib.dll and /dev/null differ
+diff --git a/Externals/gettext/libgettextsrc.dll b/Externals/gettext/libgettextsrc.dll
+deleted file mode 100644
+index 0d5a593..0000000
+Binary files a/Externals/gettext/libgettextsrc.dll and /dev/null differ
+diff --git a/Externals/gettext/libiconv2.dll b/Externals/gettext/libiconv2.dll
+deleted file mode 100644
+index 747073f..0000000
+Binary files a/Externals/gettext/libiconv2.dll and /dev/null differ
+diff --git a/Externals/gettext/libintl3.dll b/Externals/gettext/libintl3.dll
+deleted file mode 100644
+index ec11e6b..0000000
+Binary files a/Externals/gettext/libintl3.dll and /dev/null differ
+diff --git a/Externals/gettext/msgfmt.exe b/Externals/gettext/msgfmt.exe
+deleted file mode 100644
+index 62ccb0e..0000000
+Binary files a/Externals/gettext/msgfmt.exe and /dev/null differ
+diff --git a/Externals/glslang/SPIRV/disassemble.h b/Externals/glslang/SPIRV/disassemble.h
+index 47cef65..a2cf5bc 100755
+--- a/Externals/glslang/SPIRV/disassemble.h
++++ b/Externals/glslang/SPIRV/disassemble.h
+@@ -37,8 +37,8 @@
+ //
+ 
+ #pragma once
+-#ifndef disassembler_H
+-#define disassembler_H
++#ifndef DO_disassembler_H
++#define DO_disassembler_H
+ 
+ #include <iostream>
+ #include <vector>
+diff --git a/Installer/dxredist/DSETUP.dll b/Installer/dxredist/DSETUP.dll
+deleted file mode 100644
+index 691025a..0000000
+Binary files a/Installer/dxredist/DSETUP.dll and /dev/null differ
+diff --git a/Installer/dxredist/DXSETUP.exe b/Installer/dxredist/DXSETUP.exe
+deleted file mode 100644
+index 5d062aa..0000000
+Binary files a/Installer/dxredist/DXSETUP.exe and /dev/null differ
+diff --git a/Installer/dxredist/dsetup32.dll b/Installer/dxredist/dsetup32.dll
+deleted file mode 100644
+index 1781afa..0000000
+Binary files a/Installer/dxredist/dsetup32.dll and /dev/null differ
+diff --git a/Installer/vcredist/vc_redist.x64.exe b/Installer/vcredist/vc_redist.x64.exe
+deleted file mode 100644
+index f986317..0000000
+Binary files a/Installer/vcredist/vc_redist.x64.exe and /dev/null differ
+diff --git a/Source/Core/Common/CMakeLists.txt b/Source/Core/Common/CMakeLists.txt
+index de68a14..c01054e 100644
+--- a/Source/Core/Common/CMakeLists.txt
++++ b/Source/Core/Common/CMakeLists.txt
+@@ -128,6 +128,8 @@ add_library(common
+   WindowSystemInfo.h
+   WorkQueueThread.h
+ )
++#target_compile_definitions(common PRIVATE JC_DEBUGGING=1)
++target_include_directories(common PRIVATE /usr/include/SDL2)
+ 
+ target_link_libraries(common
+ PUBLIC
+diff --git a/Source/Core/Common/FileUtil.cpp b/Source/Core/Common/FileUtil.cpp
+index 5fc633c..534356a 100644
+--- a/Source/Core/Common/FileUtil.cpp
++++ b/Source/Core/Common/FileUtil.cpp
+@@ -735,7 +735,7 @@ std::string GetSysDirectory()
+ #endif
+ #endif
+ 
+-#if defined(__APPLE__)
++/*#if defined(__APPLE__)
+   sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+ #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+@@ -746,7 +746,28 @@ std::string GetSysDirectory()
+   sysDir = SYSDATA_DIR;
+ #endif
+   sysDir += DIR_SEP;
++*/
++
++  const char *homedir;
++  std::string foldername;
++
++  if ((homedir = getenv("HOME")) != nullptr) 
++  {
++    foldername = homedir;
++        
++    // add slash to end if necessary
++    if (foldername.substr(foldername.length()-1,1) != "/")
++    {
++      foldername += "/";
++    }
++  }
++  else
++  {
++	  foldername = "~/";
++  }
+ 
++  sysDir = foldername + ".marley/dolphin-emu/Data/sys/";
++  
+   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
+   return sysDir;
+ }
+diff --git a/Source/Core/Common/GL/GLInterface/GLX.cpp b/Source/Core/Common/GL/GLInterface/GLX.cpp
+index 70ee848..8adbb85 100644
+--- a/Source/Core/Common/GL/GLInterface/GLX.cpp
++++ b/Source/Core/Common/GL/GLInterface/GLX.cpp
+@@ -7,6 +7,7 @@
+ 
+ #include "Common/GL/GLInterface/GLX.h"
+ #include "Common/Logging/Log.h"
++#include "../../../../../../include/gui.h"
+ 
+ #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
+ #define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
+@@ -24,21 +25,25 @@ static PFNGLXCREATEGLXPBUFFERSGIXPROC glXCreateGLXPbufferSGIX = nullptr;
+ static PFNGLXDESTROYGLXPBUFFERSGIXPROC glXDestroyGLXPbufferSGIX = nullptr;
+ 
+ static bool s_glxError;
+-static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
+-{
+-  s_glxError = true;
+-  return 0;
+-}
++//jc static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
++//jc {
++//jc   s_glxError = true;
++//jc   return 0;
++//jc }
+ 
+ GLContextGLX::~GLContextGLX()
+ {
++  #ifdef JC_DEBUGGING  
++  printf("jc GLContextGLX::~GLContextGLX() \n");
++  #endif
+   DestroyWindowSurface();
+   if (m_context)
+   {
+-    if (glXGetCurrentContext() == m_context)
+-      glXMakeCurrent(m_display, None, nullptr);
+-
+-    glXDestroyContext(m_display, m_context);
++    SDL_GL_DeleteContext(m_context);
++//jc    if (glXGetCurrentContext() == m_context)
++//jc      glXMakeCurrent(m_display, None, nullptr);
++//jc
++//jc    glXDestroyContext(m_display, m_context);
+   }
+ }
+ 
+@@ -49,6 +54,13 @@ bool GLContextGLX::IsHeadless() const
+ 
+ void GLContextGLX::SwapInterval(int Interval)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc GLContextGLX::SwapInterval() \n");
++    #endif
++    #define immediate_updates 0
++    #define updates_synchronized 1
++    SDL_GL_SetSwapInterval(updates_synchronized);
++    /*
+   if (!m_drawable)
+     return;
+ 
+@@ -59,6 +71,7 @@ void GLContextGLX::SwapInterval(int Interval)
+     glXSwapIntervalMESAPtr(static_cast<unsigned int>(Interval));
+   else
+     ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
++    */
+ }
+ 
+ void* GLContextGLX::GetFuncAddress(const std::string& name)
+@@ -68,15 +81,20 @@ void* GLContextGLX::GetFuncAddress(const std::string& name)
+ 
+ void GLContextGLX::Swap()
+ {
+-  glXSwapBuffers(m_display, m_drawable);
++  //glXSwapBuffers(m_display, m_drawable);
++  SDL_GL_SwapWindow(gWindow);
+ }
+ 
+ // Create rendering window.
+ // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
+ {
++  #warning "JC: modified"
++  #ifdef JC_DEBUGGING  
++  printf("jc GLContextGLX::Initialize() stereo: %i, core %i\n",stereo,core);
++  #endif
+   m_display = static_cast<Display*>(wsi.display_connection);
+-  int screen = DefaultScreen(m_display);
++  int screen = SDL_GetWindowDisplayIndex(gWindow);
+ 
+   // checking glx version
+   int glxMajorVersion, glxMinorVersion;
+@@ -95,9 +113,11 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+   {
+     ERROR_LOG(VIDEO,
+               "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
++    printf("glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?\n");
+     return false;
+   }
+-
++  
++  /*
+   // choosing framebuffer
+   int visual_attribs[] = {GLX_X_RENDERABLE,
+                           True,
+@@ -120,7 +140,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+                           GLX_STEREO,
+                           stereo ? True : False,
+                           None};
+-  int fbcount = 0;
++  
++  //jc int fbcount = 0;
+   GLXFBConfig* fbc = glXChooseFBConfig(m_display, screen, visual_attribs, &fbcount);
+   if (!fbc || !fbcount)
+   {
+@@ -129,13 +150,16 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+   }
+   m_fbconfig = *fbc;
+   XFree(fbc);
+-
++  
+   s_glxError = false;
+   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+-
++  */
++  
+   // Create a GLX context.
+   if (core)
+   {
++      m_context = SDL_GL_CreateContext(gWindow);
++      /*
+     for (const auto& version : s_desktop_opengl_versions)
+     {
+       std::array<int, 9> context_attribs = {
+@@ -153,9 +177,10 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+       INFO_LOG(VIDEO, "Created a GLX context with version %d.%d", version.first, version.second);
+       m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
+       break;
+-    }
++    }*/
+   }
+-
++  
++  /*
+   // Failed to create any core contexts, try for anything.
+   if (!m_context || s_glxError)
+   {
+@@ -170,16 +195,17 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+   if (!m_context || s_glxError)
+   {
+     ERROR_LOG(VIDEO, "Unable to create GL context.");
+-    XSetErrorHandler(oldHandler);
++   //jc XSetErrorHandler(oldHandler);
+     return false;
+   }
++  */
+ 
+   glXSwapIntervalEXTPtr = nullptr;
+   glXSwapIntervalMESAPtr = nullptr;
+   glXCreateGLXPbufferSGIX = nullptr;
+   glXDestroyGLXPbufferSGIX = nullptr;
+   m_supports_pbuffer = false;
+-
++  
+   std::string tmp;
+   std::istringstream buffer(glXQueryExtensionsString(m_display, screen));
+   while (buffer >> tmp)
+@@ -207,33 +233,41 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
+   if (!CreateWindowSurface(reinterpret_cast<Window>(wsi.render_surface)))
+   {
+     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+-    XSetErrorHandler(oldHandler);
++    printf("Error: CreateWindowSurface failed\n");
++    //jcXSetErrorHandler(oldHandler);
+     return false;
+   }
+ 
+-  XSetErrorHandler(oldHandler);
++  //jcXSetErrorHandler(oldHandler);
+   m_opengl_mode = Mode::OpenGL;
++  #ifdef JC_DEBUGGING
++  printf("jc GLContextGLX::Initialize() end\n");
++  #endif
+   return MakeCurrent();
+ }
+ 
+ std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
+ {
++  #warning "JC: modified"
++  #ifdef JC_DEBUGGING
++  printf("jc GLContextGLX::CreateSharedContext()\n");
++  #endif
+   s_glxError = false;
+-  XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
++  //jcXErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+ 
+-  GLXContext new_glx_context =
+-      glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
+-  XSync(m_display, False);
++  //jcGLXContext new_glx_context =
++  //jc    glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
++  //XSync(m_display, False);
+ 
+-  if (!new_glx_context || s_glxError)
++  /*if (!new_glx_context || s_glxError)
+   {
+     ERROR_LOG(VIDEO, "Unable to create GL context.");
+     XSetErrorHandler(oldHandler);
+     return nullptr;
+-  }
++  }*/
+ 
+   std::unique_ptr<GLContextGLX> new_context = std::make_unique<GLContextGLX>();
+-  new_context->m_context = new_glx_context;
++  new_context->m_context = m_context;
+   new_context->m_opengl_mode = m_opengl_mode;
+   new_context->m_supports_pbuffer = m_supports_pbuffer;
+   new_context->m_display = m_display;
+@@ -243,16 +277,19 @@ std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
+   if (m_supports_pbuffer && !new_context->CreateWindowSurface(None))
+   {
+     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed");
+-    XSetErrorHandler(oldHandler);
++    printf("Error: CreateWindowSurface failed\n");
++    //jcXSetErrorHandler(oldHandler);
+     return nullptr;
+   }
+ 
+-  XSetErrorHandler(oldHandler);
++  //jcXSetErrorHandler(oldHandler);
+   return new_context;
+ }
+ 
+ bool GLContextGLX::CreateWindowSurface(Window window_handle)
+ {
++    #warning "JC: modified"
++    /*
+   if (window_handle)
+   {
+     // Get an appropriate visual
+@@ -273,33 +310,62 @@ bool GLContextGLX::CreateWindowSurface(Window window_handle)
+       return false;
+ 
+     m_drawable = static_cast<GLXDrawable>(m_pbuffer);
+-  }
++  }*/
++  int w,h;
++  SDL_GetWindowSize(gWindow,&w,&h);
++  m_backbuffer_width = w;
++  m_backbuffer_height = h;
++  #ifdef JC_DEBUGGING
++  printf("jc GLContextGLX::CreateWindowSurface() width: %i, height: %i\n",m_backbuffer_width,m_backbuffer_height);
++  #endif
++  
++  XVisualInfo* vi = NULL;
++  m_render_window = GLX11Window::Create(m_display, window_handle, vi);
+ 
+   return true;
+ }
+ 
+ void GLContextGLX::DestroyWindowSurface()
+ {
+-  m_render_window.reset();
++  //jc m_render_window.reset();
+   if (m_supports_pbuffer && m_pbuffer)
+   {
+-    glXDestroyGLXPbufferSGIX(m_display, m_pbuffer);
++    //jc glXDestroyGLXPbufferSGIX(m_display, m_pbuffer);
+     m_pbuffer = 0;
+   }
+ }
+ 
+ bool GLContextGLX::MakeCurrent()
+ {
+-  return glXMakeCurrent(m_display, m_drawable, m_context);
++  bool ok = ((SDL_GL_MakeCurrent(gWindow, m_context) == 0));
++  #ifdef JC_DEBUGGING
++  if (ok) 
++  {
++      printf("jc GLContextGLX::MakeCurrent() ok\n");
++  }
++  else
++  {
++      printf("jc GLContextGLX::MakeCurrent() not ok %s\n", SDL_GetError());
++  }
++  #endif
++  //jcreturn glXMakeCurrent(m_display, m_drawable, m_context);
++  return true;
+ }
+ 
+ bool GLContextGLX::ClearCurrent()
+ {
+-  return glXMakeCurrent(m_display, None, nullptr);
++  #ifdef JC_DEBUGGING
++  printf("jc GLContextGLX::ClearCurrent()\n");
++  #endif
++  //jc return glXMakeCurrent(m_display, None, nullptr);
++  return true;
+ }
+ 
+ void GLContextGLX::Update()
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc GLContextGLX::Update()\n");
++    #endif
+   m_render_window->UpdateDimensions();
+   m_backbuffer_width = m_render_window->GetWidth();
+   m_backbuffer_height = m_render_window->GetHeight();
+diff --git a/Source/Core/Common/GL/GLInterface/GLX.h b/Source/Core/Common/GL/GLInterface/GLX.h
+index 6ce2c21..e7dd39e 100644
+--- a/Source/Core/Common/GL/GLInterface/GLX.h
++++ b/Source/Core/Common/GL/GLInterface/GLX.h
+@@ -9,6 +9,7 @@
+ #include <memory>
+ #include <string>
+ #include <vector>
++#include <SDL.h>
+ 
+ #include "Common/GL/GLContext.h"
+ #include "Common/GL/GLX11Window.h"
+@@ -39,7 +40,7 @@ protected:
+   std::unique_ptr<GLX11Window> m_render_window;
+ 
+   GLXDrawable m_drawable = {};
+-  GLXContext m_context = nullptr;
++  SDL_GLContext m_context = nullptr;
+   GLXFBConfig m_fbconfig = {};
+   bool m_supports_pbuffer = false;
+   GLXPbufferSGIX m_pbuffer = 0;
+diff --git a/Source/Core/Common/GL/GLX11Window.cpp b/Source/Core/Common/GL/GLX11Window.cpp
+index 681adaa..be5df8b 100644
+--- a/Source/Core/Common/GL/GLX11Window.cpp
++++ b/Source/Core/Common/GL/GLX11Window.cpp
+@@ -4,6 +4,7 @@
+ 
+ #include "Common/GL/GLX11Window.h"
+ #include "Common/GL/GLContext.h"
++#include "../../../../../include/gui.h"
+ 
+ GLX11Window::GLX11Window(Display* display, Window parent_window, Colormap color_map, Window window,
+                          int width, int height)
+@@ -14,39 +15,48 @@ GLX11Window::GLX11Window(Display* display, Window parent_window, Colormap color_
+ 
+ GLX11Window::~GLX11Window()
+ {
+-  XUnmapWindow(m_display, m_window);
+-  XDestroyWindow(m_display, m_window);
+-  XFreeColormap(m_display, m_color_map);
++  //jc XUnmapWindow(m_display, m_window);
++  //jc XDestroyWindow(m_display, m_window);
++  //jc XFreeColormap(m_display, m_color_map);
+ }
+ 
+ void GLX11Window::UpdateDimensions()
+ {
+-  XWindowAttributes attribs;
+-  XGetWindowAttributes(m_display, m_parent_window, &attribs);
+-  XResizeWindow(m_display, m_window, attribs.width, attribs.height);
+-  m_width = attribs.width;
+-  m_height = attribs.height;
++    #ifdef JC_DEBUGGING
++    printf("jc GLX11Window::UpdateDimensions()\n");
++    #endif
++  //jc XWindowAttributes attribs;
++  //jc XGetWindowAttributes(m_display, m_parent_window, &attribs);
++  //jc XResizeWindow(m_display, m_window, attribs.width, attribs.height);
++  
++  //if GLX11Window::UpdateDimensions() is called to soon after toggling fullscreen mode, 
++  //it reports the old screen dimension, hence the 100ms delay
++  SDL_Delay(100);
++  
++  SDL_GetWindowSize(gWindow,&m_width,&m_height);
+ }
+ 
+ std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent_window,
+                                                  XVisualInfo* vi)
+ {
+   // Set color map for the new window based on the visual.
+-  Colormap color_map = XCreateColormap(display, parent_window, vi->visual, AllocNone);
+-  XSetWindowAttributes attribs = {};
+-  attribs.colormap = color_map;
++  //jc Colormap color_map = XCreateColormap(display, parent_window, vi->visual, AllocNone);
++  Colormap color_map;
++  Window window;
++  //jc XSetWindowAttributes attribs = {};
++  //jc attribs.colormap = color_map;
+ 
+   // Get the dimensions from the parent window.
+   XWindowAttributes parent_attribs = {};
+-  XGetWindowAttributes(display, parent_window, &parent_attribs);
++  //jc XGetWindowAttributes(display, parent_window, &parent_attribs);
+ 
+   // Create the window
+-  Window window =
+-      XCreateWindow(display, parent_window, 0, 0, parent_attribs.width, parent_attribs.height, 0,
+-                    vi->depth, InputOutput, vi->visual, CWColormap, &attribs);
+-  XSelectInput(display, parent_window, StructureNotifyMask);
+-  XMapWindow(display, window);
+-  XSync(display, True);
++  //jc Window window =
++  //jc     XCreateWindow(display, parent_window, 0, 0, parent_attribs.width, parent_attribs.height, 0,
++  //jc                   vi->depth, InputOutput, vi->visual, CWColormap, &attribs);
++  //jc XSelectInput(display, parent_window, StructureNotifyMask);
++  //jc XMapWindow(display, window);
++  //jc XSync(display, True);
+ 
+   return std::make_unique<GLX11Window>(display, parent_window, color_map, window,
+                                        parent_attribs.width, parent_attribs.height);
+diff --git a/Source/Core/Common/IniFile.cpp b/Source/Core/Common/IniFile.cpp
+index 4e150cb..cf00806 100644
+--- a/Source/Core/Common/IniFile.cpp
++++ b/Source/Core/Common/IniFile.cpp
+@@ -255,9 +255,16 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
+     if (!std::getline(in, line_str))
+     {
+       if (in.eof())
+-        return true;
+-      else
++      {
++        if (first_line) // empty file
++          return false;
++        else
++          return true; // file found with some lines in it
++      }
++      else // file not found
++      {
+         return false;
++      }
+     }
+ 
+     std::string_view line = line_str;
+diff --git a/Source/Core/Core/Config/MainSettings.cpp b/Source/Core/Core/Config/MainSettings.cpp
+index fd1fde1..ab33e6e 100644
+--- a/Source/Core/Core/Config/MainSettings.cpp
++++ b/Source/Core/Core/Config/MainSettings.cpp
+@@ -60,7 +60,7 @@ const ConfigInfo<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""
+ ConfigInfo<u32> GetInfoForSIDevice(u32 channel)
+ {
+   return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
+-          static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
++          static_cast<u32>((channel == 0) || (channel == 1) ? SerialInterface::SIDEVICE_GC_CONTROLLER :
+                                           SerialInterface::SIDEVICE_NONE)};
+ }
+ 
+@@ -78,7 +78,7 @@ const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, tru
+ const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
+ const ConfigInfo<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
+ const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
+-    {System::Main, "Core", "WiimoteContinuousScanning"}, false};
++    {System::Main, "Core", "WiimoteContinuousScanning"}, true};
+ const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"},
+                                                    false};
+ const ConfigInfo<bool> MAIN_RUN_COMPARE_SERVER{{System::Main, "Core", "RunCompareServer"}, false};
+@@ -111,7 +111,7 @@ const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscCha
+ 
+ const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
+     {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
+-const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
++const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, true};
+ const ConfigInfo<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
+ const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
+ const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};
+diff --git a/Source/Core/Core/ConfigManager.cpp b/Source/Core/Core/ConfigManager.cpp
+index e56d590..c01bca7 100644
+--- a/Source/Core/Core/ConfigManager.cpp
++++ b/Source/Core/Core/ConfigManager.cpp
+@@ -98,6 +98,7 @@ void SConfig::SaveSettings()
+   SaveUSBPassthroughSettings(ini);
+   SaveAutoUpdateSettings(ini);
+   SaveJitDebugSettings(ini);
++  SaveDisplaySettings(ini);
+ 
+   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+ 
+@@ -360,6 +361,13 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
+   section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
+ }
+ 
++void SConfig::SaveDisplaySettings(IniFile& ini)
++{
++  IniFile::Section* section = ini.GetOrCreateSection("Display");
++
++  section->Set("Fullscreen", true);
++}
++
+ void SConfig::LoadSettings()
+ {
+   Config::Load();
+@@ -418,10 +426,10 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
+ {
+   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
+ 
+-  interface->Get("ConfirmStop", &bConfirmStop, true);
++  interface->Get("ConfirmStop", &bConfirmStop, false);
+   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
+   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
+-  interface->Get("HideCursor", &bHideCursor, false);
++  interface->Get("HideCursor", &bHideCursor, true);
+   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
+   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
+   interface->Get("ShowActiveTitle", &m_show_active_title, true);
+@@ -506,13 +514,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
+   for (size_t i = 0; i < std::size(m_SIDevice); ++i)
+   {
+     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
+-              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
++              (i == 0) || (i == 1)? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
+     core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
+     core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
+   }
+   core->Get("WiiSDCard", &m_WiiSDCard, true);
+   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
+-  core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
++  core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, true);
+   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
+   core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);
+   core->Get("RunCompareServer", &bRunCompareServer, false);
+@@ -530,7 +538,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
+   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
+   core->Get("Overclock", &m_OCFactor, 1.0f);
+   core->Get("OverclockEnable", &m_OCEnable, false);
+-  core->Get("GFXBackend", &m_strVideoBackend, "");
++  core->Get("GFXBackend", &m_strVideoBackend, "OGL");
+   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
+   core->Get("PerfMapDir", &m_perfDir, "");
+   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
+@@ -600,7 +608,7 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
+ 
+   analytics->Get("ID", &m_analytics_id, "");
+   analytics->Get("Enabled", &m_analytics_enabled, false);
+-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
++  analytics->Get("PermissionAsked", &m_analytics_permission_asked, true);
+ }
+ 
+ void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
+@@ -792,7 +800,7 @@ void SConfig::LoadDefaults()
+ 
+   m_analytics_id = "";
+   m_analytics_enabled = false;
+-  m_analytics_permission_asked = false;
++  m_analytics_permission_asked = true;
+ 
+   bLoopFifoReplay = true;
+ 
+diff --git a/Source/Core/Core/ConfigManager.h b/Source/Core/Core/ConfigManager.h
+index 052f402..277f203 100644
+--- a/Source/Core/Core/ConfigManager.h
++++ b/Source/Core/Core/ConfigManager.h
+@@ -349,6 +349,7 @@ private:
+   void SaveAnalyticsSettings(IniFile& ini);
+   void SaveBluetoothPassthroughSettings(IniFile& ini);
+   void SaveUSBPassthroughSettings(IniFile& ini);
++  void SaveDisplaySettings(IniFile& ini);
+   void SaveAutoUpdateSettings(IniFile& ini);
+   void SaveJitDebugSettings(IniFile& ini);
+ 
+diff --git a/Source/Core/Core/HW/GCKeyboardEmu.cpp b/Source/Core/Core/HW/GCKeyboardEmu.cpp
+index d7aceb4..a7b2d9e 100644
+--- a/Source/Core/Core/HW/GCKeyboardEmu.cpp
++++ b/Source/Core/Core/HW/GCKeyboardEmu.cpp
+@@ -125,9 +125,9 @@ KeyboardStatus GCKeyboard::GetInput() const
+   return kb;
+ }
+ 
+-void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
++void GCKeyboard::LoadDefaults(const ControllerInterface& ciface,int n)
+ {
+-  EmulatedController::LoadDefaults(ciface);
++  EmulatedController::LoadDefaults(ciface,n);
+ 
+   // Buttons
+   m_keys0x->SetControlExpression(5, "A");
+diff --git a/Source/Core/Core/HW/GCKeyboardEmu.h b/Source/Core/Core/HW/GCKeyboardEmu.h
+index 222113e..751cfab 100644
+--- a/Source/Core/Core/HW/GCKeyboardEmu.h
++++ b/Source/Core/Core/HW/GCKeyboardEmu.h
+@@ -35,7 +35,7 @@ public:
+   KeyboardStatus GetInput() const;
+   std::string GetName() const override;
+   ControllerEmu::ControlGroup* GetGroup(KeyboardGroup group);
+-  void LoadDefaults(const ControllerInterface& ciface) override;
++  void LoadDefaults(const ControllerInterface& ciface,int n) override;
+ 
+ private:
+   ControllerEmu::Buttons* m_keys0x;
+diff --git a/Source/Core/Core/HW/GCPadEmu.cpp b/Source/Core/Core/HW/GCPadEmu.cpp
+index c8e7016..b267c5d 100644
+--- a/Source/Core/Core/HW/GCPadEmu.cpp
++++ b/Source/Core/Core/HW/GCPadEmu.cpp
+@@ -26,6 +26,7 @@ static const u16 button_bitmasks[] = {
+     PAD_BUTTON_Y,
+     PAD_TRIGGER_Z,
+     PAD_BUTTON_START,
++    PAD_BUTTON_GUIDE,
+     0  // MIC HAX
+ };
+ 
+@@ -37,7 +38,8 @@ static const u16 trigger_bitmasks[] = {
+ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
+                                     PAD_BUTTON_RIGHT};
+ 
+-static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
++
++static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start","Guide"};
+ 
+ static const char* const named_triggers[] = {
+     // i18n: The left trigger button (labeled L on real controllers)
+@@ -180,78 +182,54 @@ void GCPad::SetOutput(const ControlState strength)
+   m_rumble->controls[0]->control_ref->State(strength);
+ }
+ 
+-void GCPad::LoadDefaults(const ControllerInterface& ciface)
++void GCPad::LoadDefaults(const ControllerInterface& ciface,int n)
+ {
+-  EmulatedController::LoadDefaults(ciface);
++    #warning "jc: modified" // analog triggers should be added
++  EmulatedController::LoadDefaults(ciface,n);
+ 
+   // Buttons
+-  m_buttons->SetControlExpression(0, "X");  // A
+-  m_buttons->SetControlExpression(1, "Z");  // B
+-  m_buttons->SetControlExpression(2, "C");  // X
+-  m_buttons->SetControlExpression(3, "S");  // Y
+-  m_buttons->SetControlExpression(4, "D");  // Z
+-#ifdef _WIN32
+-  m_buttons->SetControlExpression(5, "!LMENU & RETURN");  // Start
+-#else
+-  // OS X/Linux
+-  m_buttons->SetControlExpression(5, "!`Alt_L` & Return");  // Start
+-#endif
++  m_buttons->SetControlExpression(0, "`Button 0`");  // A
++  m_buttons->SetControlExpression(1, "`Button 1`");  // B
++  m_buttons->SetControlExpression(2, "`Button 2`");  // X
++  m_buttons->SetControlExpression(3, "`Button 3`");  // Y
++  m_buttons->SetControlExpression(4, "`Button 10`");  // Z
++  m_buttons->SetControlExpression(5, "`Button 6`");  // Start
++  m_buttons->SetControlExpression(6, "`Button 5`");  // Guide
++
+ 
+   // stick modifiers to 50 %
+   m_main_stick->controls[4]->control_ref->range = 0.5f;
+   m_c_stick->controls[4]->control_ref->range = 0.5f;
+ 
+   // D-Pad
+-  m_dpad->SetControlExpression(0, "T");  // Up
+-  m_dpad->SetControlExpression(1, "G");  // Down
+-  m_dpad->SetControlExpression(2, "F");  // Left
+-  m_dpad->SetControlExpression(3, "H");  // Right
++  m_dpad->SetControlExpression(0, "`Button 11`");  // Up
++  m_dpad->SetControlExpression(1, "`Button 12`");  // Down
++  m_dpad->SetControlExpression(2, "`Button 13`");  // Left
++  m_dpad->SetControlExpression(3, "`Button 14`");  // Right
+ 
+   // C Stick
+-  m_c_stick->SetControlExpression(0, "I");  // Up
+-  m_c_stick->SetControlExpression(1, "K");  // Down
+-  m_c_stick->SetControlExpression(2, "J");  // Left
+-  m_c_stick->SetControlExpression(3, "L");  // Right
+-#ifdef _WIN32
+-  m_c_stick->SetControlExpression(4, "LCONTROL");  // Modifier
+-
+-  // Control Stick
+-  m_main_stick->SetControlExpression(0, "UP");      // Up
+-  m_main_stick->SetControlExpression(1, "DOWN");    // Down
+-  m_main_stick->SetControlExpression(2, "LEFT");    // Left
+-  m_main_stick->SetControlExpression(3, "RIGHT");   // Right
+-  m_main_stick->SetControlExpression(4, "LSHIFT");  // Modifier
++  m_c_stick->SetControlExpression(0, "`Axis 3-`");  // Up
++  m_c_stick->SetControlExpression(1, "`Axis 3+`");  // Down
++  m_c_stick->SetControlExpression(2, "`Axis 2-`");  // Left
++  m_c_stick->SetControlExpression(3, "`Axis 2+`");  // Right
+ 
+-#elif __APPLE__
+-  // Modifier
+-  m_c_stick->SetControlExpression(4, "Left Control");
++  m_c_stick->SetControlExpression(4, "`Button 8`");  // Modifier
+ 
+   // Control Stick
+-  m_main_stick->SetControlExpression(0, "Up Arrow");     // Up
+-  m_main_stick->SetControlExpression(1, "Down Arrow");   // Down
+-  m_main_stick->SetControlExpression(2, "Left Arrow");   // Left
+-  m_main_stick->SetControlExpression(3, "Right Arrow");  // Right
+-  m_main_stick->SetControlExpression(4, "Left Shift");   // Modifier
+-#else
+-  // not sure if these are right
+-
+-  m_c_stick->SetControlExpression(4, "Control_L");  // Modifier
++  m_main_stick->SetControlExpression(0, "`Axis 1-`");       // Up
++  m_main_stick->SetControlExpression(1, "`Axis 1+`");     // Down
++  m_main_stick->SetControlExpression(2, "`Axis 0-`");     // Left
++  m_main_stick->SetControlExpression(3, "`Axis 0+`");    // Right
++  m_main_stick->SetControlExpression(4, "`Button 7`");  // Modifier
+ 
+-  // Control Stick
+-  m_main_stick->SetControlExpression(0, "Up");       // Up
+-  m_main_stick->SetControlExpression(1, "Down");     // Down
+-  m_main_stick->SetControlExpression(2, "Left");     // Left
+-  m_main_stick->SetControlExpression(3, "Right");    // Right
+-  m_main_stick->SetControlExpression(4, "Shift_L");  // Modifier
+-#endif
+ 
+   // Because our defaults use keyboard input, set calibration shapes to squares.
+   m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+   m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+ 
+   // Triggers
+-  m_triggers->SetControlExpression(0, "Q");  // L
+-  m_triggers->SetControlExpression(1, "W");  // R
++  m_triggers->SetControlExpression(0, "`Button 9`");  // L
++  m_triggers->SetControlExpression(1, "`Button 10`");  // R
+ }
+ 
+ bool GCPad::GetMicButton() const
+diff --git a/Source/Core/Core/HW/GCPadEmu.h b/Source/Core/Core/HW/GCPadEmu.h
+index 9134ba9..6460a54 100644
+--- a/Source/Core/Core/HW/GCPadEmu.h
++++ b/Source/Core/Core/HW/GCPadEmu.h
+@@ -44,7 +44,7 @@ public:
+ 
+   ControllerEmu::ControlGroup* GetGroup(PadGroup group);
+ 
+-  void LoadDefaults(const ControllerInterface& ciface) override;
++  void LoadDefaults(const ControllerInterface& ciface,int n) override;
+ 
+   static const u8 MAIN_STICK_GATE_RADIUS = 87;
+   static const u8 C_STICK_GATE_RADIUS = 74;
+diff --git a/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp b/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp
+index 548d626..e933e54 100644
+--- a/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp
++++ b/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp
+@@ -190,7 +190,7 @@ void Nunchuk::DoState(PointerWrap& p)
+   p.Do(m_shake_state);
+ }
+ 
+-void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
++void Nunchuk::LoadDefaults(const ControllerInterface& ciface,int n)
+ {
+   // Stick
+   m_stick->SetControlExpression(0, "W");  // up
+diff --git a/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.h b/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.h
+index 19236e2..fc1a30d 100644
+--- a/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.h
++++ b/Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.h
+@@ -168,7 +168,7 @@ public:
+   static constexpr u8 STICK_CENTER = 0x80;
+   static constexpr u8 STICK_RADIUS = 0x7F;
+ 
+-  void LoadDefaults(const ControllerInterface& ciface) override;
++  void LoadDefaults(const ControllerInterface& ciface,int n) override;
+ 
+ private:
+   ControllerEmu::Tilt* m_tilt;
+diff --git a/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp b/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp
+index cd05f70..540052e 100644
+--- a/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp
++++ b/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp
+@@ -676,9 +676,9 @@ bool Wiimote::CheckForButtonPress()
+   return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
+ }
+ 
+-void Wiimote::LoadDefaults(const ControllerInterface& ciface)
++void Wiimote::LoadDefaults(const ControllerInterface& ciface,int n)
+ {
+-  EmulatedController::LoadDefaults(ciface);
++  EmulatedController::LoadDefaults(ciface,n);
+ 
+ // Buttons
+ #if defined HAVE_X11 && HAVE_X11
+@@ -748,7 +748,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
+   // Enable Nunchuk:
+   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
+   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
+-  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
++  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface,0);
+ }
+ 
+ Extension* Wiimote::GetNoneExtension() const
+diff --git a/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.h b/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.h
+index fe57640..ece55b8 100644
+--- a/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.h
++++ b/Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.h
+@@ -112,7 +112,7 @@ public:
+   explicit Wiimote(unsigned int index);
+ 
+   std::string GetName() const override;
+-  void LoadDefaults(const ControllerInterface& ciface) override;
++  void LoadDefaults(const ControllerInterface& ciface, int n) override;
+ 
+   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
+   ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
+diff --git a/Source/Core/Core/HW/WiimoteReal/IOLinux.cpp b/Source/Core/Core/HW/WiimoteReal/IOLinux.cpp
+index aa094aa..18d5544 100644
+--- a/Source/Core/Core/HW/WiimoteReal/IOLinux.cpp
++++ b/Source/Core/Core/HW/WiimoteReal/IOLinux.cpp
+@@ -22,6 +22,7 @@ WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
+   if (m_device_id < 0)
+   {
+     NOTICE_LOG(WIIMOTE, "Bluetooth not found.");
++    printf("WiimoteScanner Bluetooth not found\n");
+     return;
+   }
+ 
+@@ -30,6 +31,7 @@ WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
+   if (m_device_sock < 0)
+   {
+     ERROR_LOG(WIIMOTE, "Unable to open Bluetooth.");
++    printf("WiimoteScanner Unable to open Bluetooth\n");
+     return;
+   }
+ }
+@@ -47,6 +49,7 @@ bool WiimoteScannerLinux::IsReady() const
+ 
+ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+ {
++    
+   // supposedly 1.28 seconds
+   int const wait_len = 1;
+ 
+@@ -64,25 +67,30 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
+   if (found_devices < 0)
+   {
+     ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
++    printf("WiimoteScanner Error searching for Bluetooth devices\n");
+     return;
+   }
+ 
+   DEBUG_LOG(WIIMOTE, "Found %i Bluetooth device(s).", found_devices);
++  //printf("WiimoteScanner Found %i Bluetooth device(s)\n", found_devices);
+ 
+   // Display discovered devices
+   for (int i = 0; i < found_devices; ++i)
+   {
+     NOTICE_LOG(WIIMOTE, "found a device...");
++    printf("WiimoteScanner found a device...\n");
+ 
+     // BT names are a maximum of 248 bytes apparently
+     char name[255] = {};
+     if (hci_read_remote_name(m_device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
+     {
+       ERROR_LOG(WIIMOTE, "name request failed");
++      printf("WiimoteScanner name request failed\n");
+       continue;
+     }
+ 
+     NOTICE_LOG(WIIMOTE, "device name %s", name);
++    printf("WiimoteScanner device name %s\n", name);
+     if (!IsValidDeviceName(name))
+       continue;
+ 
+@@ -98,11 +106,13 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
+     {
+       found_board = wm;
+       NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
++      printf("Found balance board (%s)\n", bdaddr_str);
+     }
+     else
+     {
+       found_wiimotes.push_back(wm);
+       NOTICE_LOG(WIIMOTE, "Found Wiimote (%s).", bdaddr_str);
++      printf("WiimoteScanner Found Wiimote (%s)\n", bdaddr_str);
+     }
+   }
+ }
+@@ -118,6 +128,7 @@ WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : m_bdaddr(bdaddr)
+   if (pipe(fds))
+   {
+     ERROR_LOG(WIIMOTE, "pipe failed");
++    printf("WiimoteScanner pipe failed\n");
+     abort();
+   }
+   m_wakeup_pipe_w = fds[1];
+@@ -150,6 +161,7 @@ bool WiimoteLinux::ConnectInternal()
+       if (retry == 3)
+       {
+         WARN_LOG(WIIMOTE, "Unable to connect output channel to Wiimote: %s", strerror(errno));
++        printf("WiimoteScanner Unable to connect output channel to Wiimote: %s\n", strerror(errno));
+         close(m_cmd_sock);
+         m_cmd_sock = -1;
+         return false;
+@@ -161,6 +173,7 @@ bool WiimoteLinux::ConnectInternal()
+   else
+   {
+     WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", strerror(errno));
++    printf("WiimoteScanner Unable to open output socket to Wiimote: %s\n", strerror(errno));
+     return false;
+   }
+ 
+@@ -175,6 +188,7 @@ bool WiimoteLinux::ConnectInternal()
+       if (retry == 3)
+       {
+         WARN_LOG(WIIMOTE, "Unable to connect input channel to Wiimote: %s", strerror(errno));
++        printf("WiimoteScanner Unable to connect input channel to Wiimote: %s\n", strerror(errno));
+         close(m_int_sock);
+         close(m_cmd_sock);
+         m_int_sock = m_cmd_sock = -1;
+@@ -187,6 +201,7 @@ bool WiimoteLinux::ConnectInternal()
+   else
+   {
+     WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", strerror(errno));
++    printf("WiimoteScanner Unable to open input socket from Wiimote: %s\n", strerror(errno));
+     close(m_cmd_sock);
+     m_int_sock = m_cmd_sock = -1;
+     return false;
+@@ -197,6 +212,7 @@ bool WiimoteLinux::ConnectInternal()
+ 
+ void WiimoteLinux::DisconnectInternal()
+ {
++    printf("WiimoteLinux::DisconnectInternal\n");
+   close(m_cmd_sock);
+   close(m_int_sock);
+ 
+@@ -215,63 +231,95 @@ void WiimoteLinux::IOWakeup()
+   if (write(m_wakeup_pipe_w, &c, 1) != 1)
+   {
+     ERROR_LOG(WIIMOTE, "Unable to write to wakeup pipe.");
++    printf("WiimoteScanner Unable to write to wakeup pipe\n");
+   }
+ }
+ 
+ // positive = read packet
+ // negative = didn't read packet
+ // zero = error
++bool busy;
+ int WiimoteLinux::IORead(u8* buf)
+ {
+-  std::array<pollfd, 2> pollfds = {};
+-
+-  auto& poll_wakeup = pollfds[0];
+-  poll_wakeup.fd = m_wakeup_pipe_r;
+-  poll_wakeup.events = POLLIN;
+-
+-  auto& poll_sock = pollfds[1];
+-  poll_sock.fd = m_int_sock;
+-  poll_sock.events = POLLIN;
+-
+-  if (poll(pollfds.data(), pollfds.size(), -1) == -1)
++  if (!busy) 
+   {
+-    ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
+-    return -1;
+-  }
++      busy=true;
++      std::array<pollfd, 2> pollfds = {};
+ 
+-  if (poll_wakeup.revents & POLLIN)
+-  {
+-    char c;
+-    if (read(m_wakeup_pipe_r, &c, 1) != 1)
+-    {
+-      ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
+-    }
+-    return -1;
+-  }
++      auto& poll_wakeup = pollfds[0];
++      poll_wakeup.fd = m_wakeup_pipe_r;
++      poll_wakeup.events = POLLIN;
+ 
+-  if (!(poll_sock.revents & POLLIN))
+-    return -1;
++      auto& poll_sock = pollfds[1];
++      poll_sock.fd = m_int_sock;
++      poll_sock.events = POLLIN;
+ 
+-  // Read the pending message into the buffer
+-  int r = read(m_int_sock, buf, MAX_PAYLOAD);
+-  if (r == -1)
+-  {
+-    // Error reading data
+-    ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
++      if (poll(pollfds.data(), pollfds.size(), -1) == -1)
++      {
++        ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
++        printf("WiimoteScanner Unable to poll Wiimote %i input socket\n", m_index + 1);
++        busy = false;
++        return -1;
++      }
+ 
+-    if (errno == ENOTCONN)
+-    {
+-      // This can happen if the Bluetooth dongle is disconnected
+-      ERROR_LOG(WIIMOTE,
+-                "Bluetooth appears to be disconnected.  "
+-                "Wiimote %i will be disconnected.",
+-                m_index + 1);
+-    }
++      if (poll_wakeup.revents & POLLIN)
++      {
++        char c;
++        if (read(m_wakeup_pipe_r, &c, 1) != 1)
++        {
++          ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
++          printf("WiimoteScanner Unable to read from wakeup pipe\n");
++        }
++        //printf("WiimoteLinux::IORead return -1\n");
++        busy = false;
++        return -1;
++      }
+ 
+-    r = 0;
+-  }
++      if (!(poll_sock.revents & POLLIN))
++      {
++          //printf("WiimoteLinux::IORead return -1\n");
++          busy = false;
++        return -1;
++      }
+ 
+-  return r;
++      // Read the pending message into the buffer
++      int r = read(m_int_sock, buf, MAX_PAYLOAD);
++      if (r == -1)
++      {
++        // Error reading data
++        ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
++        printf("WiimoteScanner Receiving data from Wiimote %i\n", m_index + 1);
++
++        if (errno == ENOTCONN)
++        {
++          // This can happen if the Bluetooth dongle is disconnected
++          ERROR_LOG(WIIMOTE,
++                    "Bluetooth appears to be disconnected.  "
++                    "Wiimote %i will be disconnected.",
++                    m_index + 1);
++          printf("WiimoteScanner Bluetooth appears to be disconnected. Wiimote %i will be disconnected\n",m_index + 1);
++        }
++
++        r = 0;
++      }
++      #warning "jc: debug code"
++      /*
++        if (r >= 1)
++        {
++            printf("IORead %i bytes received !! ",r);
++            for (int i=0;i<r;i++)
++            {
++                printf("[%i] 0x%02x, ",i,buf[i]);
++            }
++            printf("\n");
++
++        }*/
++        
++        
++      busy = false;
++      return r;
++    }
++    return -1;
+ }
+ 
+ int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
+diff --git a/Source/Core/Core/HW/WiimoteReal/WiimoteReal.cpp b/Source/Core/Core/HW/WiimoteReal/WiimoteReal.cpp
+index 031ad16..5fc69ab 100644
+--- a/Source/Core/Core/HW/WiimoteReal/WiimoteReal.cpp
++++ b/Source/Core/Core/HW/WiimoteReal/WiimoteReal.cpp
+@@ -76,6 +76,7 @@ static WiimoteScanner s_wiimote_scanner;
+ // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
+ static void TryToFillWiimoteSlot(u32 index)
+ {
++    //printf("TryToFillWiimoteSlot(u32 index) index=%i\n", index);
+   std::lock_guard lk(g_wiimotes_mutex);
+ 
+   if (g_wiimotes[index] || WiimoteCommon::GetSource(index) != WiimoteSource::Real)
+@@ -126,8 +127,13 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
+   if (!wiimote->Connect(POOL_WIIMOTE_INDEX))
+   {
+     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
++    printf("AddWiimoteToPool Failed to connect real wiimote\n");
+     return;
+   }
++  else
++  {
++      //printf("AddWiimoteToPool successfully connected\n");
++  }
+ 
+   std::lock_guard lk(g_wiimotes_mutex);
+   s_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wiimote)});
+@@ -150,6 +156,15 @@ void Wiimote::Shutdown()
+ // to be called from CPU thread
+ void Wiimote::WriteReport(Report rpt)
+ {
++    /*printf("jc Wiimote::WriteReport ");
++    
++    for (unsigned int i=0;i<rpt.size();i++)
++    {
++        printf("[%i] 0x%02x, ",i,rpt[i]);
++    }
++    printf("\n");*/
++    
++    
+   if (rpt.size() >= 3)
+   {
+     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
+@@ -228,7 +243,8 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
+   {
+     if (m_really_disconnect)
+     {
+-      DisconnectInternal();
++        #warning "jc: modified" // no disconnect after emu stops
++      //DisconnectInternal();
+     }
+     else
+     {
+@@ -247,8 +263,51 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
+   }
+ }
+ 
++u16 Wiimote::getWiiButtons(int cmd)
++{
++    m_channel=1;
++    if (cmd)
++    {
++        
++        if(cmd==1) 
++        {
++            //printf("jc1 Wiimote::getWiiButtons() 1\n");
++            // Reporting Mode "Core Buttons", continous
++            Report rpt = {0xa2,0x12,0x06,0x30};
++            WriteReport(rpt);
++        }
++
++        if (!Write())
++        {
++          printf("Wiimote::Write failed \n");
++        }
++    }
++    Read();
++    
++    
++    Report& rpt_in = ProcessReadQueue();
++    
++    if (rpt_in.size() >= 4)
++    {
++        const auto mode = InputReportID(rpt_in[1]);
++    
++        if (DataReportBuilder::IsValidMode(mode))
++        {
++            
++          auto builder = MakeDataReportManipulator(mode, rpt_in.data() + 2);
++          ButtonData buttons = {};
++          builder->GetCoreData(&buttons);
++
++          return buttons.hex;
++        }
++    }
++    return 0;
++}
++
+ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
+ {
++    
++    //printf("jc Wiimote::InterruptChannel channel %i, size %i)\n",channel,size);
+   // first interrupt/control channel sent
+   if (channel != m_channel)
+   {
+@@ -301,13 +360,22 @@ void Wiimote::Read()
+ 
+   if (result > 0 && m_channel > 0)
+   {
++      /*printf("jc Wiimote::Read data received  ");
++      
++    for (unsigned int i=0;i<rpt.size();i++)
++    {
++        printf("[%i] 0x%02x, ",i,rpt[i]);
++    }
++    printf("\n");*/
++    
++      
+     if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+     {
+       static sf::UdpSocket Socket;
+       Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
+                   SConfig::GetInstance().iBBDumpPort);
+     }
+-
++    
+     // Add it to queue
+     rpt.resize(result);
+     m_read_reports.Push(std::move(rpt));
+@@ -315,6 +383,7 @@ void Wiimote::Read()
+   else if (0 == result)
+   {
+     ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
++    printf("jc Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
+     DisconnectInternal();
+   }
+ }
+@@ -323,7 +392,13 @@ bool Wiimote::Write()
+ {
+   // nothing written, but this is not an error
+   if (m_write_reports.Empty())
++  {
+     return true;
++  }
++  else
++  {
++      //printf("jc Wiimote::Write() sending data\n");
++  }
+ 
+   Report const& rpt = m_write_reports.Front();
+ 
+@@ -420,6 +495,7 @@ bool Wiimote::IsBalanceBoard()
+ 
+ static bool IsDataReport(const Report& rpt)
+ {
++    
+   return rpt.size() >= 2 && rpt[1] >= u8(InputReportID::ReportCore);
+ }
+ 
+@@ -431,14 +507,16 @@ bool Wiimote::GetNextReport(Report* report)
+ // Returns the next report that should be sent
+ Report& Wiimote::ProcessReadQueue()
+ {
++    
+   // Pop through the queued reports
+   while (GetNextReport(&m_last_input_report))
+   {
+     if (!IsDataReport(m_last_input_report))
+     {
+       // A non-data report, use it.
++      //printf("ProcessReadQueue() return non-data report\n");
+       return m_last_input_report;
+-
++       
+       // Forget the last data report as it may be of the wrong type
+       // or contain outdated button data
+       // or it's not supposed to be sent at this time
+@@ -448,8 +526,9 @@ Report& Wiimote::ProcessReadQueue()
+ 
+   // If the last report wasn't a data report it's irrelevant.
+   if (!IsDataReport(m_last_input_report))
++  {
+     m_last_input_report.clear();
+-
++  }
+   // If it was a data report, we repeat that until something else comes in.
+   return m_last_input_report;
+ }
+@@ -557,13 +636,16 @@ static unsigned int CalculateWantedBB()
+     ++wanted_bb;
+   return wanted_bb;
+ }
+-
++bool scan_thread_already_running = false;
+ void WiimoteScanner::StartThread()
+ {
+-  if (m_scan_thread_running.IsSet())
+-    return;
+-  m_scan_thread_running.Set();
+-  m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
++  if (!scan_thread_already_running)
++  {
++      if (m_scan_thread_running.IsSet())
++        return;
++      m_scan_thread_running.Set();
++      m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
++  }
+ }
+ 
+ void WiimoteScanner::StopThread()
+@@ -650,6 +732,7 @@ void WiimoteScanner::ThreadFunc()
+   Common::SetCurrentThreadName("Wiimote Scanning Thread");
+ 
+   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
++  printf("WiimoteScanner Wiimote scanning thread has started\n");
+ 
+   // Create and destroy scanner backends here to ensure all operations stay on the same thread. The
+   // HIDAPI backend on macOS has an error condition when IOHIDManagerCreate and IOHIDManagerClose
+@@ -667,8 +750,9 @@ void WiimoteScanner::ThreadFunc()
+ 
+   while (m_scan_thread_running.IsSet())
+   {
++      //printf("WiimoteScanner m_scan_thread_running\n");
+     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
+-
++    
+     // Does stuff needed to detect disconnects on Windows
+     for (const auto& backend : m_backends)
+       backend->Update();
+@@ -726,6 +810,7 @@ void WiimoteScanner::ThreadFunc()
+     // Stop scanning if not in continous mode.
+     auto scan_mode = WiimoteScanMode::SCAN_ONCE;
+     m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
++    
+   }
+ 
+   {
+@@ -736,6 +821,7 @@ void WiimoteScanner::ThreadFunc()
+   pool_thread.join();
+ 
+   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
++  printf("WiimoteScanner Wiimote scanning thread has stopped\n");
+ }
+ 
+ bool Wiimote::Connect(int index)
+@@ -829,8 +915,17 @@ void LoadSettings()
+     secname += static_cast<char>('1' + i);
+     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
+ 
++    #define MAX_GAMEPADS_MARLEY 2
+     unsigned int source = 0;
+-    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
++    if (i<MAX_GAMEPADS_MARLEY)
++    {
++        sec.Get("Source", &source, int(WiimoteSource::Real));
++    }
++    else
++    {
++        sec.Get("Source", &source, int(WiimoteSource::None));
++    }
++    
+     WiimoteCommon::SetSource(i, WiimoteSource(source));
+   }
+ 
+@@ -845,6 +940,7 @@ void LoadSettings()
+ // config dialog calls this when some settings change
+ void Initialize(::Wiimote::InitializeMode init_mode)
+ {
++    
+   if (!g_real_wiimotes_initialized)
+   {
+     s_wiimote_scanner.StartThread();
+@@ -873,6 +969,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
+   NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
+ 
+   g_real_wiimotes_initialized = true;
++  
+ }
+ 
+ // called on emulation shutdown
+@@ -923,6 +1020,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
+   if (!wm->Connect(i))
+   {
+     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
++    printf("TryToConnectWiimoteToSlot Failed to connect real wiimote\n");
+     return false;
+   }
+ 
+@@ -934,9 +1032,11 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
+   wm->QueueReport(led_report);
+ 
+   g_wiimotes[i] = std::move(wm);
++  
+   Core::RunAsCPUThread([i] { ::Wiimote::Connect(i, true); });
+ 
+   NOTICE_LOG(WIIMOTE, "Connected real wiimote to slot %i.", i + 1);
++  printf("TryToConnectWiimoteToSlot Connected real wiimote to slot %i\n", i + 1);
+ 
+   return true;
+ }
+diff --git a/Source/Core/Core/HW/WiimoteReal/WiimoteReal.h b/Source/Core/Core/HW/WiimoteReal/WiimoteReal.h
+index 14aa2b9..3192ebf 100644
+--- a/Source/Core/Core/HW/WiimoteReal/WiimoteReal.h
++++ b/Source/Core/Core/HW/WiimoteReal/WiimoteReal.h
+@@ -62,6 +62,7 @@ public:
+ 
+   void ControlChannel(const u16 channel, const void* const data, const u32 size);
+   void InterruptChannel(const u16 channel, const void* const data, const u32 size);
++  u16 getWiiButtons(int cmd);
+   void Update();
+   bool CheckForButtonPress();
+ 
+diff --git a/Source/Core/Core/HotkeyManager.cpp b/Source/Core/Core/HotkeyManager.cpp
+index 8e66a9e..29eff6b 100644
+--- a/Source/Core/Core/HotkeyManager.cpp
++++ b/Source/Core/Core/HotkeyManager.cpp
+@@ -398,9 +398,9 @@ int HotkeyManager::GetIndexForGroup(int group, int id) const
+   return id - s_groups_info[group].first;
+ }
+ 
+-void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
++void HotkeyManager::LoadDefaults(const ControllerInterface& ciface,int n)
+ {
+-  EmulatedController::LoadDefaults(ciface);
++  EmulatedController::LoadDefaults(ciface,n);
+ 
+ #ifdef _WIN32
+   const std::string NON = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";
+diff --git a/Source/Core/Core/HotkeyManager.h b/Source/Core/Core/HotkeyManager.h
+index c52bb77..285d070 100644
+--- a/Source/Core/Core/HotkeyManager.h
++++ b/Source/Core/Core/HotkeyManager.h
+@@ -219,7 +219,7 @@ public:
+   ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
+   int FindGroupByID(int id) const;
+   int GetIndexForGroup(int group, int id) const;
+-  void LoadDefaults(const ControllerInterface& ciface) override;
++  void LoadDefaults(const ControllerInterface& ciface,int n) override;
+ 
+ private:
+   std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;
+diff --git a/Source/Core/Core/PowerPC/Jit64/Jit.cpp b/Source/Core/Core/PowerPC/Jit64/Jit.cpp
+index d34eb55..979da12 100644
+--- a/Source/Core/Core/PowerPC/Jit64/Jit.cpp
++++ b/Source/Core/Core/PowerPC/Jit64/Jit.cpp
+@@ -1189,7 +1189,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
+     DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %08x %s\n", op.address, disasm.c_str());
+   }
+ 
+-  disassembler x64disasm;
++  DO_disassembler x64disasm;
+   x64disasm.set_syntax_intel();
+ 
+   u64 disasmPtr = reinterpret_cast<u64>(normalEntry);
+diff --git a/Source/Core/DolphinNoGUI/CMakeLists.txt b/Source/Core/DolphinNoGUI/CMakeLists.txt
+index 3943582..9fd2a7e 100644
+--- a/Source/Core/DolphinNoGUI/CMakeLists.txt
++++ b/Source/Core/DolphinNoGUI/CMakeLists.txt
+@@ -1,4 +1,6 @@
+-add_executable(dolphin-nogui
++#JC: modified
++#add_executable(dolphin-nogui
++add_library(dolphin-nogui
+   Platform.cpp
+   Platform.h
+   PlatformHeadless.cpp
+@@ -25,11 +27,12 @@ PRIVATE
+   uicommon
+   cpp-optparse
+ )
+-
++target_include_directories(dolphin-nogui PRIVATE /usr/include/SDL2)
+ if(USE_DISCORD_PRESENCE)
+   target_compile_definitions(dolphin-nogui PRIVATE -DUSE_DISCORD_PRESENCE)
+ endif()
+ 
+ set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-nogui)
+-install(TARGETS dolphin-nogui RUNTIME DESTINATION ${bindir})
++#JC: modified
++#install(TARGETS dolphin-nogui RUNTIME DESTINATION ${bindir})
+ 
+diff --git a/Source/Core/DolphinNoGUI/MainNoGUI.cpp b/Source/Core/DolphinNoGUI/MainNoGUI.cpp
+index 14fac96..0c3202f 100644
+--- a/Source/Core/DolphinNoGUI/MainNoGUI.cpp
++++ b/Source/Core/DolphinNoGUI/MainNoGUI.cpp
+@@ -31,7 +31,7 @@
+ 
+ #include "VideoCommon/RenderBase.h"
+ #include "VideoCommon/VideoBackendBase.h"
+-
++extern std::string gBaseDir;
+ static std::unique_ptr<Platform> s_platform;
+ 
+ static void signal_handler(int)
+@@ -134,8 +134,9 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
+ 
+   return nullptr;
+ }
+-
+-int main(int argc, char* argv[])
++#warning "JC: modfied"
++//int main(int argc, char* argv[])
++int dolphin_main(int argc, char* argv[])
+ {
+   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
+   parser->add_option("-p", "--platform")
+@@ -191,10 +192,8 @@ int main(int argc, char* argv[])
+     return 0;
+   }
+ 
+-  std::string user_directory;
+-  if (options.is_set("user"))
+-    user_directory = static_cast<const char*>(options.get("user"));
+-
++  std::string user_directory = gBaseDir;
++  user_directory += "dolphin-emu";
+   UICommon::SetUserDirectory(user_directory);
+   UICommon::Init();
+ 
+@@ -240,7 +239,7 @@ int main(int argc, char* argv[])
+ 
+   Core::Shutdown();
+   s_platform.reset();
+-  UICommon::Shutdown();
++  //UICommon::Shutdown();
+ 
+   return 0;
+ }
+diff --git a/Source/Core/DolphinNoGUI/PlatformX11.cpp b/Source/Core/DolphinNoGUI/PlatformX11.cpp
+index 8eb8f2b..796db65 100644
+--- a/Source/Core/DolphinNoGUI/PlatformX11.cpp
++++ b/Source/Core/DolphinNoGUI/PlatformX11.cpp
+@@ -21,11 +21,12 @@
+ #include <X11/keysym.h>
+ #include "UICommon/X11Utils.h"
+ #include "VideoCommon/RenderBase.h"
++#include "../../../../include/gui.h"
+ 
+ #ifndef HOST_NAME_MAX
+ #define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
+ #endif
+-
++extern bool requestShutdownGUIDE;
+ namespace
+ {
+ class PlatformX11 : public Platform
+@@ -45,7 +46,7 @@ private:
+   void ProcessEvents();
+ 
+   Display* m_display = nullptr;
+-  Window m_window = {};
++  SDL_Window* m_window;
+   Cursor m_blank_cursor = None;
+ #if defined(HAVE_XRANDR) && HAVE_XRANDR
+   X11Utils::XRRConfiguration* m_xrr_config = nullptr;
+@@ -58,6 +59,8 @@ private:
+ 
+ PlatformX11::~PlatformX11()
+ {
++    #warning "JC: modified"
++    /*
+ #if defined(HAVE_XRANDR) && HAVE_XRANDR
+   delete m_xrr_config;
+ #endif
+@@ -68,19 +71,22 @@ PlatformX11::~PlatformX11()
+       XFreeCursor(m_display, m_blank_cursor);
+ 
+     XCloseDisplay(m_display);
+-  }
++  }*/
+ }
+ 
+ bool PlatformX11::Init()
+ {
+   XInitThreads();
++  m_window = gWindow;
++  
+   m_display = XOpenDisplay(nullptr);
+   if (!m_display)
+   {
+     PanicAlert("No X11 display found");
+     return false;
+   }
+-
++  #warning "JC: modified"
++  /*
+   m_window = XCreateSimpleWindow(m_display, DefaultRootWindow(m_display), m_window_x, m_window_y,
+                                  m_window_width, m_window_height, 0, 0, BlackPixel(m_display, 0));
+   XSelectInput(m_display, m_window, StructureNotifyMask | KeyPressMask | FocusChangeMask);
+@@ -100,6 +106,7 @@ bool PlatformX11::Init()
+   XMapRaised(m_display, m_window);
+   XFlush(m_display);
+   XSync(m_display, True);
++  
+   ProcessEvents();
+ 
+   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
+@@ -132,12 +139,13 @@ bool PlatformX11::Init()
+   }
+ 
+   UpdateWindowPosition();
++  */
+   return true;
+ }
+ 
+ void PlatformX11::SetTitle(const std::string& string)
+ {
+-  XStoreName(m_display, m_window, string.c_str());
++  //XStoreName(m_display, m_window, string.c_str());
+ }
+ 
+ void PlatformX11::MainLoop()
+@@ -166,6 +174,7 @@ WindowSystemInfo PlatformX11::GetWindowSystemInfo() const
+ 
+ void PlatformX11::UpdateWindowPosition()
+ {
++    /*
+   if (m_window_fullscreen)
+     return;
+ 
+@@ -173,10 +182,55 @@ void PlatformX11::UpdateWindowPosition()
+   unsigned int borderDummy, depthDummy;
+   XGetGeometry(m_display, m_window, &winDummy, &m_window_x, &m_window_y, &m_window_width,
+                &m_window_height, &borderDummy, &depthDummy);
++               */
+ }
+ 
+ void PlatformX11::ProcessEvents()
+ {
++    #warning "JC: modified"
++    SDL_Event event;
++    
++    if(requestShutdownGUIDE)
++        RequestShutdown();
++    
++    while(SDL_PollEvent(&event))
++    {
++
++        if(event.type==SDL_QUIT)
++            RequestShutdown();
++
++        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_ESCAPE)
++            RequestShutdown();
++            
++        if(event.type==SDL_CONTROLLERBUTTONDOWN&&event.cbutton.button==SDL_CONTROLLER_BUTTON_GUIDE)
++            RequestShutdown();
++            
++        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F5)
++            State::Save(0);
++            
++        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F7)
++            State::Load(0);
++        
++        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F9)
++            Core::SaveScreenShot();
++        
++        if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_f)
++        {
++            Uint32 flags = SDL_GetWindowFlags(gWindow);
++            if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
++            {
++                flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
++            }
++            else
++            {
++                flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
++            }
++            SDL_SetWindowFullscreen(gWindow,flags);
++            if (g_renderer) g_renderer->ResizeSurface();
++        }
++
++    }
++    /*
+   XEvent event;
+   KeySym key;
+   for (int num_events = XPending(m_display); num_events > 0; num_events--)
+@@ -261,8 +315,10 @@ void PlatformX11::ProcessEvents()
+         g_renderer->ResizeSurface();
+     }
+     break;
++    
+     }
+   }
++  */
+ }
+ }  // namespace
+ 
+diff --git a/Source/Core/DolphinQt/CMakeLists.txt b/Source/Core/DolphinQt/CMakeLists.txt
+index f0951cb..f866698 100644
+--- a/Source/Core/DolphinQt/CMakeLists.txt
++++ b/Source/Core/DolphinQt/CMakeLists.txt
+@@ -13,7 +13,8 @@ message(STATUS "Found Qt version ${Qt5Core_VERSION}")
+ 
+ set(CMAKE_AUTOMOC ON)
+ 
+-add_executable(dolphin-emu
++#add_executable(dolphin-emu
++add_library(dolphin-emu
+   AboutDialog.cpp
+   AboutDialog.h
+   CheatsManager.cpp
+@@ -455,7 +456,7 @@ if(APPLE)
+     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+     $<TARGET_FILE:dolphin-emu>)
+ else()
+-  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
++#  install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
+ endif()
+ 
+ if(USE_DISCORD_PRESENCE)
+diff --git a/Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp b/Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp
+index 0052278..2c1f46a 100644
+--- a/Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp
++++ b/Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp
+@@ -435,7 +435,7 @@ ControllerEmu::EmulatedController* MappingWindow::GetController() const
+ 
+ void MappingWindow::OnDefaultFieldsPressed()
+ {
+-  m_controller->LoadDefaults(g_controller_interface);
++  m_controller->LoadDefaults(g_controller_interface,0);
+   m_controller->UpdateReferences(g_controller_interface);
+ 
+   const auto lock = GetController()->GetStateLock();
+diff --git a/Source/Core/DolphinQt/Main.cpp b/Source/Core/DolphinQt/Main.cpp
+index 48b2bc9..ff4daca 100644
+--- a/Source/Core/DolphinQt/Main.cpp
++++ b/Source/Core/DolphinQt/Main.cpp
+@@ -33,6 +33,15 @@
+ 
+ #include "UICommon/CommandLineParse.h"
+ #include "UICommon/UICommon.h"
++#include <sys/stat.h>
++#include <unistd.h>
++#include <string>
++#include <fstream>
++#include <dirent.h>
++#include <errno.h>
++
++bool isDirectory(const char *filename);
++bool setBaseDir(void);
+ 
+ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
+                               Common::MsgType style)
+@@ -97,7 +106,10 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
+ 
+ // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
+ // /SubSystem:Windows
+-int main(int argc, char* argv[])
++#warning "jc: modified"
++extern std::string gBaseDir;
++//int main(int argc, char* argv[])
++int dolphin_main(int argc, char* argv[])
+ {
+ #ifdef _WIN32
+   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+@@ -133,8 +145,10 @@ int main(int argc, char* argv[])
+ #ifdef _WIN32
+   FreeConsole();
+ #endif
+-
+-  UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
++  setBaseDir();
++  std::string user_directory = gBaseDir;
++  user_directory += "dolphin-emu";
++  UICommon::SetUserDirectory(user_directory);
+   UICommon::CreateDirectories();
+   UICommon::Init();
+   Resources::Init();
+@@ -245,7 +259,8 @@ int main(int argc, char* argv[])
+   }
+ 
+   Core::Shutdown();
+-  UICommon::Shutdown();
++  #warning "jc: modified"
++  //UICommon::Shutdown();
+   Host::GetInstance()->deleteLater();
+ 
+   return retval;
+diff --git a/Source/Core/InputCommon/ControllerEmu/ControllerEmu.cpp b/Source/Core/InputCommon/ControllerEmu/ControllerEmu.cpp
+index a9c5844..74a14f3 100644
+--- a/Source/Core/InputCommon/ControllerEmu/ControllerEmu.cpp
++++ b/Source/Core/InputCommon/ControllerEmu/ControllerEmu.cpp
+@@ -132,19 +132,33 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
+     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+ 
+   for (auto& ctrlGroup : groups)
++  {
+     ctrlGroup->SaveConfig(sec, defdev, base);
++  }
++    
++    
+ }
+ 
+-void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
++void EmulatedController::LoadDefaults(const ControllerInterface& ciface, int n)
+ {
++    
+   // load an empty inifile section, clears everything
+   IniFile::Section sec;
+   LoadConfig(&sec);
+ 
++  #warning "jc: modified"
++  const std::string& default_device_string = "SDL/0/0xbaadf00dbeefbabe - " + std::to_string(n);
++  SetDefaultDevice(default_device_string);
++  /*
+   const std::string& default_device_string = ciface.GetDefaultDeviceString();
+   if (!default_device_string.empty())
+   {
+     SetDefaultDevice(default_device_string);
+   }
++  else
++  {
++    SetDefaultDevice("SDL/0/0xbaadf00dbeefbabe - 0");
++  }
++  */
+ }
+ }  // namespace ControllerEmu
+diff --git a/Source/Core/InputCommon/ControllerEmu/ControllerEmu.h b/Source/Core/InputCommon/ControllerEmu/ControllerEmu.h
+index 3301672..f5eb566 100644
+--- a/Source/Core/InputCommon/ControllerEmu/ControllerEmu.h
++++ b/Source/Core/InputCommon/ControllerEmu/ControllerEmu.h
+@@ -136,7 +136,7 @@ public:
+   virtual std::string GetName() const = 0;
+   virtual std::string GetDisplayName() const;
+ 
+-  virtual void LoadDefaults(const ControllerInterface& ciface);
++  virtual void LoadDefaults(const ControllerInterface& ciface, int n);
+ 
+   virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
+   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
+diff --git a/Source/Core/InputCommon/ControllerInterface/Device.cpp b/Source/Core/InputCommon/ControllerInterface/Device.cpp
+index ebed1ad..8c08c94 100644
+--- a/Source/Core/InputCommon/ControllerInterface/Device.cpp
++++ b/Source/Core/InputCommon/ControllerInterface/Device.cpp
+@@ -213,8 +213,33 @@ std::string DeviceContainer::GetDefaultDeviceString() const
+     return "";
+ 
+   DeviceQualifier device_qualifier;
+-  device_qualifier.FromDevice(m_devices[0].get());
+-  return device_qualifier.ToString();
++
++  int index = 0;
++  int i = 0;
++  std::string s;
++  
++  for (const auto& d : m_devices)
++  {
++    device_qualifier.FromDevice(d.get());
++    std::string q = device_qualifier.ToString();
++    if (q.find("SDL") == 0)
++    {
++        index = i;
++        break;
++    }
++    else
++    {
++        i++;
++    }
++  }
++  
++  if(index)
++  {
++      device_qualifier.FromDevice(m_devices[index].get());
++      s = device_qualifier.ToString();
++  }
++  
++  return s;
+ }
+ 
+ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const
+diff --git a/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp b/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp
+index 2d2d256..d3671ff 100644
+--- a/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp
++++ b/Source/Core/InputCommon/ControllerInterface/SDL/SDL.cpp
+@@ -14,203 +14,118 @@
+ #include "Common/ScopeGuard.h"
+ #include "Common/StringUtil.h"
+ #include "InputCommon/ControllerInterface/ControllerInterface.h"
++#include "../../../../../../include/controller.h"
+ 
+-#ifdef _WIN32
+-#pragma comment(lib, "SDL2.lib")
+-#endif
+ 
++bool requestShutdownGUIDE;
+ namespace ciface::SDL
++
+ {
+ static std::string GetJoystickName(int index)
+ {
+-#if SDL_VERSION_ATLEAST(2, 0, 0)
+-  return SDL_JoystickNameForIndex(index);
+-#else
+-  return SDL_JoystickName(index);
+-#endif
++    #warning "JC modified"
++    std::string s = "0xbaadf00dbeefbabe - ";
++    s+=to_string(index);
++  return s;
+ }
+ 
+-static void OpenAndAddDevice(int index)
++static void OpenAndAddDevice(int slot)
+ {
+-  SDL_Joystick* const dev = SDL_JoystickOpen(index);
+-  if (dev)
+-  {
+-    auto js = std::make_shared<Joystick>(dev, index);
+-    // only add if it has some inputs/outputs
+-    if (!js->Inputs().empty() || !js->Outputs().empty())
+-      g_controller_interface.AddDevice(std::move(js));
+-  }
++    #warning "JC modified"
++    if (gDesignatedControllers[slot].gameCtrl[0] != NULL)
++    {
++        SDL_GameController* const dev = gDesignatedControllers[slot].gameCtrl[0];
++        
++        auto js = std::make_shared<Joystick>(dev, slot);
++        
++        // only add if it has some inputs/outputs
++        if (!js->Inputs().empty() || !js->Outputs().empty())
++        {
++            g_controller_interface.AddDevice(std::move(js));
++        }
++    }
+ }
+ 
+-#if SDL_VERSION_ATLEAST(2, 0, 0)
++
+ static Common::Event s_init_event;
+-static Uint32 s_stop_event_type;
+-static Uint32 s_populate_event_type;
+ static Common::Event s_populated_event;
+ static std::thread s_hotplug_thread;
+ 
+-static bool HandleEventAndContinue(const SDL_Event& e)
+-{
+-  if (e.type == SDL_JOYDEVICEADDED)
+-  {
+-    OpenAndAddDevice(e.jdevice.which);
+-  }
+-  else if (e.type == SDL_JOYDEVICEREMOVED)
+-  {
+-    g_controller_interface.RemoveDevice([&e](const auto* device) {
+-      const Joystick* joystick = dynamic_cast<const Joystick*>(device);
+-      return joystick && SDL_JoystickInstanceID(joystick->GetSDLJoystick()) == e.jdevice.which;
+-    });
+-  }
+-  else if (e.type == s_populate_event_type)
+-  {
+-    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+-      OpenAndAddDevice(i);
+-    s_populated_event.Set();
+-  }
+-  else if (e.type == s_stop_event_type)
+-  {
+-    return false;
+-  }
+-
+-  return true;
+-}
+-#endif
+ 
+ void Init()
+ {
+-#if !SDL_VERSION_ATLEAST(2, 0, 0)
+-  if (SDL_Init(SDL_INIT_JOYSTICK) != 0)
+-    ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
+-  return;
+-#else
+-  s_hotplug_thread = std::thread([] {
+-    Common::ScopeGuard quit_guard([] {
+-      // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
+-      SDL_Quit();
+-    });
+-
++    requestShutdownGUIDE = false;
++    #warning "jc: modified"
++    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+     {
+-      Common::ScopeGuard init_guard([] { s_init_event.Set(); });
+-
+-      if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+-      {
+-        ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
+-        return;
+-      }
+-
+-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
+-      if (custom_events_start == static_cast<Uint32>(-1))
+-      {
+-        ERROR_LOG(SERIALINTERFACE, "SDL failed to register custom events");
+-        return;
+-      }
+-      s_stop_event_type = custom_events_start;
+-      s_populate_event_type = custom_events_start + 1;
+-
+-      // Drain all of the events and add the initial joysticks before returning. Otherwise, the
+-      // individual joystick events as well as the custom populate event will be handled _after_
+-      // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
+-      // duplicate devices.
+-      SDL_Event e;
+-      while (SDL_PollEvent(&e) != 0)
+-      {
+-        if (!HandleEventAndContinue(e))
+-          return;
+-      }
++      ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
++      return;
+     }
+-
+-    SDL_Event e;
+-    while (SDL_WaitEvent(&e) != 0)
++    
++    SDL_JoystickEventState(SDL_IGNORE);
++    
++    int slot = 0;
++    for (int i = 0; i < MAX_GAMEPADS; i++)
+     {
+-      if (!HandleEventAndContinue(e))
+-        return;
++        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
++        {
++            OpenAndAddDevice(slot);
++            slot++;
++        }
+     }
+-  });
++    
++    s_hotplug_thread = std::thread([] 
++    {
++        {
++          Common::ScopeGuard init_guard([] { s_init_event.Set(); });
++        }
++    });
+ 
+   s_init_event.Wait();
+-#endif
++
+ }
+ 
+ void DeInit()
+ {
+-#if !SDL_VERSION_ATLEAST(2, 0, 0)
+-  SDL_Quit();
+-#else
++
++#warning "jc: modified"
++
+   if (!s_hotplug_thread.joinable())
+     return;
+ 
+-  SDL_Event stop_event{s_stop_event_type};
+-  SDL_PushEvent(&stop_event);
+-
+   s_hotplug_thread.join();
+-#endif
+ }
+ 
+ void PopulateDevices()
+ {
+-#if !SDL_VERSION_ATLEAST(2, 0, 0)
+-  if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+-    return;
++    if (!s_hotplug_thread.joinable())
++      return;
+ 
+-  for (int i = 0; i < SDL_NumJoysticks(); ++i)
+-    OpenAndAddDevice(i);
+-#else
+-  if (!s_hotplug_thread.joinable())
+-    return;
+-
+-  SDL_Event populate_event{s_populate_event_type};
+-  SDL_PushEvent(&populate_event);
+-
+-  s_populated_event.Wait();
+-#endif
++    int slot = 0;
++    for (int i = 0; i < MAX_GAMEPADS; i++)
++    {
++        if (gDesignatedControllers[i].gameCtrl[0] != NULL)
++        {
++            OpenAndAddDevice(slot);
++            slot++;
++        }
++    }
++    s_populated_event.Set();
+ }
+ 
+-Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
++Joystick::Joystick(SDL_GameController* const joystick, const int sdl_index)
+     : m_joystick(joystick), m_name(StripSpaces(GetJoystickName(sdl_index)))
+ {
+-// really bad HACKS:
+-// to not use SDL for an XInput device
+-// too many people on the forums pick the SDL device and ask:
+-// "why don't my 360 gamepad triggers/rumble work correctly"
+-#ifdef _WIN32
+-  // checking the name is probably good (and hacky) enough
+-  // but I'll double check with the num of buttons/axes
+-  std::string lcasename = GetName();
+-  std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
+-
+-  if ((std::string::npos != lcasename.find("xbox 360")) &&
+-      (10 == SDL_JoystickNumButtons(joystick)) && (5 == SDL_JoystickNumAxes(joystick)) &&
+-      (1 == SDL_JoystickNumHats(joystick)) && (0 == SDL_JoystickNumBalls(joystick)))
+-  {
+-    // this device won't be used
+-    return;
+-  }
+-#endif
+ 
+-  if (SDL_JoystickNumButtons(joystick) > 255 || SDL_JoystickNumAxes(joystick) > 255 ||
+-      SDL_JoystickNumHats(joystick) > 255 || SDL_JoystickNumBalls(joystick) > 255)
+-  {
+-    // This device is invalid, don't use it
+-    // Some crazy devices(HP webcam 2100) end up as HID devices
+-    // SDL tries parsing these as joysticks
+-    return;
+-  }
+ 
+   // get buttons
+-  for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
+-    AddInput(new Button(i, m_joystick));
+-
+-  // get hats
+-  for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
++  for (u8 i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i)
+   {
+-    // each hat gets 4 input instances associated with it, (up down left right)
+-    for (u8 d = 0; d != 4; ++d)
+-      AddInput(new Hat(i, m_joystick, d));
++    AddInput(new Button(i, m_joystick));
+   }
+ 
+   // get axes
+-  for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i)
++  for (u8 i = 0; i != SDL_CONTROLLER_AXIS_MAX; ++i)
+   {
+     // each axis gets a negative and a positive input instance associated with it
+     AddAnalogInputs(new Axis(i, m_joystick, -32768), new Axis(i, m_joystick, 32767));
+@@ -265,7 +180,9 @@ Joystick::~Joystick()
+ #endif
+ 
+   // close joystick
+-  SDL_JoystickClose(m_joystick);
++  #warning "jc: modfied"
++  // keep the controller for marley
++  //SDL_JoystickClose(m_joystick);
+ }
+ 
+ #ifdef USE_SDL_HAPTIC
+@@ -442,7 +359,8 @@ bool Joystick::LeftRightEffect::UpdateParameters(s16 value)
+ void Joystick::UpdateInput()
+ {
+   // TODO: Don't call this for every Joystick, only once per ControllerInterface::UpdateInput()
+-  SDL_JoystickUpdate();
++  SDL_GameControllerUpdate();
++  
+ }
+ 
+ std::string Joystick::GetName() const
+@@ -455,7 +373,7 @@ std::string Joystick::GetSource() const
+   return "SDL";
+ }
+ 
+-SDL_Joystick* Joystick::GetSDLJoystick() const
++SDL_GameController* Joystick::GetSDLJoystick() const
+ {
+   return m_joystick;
+ }
+@@ -477,16 +395,23 @@ std::string Joystick::Hat::GetName() const
+ 
+ ControlState Joystick::Button::GetState() const
+ {
+-  return SDL_JoystickGetButton(m_js, m_index);
++    Uint8 b = SDL_GameControllerGetButton(m_js, (SDL_GameControllerButton)m_index);
++    if (b)
++    {
++        if (m_index == SDL_CONTROLLER_BUTTON_GUIDE) requestShutdownGUIDE=true;
++    }
++  return b;
+ }
+ 
+ ControlState Joystick::Axis::GetState() const
+ {
+-  return ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
++  return ControlState(SDL_GameControllerGetAxis(m_js, (SDL_GameControllerAxis)m_index)) / m_range;
+ }
+ 
+ ControlState Joystick::Hat::GetState() const
+ {
+-  return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
++  // this function won't be called anymore
++  //return (SDL_GameControllerGetHat(m_js, (SDL_GameControllerHat)m_index) & (1 << m_direction)) > 0;
++  return 0;
+ }
+ }  // namespace ciface::SDL
+diff --git a/Source/Core/InputCommon/ControllerInterface/SDL/SDL.h b/Source/Core/InputCommon/ControllerInterface/SDL/SDL.h
+index e9ac021..2d91976 100644
+--- a/Source/Core/InputCommon/ControllerInterface/SDL/SDL.h
++++ b/Source/Core/InputCommon/ControllerInterface/SDL/SDL.h
+@@ -7,7 +7,7 @@
+ #include <SDL.h>
+ 
+ #if SDL_VERSION_ATLEAST(1, 3, 0)
+-#define USE_SDL_HAPTIC
++//#define USE_SDL_HAPTIC
+ #endif
+ 
+ #ifdef USE_SDL_HAPTIC
+@@ -29,11 +29,11 @@ private:
+   {
+   public:
+     std::string GetName() const override;
+-    Button(u8 index, SDL_Joystick* js) : m_js(js), m_index(index) {}
++    Button(u8 index, SDL_GameController* js) : m_js(js), m_index(index) {}
+     ControlState GetState() const override;
+ 
+   private:
+-    SDL_Joystick* const m_js;
++    SDL_GameController* const m_js;
+     const u8 m_index;
+   };
+ 
+@@ -41,11 +41,11 @@ private:
+   {
+   public:
+     std::string GetName() const override;
+-    Axis(u8 index, SDL_Joystick* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
++    Axis(u8 index, SDL_GameController* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
+     ControlState GetState() const override;
+ 
+   private:
+-    SDL_Joystick* const m_js;
++    SDL_GameController* const m_js;
+     const Sint16 m_range;
+     const u8 m_index;
+   };
+@@ -54,13 +54,13 @@ private:
+   {
+   public:
+     std::string GetName() const override;
+-    Hat(u8 index, SDL_Joystick* js, u8 direction) : m_js(js), m_direction(direction), m_index(index)
++    Hat(u8 index, SDL_GameController* js, u8 direction) : m_js(js), m_direction(direction), m_index(index)
+     {
+     }
+     ControlState GetState() const override;
+ 
+   private:
+-    SDL_Joystick* const m_js;
++    SDL_GameController* const m_js;
+     const u8 m_direction;
+     const u8 m_index;
+   };
+@@ -141,15 +141,15 @@ private:
+ public:
+   void UpdateInput() override;
+ 
+-  Joystick(SDL_Joystick* const joystick, const int sdl_index);
++  Joystick(SDL_GameController* const joystick, const int sdl_index);
+   ~Joystick();
+ 
+   std::string GetName() const override;
+   std::string GetSource() const override;
+-  SDL_Joystick* GetSDLJoystick() const;
++  SDL_GameController* GetSDLJoystick() const;
+ 
+ private:
+-  SDL_Joystick* const m_joystick;
++  SDL_GameController* const m_joystick;
+   std::string m_name;
+ 
+ #ifdef USE_SDL_HAPTIC
+diff --git a/Source/Core/InputCommon/ControllerInterface/Xlib/XInput2.cpp b/Source/Core/InputCommon/ControllerInterface/Xlib/XInput2.cpp
+index d049f22..ceb2a14 100644
+--- a/Source/Core/InputCommon/ControllerInterface/Xlib/XInput2.cpp
++++ b/Source/Core/InputCommon/ControllerInterface/Xlib/XInput2.cpp
+@@ -53,6 +53,8 @@ namespace ciface::XInput2
+ // This function will add zero or more KeyboardMouse objects to devices.
+ void PopulateDevices(void* const hwnd)
+ {
++    #warning "JC: modified (we need none of this)"
++    return;
+   Display* dpy = XOpenDisplay(nullptr);
+ 
+   // xi_opcode is important; it will be used to identify XInput events by
+diff --git a/Source/Core/InputCommon/GCPadStatus.h b/Source/Core/InputCommon/GCPadStatus.h
+index 7da1bbd..ec24537 100644
+--- a/Source/Core/InputCommon/GCPadStatus.h
++++ b/Source/Core/InputCommon/GCPadStatus.h
+@@ -27,6 +27,7 @@ enum PadButton
+   PAD_BUTTON_X = 0x0400,
+   PAD_BUTTON_Y = 0x0800,
+   PAD_BUTTON_START = 0x1000,
++  PAD_BUTTON_GUIDE = 0x2000,
+ };
+ 
+ struct GCPadStatus
+diff --git a/Source/Core/InputCommon/InputConfig.cpp b/Source/Core/InputCommon/InputConfig.cpp
+index 2433057..fb43f20 100644
+--- a/Source/Core/InputCommon/InputConfig.cpp
++++ b/Source/Core/InputCommon/InputConfig.cpp
+@@ -79,20 +79,7 @@ bool InputConfig::LoadConfig(bool isGC)
+         }
+       }
+     }
+-#if defined(ANDROID)
+-    // For use on android touchscreen IR pointer
+-    // Check for IR values
+-    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
+-        control_section->Exists("IRVerticalOffset"))
+-    {
+-      use_ir_config = true;
+-      control_section->Get("IRTotalYaw", &ir_values[0]);
+-      control_section->Get("IRTotalPitch", &ir_values[1]);
+-      control_section->Get("IRVerticalOffset", &ir_values[2]);
+-    }
+-#endif
+   }
+-
+   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
+   {
+     int n = 0;
+@@ -116,15 +103,7 @@ bool InputConfig::LoadConfig(bool isGC)
+       {
+         config = *inifile.GetOrCreateSection(controller->GetName());
+       }
+-#if defined(ANDROID)
+-      // Only set for wii pads
+-      if (!isGC && use_ir_config)
+-      {
+-        config.Set("IR/Total Yaw", ir_values[0]);
+-        config.Set("IR/Total Pitch", ir_values[1]);
+-        config.Set("IR/Vertical Offset", ir_values[2]);
+-      }
+-#endif
++      std::string cname = controller->GetName();
+       controller->LoadConfig(&config);
+       // Update refs
+       controller->UpdateReferences(g_controller_interface);
+@@ -136,8 +115,13 @@ bool InputConfig::LoadConfig(bool isGC)
+   }
+   else
+   {
+-    m_controllers[0]->LoadDefaults(g_controller_interface);
++
++    #warning "jc: modified"      
++    m_controllers[0]->LoadDefaults(g_controller_interface,0);
++    if (m_ini_name == "GCPadNew") m_controllers[1]->LoadDefaults(g_controller_interface,1);
++    if (m_ini_name != "WiimoteNew") SaveConfig();
+     m_controllers[0]->UpdateReferences(g_controller_interface);
++    
+     return false;
+   }
+ }
+diff --git a/Source/Core/UICommon/Disassembler.cpp b/Source/Core/UICommon/Disassembler.cpp
+index 5829a3d..95f8869 100644
+--- a/Source/Core/UICommon/Disassembler.cpp
++++ b/Source/Core/UICommon/Disassembler.cpp
+@@ -124,7 +124,7 @@ public:
+   HostDisassemblerX86();
+ 
+ private:
+-  disassembler m_disasm;
++  DO_disassembler m_disasm;
+ 
+   std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
+                                    u32* host_instructions_count, u64 starting_pc) override;
+diff --git a/Source/Core/VideoBackends/OGL/CMakeLists.txt b/Source/Core/VideoBackends/OGL/CMakeLists.txt
+index 2d80039..cbf7121 100644
+--- a/Source/Core/VideoBackends/OGL/CMakeLists.txt
++++ b/Source/Core/VideoBackends/OGL/CMakeLists.txt
+@@ -24,7 +24,7 @@ add_library(videoogl
+   VertexManager.h
+   VideoBackend.h
+ )
+-
++#target_compile_definitions(videoogl PRIVATE JC_DEBUGGING=1)
+ target_link_libraries(videoogl
+ PUBLIC
+   common
+diff --git a/Source/Core/VideoBackends/OGL/OGLShader.cpp b/Source/Core/VideoBackends/OGL/OGLShader.cpp
+index b538612..067d460 100644
+--- a/Source/Core/VideoBackends/OGL/OGLShader.cpp
++++ b/Source/Core/VideoBackends/OGL/OGLShader.cpp
+@@ -47,6 +47,9 @@ OGLShader::~OGLShader()
+ 
+ std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, std::string_view source)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc OGLShader::CreateFromSource(ShaderStage stage, std::string_view source)\n");
++    #endif
+   std::string source_str(source);
+   if (stage != ShaderStage::Compute)
+   {
+diff --git a/Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp b/Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp
+index 52523e5..86554f8 100644
+--- a/Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp
++++ b/Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp
+@@ -3,7 +3,7 @@
+ // Refer to the license.txt file included.
+ 
+ #include "VideoBackends/OGL/ProgramShaderCache.h"
+-
++#include <iostream>
+ #include <array>
+ #include <atomic>
+ #include <memory>
+@@ -266,6 +266,9 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
+ 
+ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)\n");
++    #endif
+   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
+   // but not GLSL 4.3. Mesa is one example.
+   std::string full_code;
+@@ -300,6 +303,10 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view c
+ 
+ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)\n");
++    std::cout << code << "\n";
++    #endif
+   const GLuint result = glCreateShader(type);
+ 
+   constexpr GLsizei num_strings = 2;
+@@ -311,7 +318,9 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
+       static_cast<GLint>(s_glsl_header.size()),
+       static_cast<GLint>(code.size()),
+   };
+-
++  #ifdef JC_DEBUGGING
++  printf("jc glShaderSource\n");
++  #endif
+   glShaderSource(result, num_strings, src.data(), src_sizes.data());
+   glCompileShader(result);
+ 
+@@ -327,6 +336,9 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
+ 
+ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)\n");
++    #endif
+   GLint compileStatus;
+   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
+   GLsizei length = 0;
+@@ -371,6 +383,12 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
+                  "Debug info (%s, %s, %s):\n%s",
+                  prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                  g_ogl_config.gl_version, info_log.c_str());
++      #ifdef JC_DEBUGGING
++      printf("jc Failed to compile %s shader: %s\n"
++                 "Debug info (%s, %s, %s):\n%s",
++                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
++                 g_ogl_config.gl_version, info_log.c_str());
++      #endif
+ 
+       return false;
+     }
+@@ -842,6 +860,9 @@ u64 ProgramShaderCache::GenerateShaderID()
+ 
+ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)\n");
++    #endif
+   std::unique_ptr<GLContext> context =
+       static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
+   if (!context)
+diff --git a/Source/Core/VideoBackends/OGL/Render.cpp b/Source/Core/VideoBackends/OGL/Render.cpp
+index 27a8c05..7afd047 100644
+--- a/Source/Core/VideoBackends/OGL/Render.cpp
++++ b/Source/Core/VideoBackends/OGL/Render.cpp
+@@ -342,6 +342,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
+       m_current_depth_state(RenderState::GetInvalidDepthState()),
+       m_current_blend_state(RenderState::GetInvalidBlendingState())
+ {
++  #ifdef JC_DEBUGGING  
++  printf("jc  Renderer::Renderer \n");
++  #endif
+   // Create the window framebuffer.
+   if (!m_main_gl_context->IsHeadless())
+   {
+@@ -350,6 +353,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
+         std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
+         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
+     m_current_framebuffer = m_system_framebuffer.get();
++    #ifdef JC_DEBUGGING
++    printf("jc  Renderer::Renderer m_main_gl_context->GetBackBufferWidth(): %i,m_main_gl_context->GetBackBufferHeight(): %i\n",m_main_gl_context->GetBackBufferWidth(),m_main_gl_context->GetBackBufferHeight());
++    #endif
+   }
+ 
+   bool bSuccess = true;
+@@ -736,7 +742,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
+     // Else some of the next calls might crash.
+     return;
+   }
+-
++  #ifdef JC_DEBUGGING
++  printf("jc  Renderer::Renderer g_Config.VerifyValidity();\n");
++  #endif
+   g_Config.VerifyValidity();
+   UpdateActiveConfig();
+ 
+diff --git a/Source/Core/VideoBackends/OGL/main.cpp b/Source/Core/VideoBackends/OGL/main.cpp
+index c2cf0af..c9048e1 100644
+--- a/Source/Core/VideoBackends/OGL/main.cpp
++++ b/Source/Core/VideoBackends/OGL/main.cpp
+@@ -167,13 +167,40 @@ bool VideoBackend::FillBackendInfo()
+ 
+ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+ {
++    #ifdef JC_DEBUGGING
++	printf("jc VideoBackend::Initialize(const WindowSystemInfo& wsi)\n");
++    #endif
+   std::unique_ptr<GLContext> main_gl_context =
+       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
+                         Config::Get(Config::GFX_PREFER_GLES));
+   if (!main_gl_context)
+     return false;
+-
+-  if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
++    
++    
++  bool ok = InitializeGLExtensions(main_gl_context.get());
++  #ifdef JC_DEBUGGING
++  if (ok)
++  {
++      printf("jc InitializeGLExtensions(main_gl_context.get(); ok\n");
++  }
++  else
++  {
++      printf("jc InitializeGLExtensions(main_gl_context.get(); not ok\n");
++  }
++  #endif
++  
++  bool ok2 = FillBackendInfo();
++  #ifdef JC_DEBUGGING
++  if (ok2)
++  {
++      printf("jc FillBackendInfo(); ok\n");
++  }
++  else
++  {
++      printf("jc FillBackendInfo(); not ok\n");
++  }
++  #endif
++  if ((!ok) || (!ok2))
+     return false;
+ 
+   InitializeShared();
+@@ -197,6 +224,10 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+   }
+ 
+   g_shader_cache->InitializeShaderCache();
++  #ifdef JC_DEBUGGING
++  printf("jc VideoBackend::Initialize() end\n");
++  g_ActiveConfig.listParameters();
++  #endif
+   return true;
+ }
+ 
+diff --git a/Source/Core/VideoCommon/AsyncShaderCompiler.cpp b/Source/Core/VideoCommon/AsyncShaderCompiler.cpp
+index 942f293..74b62c1 100644
+--- a/Source/Core/VideoCommon/AsyncShaderCompiler.cpp
++++ b/Source/Core/VideoCommon/AsyncShaderCompiler.cpp
+@@ -118,10 +118,16 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
+ 
+   for (u32 i = 0; i < num_worker_threads; i++)
+   {
++    #ifdef JC_DEBUGGING
++  	printf("jc AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)  \n");
++    #endif
+     void* thread_param = nullptr;
+     if (!WorkerThreadInitMainThread(&thread_param))
+     {
+       WARN_LOG(VIDEO, "Failed to initialize shader compiler worker thread.");
++      #ifdef JC_DEBUGGING
++      printf("Failed to initialize shader compiler worker thread.\n");
++      #endif
+       break;
+     }
+ 
+diff --git a/Source/Core/VideoCommon/CMakeLists.txt b/Source/Core/VideoCommon/CMakeLists.txt
+index d8993e1..a7f09d4 100644
+--- a/Source/Core/VideoCommon/CMakeLists.txt
++++ b/Source/Core/VideoCommon/CMakeLists.txt
+@@ -127,7 +127,7 @@ add_library(videocommon
+   XFStructs.cpp
+   XFStructs.h
+ )
+-
++#target_compile_definitions(videocommon PRIVATE JC_DEBUGGING=1)
+ target_link_libraries(videocommon
+ PUBLIC
+   core
+diff --git a/Source/Core/VideoCommon/ShaderCache.cpp b/Source/Core/VideoCommon/ShaderCache.cpp
+index 53866a3..b311f0d 100644
+--- a/Source/Core/VideoCommon/ShaderCache.cpp
++++ b/Source/Core/VideoCommon/ShaderCache.cpp
+@@ -42,18 +42,44 @@ bool ShaderCache::Initialize()
+ 
+ void ShaderCache::InitializeShaderCache()
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc void ShaderCache::InitializeShaderCache()\n");
++    #endif
+   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
+ 
+   // Load shader and UID caches.
+   if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
+   {
++    #ifdef JC_DEBUGGING
++  	printf("jc void ShaderCache::InitializeShaderCache() LoadCaches();\n");
++    #endif
+     LoadCaches();
++    #ifdef JC_DEBUGGING
++    printf("jc void ShaderCache::InitializeShaderCache() LoadPipelineUIDCache();\n");
++    #endif
+     LoadPipelineUIDCache();
+-  }
++    #ifdef JC_DEBUGGING
++    printf("jc after LoadPipelineUIDCache();\n");
++    #endif
++  } 
++  #ifdef JC_DEBUGGING
++  else printf("jc void ShaderCache no shader and UID caches\n");
++  #endif
+ 
+   // Queue ubershader precompiling if required.
+   if (g_ActiveConfig.UsingUberShaders())
++  {
++      #ifdef JC_DEBUGGING
++      printf("jc QueueUberShaderPipelines();\n");
++      #endif
+     QueueUberShaderPipelines();
++    #ifdef JC_DEBUGGING
++    printf("jc after QueueUberShaderPipelines();\n");
++    #endif
++  } 
++  #ifdef JC_DEBUGGING
++  else printf("jc no QueueUberShaderPipelines();\n");
++  #endif
+ 
+   // Compile all known UIDs.
+   CompileMissingPipelines();
+@@ -397,17 +423,29 @@ void ShaderCache::ClearCaches()
+ 
+ void ShaderCache::CompileMissingPipelines()
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc void ShaderCache::CompileMissingPipelines()\n");
++    #endif
+   // Queue all uids with a null pipeline for compilation.
+   for (auto& it : m_gx_pipeline_cache)
+   {
++      #ifdef JC_DEBUGGING
++      printf("jc void ShaderCache::CompileMissingPipelines() loop1 \n");
++      #endif
+     if (!it.second.first)
+       QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
+   }
+   for (auto& it : m_gx_uber_pipeline_cache)
+   {
++      #ifdef JC_DEBUGGING
++      printf("jc void ShaderCache::CompileMissingPipelines() loop2 \n");
++      #endif
+     if (!it.second.first)
+       QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
+   }
++  #ifdef JC_DEBUGGING
++  printf("jc void ShaderCache::CompileMissingPipelines() end \n");
++  #endif
+ }
+ 
+ std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
+@@ -718,10 +756,14 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
+ 
+ void ShaderCache::LoadPipelineUIDCache()
+ {
++    
+   constexpr u32 CACHE_FILE_MAGIC = 0x44495550;  // PUID
+   constexpr size_t CACHE_HEADER_SIZE = sizeof(u32) + sizeof(u32);
+   std::string filename =
+       File::GetUserPath(D_CACHE_IDX) + SConfig::GetInstance().GetGameID() + ".uidcache";
++      #ifdef JC_DEBUGGING
++      printf("jc ShaderCache::LoadPipelineUIDCache() filename %s\n",filename.c_str());
++      #endif
+   if (m_gx_pipeline_uid_cache_file.Open(filename, "rb+"))
+   {
+     // If an existing case exists, validate the version before reading entries.
+@@ -948,6 +990,9 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
+     PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, u32 priority_)
+         : shader_cache(shader_cache_), uid(uid_), priority(priority_)
+     {
++        #ifdef JC_DEBUGGING
++        printf("jc ShaderCache QueuePipelineCompile PipelineWorkItem()\n");
++        #endif
+       // Check if all the stages required for this pipeline have been compiled.
+       // If not, this work item becomes a no-op, and re-queues the pipeline for the next frame.
+       if (SetStagesReady())
+@@ -956,26 +1001,54 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
+ 
+     bool SetStagesReady()
+     {
++        #ifdef JC_DEBUGGING
++        printf("jc ShaderCache QueuePipelineCompile SetStagesReady()\n");
++        #endif
+       stages_ready = true;
+-
++      
+       auto vs_it = shader_cache->m_vs_cache.shader_map.find(uid.vs_uid);
++      #ifdef JC_DEBUGGING
++      if (vs_it != shader_cache->m_vs_cache.shader_map.end()) printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it != shader_cache->m_vs_cache.shader_map.end()\n");
++      if (vs_it->second.pending) printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it->second.pending\n");
++      #endif
+       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
++      #ifdef JC_DEBUGGING
++      if (stages_ready) printf("jc ShaderCache QueuePipelineCompile SetStagesReady stages_ready 1\n");
++      #endif
+       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
++      {
++          #ifdef JC_DEBUGGING
++          printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it == shader_cache->m_vs_cache.shader_map.end()\n");
++          #endif
+         shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
++      }
+ 
+       PixelShaderUid ps_uid = uid.ps_uid;
+       ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
+ 
+       auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
+       stages_ready &= ps_it != shader_cache->m_ps_cache.shader_map.end() && !ps_it->second.pending;
++      #ifdef JC_DEBUGGING
++      if (stages_ready) printf("jc ShaderCache QueuePipelineCompile SetStagesReady stages_ready 2\n");
++      #endif
+       if (ps_it == shader_cache->m_ps_cache.shader_map.end())
++      {
++          #ifdef JC_DEBUGGING
++          printf("jc ShaderCache QueuePipelineCompile SetStagesReady ps_it == shader_cache->m_ps_cache.shader_map.end()\n");
++          #endif
+         shader_cache->QueuePixelShaderCompile(ps_uid, priority);
+-
++      }
++      #ifdef JC_DEBUGGING
++      printf("jc ShaderCache QueuePipelineCompile SetStagesReady() end\n");
++      #endif
+       return stages_ready;
+     }
+ 
+     bool Compile() override
+     {
++        #ifdef JC_DEBUGGING
++        printf("jc ShaderCache QueuePipelineCompile Compile()\n");
++        #endif
+       if (config)
+         pipeline = g_renderer->CreatePipeline(*config);
+       return true;
+@@ -983,6 +1056,9 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
+ 
+     void Retrieve() override
+     {
++        #ifdef JC_DEBUGGING
++        printf("jc ShaderCache QueuePipelineCompile retrieve()\n");
++        #endif
+       if (stages_ready)
+       {
+         shader_cache->InsertGXPipeline(uid, std::move(pipeline));
+@@ -1004,10 +1080,18 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
+     std::optional<AbstractPipelineConfig> config;
+     bool stages_ready;
+   };
+-
++  #ifdef JC_DEBUGGING
++  printf("jc ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)\n");
++  #endif
+   auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid, priority);
++  #ifdef JC_DEBUGGING
++  printf("jc ShaderCache::QueuePipelineCompile QueueWorkItem\n");
++  #endif
+   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
+   m_gx_pipeline_cache[uid].second = true;
++  #ifdef JC_DEBUGGING
++  printf("jc ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority) end\n");
++  #endif
+ }
+ 
+ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority)
+diff --git a/Source/Core/VideoCommon/VideoConfig.cpp b/Source/Core/VideoCommon/VideoConfig.cpp
+index b624755..63a3c55 100644
+--- a/Source/Core/VideoCommon/VideoConfig.cpp
++++ b/Source/Core/VideoCommon/VideoConfig.cpp
+@@ -59,6 +59,9 @@ VideoConfig::VideoConfig()
+ 
+ void VideoConfig::Refresh()
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc VideoConfig::Refresh() \n");
++    #endif
+   if (!s_has_registered_callback)
+   {
+     // There was a race condition between the video thread and the host thread here, if
+@@ -115,8 +118,9 @@ void VideoConfig::Refresh()
+   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
+   bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
+   iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
+-  iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
+-  iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
++  #warning "JC: modified. Asynchronous shader compling disabled. This could introduce stuttering"
++  iShaderCompilerThreads = 0;//Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
++  iShaderPrecompilerThreads = 0; //Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
+ 
+   bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
+   bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
+@@ -165,9 +169,17 @@ void VideoConfig::Refresh()
+ 
+ void VideoConfig::VerifyValidity()
+ {
++    #ifdef JC_DEBUGGING
++    printf("jc VideoConfig::VerifyValidity()\n");
++    #endif
+   // TODO: Check iMaxAnisotropy value
+   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
++  {
++      #ifdef JC_DEBUGGING
++      printf("jc VideoConfig::VerifyValidity() (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))\n");
++      #endif
+     iAdapter = 0;
++  }
+ 
+   if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
+       backend_info.AAModes.end())
+@@ -183,6 +195,9 @@ void VideoConfig::VerifyValidity()
+       stereo_mode = StereoMode::Off;
+     }
+   }
++  #ifdef JC_DEBUGGING
++  listParameters();
++  #endif
+ }
+ 
+ bool VideoConfig::UsingUberShaders() const
+@@ -222,3 +237,259 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
+   else
+     return GetNumAutoShaderCompilerThreads();
+ }
++
++
++
++
++
++
++
++
++
++
++void VideoConfig::listParameters()
++{
++    return;
++    printf("jc g_ActiveConfig.listParameters(); \n");
++    // General
++  if (bVSync) printf("jc bVSync\n");
++  if (bVSyncActive) printf("jc bVSyncActive\n");
++  if (bWidescreenHack) printf("jc bWidescreenHack\n");
++
++    switch (aspect_mode)
++    {
++        case AspectMode::Auto:
++            printf("jc aspect_mode Auto\n");
++            break;
++        case AspectMode::AnalogWide:
++            printf("jc aspect_mode AnalogWide\n");
++            break;
++        case AspectMode::Analog:
++            printf("jc aspect_mode Analog\n");
++            break;
++        case AspectMode::Stretch:
++            printf("jc aspect_mode Stretch\n");
++            break;
++        default:
++            printf("jc aspect_mode bad\n");
++            break;
++    }
++    switch (suggested_aspect_mode)
++    {
++        case AspectMode::Auto:
++            printf("jc suggested_aspect_mode Auto\n");
++            break;
++        case AspectMode::AnalogWide:
++            printf("jc suggested_aspect_mode AnalogWide\n");
++            break;
++        case AspectMode::Analog:
++            printf("jc suggested_aspect_mode Analog\n");
++            break;
++        case AspectMode::Stretch:
++            printf("jc suggested_aspect_mode Stretch\n");
++            break;
++        default:
++            printf("jc suggested_aspect_mode bad\n");
++            break;
++    }
++
++  if (bCrop) printf("jc bCrop\n");  // Aspect ratio controls.
++  if (bShaderCache) printf("jc bShaderCache\n");
++
++  // Enhancements
++  printf("jc u32 iMultisamples %i\n",iMultisamples);
++  if (bSSAA) printf("jc bSSAA\n");
++  printf("jc int iEFBScale %i\n",iEFBScale);
++  if (bForceFiltering) printf("jc bForceFiltering\n");
++  if (iMaxAnisotropy) printf("jc int iMaxAnisotropy\n");
++  printf("jc std::string sPostProcessingShader %s\n",sPostProcessingShader.c_str());
++  if (bForceTrueColor) printf("jc bForceTrueColor\n");
++  if (bDisableCopyFilter) printf("jc bDisableCopyFilter\n");
++  if (bArbitraryMipmapDetection) printf("jc bArbitraryMipmapDetection\n");
++  if (fArbitraryMipmapDetectionThreshold) printf("jc float fArbitraryMipmapDetectionThreshold\n");
++
++  // Information
++  if (bShowFPS) printf("jc bShowFPS\n");
++  if (bShowNetPlayPing) printf("jc bShowNetPlayPing\n");
++  if (bShowNetPlayMessages) printf("jc bShowNetPlayMessages\n");
++  if (bOverlayStats) printf("jc bOverlayStats\n");
++  if (bOverlayProjStats) printf("jc bOverlayProjStats\n");
++  if (bTexFmtOverlayEnable) printf("jc bTexFmtOverlayEnable\n");
++  if (bTexFmtOverlayCenter) printf("jc bTexFmtOverlayCenter\n");
++  if (bLogRenderTimeToFile) printf("jc bLogRenderTimeToFile\n");
++
++  // Render
++  if (bWireFrame) printf("jc bWireFrame\n");
++  if (bDisableFog) printf("jc bDisableFog\n");
++
++  // Utility
++  if (bDumpTextures) printf("jc bDumpTextures\n");
++  if (bHiresTextures) printf("jc bHiresTextures\n");
++  if (bCacheHiresTextures) printf("jc bCacheHiresTextures\n");
++  if (bDumpEFBTarget) printf("jc bDumpEFBTarget\n");
++  if (bDumpXFBTarget) printf("jc bDumpXFBTarget\n");
++  if (bDumpFramesAsImages) printf("jc bDumpFramesAsImages\n");
++  if (bUseFFV1) printf("jc bUseFFV1\n");
++  printf("jc std::string sDumpCodec %s\n",sDumpCodec.c_str());
++  printf("jc std::string sDumpEncoder %s\n",sDumpEncoder.c_str());
++  printf("jc std::string sDumpFormat %s\n",sDumpFormat.c_str());
++  printf("jc std::string sDumpPath %s\n",sDumpPath.c_str());
++  if (bInternalResolutionFrameDumps) printf("jc bInternalResolutionFrameDumps\n");
++  if (bFreeLook) printf("jc bFreeLook\n");
++  if (bBorderlessFullscreen) printf("jc bBorderlessFullscreen\n");
++  if (bEnableGPUTextureDecoding) printf("jc bEnableGPUTextureDecoding\n");
++  printf("jc int iBitrateKbps %i\n",iBitrateKbps);
++
++  // Hacks
++  if (bEFBAccessEnable) printf("jc bEFBAccessEnable\n");
++  if (bEFBAccessDeferInvalidation) printf("jc bEFBAccessDeferInvalidation\n");
++  if (bPerfQueriesEnable) printf("jc bPerfQueriesEnable\n");
++  if (bBBoxEnable) printf("jc bBBoxEnable\n");
++  if (bForceProgressive) printf("jc bForceProgressive\n");
++
++  if (bEFBEmulateFormatChanges) printf("jc bEFBEmulateFormatChanges\n");
++  if (bSkipEFBCopyToRam) printf("jc bSkipEFBCopyToRam\n");
++  if (bSkipXFBCopyToRam) printf("jc bSkipXFBCopyToRam\n");
++  if (bDisableCopyToVRAM) printf("jc bDisableCopyToVRAM\n");
++  if (bDeferEFBCopies) printf("jc bDeferEFBCopies\n");
++  if (bImmediateXFB) printf("jc bImmediateXFB\n");
++  if (bSkipPresentingDuplicateXFBs) printf("jc bSkipPresentingDuplicateXFBs\n");
++  if (bCopyEFBScaled) printf("jc bCopyEFBScaled\n");
++  printf("jc int iSafeTextureCache_ColorSamples %i\n",iSafeTextureCache_ColorSamples);
++  printf("jc float fAspectRatioHackW %f\n",fAspectRatioHackW);
++  printf("jc float fAspectRatioHackH %f\n",fAspectRatioHackH);
++  if (bEnablePixelLighting) printf("jc bEnablePixelLighting\n");
++  if (bFastDepthCalc) printf("jc bFastDepthCalc\n");
++  if (bVertexRounding) printf("jc bVertexRounding\n");
++  printf("jc int iEFBAccessTileSize %i\n",iEFBAccessTileSize);
++  printf("jc int iLog %i\n",iLog);           // CONF_ bits
++  printf("jc int iSaveTargetId %i\n",iSaveTargetId);  // TODO: Should be dropped
++  
++      switch (stereo_mode)
++    {
++        case StereoMode::Off:
++            printf("jc stereo_mode Off\n");
++            break;
++        case StereoMode::SBS:
++            printf("jc stereo_mode SBS\n");
++            break;
++        case StereoMode::TAB:
++            printf("jc stereo_mode TAB\n");
++            break;
++        case StereoMode::Anaglyph:
++            printf("jc stereo_mode Anaglyph\n");
++            break;
++        case StereoMode::QuadBuffer:
++            printf("jc stereo_mode QuadBuffer\n");
++            break;
++        case StereoMode::Passive:
++            printf("jc stereo_mode Passive\n");
++            break;
++        default:
++            printf("jc stereo_mode bad\n");
++            break;
++    }
++  
++  printf("jc int iStereoDepth %i\n",iStereoDepth);
++  printf("jc int iStereoConvergence %i\n",iStereoConvergence);
++  printf("jc int iStereoConvergencePercentage %i\n",iStereoConvergencePercentage);
++  if (bStereoSwapEyes) printf("jc bStereoSwapEyes\n");
++  if (bStereoEFBMonoDepth) printf("jc bStereoEFBMonoDepth\n");
++  printf("jc int iStereoDepthPercentage %i\n",iStereoDepthPercentage);
++
++  // D3D only config, mostly to be merged into the above
++  printf("jc int iAdapter %i\n",iAdapter);
++
++  // VideoSW Debugging
++  printf("jc int drawStart %i\n",drawStart);
++  printf("jc int drawEnd %i\n",drawEnd);
++  if (bZComploc) printf("jc bZComploc\n");
++  if (bZFreeze) printf("jc bZFreeze\n");
++  if (bDumpObjects) printf("jc bDumpObjects\n");
++  if (bDumpTevStages) printf("jc bDumpTevStages\n");
++  if (bDumpTevTextureFetches) printf("jc bDumpTevTextureFetches\n");
++
++  // Enable API validation layers, currently only supported with Vulkan.
++  if (bEnableValidationLayer) printf("jc bEnableValidationLayer\n");
++
++  // Multithreaded submission, currently only supported with Vulkan.
++  if (bBackendMultithreading) printf("jc bBackendMultithreading\n");
++
++  // Early command buffer execution interval in number of draws.
++  // Currently only supported with Vulkan.
++  printf("jc int iCommandBufferExecuteInterval %i\n",iCommandBufferExecuteInterval);
++
++  // Shader compilation settings.
++  if (bWaitForShadersBeforeStarting) printf("jc bWaitForShadersBeforeStarting\n");
++//ShaderCompilationMode iShaderCompilationMode;
++
++  // Number of shader compiler threads.
++  // 0 disables background compilation.
++  // -1 uses an automatic number based on the CPU threads.
++  printf("jc int iShaderCompilerThreads %i\n",iShaderCompilerThreads);
++  printf("jc int iShaderPrecompilerThreads %i\n",iShaderPrecompilerThreads);
++
++
++  #ifdef JC_DEBUGGING  
++  switch (backend_info.api_type)
++    {
++        case APIType::OpenGL:
++            printf("jc api_type OpenGL\n");
++            break;
++        case APIType::D3D:
++            printf("jc api_type D3D\n");
++            break;
++        case APIType::Vulkan:
++            printf("jc api_type Vulkan\n");
++            break;
++        case APIType::Nothing:
++            printf("jc api_type Nothing\n");
++            break;
++        default:
++            printf("jc api_type bad\n");
++            break;
++    }
++    #endif
++
++    //std::vector<std::string> Adapters;  // for D3D
++    //std::vector<u32> AAModes;
++
++    // TODO: merge AdapterName and Adapters array
++    printf("jc std::string AdapterName %s\n",backend_info.AdapterName.c_str());
++    printf("jc u32 MaxTextureSize %i\n",backend_info.MaxTextureSize);
++    ;
++    if (backend_info.bUsesLowerLeftOrigin) printf("jc backend_info.bUsesLowerLeftOrigin\n");
++
++    if (backend_info.bSupportsExclusiveFullscreen) printf("jc backend_info.bSupportsExclusiveFullscreen\n");
++    if (backend_info.bSupportsDualSourceBlend) printf("jc backend_info.bSupportsDualSourceBlend\n");
++    if (backend_info.bSupportsPrimitiveRestart) printf("jc backend_info.bSupportsPrimitiveRestart\n");
++    if (backend_info.bSupportsOversizedViewports) printf("jc backend_info.bSupportsOversizedViewports\n");
++    if (backend_info.bSupportsGeometryShaders) printf("jc backend_info.bSupportsGeometryShaders\n");
++    if (backend_info.bSupportsComputeShaders) printf("jc backend_info.bSupportsComputeShaders\n");
++    if (backend_info.bSupports3DVision) printf("jc backend_info.bSupports3DVision\n");
++    if (backend_info.bSupportsEarlyZ) printf("jc backend_info.bSupportsEarlyZ\n");         // needed by PixelShaderGen, so must stay in VideoCommon
++    if (backend_info.bSupportsBindingLayout) printf("jc backend_info.bSupportsBindingLayout\n");  // Needed by ShaderGen, so must stay in VideoCommon
++    if (backend_info.bSupportsBBox) printf("jc backend_info.bSupportsBBox\n");
++    if (backend_info.bSupportsGSInstancing) printf("jc backend_info.bSupportsGSInstancing\n");  // Needed by GeometryShaderGen, so must stay in VideoCommon
++    if (backend_info.bSupportsPostProcessing) printf("jc backend_info.bSupportsPostProcessing\n");
++    if (backend_info.bSupportsPaletteConversion) printf("jc backend_info.bSupportsPaletteConversion\n");
++    if (backend_info.bSupportsClipControl) printf("jc backend_info.bSupportsClipControl\n");  // Needed by VertexShaderGen, so must stay in VideoCommon
++    if (backend_info.bSupportsSSAA) printf("jc backend_info.bSupportsSSAA\n");
++    if (backend_info.bSupportsFragmentStoresAndAtomics) printf("jc backend_info.bSupportsFragmentStoresAndAtomics\n");  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
++    if (backend_info.bSupportsDepthClamp) printf("jc backend_info.bSupportsDepthClamp\n");  // Needed by VertexShaderGen, so must stay in VideoCommon
++    if (backend_info.bSupportsReversedDepthRange) printf("jc backend_info.bSupportsReversedDepthRange\n");
++    if (backend_info.bSupportsLogicOp) printf("jc backend_info.bSupportsLogicOp\n");
++    if (backend_info.bSupportsMultithreading) printf("jc backend_info.bSupportsMultithreading\n");
++    if (backend_info.bSupportsGPUTextureDecoding) printf("jc backend_info.bSupportsGPUTextureDecoding\n");
++    if (backend_info.bSupportsST3CTextures) printf("jc backend_info.bSupportsST3CTextures\n");
++    if (backend_info.bSupportsCopyToVram) printf("jc backend_info.bSupportsCopyToVram\n");
++    if (backend_info.bSupportsBitfield) printf("jc backend_info.bSupportsBitfield\n");                // Needed by UberShaders, so must stay in VideoCommon
++    if (backend_info.bSupportsDynamicSamplerIndexing) printf("jc backend_info.bSupportsDynamicSamplerIndexing\n");  // Needed by UberShaders, so must stay in VideoCommon
++    if (backend_info.bSupportsBPTCTextures) printf("jc backend_info.bSupportsBPTCTextures\n");
++    if (backend_info.bSupportsFramebufferFetch) printf("jc backend_info.bSupportsFramebufferFetch\n");  // Used as an alternative to dual-source blend on GLES
++    if (backend_info.bSupportsBackgroundCompiling) printf("jc backend_info.bSupportsBackgroundCompiling\n");
++    if (backend_info.bSupportsLargePoints) printf("jc backend_info.bSupportsLargePoints\n");
++    if (backend_info.bSupportsPartialDepthCopies) printf("jc backend_info.bSupportsPartialDepthCopies\n");
++    if (backend_info.bSupportsShaderBinaries) printf("jc backend_info.bSupportsShaderBinaries\n");
++    if (backend_info.bSupportsPipelineCacheData) printf("jc backend_info.bSupportsPipelineCacheData\n");
++}
+diff --git a/Source/Core/VideoCommon/VideoConfig.h b/Source/Core/VideoCommon/VideoConfig.h
+index 3f18f45..03a1d44 100644
+--- a/Source/Core/VideoCommon/VideoConfig.h
++++ b/Source/Core/VideoCommon/VideoConfig.h
+@@ -56,6 +56,7 @@ struct VideoConfig final
+ {
+   VideoConfig();
+   void Refresh();
++  void listParameters();
+   void VerifyValidity();
+ 
+   // General
+diff --git a/Source/UnitTests/Common/x64EmitterTest.cpp b/Source/UnitTests/Common/x64EmitterTest.cpp
+index 77006f2..c1d3a19 100644
+--- a/Source/UnitTests/Common/x64EmitterTest.cpp
++++ b/Source/UnitTests/Common/x64EmitterTest.cpp
+@@ -94,7 +94,7 @@ protected:
+     emitter->AllocCodeSpace(4096);
+     code_buffer = emitter->GetWritableCodePtr();
+ 
+-    disasm.reset(new disassembler);
++    disasm.reset(new DO_disassembler);
+     disasm->set_syntax_intel();
+   }
+ 
+@@ -162,7 +162,7 @@ protected:
+   }
+ 
+   std::unique_ptr<X64CodeBlock> emitter;
+-  std::unique_ptr<disassembler> disasm;
++  std::unique_ptr<DO_disassembler> disasm;
+   u8* code_buffer;
+ };
+ 

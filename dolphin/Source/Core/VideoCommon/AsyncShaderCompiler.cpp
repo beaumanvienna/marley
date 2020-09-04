@@ -6,6 +6,7 @@
 #include <thread>
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/Thread.h"
 
 namespace VideoCommon
 {
@@ -118,16 +119,10 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
 
   for (u32 i = 0; i < num_worker_threads; i++)
   {
-    #ifdef JC_DEBUGGING
-  	printf("jc AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)  \n");
-    #endif
     void* thread_param = nullptr;
     if (!WorkerThreadInitMainThread(&thread_param))
     {
       WARN_LOG(VIDEO, "Failed to initialize shader compiler worker thread.");
-      #ifdef JC_DEBUGGING
-      printf("Failed to initialize shader compiler worker thread.\n");
-      #endif
       break;
     }
 
@@ -198,6 +193,8 @@ void AsyncShaderCompiler::WorkerThreadExit(void* param)
 
 void AsyncShaderCompiler::WorkerThreadEntryPoint(void* param)
 {
+  Common::SetCurrentThreadName("AsyncShaderCompiler Worker");
+
   // Initialize worker thread with backend-specific method.
   if (!WorkerThreadInitWorkerThread(param))
   {

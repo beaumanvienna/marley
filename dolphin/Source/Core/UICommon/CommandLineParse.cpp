@@ -45,11 +45,11 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      std::optional<Config::System> system = Config::GetSystemFromName(system_str);
       if (system)
       {
         m_values.emplace_back(
-            Config::ConfigLocation{std::move(*system), std::move(section), std::move(key)},
+            Config::Location{std::move(*system), std::move(section), std::move(key)},
             std::move(value));
       }
     }
@@ -69,7 +69,7 @@ public:
   }
 
 private:
-  std::list<std::tuple<Config::ConfigLocation, std::string>> m_values;
+  std::list<std::tuple<Config::Location, std::string>> m_values;
 };
 
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
@@ -94,6 +94,11 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .metavar("<System>.<Section>.<Key>=<Value>")
       .type("string")
       .help("Set a configuration option");
+  parser->add_option("-s", "--save_state")
+      .action("store")
+      .metavar("<file>")
+      .type("string")
+      .help("Load the initial save state");
 
   if (options == ParserOptions::IncludeGUIOptions)
   {

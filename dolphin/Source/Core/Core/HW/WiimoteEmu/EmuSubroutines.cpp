@@ -235,13 +235,12 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
 
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
-
-  m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
+  m_status.SetEstimatedCharge(m_battery_setting.GetValue() / ciface::BATTERY_INPUT_MAX_VALUE);
 
   if (Core::WantsDeterminism())
   {
     // One less thing to break determinism:
-    m_status.battery = MAX_BATTERY_LEVEL;
+    m_status.SetEstimatedCharge(1.f);
   }
 
   // Less than 0x20 triggers the low-battery flag:
@@ -390,10 +389,9 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     }
     else
     {
-      // Speaker Pan
-      const auto pan = m_speaker_pan_setting.GetValue() / 100;
-
-      m_speaker_logic.SpeakerData(rpt.data, rpt.length, pan);
+      // Speaker data reports result in a write to the speaker hardware at offset 0x00.
+      m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
+                         rpt.data);
     }
   }
 
@@ -588,7 +586,7 @@ void Wiimote::DoState(PointerWrap& p)
   // Dynamics
   p.Do(m_swing_state);
   p.Do(m_tilt_state);
-  p.Do(m_cursor_state);
+  p.Do(m_point_state);
   p.Do(m_shake_state);
 
   // We'll consider the IMU state part of the user's physical controller state and not sync it.

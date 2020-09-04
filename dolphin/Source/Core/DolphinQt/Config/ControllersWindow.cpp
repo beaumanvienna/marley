@@ -131,9 +131,12 @@ static int GetLayoutHorizontalSpacing(const QGridLayout* layout)
   // Docs claim this is deprecated, but on macOS with Qt 5.8 this is the only one that actually
   // works.
   float pixel_ratio = QGuiApplication::primaryScreen()->devicePixelRatio();
+#ifdef __APPLE__
+  // TODO is this still required?
   hspacing = pixel_ratio * style->pixelMetric(QStyle::PM_DefaultLayoutSpacing);
   if (hspacing >= 0)
     return hspacing;
+#endif
 
   // Ripped from qtbase/src/widgets/styles/qcommonstyle.cpp
   return pixel_ratio * 6;
@@ -260,20 +263,16 @@ void ControllersWindow::ConnectWidgets()
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    connect(m_wiimote_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::SaveSettings);
-    connect(m_wiimote_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::OnWiimoteModeChanged);
     connect(m_wiimote_buttons[i], &QPushButton::clicked, this,
             &ControllersWindow::OnWiimoteConfigure);
 
-    connect(m_gc_controller_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::SaveSettings);
-    connect(m_gc_controller_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::OnGCTypeChanged);
     connect(m_gc_buttons[i], &QPushButton::clicked, this, &ControllersWindow::OnGCPadConfigure);
   }

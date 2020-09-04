@@ -30,7 +30,6 @@ public class AppLinkActivity extends FragmentActivity
 
   private AppLinkHelper.PlayAction playAction;
   private DirectoryStateReceiver directoryStateReceiver;
-  private BroadcastReceiver gameFileCacheReceiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -96,18 +95,17 @@ public class AppLinkActivity extends FragmentActivity
               }
             });
 
-    gameFileCacheReceiver =
-            new BroadcastReceiver()
-            {
-              @Override
-              public void onReceive(Context context, Intent intent)
-              {
-                if (DirectoryInitialization.areDolphinDirectoriesReady())
-                {
-                  tryPlay(playAction);
-                }
-              }
-            };
+    BroadcastReceiver gameFileCacheReceiver = new BroadcastReceiver()
+    {
+      @Override
+      public void onReceive(Context context, Intent intent)
+      {
+        if (DirectoryInitialization.areDolphinDirectoriesReady())
+        {
+          tryPlay(playAction);
+        }
+      }
+    };
 
     LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
     broadcastManager.registerReceiver(directoryStateReceiver, directoryStateIntentFilter);
@@ -130,8 +128,8 @@ public class AppLinkActivity extends FragmentActivity
 
   private void tryPlay(AppLinkHelper.PlayAction action)
   {
-    // TODO: This approach of getting the game from the game file cache without rescanning
-    // the library means that we can fail to launch games if the cache file has been deleted.
+    // TODO: This approach of getting the game from the game file cache without rescanning the
+    //       library means that we can fail to launch games if the cache file has been deleted.
 
     GameFile game = GameFileCacheService.getGameFileByGameId(action.getGameId());
 

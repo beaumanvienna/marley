@@ -22,9 +22,6 @@ GLX11Window::~GLX11Window()
 
 void GLX11Window::UpdateDimensions()
 {
-    #ifdef JC_DEBUGGING
-    printf("jc GLX11Window::UpdateDimensions()\n");
-    #endif
   //jc XWindowAttributes attribs;
   //jc XGetWindowAttributes(m_display, m_parent_window, &attribs);
   //jc XResizeWindow(m_display, m_window, attribs.width, attribs.height);

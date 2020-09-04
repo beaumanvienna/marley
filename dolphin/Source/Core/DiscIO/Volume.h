@@ -20,8 +20,10 @@
 
 namespace DiscIO
 {
+class BlobReader;
 enum class BlobType;
 class FileSystem;
+class VolumeDisc;
 class VolumeWAD;
 
 struct Partition final
@@ -56,15 +58,20 @@ public:
   std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const
   {
     const std::optional<u32> temp = ReadSwapped<u32>(offset, partition);
-    return temp ? static_cast<u64>(*temp) << GetOffsetShift() : std::optional<u64>();
+    if (!temp)
+      return std::nullopt;
+    return static_cast<u64>(*temp) << GetOffsetShift();
   }
 
   virtual bool IsEncryptedAndHashed() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
-  virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
+  virtual std::optional<u32> GetPartitionType(const Partition& partition) const
+  {
+    return std::nullopt;
+  }
   std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
-  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return {}; }
+  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return std::nullopt; }
   virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
   {
     return INVALID_TICKET;
@@ -113,6 +120,8 @@ public:
     return 0;
   }
   virtual Platform GetVolumeType() const = 0;
+  virtual bool IsDatelDisc() const = 0;
+  virtual bool IsNKit() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
   virtual bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
@@ -132,6 +141,7 @@ public:
   virtual bool IsSizeAccurate() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
+  virtual const BlobReader& GetBlobReader() const = 0;
 
 protected:
   template <u32 N>
@@ -158,10 +168,6 @@ protected:
   static const IOS::ES::TicketReader INVALID_TICKET;
   static const IOS::ES::TMDReader INVALID_TMD;
   static const std::vector<u8> INVALID_CERT_CHAIN;
-};
-
-class VolumeDisc : public Volume
-{
 };
 
 std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);

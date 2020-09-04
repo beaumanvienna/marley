@@ -10,10 +10,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
-#include <tuple>
-#include <vector>
 
-#include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
@@ -24,7 +21,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/Core.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
@@ -32,22 +28,16 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 namespace OGL
 {
@@ -342,9 +332,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       m_current_depth_state(RenderState::GetInvalidDepthState()),
       m_current_blend_state(RenderState::GetInvalidBlendingState())
 {
-  #ifdef JC_DEBUGGING  
-  printf("jc  Renderer::Renderer \n");
-  #endif
   // Create the window framebuffer.
   if (!m_main_gl_context->IsHeadless())
   {
@@ -353,9 +340,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
         std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
     m_current_framebuffer = m_system_framebuffer.get();
-    #ifdef JC_DEBUGGING
-    printf("jc  Renderer::Renderer m_main_gl_context->GetBackBufferWidth(): %i,m_main_gl_context->GetBackBufferHeight(): %i\n",m_main_gl_context->GetBackBufferWidth(),m_main_gl_context->GetBackBufferHeight());
-    #endif
   }
 
   bool bSuccess = true;
@@ -526,6 +510,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
     // GLES does not support logic op.
     g_Config.backend_info.bSupportsLogicOp = false;
+
+    // glReadPixels() can't be used with non-color formats. But, if we support
+    // ARB_get_texture_sub_image (unlikely, except maybe on NVIDIA), we can use that instead.
+    g_Config.backend_info.bSupportsDepthReadback = g_ogl_config.bSupportsTextureSubImage;
 
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
@@ -729,10 +717,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // MSAA on default framebuffer isn't working because of glBlitFramebuffer.
     // It also isn't useful as we don't render anything to the default framebuffer.
     // We also try to get a non-msaa fb, so this only happens when forced by the driver.
-    PanicAlert("MSAA on default framebuffer isn't supported.\n"
-               "Please avoid forcing Dolphin to use MSAA by the driver.\n"
-               "%d samples on default framebuffer found.",
-               samples);
+    PanicAlertT("The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to "
+                "turn this off in the graphics driver's settings in order for Dolphin to work.\n\n"
+                "(MSAA with %d samples found on default framebuffer)",
+                samples);
     bSuccess = false;
   }
 
@@ -742,9 +730,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // Else some of the next calls might crash.
     return;
   }
-  #ifdef JC_DEBUGGING
-  printf("jc  Renderer::Renderer g_Config.VerifyValidity();\n");
-  #endif
+
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 

@@ -55,6 +55,7 @@ Make AA apply instantly during gameplay if possible
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -89,6 +90,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
   g_Config.backend_info.bSupportsLargePoints = true;
+  g_Config.backend_info.bSupportsDepthReadback = true;
   g_Config.backend_info.bSupportsPartialDepthCopies = true;
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
@@ -167,9 +169,6 @@ bool VideoBackend::FillBackendInfo()
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
-    #ifdef JC_DEBUGGING
-	printf("jc VideoBackend::Initialize(const WindowSystemInfo& wsi)\n");
-    #endif
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
                         Config::Get(Config::GFX_PREFER_GLES));
@@ -224,10 +223,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   g_shader_cache->InitializeShaderCache();
-  #ifdef JC_DEBUGGING
-  printf("jc VideoBackend::Initialize() end\n");
-  g_ActiveConfig.listParameters();
-  #endif
   return true;
 }
 

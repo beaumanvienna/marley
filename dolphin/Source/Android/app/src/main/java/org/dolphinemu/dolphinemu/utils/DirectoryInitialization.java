@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Dolphin Emulator Project
  * Licensed under GPLv2+
  * Refer to the license.txt file included.
@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -35,7 +36,7 @@ public final class DirectoryInitialization
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
   public static final String EXTRA_STATE = "directoryState";
-  private static final int WiimoteNewVersion = 4;  // Last changed in PR 8503
+  private static final int WiimoteNewVersion = 5;  // Last changed in PR 8907
   private static volatile DirectoryInitializationState directoryState = null;
   private static String userPath;
   private static String internalPath;
@@ -64,7 +65,7 @@ public final class DirectoryInitialization
     {
       if (PermissionsHandler.hasWriteAccess(context))
       {
-        if (setDolphinUserDirectory())
+        if (setDolphinUserDirectory(context))
         {
           initializeInternalStorage(context);
           initializeExternalStorage(context);
@@ -88,22 +89,27 @@ public final class DirectoryInitialization
     sendBroadcastState(directoryState, context);
   }
 
-  private static boolean setDolphinUserDirectory()
+  private static boolean setDolphinUserDirectory(Context context)
   {
-    if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
-    {
-      File externalPath = Environment.getExternalStorageDirectory();
-      if (externalPath != null)
-      {
-        userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
-        Log.debug("[DirectoryInitialization] User Dir: " + userPath);
-        NativeLibrary.SetUserDirectory(userPath);
-        return true;
-      }
+    if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
+      return false;
 
-    }
+    File externalPath = Environment.getExternalStorageDirectory();
+    if (externalPath == null)
+      return false;
 
-    return false;
+    userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
+    Log.debug("[DirectoryInitialization] User Dir: " + userPath);
+    NativeLibrary.SetUserDirectory(userPath);
+
+    File cacheDir = context.getExternalCacheDir();
+    if (cacheDir == null)
+      return false;
+
+    Log.debug("[DirectoryInitialization] Cache Dir: " + cacheDir.getPath());
+    NativeLibrary.SetCacheDirectory(cacheDir.getPath());
+
+    return true;
   }
 
   private static void initializeInternalStorage(Context context)
@@ -168,14 +174,24 @@ public final class DirectoryInitialization
             context);
   }
 
-  private static void deleteDirectoryRecursively(File file)
+  private static void deleteDirectoryRecursively(@NonNull final File file)
   {
     if (file.isDirectory())
     {
-      for (File child : file.listFiles())
+      File[] files = file.listFiles();
+
+      if (files == null)
+      {
+        return;
+      }
+
+      for (File child : files)
         deleteDirectoryRecursively(child);
     }
-    file.delete();
+    if (!file.delete())
+    {
+      Log.error("[DirectoryInitialization] Failed to delete " + file.getAbsolutePath());
+    }
   }
 
   public static boolean areDolphinDirectoriesReady()
@@ -251,12 +267,23 @@ public final class DirectoryInitialization
 
     try
     {
+      String[] assetList = context.getAssets().list(assetFolder);
+
+      if (assetList == null)
+      {
+        return;
+      }
+
       boolean createdFolder = false;
-      for (String file : context.getAssets().list(assetFolder))
+      for (String file : assetList)
       {
         if (!createdFolder)
         {
-          outputFolder.mkdir();
+          if (!outputFolder.mkdir())
+          {
+            Log.error("[DirectoryInitialization] Failed to create folder " +
+                    outputFolder.getAbsolutePath());
+          }
           createdFolder = true;
         }
         copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file),
@@ -280,9 +307,8 @@ public final class DirectoryInitialization
       OutputStream out = new FileOutputStream(to);
       copyFile(in, out);
     }
-    catch (IOException e)
+    catch (IOException ignored)
     {
-
     }
   }
 
@@ -302,7 +328,10 @@ public final class DirectoryInitialization
     File wiiPath = new File(directory);
     if (!wiiPath.isDirectory())
     {
-      wiiPath.mkdirs();
+      if (!wiiPath.mkdirs())
+      {
+        Log.error("[DirectoryInitialization] Failed to create folder " + wiiPath.getAbsolutePath());
+      }
     }
   }
 

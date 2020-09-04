@@ -24,7 +24,7 @@ add_library(videoogl
   VertexManager.h
   VideoBackend.h
 )
-#target_compile_definitions(videoogl PRIVATE JC_DEBUGGING=1)
+
 target_link_libraries(videoogl
 PUBLIC
   common

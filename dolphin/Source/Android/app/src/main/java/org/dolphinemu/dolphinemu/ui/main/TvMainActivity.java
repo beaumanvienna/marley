@@ -37,11 +37,11 @@ import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
 {
+  private static boolean sShouldRescanLibrary = true;
+
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
-
-  private ArrayObjectAdapter mRowsAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -65,6 +65,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   {
     super.onResume();
     mPresenter.addDirIfNeeded(this);
+    if (sShouldRescanLibrary)
+    {
+      GameFileCacheService.startRescan(this);
+    }
+    else
+    {
+      sShouldRescanLibrary = true;
+    }
   }
 
   @Override
@@ -85,6 +93,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onStop()
   {
     super.onStop();
+    if (isChangingConfigurations())
+    {
+      skipRescanningLibrary();
+    }
     StartupHandler.setSessionTime(this);
   }
 
@@ -151,6 +163,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
+  public void launchInstallWAD()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
+            FileBrowserHelper.WAD_EXTENSION);
+  }
+
+  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -170,23 +189,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
-    {
-      case MainPresenter.REQUEST_DIRECTORY:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
-          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
 
-      case MainPresenter.REQUEST_GAME_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
+    {
+      switch (requestCode)
+      {
+        case MainPresenter.REQUEST_DIRECTORY:
+          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
+          break;
+
+        case MainPresenter.REQUEST_GAME_FILE:
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
-        }
-        break;
+          break;
+
+        case MainPresenter.REQUEST_WAD_FILE:
+          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
+          break;
+      }
+    }
+    else
+    {
+      skipRescanningLibrary();
     }
   }
 
@@ -194,29 +218,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
-    switch (requestCode)
+    if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
-      case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-        {
-          DirectoryInitialization.start(this);
-          GameFileCacheService.startLoad(this);
-        }
-        else
-        {
-          Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                  .show();
-        }
-        break;
-      default:
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        break;
+      if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+      {
+        DirectoryInitialization.start(this);
+        GameFileCacheService.startLoad(this);
+      }
+      else
+      {
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                .show();
+      }
+    }
+    else
+    {
+      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
   private void buildRowsAdapter()
   {
-    mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
     if (PermissionsHandler.hasWriteAccess(this))
     {
@@ -230,13 +253,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       // Add row to the adapter only if it is not empty.
       if (row != null)
       {
-        mRowsAdapter.add(row);
+        rowsAdapter.add(row);
       }
     }
 
-    mRowsAdapter.add(buildSettingsRow());
+    rowsAdapter.add(buildSettingsRow());
 
-    mBrowseFragment.setAdapter(mRowsAdapter);
+    mBrowseFragment.setAdapter(rowsAdapter);
   }
 
   private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
@@ -286,10 +309,23 @@ public final class TvMainActivity extends FragmentActivity implements MainView
             R.drawable.ic_refresh_tv,
             R.string.grid_menu_refresh));
 
+    rowItems.add(new TvSettingsItem(R.id.menu_open_file,
+            R.drawable.ic_play,
+            R.string.grid_menu_open_file));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_install_wad,
+            R.drawable.ic_folder,
+            R.string.grid_menu_install_wad));
+
     // Create a header for this row.
     HeaderItem header =
             new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
 
     return new ListRow(header, rowItems);
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
   }
 }

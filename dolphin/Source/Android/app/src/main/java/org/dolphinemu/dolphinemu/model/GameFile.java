@@ -1,6 +1,6 @@
 package org.dolphinemu.dolphinemu.model;
 
-import android.os.Environment;
+import android.content.Context;
 
 public class GameFile
 {
@@ -38,16 +38,25 @@ public class GameFile
 
   public native int getRevision();
 
+  public native String getBlobTypeString();
+
+  public native long getBlockSize();
+
+  public native String getCompressionMethod();
+
+  public native boolean shouldShowFileFormatDetails();
+
+  public native long getFileSize();
+
   public native int[] getBanner();
 
   public native int getBannerWidth();
 
   public native int getBannerHeight();
 
-  public String getCoverPath()
+  public String getCoverPath(Context context)
   {
-    return Environment.getExternalStorageDirectory().getPath() +
-            "/dolphin-emu/Cache/GameCovers/" + getGameTdbId() + ".png";
+    return context.getExternalCacheDir().getPath() + "/GameCovers/" + getGameTdbId() + ".png";
   }
 
   public String getCustomCoverPath()

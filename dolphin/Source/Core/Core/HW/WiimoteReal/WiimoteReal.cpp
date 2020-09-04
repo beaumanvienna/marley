@@ -76,7 +76,6 @@ static WiimoteScanner s_wiimote_scanner;
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
 static void TryToFillWiimoteSlot(u32 index)
 {
-    //printf("TryToFillWiimoteSlot(u32 index) index=%i\n", index);
   std::lock_guard lk(g_wiimotes_mutex);
 
   if (g_wiimotes[index] || WiimoteCommon::GetSource(index) != WiimoteSource::Real)
@@ -127,12 +126,7 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   if (!wiimote->Connect(POOL_WIIMOTE_INDEX))
   {
     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
-    printf("AddWiimoteToPool Failed to connect real wiimote\n");
     return;
-  }
-  else
-  {
-      //printf("AddWiimoteToPool successfully connected\n");
   }
 
   std::lock_guard lk(g_wiimotes_mutex);
@@ -156,15 +150,6 @@ void Wiimote::Shutdown()
 // to be called from CPU thread
 void Wiimote::WriteReport(Report rpt)
 {
-    /*printf("jc Wiimote::WriteReport ");
-    
-    for (unsigned int i=0;i<rpt.size();i++)
-    {
-        printf("[%i] 0x%02x, ",i,rpt[i]);
-    }
-    printf("\n");*/
-    
-    
   if (rpt.size() >= 3)
   {
     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
@@ -306,8 +291,6 @@ u16 Wiimote::getWiiButtons(int cmd)
 
 void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
 {
-    
-    //printf("jc Wiimote::InterruptChannel channel %i, size %i)\n",channel,size);
   // first interrupt/control channel sent
   if (channel != m_channel)
   {
@@ -360,22 +343,13 @@ void Wiimote::Read()
 
   if (result > 0 && m_channel > 0)
   {
-      /*printf("jc Wiimote::Read data received  ");
-      
-    for (unsigned int i=0;i<rpt.size();i++)
-    {
-        printf("[%i] 0x%02x, ",i,rpt[i]);
-    }
-    printf("\n");*/
-    
-      
     if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
     {
       static sf::UdpSocket Socket;
       Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                   SConfig::GetInstance().iBBDumpPort);
     }
-    
+
     // Add it to queue
     rpt.resize(result);
     m_read_reports.Push(std::move(rpt));
@@ -383,7 +357,6 @@ void Wiimote::Read()
   else if (0 == result)
   {
     ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
-    printf("jc Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
     DisconnectInternal();
   }
 }
@@ -392,13 +365,7 @@ bool Wiimote::Write()
 {
   // nothing written, but this is not an error
   if (m_write_reports.Empty())
-  {
     return true;
-  }
-  else
-  {
-      //printf("jc Wiimote::Write() sending data\n");
-  }
 
   Report const& rpt = m_write_reports.Front();
 
@@ -495,7 +462,6 @@ bool Wiimote::IsBalanceBoard()
 
 static bool IsDataReport(const Report& rpt)
 {
-    
   return rpt.size() >= 2 && rpt[1] >= u8(InputReportID::ReportCore);
 }
 
@@ -507,16 +473,14 @@ bool Wiimote::GetNextReport(Report* report)
 // Returns the next report that should be sent
 Report& Wiimote::ProcessReadQueue()
 {
-    
   // Pop through the queued reports
   while (GetNextReport(&m_last_input_report))
   {
     if (!IsDataReport(m_last_input_report))
     {
       // A non-data report, use it.
-      //printf("ProcessReadQueue() return non-data report\n");
       return m_last_input_report;
-       
+
       // Forget the last data report as it may be of the wrong type
       // or contain outdated button data
       // or it's not supposed to be sent at this time
@@ -526,9 +490,8 @@ Report& Wiimote::ProcessReadQueue()
 
   // If the last report wasn't a data report it's irrelevant.
   if (!IsDataReport(m_last_input_report))
-  {
     m_last_input_report.clear();
-  }
+
   // If it was a data report, we repeat that until something else comes in.
   return m_last_input_report;
 }
@@ -732,7 +695,6 @@ void WiimoteScanner::ThreadFunc()
   Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
-  printf("WiimoteScanner Wiimote scanning thread has started\n");
 
   // Create and destroy scanner backends here to ensure all operations stay on the same thread. The
   // HIDAPI backend on macOS has an error condition when IOHIDManagerCreate and IOHIDManagerClose
@@ -750,9 +712,8 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_scan_thread_running.IsSet())
   {
-      //printf("WiimoteScanner m_scan_thread_running\n");
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
-    
+
     // Does stuff needed to detect disconnects on Windows
     for (const auto& backend : m_backends)
       backend->Update();
@@ -810,7 +771,6 @@ void WiimoteScanner::ThreadFunc()
     // Stop scanning if not in continous mode.
     auto scan_mode = WiimoteScanMode::SCAN_ONCE;
     m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
-    
   }
 
   {
@@ -821,7 +781,6 @@ void WiimoteScanner::ThreadFunc()
   pool_thread.join();
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
-  printf("WiimoteScanner Wiimote scanning thread has stopped\n");
 }
 
 bool Wiimote::Connect(int index)
@@ -940,7 +899,6 @@ void LoadSettings()
 // config dialog calls this when some settings change
 void Initialize(::Wiimote::InitializeMode init_mode)
 {
-    
   if (!g_real_wiimotes_initialized)
   {
     s_wiimote_scanner.StartThread();
@@ -969,7 +927,6 @@ void Initialize(::Wiimote::InitializeMode init_mode)
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
 
   g_real_wiimotes_initialized = true;
-  
 }
 
 // called on emulation shutdown
@@ -1020,7 +977,6 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
   if (!wm->Connect(i))
   {
     ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
-    printf("TryToConnectWiimoteToSlot Failed to connect real wiimote\n");
     return false;
   }
 
@@ -1032,11 +988,9 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
   wm->QueueReport(led_report);
 
   g_wiimotes[i] = std::move(wm);
-  
   Core::RunAsCPUThread([i] { ::Wiimote::Connect(i, true); });
 
   NOTICE_LOG(WIIMOTE, "Connected real wiimote to slot %i.", i + 1);
-  printf("TryToConnectWiimoteToSlot Connected real wiimote to slot %i\n", i + 1);
 
   return true;
 }

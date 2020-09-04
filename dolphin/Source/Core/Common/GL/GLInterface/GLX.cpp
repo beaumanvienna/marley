@@ -33,9 +33,6 @@ static bool s_glxError;
 
 GLContextGLX::~GLContextGLX()
 {
-  #ifdef JC_DEBUGGING  
-  printf("jc GLContextGLX::~GLContextGLX() \n");
-  #endif
   DestroyWindowSurface();
   if (m_context)
   {
@@ -54,9 +51,6 @@ bool GLContextGLX::IsHeadless() const
 
 void GLContextGLX::SwapInterval(int Interval)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc GLContextGLX::SwapInterval() \n");
-    #endif
     #define immediate_updates 0
     #define updates_synchronized 1
     SDL_GL_SetSwapInterval(updates_synchronized);
@@ -90,9 +84,6 @@ void GLContextGLX::Swap()
 bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
   #warning "JC: modified"
-  #ifdef JC_DEBUGGING  
-  printf("jc GLContextGLX::Initialize() stereo: %i, core %i\n",stereo,core);
-  #endif
   m_display = static_cast<Display*>(wsi.display_connection);
   int screen = SDL_GetWindowDisplayIndex(gWindow);
 
@@ -113,7 +104,6 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   {
     ERROR_LOG(VIDEO,
               "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
-    printf("glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?\n");
     return false;
   }
   
@@ -240,18 +230,11 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
 
   //jcXSetErrorHandler(oldHandler);
   m_opengl_mode = Mode::OpenGL;
-  #ifdef JC_DEBUGGING
-  printf("jc GLContextGLX::Initialize() end\n");
-  #endif
   return MakeCurrent();
 }
 
 std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
 {
-  #warning "JC: modified"
-  #ifdef JC_DEBUGGING
-  printf("jc GLContextGLX::CreateSharedContext()\n");
-  #endif
   s_glxError = false;
   //jcXErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
@@ -315,9 +298,6 @@ bool GLContextGLX::CreateWindowSurface(Window window_handle)
   SDL_GetWindowSize(gWindow,&w,&h);
   m_backbuffer_width = w;
   m_backbuffer_height = h;
-  #ifdef JC_DEBUGGING
-  printf("jc GLContextGLX::CreateWindowSurface() width: %i, height: %i\n",m_backbuffer_width,m_backbuffer_height);
-  #endif
   
   XVisualInfo* vi = NULL;
   m_render_window = GLX11Window::Create(m_display, window_handle, vi);
@@ -338,34 +318,19 @@ void GLContextGLX::DestroyWindowSurface()
 bool GLContextGLX::MakeCurrent()
 {
   bool ok = ((SDL_GL_MakeCurrent(gWindow, m_context) == 0));
-  #ifdef JC_DEBUGGING
-  if (ok) 
-  {
-      printf("jc GLContextGLX::MakeCurrent() ok\n");
-  }
-  else
-  {
-      printf("jc GLContextGLX::MakeCurrent() not ok %s\n", SDL_GetError());
-  }
-  #endif
+
   //jcreturn glXMakeCurrent(m_display, m_drawable, m_context);
   return true;
 }
 
 bool GLContextGLX::ClearCurrent()
 {
-  #ifdef JC_DEBUGGING
-  printf("jc GLContextGLX::ClearCurrent()\n");
-  #endif
   //jc return glXMakeCurrent(m_display, None, nullptr);
   return true;
 }
 
 void GLContextGLX::Update()
 {
-    #ifdef JC_DEBUGGING
-    printf("jc GLContextGLX::Update()\n");
-    #endif
   m_render_window->UpdateDimensions();
   m_backbuffer_width = m_render_window->GetWidth();
   m_backbuffer_height = m_render_window->GetHeight();

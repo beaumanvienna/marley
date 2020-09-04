@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -54,7 +55,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   }
 
   @Override
-  public void onAttach(Context context)
+  public void onAttach(@NonNull Context context)
   {
     super.onAttach(context);
 
@@ -213,7 +214,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   }
 
   @Override
-  public void surfaceCreated(SurfaceHolder holder)
+  public void surfaceCreated(@NonNull SurfaceHolder holder)
   {
     // We purposely don't do anything here.
     // All work is done in surfaceChanged, which we are guaranteed to get even for surface creation.
@@ -227,7 +228,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   }
 
   @Override
-  public void surfaceDestroyed(SurfaceHolder holder)
+  public void surfaceDestroyed(@NonNull SurfaceHolder holder)
   {
     mEmulationState.clearSurface();
   }
@@ -262,7 +263,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     }
 
     private final String[] mGamePaths;
-    private Thread mEmulationThread;
     private State state;
     private Surface mSurface;
     private boolean mRunWhenSurfaceIsValid;
@@ -399,7 +399,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       mRunWhenSurfaceIsValid = false;
       if (state == State.STOPPED)
       {
-        mEmulationThread = new Thread(() ->
+        Thread emulationThread = new Thread(() ->
         {
           NativeLibrary.SurfaceChanged(mSurface);
           if (loadPreviousTemporaryState)
@@ -412,15 +412,18 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             Log.debug("[EmulationFragment] Starting emulation thread.");
             NativeLibrary.Run(mGamePaths);
           }
+          EmulationActivity.stopIgnoringLaunchRequests();
         }, "NativeEmulation");
-        mEmulationThread.start();
-
+        emulationThread.start();
       }
       else if (state == State.PAUSED)
       {
-        Log.debug("[EmulationFragment] Resuming emulation.");
         NativeLibrary.SurfaceChanged(mSurface);
-        NativeLibrary.UnPauseEmulation();
+        if (!EmulationActivity.getHasUserPausedEmulation())
+        {
+          Log.debug("[EmulationFragment] Resuming emulation.");
+          NativeLibrary.UnPauseEmulation();
+        }
       }
       else
       {
@@ -445,11 +448,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     try
     {
       File file = new File(path);
-      file.delete();
+      if (!file.delete())
+      {
+        Log.error("[EmulationFragment] Failed to delete " + file.getAbsolutePath());
+      }
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
-      // fail safely
     }
   }
 }

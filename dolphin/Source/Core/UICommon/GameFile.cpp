@@ -38,6 +38,7 @@
 #include "Core/TitleDatabase.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
@@ -114,8 +115,12 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_region = volume->GetRegion();
       m_country = volume->GetCountry();
       m_blob_type = volume->GetBlobType();
+      m_block_size = volume->GetBlobReader().GetBlockSize();
+      m_compression_method = volume->GetBlobReader().GetCompressionMethod();
       m_file_size = volume->GetRawSize();
       m_volume_size = volume->GetSize();
+      m_volume_size_is_accurate = volume->IsSizeAccurate();
+      m_is_datel_disc = volume->IsDatelDisc();
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
@@ -136,6 +141,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
   {
     m_valid = true;
     m_file_size = m_volume_size = File::GetSize(m_file_path);
+    m_volume_size_is_accurate = true;
+    m_is_datel_disc = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
@@ -296,6 +303,8 @@ void GameFile::DoState(PointerWrap& p)
 
   p.Do(m_file_size);
   p.Do(m_volume_size);
+  p.Do(m_volume_size_is_accurate);
+  p.Do(m_is_datel_disc);
 
   p.Do(m_short_names);
   p.Do(m_long_names);
@@ -312,6 +321,8 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_country);
   p.Do(m_platform);
   p.Do(m_blob_type);
+  p.Do(m_block_size);
+  p.Do(m_compression_method);
   p.Do(m_revision);
   p.Do(m_disc_number);
   p.Do(m_apploader_date);
@@ -325,14 +336,17 @@ void GameFile::DoState(PointerWrap& p)
   m_custom_cover.DoState(p);
 }
 
+std::string GameFile::GetExtension() const
+{
+  std::string extension;
+  SplitPath(m_file_path, nullptr, nullptr, &extension);
+  return extension;
+}
+
 bool GameFile::IsElfOrDol() const
 {
-  if (m_file_path.size() < 4)
-    return false;
-
-  std::string name_end = m_file_path.substr(m_file_path.size() - 4);
-  std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
-  return name_end == ".elf" || name_end == ".dol";
+  const std::string extension = GetExtension();
+  return extension == ".elf" || extension == ".dol";
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)
@@ -556,6 +570,48 @@ std::string GameFile::GetWiiFSPath() const
 {
   ASSERT(DiscIO::IsWii(m_platform));
   return Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
+}
+
+bool GameFile::ShouldShowFileFormatDetails() const
+{
+  switch (m_blob_type)
+  {
+  case DiscIO::BlobType::PLAIN:
+    break;
+  case DiscIO::BlobType::DRIVE:
+    return false;
+  default:
+    return true;
+  }
+
+  switch (m_platform)
+  {
+  case DiscIO::Platform::WiiWAD:
+    return false;
+  case DiscIO::Platform::ELFOrDOL:
+    return false;
+  default:
+    return true;
+  }
+}
+
+std::string GameFile::GetFileFormatName() const
+{
+  switch (m_platform)
+  {
+  case DiscIO::Platform::WiiWAD:
+    return "WAD";
+  case DiscIO::Platform::ELFOrDOL:
+  {
+    std::string extension = GetExtension();
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+
+    // substr removes the dot
+    return extension.substr(std::min<size_t>(1, extension.size()));
+  }
+  default:
+    return DiscIO::GetName(m_blob_type, true);
+  }
 }
 
 const GameBanner& GameFile::GetBannerImage() const

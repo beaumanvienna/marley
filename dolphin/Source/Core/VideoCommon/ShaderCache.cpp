@@ -15,14 +15,19 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
-#include "imgui.h"
+#include <imgui.h>
 
 std::unique_ptr<VideoCommon::ShaderCache> g_shader_cache;
 
 namespace VideoCommon
 {
-ShaderCache::ShaderCache() = default;
+ShaderCache::ShaderCache() : m_api_type{APIType::Nothing}
+{
+}
+
 ShaderCache::~ShaderCache()
 {
   ClearCaches();
@@ -42,44 +47,18 @@ bool ShaderCache::Initialize()
 
 void ShaderCache::InitializeShaderCache()
 {
-    #ifdef JC_DEBUGGING
-    printf("jc void ShaderCache::InitializeShaderCache()\n");
-    #endif
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
 
   // Load shader and UID caches.
   if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
   {
-    #ifdef JC_DEBUGGING
-  	printf("jc void ShaderCache::InitializeShaderCache() LoadCaches();\n");
-    #endif
     LoadCaches();
-    #ifdef JC_DEBUGGING
-    printf("jc void ShaderCache::InitializeShaderCache() LoadPipelineUIDCache();\n");
-    #endif
     LoadPipelineUIDCache();
-    #ifdef JC_DEBUGGING
-    printf("jc after LoadPipelineUIDCache();\n");
-    #endif
-  } 
-  #ifdef JC_DEBUGGING
-  else printf("jc void ShaderCache no shader and UID caches\n");
-  #endif
+  }
 
   // Queue ubershader precompiling if required.
   if (g_ActiveConfig.UsingUberShaders())
-  {
-      #ifdef JC_DEBUGGING
-      printf("jc QueueUberShaderPipelines();\n");
-      #endif
     QueueUberShaderPipelines();
-    #ifdef JC_DEBUGGING
-    printf("jc after QueueUberShaderPipelines();\n");
-    #endif
-  } 
-  #ifdef JC_DEBUGGING
-  else printf("jc no QueueUberShaderPipelines();\n");
-  #endif
 
   // Compile all known UIDs.
   CompileMissingPipelines();
@@ -423,29 +402,17 @@ void ShaderCache::ClearCaches()
 
 void ShaderCache::CompileMissingPipelines()
 {
-    #ifdef JC_DEBUGGING
-    printf("jc void ShaderCache::CompileMissingPipelines()\n");
-    #endif
   // Queue all uids with a null pipeline for compilation.
   for (auto& it : m_gx_pipeline_cache)
   {
-      #ifdef JC_DEBUGGING
-      printf("jc void ShaderCache::CompileMissingPipelines() loop1 \n");
-      #endif
     if (!it.second.first)
       QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
   }
   for (auto& it : m_gx_uber_pipeline_cache)
   {
-      #ifdef JC_DEBUGGING
-      printf("jc void ShaderCache::CompileMissingPipelines() loop2 \n");
-      #endif
     if (!it.second.first)
       QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
   }
-  #ifdef JC_DEBUGGING
-  printf("jc void ShaderCache::CompileMissingPipelines() end \n");
-  #endif
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
@@ -756,14 +723,10 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
 
 void ShaderCache::LoadPipelineUIDCache()
 {
-    
   constexpr u32 CACHE_FILE_MAGIC = 0x44495550;  // PUID
   constexpr size_t CACHE_HEADER_SIZE = sizeof(u32) + sizeof(u32);
   std::string filename =
       File::GetUserPath(D_CACHE_IDX) + SConfig::GetInstance().GetGameID() + ".uidcache";
-      #ifdef JC_DEBUGGING
-      printf("jc ShaderCache::LoadPipelineUIDCache() filename %s\n",filename.c_str());
-      #endif
   if (m_gx_pipeline_uid_cache_file.Open(filename, "rb+"))
   {
     // If an existing case exists, validate the version before reading entries.
@@ -990,9 +953,6 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, u32 priority_)
         : shader_cache(shader_cache_), uid(uid_), priority(priority_)
     {
-        #ifdef JC_DEBUGGING
-        printf("jc ShaderCache QueuePipelineCompile PipelineWorkItem()\n");
-        #endif
       // Check if all the stages required for this pipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the pipeline for the next frame.
       if (SetStagesReady())
@@ -1001,54 +961,26 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
 
     bool SetStagesReady()
     {
-        #ifdef JC_DEBUGGING
-        printf("jc ShaderCache QueuePipelineCompile SetStagesReady()\n");
-        #endif
       stages_ready = true;
-      
+
       auto vs_it = shader_cache->m_vs_cache.shader_map.find(uid.vs_uid);
-      #ifdef JC_DEBUGGING
-      if (vs_it != shader_cache->m_vs_cache.shader_map.end()) printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it != shader_cache->m_vs_cache.shader_map.end()\n");
-      if (vs_it->second.pending) printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it->second.pending\n");
-      #endif
       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
-      #ifdef JC_DEBUGGING
-      if (stages_ready) printf("jc ShaderCache QueuePipelineCompile SetStagesReady stages_ready 1\n");
-      #endif
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
-      {
-          #ifdef JC_DEBUGGING
-          printf("jc ShaderCache QueuePipelineCompile SetStagesReady vs_it == shader_cache->m_vs_cache.shader_map.end()\n");
-          #endif
         shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
-      }
 
       PixelShaderUid ps_uid = uid.ps_uid;
       ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
 
       auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
       stages_ready &= ps_it != shader_cache->m_ps_cache.shader_map.end() && !ps_it->second.pending;
-      #ifdef JC_DEBUGGING
-      if (stages_ready) printf("jc ShaderCache QueuePipelineCompile SetStagesReady stages_ready 2\n");
-      #endif
       if (ps_it == shader_cache->m_ps_cache.shader_map.end())
-      {
-          #ifdef JC_DEBUGGING
-          printf("jc ShaderCache QueuePipelineCompile SetStagesReady ps_it == shader_cache->m_ps_cache.shader_map.end()\n");
-          #endif
         shader_cache->QueuePixelShaderCompile(ps_uid, priority);
-      }
-      #ifdef JC_DEBUGGING
-      printf("jc ShaderCache QueuePipelineCompile SetStagesReady() end\n");
-      #endif
+
       return stages_ready;
     }
 
     bool Compile() override
     {
-        #ifdef JC_DEBUGGING
-        printf("jc ShaderCache QueuePipelineCompile Compile()\n");
-        #endif
       if (config)
         pipeline = g_renderer->CreatePipeline(*config);
       return true;
@@ -1056,9 +988,6 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
 
     void Retrieve() override
     {
-        #ifdef JC_DEBUGGING
-        printf("jc ShaderCache QueuePipelineCompile retrieve()\n");
-        #endif
       if (stages_ready)
       {
         shader_cache->InsertGXPipeline(uid, std::move(pipeline));
@@ -1080,18 +1009,10 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     std::optional<AbstractPipelineConfig> config;
     bool stages_ready;
   };
-  #ifdef JC_DEBUGGING
-  printf("jc ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)\n");
-  #endif
+
   auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid, priority);
-  #ifdef JC_DEBUGGING
-  printf("jc ShaderCache::QueuePipelineCompile QueueWorkItem\n");
-  #endif
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
   m_gx_pipeline_cache[uid].second = true;
-  #ifdef JC_DEBUGGING
-  printf("jc ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority) end\n");
-  #endif
 }
 
 void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority)

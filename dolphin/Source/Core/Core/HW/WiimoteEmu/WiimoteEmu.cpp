@@ -189,7 +189,7 @@ void Wiimote::Reset()
   // Dynamics:
   m_swing_state = {};
   m_tilt_state = {};
-  m_cursor_state = {};
+  m_point_state = {};
   m_shake_state = {};
 
   m_imu_cursor_state = {};
@@ -246,7 +246,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
-  m_options->AddSetting(&m_speaker_pan_setting,
+  m_options->AddSetting(&m_speaker_logic.m_speaker_pan_setting,
                         {_trans("Speaker Pan"),
                          // i18n: The percent symbol.
                          _trans("%")},
@@ -287,7 +287,7 @@ std::string Wiimote::GetName() const
   return fmt::format("Wiimote{}", 1 + m_index);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
 {
   switch (group)
   {
@@ -323,52 +323,52 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
   }
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group) const
 {
   return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group) const
 {
   return static_cast<Classic*>(m_attachments->GetAttachmentList()[ExtensionNumber::CLASSIC].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group) const
 {
   return static_cast<Guitar*>(m_attachments->GetAttachmentList()[ExtensionNumber::GUITAR].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
 {
   return static_cast<Drums*>(m_attachments->GetAttachmentList()[ExtensionNumber::DRUMS].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
 {
   return static_cast<Turntable*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
 {
   return static_cast<UDrawTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
 {
   return static_cast<DrawsomeTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 {
   return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
       ->GetGroup(group);
@@ -673,7 +673,7 @@ bool Wiimote::CheckForButtonPress()
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
+  return buttons != 0;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface,int n)
@@ -793,13 +793,13 @@ void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateCursor(&m_cursor_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 
-Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration)
+Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 {
   Common::Vec3 accel = GetOrientation() * GetTransformation().Transform(
                                               m_swing_state.acceleration + extra_acceleration, 0);
@@ -810,10 +810,10 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration)
   return accel;
 }
 
-Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity)
+Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
-                             m_cursor_state.angular_velocity + extra_angular_velocity);
+                             m_point_state.angular_velocity + extra_angular_velocity);
 }
 
 Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
@@ -823,10 +823,10 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
 
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(
-             extra_rotation * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
-                                                  m_cursor_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
+         Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
+                                        GetRotationalMatrix(-m_point_state.angle) *
+                                        GetRotationalMatrix(-m_swing_state.angle)) *
+         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
 }
 
 Common::Matrix33 Wiimote::GetOrientation() const
@@ -835,22 +835,20 @@ Common::Matrix33 Wiimote::GetOrientation() const
          Common::Matrix33::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
 }
 
-Common::Vec3 Wiimote::GetTotalAcceleration()
+Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  auto accel = m_imu_accelerometer->GetState();
-  if (accel.has_value())
-    return GetAcceleration(accel.value());
-  else
-    return GetAcceleration();
+  if (const auto accel = m_imu_accelerometer->GetState())
+    return GetAcceleration(*accel);
+
+  return GetAcceleration();
 }
 
-Common::Vec3 Wiimote::GetTotalAngularVelocity()
+Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 {
-  auto ang_vel = m_imu_gyroscope->GetState();
-  if (ang_vel.has_value())
-    return GetAngularVelocity(ang_vel.value());
-  else
-    return GetAngularVelocity();
+  if (const auto ang_vel = m_imu_gyroscope->GetState())
+    return GetAngularVelocity(*ang_vel);
+
+  return GetAngularVelocity();
 }
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const

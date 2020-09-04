@@ -132,16 +132,11 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
   for (auto& ctrlGroup : groups)
-  {
     ctrlGroup->SaveConfig(sec, defdev, base);
-  }
-    
-    
 }
 
 void EmulatedController::LoadDefaults(const ControllerInterface& ciface, int n)
 {
-    
   // load an empty inifile section, clears everything
   IniFile::Section sec;
   LoadConfig(&sec);

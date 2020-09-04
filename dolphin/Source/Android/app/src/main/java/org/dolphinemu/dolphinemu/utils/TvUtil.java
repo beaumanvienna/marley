@@ -123,11 +123,10 @@ public class TvUtil
           throws Resources.NotFoundException
   {
     Resources res = context.getResources();
-    Uri resUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+    return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
             "://" + res.getResourcePackageName(resId)
             + '/' + res.getResourceTypeName(resId)
             + '/' + res.getResourceEntryName(resId));
-    return resUri;
   }
 
   /**
@@ -168,7 +167,7 @@ public class TvUtil
       {
         contentUri = getUriForFile(context, getFileProvider(context), cover);
       }
-      else if ((cover = new File(game.getCoverPath())).exists())
+      else if ((cover = new File(game.getCoverPath(context))).exists())
       {
         contentUri = getUriForFile(context, getFileProvider(context), cover);
       }
@@ -255,9 +254,7 @@ public class TvUtil
    */
   public static List<HomeScreenChannel> createUniversalSubscriptions()
   {
-    //Leaving the subs local variable in case more channels are created other than platforms.
-    List<HomeScreenChannel> subs = new ArrayList<>(createPlatformSubscriptions());
-    return subs;
+    return new ArrayList<>(createPlatformSubscriptions());
   }
 
   private static List<HomeScreenChannel> createPlatformSubscriptions()

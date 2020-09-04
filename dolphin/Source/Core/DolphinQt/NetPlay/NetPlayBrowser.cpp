@@ -26,7 +26,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 {
@@ -34,6 +34,7 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
+  RestoreSettings();
   ConnectWidgets();
 
   resize(750, 500);
@@ -54,6 +55,8 @@ NetPlayBrowser::~NetPlayBrowser()
   m_refresh_event.Set();
   if (m_refresh_thread.joinable())
     m_refresh_thread.join();
+
+  SaveSettings();
 }
 
 void NetPlayBrowser::CreateWidgets()
@@ -126,8 +129,8 @@ void NetPlayBrowser::CreateWidgets()
 
 void NetPlayBrowser::ConnectWidgets()
 {
-  connect(m_region_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &NetPlayBrowser::Refresh);
+  connect(m_region_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &NetPlayBrowser::Refresh);
 
   connect(m_button_box, &QDialogButtonBox::accepted, this, &NetPlayBrowser::accept);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &NetPlayBrowser::reject);
@@ -144,6 +147,11 @@ void NetPlayBrowser::ConnectWidgets()
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
           &NetPlayBrowser::OnSelectionChanged);
   connect(m_table_widget, &QTableWidget::itemDoubleClicked, this, &NetPlayBrowser::accept);
+
+  connect(this, &NetPlayBrowser::UpdateStatusRequested, this,
+          &NetPlayBrowser::OnUpdateStatusRequested, Qt::QueuedConnection);
+  connect(this, &NetPlayBrowser::UpdateListRequested, this, &NetPlayBrowser::OnUpdateListRequested,
+          Qt::QueuedConnection);
 }
 
 void NetPlayBrowser::Refresh()
@@ -187,10 +195,7 @@ void NetPlayBrowser::RefreshLoop()
 
       lock.unlock();
 
-      RunOnObject(this, [this] {
-        m_status_label->setText(tr("Refreshing..."));
-        return nullptr;
-      });
+      emit UpdateStatusRequested(tr("Refreshing..."));
 
       NetPlayIndex client;
 
@@ -198,19 +203,12 @@ void NetPlayBrowser::RefreshLoop()
 
       if (entries)
       {
-        RunOnObject(this, [this, &entries] {
-          m_sessions = *entries;
-          UpdateList();
-          return nullptr;
-        });
+        emit UpdateListRequested(std::move(*entries));
       }
       else
       {
-        RunOnObject(this, [this, &client] {
-          m_status_label->setText(tr("Error obtaining session list: %1")
-                                      .arg(QString::fromStdString(client.GetLastError())));
-          return nullptr;
-        });
+        emit UpdateStatusRequested(tr("Error obtaining session list: %1")
+                                       .arg(QString::fromStdString(client.GetLastError())));
       }
     }
   }
@@ -273,6 +271,17 @@ void NetPlayBrowser::OnSelectionChanged()
       ->setEnabled(!m_table_widget->selectedItems().isEmpty());
 }
 
+void NetPlayBrowser::OnUpdateStatusRequested(const QString& status)
+{
+  m_status_label->setText(status);
+}
+
+void NetPlayBrowser::OnUpdateListRequested(std::vector<NetPlaySession> sessions)
+{
+  m_sessions = std::move(sessions);
+  UpdateList();
+}
+
 void NetPlayBrowser::accept()
 {
   if (m_table_widget->selectedItems().isEmpty())
@@ -322,4 +331,54 @@ void NetPlayBrowser::accept()
     Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
   emit Join();
+}
+
+void NetPlayBrowser::SaveSettings() const
+{
+  auto& settings = Settings::Instance().GetQSettings();
+
+  settings.setValue(QStringLiteral("netplaybrowser/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("netplaybrowser/region"), m_region_combo->currentText());
+  settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
+  settings.setValue(QStringLiteral("netplaybrowser/game_id"), m_edit_game_id->text());
+
+  QString visibility(QStringLiteral("all"));
+  if (m_radio_public->isChecked())
+    visibility = QStringLiteral("public");
+  else if (m_radio_private->isChecked())
+    visibility = QStringLiteral("private");
+  settings.setValue(QStringLiteral("netplaybrowser/visibility"), visibility);
+
+  settings.setValue(QStringLiteral("netplaybrowser/hide_incompatible"),
+                    m_check_hide_incompatible->isChecked());
+  settings.setValue(QStringLiteral("netplaybrowser/hide_ingame"), m_check_hide_ingame->isChecked());
+}
+
+void NetPlayBrowser::RestoreSettings()
+{
+  const auto& settings = Settings::Instance().GetQSettings();
+
+  const QByteArray geometry =
+      settings.value(QStringLiteral("netplaybrowser/geometry")).toByteArray();
+  if (!geometry.isEmpty())
+    restoreGeometry(geometry);
+
+  const QString region = settings.value(QStringLiteral("netplaybrowser/region")).toString();
+  const bool valid_region = m_region_combo->findText(region) != -1;
+  if (valid_region)
+    m_region_combo->setCurrentText(region);
+
+  m_edit_name->setText(settings.value(QStringLiteral("netplaybrowser/name")).toString());
+  m_edit_game_id->setText(settings.value(QStringLiteral("netplaybrowser/game_id")).toString());
+
+  const QString visibility = settings.value(QStringLiteral("netplaybrowser/visibility")).toString();
+  if (visibility == QStringLiteral("public"))
+    m_radio_public->setChecked(true);
+  else if (visibility == QStringLiteral("private"))
+    m_radio_private->setChecked(true);
+
+  m_check_hide_incompatible->setChecked(
+      settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
+  m_check_hide_ingame->setChecked(
+      settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
 }

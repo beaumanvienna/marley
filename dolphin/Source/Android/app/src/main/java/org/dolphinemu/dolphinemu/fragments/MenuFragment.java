@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.fragments;
 
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.util.SparseIntArray;
@@ -13,6 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -21,11 +21,17 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
+  private View mPauseEmulation;
+  private View mUnpauseEmulation;
   private static final String KEY_TITLE = "title";
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
   static
   {
+    buttonsActionsMap
+            .append(R.id.menu_pause_emulation, EmulationActivity.MENU_ACTION_PAUSE_EMULATION);
+    buttonsActionsMap
+            .append(R.id.menu_unpause_emulation, EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION);
     buttonsActionsMap
             .append(R.id.menu_take_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
     buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
@@ -51,13 +57,20 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return fragment;
   }
 
-  @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
   {
     View rootView = inflater.inflate(R.layout.fragment_ingame_menu, container, false);
 
-    LinearLayout options = (LinearLayout) rootView.findViewById(R.id.layout_options);
+    LinearLayout options = rootView.findViewById(R.id.layout_options);
+
+    mPauseEmulation = options.findViewById(R.id.menu_pause_emulation);
+    mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
+
+    if (EmulationActivity.getHasUserPausedEmulation())
+    {
+      showUnpauseEmulationButton();
+    }
 
     BooleanSetting enableSaveStates =
             (BooleanSetting) ((EmulationActivity) getActivity()).getSettings()
@@ -89,12 +102,36 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return rootView;
   }
 
+  private void showPauseEmulationButton()
+  {
+    mUnpauseEmulation.setVisibility(View.GONE);
+    mPauseEmulation.setVisibility(View.VISIBLE);
+  }
+
+  private void showUnpauseEmulationButton()
+  {
+    mPauseEmulation.setVisibility(View.GONE);
+    mUnpauseEmulation.setVisibility(View.VISIBLE);
+  }
+
   @SuppressWarnings("WrongConstant")
   @Override
   public void onClick(View button)
   {
     int action = buttonsActionsMap.get(button.getId());
-    if (action >= 0)
+    if (action == EmulationActivity.MENU_ACTION_PAUSE_EMULATION)
+    {
+      EmulationActivity.setHasUserPausedEmulation(true);
+      NativeLibrary.PauseEmulation();
+      showUnpauseEmulationButton();
+    }
+    else if (action == EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION)
+    {
+      EmulationActivity.setHasUserPausedEmulation(false);
+      NativeLibrary.UnPauseEmulation();
+      showPauseEmulationButton();
+    }
+    else if (action >= 0)
     {
       ((EmulationActivity) getActivity()).handleMenuAction(action);
     }

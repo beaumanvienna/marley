@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include <iostream>
+
 #include <array>
 #include <atomic>
 #include <memory>
@@ -33,11 +33,12 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
 u32 ProgramShaderCache::s_ubo_buffer_size;
-s32 ProgramShaderCache::s_ubo_align;
+s32 ProgramShaderCache::s_ubo_align = 1;
 GLuint ProgramShaderCache::s_attributeless_VBO = 0;
 GLuint ProgramShaderCache::s_attributeless_VAO = 0;
 GLuint ProgramShaderCache::s_last_VAO = 0;
@@ -266,9 +267,6 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
 
 bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)\n");
-    #endif
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
   // but not GLSL 4.3. Mesa is one example.
   std::string full_code;
@@ -303,10 +301,6 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view c
 
 GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)\n");
-    std::cout << code << "\n";
-    #endif
   const GLuint result = glCreateShader(type);
 
   constexpr GLsizei num_strings = 2;
@@ -318,9 +312,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
       static_cast<GLint>(s_glsl_header.size()),
       static_cast<GLint>(code.size()),
   };
-  #ifdef JC_DEBUGGING
-  printf("jc glShaderSource\n");
-  #endif
+
   glShaderSource(result, num_strings, src.data(), src_sizes.data());
   glCompileShader(result);
 
@@ -336,9 +328,6 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view cod
 
 bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)\n");
-    #endif
   GLint compileStatus;
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
   GLsizei length = 0;
@@ -383,12 +372,6 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
                  "Debug info (%s, %s, %s):\n%s",
                  prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                  g_ogl_config.gl_version, info_log.c_str());
-      #ifdef JC_DEBUGGING
-      printf("jc Failed to compile %s shader: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
-      #endif
 
       return false;
     }
@@ -860,9 +843,6 @@ u64 ProgramShaderCache::GenerateShaderID()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-    #ifdef JC_DEBUGGING
-    printf("jc SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)\n");
-    #endif
   std::unique_ptr<GLContext> context =
       static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)

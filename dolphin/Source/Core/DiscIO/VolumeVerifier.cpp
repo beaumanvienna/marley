@@ -18,8 +18,8 @@
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
-#include <minizip/unzip.h>
 #include <pugixml.hpp>
+#include <unzip.h>
 #include <zlib.h>
 
 #include "Common/Align.h"
@@ -56,11 +56,12 @@ RedumpVerifier::DownloadState RedumpVerifier::m_wii_download_state;
 
 void RedumpVerifier::Start(const Volume& volume)
 {
-  // We use GetGameTDBID instead of GetGameID so that Datel discs will be represented by an empty
-  // string, which matches Redump not having any serials for Datel discs.
-  m_game_id = volume.GetGameTDBID();
-  if (m_game_id.size() > 4)
-    m_game_id = m_game_id.substr(0, 4);
+  if (!volume.IsDatelDisc())
+  {
+    m_game_id = volume.GetGameID();
+    if (m_game_id.size() > 4)
+      m_game_id = m_game_id.substr(0, 4);
+  }
 
   m_revision = volume.GetRevision().value_or(0);
   m_disc_number = volume.GetDiscNumber().value_or(0);
@@ -385,14 +386,11 @@ void VolumeVerifier::Start()
     m_redump_verifier.Start(m_volume);
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
-  m_is_datel = IsDisc(m_volume.GetVolumeType()) &&
-               !GetBootDOLOffset(m_volume, m_volume.GetGamePartition()).has_value();
+  m_is_datel = m_volume.IsDatelDisc();
   m_is_not_retail =
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  if (m_volume.GetVolumeType() == Platform::WiiWAD)
-    CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
   CheckDiscSize(CheckPartitions());
   CheckMisc();
 
@@ -525,10 +523,24 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (!m_is_datel)
   {
-    CheckCorrectlySigned(
-        partition,
-        StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
-                         name.c_str()));
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTicket(partition), cert_chain) ||
+        IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTMD(partition), cert_chain))
+    {
+      AddProblem(
+          Severity::Low,
+          StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
+                           name.c_str()));
+    }
   }
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
@@ -607,12 +619,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (type == PARTITION_UPDATE)
   {
-    std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
-    bool has_correct_ios = false;
-    if (file_info)
+    const IOS::ES::TMDReader& tmd = m_volume.GetTMD(m_volume.GetGamePartition());
+
+    // IOS9 is the only IOS which can be assumed to exist in a working state on any Wii
+    // regardless of what updates have been installed. At least Mario Party 8
+    // (RM8E01, revision 2) uses IOS9 without having it in its update partition.
+    bool has_correct_ios = tmd.IsValid() && (tmd.GetIOSId() & 0xFF) == 9;
+
+    if (!has_correct_ios && tmd.IsValid())
     {
-      const IOS::ES::TMDReader& tmd = m_volume.GetTMD(m_volume.GetGamePartition());
-      if (tmd.IsValid())
+      std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
+      if (file_info)
       {
         const std::string correct_ios = "IOS" + std::to_string(tmd.GetIOSId() & 0xFF) + "-";
         for (const FileInfo& f : *file_info)
@@ -657,25 +674,6 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     name = StringFromFormat(Common::GetStringT("%s (Masterpiece)").c_str(), name.c_str());
   }
   return name;
-}
-
-void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, std::string error_text)
-{
-  IOS::HLE::Kernel ios;
-  const auto es = ios.GetES();
-  const std::vector<u8> cert_chain = m_volume.GetCertificateChain(partition);
-
-  if (IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTicket(partition), cert_chain) ||
-      IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTMD(partition), cert_chain))
-  {
-    AddProblem(Severity::Low, std::move(error_text));
-  }
 }
 
 bool VolumeVerifier::IsDebugSigned() const
@@ -735,7 +733,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     return;
 
   m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
-  if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
+  const bool should_be_dual_layer = ShouldBeDualLayer();
+  if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
                Common::GetStringT(
@@ -753,7 +752,7 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
   else if (!m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
-    const bool is_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
+    const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
     const u64 size = m_volume.GetSize();
 
     const bool valid_gamecube = size == MINI_DVD_SIZE;
@@ -761,8 +760,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     const bool valid_debug_wii = size == SL_DVD_R_SIZE || size == DL_DVD_R_SIZE;
 
     const bool debug = IsDebugSigned();
-    if ((is_gc_size && !valid_gamecube) ||
-        (!is_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
+    if ((should_be_gc_size && !valid_gamecube) ||
+        (!should_be_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
     {
       if (debug && valid_retail_wii)
       {
@@ -772,7 +771,15 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
       }
       else
       {
-        if ((is_gc_size && size < MINI_DVD_SIZE) || (!is_gc_size && size < SL_DVD_SIZE))
+        u64 normal_size;
+        if (should_be_gc_size)
+          normal_size = MINI_DVD_SIZE;
+        else if (!should_be_dual_layer)
+          normal_size = SL_DVD_SIZE;
+        else
+          normal_size = DL_DVD_SIZE;
+
+        if (size < normal_size)
         {
           AddProblem(
               Severity::Low,
@@ -974,22 +981,42 @@ void VolumeVerifier::CheckMisc()
     }
   }
 
-  if (IsDisc(m_volume.GetVolumeType()))
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"
-    if (m_volume.ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC)
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, m_ticket,
+                            cert_chain))
     {
-      AddProblem(
-          Severity::Low,
-          Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
-                             "current form, but it might become a good dump if converted back. "
-                             "The CRC32 of this file might match the CRC32 of a good dump even "
-                             "though the files are not identical."));
+      // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
+      AddProblem(Severity::Low, Common::GetStringT("The ticket is not correctly signed."));
     }
 
-    if (StringBeginsWith(game_id_unencrypted, "R8P"))
-      CheckSuperPaperMario();
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, tmd,
+                            cert_chain))
+    {
+      AddProblem(Severity::Low, Common::GetStringT("The TMD is not correctly signed."));
+    }
   }
+
+  if (m_volume.IsNKit())
+  {
+    AddProblem(
+        Severity::Low,
+        Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
+                           "current form, but it might become a good dump if converted back. "
+                           "The CRC32 of this file might match the CRC32 of a good dump even "
+                           "though the files are not identical."));
+  }
+
+  if (IsDisc(m_volume.GetVolumeType()) && StringBeginsWith(game_id_unencrypted, "R8P"))
+    CheckSuperPaperMario();
 }
 
 void VolumeVerifier::CheckSuperPaperMario()
@@ -1031,7 +1058,7 @@ void VolumeVerifier::SetUpHashing()
   else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
-    m_scrubber.SetupScrub(&m_volume, VolumeWii::BLOCK_TOTAL_SIZE);
+    m_scrubber.SetupScrub(&m_volume);
   }
 
   std::sort(m_blocks.begin(), m_blocks.end(),

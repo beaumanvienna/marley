@@ -43,12 +43,14 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
 
@@ -62,7 +64,7 @@
 
 namespace
 {
-static constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
+constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
 
 ANativeWindow* s_surf;
 IniFile s_ini;
@@ -140,10 +142,6 @@ void Host_YieldToUI()
 {
 }
 
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-}
-
 void Host_TitleChanged()
 {
 }
@@ -160,7 +158,7 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   return result != JNI_FALSE;
 }
 
-static void ReportSend(std::string endpoint, std::string report)
+static void ReportSend(const std::string& endpoint, const std::string& report)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -172,11 +170,11 @@ static void ReportSend(std::string endpoint, std::string report)
                             ToJString(env, endpoint), output_array);
 }
 
-static std::string GetAnalyticValue(std::string key)
+static std::string GetAnalyticValue(const std::string& key)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  jstring value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
+  auto value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
       IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), ToJString(env, key)));
 
   std::string stdvalue = GetJString(env, value);
@@ -204,6 +202,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
     JNIEnv* env, jobject obj, jstring jDevice, jint Axis, jfloat Value);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSensorsEnabled(
     JNIEnv* env, jobject obj, jboolean accelerometer_enabled, jboolean gyroscope_enabled);
+JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
+    JNIEnv* env, jobject obj, int emu_pad_id, int stick, double angle);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env, jobject obj);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
@@ -241,7 +241,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
     JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
+    JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
+                                                                                   jobject obj);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv* env,
                                                                                    jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
                                                                                  jobject obj,
@@ -318,16 +322,23 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSen
   ciface::Android::SetMotionSensorsEnabled(accelerometer_enabled, gyroscope_enabled);
 }
 
+JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
+    JNIEnv* env, jobject obj, int emu_pad_id, int stick, double angle)
+{
+  const auto casted_stick = static_cast<ButtonManager::ButtonType>(stick);
+  return ButtonManager::GetInputRadiusAtAngle(emu_pad_id, casted_stick, angle);
+}
+
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, Common::scm_rev_str.c_str());
+  return ToJString(env, Common::scm_rev_str);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
                                                                                       jobject obj)
 {
-  return ToJString(env, Common::scm_rev_git_str.c_str());
+  return ToJString(env, Common::scm_rev_git_str);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -364,12 +375,12 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSe
   std::string section = GetJString(env, jSection);
   std::string key = GetJString(env, jKey);
 
-  ini = SConfig::GetInstance().LoadGameIni(gameid, 0);
+  ini = SConfig::LoadGameIni(gameid, 0);
   std::string value;
 
   ini.GetOrCreateSection(section)->Get(key, &value, "-1");
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_NewGameIniFile(JNIEnv* env,
@@ -449,7 +460,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
@@ -525,13 +536,26 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, File::GetUserPath(D_USER_IDX).c_str());
+  return ToJString(env, File::GetUserPath(D_USER_IDX));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
+    JNIEnv* env, jobject obj, jstring jDirectory)
+{
+  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory) + DIR_SEP);
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
                                                                                    jobject obj)
 {
   return static_cast<jint>(PowerPC::DefaultCPUCore());
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  return static_cast<jint>(MAX_LOGLEVEL);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
@@ -607,6 +631,19 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig
   SConfig::GetInstance().LoadSettings();
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv* env, jobject obj)
+{
+  if (GCAdapter::UseAdapter())
+  {
+    GCAdapter::StartScanThread();
+  }
+  else
+  {
+    GCAdapter::StopScanThread();
+  }
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv* env,
                                                                                jobject obj)
 {
@@ -626,49 +663,15 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv* env,
 // Based on the scaledDensity of the device's display metrics.
 static float GetRenderSurfaceScale(JNIEnv* env)
 {
-  // NativeLibrary emulation_activity = NativeLibrary.getEmulationActivity();
   jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
-  jmethodID get_emulation_activity_method =
-      env->GetStaticMethodID(native_library_class, "getEmulationActivity",
-                             "()Lorg/dolphinemu/dolphinemu/activities/EmulationActivity;");
-  jobject emulation_activity =
-      env->CallStaticObjectMethod(native_library_class, get_emulation_activity_method);
-
-  // WindowManager window_manager = emulation_activity.getWindowManager();
-  jmethodID get_window_manager_method =
-      env->GetMethodID(env->GetObjectClass(emulation_activity), "getWindowManager",
-                       "()Landroid/view/WindowManager;");
-  jobject window_manager = env->CallObjectMethod(emulation_activity, get_window_manager_method);
-
-  // Display display = window_manager.getDisplay();
-  jmethodID get_display_method = env->GetMethodID(env->GetObjectClass(window_manager),
-                                                  "getDefaultDisplay", "()Landroid/view/Display;");
-  jobject display = env->CallObjectMethod(window_manager, get_display_method);
-
-  // DisplayMetrics metrics = new DisplayMetrics();
-  jclass display_metrics_class = env->FindClass("android/util/DisplayMetrics");
-  jmethodID display_metrics_constructor = env->GetMethodID(display_metrics_class, "<init>", "()V");
-  jobject metrics = env->NewObject(display_metrics_class, display_metrics_constructor);
-
-  // display.getMetrics(metrics);
-  jmethodID get_metrics_method = env->GetMethodID(env->GetObjectClass(display), "getMetrics",
-                                                  "(Landroid/util/DisplayMetrics;)V");
-  env->CallVoidMethod(display, get_metrics_method, metrics);
-
-  // float scaled_density = metrics.scaledDensity;
-  jfieldID scaled_density_field =
-      env->GetFieldID(env->GetObjectClass(metrics), "scaledDensity", "F");
-  float scaled_density = env->GetFloatField(metrics, scaled_density_field);
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Using %f for render surface scale.",
-                      scaled_density);
-
-  // cleanup
-  env->DeleteLocalRef(metrics);
-  return scaled_density;
+  jmethodID get_render_surface_scale_method =
+      env->GetStaticMethodID(native_library_class, "getRenderSurfaceScale", "()F");
+  return env->CallStaticFloatMethod(native_library_class, get_render_surface_scale_method);
 }
 
 static void Run(JNIEnv* env, const std::vector<std::string>& paths,
-                std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
+                const std::optional<std::string>& savestate_path = {},
+                bool delete_savestate = false)
 {
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
@@ -735,6 +738,44 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(J
   const std::string path = GetJString(env, jFile);
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
+}
+
+JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetLogTypeNames(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  std::map<std::string, std::string> map = Common::Log::LogManager::GetInstance()->GetLogTypes();
+
+  auto map_size = static_cast<jsize>(map.size());
+  jobject linked_hash_map =
+      env->NewObject(IDCache::GetLinkedHashMapClass(), IDCache::GetLinkedHashMapInit(), map_size);
+  for (const auto& entry : map)
+  {
+    env->CallObjectMethod(linked_hash_map, IDCache::GetLinkedHashMapPut(),
+                          ToJString(env, entry.first), ToJString(env, entry.second));
+  }
+  return linked_hash_map;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadLoggerConfig(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  Common::Log::LogManager::Init();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallWAD(JNIEnv* env,
+                                                                                   jobject obj,
+                                                                                   jstring jFile)
+{
+  const std::string path = GetJString(env, jFile);
+  return static_cast<jboolean>(WiiUtils::InstallWAD(path));
+}
+
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_FormatSize(JNIEnv* env,
+                                                                                  jobject obj,
+                                                                                  jlong bytes,
+                                                                                  jint decimals)
+{
+  return ToJString(env, UICommon::FormatSize(bytes, decimals));
 }
 
 #ifdef __cplusplus
