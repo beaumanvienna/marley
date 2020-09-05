@@ -874,7 +874,7 @@ void LoadSettings()
     secname += static_cast<char>('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    #define MAX_GAMEPADS_MARLEY 2
+    #define MAX_GAMEPADS_MARLEY 1
     unsigned int source = 0;
     if (i<MAX_GAMEPADS_MARLEY)
     {
