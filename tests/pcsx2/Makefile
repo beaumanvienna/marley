@@ -62,7 +62,7 @@ all: PCSX2
 PCSX2: main.cpp
 	$(info   *************** tests make pcsx2 ***************)
 	$(info $(GTK_VERSION))
-	$(MAKE) -C ../../pcsx2/build $@ -j8
+	$(MAKE) -C ../../pcsx2/build -j8
 	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
 
 

@@ -55,7 +55,7 @@ using namespace std;
     #endif
     
     #ifdef PCSX2
-        int pcsx2_main(int argc, char* argv[]);
+        void* pcsx2_main(void* ptr);
     #endif
     
     void restoreSDL(void);

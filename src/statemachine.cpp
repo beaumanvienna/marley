@@ -20,7 +20,6 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-
 #include <string>
 #include <SDL.h>
 
@@ -33,6 +32,8 @@
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
 #include <GL/gl.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 int gState = 0;
 int gCurrentGame;
@@ -63,12 +64,15 @@ int secondRunValue;
 
 extern Display* XDisplay;
 extern Window Xwindow;
+extern bool requestShutdown;
 
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
 void setAppIcon(void);
 void hide_or_show_cursor_X11(bool hide);
+int pcsx2_argc;
+char *pcsx2_argv[10];
 
 void resetStatemachine(void)
 {
@@ -490,17 +494,17 @@ void statemachine(int cmd)
                                 n = str.length(); 
                                 strcpy(arg9, str.c_str());
 
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                argv[2] = arg3;
-                                argv[3] = arg4;
-                                argv[4] = arg5;
-                                argv[5] = arg6;
-                                argv[6] = arg7;
-                                argv[7] = arg8;
-                                argv[8] = arg9;
+                                pcsx2_argv[0] = arg1;
+                                pcsx2_argv[1] = arg2;
+                                pcsx2_argv[2] = arg3;
+                                pcsx2_argv[3] = arg4;
+                                pcsx2_argv[4] = arg5;
+                                pcsx2_argv[5] = arg6;
+                                pcsx2_argv[6] = arg7;
+                                pcsx2_argv[7] = arg8;
+                                pcsx2_argv[8] = arg9;
 
-                                argc = 9;
+                                pcsx2_argc = 9;
                                 const char* vendor_str = (const char*)glGetString(GL_VENDOR);
                                 const char* version_str = (const char*)glGetString(GL_VERSION);
                                 const char* renderer_str = (const char*)glGetString(GL_RENDERER);
@@ -540,7 +544,26 @@ void statemachine(int cmd)
                                     {
                                         Xwindow      = sdlWindowInfo.info.x11.window;
                                         XDisplay     = sdlWindowInfo.info.x11.display;
-                                        pcsx2_main(argc,argv);
+                                        
+                                        pthread_t pcsx2_thread;
+                                        pthread_create( &pcsx2_thread, nullptr, pcsx2_main, nullptr);
+                                        
+                                        SDL_Event event;
+                                        while(!requestShutdown)
+                                        {
+                                            printf("jc: void eventLoopSDL(void)\n");
+                                            while( SDL_PollEvent( &event ) != 0 )
+                                            {
+                                                switch (event.type)
+                                                {                    
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+                                            SDL_Delay(200); 
+										}
+                                        pthread_join( pcsx2_thread, nullptr);
+                                        
                                         
                                         if (found_mesa_driver!=std::string::npos)
                                         {
