@@ -45,6 +45,7 @@ LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/fmt/libfmtd.a
 else
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/fmt/libfmt.a 
 endif
+LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/bzip2/libbzip2.a
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 LINKER_OBJECTS 	+= ../../dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
