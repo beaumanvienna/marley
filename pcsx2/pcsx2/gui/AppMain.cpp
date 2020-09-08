@@ -89,10 +89,8 @@ void initVif0_Dma();
 void initVif1_Dma();
 void initNewVif_unpack();
 extern bool requestShutdown;
-extern int pcsx2_argc;
-extern char *pcsx2_argv[10];
 
-void* pcsx2_main(void* ptr)
+int pcsx2_main(int argc_local, char* argv_local[])
 {
     
     initEE();
@@ -114,7 +112,7 @@ void* pcsx2_main(void* ptr)
     initVif1_Dma();
     initNewVif_unpack();
 
-    wxEntryStart(pcsx2_argc,pcsx2_argv);
+    wxEntryStart(argc_local,argv_local);
     wxTheApp->CallOnInit();
     wxTheApp->OnRun();
     ClosePlugins();
@@ -124,7 +122,7 @@ void* pcsx2_main(void* ptr)
     if (g_Conf) g_Conf.reset();
     requestShutdown = false;
     
-    return nullptr;
+    return 0;
 }
 
 void wxRequestExit(void)

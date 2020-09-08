@@ -18,7 +18,7 @@ using namespace std;
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 750
 
-void* pcsx2_main(void* ptr);
+int pcsx2_main(int argc, char* argv[]);
 
 
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
@@ -450,12 +450,11 @@ bool initGUI(void)
 }
 Display* XDisplay;
 Window Xwindow;
-int pcsx2_argc;
-char *pcsx2_argv[10];
     
 int main(int argc, char* argv[])
 {
-    
+    int pcsx2_argc;
+    char *pcsx2_argv[10];    
     
     char arg1[1024];
     char arg2[1024];
@@ -589,7 +588,7 @@ int main(int argc, char* argv[])
             Xwindow      = sdlWindowInfo.info.x11.window;
             XDisplay     = sdlWindowInfo.info.x11.display;
             
-            pcsx2_main(nullptr);
+            pcsx2_main(pcsx2_argc,pcsx2_argv);
             printf("jc exit test\n");    
         }
     }
