@@ -40,7 +40,7 @@ int  GSopen2(void** dsp, uint32 flags);
 #include <wx/intl.h>
 #include <wx/stdpaths.h>
 #include <memory>
-
+#include <SDL.h>
 using namespace pxSizerFlags;
 
 void Pcsx2App::DetectCpuAndUserMode()
@@ -68,6 +68,41 @@ void Pcsx2App::DetectCpuAndUserMode()
 	// fail to allocate the memory they need to function.
 	ShutdownPlugins();
 	UnloadPlugins();
+}
+
+#define NO_WX_EVENT_HANDLING 0
+#define WX_EVENT_HANDLING -1
+int cnt = 0;
+int Pcsx2App::FilterEvent(wxEvent &event)
+{
+    int retVal = WX_EVENT_HANDLING;    
+    if (cnt < 1000) cnt ++;
+    int event_type = event.GetEventType();
+    switch(event.GetEventCategory())
+    {
+        case wxEVT_CATEGORY_UI:
+            //printf( "jc wxEVT_CATEGORY_UI int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() ); 
+            if ((event_type == 10004) || (event_type == 10073) || (cnt > 1000))
+                retVal = NO_WX_EVENT_HANDLING;   
+            break;
+        case wxEVT_CATEGORY_USER_INPUT:
+            //printf( "jc wxEVT_CATEGORY_USER_INPUT int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );      
+            break;
+        case wxEVT_CATEGORY_SOCKET:
+            //printf( "jc wxEVT_CATEGORY_SOCKET int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            break;
+        case wxEVT_CATEGORY_TIMER:
+            //printf( "jc wxEVT_CATEGORY_TIMER int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );    
+            break;
+        case wxEVT_CATEGORY_THREAD:
+            //printf( "jc wxEVT_CATEGORY_THREAD int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            break;
+        default:
+            //printf( "jc default int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            break;
+    }
+    
+    return retVal;
 }
 
 void Pcsx2App::OpenMainFrame()

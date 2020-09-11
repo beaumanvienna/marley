@@ -687,8 +687,12 @@ void renderIcons(void)
 
 void setFullscreen(void)
 {
-    SDL_GetWindowSize(gWindow,&window_width,&window_height);
-    SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+    window_flags=SDL_GetWindowFlags(gWindow);
+    if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+    {
+        SDL_GetWindowSize(gWindow,&window_width,&window_height);
+        SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+    }
     SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_DisplayMode DM;
     SDL_GetCurrentDisplayMode(0, &DM);

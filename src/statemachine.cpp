@@ -77,6 +77,43 @@ void resetStatemachine(void)
     gControllerConf = false;
     gControllerConfNum=-1;
 }
+void create_new_window(void)
+{
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+    }
+    // create new
+    initOpenGL();
+
+    string str = "marley ";
+    str += PACKAGE_VERSION;
+    gWindow = SDL_CreateWindow( str.c_str(), 
+                                window_x, 
+                                window_y, 
+                                window_width, 
+                                window_height, 
+                                window_flags );
+    setAppIcon();
+    //hide_or_show_cursor_X11(CURSOR_HIDE); 
+    
+    SDL_SysWMinfo sdlWindowInfo;
+    SDL_VERSION(&sdlWindowInfo.version);
+    if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+    {
+        if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+        {
+            Xwindow      = sdlWindowInfo.info.x11.window;
+            XDisplay     = sdlWindowInfo.info.x11.display;
+
+        }
+    } 
+    else
+    {
+        printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+    }
+    SDL_ShowCursor(SDL_DISABLE);
+}
 
 void statemachine(int cmd)
 {
@@ -427,9 +464,13 @@ void statemachine(int cmd)
                             int n;
                             string str, ext;
                             
-                            SDL_GetWindowSize(gWindow,&window_width,&window_height);
-                            SDL_GetWindowPosition(gWindow,&window_x,&window_y);
                             window_flags=SDL_GetWindowFlags(gWindow);
+                            if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+                            {
+                                SDL_GetWindowSize(gWindow,&window_width,&window_height);
+                                SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+                            }
+                            
                             
                             argc = 2;
                             str = gGame[gCurrentGame];
@@ -500,59 +541,14 @@ void statemachine(int cmd)
                                 argv[8] = arg9;
 
                                 argc = 9;
-                                const char* vendor_str = (const char*)glGetString(GL_VENDOR);
-                                const char* version_str = (const char*)glGetString(GL_VERSION);
-                                const char* renderer_str = (const char*)glGetString(GL_RENDERER);
-
-                                printf("OpenGL Version: %s, Vendor: %s, Renderer: %s\n", version_str, vendor_str, renderer_str);
-                                string renderer = renderer_str;
-                                std::transform(renderer.begin(), renderer.end(), renderer.begin(),
-                                  [](unsigned char c){ return std::tolower(c); });
-                                std::size_t found_mesa_driver = renderer.find("mesa");
-                                if (found_mesa_driver!=std::string::npos)
-                                {
-                                    printf("Mesa driver found, resetting OpenGL context\n");
-                                    // reset OpenGL context for Mesa driver
-                                    // destroy old
-                                    freeTextures();
-                                    SDL_DestroyRenderer( gRenderer );
-                                    SDL_DestroyWindow(gWindow);
-                                    // create new
-                                    initOpenGL();
-
-                                    string str = "marley ";
-                                    str += PACKAGE_VERSION;
-                                    gWindow = SDL_CreateWindow( str.c_str(), 
-                                                                window_x, 
-                                                                window_y, 
-                                                                window_width, 
-                                                                window_height, 
-                                                                window_flags );
-                                    setAppIcon();
-                                    hide_or_show_cursor_X11(CURSOR_HIDE); 
-                                }
-                                SDL_SysWMinfo sdlWindowInfo;
-                                SDL_VERSION(&sdlWindowInfo.version);
-                                if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
-                                {
-                                    if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
-                                    {
-                                        Xwindow      = sdlWindowInfo.info.x11.window;
-                                        XDisplay     = sdlWindowInfo.info.x11.display;
-                                        pcsx2_main(argc,argv);
-                                        
-                                        if (found_mesa_driver!=std::string::npos)
-                                        {
-                                            hide_or_show_cursor_X11(CURSOR_SHOW); 
-                                        }
-                                        
-                                        restoreSDL();
-                                    }
-                                } 
-                                else
-                                {
-                                    printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
-                                }
+                                
+                                freeTextures();
+                                SDL_DestroyRenderer( gRenderer );
+                                SDL_DestroyWindow(gWindow);
+                                SDL_QuitSubSystem(SDL_INIT_VIDEO);
+                                
+                                pcsx2_main(argc,argv);
+                                restoreSDL();
                             }
 #endif
 

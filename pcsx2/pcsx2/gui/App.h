@@ -586,6 +586,7 @@ public:
 	void DetectCpuAndUserMode();
 	void OpenProgramLog();
 	void OpenMainFrame();
+	int  FilterEvent(wxEvent &event);
 	void PrepForExit();
 	void CleanupRestartable();
 	void CleanupResources();
