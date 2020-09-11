@@ -28,6 +28,59 @@ int gNumDesignatedControllers;
 string gBaseDir;
 string gPathToFirmwarePSXX;
 SDL_Window* gWindow = nullptr;
+Display* XDisplay;
+Window Xwindow;
+
+void initOpenGL(void)
+{	
+    SDL_GL_ResetAttributes();
+  
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
+}
+
+void create_new_window(void)
+{
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+    }
+    // create new
+    initOpenGL();
+
+    string str = "marley pcsx2 unit test";
+    gWindow = SDL_CreateWindow( str.c_str(), 
+                                SDL_WINDOWPOS_CENTERED, 
+                                SDL_WINDOWPOS_CENTERED, 
+                                WINDOW_WIDTH, 
+                                WINDOW_HEIGHT, 
+                                (SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL) );
+    
+    SDL_SysWMinfo sdlWindowInfo;
+    SDL_VERSION(&sdlWindowInfo.version);
+    if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+    {
+        if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+        {
+            Xwindow      = sdlWindowInfo.info.x11.window;
+            XDisplay     = sdlWindowInfo.info.x11.display;
+
+        }
+    } 
+    else
+    {
+        printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+    }
+    SDL_ShowCursor(SDL_DISABLE);
+}
 
 bool setBaseDir(void)
 {
@@ -448,9 +501,7 @@ bool initGUI(void)
     
     return ok;
 }
-Display* XDisplay;
-Window Xwindow;
-    
+
 int main(int argc, char* argv[])
 {
     int pcsx2_argc;
