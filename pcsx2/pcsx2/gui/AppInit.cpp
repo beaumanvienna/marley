@@ -72,17 +72,17 @@ void Pcsx2App::DetectCpuAndUserMode()
 
 #define NO_WX_EVENT_HANDLING 0
 #define WX_EVENT_HANDLING -1
-int cnt = 0;
+int filter_event_cnt;
 int Pcsx2App::FilterEvent(wxEvent &event)
 {
     int retVal = WX_EVENT_HANDLING;    
-    if (cnt < 1000) cnt ++;
+    if (filter_event_cnt < 1000) filter_event_cnt ++;
     int event_type = event.GetEventType();
     switch(event.GetEventCategory())
     {
         case wxEVT_CATEGORY_UI:
             //printf( "jc wxEVT_CATEGORY_UI int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() ); 
-            if ((event_type == 10004) || (event_type == 10073) || (cnt > 1000))
+            if ((event_type == 10004) || (event_type == 10073) || (filter_event_cnt > 1000))
                 retVal = NO_WX_EVENT_HANDLING;   
             break;
         case wxEVT_CATEGORY_USER_INPUT:

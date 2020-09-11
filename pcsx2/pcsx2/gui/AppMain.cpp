@@ -89,7 +89,7 @@ void initVif0_Dma();
 void initVif1_Dma();
 void initNewVif_unpack();
 extern bool requestShutdown;
-
+extern int filter_event_cnt;
 int pcsx2_main(int argc_local, char* argv_local[])
 {
     
@@ -111,7 +111,8 @@ int pcsx2_main(int argc_local, char* argv_local[])
     initVif0_Dma();
     initVif1_Dma();
     initNewVif_unpack();
-
+    filter_event_cnt = 0;
+    
     wxEntryStart(argc_local,argv_local);
     wxTheApp->CallOnInit();
     wxTheApp->OnRun();
