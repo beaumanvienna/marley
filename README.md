@@ -9,9 +9,9 @@ https://github.com/beaumanvienna/marley
 
 - [User Manual](#user-manual)
 - [Controls](#controls)
+- [Developer information](#developer-information)
 - [Installation for Ubuntu 18.04 and 20.04](#installation-for-ubuntu-1804-and-2004)
 - [Compile from source](#compile-from-source)
-- [Developer information](#developer-information)
 
 ## User Manual
 
