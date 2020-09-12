@@ -73,9 +73,10 @@ PlatformX11::~PlatformX11()
     XCloseDisplay(m_display);
   }*/
 }
-
+int startup_counter = 0;
 bool PlatformX11::Init()
 {
+  startup_counter = 0;
   XInitThreads();
   m_window = gWindow;
   
@@ -189,10 +190,14 @@ void PlatformX11::ProcessEvents()
 {
     #warning "JC: modified"
     SDL_Event event;
-    
+    startup_counter++;
     if(requestShutdownGUIDE)
-        RequestShutdown();
-    
+    {
+        if (startup_counter > 10)
+            RequestShutdown();
+        else
+            requestShutdownGUIDE = false;
+    }
     while(SDL_PollEvent(&event))
     {
 
@@ -200,9 +205,6 @@ void PlatformX11::ProcessEvents()
             RequestShutdown();
 
         if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_ESCAPE)
-            RequestShutdown();
-            
-        if(event.type==SDL_CONTROLLERBUTTONDOWN&&event.cbutton.button==SDL_CONTROLLER_BUTTON_GUIDE)
             RequestShutdown();
             
         if(event.type==SDL_KEYDOWN&&event.key.keysym.sym==SDLK_F5)

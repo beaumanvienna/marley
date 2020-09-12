@@ -546,7 +546,7 @@ int main(int argc, char* argv[])
         dolphin_argv[1] = arg3;
         dolphin_main(dolphin_argc,dolphin_argv);
         
-        dolphin_argv[1] = arg3;
+        dolphin_argv[1] = arg2;
         dolphin_main(dolphin_argc,dolphin_argv);
     }
     else
