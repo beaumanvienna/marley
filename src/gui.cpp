@@ -30,6 +30,8 @@
 #include "../resources/res.h"
 #include <X11/Xlib.h>
 #include <X11/extensions/Xfixes.h>
+#include <SDL_syswm.h>
+#include <GL/gl.h>
 
 //rendering window 
 SDL_Window* gWindow = nullptr;
@@ -676,7 +678,7 @@ void renderIcons(void)
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_NO_CTRL], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     
-    if (!gPSX_firmware)
+    if ( (!gPS1_firmware) || (!gPS2_firmware) )
     {
         destination = { x_offset_50+xOffset, y_offset_65+yOffset, x_offset_560, y_offset_45 };
         
@@ -722,9 +724,15 @@ bool createRenderer(void)
     }
     else
     {
+        const char* vendor_str = (const char*)glGetString(GL_VENDOR);
+        const char* version_str = (const char*)glGetString(GL_VERSION);
+        const char* renderer_str = (const char*)glGetString(GL_RENDERER);
+
+        printf("OpenGL Version: %s, Vendor: %s, Renderer: %s", version_str, vendor_str, renderer_str);
+        
         SDL_RendererInfo rendererInfo;
         SDL_GetRendererInfo(gRenderer, &rendererInfo);
-        std::cout << "Renderer: " << rendererInfo.name << std::endl;
+        std::cout << ", SDL Renderer: " << rendererInfo.name << std::endl;
         std::string str = rendererInfo.name;
         if (str.compare("opengl") != 0)
         {
@@ -899,4 +907,41 @@ void renderScreen(void)
     renderIcons();
     SDL_RenderPresent( gRenderer );
 
+}
+void create_new_window(void)
+{
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+    }
+    // create new
+    initOpenGL();
+
+    string str = "marley ";
+    str += PACKAGE_VERSION;
+    gWindow = SDL_CreateWindow( str.c_str(), 
+                                window_x, 
+                                window_y, 
+                                window_width, 
+                                window_height, 
+                                window_flags );
+    setAppIcon();
+    //hide_or_show_cursor_X11(CURSOR_HIDE); 
+    
+    SDL_SysWMinfo sdlWindowInfo;
+    SDL_VERSION(&sdlWindowInfo.version);
+    if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+    {
+        if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+        {
+            Xwindow      = sdlWindowInfo.info.x11.window;
+            XDisplay     = sdlWindowInfo.info.x11.display;
+
+        }
+    } 
+    else
+    {
+        printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+    }
+    SDL_ShowCursor(SDL_DISABLE);
 }

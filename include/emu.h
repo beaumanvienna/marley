@@ -29,7 +29,8 @@ using namespace std;
 #ifndef EMU_H
 #define EMU_H
 
-    extern bool gPSX_firmware;
+    extern bool gPS1_firmware;
+    extern bool gPS2_firmware;
     extern string gBaseDir;
     extern string gPathToFirmwarePSX;
     extern string gPathToGames;

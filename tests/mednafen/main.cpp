@@ -27,7 +27,6 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 string gPathToFirmwarePSX;
-string gPathToFirmwarePSXX;
 SDL_Window* gWindow = nullptr;
 
 bool setBaseDir(void)
@@ -50,13 +49,8 @@ bool setBaseDir(void)
             filename += "/";
         }
 
+        filename += ".marley/";
         gPathToFirmwarePSX = filename;
-        gPathToFirmwarePSX += "Gaming/BIOS/PS1/scph5500.bin";
-
-        gPathToFirmwarePSXX = filename;
-        gPathToFirmwarePSXX += "Gaming/BIOS/PS2/PS2.rom0";
-
-        filename = filename + ".marley/";
 
         dir = opendir(filename.c_str());
         if (dir)

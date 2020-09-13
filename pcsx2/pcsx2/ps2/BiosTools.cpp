@@ -339,3 +339,20 @@ bool IsBIOS(const wxString& filename, wxString& description)
 
 	return false;	// fail quietly
 }
+
+bool IsBIOS_PCSX2(const char * filename)
+{
+	wxString description;
+	wxFileName Bios( filename );
+	pxInputStream inway( filename, new wxFFileInputStream( filename ) );
+
+	if (!inway.IsOk()) return false;
+
+	try {
+		u32 version;
+		LoadBiosVersion( inway, version, description );
+		return true;
+	} catch( Exception::BadStream& ) { }
+
+	return false;
+}

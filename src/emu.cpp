@@ -20,10 +20,6 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-
-
-
-
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
@@ -49,72 +45,344 @@
 #include "../resources/pcsx2_res.h"
 
 using namespace std;
+typedef unsigned long long int checksum64;
+
+#define PS1_BIOS_SIZE   524288
+#define PS2_BIOS_SIZE  4194304
+#define SCPH5500_BIN  21715608
+#define SCPH5501_BIN  22714036
+#define SCPH5502_BIN  24215776
+#define SCPH77000_BIN 56837872
+#define SCPH77001_BIN 162002608
+#define SCPH77002_BIN 169569744
 
 bool isDirectory(const char *filename);
 
-bool gPSX_firmware;
-bool gPSXX_firmware;
+bool gPS1_firmware;
+bool gPS2_firmware;
 string gPathToFirmwarePSX;
-string gPathToFirmwarePSXX;
+string gPathToFirmwarePS2;
 string gPathToGames;
 string gBaseDir;
 vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","snes","nes","gamecube","wii","n64", "gba", "gbc"};
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs"};
 bool gGamesFound;
 
+std::ifstream::pos_type filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return in.tellg(); 
+}
+
+checksum64 calcChecksum(const char * filename)
+{
+    ifstream ifs(filename, ios::binary|ios::ate);
+    ifstream::pos_type pos = ifs.tellg();
+    checksum64 checksum = 0;
+
+    int length = pos;
+
+    char *pChars = new char[length];
+    ifs.seekg(0, ios::beg);
+    ifs.read(pChars, length);
+    
+    for(int i = 0; i < length; i++)
+        checksum += pChars[i] + (pChars[i] ^ 0x55);
+
+    delete pChars;
+
+    return checksum;
+}
+bool IsBIOS_PCSX2(const char * filename);
+void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2)
+{
+    string str_with_path, str_without_path;
+    string ext, str_with_path_lower_case;
+    DIR *dir;
+    
+    struct dirent *ent;
+    if ((dir = opendir (directory)) != NULL) 
+    {
+        // print all files and directories in directory
+        while ((ent = readdir (dir)) != NULL) 
+        {
+            str_with_path = directory;
+            str_with_path +=ent->d_name;
+            
+            if (isDirectory(str_with_path.c_str()))
+            {
+                str_without_path =ent->d_name;
+                if ((str_without_path != ".") && (str_without_path != ".."))
+                {
+                    str_with_path +="/";
+                    findAllBiosFiles(str_with_path.c_str(),tmpList_ps1,tmpList_ps2);
+                }
+            }
+            else
+            {
+                ext = str_with_path.substr(str_with_path.find_last_of(".") + 1);
+                
+                std::transform(ext.begin(), ext.end(), ext.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                str_with_path_lower_case=str_with_path;
+                std::transform(str_with_path_lower_case.begin(), str_with_path_lower_case.end(), str_with_path_lower_case.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                if ((str_with_path_lower_case.find("battlenet") ==  string::npos) &&\
+                    (str_with_path_lower_case.find("ps3") ==  string::npos) &&\
+                    (str_with_path_lower_case.find("ps4") ==  string::npos) &&\
+                    (str_with_path_lower_case.find("xbox") ==  string::npos))
+                {
+                    int file_size = filesize(str_with_path.c_str());
+                    
+                    if (file_size == PS1_BIOS_SIZE)
+                    {
+                        tmpList_ps1[0].push_back(str_with_path);
+                    }
+                    else if (file_size == PS2_BIOS_SIZE)
+                    {
+                        if (IsBIOS_PCSX2(str_with_path.c_str()))
+                        {
+                            tmpList_ps2[0].push_back(str_with_path);
+                        }
+                    }
+                }
+            }
+        }
+        closedir (dir);
+    } 
+}
+
+bool copyFile(const char *SRC, const char* DEST)
+{
+    std::ifstream src(SRC, std::ios::binary);
+    std::ofstream dest(DEST, std::ios::binary);
+    dest << src.rdbuf();
+    return src && dest;
+}
+
 void checkFirmwarePSX(void)
 {
-    if (gPathToFirmwarePSX!="")
-    {
-        int count = 0;
-        string jp = gPathToFirmwarePSX + "scph5500.bin";
-        string na = gPathToFirmwarePSX + "scph5501.bin";
-        string eu = gPathToFirmwarePSX + "scph5502.bin";
+    // ---------- PS1 ----------
+    bool found_jp_ps1 = false;
+    bool found_na_ps1 = false;
+    bool found_eu_ps1 = false;
     
-        ifstream jpF (jp.c_str());
-        ifstream naF (na.c_str());
-        ifstream euF (eu.c_str());
-        
-        gPSX_firmware = false;
-        
-        if (jpF.is_open())
+    string jp_ps1 = gBaseDir + "scph5500.bin";
+    string na_ps1 = gBaseDir + "scph5501.bin";
+    string eu_ps1 = gBaseDir + "scph5502.bin";
+
+    ifstream jpF_ps1 (jp_ps1.c_str());
+    ifstream naF_ps1 (na_ps1.c_str());
+    ifstream euF_ps1 (eu_ps1.c_str());
+    // check if ps1 files are already installed in base directory
+    if (jpF_ps1.is_open())
+    {
+        jpF_ps1.close();
+        if ( calcChecksum(jp_ps1.c_str()) == SCPH5500_BIN)
         {
-            gPSX_firmware = true;
-            count++;
+            printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", jp_ps1.c_str());
+            found_jp_ps1 = true;
         }
-        else
+    }
+    
+    if (naF_ps1.is_open())
+    {
+        naF_ps1.close();
+        if ( calcChecksum(na_ps1.c_str()) == SCPH5501_BIN)
         {
-            printf("%s not found\n",jp.c_str());
+            printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", na_ps1.c_str());
+            found_na_ps1 = true;
         }
-        
-        if (naF.is_open())
+    }
+    
+    if (euF_ps1.is_open())
+    {
+        euF_ps1.close();
+        if ( calcChecksum(eu_ps1.c_str()) == SCPH5502_BIN)
         {
-            gPSX_firmware = true;
-            count++;
+            printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", eu_ps1.c_str());
+            found_eu_ps1 = true;
         }
-        else
+    }
+    // ---------- PS2 ----------
+    bool found_jp_ps2 = false;
+    bool found_na_ps2 = false;
+    bool found_eu_ps2 = false;
+    
+    string jp_ps2 = gBaseDir + "scph77000.bin";
+    string na_ps2 = gBaseDir + "scph77001.bin";
+    string eu_ps2 = gBaseDir + "scph77002.bin";
+    string tempBios_ps2_bios = gBaseDir + "tempBios.bin";
+
+    ifstream jpF_ps2 (jp_ps2.c_str());
+    ifstream naF_ps2 (na_ps2.c_str());
+    ifstream euF_ps2 (eu_ps2.c_str());
+    ifstream unF_ps2 (tempBios_ps2_bios.c_str());
+    // check if ps2 files are already installed in base directory
+    if (jpF_ps2.is_open())
+    {
+        jpF_ps2.close();
+        if ( calcChecksum(jp_ps2.c_str()) == SCPH77000_BIN)
         {
-            printf("%s not found\n",na.c_str());
+            printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", jp_ps2.c_str());
+            found_jp_ps2 = true;
         }
-        
-        if (euF.is_open())
+    }
+    
+    if (naF_ps2.is_open())
+    {
+        naF_ps2.close();
+        if ( calcChecksum(na_ps2.c_str()) == SCPH77001_BIN)
         {
-            gPSX_firmware = true;
-            count++;
+            printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", na_ps2.c_str());
+            found_na_ps2 = true;
         }
-        else
+    }
+    
+    if (euF_ps2.is_open())
+    {
+        euF_ps2.close();
+        if ( calcChecksum(eu_ps2.c_str()) == SCPH77002_BIN)
         {
-            printf("%s not found\n",eu.c_str());
+            printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", eu_ps2.c_str());
+            found_eu_ps2 = true;
         }
-        
-        if (gPSX_firmware)
+    }
+    
+    if (unF_ps2.is_open())
+    {
+        unF_ps2.close();
+    }
+    else
+    {
+        tempBios_ps2_bios = "";
+    }
+    // if not all files are installed in base directory search firmware path
+    if (!(found_jp_ps1 && found_na_ps1 && found_eu_ps1 && found_jp_ps2 && found_na_ps2 && found_eu_ps2))
+    {
+        if (gPathToFirmwarePSX!="")
         {
-            if (count<3)
+            std::list<string> tmpList_ps1;
+            std::list<string> tmpList_ps2;
+            
+            findAllBiosFiles(gPathToFirmwarePSX.c_str(),&tmpList_ps1,&tmpList_ps2);
+            
+            for (string str : tmpList_ps1)
             {
-                printf("Not all PSX firmware files found. You might not be able to play games from all regions.\n");
+                
+                if (( calcChecksum(str.c_str()) == SCPH5500_BIN) && !found_jp_ps1)
+                {
+                    printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", str.c_str());
+                    found_jp_ps1 = copyFile(str.c_str(),jp_ps1.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH5501_BIN) && !found_na_ps1)
+                {
+                    printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", str.c_str());
+                    found_na_ps1 = copyFile(str.c_str(),na_ps1.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH5502_BIN) && !found_eu_ps1)
+                {
+                    printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", str.c_str());
+                    found_eu_ps1 = copyFile(str.c_str(),eu_ps1.c_str());
+                }
+            }
+            
+            for (string str : tmpList_ps2)
+            {
+                tempBios_ps2_bios = str;
+                if (( calcChecksum(str.c_str()) == SCPH77000_BIN) && !found_jp_ps2)
+                {
+                    printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", str.c_str());
+                    found_jp_ps2 = copyFile(str.c_str(),jp_ps2.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH77001_BIN) && !found_na_ps2)
+                {
+                    printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", str.c_str());
+                    found_na_ps2 = copyFile(str.c_str(),na_ps2.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH77002_BIN) && !found_eu_ps2)
+                {
+                    printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", str.c_str());
+                    found_eu_ps2 = copyFile(str.c_str(),eu_ps2.c_str());
+                }
             }
         }
     }
+    // if still not all files are installed in base directory search game path
+    if (!(found_jp_ps1 && found_na_ps1 && found_eu_ps1 && found_jp_ps2 && found_na_ps2 && found_eu_ps2))
+    {
+        if (gPathToGames!="")
+        {
+            std::list<string> tmpList_ps1;
+            std::list<string> tmpList_ps2;
+            findAllBiosFiles(gPathToGames.c_str(),&tmpList_ps1,&tmpList_ps2);
+            
+            for (string str : tmpList_ps1)
+            {
+                
+                if (( calcChecksum(str.c_str()) == SCPH5500_BIN) && !found_jp_ps1)
+                {
+                    printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", str.c_str());
+                    found_jp_ps1 = copyFile(str.c_str(),jp_ps1.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH5501_BIN) && !found_na_ps1)
+                {
+                    printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", str.c_str());
+                    found_na_ps1 = copyFile(str.c_str(),na_ps1.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH5502_BIN) && !found_eu_ps1)
+                {
+                    printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", str.c_str());
+                    found_eu_ps1 = copyFile(str.c_str(),eu_ps1.c_str());
+                }
+            }
+            
+            for (string str : tmpList_ps2)
+            {
+                tempBios_ps2_bios = str;
+                if (( calcChecksum(str.c_str()) == SCPH77000_BIN) && !found_jp_ps2)
+                {
+                    printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", str.c_str());
+                    found_jp_ps2 = copyFile(str.c_str(),jp_ps2.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH77001_BIN) && !found_na_ps2)
+                {
+                    printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", str.c_str());
+                    found_na_ps2 = copyFile(str.c_str(),na_ps2.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SCPH77002_BIN) && !found_eu_ps2)
+                {
+                    printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", str.c_str());
+                    found_eu_ps2 = copyFile(str.c_str(),eu_ps2.c_str());
+                }
+            }
+        }
+    }    
+    gPS1_firmware = found_jp_ps1 || found_na_ps1 || found_eu_ps1;
+    gPS2_firmware = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
+    
+    if (gPS2_firmware)
+    {
+        if (found_jp_ps2)
+            gPathToFirmwarePS2 = jp_ps2; // faster than NA and EU because it doesn't have a language settings dialog
+        else if (found_na_ps2)
+            gPathToFirmwarePS2 = na_ps2;
+        else if (found_eu_ps2)
+            gPathToFirmwarePS2 = eu_ps2;
+    } 
+    else
+    {
+        if (tempBios_ps2_bios!="")
+        {
+            gPathToFirmwarePS2 = gBaseDir + "tempBios.bin";
+            if (tempBios_ps2_bios!=gPathToFirmwarePS2) 
+                copyFile(tempBios_ps2_bios.c_str(),gPathToFirmwarePS2.c_str());
+            printf( "PS2 bios found: %s\n", tempBios_ps2_bios.c_str());
+            gPS2_firmware = true;
+        }
+    }    
 }
 
 void printSupportedEmus(void)
@@ -357,15 +625,12 @@ void initEMU(void)
     initDOLPHIN();
     initMUPEN64PLUS();
     
-    //check for PSX firmware
-    if (gPathToFirmwarePSX == "")
-    {
-        printf("No valid firmware path for PSX found in marley.cfg\n");
-    }
-    else
-    {
-        checkFirmwarePSX();
-    }
+    checkFirmwarePSX();
+    if (!gPS1_firmware)
+        printf("No valid bios/firmware path for PS1 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
+        
+    if (!gPS2_firmware)
+        printf("No valid bios/firmware path for PS2 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
     
     if (gGame.size())
     {
@@ -376,17 +641,6 @@ void initEMU(void)
     {
         printf("%s\n",gGame[i].c_str());
     }
-    const char *homedir = getenv("HOME");
-    gPathToFirmwarePSXX = homedir;
-    
-    string slash;
-    slash = gPathToFirmwarePSXX.substr(gPathToFirmwarePSXX.length()-1,1);
-    if (slash != "/")
-    {
-        gPathToFirmwarePSXX += "/";
-    }
-    
-    gPathToFirmwarePSXX += "Gaming/BIOS/PS2/PS2.rom0";
 }
 
 bool exists(const char *fileName)
@@ -511,7 +765,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
     struct dirent *ent;
     if ((dir = opendir (directory)) != NULL) 
     {
-        // print all the files and directories within directory
+        // print all files and directories in directory
         while ((ent = readdir (dir)) != NULL) 
         {
             str_with_path = directory;

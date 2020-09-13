@@ -30,8 +30,6 @@
 #include "../include/emu.h"
 #include <algorithm>
 #include <X11/Xlib.h>
-#include <SDL_syswm.h>
-#include <GL/gl.h>
 
 int gState = 0;
 int gCurrentGame;
@@ -77,43 +75,7 @@ void resetStatemachine(void)
     gControllerConf = false;
     gControllerConfNum=-1;
 }
-void create_new_window(void)
-{
-    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
-    {
-        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-    }
-    // create new
-    initOpenGL();
-
-    string str = "marley ";
-    str += PACKAGE_VERSION;
-    gWindow = SDL_CreateWindow( str.c_str(), 
-                                window_x, 
-                                window_y, 
-                                window_width, 
-                                window_height, 
-                                window_flags );
-    setAppIcon();
-    //hide_or_show_cursor_X11(CURSOR_HIDE); 
-    
-    SDL_SysWMinfo sdlWindowInfo;
-    SDL_VERSION(&sdlWindowInfo.version);
-    if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
-    {
-        if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
-        {
-            Xwindow      = sdlWindowInfo.info.x11.window;
-            XDisplay     = sdlWindowInfo.info.x11.display;
-
-        }
-    } 
-    else
-    {
-        printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
-    }
-    SDL_ShowCursor(SDL_DISABLE);
-}
+void create_new_window(void);
 
 void statemachine(int cmd)
 {

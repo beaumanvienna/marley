@@ -695,11 +695,11 @@ void AppConfig::ConsoleLogOptions::LoadSave( IniInterface& ini, const wxChar* lo
 	IniEntry( FontSize );
 	IniEntry( Theme );
 }
-extern std::string gPathToFirmwarePSXX;
+extern std::string gPathToFirmwarePS2;
 void AppConfig::FolderOptions::ApplyDefaults()
 {
     UseDefaultBios = false;
-    g_Conf->BaseFilenames.Bios = (wxFileName)gPathToFirmwarePSXX;
+    g_Conf->BaseFilenames.Bios = (wxFileName)gPathToFirmwarePS2;
 	if( UseDefaultBios )		Bios		  = PathDefs::GetBios();
 	if( UseDefaultSnapshots )	Snapshots	  = PathDefs::GetSnapshots();
 	if( UseDefaultSavestates )	Savestates	  = PathDefs::GetSavestates();

@@ -26,7 +26,7 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
-string gPathToFirmwarePSXX;
+string gPathToFirmwarePS2;
 SDL_Window* gWindow = nullptr;
 Display* XDisplay;
 Window Xwindow;
@@ -102,8 +102,8 @@ bool setBaseDir(void)
             filename += "/";
         }
                 
-        gPathToFirmwarePSXX = filename;
-        gPathToFirmwarePSXX += "Gaming/BIOS/PS2/PS2.rom0";
+        gPathToFirmwarePS2 = filename;
+        gPathToFirmwarePS2 += ".marley/scph77001.bin";
         
         filename = filename + ".marley/";
         

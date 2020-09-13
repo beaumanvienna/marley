@@ -43,10 +43,6 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
-string gPathToFirmwarePSX;
-string gPathToFirmwarePSXX;
-
-
 
 //rendering window 
 SDL_Window* gWindow = nullptr;
