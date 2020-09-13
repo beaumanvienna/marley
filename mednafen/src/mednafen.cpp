@@ -1092,7 +1092,7 @@ static MDFN_COLD void LoadIPS(MDFNFILE* mfgf, const std::string& path)
  catch(MDFN_Error &e)
  {
   MDFN_indent(1);
-  MDFN_printf(_("Failed: %s\n"), e.what());
+//  MDFN_printf(_("Failed: %s\n"), e.what());
   MDFN_indent(-1);
   if(e.GetErrno() != ENOENT)
    throw;
@@ -1100,7 +1100,7 @@ static MDFN_COLD void LoadIPS(MDFNFILE* mfgf, const std::string& path)
  catch(std::exception &e)
  {
   MDFN_indent(1);
-  MDFN_printf(_("Failed: %s\n"), e.what());
+//  MDFN_printf(_("Failed: %s\n"), e.what());
   MDFN_indent(-1);
   throw;
  }

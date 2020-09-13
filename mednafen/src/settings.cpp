@@ -432,7 +432,7 @@ bool MDFN_LoadSettings(const std::string& path, bool override)
  {
   if(e.GetErrno() == ENOENT)
   {
-   MDFN_printf(_("Failed: %s\n"), e.what());
+   //MDFN_printf(_("Failed: %s\n"), e.what());
    return false;
   }
   else

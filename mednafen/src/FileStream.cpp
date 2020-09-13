@@ -163,7 +163,7 @@ FileStream::FileStream(const std::string& path, const uint32 mode, const int do_
  {
   ErrnoHolder ene(errno);
 
-  throw MDFN_Error(ene.Errno(), _("Error opening file \"%s\": %s"), path_save.c_str(), ene.StrError());
+  throw MDFN_Error(ene.Errno(), _("Could not find file \"%s\""), path_save.c_str());
  }
 
  fp = ::fdopen(tmpfd, fpom);

@@ -363,8 +363,8 @@ void CDAccess_Image::LoadSBI(VirtualFS* vfs, const std::string& sbi_path)
   {
    if(e.GetErrno() != ENOENT)
     throw;
-   else
-    MDFN_printf(_("Error: %s\n"), e.what());
+   /*else
+    MDFN_printf(_("Error: %s\n"), e.what());*/
   }
   catch(std::exception &e)
   {
