@@ -83,28 +83,28 @@ bool init()
         printf("We are linking against SDL version %d.%d.%d.\n",
         linked.major, linked.minor, linked.patch);
 
-		// load true type font
+        // load true type font
         TTF_Init();
         string font = "/fonts/dejavu-fonts-ttf/DejaVuSansMono-Bold.ttf";
         size_t file_size = 0;
-		GBytes *mem_access = g_resource_lookup_data(res_get_resource(), font.c_str(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
-		const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
+        GBytes *mem_access = g_resource_lookup_data(res_get_resource(), font.c_str(), G_RESOURCE_LOOKUP_FLAGS_NONE, nullptr);
+        const void* dataPtr = g_bytes_get_data(mem_access, &file_size);
 
-		if (dataPtr != nullptr && file_size) 
-		{
-			SDL_RWops* ttf_file = SDL_RWFromMem((void*) dataPtr,file_size);
-			gFont = TTF_OpenFontRW(ttf_file, 1, 24);
-			if (gFont == nullptr)
-			{
-				printf("Could not open %s\n",font.c_str());
-				ok = false;
-			}
-		}
-		else
-		{		
-			printf("Failed to retrieve resource data for %s\n", font.c_str());
-			ok = false;
-		}
+        if (dataPtr != nullptr && file_size) 
+        {
+            SDL_RWops* ttf_file = SDL_RWFromMem((void*) dataPtr,file_size);
+            gFont = TTF_OpenFontRW(ttf_file, 1, 24);
+            if (gFont == nullptr)
+            {
+                printf("Could not open %s\n",font.c_str());
+                ok = false;
+            }
+        }
+        else
+        {        
+            printf("Failed to retrieve resource data for %s\n", font.c_str());
+            ok = false;
+        }
         
         setBaseDir();
         initApp();
@@ -129,15 +129,15 @@ bool init()
 
 void initApp(void)
 {
-	
-	const char *homedir;
+    
+    const char *homedir;
     string home_folder, slash, uri;
     string app_dir, app_starter;
     string icon_dir, app_icon;
     GError *error;
-	GFile* out_file;
-	GFile* src_file;
-	DIR* dir;
+    GFile* out_file;
+    GFile* src_file;
+    DIR* dir;
     
     if ((homedir = getenv("HOME")) != nullptr) 
     {
@@ -149,41 +149,41 @@ void initApp(void)
         {
             home_folder += "/";
         }
-	}
-	else
-	{
-		home_folder += "~/";
-	}
-	
-	app_dir = home_folder + ".local/share/applications/";
-	
-	dir = opendir(app_dir.c_str());
+    }
+    else
+    {
+        home_folder += "~/";
+    }
+    
+    app_dir = home_folder + ".local/share/applications/";
+    
+    dir = opendir(app_dir.c_str());
 
-	if ((dir) && (isDirectory(app_dir.c_str()) ))
-	{
-		// Directory exists
-		closedir(dir);
-		
-		app_starter = app_dir + "marley.desktop";
-		if (( access( app_starter.c_str(), F_OK ) == -1 ))
-		{
-			//file does not exist
-			uri = "resource:///app/marley.desktop";
-			error = nullptr;
-			out_file = g_file_new_for_path(app_starter.c_str());
-			src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
-		}
-		
-		icon_dir = home_folder + ".local/share/icons/";
+    if ((dir) && (isDirectory(app_dir.c_str()) ))
+    {
+        // Directory exists
+        closedir(dir);
+        
+        app_starter = app_dir + "marley.desktop";
+        if (( access( app_starter.c_str(), F_OK ) == -1 ))
+        {
+            //file does not exist
+            uri = "resource:///app/marley.desktop";
+            error = nullptr;
+            out_file = g_file_new_for_path(app_starter.c_str());
+            src_file = g_file_new_for_uri(uri.c_str());
+            g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        }
+        
+        icon_dir = home_folder + ".local/share/icons/";
 
-		dir = opendir(icon_dir.c_str());
-		if ((dir) && (isDirectory(icon_dir.c_str()) ))
-		{
-			// Directory exists
-			closedir(dir);
-		}
-		else if (ENOENT == errno) 
+        dir = opendir(icon_dir.c_str());
+        if ((dir) && (isDirectory(icon_dir.c_str()) ))
+        {
+            // Directory exists
+            closedir(dir);
+        }
+        else if (ENOENT == errno) 
         {
             // Directory does not exist
             printf("creating directory %s ",icon_dir.c_str());
@@ -197,20 +197,20 @@ void initApp(void)
             }
         }
 
-		app_icon = icon_dir + "marley.ico";
-		if (( access( app_icon.c_str(), F_OK ) == -1 ))
-		{
-			//file does not exist
-			uri = "resource:///app/marley.ico";
-		
-			error = nullptr;
-			out_file = g_file_new_for_path(app_icon.c_str());
-			src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
-		}
-		
-	} 
-	 
+        app_icon = icon_dir + "marley.ico";
+        if (( access( app_icon.c_str(), F_OK ) == -1 ))
+        {
+            //file does not exist
+            uri = "resource:///app/marley.ico";
+        
+            error = nullptr;
+            out_file = g_file_new_for_path(app_icon.c_str());
+            src_file = g_file_new_for_uri(uri.c_str());
+            g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        }
+        
+    } 
+     
 }
 
 //Frees media and shuts down SDL
@@ -282,7 +282,7 @@ int main( int argc, char* argv[] )
         }
         
     }
-	
+    
     //Start up SDL and create window
     if( !init() )
     {
@@ -305,7 +305,7 @@ int main( int argc, char* argv[] )
         //main loop
         while( !gQuit )
         {
-			SDL_Delay(33); // 30 fps
+            SDL_Delay(33); // 30 fps
             mainLoopWii();
             //Handle events on queue
             while( SDL_PollEvent( &event ) != 0 )
@@ -667,7 +667,11 @@ void loadConfig(ifstream* configFile)
         {
             pos=23;
             entry = line.substr(pos+1,line.length()-pos);
-            if ( !(setPathToFirmware(entry)) )
+            if ( setPathToFirmware(entry) )
+            {
+                checkFirmwarePSX();
+            }
+            else
             {
                 printf("Could not find firmware path for PSX %s\n",entry.c_str());
             }
@@ -678,6 +682,7 @@ void loadConfig(ifstream* configFile)
             entry = line.substr(pos+1,line.length()-pos);
             if ( setPathToGames(entry) )
             {
+                checkFirmwarePSX();
                 buildGameList();
             }
         }
@@ -704,35 +709,35 @@ bool setBaseDir(void)
         {
             filename += "/";
         }
-	}
-	else
-	{
-		filename += "~/";
-	}
+    }
+    else
+    {
+        filename += "~/";
+    }
         
-	filename = filename + ".marley/";
-	
-	dir = opendir(filename.c_str());
-	if ((dir) && (isDirectory(filename.c_str()) ))
-	{
-		// Directory exists
-		closedir(dir);
-		ok = true;
-	} 
-	else if (ENOENT == errno) 
-	{
-		// Directory does not exist
-		printf("creating directory %s ",filename.c_str());
-		if (mkdir(filename.c_str(), S_IRWXU ) == 0)
-		{
-			printf("(ok)\n");
-			ok = true;
-		}
-		else
-		{
-			printf("(failed)\n");
-		}
-	}
+    filename = filename + ".marley/";
+    
+    dir = opendir(filename.c_str());
+    if ((dir) && (isDirectory(filename.c_str()) ))
+    {
+        // Directory exists
+        closedir(dir);
+        ok = true;
+    } 
+    else if (ENOENT == errno) 
+    {
+        // Directory does not exist
+        printf("creating directory %s ",filename.c_str());
+        if (mkdir(filename.c_str(), S_IRWXU ) == 0)
+        {
+            printf("(ok)\n");
+            ok = true;
+        }
+        else
+        {
+            printf("(failed)\n");
+        }
+    }
 
     if (ok) gBaseDir=filename;
     return ok;

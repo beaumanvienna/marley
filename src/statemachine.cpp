@@ -349,6 +349,7 @@ void statemachine(int cmd)
                                     
                                     gTextForGamingFolder=gText;
                                     buildGameList();
+                                    checkFirmwarePSX();
                                 }
                             }
                             else // input exit with ESC
