@@ -35,7 +35,6 @@ int gState = 0;
 int gCurrentGame;
 std::vector<string> gGame;
 bool gQuit=false;
-bool gIgnore = false;
 bool gSetupIsRunning=false;
 bool gTextInput=false;
 bool gTextInputForGamingFolder = false;
@@ -60,7 +59,7 @@ int secondRunValue;
 
 extern Display* XDisplay;
 extern Window Xwindow;
-
+extern int delay_after_shutdown;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -576,7 +575,7 @@ void statemachine(int cmd)
                                 argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
                                 dolphin_main(argc,argv);
-                                gIgnore = true;
+                                delay_after_shutdown = 10;
                                 restoreSDL();
                             }
 #endif
@@ -596,7 +595,6 @@ void statemachine(int cmd)
                                 argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
                                 mednafen_main(argc,argv);
-                                gIgnore = true;
                                 restoreSDL();
                             }
 #endif

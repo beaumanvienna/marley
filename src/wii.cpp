@@ -62,10 +62,16 @@ bool initWii(void)
 }
 using namespace WiimoteReal;
 
-
+int delay_after_shutdown;
 void mainLoopWii(void)
 {
     u16 buttons;
+    
+    if (delay_after_shutdown)
+    {
+        delay_after_shutdown--;
+        return;
+    }
     
     Core::HostDispatchJobs();
     if (g_wiimotes[0]) 
@@ -86,7 +92,7 @@ void mainLoopWii(void)
         if ((lft != lft_prev) && (lft))         statemachine(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
         if ((rght != rght_prev) && (rght))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
         if ((a != a_prev) && (a))               statemachine(SDL_CONTROLLER_BUTTON_A);
-        if ((bbutton != b_prev) && (bbutton))               statemachine(SDL_CONTROLLER_BUTTON_A);
+        if ((bbutton != b_prev) && (bbutton))   statemachine(SDL_CONTROLLER_BUTTON_A);
         if ((guide != guide_prev) && (guide))   statemachine(SDL_CONTROLLER_BUTTON_GUIDE);
         
         up_prev     = up;
