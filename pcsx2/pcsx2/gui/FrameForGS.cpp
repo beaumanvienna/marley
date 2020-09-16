@@ -104,6 +104,12 @@ void GSPanel::InitRecordingAccelerators()
 	m_Accels->Map(AAC(WXK_SPACE), "FrameAdvance");
 	m_Accels->Map(AAC(wxKeyCode('p')).Shift(), "TogglePause");
 	m_Accels->Map(AAC(wxKeyCode('r')).Shift(), "InputRecordingModeToggle");
+#if defined(__unix__)
+	// Shift+P (80) and Shift+p (112) have two completely different codes 
+	// On Linux the former is sometimes fired so define bindings for both
+	m_Accels->Map(AAC(wxKeyCode('P')).Shift(), "TogglePause");
+	m_Accels->Map(AAC(wxKeyCode('R')).Shift(), "InputRecordingModeToggle");
+#endif
 
 	m_Accels->Map(AAC(WXK_NUMPAD0).Shift(), "States_SaveSlot0");
 	m_Accels->Map(AAC(WXK_NUMPAD1).Shift(), "States_SaveSlot1");
@@ -125,6 +131,8 @@ void GSPanel::InitRecordingAccelerators()
 	m_Accels->Map(AAC(WXK_NUMPAD7), "States_LoadSlot7");
 	m_Accels->Map(AAC(WXK_NUMPAD8), "States_LoadSlot8");
 	m_Accels->Map(AAC(WXK_NUMPAD9), "States_LoadSlot9");
+
+	recordingConLog(L"Initialized Recording Key Bindings\n");
 }
 #endif
 
@@ -706,7 +714,7 @@ void GSFrame::OnUpdateTitle( wxTimerEvent& evt )
 	}
 
 	title.Replace(L"${frame}", pxsFmt(L"%d", g_FrameCount));
-	title.Replace(L"${maxFrame}", pxsFmt(L"%d", g_InputRecording.GetInputRecordingData().GetMaxFrame()));
+	title.Replace(L"${maxFrame}", pxsFmt(L"%d", g_InputRecording.GetInputRecordingData().GetTotalFrames()));
 	title.Replace(L"${mode}", movieMode);
 #else
 	wxString title = templates.TitleTemplate;

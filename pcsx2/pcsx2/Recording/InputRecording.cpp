@@ -37,7 +37,7 @@ void SaveStateBase::InputRecordingFreeze()
 #ifndef DISABLE_RECORDING
 	if (g_FrameCount > 0 && IsLoading())
 	{
-		g_InputRecordingData.AddUndoCount();
+		g_InputRecordingData.IncrementUndoCount();
 	}
 #endif
 }
@@ -47,14 +47,9 @@ InputRecording g_InputRecording;
 
 // Main func for handling controller input data
 // - Called by Sio.cpp::sioWriteController
-void InputRecording::ControllerInterrupt(u8 &data, u8 &port, u16 & bufCount, u8 buf[])
+void InputRecording::ControllerInterrupt(u8& data, u8& port, u16& bufCount, u8 buf[])
 {
 	// TODO - Multi-Tap Support
-	// Only examine controllers 1 / 2
-	if (port != 0 && port != 1)
-	{
-		return;
-	}
 
 	/*
 		This appears to try to ensure that we are only paying attention
@@ -72,7 +67,7 @@ void InputRecording::ControllerInterrupt(u8 &data, u8 &port, u16 & bufCount, u8 
 			return;
 		}
 	}
-	else if ( bufCount == 2 )
+	else if (bufCount == 2)
 	{
 		/*
 			See - LilyPad.cpp::PADpoll - https://github.com/PCSX2/pcsx2/blob/v1.5.0-dev/plugins/LilyPad/LilyPad.cpp#L1194
@@ -87,8 +82,7 @@ void InputRecording::ControllerInterrupt(u8 &data, u8 &port, u16 & bufCount, u8 
 		}
 	}
 
-	if (!fInterruptFrame
-		|| state == INPUT_RECORDING_MODE_NONE
+	if (!fInterruptFrame || state == INPUT_RECORDING_MODE_NONE
 		// We do not want to record or save the first two
 		// bytes in the data returned from LilyPad
 		|| bufCount < 3)
@@ -97,22 +91,22 @@ void InputRecording::ControllerInterrupt(u8 &data, u8 &port, u16 & bufCount, u8 
 	}
 
 	// Read or Write
-	const u8 &nowBuf = buf[bufCount];
+	const u8& nowBuf = buf[bufCount];
 	if (state == INPUT_RECORDING_MODE_RECORD)
 	{
-		InputRecordingData.UpdateFrameMax(g_FrameCount);
-		InputRecordingData.WriteKeyBuf(g_FrameCount, port, bufCount - 3, nowBuf);
+		InputRecordingData.SetTotalFrames(g_FrameCount);
+		InputRecordingData.WriteKeyBuffer(g_FrameCount, port, bufCount - 3, nowBuf);
 	}
 	else if (state == INPUT_RECORDING_MODE_REPLAY)
 	{
-		if (InputRecordingData.GetMaxFrame() <= g_FrameCount)
+		if (InputRecordingData.GetTotalFrames() <= g_FrameCount)
 		{
 			// Pause the emulation but the movie is not closed
 			g_RecordingControls.Pause();
 			return;
 		}
 		u8 tmp = 0;
-		if (InputRecordingData.ReadKeyBuf(tmp, g_FrameCount, port, bufCount - 3))
+		if (InputRecordingData.ReadKeyBuffer(tmp, g_FrameCount, port, bufCount - 3))
 		{
 			buf[bufCount] = tmp;
 		}
@@ -131,24 +125,90 @@ void InputRecording::Stop()
 }
 
 // GUI Handler - Start recording
-void InputRecording::Create(wxString FileName, bool fromSaveState, wxString authorName)
+bool InputRecording::Create(wxString FileName, bool fromSaveState, wxString authorName)
 {
-	g_RecordingControls.Pause();
-	Stop();
-
-	// create
-	if (!InputRecordingData.Open(FileName, true, fromSaveState))
+	if (!InputRecordingData.OpenNew(FileName, fromSaveState))
 	{
-		return;
+		return false;
 	}
+	// Set emulator version
+	InputRecordingData.GetHeader().SetEmulatorVersion();
+
 	// Set author name
 	if (!authorName.IsEmpty())
 	{
 		InputRecordingData.GetHeader().SetAuthor(authorName);
 	}
 	// Set Game Name
-	// Code loosely taken from AppCoreThread.cpp to resolve the Game Name
-	// Fallback is ISO name
+	InputRecordingData.GetHeader().SetGameName(resolveGameName());
+	// Write header contents
+	InputRecordingData.WriteHeader();
+	state = INPUT_RECORDING_MODE_RECORD;
+	recordingConLog(wxString::Format(L"[REC]: Started new recording - [%s]\n", FileName));
+
+	// In every case, we reset the g_FrameCount
+	g_FrameCount = 0;
+	return true;
+}
+
+// GUI Handler - Play a recording
+bool InputRecording::Play(wxString fileName)
+{
+	if (state != INPUT_RECORDING_MODE_NONE)
+		Stop();
+
+	// Open the file and verify if it can be played
+	if (!InputRecordingData.OpenExisting(fileName))
+	{
+		return false;
+	}
+	// Either load the savestate, or restart the game
+	if (InputRecordingData.FromSaveState())
+	{
+		if (!CoreThread.IsOpen())
+		{
+			recordingConLog(L"[REC]: Game is not open, aborting playing input recording which starts on a save-state.\n");
+			InputRecordingData.Close();
+			return false;
+		}
+		FILE* ssFileCheck = wxFopen(InputRecordingData.GetFilename() + "_SaveState.p2s", "r");
+		if (ssFileCheck == NULL)
+		{
+			recordingConLog(wxString::Format("[REC]: Could not locate savestate file at location - %s_SaveState.p2s\n", InputRecordingData.GetFilename()));
+			InputRecordingData.Close();
+			return false;
+		}
+		fclose(ssFileCheck);
+		StateCopy_LoadFromFile(InputRecordingData.GetFilename() + "_SaveState.p2s");
+	}
+	else
+	{
+		g_RecordingControls.Unpause();
+		sApp.SysExecute();
+	}
+
+	// Check if the current game matches with the one used to make the original recording
+	if (!g_Conf->CurrentIso.IsEmpty())
+	{
+		if (resolveGameName() != InputRecordingData.GetHeader().gameName)
+		{
+			recordingConLog(L"[REC]: Recording was possibly constructed for a different game.\n");
+		}
+	}
+	state = INPUT_RECORDING_MODE_REPLAY;
+	recordingConLog(wxString::Format(L"[REC]: Replaying input recording - [%s]\n", InputRecordingData.GetFilename()));
+	recordingConLog(wxString::Format(L"[REC]: PCSX2 Version Used: %s\n", InputRecordingData.GetHeader().emu));
+	recordingConLog(wxString::Format(L"[REC]: Recording File Version: %d\n", InputRecordingData.GetHeader().version));
+	recordingConLog(wxString::Format(L"[REC]: Associated Game Name or ISO Filename: %s\n", InputRecordingData.GetHeader().gameName));
+	recordingConLog(wxString::Format(L"[REC]: Author: %s\n", InputRecordingData.GetHeader().author));
+	recordingConLog(wxString::Format(L"[REC]: Total Frames: %d\n", InputRecordingData.GetTotalFrames()));
+	recordingConLog(wxString::Format(L"[REC]: Undo Count: %d\n", InputRecordingData.GetUndoCount()));
+	return true;
+}
+
+wxString InputRecording::resolveGameName()
+{
+	// Code loosely taken from AppCoreThread::_ApplySettings to resolve the Game Name
 	wxString gameName;
 	const wxString gameKey(SysGetDiscID());
 	if (!gameKey.IsEmpty())
@@ -163,46 +223,7 @@ void InputRecording::Create(wxString FileName, bool fromSaveState, wxString auth
 			}
 		}
 	}
-	InputRecordingData.GetHeader().SetGameName(!gameName.IsEmpty() ? gameName : Path::GetFilename(g_Conf->CurrentIso));
-	InputRecordingData.WriteHeader();
-	state = INPUT_RECORDING_MODE_RECORD;
-	recordingConLog(wxString::Format(L"[REC]: Started new recording - [%s]\n", FileName));
-
-	// In every case, we reset the g_FrameCount
-	g_FrameCount = 0;
-}
-
-// GUI Handler - Play a recording
-void InputRecording::Play(wxString FileName, bool fromSaveState)
-{
-	g_RecordingControls.Pause();
-	Stop();
-
-	if (!InputRecordingData.Open(FileName, false, false))
-	{
-		return;
-	}
-	if (!InputRecordingData.ReadHeaderAndCheck())
-	{
-		recordingConLog(L"[REC]: This file is not a correct InputRecording file.\n");
-		InputRecordingData.Close();
-		return;
-	}
-	// Check author name
-	if (!g_Conf->CurrentIso.IsEmpty())
-	{
-		if (Path::GetFilename(g_Conf->CurrentIso) != InputRecordingData.GetHeader().gameName)
-		{
-			recordingConLog(L"[REC]: Information on CD in Movie file is Different.\n");
-		}
-	}
-	state = INPUT_RECORDING_MODE_REPLAY;
-	recordingConLog(wxString::Format(L"[REC]: Replaying movie - [%s]\n", FileName));
-	recordingConLog(wxString::Format(L"[REC]: Recording File Version: %d\n", InputRecordingData.GetHeader().version));
-	recordingConLog(wxString::Format(L"[REC]: Associated Game Name / ISO Filename: %s\n", InputRecordingData.GetHeader().gameName));
-	recordingConLog(wxString::Format(L"[REC]: Author: %s\n", InputRecordingData.GetHeader().author));
-	recordingConLog(wxString::Format(L"[REC]: MaxFrame: %d\n", InputRecordingData.GetMaxFrame()));
-	recordingConLog(wxString::Format(L"[REC]: UndoCount: %d\n", InputRecordingData.GetUndoCount()));
+	return !gameName.IsEmpty() ? gameName : Path::GetFilename(g_Conf->CurrentIso);
 }
 
 // Keybind Handler - Toggle between recording input and not
@@ -225,7 +246,7 @@ INPUT_RECORDING_MODE InputRecording::GetModeState()
 	return state;
 }
 
-InputRecordingFile & InputRecording::GetInputRecordingData()
+InputRecordingFile& InputRecording::GetInputRecordingData()
 {
 	return InputRecordingData;
 }

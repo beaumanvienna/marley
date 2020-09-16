@@ -59,6 +59,7 @@ enum GamefixId
 	Fix_GoemonTlbMiss,
 	Fix_ScarfaceIbit,
 	Fix_CrashTagTeamIbit,
+	Fix_VU0Kickstart,
 
 	GamefixId_COUNT
 };
@@ -361,7 +362,8 @@ struct Pcsx2Config
             FMVinSoftwareHack : 1,      // Toggle in and out of software rendering when an FMV runs.
             GoemonTlbHack : 1,          // Gomeon tlb miss hack. The game need to access unmapped virtual address. Instead to handle it as exception, tlb are preloaded at startup
             ScarfaceIbit : 1,           // Scarface I bit hack. Needed to stop constant VU recompilation
-            CrashTagTeamRacingIbit : 1; // Crash Tag Team Racing I bit hack. Needed to stop constant VU recompilation
+            CrashTagTeamRacingIbit : 1, // Crash Tag Team Racing I bit hack. Needed to stop constant VU recompilation
+            VU0KickstartHack : 1;       // Speed up VU0 at start of program to avoid some VU1 sync issues
 		BITFIELD_END
 
 		GamefixOptions();
@@ -430,7 +432,6 @@ struct Pcsx2Config
 		u32 WindowWidth;
 		u32 WindowHeight;
 		u32 MemoryViewBytesPerRow;
-		wxString EmuCmpHost; // Host for EmuCmp, "port" will open a server, while "host:port" will be a client
 
 		DebugOptions();
 		void LoadSave( IniInterface& conf );

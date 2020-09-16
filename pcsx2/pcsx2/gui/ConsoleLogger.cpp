@@ -25,6 +25,7 @@ void GSosdLog(const char *utf8, uint32 color);
 #include "Utilities/Console.h"
 #include "Utilities/IniInterface.h"
 #include "Utilities/SafeArray.inl"
+#include "Dialogs/LogOptionsDialog.h"
 #include "DebugTools/Debug.h"
 
 #include <wx/textfile.h>
@@ -163,35 +164,33 @@ void ConsoleLogFrame::ColorArray::SetFont( int fontsize )
 
 	for (size_t i = Color_StrongBlack; i < ConsoleColors_Count; ++i)
 		m_table[i].SetFont(fixedB);
-
-	SetColorScheme_Light();
 }
 
 void ConsoleLogFrame::ColorArray::SetColorScheme_Dark()
 {
 	m_table[Color_Default]		.SetTextColour(wxColor( 208, 208, 208 ));
 	m_table[Color_Black]		.SetTextColour(wxColor( 255, 255, 255 ));
-	m_table[Color_Red]			.SetTextColour(wxColor( 180,   0,   0 ));
-	m_table[Color_Green]		.SetTextColour(wxColor(   0, 160,   0 ));
-	m_table[Color_Blue]			.SetTextColour(wxColor(  32,  32, 204 ));
+	m_table[Color_Red]			.SetTextColour(wxColor( 255,  87,  87 ));
+	m_table[Color_Green]		.SetTextColour(wxColor(  58, 194, 121 ));
+	m_table[Color_Blue]			.SetTextColour(wxColor(  14, 105, 230 ));
 	m_table[Color_Magenta]		.SetTextColour(wxColor( 160,   0, 160 ));
 	m_table[Color_Orange]		.SetTextColour(wxColor( 160, 120,   0 ));
 	m_table[Color_Gray]			.SetTextColour(wxColor( 128, 128, 128 ));
 
 	m_table[Color_Cyan]			.SetTextColour(wxColor( 128, 180, 180 ));
-	m_table[Color_Yellow]		.SetTextColour(wxColor( 180, 180, 128 ));
+	m_table[Color_Yellow]		.SetTextColour(wxColor( 194, 194,  72 ));
 	m_table[Color_White]		.SetTextColour(wxColor( 160, 160, 160 ));
 
 	m_table[Color_StrongBlack]	.SetTextColour(wxColor( 255, 255, 255 ));
-	m_table[Color_StrongRed]	.SetTextColour(wxColor( 180,   0,   0 ));
-	m_table[Color_StrongGreen]	.SetTextColour(wxColor(   0, 160,   0 ));
-	m_table[Color_StrongBlue]	.SetTextColour(wxColor(  32,  32, 204 ));
+	m_table[Color_StrongRed]	.SetTextColour(wxColor( 230,  23,  23 ));
+	m_table[Color_StrongGreen]	.SetTextColour(wxColor(   4, 185,   4 ));
+	m_table[Color_StrongBlue]	.SetTextColour(wxColor(  63, 173, 232 ));
 	m_table[Color_StrongMagenta].SetTextColour(wxColor( 160,   0, 160 ));
 	m_table[Color_StrongOrange]	.SetTextColour(wxColor( 160, 120,   0 ));
 	m_table[Color_StrongGray]	.SetTextColour(wxColor( 128, 128, 128 ));
 
 	m_table[Color_StrongCyan]	.SetTextColour(wxColor( 128, 180, 180 ));
-	m_table[Color_StrongYellow]	.SetTextColour(wxColor( 180, 180, 128 ));
+	m_table[Color_StrongYellow]	.SetTextColour(wxColor( 194, 194,  72 ));
 	m_table[Color_StrongWhite]	.SetTextColour(wxColor( 160, 160, 160 ));
 }
 
@@ -246,6 +245,7 @@ enum MenuIDs_t
 	MenuId_ColorScheme_Dark,
 
 	MenuId_AutoDock,
+	MenuId_Log_Settings,
 
 	MenuId_LogSource_EnableAll = 0x30,
 	MenuId_LogSource_DisableAll,
@@ -393,18 +393,23 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 	SetMenuBar( pMenuBar );
 	SetIcons( wxGetApp().GetIconBundle() );
 
-	if (0==m_conf.Theme.CmpNoCase(L"Dark"))
+	if (m_conf.Theme.CmpNoCase(L"Dark") == 0)
 	{
 		m_ColorTable.SetColorScheme_Dark();
-		m_TextCtrl.SetBackgroundColour( wxColor( 0, 0, 0 ) );
+		m_TextCtrl.SetBackgroundColour(darkThemeBgColor);
+		m_TextCtrl.SetDefaultStyle(wxTextAttr(wxNullColour, darkThemeBgColor));
 	}
-	else //if ((0==m_conf.Theme.CmpNoCase("Default")) || (0==m_conf.Theme.CmpNoCase("Light")))
+	else
 	{
 		m_ColorTable.SetColorScheme_Light();
-		m_TextCtrl.SetBackgroundColour( wxColor( 230, 235, 242 ) );
+		m_TextCtrl.SetBackgroundColour(lightThemeBgColor);
+		m_TextCtrl.SetDefaultStyle(wxTextAttr(wxNullColour, lightThemeBgColor));
 	}
 
-	m_TextCtrl.SetDefaultStyle( m_ColorTable[DefaultConsoleColor] );
+	// TODO - SetDefaultStyle _should_ be returning a wxTextAttr with both foreground and background color info
+	// but I don't want to mess with it too much in fear of breaking existing functionality.
+	// instead, i just set the background color individually above
+	m_TextCtrl.SetDefaultStyle(m_ColorTable[DefaultConsoleColor]);
 
 	// SetDefaultStyle only sets the style of text in the control.  We need to
 	// also set the font of the control, so that sizing logic knows what font we use:
@@ -419,7 +424,7 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 
 	menuFontSizes.Append( MenuId_FontSize_Small,	_("&Small"),	_t("Fits a lot of log in a microcosmically small area."),
 		wxITEM_RADIO )->Check( options.FontSize == 7 );
-	menuFontSizes.Append( MenuId_FontSize_Normal,	_("&Normal font"),_t("It's what I use (the programmer guy)."),
+	menuFontSizes.Append( MenuId_FontSize_Normal,	_("&Normal Font"),_t("It's what I use (the programmer guy)."),
 		wxITEM_RADIO )->Check( options.FontSize == 8 );
 	menuFontSizes.Append( MenuId_FontSize_Large,	_("&Large"),	_t("Its nice and readable."),
 		wxITEM_RADIO )->Check( options.FontSize == 10 );
@@ -427,8 +432,8 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 		wxITEM_RADIO )->Check( options.FontSize == 12 );
 
 	menuFontSizes.AppendSeparator();
-	menuFontSizes.Append( MenuId_ColorScheme_Light,	_("&Light theme"),	_t("Default soft-tone color scheme."), wxITEM_RADIO );
-	menuFontSizes.Append( MenuId_ColorScheme_Dark,	_("&Dark theme"),	_t("Classic black color scheme for people who enjoy having text seared into their optic nerves."), wxITEM_RADIO );
+	menuFontSizes.Append( MenuId_ColorScheme_Light,	_("&Light Theme"),	_t("Default soft-tone color scheme."), wxITEM_RADIO );
+	menuFontSizes.Append( MenuId_ColorScheme_Dark,	_("&Dark Theme"),	_t("Modern dark color scheme."), wxITEM_RADIO );
 
 	// The "Always on Top" option currently doesn't work
 	//menuAppear.AppendSeparator();
@@ -436,6 +441,9 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 	//	_t("When checked the log window will be visible over other foreground windows."), wxITEM_CHECK );
 
 	menuLog.Append(wxID_SAVE,	_("&Save..."),		_("Save log contents to file"));
+#ifdef PCSX2_DEVBUILD
+	menuLog.Append(MenuId_Log_Settings,	_("&Settings..."),		_("Open the logging settings dialog"));
+#endif
 	menuLog.Append(wxID_CLEAR,	_("C&lear"),		_("Clear the log window contents"));
 	menuLog.AppendSeparator();
 	menuLog.AppendCheckItem(MenuId_AutoDock, _("Auto&dock"), _("Dock log window to main PCSX2 window"))->Check(m_conf.AutoDock);
@@ -463,8 +471,8 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 	}
 
 	menuSources.AppendSeparator();
-	menuSources.Append( MenuId_LogSource_EnableAll,		_("&Enable all"),	_("Enables all log source filters.") );
-	menuSources.Append( MenuId_LogSource_DisableAll,	_("&Disable all"),	_("Disables all log source filters.") );
+	menuSources.Append( MenuId_LogSource_EnableAll,		_("&Enable All"),	_("Enables all log source filters.") );
+	menuSources.Append( MenuId_LogSource_DisableAll,	_("&Disable All"),	_("Disables all log source filters.") );
 	menuSources.Append( MenuId_LogSource_SetDefault,	_("&Restore Default"), _("Restore default source filters.") );
 
 	pMenuBar->Append(&menuLog,		_("&Log"));
@@ -482,6 +490,9 @@ ConsoleLogFrame::ConsoleLogFrame( MainEmuFrame *parent, const wxString& title, A
 	Bind(wxEVT_MENU, &ConsoleLogFrame::OnClose, this, wxID_CLOSE);
 	Bind(wxEVT_MENU, &ConsoleLogFrame::OnSave, this, wxID_SAVE);
 	Bind(wxEVT_MENU, &ConsoleLogFrame::OnClear, this, wxID_CLEAR);
+#ifdef PCSX2_DEVBUILD
+	Bind(wxEVT_MENU, &ConsoleLogFrame::OnLogSettings, this, MenuId_Log_Settings);
+#endif
 
 	Bind(wxEVT_MENU, &ConsoleLogFrame::OnFontSize, this, MenuId_FontSize_Small, MenuId_FontSize_Huge);
 	Bind(wxEVT_MENU, &ConsoleLogFrame::OnToggleTheme, this, MenuId_ColorScheme_Light, MenuId_ColorScheme_Dark);
@@ -812,6 +823,11 @@ void ConsoleLogFrame::OnClear(wxCommandEvent& WXUNUSED(event))
 	m_TextCtrl.Clear();
 }
 
+void ConsoleLogFrame::OnLogSettings(wxCommandEvent& WXUNUSED(event))
+{
+	AppOpenDialog<Dialogs::LogOptionsDialog>( this );
+}
+
 void ConsoleLogFrame::OnToggleCDVDInfo( wxCommandEvent& evt )
 {
 	evt.Skip();
@@ -854,32 +870,33 @@ void ConsoleLogFrame::OnToggleSource( wxCommandEvent& evt )
 	}
 }
 
-void ConsoleLogFrame::OnToggleTheme( wxCommandEvent& evt )
+void ConsoleLogFrame::OnToggleTheme(wxCommandEvent& evt)
 {
 	evt.Skip();
-
 	const wxChar* newTheme = L"Default";
-
-	switch( evt.GetId() )
+	switch (evt.GetId())
 	{
-		case MenuId_ColorScheme_Light:
-			newTheme = L"Default";
-			m_ColorTable.SetColorScheme_Light();
-			m_TextCtrl.SetBackgroundColour( wxColor( 230, 235, 242 ) );
-		break;
-
 		case MenuId_ColorScheme_Dark:
 			newTheme = L"Dark";
 			m_ColorTable.SetColorScheme_Dark();
-			m_TextCtrl.SetBackgroundColour( wxColor( 24, 24, 24 ) );
-		break;
+			m_TextCtrl.SetBackgroundColour(darkThemeBgColor);
+			m_TextCtrl.SetDefaultStyle(wxTextAttr(wxNullColour, darkThemeBgColor));
+			m_TextCtrl.Clear();
+			break;
+		case MenuId_ColorScheme_Light:
+		default:
+			newTheme = L"Default";
+			m_ColorTable.SetColorScheme_Light();
+			m_TextCtrl.SetBackgroundColour(lightThemeBgColor);
+			m_TextCtrl.SetDefaultStyle(wxTextAttr(wxNullColour, lightThemeBgColor));
+			m_TextCtrl.Clear();
+			break;
 	}
 
-	if (0 == m_conf.Theme.CmpNoCase(newTheme)) return;
+	if (m_conf.Theme.CmpNoCase(newTheme) == 0)
+		return;
 	m_conf.Theme = newTheme;
-
-	m_ColorTable.SetFont( m_conf.FontSize );
-	m_TextCtrl.SetDefaultStyle( m_ColorTable[Color_White] );
+	m_ColorTable.SetFont(m_conf.FontSize);
 }
 
 void ConsoleLogFrame::OnFontSize( wxCommandEvent& evt )

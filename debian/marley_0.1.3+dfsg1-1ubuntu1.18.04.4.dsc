@@ -4,7 +4,7 @@ Binary: marley
 Architecture: amd64
 Version: 0.1.3
 Maintainer: JC <beaumanvienna@gmail.com>
-Homepage: https://launchpad.net/~beauman
+Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath, libsdl2-ttf-dev, \
                autotools-dev, dh-autoreconf, libasound2-dev [linux-any], libgl1-mesa-dev | libgl-dev, \
@@ -18,7 +18,7 @@ Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath,
                libusb-1.0-0-dev (>= 1.0.19), libwxbase3.0-dev (>= 3.0.1), libwxgtk3.0-dev (>= 3.0.1), libxext-dev, \
                libxrandr-dev, portaudio19-dev, qtbase5-private-dev, libsamplerate0-dev, libfreetype6-dev, libglu1-mesa-dev, nasm, \
                libboost-filesystem-dev, libboost-system-dev, libswresample-dev, libglew-dev, libsnappy-dev, libavutil-dev, \
-               libaio-dev, liblzma-dev, libpcap0.8-dev, libpng-dev, libsoundtouch-dev, libxml2-dev, libx11-dev, locales, zip
+               libaio-dev, liblzma-dev, libpcap0.8-dev, libpng-dev, libsoundtouch-dev, libxml2-dev, libx11-dev, locales, zip, libx11-xcb-dev
                
 Package-List: 
  marley deb games extra

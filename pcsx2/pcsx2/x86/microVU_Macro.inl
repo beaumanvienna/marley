@@ -64,6 +64,16 @@ void endMacroOp(int mode) {
 		xMOV(ptr32[&vu0Regs.VI[REG_STATUS_FLAG].UL], gprF0);
 	}
 	microVU0.regAlloc->flushAll();
+
+	if (mode & 0x10) { // Update VU0 Status/Mac instances after flush to avoid corrupting anything
+		xMOVDZX(xmmT1, ptr32[&vu0Regs.VI[REG_STATUS_FLAG].UL]);
+		xSHUF.PS(xmmT1, xmmT1, 0);
+		xMOVAPS(ptr128[&microVU0.regs().micro_statusflags], xmmT1);
+
+		xMOVDZX(xmmT1, ptr32[&vu0Regs.VI[REG_MAC_FLAG].UL]);
+		xSHUF.PS(xmmT1, xmmT1, 0);
+		xMOVAPS(ptr128[&microVU0.regs().micro_macflags], xmmT1);
+	}
 	microVU0.cop2 = 0;
 }
 
@@ -247,18 +257,24 @@ void recBC2TL() { _setupBranchTest(JZ32,  true);  }
 //------------------------------------------------------------------
 
 void COP2_Interlock(bool mBitSync) {
+
 	if (cpuRegs.code & 1) {
-		iFlushCall(FLUSH_EVERYTHING | FLUSH_PC);
+		iFlushCall(FLUSH_EVERYTHING);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles_clear());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xLoadFarAddr(arg1reg, CpuVU0);
+		xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
 		if (mBitSync) xFastCall((void*)_vu0WaitMicro);
 		else		  xFastCall((void*)_vu0FinishMicro);
 	}
 }
 
 void TEST_FBRST_RESET(FnType_Void* resetFunct, int vuIndex) {
-	xTEST(eaxd, (vuIndex) ? 0x200 : 0x002);
+	xTEST(eax, (vuIndex) ? 0x200 : 0x002);
 	xForwardJZ8 skip;
 		xFastCall((void*)resetFunct);
-		xMOV(eaxd, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
+		xMOV(eax, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
 	skip.SetTarget();
 }
 
@@ -268,13 +284,21 @@ static void recCFC2() {
 
 	COP2_Interlock(false);
 	if (!_Rt_) return;
+	if (!(cpuRegs.code & 1) && !EmuConfig.Gamefixes.VU0KickstartHack) {
+		iFlushCall(FLUSH_EVERYTHING);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles_clear());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xLoadFarAddr(arg1reg, CpuVU0);
+		xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
+	}
 	iFlushCall(FLUSH_EVERYTHING);
 
 	if (_Rd_ == REG_STATUS_FLAG) { // Normalize Status Flag
 		xMOV(gprF0, ptr32[&vu0Regs.VI[REG_STATUS_FLAG].UL]);
-		mVUallocSFLAGc(eaxd, gprF0, 0);
+		mVUallocSFLAGc(eax, gprF0, 0);
 	}
-	else xMOV(eaxd, ptr32[&vu0Regs.VI[_Rd_].UL]);
+	else xMOV(eax, ptr32[&vu0Regs.VI[_Rd_].UL]);
 
 	if (_Rd_ == REG_TPC) { // Divide TPC register value by 8 during copying
 		// Ok, this deserves an explanation.
@@ -314,11 +338,11 @@ static void recCFC2() {
 	}
 
 	// FixMe: Should R-Reg have upper 9 bits 0?
-	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eaxd);
+	xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]], eax);
 
 	if (_Rd_ >= 16) {
 		xCDQ(); // Sign Extend
-		xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edxd);
+		xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], edx);
 	}
 	else xMOV(ptr32[&cpuRegs.GPR.r[_Rt_].UL[1]], 0);
 
@@ -331,50 +355,69 @@ static void recCTC2() {
 	printCOP2("CTC2");
 	COP2_Interlock(1);
 	if (!_Rd_) return;
+	if (!(cpuRegs.code & 1) && !EmuConfig.Gamefixes.VU0KickstartHack) {
+		iFlushCall(FLUSH_EVERYTHING);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles_clear());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xLoadFarAddr(arg1reg, CpuVU0);
+		xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
+	}
 	iFlushCall(FLUSH_EVERYTHING);
 
 	switch(_Rd_) {
 		case REG_MAC_FLAG: case REG_TPC:
 		case REG_VPU_STAT: break; // Read Only Regs
 		case REG_R:
-			xMOV(eaxd, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
-			xOR (eaxd, 0x3f800000);
-			xMOV(ptr32[&vu0Regs.VI[REG_R].UL], eaxd);
+			xMOV(eax, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
+			xOR (eax, 0x3f800000);
+			xMOV(ptr32[&vu0Regs.VI[REG_R].UL], eax);
 			break;
 		case REG_STATUS_FLAG:
+		{
 			if (_Rt_) { // Denormalizes flag into eax (gprT1)
 				mVUallocSFLAGd(&cpuRegs.GPR.r[_Rt_].UL[0]);
-				xMOV(ptr32[&vu0Regs.VI[_Rd_].UL], eaxd);
+				xMOV(ptr32[&vu0Regs.VI[_Rd_].UL], eax);
 			}
 			else xMOV(ptr32[&vu0Regs.VI[_Rd_].UL], 0);
+			__aligned16 static const u32 sticky_flags[4] = { 0xFC0,0xFC0,0xFC0,0xFC0 };
+			__aligned16 static const u32 status_flags[4] = { 0x3F,0x3F,0x3F,0x3F };
+
+			//Need to update the sticky flags for microVU
+			xMOVDZX(xmmT1, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
+			xSHUF.PS(xmmT1, xmmT1, 0);
+			xAND.PS(xmmT1, ptr128[&sticky_flags]);
+			xMOVAPS(xmmT2, ptr128[&vu0Regs.micro_statusflags]);
+			xAND.PS(xmmT1, ptr128[&status_flags]);
+			xOR.PS(xmmT1, xmmT2);
+			xMOVAPS(ptr128[&vu0Regs.micro_statusflags], xmmT1);
 			break;
+		}
 		case REG_CMSAR1:	// Execute VU1 Micro SubRoutine
 			if (_Rt_) {
-				xMOV(ecxd, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
+				xMOV(ecx, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
 			}
-			else xXOR(ecxd, ecxd);
-			xFastCall((void*)vu1ExecMicro, ecxd);
+			else xXOR(ecx, ecx);
+			xFastCall((void*)vu1ExecMicro, ecx);
 			xFastCall((void*)vif1VUFinish);
 			break;
 		case REG_FBRST:
-			if (!_Rt_) { 
-				xMOV(ptr32[&vu0Regs.VI[REG_FBRST].UL], 0); 
+			if (!_Rt_) {
+				xMOV(ptr32[&vu0Regs.VI[REG_FBRST].UL], 0);
 				return;
 			}
-			else xMOV(eaxd, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
+			else xMOV(eax, ptr32[&cpuRegs.GPR.r[_Rt_].UL[0]]);
 
 			TEST_FBRST_RESET(vu0ResetRegs, 0);
 			TEST_FBRST_RESET(vu1ResetRegs, 1);
 
-			xAND(eaxd, 0x0C0C);
-			xMOV(ptr32[&vu0Regs.VI[REG_FBRST].UL], eaxd);
+			xAND(eax, 0x0C0C);
+			xMOV(ptr32[&vu0Regs.VI[REG_FBRST].UL], eax);
 			break;
 		default:
 			// Executing vu0 block here fixes the intro of Ratchet and Clank
 			// sVU's COP2 has a comment that "Donald Duck" needs this too...
 			if (_Rd_) _eeMoveGPRtoM((uptr)&vu0Regs.VI[_Rd_].UL, _Rt_);
-			xLoadFarAddr(arg1reg, CpuVU0);
-			xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
 			break;
 	}
 }
@@ -384,6 +427,15 @@ static void recQMFC2() {
 	printCOP2("QMFC2");
 	COP2_Interlock(false);
 	if (!_Rt_) return;
+
+	if (!(cpuRegs.code & 1) && !EmuConfig.Gamefixes.VU0KickstartHack) {
+		iFlushCall(FLUSH_EVERYTHING);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles_clear());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xLoadFarAddr(arg1reg, CpuVU0);
+		xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
+	}
 	iFlushCall(FLUSH_EVERYTHING);
 
 	// FixMe: For some reason this line is needed or else games break:
@@ -398,6 +450,14 @@ static void recQMTC2() {
 	printCOP2("QMTC2");
 	COP2_Interlock(true);
 	if (!_Rd_) return;
+	if (!(cpuRegs.code & 1) && !EmuConfig.Gamefixes.VU0KickstartHack) {
+		iFlushCall(FLUSH_EVERYTHING);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles_clear());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xLoadFarAddr(arg1reg, CpuVU0);
+		xFastCall((void*)BaseVUmicroCPU::ExecuteBlockJIT, arg1reg);
+	}
 	iFlushCall(FLUSH_EVERYTHING);
 
 	xMOVAPS(xmmT1, ptr128[&cpuRegs.GPR.r[_Rt_]]);
@@ -468,5 +528,11 @@ namespace R5900 {
 namespace Dynarec {
 namespace OpcodeImpl { void recCOP2() { recCOP2t[_Rs_](); }}}}
 void recCOP2_BC2  () { recCOP2_BC2t[_Rt_](); }
-void recCOP2_SPEC1() { recCOP2SPECIAL1t[_Funct_](); }
+void recCOP2_SPEC1() {
+	iFlushCall(FLUSH_EVERYTHING);
+	xMOV(eax, ptr[&cpuRegs.cycle]);
+	xADD(eax, scaleblockcycles_clear());
+	xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+	xFastCall((void*)_vu0FinishMicro); recCOP2SPECIAL1t[_Funct_]();
+}
 void recCOP2_SPEC2() { recCOP2SPECIAL2t[(cpuRegs.code&3)|((cpuRegs.code>>4)&0x7c)](); }

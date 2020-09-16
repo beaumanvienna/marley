@@ -120,8 +120,8 @@ void Pcsx2App::OpenMainFrame()
 #ifndef DISABLE_RECORDING
 	VirtualPad* virtualPad0 = new VirtualPad(mainFrame, wxID_ANY, wxEmptyString, 0);
 	m_id_VirtualPad[0] = virtualPad0->GetId();
-	
-	VirtualPad *virtualPad1 = new VirtualPad(mainFrame, wxID_ANY, wxEmptyString, 1);
+
+	VirtualPad* virtualPad1 = new VirtualPad(mainFrame, wxID_ANY, wxEmptyString, 1);
 	m_id_VirtualPad[1] = virtualPad1->GetId();
 
 	NewRecordingFrame* newRecordingFrame = new NewRecordingFrame(mainFrame);
@@ -247,7 +247,6 @@ void Pcsx2App::AllocateCoreStuffs()
 
 void Pcsx2App::OnInitCmdLine( wxCmdLineParser& parser )
 {
-
 	parser.SetLogo( AddAppName(" >>  %s  --  A PlayStation 2 Emulator for the PC  <<") + L"\n\n" +
 		_("All options are for the current session only and will not be saved.\n")
 	);
@@ -467,10 +466,10 @@ bool Pcsx2App::OnInit()
 	EnableAllLogging();
     
 	InitCPUTicks();
-    
+
 	pxDoAssert		= AppDoAssert;
 	pxDoOutOfMemory	= SysOutOfMemory_EmergencyResponse;
-    
+
 	g_Conf = std::make_unique<AppConfig>();
     wxInitAllImageHandlers();
 

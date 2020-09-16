@@ -130,17 +130,11 @@ const xAddressReg
     r12(12), r13(13),
     r14(14), r15(15);
 
-const xAddressReg
+const xRegister32
     eax(0), ebx(3),
     ecx(1), edx(2),
     esp(4), ebp(5),
-    esi(6), edi(7);
-
-const xRegister32
-    eaxd(0), ebxd(3),
-    ecxd(1), edxd(2),
-    espd(4), ebpd(5),
-    esid(6), edid(7),
+    esi(6), edi(7),
     r8d(8), r9d(9),
     r10d(10), r11d(11),
     r12d(12), r13d(13),
@@ -164,7 +158,7 @@ const xAddressReg
     arg2reg = rdx,
 #ifdef __M_X86_64
     arg3reg = r8,
-    arg4reg = r9
+    arg4reg = r9,
 #else
     arg3reg = xRegisterEmpty(),
     arg4reg = xRegisterEmpty(),
@@ -173,10 +167,10 @@ const xAddressReg
     calleeSavedReg2 = rsi;
 
 const xRegister32
-    arg1regd = ecxd,
-    arg2regd = edxd,
-    calleeSavedReg1d = edid,
-    calleeSavedReg2d = esid;
+    arg1regd = ecx,
+    arg2regd = edx,
+    calleeSavedReg1d = edi,
+    calleeSavedReg2d = esi;
 #else
 const xAddressReg
     arg1reg = rdi,
@@ -187,8 +181,8 @@ const xAddressReg
     calleeSavedReg2 = r13;
 
 const xRegister32
-    arg1regd = edid,
-    arg2regd = esid,
+    arg1regd = edi,
+    arg2regd = esi,
     calleeSavedReg1d = r12d,
     calleeSavedReg2d = r13d;
 #endif
@@ -367,7 +361,7 @@ void EmitSibMagic(uint regfield, const xIndirectVoid &info, int extraRIPOffset)
             EmitSibMagic(regfield, (void *)info.Displacement, extraRIPOffset);
             return;
         } else {
-            if (info.Index == ebp && displacement_size == 0)
+            if (info.Index == rbp && displacement_size == 0)
                 displacement_size = 1; // forces [ebp] to be encoded as [ebp+0]!
 
             ModRM(displacement_size, regfield, info.Index.Id & 7);
@@ -385,7 +379,7 @@ void EmitSibMagic(uint regfield, const xIndirectVoid &info, int extraRIPOffset)
             xWrite<s32>(info.Displacement);
             return;
         } else {
-            if (info.Base == ebp && displacement_size == 0)
+            if (info.Base == rbp && displacement_size == 0)
                 displacement_size = 1; // forces [ebp] to be encoded as [ebp+0]!
 
             ModRM(displacement_size, regfield, ModRm_UseSib);
@@ -577,7 +571,7 @@ __emitinline void xAdvancePtr(uint bytes)
     if (IsDevBuild) {
         // common debugger courtesy: advance with INT3 as filler.
         for (uint i = 0; i < bytes; i++)
-            xWrite8(x86_Opcode_INT3);
+            xWrite8(0xcc);
     } else
         x86Ptr += bytes;
 }
@@ -896,7 +890,7 @@ static void EmitLeaMagic(const xRegisterInt &to, const xIndirectVoid &src, bool 
         } else {
             if (src.Scale == 0) {
                 if (!preserve_flags) {
-                    if (src.Index == esp) {
+                    if (src.Index == rsp) {
                         // ESP is not encodable as an index (ix86 ignores it), thus:
                         _xMovRtoR(to, sizeMatchedBase); // will do the trick!
                         if (src.Displacement)
@@ -907,7 +901,7 @@ static void EmitLeaMagic(const xRegisterInt &to, const xIndirectVoid &src, bool 
                         _g1_EmitOp(G1Type_ADD, to, sizeMatchedIndex);
                         return;
                     }
-                } else if ((src.Index == esp) && (src.Displacement == 0)) {
+                } else if ((src.Index == rsp) && (src.Displacement == 0)) {
                     // special case handling of ESP as Index, which is replaceable with
                     // a single MOV even when preserve_flags is set! :D
 
@@ -933,7 +927,7 @@ __emitinline void xLEA(xRegister32 to, const xIndirectVoid &src, bool preserve_f
 
 __emitinline void xLEA(xRegister16 to, const xIndirectVoid &src, bool preserve_flags)
 {
-    xWrite8(x86_Opcode_OPSIZE);
+    xWrite8(0x66);
     EmitLeaMagic(to, src, preserve_flags);
 }
 
@@ -954,21 +948,21 @@ __emitinline u32* xLEA_Writeback(xAddressReg to)
 void xImpl_Test::operator()(const xRegisterInt &to, const xRegisterInt &from) const
 {
     pxAssert(to.GetOperandSize() == from.GetOperandSize());
-    xOpWrite(to.GetPrefix16(), to.Is8BitOp() ? x86_Opcode_TEST_Eb_Gb : x86_Opcode_TEST_Ev_Gv, from, to);
+    xOpWrite(to.GetPrefix16(), to.Is8BitOp() ? 0x84 : 0x85, from, to);
 }
 
 void xImpl_Test::operator()(const xIndirect64orLess &dest, int imm) const
 {
-    xOpWrite(dest.GetPrefix16(), dest.Is8BitOp() ? x86_Opcode_NB3_Eb : x86_Opcode_NB3_Ev, 0, dest);
+    xOpWrite(dest.GetPrefix16(), dest.Is8BitOp() ? 0xf6 : 0xf7, 0, dest, dest.GetImmSize());
     dest.xWriteImm(imm);
 }
 
 void xImpl_Test::operator()(const xRegisterInt &to, int imm) const
 {
     if (to.IsAccumulator()) {
-        xOpAccWrite(to.GetPrefix16(), to.Is8BitOp() ? x86_Opcode_TEST_AL_Ib : x86_Opcode_TEST_eAX_Iv, 0, to);
+        xOpAccWrite(to.GetPrefix16(), to.Is8BitOp() ? 0xa8 : 0xa9, 0, to);
     } else {
-        xOpWrite(to.GetPrefix16(), to.Is8BitOp() ? x86_Opcode_NB3_Eb : x86_Opcode_NB3_Ev, 0, to);
+        xOpWrite(to.GetPrefix16(), to.Is8BitOp() ? 0xf6 : 0xf7, 0, to);
     }
     to.xWriteImm(imm);
 }
@@ -988,18 +982,20 @@ void xImpl_IncDec::operator()(const xRegisterInt &to) const
     if (to.Is8BitOp()) {
         u8 regfield = isDec ? 1 : 0;
         xOpWrite(to.GetPrefix16(), 0xfe, regfield, to);
-    } else if (wordsize != 8) {
+    } else {
+        #ifdef __M_X86_64
+        xOpWrite(to.GetPrefix16(), 0xff, isDec ? 1 : 0, to);
+        #else
         to.prefix16();
         xWrite8((isDec ? 0x48 : 0x40) | to.Id);
-    } else {
-        xOpWrite(to.GetPrefix16(), 0xff, isDec ? 1 : 0, to);
+        #endif
     }
 }
 
 void xImpl_IncDec::operator()(const xIndirect64orLess &to) const
 {
     to.prefix16();
-    xWrite8(to.Is8BitOp() ? x86_Opcode_NB4_INC_DEC : x86_Opcode_NB5_INC_DEC);
+    xWrite8(to.Is8BitOp() ? 0xfe : 0xff);
     EmitSibMagic(isDec ? 1 : 0, to);
 }
 
@@ -1079,46 +1075,46 @@ __fi void xPUSH(xRegister32or64 from) {
 }
 
 // pushes the EFLAGS register onto the stack
-__fi void xPUSHFD() { xWrite8(x86_Opcode_PUSHF_Fv); }
+__fi void xPUSHFD() { xWrite8(0x9C); }
 // pops the EFLAGS register from the stack
-__fi void xPOPFD() { xWrite8(x86_Opcode_POPF_Fv); }
+__fi void xPOPFD() { xWrite8(0x9D); }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //
 
-__fi void xLEAVE() { xWrite8(x86_Opcode_LEAVE ); }
-__fi void xRET() { xWrite8(x86_Opcode_RETN); }
-__fi void xCBW() { xWrite16((x86_Opcode_CBW << 16) | 0x66); }
-__fi void xCWD() { xWrite8(x86_Opcode_CBW); } 
-__fi void xCDQ() { xWrite8(x86_Opcode_CWD); }
-__fi void xCWDE() { xWrite8(x86_Opcode_CBW); }
+__fi void xLEAVE() { xWrite8(0xC9); }
+__fi void xRET() { xWrite8(0xC3); }
+__fi void xCBW() { xWrite16(0x9866); }
+__fi void xCWD() { xWrite8(0x98); }
+__fi void xCDQ() { xWrite8(0x99); }
+__fi void xCWDE() { xWrite8(0x98); }
 
-__fi void xLAHF() { xWrite8(x86_Opcode_LAHF); }
-__fi void xSAHF() { xWrite8(x86_Opcode_SAHF); }
+__fi void xLAHF() { xWrite8(0x9f); }
+__fi void xSAHF() { xWrite8(0x9e); }
 
-__fi void xSTC() { xWrite8(x86_Opcode_STC); }
-__fi void xCLC() { xWrite8(x86_Opcode_CLC); }
+__fi void xSTC() { xWrite8(0xF9); }
+__fi void xCLC() { xWrite8(0xF8); }
 
 // NOP 1-byte
-__fi void xNOP() { xWrite8(x86_Opcode_NOP); }
+__fi void xNOP() { xWrite8(0x90); }
 
 __fi void xINT(u8 imm)
 {
     if (imm == 3)
-        xWrite8(x86_Opcode_INT3);
+        xWrite8(0xcc);
     else {
-        xWrite8(x86_Opcode_INT_Ib);
+        xWrite8(0xcd);
         xWrite8(imm);
     }
 }
 
-__fi void xINTO() { xWrite8(x86_Opcode_INTO); }
+__fi void xINTO() { xWrite8(0xce); }
 
 __emitinline void xBSWAP(const xRegister32or64 &to)
 {
-    xWrite8(x86_Opcode_TWOBYTE);
-    xWrite8(x86_Opcode_ENTER_IwIb | to->Id);
+    xWrite8(0x0F);
+    xWrite8(0xC8 | to->Id);
 }
 
 static __aligned16 u64 xmm_data[iREGCNT_XMM * 2];
@@ -1135,17 +1131,18 @@ __emitinline void xRestoreReg(const xRegisterSSE &dest)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Helper object to handle ABI frame
-#ifdef __GNUC__
-
 #ifdef __M_X86_64
-// GCC ensures/requires stack to be 16 bytes aligned (but when?)
+
+// All x86-64 calling conventions ensure/require stack to be 16 bytes aligned
+// I couldn't find documentation on when, but compilers would indicate it's before the call: https://gcc.godbolt.org/z/KzTfsz
 #define ALIGN_STACK(v) xADD(rsp, v)
-#else
+
+#elif defined(__GNUC__)
+
 // GCC ensures/requires stack to be 16 bytes aligned before the call
 // Call will store 4 bytes. EDI/ESI/EBX will take another 12 bytes.
 // EBP will take 4 bytes if m_base_frame is enabled
 #define ALIGN_STACK(v) xADD(esp, v)
-#endif
 
 #else
 
@@ -1167,19 +1164,19 @@ xScopedStackFrame::xScopedStackFrame(bool base_frame, bool save_base_pointer, in
     m_save_base_pointer = save_base_pointer;
     m_offset = offset;
 
-#ifdef __M_X86_64
-
-    m_offset += 8; // Call stores the return address (4 bytes)
+    m_offset += sizeof(void*); // Call stores the return address (4 bytes)
 
     // Note rbp can surely be optimized in 64 bits
     if (m_base_frame) {
         xPUSH(rbp);
         xMOV(rbp, rsp);
-        m_offset += 8;
+        m_offset += sizeof(void*);
     } else if (m_save_base_pointer) {
         xPUSH(rbp);
-        m_offset += 8;
+        m_offset += sizeof(void*);
     }
+
+#ifdef __M_X86_64
 
     xPUSH(rbx);
     xPUSH(r12);
@@ -1187,20 +1184,14 @@ xScopedStackFrame::xScopedStackFrame(bool base_frame, bool save_base_pointer, in
     xPUSH(r14);
     xPUSH(r15);
     m_offset += 40;
+#ifdef _WIN32
+    xPUSH(rdi);
+    xPUSH(rsi);
+    xSUB(rsp, 32); // Windows calling convention specifies additional space for the callee to spill registers
+    m_offset += 48;
+#endif
 
 #else
-
-    m_offset += 4; // Call stores the return address (4 bytes)
-
-    // Create a new frame
-    if (m_base_frame) {
-        xPUSH(ebp);
-        xMOV(ebp, esp);
-        m_offset += 4;
-    } else if (m_save_base_pointer) {
-        xPUSH(ebp);
-        m_offset += 4;
-    }
 
     // Save the register context
     xPUSH(edi);
@@ -1220,18 +1211,16 @@ xScopedStackFrame::~xScopedStackFrame()
 #ifdef __M_X86_64
 
     // Restore the register context
+#ifdef _WIN32
+    xADD(rsp, 32);
+    xPOP(rsi);
+    xPOP(rdi);
+#endif
     xPOP(r15);
     xPOP(r14);
     xPOP(r13);
     xPOP(r12);
     xPOP(rbx);
-
-    // Destroy the frame
-    if (m_base_frame) {
-        xLEAVE();
-    } else if (m_save_base_pointer) {
-        xPOP(rbp);
-    }
 
 #else
 
@@ -1240,18 +1229,21 @@ xScopedStackFrame::~xScopedStackFrame()
     xPOP(esi);
     xPOP(edi);
 
+#endif
+
     // Destroy the frame
     if (m_base_frame) {
         xLEAVE();
     } else if (m_save_base_pointer) {
-        xPOP(ebp);
+        xPOP(rbp);
     }
-
-#endif
 }
 
-xScopedSavedRegisters::xScopedSavedRegisters(std::initializer_list<std::reference_wrapper<const xAddressReg>> regs) {
-    for (auto reg : regs) {
+xScopedSavedRegisters::xScopedSavedRegisters(std::initializer_list<std::reference_wrapper<const xAddressReg>> regs)
+    : regs(regs)
+{
+    for (auto reg : regs)
+    {
         const xAddressReg& regRef = reg;
         xPUSH(regRef);
     }
@@ -1260,8 +1252,8 @@ xScopedSavedRegisters::xScopedSavedRegisters(std::initializer_list<std::referenc
 
 xScopedSavedRegisters::~xScopedSavedRegisters() {
     stackAlign(regs.size() * wordsize, false);
-    for (auto reg : regs) {
-        const xAddressReg& regRef = reg;
+    for (auto it = regs.rbegin(); it < regs.rend(); ++it) {
+        const xAddressReg& regRef = *it;
         xPOP(regRef);
     }
 }

@@ -41,12 +41,16 @@ public:
 		GSVector4 VertexScale;
 		GSVector4 VertexOffset;
 		GSVector4 Texture_Scale_Offset;
+		GSVector2i MaxDepth;
+		GSVector2i pad_vscb;
 
 		VSConstantBuffer()
 		{
-			VertexScale = GSVector4::zero();
-			VertexOffset = GSVector4::zero();
+			VertexScale          = GSVector4::zero();
+			VertexOffset         = GSVector4::zero();
 			Texture_Scale_Offset = GSVector4::zero();
+			MaxDepth             = GSVector2i(0);
+			pad_vscb             = GSVector2i(0);
 		}
 
 		__forceinline bool Update(const VSConstantBuffer* cb)
@@ -74,11 +78,10 @@ public:
 		{
 			struct
 			{
-				uint32 bppz:2;
 				uint32 tme:1;
 				uint32 fst:1;
 
-				uint32 _free:28;
+				uint32 _free:30;
 			};
 
 			uint32 key;
@@ -102,7 +105,7 @@ public:
 		GSVector4i FbMask;
 
 		GSVector4 TC_OffsetHack;
-		GSVector4 Af;
+		GSVector4 Af_MaxDepth;
 		GSVector4 DitherMatrix[4];
 
 		PSConstantBuffer()
@@ -115,7 +118,7 @@ public:
 			MskFix = GSVector4i::zero();
 			ChannelShuffle = GSVector4i::zero();
 			FbMask = GSVector4i::zero();
-			Af = GSVector4::zero();
+			Af_MaxDepth = GSVector4::zero();
 
 			DitherMatrix[0] = GSVector4::zero();
 			DitherMatrix[1] = GSVector4::zero();
@@ -179,8 +182,9 @@ public:
 				uint32 prim:2;
 				uint32 point:1;
 				uint32 line:1;
+				uint32 cpu_sprite:1;
 
-				uint32 _free:27;
+				uint32 _free:26;
 			};
 
 			uint32 key;
@@ -238,6 +242,9 @@ public:
 				// Dithering
 				uint32 dither:2;
 
+				// Depth clamp
+				uint32 zclamp:1;
+
 				// Hack
 				uint32 tcoffsethack:1;
 				uint32 urban_chaos_hle:1;
@@ -245,7 +252,7 @@ public:
 				uint32 point_sampler:1;
 				uint32 invalid_tex0:1; // Lupin the 3rd
 
-				uint32 _free:16;
+				uint32 _free:15;
 			};
 
 			uint64 key;
@@ -377,9 +384,10 @@ private:
 	
 	uint16 ConvertBlendEnum(uint16 generic) final;
 
+	CComPtr<IDXGIFactory2> m_factory;
 	CComPtr<ID3D11Device> m_dev;
 	CComPtr<ID3D11DeviceContext> m_ctx;
-	CComPtr<IDXGISwapChain> m_swapchain;
+	CComPtr<IDXGISwapChain1> m_swapchain;
 	CComPtr<ID3D11Buffer> m_vb;
 	CComPtr<ID3D11Buffer> m_vb_old;
 	CComPtr<ID3D11Buffer> m_ib;
@@ -489,22 +497,12 @@ private:
 
 protected:
 	struct {D3D_FEATURE_LEVEL level; std::string model, vs, gs, ps, cs;} m_shader;
-
-	static HMODULE s_d3d_compiler_dll;
-	static decltype(&D3DCompile) s_pD3DCompile;
-	// Older version doesn't support D3D_COMPILE_STANDARD_FILE_INCLUDE, which
-	// could be useful for external shaders.
-	static bool s_old_d3d_compiler_dll;
-
 public:
 	GSDevice11();
 	virtual ~GSDevice11() {}
 
 	bool SetFeatureLevel(D3D_FEATURE_LEVEL level, bool compat_mode);
 	void GetFeatureLevel(D3D_FEATURE_LEVEL& level) const { level = m_shader.level; }
-
-	static bool LoadD3DCompiler();
-	static void FreeD3DCompiler();
 
 	bool Create(const std::shared_ptr<GSWnd> &wnd);
 	bool Reset(int w, int h);

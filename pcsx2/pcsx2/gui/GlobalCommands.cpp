@@ -291,6 +291,7 @@ namespace Implementations
 		SetZoom( z );
 	}
 
+
 	void Sys_Suspend()
 	{
 		requestShutdown = true;
@@ -470,7 +471,7 @@ namespace Implementations
 		Console.Warning("hardware registers dumped EE:%x, IOP:%x\n", cpuRegs.pc, psxRegs.pc);
 #endif
 	}
-    
+
 	void FullscreenToggle()
 	{
 		if (SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN))

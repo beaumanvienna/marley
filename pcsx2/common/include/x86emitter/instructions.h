@@ -89,13 +89,7 @@ extern const xImpl_Group8 xBTC;
 extern const xImpl_BitScan xBSF, xBSR;
 
 extern const xImpl_JmpCall xJMP;
-#ifdef __M_X86_64
-// 32 bits Call won't be compatible in 64 bits (different ABI)
-// Just a reminder to port the code
-[[deprecated]] extern const xImpl_JmpCall xCALL;
-#else
 extern const xImpl_JmpCall xCALL;
-#endif
 extern const xImpl_FastCall xFastCall;
 
 // ------------------------------------------------------------------------
@@ -204,7 +198,7 @@ public:
 /// Helper object to save some temporary registers before the call
 class xScopedSavedRegisters
 {
-    std::initializer_list<std::reference_wrapper<const xAddressReg>> regs;
+    std::vector<std::reference_wrapper<const xAddressReg>> regs;
 public:
     xScopedSavedRegisters(std::initializer_list<std::reference_wrapper<const xAddressReg>> regs);
     ~xScopedSavedRegisters();

@@ -56,7 +56,6 @@ set(pcsx2Sources
 	GameDatabase.cpp
 	Dump.cpp
 	Elfheader.cpp
-	EmuCmp.cpp
 	FiFo.cpp
 	FPU.cpp
 	Gif.cpp
@@ -135,7 +134,6 @@ set(pcsx2Headers
 	Dump.h
 	GameDatabase.h
 	Elfheader.h
-	EmuCmp.h
 	Gif.h
 	Gif_Unit.h
 	GS.h
@@ -515,8 +513,6 @@ set(pcsx2ZipToolsHeaders
 # Windows sources
 set(pcsx2WindowsSources
 	gui/CpuUsageProviderMSW.cpp
-	windows/cheats/browser.cpp
-	windows/cheats/cheats.cpp
 	windows/FlatFileReaderWindows.cpp
 	windows/Optimus.cpp
 	windows/PatchBrowser.cpp
@@ -528,7 +524,6 @@ set(pcsx2WindowsSources
 
 # Windows headers
 set(pcsx2WindowsHeaders
-	windows/cheats/cheats.h
 	windows/resource.h
 	windows/Win32.h)
 
@@ -716,11 +711,9 @@ endif()
 
 add_pcsx2_executable(${Output} "${pcsx2FinalSources}" "${pcsx2FinalLibs}" "${pcsx2FinalFlags}")
 
-if(NOT USE_CLANG)
-	if(COMMAND target_precompile_headers)
-		message("Using precompiled headers.")
-		target_precompile_headers(${Output} PRIVATE PrecompiledHeader.h)
-	endif()
+if(COMMAND target_precompile_headers)
+	message("Using precompiled headers.")
+	target_precompile_headers(${Output} PRIVATE PrecompiledHeader.h)
 endif()
 
 if (APPLE)

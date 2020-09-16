@@ -45,7 +45,6 @@ char *KeysymToChar(int keysym)
 
 /// g_key_status.press but with proper handling for analog buttons
 static void PressButton(u32 pad, u32 button) {
-    
     // Analog controls.
     if (IsAnalogKey(button)) {
         switch (button) {
@@ -77,7 +76,6 @@ static void PressButton(u32 pad, u32 button) {
 // Mouse buttons use discriminator 1
 
 void UpdateKeyboardInput() {
-    
     for (int pad = 0; pad < GAMEPAD_NUMBER; pad++) {
         const auto& map = g_conf.keysym_map[pad];
         // If we loop over all keys press/release based on current state,
@@ -119,7 +117,7 @@ static bool s_Shift = false;
 static unsigned int s_previous_mouse_x = 0;
 static unsigned int s_previous_mouse_y = 0;
 
-static void AnalyzeKeyEvent(keyEvent &evt)
+void AnalyzeKeyEvent(keyEvent &evt)
 {
     KeySym key = (KeySym)evt.key;
     int pad = 0;
@@ -153,10 +151,9 @@ static void AnalyzeKeyEvent(keyEvent &evt)
                     XUngrabKeyboard(GSdsp, CurrentTime);
                 }
             }
-            if (index!=-1)
-            {
+
+            if (index != -1)
                 PressButton(pad, index);
-            }
 
             //PAD_LOG("Key pressed:%d\n", index);
 

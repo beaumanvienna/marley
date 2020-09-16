@@ -13,7 +13,6 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
- 
 #include "PrecompiledHeader.h"
 #include "IopCommon.h"
 
@@ -221,7 +220,7 @@ static void CALLBACK GS_changeSaveState( int, const char* filename ) {}
 void CALLBACK GS_getTitleInfo2( char* dest, size_t length )
 {
 	// Just return a generic "GS" title -- a plugin actually implementing this feature
-	// should return a title such as "GSdx" or "ZZogl" instead.  --air
+	// should return a title such as "GSdx" instead.  --air
 
 	dest[0] = 'G';
 	dest[1] = 'S';

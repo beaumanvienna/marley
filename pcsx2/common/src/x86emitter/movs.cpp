@@ -42,7 +42,7 @@ void _xMovRtoR(const xRegisterInt &to, const xRegisterInt &from)
     if (to == from)
         return; // ignore redundant MOVs.
 
-    xOpWrite(from.GetPrefix16(), from.Is8BitOp() ? x86_Opcode_MOV_Eb_Gb  : x86_Opcode_MOV_Ev_Gv, from, to);
+    xOpWrite(from.GetPrefix16(), from.Is8BitOp() ? 0x88 : 0x89, from, to);
 }
 
 void xImpl_Mov::operator()(const xRegisterInt &to, const xRegisterInt &from) const
@@ -174,13 +174,13 @@ void xImpl_CMov::operator()(const xRegister16or32or64 &to, const xRegister16or32
 {
     pxAssert(to->GetOperandSize() == from->GetOperandSize());
     ccSane();
-    xOpWrite0F(to->GetPrefix16(), x86_Opcode_INC_eAX | ccType, to, from);
+    xOpWrite0F(to->GetPrefix16(), 0x40 | ccType, to, from);
 }
 
 void xImpl_CMov::operator()(const xRegister16or32or64 &to, const xIndirectVoid &sibsrc) const
 {
     ccSane();
-    xOpWrite0F(to->GetPrefix16(), x86_Opcode_INC_eAX | ccType, to, sibsrc);
+    xOpWrite0F(to->GetPrefix16(), 0x40 | ccType, to, sibsrc);
 }
 
 //void xImpl_CMov::operator()( const xDirectOrIndirect32& to, const xDirectOrIndirect32& from ) const { ccSane(); _DoI_helpermess( *this, to, from ); }
@@ -189,12 +189,12 @@ void xImpl_CMov::operator()(const xRegister16or32or64 &to, const xIndirectVoid &
 void xImpl_Set::operator()(const xRegister8 &to) const
 {
     ccSane();
-    xOpWrite0F(x86_Opcode_NOP | ccType, 0, to);
+    xOpWrite0F(0x90 | ccType, 0, to);
 }
 void xImpl_Set::operator()(const xIndirect8 &dest) const
 {
     ccSane();
-    xOpWrite0F(x86_Opcode_NOP | ccType, 0, dest);
+    xOpWrite0F(0x90 | ccType, 0, dest);
 }
 //void xImpl_Set::operator()( const xDirectOrIndirect8& dest ) const		{ ccSane(); _DoI_helpermess( *this, dest ); }
 
@@ -202,8 +202,8 @@ void xImpl_MovExtend::operator()(const xRegister16or32or64 &to, const xRegister8
 {
     EbpAssert();
     xOpWrite0F(
-        (to->GetOperandSize() == 2) ? x86_Opcode_OPSIZE : 0,
-        SignExtend ? x86_Opcode_MOV_eSI_Iv : x86_Opcode_MOV_DH_Ib,
+        (to->GetOperandSize() == 2) ? 0x66 : 0,
+        SignExtend ? 0xbe : 0xb6,
         to, from);
 }
 
@@ -211,21 +211,21 @@ void xImpl_MovExtend::operator()(const xRegister16or32or64 &to, const xIndirect8
 {
     EbpAssert();
     xOpWrite0F(
-        (to->GetOperandSize() == 2) ? x86_Opcode_OPSIZE : 0,
-        SignExtend ? x86_Opcode_MOV_eSI_Iv : x86_Opcode_MOV_DH_Ib,
+        (to->GetOperandSize() == 2) ? 0x66 : 0,
+        SignExtend ? 0xbe : 0xb6,
         to, sibsrc);
 }
 
 void xImpl_MovExtend::operator()(const xRegister32or64 &to, const xRegister16 &from) const
 {
     EbpAssert();
-    xOpWrite0F(SignExtend ? x86_Opcode_MOV_eDI_Iv : x86_Opcode_MOV_BH_Ib, to, from);
+    xOpWrite0F(SignExtend ? 0xbf : 0xb7, to, from);
 }
 
 void xImpl_MovExtend::operator()(const xRegister32or64 &to, const xIndirect16 &sibsrc) const
 {
     EbpAssert();
-    xOpWrite0F(SignExtend ? x86_Opcode_MOV_eDI_Iv : x86_Opcode_MOV_BH_Ib, to, sibsrc);
+    xOpWrite0F(SignExtend ? 0xbf : 0xb7, to, sibsrc);
 }
 
 #if 0

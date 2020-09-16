@@ -33,12 +33,9 @@ option(USE_VTUNE "Plug VTUNE to profile GSdx JIT.")
 #-------------------------------------------------------------------------------
 # Graphical option
 #-------------------------------------------------------------------------------
-option(GLSL_API "Replace ZZogl CG backend by GLSL (experimental option)")
-option(EGL_API "Use EGL on ZZogl/GSdx (experimental/developer option)")
 option(OPENCL_API "Add OpenCL support on GSdx")
 option(REBUILD_SHADER "Rebuild GLSL/CG shader (developer option)")
 option(BUILD_REPLAY_LOADERS "Build GS replayer to ease testing (developer option)")
-option(GSDX_LEGACY "Build a GSdx legacy plugin compatible with GL3.3")
 
 #-------------------------------------------------------------------------------
 # Path and lib option
@@ -183,15 +180,6 @@ else()
 	message(FATAL_ERROR "Unsupported architecture: ${PCSX2_TARGET_ARCHITECTURES}")
 endif()
 
-# Print a clear message that most architectures are not supported
-if(NOT ((${PCSX2_TARGET_ARCHITECTURES} MATCHES "i386") OR (${PCSX2_TARGET_ARCHITECTURES} MATCHES "x86_64")))
-    message(WARNING "
-    PCSX2 does not support the ${PCSX2_TARGET_ARCHITECTURES} architecture and has no plans yet to support it.
-    It would need a complete rewrite of the core emulator and a lot of time.
-
-    You can still run a i386 binary if you install all the i386 libraries (runtime and dev).")
-endif()
-
 if(${PCSX2_TARGET_ARCHITECTURES} MATCHES "i386")
     # * -fPIC option was removed for multiple reasons.
     #     - Code only supports the x86 architecture.
@@ -205,13 +193,13 @@ if(${PCSX2_TARGET_ARCHITECTURES} MATCHES "i386")
             if (USE_ICC)
                 set(ARCH_FLAG "-msse2")
             else()
-                set(ARCH_FLAG "-msse -msse2 -mfxsr -mxsave -march=i686")
+                set(ARCH_FLAG "-msse -msse2 -mfxsr -march=i686")
             endif()
         else()
             # AVX requires some fix of the ABI (mangling) (default 2)
             # Note: V6 requires GCC 4.7
             #set(ARCH_FLAG "-march=native -fabi-version=6")
-            set(ARCH_FLAG "-mfxsr -mxsave -march=native")
+            set(ARCH_FLAG "-mfxsr -march=native")
         endif()
     endif()
 

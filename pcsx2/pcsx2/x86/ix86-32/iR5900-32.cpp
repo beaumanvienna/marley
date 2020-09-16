@@ -39,7 +39,6 @@
 #	include <csetjmp>
 #endif
 
-#include "EmuCmp.h"
 
 #include "Utilities/MemsetFast.inl"
 #include "Utilities/Perf.h"
@@ -76,7 +75,7 @@ static const int RECCONSTBUF_SIZE = 16384 * 2; // 64 bit consts in 32 bit units
 static RecompiledCodeReserve* recMem = NULL;
 static u8* recRAMCopy = NULL;
 static u8* recLutReserve_RAM = NULL;
-static const size_t recLutSize = (Ps2MemSize::MainRam + Ps2MemSize::Rom + Ps2MemSize::Rom1) * wordsize / 4;
+static const size_t recLutSize = (Ps2MemSize::MainRam + Ps2MemSize::Rom + Ps2MemSize::Rom1 + Ps2MemSize::Rom2) * wordsize / 4;
 
 static uptr m_ConfiguredCacheReserve = 64;
 
@@ -84,6 +83,7 @@ static u32* recConstBuf = NULL;			// 64-bit pseudo-immediates
 static BASEBLOCK *recRAM = NULL;		// and the ptr to the blocks here
 static BASEBLOCK *recROM = NULL;		// and here
 static BASEBLOCK *recROM1 = NULL;		// also here
+static BASEBLOCK *recROM2 = NULL;       // also here
 
 static BaseBlocks recBlocks;
 static u8* recPtr = NULL;
@@ -182,8 +182,8 @@ void _eeMoveGPRtoM(uptr to, int fromgpr)
 			xMOVSS(ptr[(void*)(to)], xRegisterSSE(mmreg));
 		}
 		else {
-			xMOV(eaxd, ptr[&cpuRegs.GPR.r[ fromgpr ].UL[ 0 ] ]);
-			xMOV(ptr[(void*)(to)], eaxd);
+			xMOV(eax, ptr[&cpuRegs.GPR.r[ fromgpr ].UL[ 0 ] ]);
+			xMOV(ptr[(void*)(to)], eax);
 		}
 	}
 }
@@ -199,19 +199,18 @@ void _eeMoveGPRtoRm(x86IntRegType to, int fromgpr)
 			xMOVSS(ptr[xAddressReg(to)], xRegisterSSE(mmreg));
 		}
 		else {
-			xMOV(eaxd, ptr[&cpuRegs.GPR.r[ fromgpr ].UL[ 0 ] ]);
-			xMOV(ptr[xAddressReg(to)], eaxd);
+			xMOV(eax, ptr[&cpuRegs.GPR.r[ fromgpr ].UL[ 0 ] ]);
+			xMOV(ptr[xAddressReg(to)], eax);
 		}
 	}
 }
 
 void eeSignExtendTo(int gpr, bool onlyupper)
 {
-	// TODO: Use 64-bit registers (cdqe) on x86-64
 	xCDQ();
 	if (!onlyupper)
-		xMOV(ptr32[&cpuRegs.GPR.r[gpr].UL[0]], eaxd);
-	xMOV(ptr32[&cpuRegs.GPR.r[gpr].UL[1]], edxd);
+		xMOV(ptr32[&cpuRegs.GPR.r[gpr].UL[0]], eax);
+	xMOV(ptr32[&cpuRegs.GPR.r[gpr].UL[1]], edx);
 }
 
 int _flushXMMunused()
@@ -299,8 +298,8 @@ void recBranchCall( void (*func)() )
 	// In order to make sure a branch test is performed, the nextBranchCycle is set
 	// to the current cpu cycle.
 
-	xMOV(eaxd, ptr[&cpuRegs.cycle ]);
-	xMOV(ptr[&g_nextEventCycle], eaxd);
+	xMOV(eax, ptr[&cpuRegs.cycle ]);
+	xMOV(ptr[&g_nextEventCycle], eax);
 
 	recCall(func);
 	g_branch = 2;
@@ -353,9 +352,9 @@ static DynGenFunc* _DynGen_JITCompile()
 	// u32 addr = cpuRegs.pc;
 	// void(**base)() = (void(**)())recLUT[addr >> 16];
 	// base[addr >> 2]();
-	xMOV( eaxd, ptr[&cpuRegs.pc] );
-	xMOV( ebxd, eaxd );
-	xSHR( eaxd, 16 );
+	xMOV( eax, ptr[&cpuRegs.pc] );
+	xMOV( ebx, eax );
+	xSHR( eax, 16 );
 	xMOV( rcx, ptrNative[xComplexAddress(rcx, recLUT, rax*wordsize)] );
 	xJMP( ptrNative[rbx*(wordsize/4) + rcx] );
 
@@ -378,9 +377,9 @@ static DynGenFunc* _DynGen_DispatcherReg()
 	// u32 addr = cpuRegs.pc;
 	// void(**base)() = (void(**)())recLUT[addr >> 16];
 	// base[addr >> 2]();
-	xMOV( eaxd, ptr[&cpuRegs.pc] );
-	xMOV( ebxd, eaxd );
-	xSHR( eaxd, 16 );
+	xMOV( eax, ptr[&cpuRegs.pc] );
+	xMOV( ebx, eax );
+	xSHR( eax, 16 );
 	xMOV( rcx, ptrNative[xComplexAddress(rcx, recLUT, rax*wordsize)] );
 	xJMP( ptrNative[rbx*(wordsize/4) + rcx] );
 
@@ -442,7 +441,7 @@ static void _DynGen_Dispatchers()
 	HostSys::MemProtectStatic( eeRecDispatchers, PageAccess_ReadWrite() );
 
 	// clear the buffer to 0xcc (easier debugging).
-	memset( eeRecDispatchers, x86_Opcode_INT3, __pagesize);
+	memset( eeRecDispatchers, 0xcc, __pagesize);
 
 	xSetPtr( eeRecDispatchers );
 
@@ -519,7 +518,7 @@ static void recAlloc()
 		recRAMCopy = (u8*)_aligned_malloc(Ps2MemSize::MainRam, 4096);
 	}
 
-	if (!recLutReserve_RAM)
+	if (!recRAM)
 	{
 		recLutReserve_RAM = (u8*)_aligned_malloc(recLutSize, 4096);
 	}
@@ -528,6 +527,7 @@ static void recAlloc()
 	recRAM		= basepos; basepos += (Ps2MemSize::MainRam / 4);
 	recROM		= basepos; basepos += (Ps2MemSize::Rom / 4);
 	recROM1		= basepos; basepos += (Ps2MemSize::Rom1 / 4);
+	recROM2		= basepos; basepos += (Ps2MemSize::Rom2 / 4);
 
 	for (int i = 0; i < 0x10000; i++)
 		recLUT_SetPage(recLUT, 0, 0, 0, i, 0);
@@ -556,6 +556,13 @@ static void recAlloc()
 		recLUT_SetPage(recLUT, hwLUT, recROM1, 0x0000, i, i - 0x1e00);
 		recLUT_SetPage(recLUT, hwLUT, recROM1, 0x8000, i, i - 0x1e00);
 		recLUT_SetPage(recLUT, hwLUT, recROM1, 0xa000, i, i - 0x1e00);
+	}
+
+	for (int i = 0x1e40; i < 0x1e48; i++) 
+	{
+		recLUT_SetPage(recLUT, hwLUT, recROM2, 0x0000, i, i - 0x1e40);
+		recLUT_SetPage(recLUT, hwLUT, recROM2, 0x8000, i, i - 0x1e40);
+		recLUT_SetPage(recLUT, hwLUT, recROM2, 0xa000, i, i - 0x1e40);
 	}
 
     if( recConstBuf == NULL )
@@ -633,7 +640,7 @@ static void recShutdown()
 
 	recBlocks.Reset();
 
-	recRAM = recROM = recROM1 = NULL;
+	recRAM = recROM = recROM1 = recROM2 = NULL;
 
 	safe_aligned_free( recConstBuf );
 	safe_free( s_pInstCache );
@@ -687,8 +694,6 @@ void initEE()
 
 static void recResetEE()
 {
-    
-    
 	if (eeCpuExecuting)
 	{
 		eeRecNeedsReset = true;
@@ -916,9 +921,9 @@ void SetBranchReg( u32 reg )
 		_eeMoveGPRtoR(calleeSavedReg2d, reg);
 
 		if (EmuConfig.Gamefixes.GoemonTlbHack) {
-			xMOV(ecxd, calleeSavedReg2d);
+			xMOV(ecx, calleeSavedReg2d);
 			vtlb_DynV2P();
-			xMOV(calleeSavedReg2d, eaxd);
+			xMOV(calleeSavedReg2d, eax);
 		}
 
 		recompileNextInstruction(1);
@@ -929,8 +934,8 @@ void SetBranchReg( u32 reg )
 			x86regs[calleeSavedReg2d.GetId()].inuse = 0;
 		}
 		else {
-			xMOV(eaxd, ptr[&g_recWriteback]);
-			xMOV(ptr[&cpuRegs.pc], eaxd);
+			xMOV(eax, ptr[&g_recWriteback]);
+			xMOV(ptr[&cpuRegs.pc], eax);
 		}
 	}
 
@@ -982,9 +987,9 @@ void LoadBranchState()
 void iFlushCall(int flushtype)
 {
 	// Free registers that are not saved across function calls (x86-32 ABI):
-	_freeX86reg(eaxd);
-	_freeX86reg(ecxd);
-	_freeX86reg(edxd);
+	_freeX86reg(eax);
+	_freeX86reg(ecx);
+	_freeX86reg(edx);
 
 	if ((flushtype & FLUSH_PC) && !g_cpuFlushedPC) {
 		xMOV(ptr32[&cpuRegs.pc], pc);
@@ -1067,6 +1072,31 @@ static u32 scaleblockcycles()
 
 	return scaled;
 }
+u32 scaleblockcycles_clear()
+{
+	u32 scaled = scaleblockcycles_calculation();
+
+#if 0 // Enable this to get some runtime statistics about the scaling result in practice
+	static u32 scaled_overall = 0, unscaled_overall = 0;
+	if (g_resetEeScalingStats)
+	{
+		scaled_overall = unscaled_overall = 0;
+		g_resetEeScalingStats = false;
+	}
+	u32 unscaled = DEFAULT_SCALED_BLOCKS();
+	if (!unscaled) unscaled = 1;
+
+	scaled_overall += scaled;
+	unscaled_overall += unscaled;
+	float ratio = static_cast<float>(unscaled_overall) / scaled_overall;
+
+	DevCon.WriteLn(L"Unscaled overall: %d,  scaled overall: %d,  relative EE clock speed: %d %%",
+		unscaled_overall, scaled_overall, static_cast<int>(100 * ratio));
+#endif
+	s_nBlockCycles &= 0x7;
+
+	return scaled;
+}
 
 // Generates dynarec code for Event tests followed by a block dispatch (branch).
 // Parameters:
@@ -1085,28 +1115,22 @@ static void iBranchTest(u32 newpc)
 	//    cpuRegs.cycle += blockcycles;
 	//    if( cpuRegs.cycle > g_nextEventCycle ) { DoEvents(); }
 
-	if (EmuCmp::shouldEmitAfterBB() && EmuCmp::shouldCompareR5900())
-	{
-		iFlushCall(FLUSH_FREE_XMM);
-		xFastCall((void*)EmuCmp::cmpR5900, cpuRegs.pc);
-	}
-
 	if (EmuConfig.Speedhacks.WaitLoop && s_nBlockFF && newpc == s_branchTo)
 	{
-		xMOV(eaxd, ptr32[&g_nextEventCycle]);
+		xMOV(eax, ptr32[&g_nextEventCycle]);
 		xADD(ptr32[&cpuRegs.cycle], scaleblockcycles());
-		xCMP(eaxd, ptr32[&cpuRegs.cycle]);
-		xCMOVS(eaxd, ptr32[&cpuRegs.cycle]);
-		xMOV(ptr32[&cpuRegs.cycle], eaxd);
+		xCMP(eax, ptr32[&cpuRegs.cycle]);
+		xCMOVS(eax, ptr32[&cpuRegs.cycle]);
+		xMOV(ptr32[&cpuRegs.cycle], eax);
 
 		xJMP( (void*)DispatcherEvent );
 	}
 	else
 	{
-		xMOV(eaxd, ptr[&cpuRegs.cycle]);
-		xADD(eaxd, scaleblockcycles());
-		xMOV(ptr[&cpuRegs.cycle], eaxd); // update cycles
-		xSUB(eaxd, ptr[&g_nextEventCycle]);
+		xMOV(eax, ptr[&cpuRegs.cycle]);
+		xADD(eax, scaleblockcycles());
+		xMOV(ptr[&cpuRegs.cycle], eax); // update cycles
+		xSUB(eax, ptr[&g_nextEventCycle]);
 
 		if (newpc == 0xffffffff)
 			xJS( DispatcherReg );
@@ -1239,16 +1263,16 @@ void recMemcheck(u32 op, u32 bits, bool store)
 	iFlushCall(FLUSH_EVERYTHING|FLUSH_PC);
 
 	// compute accessed address
-	_eeMoveGPRtoR(ecxd, (op >> 21) & 0x1F);
+	_eeMoveGPRtoR(ecx, (op >> 21) & 0x1F);
 	if ((s16)op != 0)
-		xADD(ecxd, (s16)op);
+		xADD(ecx, (s16)op);
 	if (bits == 128)
-		xAND(ecxd, ~0x0F);
+		xAND(ecx, ~0x0F);
 
-	xFastCall((void*)standardizeBreakpointAddress, ecxd);
-	xMOV(ecxd,eaxd);
-	xMOV(edxd,eaxd);
-	xADD(edxd,bits/8);
+	xFastCall((void*)standardizeBreakpointAddress, ecx);
+	xMOV(ecx,eax);
+	xMOV(edx,eax);
+	xADD(edx,bits/8);
 
 	// ecx = access address
 	// edx = access address+size
@@ -1265,18 +1289,18 @@ void recMemcheck(u32 op, u32 bits, bool store)
 
 		// logic: memAddress < bpEnd && bpStart < memAddress+memSize
 
-		xMOV(eaxd,standardizeBreakpointAddress(checks[i].end));
-		xCMP(ecxd,eaxd);				// address < end
+		xMOV(eax,standardizeBreakpointAddress(checks[i].end));
+		xCMP(ecx,eax);				// address < end
 		xForwardJGE8 next1;			// if address >= end then goto next1
 
-		xMOV(eaxd,standardizeBreakpointAddress(checks[i].start));
-		xCMP(eaxd,edxd);				// start < address+size
+		xMOV(eax,standardizeBreakpointAddress(checks[i].start));
+		xCMP(eax,edx);				// start < address+size
 		xForwardJGE8 next2;			// if start >= address+size then goto next2
 
 		// hit the breakpoint
 		if (checks[i].result & MEMCHECK_LOG) {
-			xMOV(edxd, store);
-			xFastCall((void*)dynarecMemLogcheck, ecxd, edxd);
+			xMOV(edx, store);
+			xFastCall((void*)dynarecMemLogcheck, ecx, edx);
 		}
 		if (checks[i].result & MEMCHECK_BREAK) {
 			xFastCall((void*)dynarecMemcheck);
@@ -1345,13 +1369,7 @@ void recompileNextInstruction(int delayslot)
 	if( IsDevBuild )
 		xNOP();
 	if( IsDebugBuild )
-		xMOV(eaxd, pc);
-
-	if (EmuCmp::shouldEmitAfterInstr() && EmuCmp::shouldCompareR5900())
-	{
-		iFlushCall(FLUSH_FREE_XMM);
-		xFastCall((void*)EmuCmp::cmpR5900, pc);
-	}
+		xMOV(eax, pc);
 
 	cpuRegs.code = *(int *)s_pCode;
 
@@ -1658,8 +1676,8 @@ bool skipMPEG_By_Pattern(u32 sPC) {
 		if (memRead32(sPC+8) != p2) return 0;
 		xMOV(ptr32[&cpuRegs.GPR.n.v0.UL[0]], 1);
 		xMOV(ptr32[&cpuRegs.GPR.n.v0.UL[1]], 0);
-		xMOV(eaxd, ptr32[&cpuRegs.GPR.n.ra.UL[0]]);
-		xMOV(ptr32[&cpuRegs.pc], eaxd);
+		xMOV(eax, ptr32[&cpuRegs.GPR.n.ra.UL[0]]);
+		xMOV(ptr32[&cpuRegs.pc], eax);
 		iBranchTest();
 		g_branch = 1;
 		pc = s_nEndBlock;

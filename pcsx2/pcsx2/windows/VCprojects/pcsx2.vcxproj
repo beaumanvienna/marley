@@ -26,6 +26,7 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <Import Project="$(SolutionDir)common\vsprops\WinSDK.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1CEFD830-2B76-4596-A4EE-BCD7280A60BD}</ProjectGuid>
   </PropertyGroup>
@@ -386,12 +387,6 @@
     <ClCompile Include="..\..\Linux\LnxKeyCodes.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\cheats\browser.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\cheats\cheats.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\gui\Saveslots.cpp" />
     <ClCompile Include="..\..\gui\SysState.cpp" />
     <ClCompile Include="..\..\ZipTools\thread_gzip.cpp" />
@@ -572,7 +567,6 @@
     <ClInclude Include="..\..\gui\MainFrame.h" />
     <ClInclude Include="..\..\gui\pxEventThread.h" />
     <ClInclude Include="..\..\gui\RecentIsoList.h" />
-    <ClInclude Include="..\cheats\cheats.h" />
     <ClInclude Include="..\..\ZipTools\ThreadedZipTools.h" />
   </ItemGroup>
   <ItemGroup>

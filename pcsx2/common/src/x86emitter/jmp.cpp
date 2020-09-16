@@ -44,11 +44,6 @@ void xImpl_JmpCall::operator()(const xIndirectNative &src) const {
     xWrite8(0xff);
     EmitSibMagic(isJmp ? 4 : 2, src);
 }
-#ifdef __M_X86_64
-void xImpl_JmpCall::operator()(const xIndirect32 &absreg) const {
-    xOpWrite(0, 0xff, isJmp ? 4 : 2, absreg);
-}
-#endif
 
 const xImpl_JmpCall xJMP = {true};
 const xImpl_JmpCall xCALL = {false};
@@ -98,7 +93,7 @@ void xImpl_FastCall::operator()(void *f, const xRegisterLong &a1, const xRegiste
 }
 
 void xImpl_FastCall::operator()(void *f, u32 a1, const xRegisterLong &a2) const {
-	if (!a2.IsEmpty()) { xMOV(arg2reg, a2); }
+    if (!a2.IsEmpty()) { xMOV(arg2reg, a2); }
     xMOV(arg1reg, a1);
     (*this)(f, arg1reg, arg2reg);
 }
@@ -125,13 +120,6 @@ void xImpl_FastCall::operator()(void *f, u32 a1, u32 a2) const {
     xMOV(arg2regd, a2);
     (*this)(f, arg1regd, arg2regd);
 }
-
-#ifdef __M_X86_64
-void xImpl_FastCall::operator()(const xIndirect32 &f, const xRegisterLong &a1, const xRegisterLong &a2) const {
-    prepareRegsForFastcall(a1, a2);
-    xCALL(f);
-}
-#endif
 
 void xImpl_FastCall::operator()(const xIndirectNative &f, const xRegisterLong &a1, const xRegisterLong &a2) const {
     prepareRegsForFastcall(a1, a2);
@@ -176,7 +164,7 @@ xSmartJump::~xSmartJump()
 __emitinline s32 *xJcc32(JccComparisonType comparison, s32 displacement)
 {
     if (comparison == Jcc_Unconditional)
-        xWrite8(x86_Opcode_JMP_Jz);
+        xWrite8(0xe9);
     else {
         xWrite8(0x0f);
         xWrite8(0x80 | comparison);
@@ -252,10 +240,10 @@ xForwardJumpBase::xForwardJumpBase(uint opsize, JccComparisonType cctype)
         xWrite8((cctype == Jcc_Unconditional) ? 0xeb : (0x70 | cctype));
     else {
         if (cctype == Jcc_Unconditional)
-            xWrite8(x86_Opcode_JMP_Jz);
+            xWrite8(0xe9);
         else {
-            xWrite8(x86_Opcode_TWOBYTE);
-            xWrite8(x86_Opcode_ADD_Eb_Ib | cctype);
+            xWrite8(0x0f);
+            xWrite8(0x80 | cctype);
         }
     }
 

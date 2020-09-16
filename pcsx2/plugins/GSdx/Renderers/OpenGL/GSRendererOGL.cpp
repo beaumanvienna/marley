@@ -57,7 +57,7 @@ void GSRendererOGL::SetupIA(const float& sx, const float& sy)
 	}
 
 	GLenum t = 0;
-	bool unscale_pt_ln = m_userHacks_enabled_unscale_ptln && (GetUpscaleMultiplier() != 1) && GLLoader::found_geometry_shader;
+	const bool unscale_pt_ln = m_userHacks_enabled_unscale_ptln && (GetUpscaleMultiplier() != 1) && GLLoader::found_geometry_shader;
 
 	switch(m_vt.m_primclass)
 	{
@@ -81,8 +81,8 @@ void GSRendererOGL::SetupIA(const float& sx, const float& sy)
 
 		case GS_SPRITE_CLASS:
 			// Heuristics: trade-off
-			// CPU conversion => ofc, more CPU ;) more bandwidth (72 bytes / sprite)
-			// GPU conversion => ofc, more GPU. And also more CPU due to extra shader validation stage.
+			// Lines: GPU conversion => ofc, more GPU. And also more CPU due to extra shader validation stage.
+			// Triangles: CPU conversion => ofc, more CPU ;) more bandwidth (72 bytes / sprite)
 			//
 			// Note: severals openGL operation does draw call under the wood like texture upload. So even if
 			// you do 10 consecutive draw with the geometry shader, you will still pay extra validation if new
@@ -171,29 +171,21 @@ void GSRendererOGL::EmulateZbuffer()
 		m_om_dssel.ztst = ZTST_ALWAYS;
 	}
 
-	uint32 max_z;
-	if (m_context->ZBUF.PSM == PSM_PSMZ32) {
-		max_z     = 0xFFFFFFFF;
-	} else if (m_context->ZBUF.PSM == PSM_PSMZ24) {
-		max_z     = 0xFFFFFF;
-	} else {
-		max_z     = 0xFFFF;
-	}
+	// On the real GS we appear to do clamping on the max z value the format allows.
+	// Clamping is done after rasterization.
+	const uint32 max_z = 0xFFFFFFFF >> (GSLocalMemory::m_psm[m_context->ZBUF.PSM].fmt * 8);
+	const bool clamp_z = (uint32)(GSVector4i(m_vt.m_max.p).z) > max_z;
 
-	// The real GS appears to do no masking based on the Z buffer format and writing larger Z values
-	// than the buffer supports seems to be an error condition on the real GS, causing it to crash.
-	// We are probably receiving bad coordinates from VU1 in these cases.
-	vs_cb.DepthMask = GSVector2i(0xFFFFFFFF, 0xFFFFFFFF);
+	vs_cb.MaxDepth = GSVector2i(0xFFFFFFFF);
+	ps_cb.MaxDepth = GSVector4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_ps_sel.zclamp = 0;
 
-	if (m_om_dssel.ztst >= ZTST_ALWAYS && m_om_dssel.zwe && (m_context->ZBUF.PSM != PSM_PSMZ32)) {
-		if (m_vt.m_max.p.z > max_z) {
-			ASSERT(m_vt.m_min.p.z > max_z); // sfex capcom logo
-			// Fixme :Following conditional fixes some dialog frame in Wild Arms 3, but may not be what was intended.
-			if (m_vt.m_min.p.z > max_z) {
-				GL_DBG("Bad Z size (%f %f) on %s buffers", m_vt.m_min.p.z, m_vt.m_max.p.z, psm_str(m_context->ZBUF.PSM));
-				vs_cb.DepthMask = GSVector2i(max_z, max_z);
-				m_om_dssel.ztst = ZTST_ALWAYS;
-			}
+	if (clamp_z) {
+		if (m_vt.m_primclass == GS_SPRITE_CLASS || m_vt.m_primclass == GS_POINT_CLASS) {
+			vs_cb.MaxDepth = GSVector2i(max_z);
+		} else {
+			ps_cb.MaxDepth = GSVector4(0.0f, 0.0f, 0.0f, max_z * ldexpf(1, -32));
+			m_ps_sel.zclamp = 1;
 		}
 	}
 
@@ -533,7 +525,7 @@ void GSRendererOGL::EmulateBlending(bool DATE_GL42)
 		// fixes shadows in Superman shadows of Apokolips.
 		const bool sw_fbmask_colclip = !m_require_one_barrier && m_ps_sel.fbmask;
 		const bool free_colclip = m_prim_overlap == PRIM_OVERLAP_NO || blend_non_recursive || sw_fbmask_colclip;
-		GL_INS("COLCLIP Info (Blending: %d/%d/%d/%d, SW FBMASK: %d, OVERLAP: %d)",
+		GL_DBG("COLCLIP Info (Blending: %d/%d/%d/%d, SW FBMASK: %d, OVERLAP: %d)",
 			ALPHA.A, ALPHA.B, ALPHA.C, ALPHA.D, sw_fbmask_colclip, m_prim_overlap);
 		if (free_colclip) {
 			// The fastest algo that requires a single pass
@@ -1221,7 +1213,7 @@ void GSRendererOGL::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sour
 
 	if (m_ps_sel.dither)
 	{
-		GL_INS("DITHERING mode ENABLED (%d)", m_dithering);
+		GL_DBG("DITHERING mode ENABLED (%d)", m_dithering);
 
 		m_ps_sel.dither = m_dithering;
 		ps_cb.DitherMatrix[0] = GSVector4(m_env.DIMX.DM00, m_env.DIMX.DM01, m_env.DIMX.DM02, m_env.DIMX.DM03);

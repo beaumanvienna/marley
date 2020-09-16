@@ -22,7 +22,6 @@ void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "Sio.h"
 #include "sio_internal.h"
-#include "EmuCmp.h"
 
 #ifndef DISABLE_RECORDING
 #	include "Recording/InputRecording.h"
@@ -221,13 +220,17 @@ SIO_WRITE sioWriteController(u8 data)
 #ifndef DISABLE_RECORDING
 		if (g_Conf->EmuOptions.EnableRecordingTools)
 		{
-			g_InputRecording.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
-			if (g_InputRecording.IsInterruptFrame())
+			// Only examine controllers 1 / 2
+			if (sio.slot[sio.port] == 0)
 			{
-				g_RecordingInput.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
-			}
+				g_InputRecording.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
+				if (g_InputRecording.IsInterruptFrame())
+				{
+					g_RecordingInput.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
+				}
 
-			PadData::LogPadData(sio.port, sio.bufCount, sio.buf);
+				PadData::LogPadData(sio.port, sio.bufCount, sio.buf);
+			}
 		}
 #endif
 		break;
@@ -560,8 +563,6 @@ SIO_WRITE memcardRead(u8 data)
 		sio.buf[transfer_size + 4] = mcd->DoXor(&sio.buf[4], transfer_size);
 		sio.buf[transfer_size + 5] = mcd->term;
 		sio.bufSize = transfer_size + 5;
-		EmuCmp::verifySync(0xca6d);
-		EmuCmp::cmpMem(sio.buf, sio.bufSize, "Memory card read");
 		break;
 
 	default:

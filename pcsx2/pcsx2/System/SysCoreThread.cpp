@@ -35,8 +35,6 @@
 #	include <wx/msw/wrapwin.h>
 #endif
 
-#include "EmuCmp.h"
-
 #include "x86emitter/x86_intrin.h"
 
 // --------------------------------------------------------------------------------------
@@ -130,7 +128,6 @@ void SysCoreThread::ResetQuick()
 void SysCoreThread::Reset()
 {
 	ResetQuick();
-	if (EmuCmp::Config::enabled) EmuCmp::shutdown();
 	GetVmMemory().DecommitAll();
 	SysClearExecutionCache();
 	sApp.PostAppMethod( &Pcsx2App::leaveDebugMode );
@@ -255,9 +252,6 @@ bool SysCoreThread::StateCheckInThread()
 // "exception-type boundary" problem (can't mix SEH and C++ exceptions in the same function).
 void SysCoreThread::DoCpuExecute()
 {
-	if (EmuCmp::Config::enabled && !m_hasActiveMachine) {
-		EmuCmp::init();
-	}
 	m_hasActiveMachine = true;
 	UI_EnableSysActions();
 	Cpu->Execute();

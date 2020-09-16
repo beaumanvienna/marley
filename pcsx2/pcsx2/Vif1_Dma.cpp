@@ -32,7 +32,7 @@ void initVif1_Dma()
 
 __fi void vif1FLUSH()
 {
-	if(vif1Regs.stat.VEW)
+	if (VU0.VI[REG_VPU_STAT].UL & 0x500) // T bit stop or Busy
 	{
 		vif1.waitforvu = true;
 		vif1.vifstalled.enabled = VifStallEnable(vif1ch);
@@ -203,8 +203,8 @@ __fi void vif1SetupTransfer()
 		}
 		else
 		{
-			//Some games (like killzone) do Tags mid unpack, the nops will just write blank data
-			//to the VU's, which breaks stuff, this is where the 128bit packet will fail, so we ignore the first 2 words
+			// Some games (like killzone) do Tags mid unpack, the nops will just write blank data
+			// to the VU's, which breaks stuff, this is where the 128bit packet will fail, so we ignore the first 2 words
 			vif1.irqoffset.value = 2;
 			vif1.irqoffset.enabled = true;
 			ret = VIF1transfer((u32*)&masked_tag + 2, 2, true);  //Transfer Tag
@@ -213,8 +213,9 @@ __fi void vif1SetupTransfer()
 				
 		if (!ret && vif1.irqoffset.enabled)
 		{
-			vif1.inprogress &= ~1; //Better clear this so it has to do it again (Jak 1)
-			return;        //IRQ set by VIFTransfer
+			vif1.inprogress &= ~1; // Better clear this so it has to do it again (Jak 1)
+			vif1ch.qwc = 0; // Gumball 3000 pauses the DMA when the tag stalls so we need to reset the QWC, it'll be gotten again later
+			return;        // IRQ set by VIFTransfer
 		}
 	}
 	vif1.irqoffset.value = 0;
@@ -237,6 +238,12 @@ __fi void vif1SetupTransfer()
 
 __fi void vif1VUFinish()
 {
+	if (VU0.VI[REG_VPU_STAT].UL & 0x400)
+	{
+		CPU_INT(VIF_VU1_FINISH, 128);
+		return;
+	}
+
 	if (VU0.VI[REG_VPU_STAT].UL & 0x100)
 	{
 		int _cycles = VU1.cycle;
@@ -478,10 +485,10 @@ void dmaVIF1()
 	}
 	else
 	{
-		if(vif1.irqoffset.enabled && !vif1.done) DevCon.Warning("Warning! VIF1 starting a new Chain transfer with vif offset set (Possible force stop?)");
+		vif1.inprogress &= ~0x1;
 		vif1.dmamode = VIF_CHAIN_MODE;
 		vif1.done = false;
-		vif1.inprogress &= ~0x1;
+		
 	}
 
 	if (vif1ch.chcr.DIR) vif1Regs.stat.FQC = std::min((u16)0x10, vif1ch.qwc);

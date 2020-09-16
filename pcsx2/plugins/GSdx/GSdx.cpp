@@ -94,8 +94,8 @@ bool GSdxApp::LoadResource(int id, std::vector<char>& buff, const char* type)
 		case IDR_TFX_CL:
 			path = "/GSdx/res/tfx.cl";
 			break;
-		case IDR_FONT_FREESERIF:
-			path = "/GSdx/res/freefont/FreeSerif.otf";
+		case IDR_FONT_ROBOTO:
+			path = "/GSdx/res/fonts-roboto/Roboto-Regular.ttf";
 			break;
 		default:
 			printf("LoadResource not implemented for id %d\n", id);
@@ -362,13 +362,9 @@ void GSdxApp::Init()
 	m_default_configuration["NTSC_Saturation"]                            = "1";
 	m_default_configuration["ocldev"]                                     = "";
 #ifdef _WIN32
-	m_default_configuration["osd_fontname"]                               = "C:\\Windows\\Fonts\\tahoma.ttf";
+	m_default_configuration["osd_fontname"]                               = "C:\\Windows\\Fonts\\my_favorite_font_e_g_tahoma.ttf";
 #else
-  #ifdef _ARCH_64
-    m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/gnu-free/FreeSerif.otf";
-  #else
-	m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
-  #endif
+	m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/truetype/my_favorite_font_e_g_DejaVu Sans.ttf";
 #endif
 	m_default_configuration["osd_color_r"]                                = "0";
 	m_default_configuration["osd_color_g"]                                = "160";
@@ -419,10 +415,6 @@ void GSdxApp::Init()
 	m_default_configuration["upscale_multiplier"]                         = "1";
 	m_default_configuration["UserHacks"]                                  = "0";
 	m_default_configuration["UserHacks_align_sprite_X"]                   = "0";
-#ifdef _WIN32
-	// Direct3D only hacks.
-	m_default_configuration["UserHacks_AlphaStencil"]                     = "0";
-#endif
 	m_default_configuration["UserHacks_AutoFlush"]                        = "0";
 	m_default_configuration["UserHacks_DisableDepthSupport"]              = "0";
 	m_default_configuration["UserHacks_Disable_Safe_Features"]            = "0";

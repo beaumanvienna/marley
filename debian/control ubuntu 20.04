@@ -69,7 +69,8 @@ Build-Depends: debhelper,
         libxml2-dev,
         libx11-dev,
         locales,
-        zip
+        zip,
+        libx11-xcb-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
@@ -145,7 +146,8 @@ Depends: ${shlibs:Depends},
         libxml2,
         libx11-6,
         locales,
-        zip
-Homepage: https://launchpad.net/~beauman
+        zip,
+        libx11-xcb1
+Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
 Description: Many Awesome Retro Linux Emulators, Yay!
  This package contains a bundle of console emulators and a launcher front-end.

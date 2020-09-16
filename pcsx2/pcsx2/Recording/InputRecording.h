@@ -30,27 +30,30 @@ class InputRecording
 {
 public:
 	InputRecording() {}
-	~InputRecording(){}
+	~InputRecording() {}
 
-	void ControllerInterrupt(u8 &data, u8 &port, u16 & BufCount, u8 buf[]);
+	void ControllerInterrupt(u8& data, u8& port, u16& BufCount, u8 buf[]);
 
 	void RecordModeToggle();
 
 	INPUT_RECORDING_MODE GetModeState();
-	InputRecordingFile & GetInputRecordingData();
+	InputRecordingFile& GetInputRecordingData();
 	bool IsInterruptFrame();
 
 	void Stop();
-	void Create(wxString filename, bool fromSaveState, wxString authorName);
-	void Play(wxString filename, bool fromSaveState);
+	bool Create(wxString filename, bool fromSaveState, wxString authorName);
+	bool Play(wxString filename);
 
 private:
 	InputRecordingFile InputRecordingData;
 	INPUT_RECORDING_MODE state = INPUT_RECORDING_MODE_NONE;
 	bool fInterruptFrame = false;
+	// Resolve the name and region of the game currently loaded using the GameDB
+	// If the game cannot be found in the DB, the fallback is the ISO filename
+	wxString resolveGameName();
 };
 
 extern InputRecording g_InputRecording;
 static InputRecordingFile& g_InputRecordingData = g_InputRecording.GetInputRecordingData();
-static InputRecordingHeader& g_InputRecordingHeader = g_InputRecording.GetInputRecordingData().GetHeader();
+static InputRecordingFileHeader& g_InputRecordingHeader = g_InputRecording.GetInputRecordingData().GetHeader();
 #endif

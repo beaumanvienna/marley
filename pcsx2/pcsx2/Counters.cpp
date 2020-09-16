@@ -188,6 +188,8 @@ struct vSyncTimingInfo
 	u32 Render;				// time from vblank end to vblank start (cycles)
 	u32 Blank;				// time from vblank start to vblank end (cycles)
 
+	u32 GSBlank;			// GS CSR is swapped roughly 3.5 hblank's after vblank start
+
 	u32 hSyncError;			// rounding error after the duration of a rendered frame (cycles)
 	u32 hRender;			// time from hblank end to hblank start (cycles)
 	u32 hBlank;				// time from hblank start to hblank end (cycles)
@@ -216,6 +218,7 @@ static void vSyncInfoCalc(vSyncTimingInfo* info, Fixed100 framesPerSecond, u32 s
 	const u64 HalfFrame = Frame / 2;
 	const u64 Blank = Scanline * (gsVideoMode == GS_VideoMode::NTSC ? 26 : 22);
 	const u64 Render = HalfFrame - Blank;
+	const u64 GSBlank = Scanline * 3.5; // GS VBlank/CSR Swap happens roughly 3.5 Scanlines after VBlank Start
 
 	// Important!  The hRender/hBlank timers should be 50/50 for best results.
 	//  (this appears to be what the real EE's timing crystal does anyway)
@@ -232,6 +235,7 @@ static void vSyncInfoCalc(vSyncTimingInfo* info, Fixed100 framesPerSecond, u32 s
 	//TODO: Carry fixed-point math all the way through the entire vsync and hsync counting processes, and continually apply rounding
 	//as needed for each scheduled v/hsync related event. Much better to handle than this messed state.
 	info->Framerate = framesPerSecond;
+	info->GSBlank = (u32)(GSBlank / 10000);
 	info->Render = (u32)(Render / 10000);
 	info->Blank = (u32)(Blank / 10000);
 
@@ -460,13 +464,6 @@ static __fi void VSyncStart(u32 sCycle)
 	CpuVU0->Vsync();
 	CpuVU1->Vsync();
 
-	if (!CSRreg.VSINT)
-	{
-		CSRreg.VSINT = true;
-		if (!GSIMR.VSMSK)
-			gsIrq();
-	}
-
 	hwIntcIrq(INTC_VBLANK_S);
 	psxVBlankStart();
 	gsPostVsyncStart();
@@ -492,6 +489,19 @@ static __fi void VSyncStart(u32 sCycle)
 	// Should no longer be required (Refraction)
 }
 
+static __fi void GSVSync()
+{
+	// CSR is swapped and GS vBlank IRQ is triggered roughly 3.5 hblanks after VSync Start
+	CSRreg.SwapField();
+
+	if (!CSRreg.VSINT)
+	{
+		CSRreg.VSINT = true;
+		if (!GSIMR.VSMSK)
+			gsIrq();
+	}
+}
+
 static __fi void VSyncEnd(u32 sCycle)
 {
 	if(EmuConfig.Trace.Enabled && EmuConfig.Trace.EE.m_EnableAll)
@@ -512,8 +522,6 @@ static __fi void VSyncEnd(u32 sCycle)
 
 	frameLimit(); // limit FPS
 
-	//Do this here, breaks Dynasty Warriors otherwise.
-	CSRreg.SwapField();
 	// This doesn't seem to be needed here.  Games only seem to break with regard to the
 	// vsyncstart irq.
 	//cpuRegs.eCycle[30] = 2;
@@ -573,22 +581,27 @@ __fi void rcntUpdate_vSync()
 		vsyncCounter.CycleT = vSyncInfo.Render;
 		vsyncCounter.Mode = MODE_VRENDER;
 	}
+	else if (vsyncCounter.Mode == MODE_GSBLANK) // GS CSR Swap and interrupt
+	{
+		GSVSync();
+
+		vsyncCounter.Mode = MODE_VSYNC;
+		// Don't set the start cycle, makes it easier to calculate the correct Vsync End time
+		vsyncCounter.CycleT = vSyncInfo.Blank;
+	}
 	else	// VSYNC end / VRENDER begin
 	{
-
 #ifndef DISABLE_RECORDING
 		if (g_Conf->EmuOptions.EnableRecordingTools)
 		{
 			g_RecordingControls.HandleFrameAdvanceAndStop();
 		}
 #endif
-
 		VSyncStart(vsyncCounter.sCycle);
 
-
 		vsyncCounter.sCycle += vSyncInfo.Render;
-		vsyncCounter.CycleT = vSyncInfo.Blank;
-		vsyncCounter.Mode = MODE_VSYNC;
+		vsyncCounter.CycleT = vSyncInfo.GSBlank;
+		vsyncCounter.Mode = MODE_GSBLANK;
 
 		// Accumulate hsync rounding errors:
 		hsyncCounter.sCycle += vSyncInfo.hSyncError;
@@ -613,9 +626,11 @@ static __fi void _cpuTestTarget( int i )
 	if(counters[i].mode.TargetInterrupt) {
 
 		EECNT_LOG("EE Counter[%d] TARGET reached - mode=%x, count=%x, target=%x", i, counters[i].mode, counters[i].count, counters[i].target);
-		counters[i].mode.TargetReached = 1;
-		hwIntcIrq(counters[i].interrupt);
-
+		if (!counters[i].mode.TargetReached)
+		{
+			counters[i].mode.TargetReached = 1;
+			hwIntcIrq(counters[i].interrupt);
+		}
 		// The PS2 only resets if the interrupt is enabled - Tested on PS2
 		if (counters[i].mode.ZeroReturn)
 			counters[i].count -= counters[i].target; // Reset on target
@@ -631,8 +646,11 @@ static __fi void _cpuTestOverflow( int i )
 
 	if (counters[i].mode.OverflowInterrupt) {
 		EECNT_LOG("EE Counter[%d] OVERFLOW - mode=%x, count=%x", i, counters[i].mode, counters[i].count);
-		counters[i].mode.OverflowReached = 1;
-		hwIntcIrq(counters[i].interrupt);
+		if (!counters[i].mode.OverflowReached)
+		{
+			counters[i].mode.OverflowReached = 1;
+			hwIntcIrq(counters[i].interrupt);
+		}
 	}
 
 	// wrap counter back around zero, and enable the future target:

@@ -26,10 +26,6 @@ GSRendererDX11::GSRendererDX11()
 	: GSRendererHW(new GSTextureCache11(this))
 {
 	m_sw_blending = theApp.GetConfigI("accurate_blending_unit_d3d11");
-	if (theApp.GetConfigB("UserHacks"))
-		UserHacks_AlphaStencil = theApp.GetConfigB("UserHacks_AlphaStencil");
-	else
-		UserHacks_AlphaStencil = false;
 
 	ResetStates();
 }
@@ -45,7 +41,7 @@ void GSRendererDX11::SetupIA(const float& sx, const float& sy)
 
 	D3D11_PRIMITIVE_TOPOLOGY t;
 
-	bool unscale_pt_ln = m_userHacks_enabled_unscale_ptln && (GetUpscaleMultiplier() != 1);
+	const bool unscale_pt_ln = m_userHacks_enabled_unscale_ptln && (GetUpscaleMultiplier() != 1);
 
 	switch (m_vt.m_primclass)
 	{
@@ -58,6 +54,7 @@ void GSRendererDX11::SetupIA(const float& sx, const float& sy)
 
 		t = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
 		break;
+
 	case GS_LINE_CLASS:
 		if (unscale_pt_ln)
 		{
@@ -66,16 +63,29 @@ void GSRendererDX11::SetupIA(const float& sx, const float& sy)
 		}
 
 		t = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-
 		break;
+
 	case GS_SPRITE_CLASS:
-		t = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		// Lines: GPU conversion.
+		// Triangles: CPU conversion.
+		if (!m_vt.m_accurate_stq && m_vertex.next > 32)  // <=> 16 sprites (based on Shadow Hearts)
+		{
+			t = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		}
+		else
+		{
+			m_gs_sel.cpu_sprite = 1;
+			Lines2Sprites();
+
+			t = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		}
+
 		break;
+
 	case GS_TRIANGLE_CLASS:
-
 		t = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
 		break;
+
 	default:
 		__assume(0);
 	}
@@ -159,39 +169,29 @@ void GSRendererDX11::EmulateZbuffer()
 		m_om_dssel.ztst = ZTST_ALWAYS;
 	}
 
-	uint32 max_z;
-	if (m_context->ZBUF.PSM == PSM_PSMZ32)
-	{
-		max_z = 0xFFFFFFFF;
-	}
-	else if (m_context->ZBUF.PSM == PSM_PSMZ24)
-	{
-		max_z = 0xFFFFFF;
-	}
-	else
-	{
-		max_z = 0xFFFF;
-	}
+	// On the real GS we appear to do clamping on the max z value the format allows.
+	// Clamping is done after rasterization.
+	const uint32 max_z = 0xFFFFFFFF >> (GSLocalMemory::m_psm[m_context->ZBUF.PSM].fmt * 8);
+	const bool clamp_z = (uint32)(GSVector4i(m_vt.m_max.p).z) > max_z;
 
-	// The real GS appears to do no masking based on the Z buffer format and writing larger Z values
-	// than the buffer supports seems to be an error condition on the real GS, causing it to crash.
-	// We are probably receiving bad coordinates from VU1 in these cases.
+	vs_cb.MaxDepth = GSVector2i(0xFFFFFFFF);
+	ps_cb.Af_MaxDepth.y = 1.0f;
+	m_ps_sel.zclamp = 0;
 
-	if (m_om_dssel.ztst >= ZTST_ALWAYS && m_om_dssel.zwe && (m_context->ZBUF.PSM != PSM_PSMZ32))
+	if (clamp_z)
 	{
-		if (m_vt.m_max.p.z > max_z)
+		if (m_vt.m_primclass == GS_SPRITE_CLASS || m_vt.m_primclass == GS_POINT_CLASS)
 		{
-			ASSERT(m_vt.m_min.p.z > max_z); // sfex capcom logo
-			// Fixme :Following conditional fixes some dialog frame in Wild Arms 3, but may not be what was intended.
-			if (m_vt.m_min.p.z > max_z)
-			{
-#ifdef _DEBUG
-				fprintf(stdout, "%d: Bad Z size on %s buffers\n", s_n, psm_str(m_context->ZBUF.PSM));
-#endif
-				m_om_dssel.ztst = ZTST_ALWAYS;
-			}
+			vs_cb.MaxDepth = GSVector2i(max_z);
+		}
+		else
+		{
+			ps_cb.Af_MaxDepth.y = max_z * ldexpf(1, -32);
+			m_ps_sel.zclamp = 1;
 		}
 	}
+
+	
 
 	GSVertex* v = &m_vertex.buff[0];
 	// Minor optimization of a corner case (it allow to better emulate some alpha test effects)
@@ -604,7 +604,7 @@ void GSRendererDX11::EmulateBlending()
 
 		// Require the fix alpha vlaue
 		if (ALPHA.C == 2)
-			ps_cb.Af.x = (float)ALPHA.FIX / 128.0f;
+			ps_cb.Af_MaxDepth.x = (float)ALPHA.FIX / 128.0f;
 	}
 	else
 	{
@@ -1045,28 +1045,6 @@ void GSRendererDX11::DrawPrims(GSTexture* rt, GSTexture* ds, GSTextureCache::Sou
 	{
 		EmulateAtst(1, tex);
 	}
-
-	// FIXME: Purge it when remaining DATE cases in DATE selection are supported properly.
-	// Destination alpha pseudo stencil hack: use a stencil operation combined with an alpha test
-	// to only draw pixels which would cause the destination alpha test to fail in the future once.
-	// Unfortunately this also means only drawing those pixels at all, which is why this is a hack.
-	// It helps render transparency in Amagami, breaks a lot of other games.
-	if (UserHacks_AlphaStencil && DATE && !DATE_one && !m_texture_shuffle && m_om_bsel.wa && !m_context->TEST.ATE)
-	{
-		// fprintf(stderr, "%d: Alpha Stencil detected\n", s_n);
-		if (!m_context->FBA.FBA)
-		{
-			if (m_context->TEST.DATM == 0)
-				m_ps_sel.atst = 2; // >=
-			else
-				m_ps_sel.atst = 1; // <
-
-			ps_cb.FogColor_AREF.a = (float)0x80;
-		}
-		if (!(m_context->FBA.FBA && m_context->TEST.DATM == 1))
-			m_om_dssel.date_one = 1;
-	}
-	// END OF FIXME
 
 	if (tex)
 	{

@@ -319,7 +319,6 @@ bool AppCorePlugins::Shutdown()
 	if (_parent::Shutdown())
 	{
 		PostPluginStatus( CorePlugins_Shutdown );
-        
 		return true;
 	}
 	return false;
