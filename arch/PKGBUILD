@@ -1,0 +1,34 @@
+# Maintainer: katt <magunasu.b97@gmail.com>
+# Maintainer: beaumanvienna (JC) <beaumanvienna@gmail.com>
+
+pkgname=marley-git
+pkgver=0.1.5
+pkgrel=1
+pkgdesc='A bundle of console emulators for Linux (git)'
+arch=(x86_64)
+url=https://github.com/beaumanvienna/marley
+license=(GPL)
+depends=(libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch gnu-free-fonts boost-libs alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa libudev.so libusb-1.0.so libgl glew glibc zlib glu cmake git libglvnd python qt5-tools freetype2 qt5-base sfml libavcodec.so python libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so sdl2_image sdl2_ttf nasm boost libpng libsamplerate wxgtk2 libzip sndio aom zip bluez bluez-plugins bluez-utils)
+makedepends=(git)
+provides=("${pkgname%-git}")
+conflicts=("${pkgname%-git}")
+source=(git+"${url}".git)
+md5sums=('SKIP')
+
+pkgver() {
+	git -C "${pkgname%-git}" describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+	cd "${pkgname%-git}"
+	aclocal
+	autoconf
+	automake --add-missing --foreign
+	./configure --prefix=/usr
+	make
+}
+
+package() {
+	cd "${pkgname%-git}"
+	make DESTDIR="$pkgdir/" install
+}
