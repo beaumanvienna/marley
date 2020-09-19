@@ -139,10 +139,10 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | Arch, Manjaro | 
 | ---- | 
 | sudo pacman -S libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch gnu-free-fonts boost-libs \ |
-| alsa-lib bluez-libs enet libevdev libpulse libx11 libxi libxrandr lzo mbedtls libsndfile mesa  \ | 
+| alsa-lib bluez-libs enet libevdev libx11 libxi libxrandr lzo mbedtls libsndfile mesa libsamplerate \ | 
 | libudev.so libusb-1.0.so libgl glew glibc zlib glu cmake git libglvnd python qt5-tools  freetype2 \ |
-| qt5-base sfml libavcodec.so python libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
-| sdl2_image sdl2_ttf nasm boost libpng libsamplerate wxgtk2 libzip sndio aom zip bluez  bluez-plugins bluez-utils |
+| qt5-base sfml libavcodec.so libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
+| sdl2_image sdl2_ttf nasm boost libpng wxgtk2 libzip sndio aom zip bluez bluez-plugins bluez-utils |
 
 #clone & and check out revision <br />
 git clone https://github.com/beaumanvienna/marley  <br />
