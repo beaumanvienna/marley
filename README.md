@@ -45,8 +45,7 @@ Happy retro gaming! <br />
 Team Marley
 <br />
 ## Controls
-<br />error: target not found: marley-git
-==> WARNING: Skipped checkpkg due to missing repo packages
+<br />
 Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
 <br />
 Use "f" to toggle fullscreen in-game or in the front end.<br />
