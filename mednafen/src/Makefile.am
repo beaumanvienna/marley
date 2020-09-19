@@ -5,7 +5,7 @@ DEFAULT_INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_bui
 lib_LIBRARIES	=	libmednafen_marley.a
 
 SUBDIRS			=
-noinst_LIBRARIES	=
+noinst_LIBRARIES	= libmednafen_marley.a
 libmednafen_marley_a_LIBADD		=
 libmednafen_marley_a_DEPENDENCIES	=
 libmednafen_marley_a_SOURCES 	= 	debug.cpp error.cpp mempatcher.cpp settings.cpp endian.cpp Time.cpp mednafen.cpp git.cpp file.cpp general.cpp memory.cpp netplay.cpp state.cpp state_rewind.cpp movie.cpp player.cpp PSFLoader.cpp SSFLoader.cpp SNSFLoader.cpp SPCReader.cpp tests.cpp qtrecord.cpp IPSPatcher.cpp 

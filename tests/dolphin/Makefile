@@ -101,7 +101,7 @@ all: DOLPHIN
 
 DOLPHIN: main.cpp
 	$(info   *************** tests make dolphin ***************)
-	$(MAKE) -C ../../dolphin/build all -j8
+	$(MAKE) -C ../../dolphin/build all
 	g++ $(COMPILER_ARTIFACTS) -o DOLPHIN main.cpp $(LINKER_OBJECTS)
 
 clean:

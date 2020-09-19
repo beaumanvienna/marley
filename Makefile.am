@@ -4,6 +4,9 @@ SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
 SUBDIRS += tests
+man6_MANS = resources/marley.6
+CORES = $(shell grep -c ^processor /proc/cpuinfo )
+MAKEFLAGS= -j$(CORES)
 
 #marley
 if DEBUG
