@@ -23,7 +23,7 @@ gamepads. Gamepads can be hotplugged and automatically detected
 in the launcher interface. Marley also allows one to configure 
 the button assignment of a controller manually. The controller settings 
 are shared with all emulators. Marley allows browsing
-one's ROM collection and launch games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
+one's ROM collection and launching games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
 <br />
 Please make sure to install an
 OpenGl driver for your graphics card. <br /> 
@@ -45,7 +45,8 @@ Happy retro gaming! <br />
 Team Marley
 <br />
 ## Controls
-<br />
+<br />error: target not found: marley-git
+==> WARNING: Skipped checkpkg due to missing repo packages
 Use your controller or arrow keys/enter/escape on your keyboard to navigate.<br />
 <br />
 Use "f" to toggle fullscreen in-game or in the front end.<br />
