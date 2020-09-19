@@ -10,6 +10,9 @@ clean:
 	$(MAKE) -C mednafen $@
 	$(MAKE) -C dolphin $@
 
+install:
+	$(info   *************** install checkpoint ***************)
+
 unit_tests:
 	$(info   *************** make all unit tests ***************)
 	$(MAKE) -C pcsx2 all

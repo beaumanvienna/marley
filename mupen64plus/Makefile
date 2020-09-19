@@ -3,6 +3,8 @@ SUBDIRS = Source
 
 all: Source
 	$(info   *************** mupen all end ***************)
+install: 
+	$(info   *************** install checkpoint ***************)
 Source:
 	$(info   *************** mupen Source ***************)
 	$(MAKE) -C $@

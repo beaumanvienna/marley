@@ -4,6 +4,8 @@ CORES = $(shell grep -c ^processor /proc/cpuinfo )
 
 all: build
 	$(info   *************** ppsspp all end ***************)
+install:
+	$(info   *************** install checkpoint ***************)
 build:
 	$(info   *************** ppsspp build ***************)
 	$(MAKE) -C $@ -j$(CORES)
