@@ -1,9 +1,9 @@
 [Desktop Entry]
-Version=0.0.3
+Version=0.1.5
 Name=marley
 GenericName=marley
-Comment=Launcher for emulators
-Exec=/usr/games/marley
+Comment=emulator bundle
+Exec=/usr/local/bin/marley
 Icon=/usr/share/icons/marley.ico
 Terminal=false
 Type=Application

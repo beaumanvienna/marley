@@ -1,14 +1,26 @@
+
+# directories
 SUBDIRS = pcsx2
 SUBDIRS += mupen64plus
 SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
 SUBDIRS += tests
+
+#installation files
 man6_MANS = resources/marley.6
+
+applauncherdir = /usr/share/applications
+applauncher_DATA = resources/marley.desktop
+
+appicondir = /usr/share/icons/marley.ico
+appicon_DATA = resources/marley.ico
+
+# make flags
 CORES = $(shell grep -c ^processor /proc/cpuinfo )
 MAKEFLAGS= -j$(CORES)
 
-#marley
+#front end compiler settings
 if DEBUG
 AM_CXXFLAGS		= --std=c++17 -ggdb3 -g3 -O0 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednafen -Idolphin/Source/Core @GTK_HEADERS_INCLUDE@
 AM_LDFLAGS		= --std=c++17 -ggdb3 -g3 -O0 -fno-pie -no-pie -L/usr/lib/x86_64-linux-gnu
@@ -17,6 +29,7 @@ AM_CXXFLAGS		= --std=c++17 -O2 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednaf
 AM_LDFLAGS		= --std=c++17 -O2 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu
 endif
 
+#project target
 
 bin_PROGRAMS 	= marley		
 marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp resources/pcsx2_res.cpp
@@ -47,7 +60,6 @@ resources/pcsx2/libFWnull-0.7.0.so: 	pcsx2/build/plugins/FWnull/libFWnull-0.7.0.
 resources/pcsx2/libdev9ghzdrk-0.4.so: 	pcsx2/build/plugins/dev9ghzdrk/libdev9ghzdrk-0.4.so
 resources/pcsx2/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
 
-
 #generate pcsx2 built-in resources
 
 PCSX2_RESOURCES =  resources/pcsx2/libCDVDnull.so
@@ -60,7 +72,6 @@ PCSX2_RESOURCES += resources/pcsx2/libdev9null-0.5.0.so
 
 $(PCSX2_RESOURCES):
 	cp -f $< $@
-
 
 resources/pcsx2_res.cpp: resources/pcsx2_res.xml resources/pcsx2_res.h $(PCSX2_RESOURCES)
 	glib-compile-resources resources/pcsx2_res.xml --target=resources/pcsx2_res.cpp --sourcedir=resources/ --generate-source

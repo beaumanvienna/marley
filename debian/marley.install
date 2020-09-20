@@ -1,4 +1,4 @@
-./marley usr/games
+./marley /usr/local/bin
 
 #resources
 ./resources/marley.desktop usr/share/applications

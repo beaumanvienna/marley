@@ -138,7 +138,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 
 | Arch, Manjaro | 
 | ---- | 
-| sudo pacman -S libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch gnu-free-fonts boost-libs \ |
+| sudo pacman -S libaio libjpeg-turbo libpcap libpulse portaudio sdl2 soundtouch boost-libs \ |
 | alsa-lib bluez-libs enet libevdev libx11 libxi libxrandr lzo mbedtls libsndfile mesa libsamplerate \ | 
 | libudev.so libusb-1.0.so libgl glew glibc zlib glu cmake git libglvnd python qt5-tools  freetype2 \ |
 | qt5-base sfml libavcodec.so libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
