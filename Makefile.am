@@ -13,7 +13,7 @@ man6_MANS = resources/marley.6
 applauncherdir = /usr/share/applications
 applauncher_DATA = resources/marley.desktop
 
-appicondir = /usr/share/icons/marley.ico
+appicondir = /usr/share/icons/
 appicon_DATA = resources/marley.ico
 
 # make flags
