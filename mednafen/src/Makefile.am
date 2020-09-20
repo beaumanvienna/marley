@@ -2,8 +2,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 DEFS = @DEFS@ @SNDFILE_CFLAGS@
 DEFAULT_INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_builddir)/intl
 
-lib_LIBRARIES	=	libmednafen_marley.a
-
 SUBDIRS			=
 noinst_LIBRARIES	= libmednafen_marley.a
 libmednafen_marley_a_LIBADD		=
