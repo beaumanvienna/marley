@@ -15,7 +15,8 @@ AM_INIT_AUTOMAKE([subdir-objects])
 #reset flags
 AM_CXXFLAGS=
 AM_LDFLAGS=
-
+echo "MAKEFLAGS $MAKEFLAGS"
+echo $MAKEFLAGS > mupen64plus/Source/.makeflags
 #debug option "--enable-debug"
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],

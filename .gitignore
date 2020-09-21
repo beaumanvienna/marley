@@ -400,3 +400,4 @@ resources/ppsspp_assets.zip
 resources/dolphin_data_sys.zip
 ppsspp/ffmpeg/linux/x86_64/include/libavutil/ffversion.h
 tests/.debug_build
+mupen64plus/Source/.makeflags

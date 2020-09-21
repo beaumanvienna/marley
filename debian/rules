@@ -8,7 +8,7 @@ override_dh_auto_configure:
 	aclocal 
 	autoconf
 	automake --add-missing --foreign
-	./configure
+	./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS
 	
 override_dh_auto_build:
 

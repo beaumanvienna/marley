@@ -16,9 +16,35 @@ applauncher_DATA = resources/marley.desktop
 appicondir = /usr/share/icons/
 appicon_DATA = resources/marley.ico
 
-# make flags
-CORES = $(shell grep -c ^processor /proc/cpuinfo )
-MAKEFLAGS= -j$(CORES)
+#additional make clean targets
+clean-local:
+	-rm -rf confdefs.h
+	-rm -rf tests/.debug_build
+	-rm -rf resources/dolphin_data_sys.zip
+	-rm -rf resources/pcsx2
+	-rm -rf resources/*.cpp
+	-rm -rf resources/*.h
+	-rm -rf resources/ppsspp_assets.zip
+	-rm -rf ppsspp/ffmpeg/libavutil/*.o
+	-rm -rf ppsspp/ffmpeg/libswscale/*.o
+	-rm -rf ppsspp/ffmpeg/libavcodec/*.o
+	-rm -rf ppsspp/ffmpeg/libavformat/*.o
+	-rm -rf ppsspp/ffmpeg/libswresample/*.o
+	-rm -rf ppsspp/ffmpeg/libavutil/*.a
+	-rm -rf ppsspp/ffmpeg/libswscale/*.a
+	-rm -rf ppsspp/ffmpeg/libavcodec/*.a
+	-rm -rf ppsspp/ffmpeg/libavformat/*.a
+	-rm -rf ppsspp/ffmpeg/libswresample/*.a
+	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavutil.a
+	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavformat.a
+	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswscale.a
+	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswresample.a
+	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavcodec.a
+	-rm -rf ppsspp/ffmpeg/libavutil/x86/*.o
+	-rm -rf ppsspp/ffmpeg/libswscale/x86/*.o
+	-rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
+	-rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
+	-rm -rf ppsspp/ffmpeg/libswresample/x86/*.o
 
 #front end compiler settings
 if DEBUG

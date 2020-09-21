@@ -150,8 +150,13 @@ cd marley <br />
 #change to the branch you like to work with (currently only 'master')  <br />
 git checkout master <br />
 
+### Define the number of CPU cores to be used for compiling. "-j1" for one core, "-j2" for two cores, etc. To use all available CPU cores, say:
+export MAKEFLAGS=-j$(nproc)
+### Please check, if the number of CPU cores to be used for compiling is as expected:
+echo $MAKEFLAGS
+
 ### Configure and make
-aclocal && autoconf && automake --add-missing --foreign && ./configure <br />
+aclocal && autoconf && automake --add-missing --foreign && ./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS<br />
 make<br />
 
 
