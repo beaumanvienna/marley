@@ -166,3 +166,5 @@ make<br />
 ### start it
 ./marley <br />
 
+### install system-wide
+sudo make install <br />
