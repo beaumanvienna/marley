@@ -155,7 +155,7 @@ git checkout master <br />
 #To use all available CPU cores, say:<br />
 export MAKEFLAGS=-j$(nproc)
 
-#Check, if MAKEFLAGS is as expected:
+#Check, if MAKEFLAGS is as expected:<br />
 echo $MAKEFLAGS
 
 ### Configure and make
