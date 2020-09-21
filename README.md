@@ -144,15 +144,15 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | qt5-base sfml libavcodec.so libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
 | sdl2_image sdl2_ttf nasm boost libpng wxgtk2 libzip sndio aom zip bluez bluez-plugins bluez-utils |
 
-#clone & and check out revision <br />
+### clone and check out branch <br />
 git clone https://github.com/beaumanvienna/marley  <br />
 cd marley <br />
 #change to the branch you like to work with (currently only 'master')  <br />
 git checkout master <br />
 
 ### Define the number of CPU cores to be used for compiling
-#"-j1" for one core, "-j2" for two cores, etc. 
-#To use all available CPU cores, say:
+#"-j1" for one core, "-j2" for two cores, etc. <br />
+#To use all available CPU cores, say:<br />
 export MAKEFLAGS=-j$(nproc)
 
 #Check, if MAKEFLAGS is as expected:
