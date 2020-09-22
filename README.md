@@ -159,9 +159,9 @@ export MAKEFLAGS=-j$(nproc)
 echo $MAKEFLAGS
 
 ### Configure and make
+#Marley should be installed to /user/local/bin. This is where the Unity/Gnome desktop launcher expects it:<br />
 #use --prefix=/usr/local on Ubuntu <br />
 #use --prefix=/usr on Arch<br />
-#Marley should be installed to /user/local/bin. This is where the Unity/Gnome desktop launcher expects it.<br />
 <br />
 aclocal && autoconf && automake --add-missing --foreign && ./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS<br />
 make<br />
