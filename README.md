@@ -174,7 +174,7 @@ make<br />
 sudo make install <br />
 
 ### Using clang instead of gcc<br />
-# From where "Configure and make" is described above, say<br />
+#From where "Configure and make" is described above, say<br />
 export CXX=clang++
 export CC=clang
 aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC && make
