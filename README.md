@@ -173,8 +173,8 @@ make<br />
 ### Install system-wide
 sudo make install <br />
 
-### Using clang instead of gcc<br />
+### Remark: using clang instead of gcc<br />
 #From where "Configure and make" is described above, say<br />
-export CXX=clang++
-export CC=clang
-aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC && make
+export CXX=clang++<br />
+export CC=clang<br />
+aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC && make<br />
