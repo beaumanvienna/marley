@@ -31,10 +31,11 @@ linux_64_before_install() {
 
 
 linux_64_script() {
+	export MAKEFLAGS=-j3
 	aclocal 
 	autoconf
 	automake --add-missing --foreign
-	./configure
+	./configure MAKEFLAGS=$MAKEFLAGS
 	make
 }
 
