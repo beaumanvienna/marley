@@ -79,7 +79,7 @@ The mapping of the game controllers happens entirely in the front end. Unlike th
 <br />
 Needless to say, Marley has a configuration folder in which the core modules save their settings. Marley is completely isolated from other emulator installations. <br />
 <br />
-The project build system is autoconf, however, most emulator modules use cmake. The build processes are chained together and take about 70 minutes on Launchpad. We tried integrating Travis into the Github repository. Unfortunately, the build was too long (or their build server too slow) and it got canceled.  Github CI has yet to be looked into. There are no intentions to set this project up for Windows. Since most people prefer gaming under Windows, pull requests in this regard are welcome, though. The emulators should work fine under Windows, except for PCSX2, for which the latest x64 version supporting both Linux and Windows did not work. This PCSX2 version is trying to allocate memory close to the program code, which unfortunately fails when the other core modules are present. This issue could be solved with a few defines. <br />
+The project build system is autoconf, however, most emulator modules use cmake. The build processes are chained together. Marley can be compiled with gcc or clang. We tried integrating Travis into the Github repository. Unfortunately, the build was too long (or their build server too slow) and it got canceled.  Github CI has yet to be looked into. There are no intentions to set this project up for Windows. Since most people prefer gaming under Windows, pull requests in this regard are welcome, though. The emulators should work fine under Windows, except for PCSX2, for which the latest x64 version supporting both Linux and Windows did not work. This PCSX2 version is trying to allocate memory close to the program code, which unfortunately fails when the other core modules are present. This issue could be solved with a few defines. <br />
 <br />
 Currently, development takes place under Ubuntu and Arch Linux. Testing is happening under Bionic and Focal, under Arch Linux, and soon also under Fedora and Gentoo. <br />
 <br />
@@ -177,4 +177,5 @@ sudo make install <br />
 #From where "Configure and make" is described above, say<br />
 export CXX=clang++<br />
 export CC=clang<br />
-aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC && make<br />
+aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC<br />
+make<br />
