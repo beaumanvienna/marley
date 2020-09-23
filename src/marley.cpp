@@ -213,7 +213,7 @@ void initApp(void)
      
 }
 
-//Frees media and shuts down SDL
+//Free media and shut down SDL
 void closeAll()
 {
     //Free loaded textures
