@@ -1,6 +1,6 @@
 #this file is required to chain the autoconf run in ../ with the cmake run in build/
 SUBDIRS = Source
-override MAKEFLAGS= 
+
 all: Source
 	$(info   *************** mupen all end ***************)
 install: 
