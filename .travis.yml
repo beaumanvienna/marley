@@ -1,10 +1,10 @@
 language: cpp
-					
+
 sudo: required
 
 cache: ccache
 
-dist: focal
+dist: bionic
 
 matrix:
   include:

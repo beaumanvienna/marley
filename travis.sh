@@ -12,8 +12,8 @@ linux_64_before_install() {
 	sudo apt-get -qq update
 
 	sudo apt-get -y install \
-		libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath \
-		libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
+		debhelper cmake chrpath libsdl2-dev libsdl2-image-dev \
+		libsdl2-ttf-dev \
 		autotools-dev dh-autoreconf libasound2-dev libgl1-mesa-dev \
 		libjack-dev liblzo2-dev libmpcdec-dev libsamplerate0-dev libsndio-dev \
 		libsndfile1-dev libtrio-dev libvorbisidec-dev x11proto-core-dev zlib1g-dev \
@@ -22,17 +22,19 @@ linux_64_before_install() {
 		libegl1-mesa-dev libenet-dev libevdev-dev libgtk2.0-dev \
 		libminiupnpc-dev libopenal-dev libmbedtls-dev libpulse-dev \
 		libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \
-		libusb-1.0-0-dev libwxbase3.0-dev libxext-dev libx11-xcb-dev \
+		libusb-1.0-0-dev libwxbase3.0-dev libwxgtk3.0-dev libxext-dev \
 		libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \
 		libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \
-		libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip build-essential libzstd-dev \
+		libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales-all \
 		${COMPILER_PACKAGE}
 }
 
 
 linux_64_script() {
-	export MAKEFLAGS=-j4
-	aclocal && autoconf && automake --add-missing --foreign && ./configure --prefix=/usr/local MAKEFLAGS=$MAKEFLAGS
+	aclocal 
+	autoconf
+	automake --add-missing --foreign
+	./configure
 	make
 }
 
