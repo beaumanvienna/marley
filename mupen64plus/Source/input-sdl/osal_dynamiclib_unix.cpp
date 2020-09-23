@@ -18,7 +18,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+/*
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +32,6 @@ void * osal_dynlib_getproc(m64p_dynlib_handle LibHandle, const char *pccProcedur
         return NULL;
 
     return dlsym(LibHandle, pccProcedureName);
-}
+}*/
 
 

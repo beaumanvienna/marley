@@ -18,7 +18,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+/*
 #include <dlfcn.h>
 #include <stdlib.h>
 
@@ -32,9 +32,9 @@ m64p_function osal_dynlib_getproc(m64p_dynlib_handle LibHandle, const char *pccP
     if (pccProcedureName == NULL)
         return NULL;
 
-/* WARN: assume cast to m64p_function is supported by platform and disable warning accordingly */
+// WARN: assume cast to m64p_function is supported by platform and disable warning accordingly
 OSAL_WARNING_PUSH
 OSAL_NO_WARNING_FPTR_VOIDP_CAST
     return (m64p_function)dlsym(LibHandle, pccProcedureName);
 OSAL_WARNING_POP
-}
+}*/

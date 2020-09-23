@@ -168,11 +168,11 @@ private:
 	std::vector<u32> lineAddresses;
 };
 
-class DisassemblyComment: public DisassemblyEntry
+class PDisassemblyComment: public DisassemblyEntry
 {
 public:
-	DisassemblyComment(DebugInterface* _cpu, u32 _address, u32 _size, std::string name, std::string param);
-	virtual ~DisassemblyComment() { };
+	PDisassemblyComment(DebugInterface* _cpu, u32 _address, u32 _size, std::string name, std::string param);
+	virtual ~PDisassemblyComment() { };
 
 	virtual void recheck() { };
 	virtual int getNumLines() { return 1; };

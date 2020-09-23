@@ -94,7 +94,7 @@ ifeq ("$(CPU)","OTHER")
 endif
 
 # base CFLAGS, LDLIBS, and LDFLAGS
-OPTFLAGS ?= -O3 -flto
+OPTFLAGS ?= -O3
 WARNFLAGS ?= -Wall
 CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -fvisibility=hidden -I.
 LDFLAGS = $(STATICLIB)
@@ -263,7 +263,6 @@ endif
 #endif
 
 # set base program pointers and flags
-CC        = $(CROSS_COMPILE)gcc
 RM       ?= rm -f
 INSTALL  ?= install
 MKDIR ?= mkdir -p

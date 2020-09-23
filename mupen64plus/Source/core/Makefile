@@ -141,7 +141,7 @@ ifeq ("$(CPU)","NONE")
 endif
 
 # base CFLAGS, LDLIBS, and LDFLAGS
-OPTFLAGS ?= -O3 -flto
+OPTFLAGS ?= -O3
 WARNFLAGS ?= -Wall
 CFLAGS += -ffast-math -fno-strict-aliasing -fvisibility=hidden -I. -Iasm_defines -DM64P_PARALLEL
 CXXFLAGS += -fvisibility-inlines-hidden
@@ -392,8 +392,6 @@ ifeq ($(OSD), 1)
 endif
 
 # set base program pointers and flags
-CC        = $(CROSS_COMPILE)gcc
-CXX       = $(CROSS_COMPILE)g++
 STRINGS   = $(CROSS_COMPILE)strings
 AS        = nasm
 TR       ?= tr

@@ -18,7 +18,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+/*
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,8 +37,8 @@ m64p_error osal_dynlib_open(m64p_dynlib_handle *pLibHandle, const char *pccLibra
 
     if (*pLibHandle == NULL)
     {
-        /* only print an error message if there is a directory separator (/) in the pathname */
-        /* this prevents us from throwing an error for the use case where Mupen64Plus is not installed */
+        // only print an error message if there is a directory separator (/) in the pathname
+        // this prevents us from throwing an error for the use case where Mupen64Plus is not installed
         if (strchr(pccLibraryPath, '/') != NULL)
             HleErrorMessage(NULL, "dlopen('%s') failed: %s", pccLibraryPath, dlerror());
         return M64ERR_INPUT_NOT_FOUND;
@@ -66,6 +66,6 @@ m64p_error osal_dynlib_close(m64p_dynlib_handle LibHandle)
     }
 
     return M64ERR_SUCCESS;
-}
+}*/
 
 

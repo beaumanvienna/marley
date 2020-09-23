@@ -559,7 +559,7 @@ void PDisassemblyFunction::load()
 		{
 			u32 nextPos = (funcPos+3) & ~3;
 
-			DisassemblyComment* comment = new DisassemblyComment(cpu,funcPos,nextPos-funcPos,".align","4");
+			PDisassemblyComment* comment = new PDisassemblyComment(cpu,funcPos,nextPos-funcPos,".align","4");
 			entries[funcPos] = comment;
 			lineAddresses.push_back(funcPos);
 			
@@ -1021,13 +1021,13 @@ void PDisassemblyData::createLines()
 }
 
 
-DisassemblyComment::DisassemblyComment(DebugInterface* _cpu, u32 _address, u32 _size, std::string _name, std::string _param)
+PDisassemblyComment::PDisassemblyComment(DebugInterface* _cpu, u32 _address, u32 _size, std::string _name, std::string _param)
 	: cpu(_cpu), address(_address), size(_size), name(_name), param(_param)
 {
 
 }
 
-bool DisassemblyComment::disassemble(u32 address, DisassemblyLineInfo& dest, bool insertSymbols)
+bool PDisassemblyComment::disassemble(u32 address, DisassemblyLineInfo& dest, bool insertSymbols)
 {
 	dest.type = DISTYPE_OTHER;
 	dest.name = name;
