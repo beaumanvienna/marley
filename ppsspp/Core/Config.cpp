@@ -520,7 +520,7 @@ static ConfigSetting cpuSettings[] = {
 
 static int DefaultInternalResolution() {
 	// Auto on Windows and Linux, 2x on large screens, 1x elsewhere.
-#if defined(USING_WIN_UI) || defined(USING_QT_UI)
+/*#if defined(USING_WIN_UI) || defined(USING_QT_UI)
 	return 0;
 #else
 	int longestDisplaySide = std::max(System_GetPropertyInt(SYSPROP_DISPLAY_XRES), System_GetPropertyInt(SYSPROP_DISPLAY_YRES));
@@ -528,6 +528,8 @@ static int DefaultInternalResolution() {
 	ILOG("Longest display side: %d pixels. Choosing scale %d", longestDisplaySide, scale);
 	return scale;
 #endif
+*/
+	return 2;
 }
 
 static int DefaultUnthrottleMode() {
@@ -791,7 +793,7 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("TexScalingType", &g_PConfig.iTexScalingType, 0, true, true),
 	ReportedConfigSetting("TexDeposterize", &g_PConfig.bTexDeposterize, false, true, true),
 	ReportedConfigSetting("TexHardwareScaling", &g_PConfig.bTexHardwareScaling, false, true, true),
-	ConfigSetting("VSyncInterval", &g_PConfig.bVSync, false, true, true),
+	ConfigSetting("VSyncInterval", &g_PConfig.bVSync, true, true, true),
 	ReportedConfigSetting("BloomHack", &g_PConfig.iBloomHack, 0, true, true),
 
 	// Not really a graphics setting...
