@@ -91,7 +91,6 @@ int y_offset_10;
 
 void hide_or_show_cursor_X11(bool hide) 
 {
-    printf("jc: void disable_cursor_X11(void)  \n");
     Display *display   = XOpenDisplay(NULL);
     int active_screen  = DefaultScreen(display);
     Window active_root = RootWindow(display, active_screen);

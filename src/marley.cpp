@@ -235,6 +235,7 @@ int main( int argc, char* argv[] )
     int k,l,m,id;
     string cmd;
     bool ignoreESC=false;
+    bool keepX11pointer=false;
     
     gFullscreen=false;
     
@@ -274,6 +275,11 @@ int main( int argc, char* argv[] )
         {
             gFullscreen=true;
         } 
+        
+        if ((str.find("--keepX11pointer") == 0) || (str.find("-k") == 0))
+        {
+            keepX11pointer=true;
+        } 
                     
         if (( access( str.c_str(), F_OK ) != -1 ))
         {
@@ -283,6 +289,9 @@ int main( int argc, char* argv[] )
         
     }
     
+    if (!keepX11pointer) 
+      hide_or_show_cursor_X11(CURSOR_HIDE);
+
     //Start up SDL and create window
     if( !init() )
     {

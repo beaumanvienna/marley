@@ -70,7 +70,7 @@ using namespace std;
     void setWindowed(void);
     bool restoreGUI();
     bool createRenderer(void);
-    
+    void hide_or_show_cursor_X11(bool hide);
     SDL_Texture* loadTextureFromFile(string str);
     
     //rendering window 
