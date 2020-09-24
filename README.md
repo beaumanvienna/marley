@@ -20,10 +20,10 @@ The project is comprised of Mednafen, Dolphin,
 Mupen64plus, PPSSPP, and PCSX2.
 Marley's launcher interface is designed to be used with 
 gamepads. Gamepads can be hotplugged and automatically detected
-in the launcher interface. Marley also allows one to configure 
+in the launcher interface. Marley also allows to configure 
 the button assignment of a controller manually. The controller settings 
 are shared with all emulators. Marley allows browsing
-one's ROM collection and launching games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
+ROM collections and launching games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
 <br />
 Please make sure to install an
 OpenGl driver for your graphics card. <br /> 
