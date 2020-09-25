@@ -24,7 +24,7 @@ build() {
 	aclocal
 	autoconf
 	automake --add-missing --foreign
-	./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS
+	./configure --prefix=/usr/local MAKEFLAGS=$MAKEFLAGS
 	make
 }
 
