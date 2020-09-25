@@ -161,7 +161,7 @@ echo $MAKEFLAGS
 
 ### Configure and make
 aclocal && autoconf && automake --add-missing --foreign<br /> 
-./configure --prefix=/usr/local MAKEFLAGS=$MAKEFLAGS<br />
+./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS<br />
 make<br />
 
 

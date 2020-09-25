@@ -1,4 +1,4 @@
-./marley /usr/local/bin
+./marley /usr/bin
 
 #resources
 ./resources/marley.desktop usr/share/applications
