@@ -425,6 +425,7 @@ void statemachine(int cmd)
                             
                             int n;
                             string str, ext;
+                            bool emuFound = false;
                             
                             window_flags=SDL_GetWindowFlags(gWindow);
                             if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
@@ -446,6 +447,7 @@ void statemachine(int cmd)
                             
                             if ((ext == "iso") && (str.find("ps2") != string::npos))
                             {
+                                emuFound = true;
                                 str = "pcsx2";
                                 n = str.length(); 
                                 strcpy(arg1, str.c_str()); 
@@ -519,7 +521,7 @@ void statemachine(int cmd)
                             
                             if (ext == "z64")
                             {
-                                
+                                emuFound = true;
                                 
                                 str = "mupen64plus";
                                 n = str.length(); 
@@ -540,7 +542,7 @@ void statemachine(int cmd)
                             
                             if ((ext == "iso") && (str.find("psp") != string::npos))
                             {
-                                
+                                emuFound = true;
                                 
                                 str = "ppsspp";
                                 n = str.length(); 
@@ -563,7 +565,7 @@ void statemachine(int cmd)
                             if (((ext == "iso") ||(ext == "wbfs")) && ((str.find("wii") != string::npos)||(str.find("gamecube") != string::npos)))
                             {
                                 
-                                
+                                emuFound = true;
                                 str = "dolphin-emu";
                                 n = str.length(); 
                                 strcpy(arg1, str.c_str()); 
@@ -582,7 +584,7 @@ void statemachine(int cmd)
                             
                             
 #ifdef MEDNAFEN
-                            if ((ext != "iso") && (ext != "z64"))
+                            if (!emuFound)
                             {
                                 str = "mednafen";
                                 n = str.length(); 
