@@ -1,0 +1,11 @@
+/* confdefs.h */
+#define PACKAGE_NAME "marley"
+#define PACKAGE_TARNAME "marley"
+#define PACKAGE_VERSION "0.1.5"
+#define PACKAGE_STRING "marley 0.1.5"
+#define PACKAGE_BUGREPORT ""
+#define PACKAGE_URL ""
+#define PACKAGE "marley"
+#define VERSION "0.1.5"
+#define PACKAGE "marley"
+#define VERSION "0.1.5"
