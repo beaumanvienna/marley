@@ -585,15 +585,7 @@ if(NOT XXHASH_FOUND)
   add_subdirectory(Externals/xxhash)
 endif()
 
-#find_package(BZip2)
-#if(BZIP2_FOUND)
-#  message(STATUS "Using shared bzip2")
-#else()
-  check_vendoring_approved(bzip2)
-#  message(STATUS "Shared bzip2 not found, falling back to the static library")
-  add_subdirectory(Externals/bzip2)
-endif()
-
+add_subdirectory(Externals/bzip2)
 add_subdirectory(Externals/liblzma)
 add_subdirectory(Externals/zstd)
 
