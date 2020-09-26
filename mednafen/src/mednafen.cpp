@@ -1426,7 +1426,8 @@ bool MDFNI_InitializeModules(void)
   &EmulatedDEMO
  };
  static_assert(MEDNAFEN_VERSION_NUMERIC >= 0x00102200, "Bad MEDNAFEN_VERSION_NUMERIC");
-
+ MDFNSystems.clear();
+ MDFNSystemsPrio.clear();
  for(unsigned int i = 0; i < sizeof(InternalSystems) / sizeof(MDFNGI *); i++)
   AddSystem(InternalSystems[i]);
 
@@ -2089,7 +2090,6 @@ void MDFN_indent(int indent)
  curindent += indent;
  if(curindent < 0)
  {
-  fprintf(stderr, "MDFN_indent negative!\n");
   curindent = 0;
  }
 }

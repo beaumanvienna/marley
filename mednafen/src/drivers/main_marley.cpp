@@ -2117,6 +2117,7 @@ __attribute__((force_align_arg_pointer))	// Not sure what's going on to cause th
 #warning "JC: modified"
 int mednafen_main(int argc, char *argv[])
 {
+    MDFN_indent(-10);
     DrBaseDirectory = "";
     MDFNSystems.clear();
     NeoDriverSettings.clear(); 

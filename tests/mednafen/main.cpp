@@ -516,15 +516,34 @@ int main(int argc, char* argv[])
 
         mednafen_argv[1] = arg2;
         mednafen_argc = 2; 
+        
+        mednafen_main(mednafen_argc,mednafen_argv);
+        if (argc > 2)
+        {
+            str = argv[2];
+            n = str.length(); 
+            strcpy(arg2, str.c_str());
+
+            mednafen_argv[1] = arg2;
+        }
+        mednafen_main(mednafen_argc,mednafen_argv);
+        if (argc > 3)
+        {
+            str = argv[3];
+            n = str.length(); 
+            strcpy(arg2, str.c_str());
+
+            mednafen_argv[1] = arg2;
+        }
+        mednafen_main(mednafen_argc,mednafen_argv);
     }
     else
     {
         mednafen_argc = 1; 
+        mednafen_main(mednafen_argc,mednafen_argv);
     }
 
-    mednafen_main(mednafen_argc,mednafen_argv);
-    mednafen_main(mednafen_argc,mednafen_argv);
-    mednafen_main(mednafen_argc,mednafen_argv);
+    
     printf("jc exit test\n");
 
     return 0;
