@@ -18,8 +18,6 @@ void sBus::reset() {
 }
 
 bool sBus::load_cart() {
-  if(cartridge.loaded() == true) return false;
-
   map_reset();
   map_generic();
   map_system();
