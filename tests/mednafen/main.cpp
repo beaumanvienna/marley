@@ -516,7 +516,7 @@ int main(int argc, char* argv[])
 
         mednafen_argv[1] = arg2;
         mednafen_argc = 2; 
-        
+
         mednafen_main(mednafen_argc,mednafen_argv);
         if (argc > 2)
         {
@@ -526,6 +526,16 @@ int main(int argc, char* argv[])
 
             mednafen_argv[1] = arg2;
         }
+        while( SDL_PollEvent( &event ) != 0 )
+        {
+            switch(event.type)
+            {
+                case SDL_QUIT:
+                    break;
+                default: 
+                    break;
+            }
+        }
         mednafen_main(mednafen_argc,mednafen_argv);
         if (argc > 3)
         {
@@ -534,6 +544,16 @@ int main(int argc, char* argv[])
             strcpy(arg2, str.c_str());
 
             mednafen_argv[1] = arg2;
+        }
+        while( SDL_PollEvent( &event ) != 0 )
+        {
+            switch(event.type)
+            {
+                case SDL_QUIT:
+                    break;
+                default: 
+                    break;
+            }
         }
         mednafen_main(mednafen_argc,mednafen_argv);
     }
