@@ -1202,9 +1202,10 @@ void SysCorePlugins::Unload(PluginsEnum_t pid)
 void SysCorePlugins::Unload()
 {
 	if( NeedsShutdown() )
+	{
 		Console.Warning( "(SysCorePlugins) Warning: Unloading plugins prior to shutdown!" );
-
-	//Shutdown();
+		Shutdown();
+	}
 
 	if( !NeedsUnload() ) return;
 
