@@ -37,12 +37,13 @@ bool a,a_prev;
 bool bbutton,b_prev;
 bool guide,guide_prev;
 bool wiimoteOnline, wiimoteOnline_prev;
-
+bool marley_wiimote;
 using namespace std;
 
 bool initWii(void)
 {
     bool ok = true;
+    marley_wiimote = true;
     
     string user_directory = gBaseDir;
     user_directory += "dolphin-emu";
@@ -77,7 +78,7 @@ void mainLoopWii(void)
     if (g_wiimotes[0]) 
     {   
         wiimoteOnline = true;
-        buttons = g_wiimotes[0]->getWiiButtons(0);
+        buttons = g_wiimotes[0]->buttons_hex;
         
         up      = (buttons & 0x0008);
         down    = (buttons & 0x0004);
@@ -114,15 +115,11 @@ void mainLoopWii(void)
     {
         if ( (wiimoteOnline) && (g_wiimotes[0]) )
         {
-                        
+
             //new wiimote detected
             printf("Wiimote detected\n");
             openWiimote(0);
-    
-            SDL_Delay(400);
-            //send command to request report for buttons
-            buttons = g_wiimotes[0]->getWiiButtons(1);
-            
+
         }
         else
         {
@@ -136,8 +133,6 @@ void mainLoopWii(void)
 
 void shutdownWii(void)
 {
-    //Core::Stop();
-    //Core::Shutdown();
     UICommon::Shutdown();
 }
 

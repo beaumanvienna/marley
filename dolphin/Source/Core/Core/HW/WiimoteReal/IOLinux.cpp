@@ -221,7 +221,7 @@ void WiimoteLinux::IOWakeup()
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-bool busy;
+bool busy = false;
 int WiimoteLinux::IORead(u8* buf)
 {
   if (!busy) 

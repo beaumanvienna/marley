@@ -60,6 +60,7 @@ int secondRunValue;
 extern Display* XDisplay;
 extern Window Xwindow;
 extern int delay_after_shutdown;
+extern bool marley_wiimote;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -576,7 +577,9 @@ void statemachine(int cmd)
                                 argv[0] = arg1;
                                 argv[1] = arg2;
                                 printf("arg1: %s arg2: %s \n",arg1,arg2);
+                                marley_wiimote = false;
                                 dolphin_main(argc,argv);
+                                marley_wiimote = true;
                                 delay_after_shutdown = 10;
                                 restoreSDL();
                             }
