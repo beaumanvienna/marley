@@ -70,7 +70,7 @@ command line options: <br />
 ## Developer information
 Marley is using five core modules that are linked as static libraries. This way, it is ensured that the core modules are always available, compiled with the same compiler / compiler version, and against the same dependencies. Resources are shared among the front end and the emulators. For the most part, these are the SDL game controller instances, the SDL main window, and the Open GL settings. <br />
 <br />
-Pull requests are welcome! The project needs Open GL and game programmers to bring more life into the front end. It should feel like an retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM or RPCS3, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.<br />
+Pull requests are welcome! The project needs Open GL and game programmers to bring more life into the front end. It should feel like a retro game or console eventually. A retro art designer would also be great.  Other programming tasks include integrating more core modules such as Scumm VM or RPCS3, porting the ROM collection browser from Kodi to C++/Marley, or simply testing and bug fixing.<br />
 <br />
 Marley knows only big-ṕicture mode. This is to resemble a gaming console. It is designed to be a "sofa" application or could be used for a DIY arcade machine. Marley does not have mouse support or allow pop-up windows. All core modules render into an SDL Open GL context in the main window. While Mednafen, PPSSPP, and Mupen64Plus were doing this already and were easy to integrate, Dolphin was changed from an X11 Open GL context and PCSX2 was changed from a wxWidgets context. <br />
 <br />
