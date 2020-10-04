@@ -30,6 +30,7 @@
 #include "../include/emu.h"
 #include <algorithm>
 #include <X11/Xlib.h>
+#include <fstream>
 
 int gState = 0;
 int gCurrentGame;
@@ -66,16 +67,305 @@ bool checkTrigger(int cmd);
 void initOpenGL(void);
 void setAppIcon(void);
 void hide_or_show_cursor_X11(bool hide);
-
+std::ifstream::pos_type filesize(const char* filename);
 void resetStatemachine(void)
 {
-    gState=STATE_OFF;
-    gSetupIsRunning=false;
-    gTextInput=false;
+    gState = STATE_OFF;
+    gSetupIsRunning = false;
+    gTextInput = false;
     gControllerConf = false;
     gControllerConfNum=-1;
 }
 void create_new_window(void);
+
+#define BUFSIZE 1024
+enum emulator_target
+{
+	unknown,
+	mednafen,
+	dolphin,
+	mupen64plus,
+	ppsspp,
+	pcsx2
+};
+emulator_target getEmulatorTarget(string filename)
+{
+    string cmd = "file -b \"" + filename + "\"";
+    string file_type;
+    char buf[BUFSIZE];
+    FILE *fp;
+    bool ok = false;
+    emulator_target emu = unknown;
+	
+    if ((fp = popen(cmd.c_str(), "r")) == nullptr) 
+    {
+        printf("Error opening pipe for command %s\n",cmd.c_str());
+    }
+    else
+    {
+        if (fgets(buf, BUFSIZE, fp) != nullptr) 
+        {
+            file_type = buf;
+            ok = true;
+        }
+        
+        if(pclose(fp))  
+        {
+			printf("Command '%s' not found or exited with error status\n",cmd.c_str());
+			ok = false;
+		}
+    }
+    
+    if (ok)
+    {
+		
+		std::transform(file_type.begin(), file_type.end(), file_type.begin(),
+			[](unsigned char c){ return std::tolower(c); });
+		
+		if ((file_type.find("nintendo wii") != string::npos) || (file_type.find("nintendo gamecube") != string::npos))
+		{
+			emu = dolphin; 
+			printf("dolphin ");
+		}
+		else if (file_type.find("game boy") != string::npos)
+		{
+			emu = mednafen;
+			printf("mednafen ");
+		}
+		else if ((file_type.find("sega mega drive") != string::npos) || (file_type.find("genesis") != string::npos))
+		{
+			emu = mednafen;
+			printf("mednafen ");
+		}
+		else if (file_type.find("nes rom") != string::npos)
+		{
+			emu = mednafen;
+			printf("mednafen ");
+		}
+		else if (file_type.find("nintendo 64") != string::npos)
+		{
+			emu = mupen64plus;
+			printf("mupen64plus ");
+		}
+		else
+		{
+			long fsize = filesize(filename.c_str());
+			if (fsize < 52428800) // less than 50MB must be either mednafen or mupen64plus
+			{
+				string ext = filename.substr(filename.find_last_of(".") + 1);
+				if (ext.find("64") != string::npos) 
+				{
+					emu = mupen64plus;
+				}
+				else
+				{
+					emu = mednafen;
+				}
+			}
+			else
+			{
+				if (file_type.find("iso 9660 cd-rom filesystem data") != string::npos)
+				{
+					emu = ppsspp;
+					printf("ppsspp ");
+				}
+				else 
+				{
+					emu = pcsx2;
+					printf("pcsx2 ");
+				}
+			}
+		}
+	}
+
+    return emu;
+}
+
+void launch_emulator(void)
+{
+	if (gGame[gCurrentGame] != "")
+	{
+		int argc;
+		char *argv[10]; 
+		
+		char arg1[1024]; 
+		char arg2[1024];
+		char arg3[1024]; 
+		char arg4[1024]; 
+		char arg5[1024]; 
+		char arg6[1024]; 
+		char arg7[1024]; 
+		char arg8[1024]; 
+		char arg9[1024]; 
+		char arg10[1024]; 
+		
+		int n;
+		string str;
+		
+		window_flags=SDL_GetWindowFlags(gWindow);
+		if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+		{
+			SDL_GetWindowSize(gWindow,&window_width,&window_height);
+			SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+		}
+		
+		argc = 2;
+		auto emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
+		switch((int)emulatorTarget)
+		{
+#ifdef PCSX2
+			case pcsx2:
+				str = "pcsx2";
+				n = str.length(); 
+				strcpy(arg1, str.c_str()); 
+				
+				str = "--spu2=";
+				str += gBaseDir;
+				str += "PCSX2/libspu2x-2.0.0.so";
+				n = str.length(); 
+				strcpy(arg2, str.c_str()); 
+				
+				str = "--cdvd=";
+				str += gBaseDir;
+				str += "PCSX2/libCDVDnull.so";
+				n = str.length(); 
+				strcpy(arg3, str.c_str()); 
+
+				str = "--usb=";
+				str += gBaseDir;
+				str += "PCSX2/libUSBnull-0.7.0.so";
+				n = str.length(); 
+				strcpy(arg4, str.c_str()); 
+
+				str = "--fw=";
+				str += gBaseDir;
+				str += "PCSX2/libFWnull-0.7.0.so";
+				n = str.length(); 
+				strcpy(arg5, str.c_str()); 
+
+				str = "--dev9=";
+				str += gBaseDir;
+				str += "PCSX2/libdev9null-0.5.0.so";
+				n = str.length(); 
+				strcpy(arg6, str.c_str()); 
+				
+				str = "--fullboot";
+				n = str.length(); 
+				strcpy(arg7, str.c_str()); 
+
+				str = gGame[gCurrentGame];
+				n = str.length(); 
+				strcpy(arg8, str.c_str());
+				
+				str = "--nogui";
+				n = str.length(); 
+				strcpy(arg9, str.c_str());
+
+				argv[0] = arg1;
+				argv[1] = arg2;
+				argv[2] = arg3;
+				argv[3] = arg4;
+				argv[4] = arg5;
+				argv[5] = arg6;
+				argv[6] = arg7;
+				argv[7] = arg8;
+				argv[8] = arg9;
+
+				argc = 9;
+				
+				freeTextures();
+				SDL_DestroyRenderer( gRenderer );
+				SDL_DestroyWindow(gWindow);
+				SDL_QuitSubSystem(SDL_INIT_VIDEO);
+				create_new_window();
+				pcsx2_main(argc,argv);
+				restoreSDL();
+				break;
+#endif
+
+
+#ifdef MUPEN64PLUS
+			case mupen64plus:
+				
+				str = "mupen64plus";
+				n = str.length(); 
+				strcpy(arg1, str.c_str()); 
+				
+				n = gGame[gCurrentGame].length(); 
+				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				
+				argv[0] = arg1;
+				argv[1] = arg2;
+				printf("arg1: %s arg2: %s \n",arg1,arg2);
+				mupen64plus_main(argc,argv);
+				restoreSDL();
+				break;
+#endif
+
+#ifdef PPSSPP
+		
+			case ppsspp:
+			
+				str = "ppsspp";
+				n = str.length(); 
+				strcpy(arg1, str.c_str()); 
+				
+				n = gGame[gCurrentGame].length(); 
+				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				
+				argv[0] = arg1;
+				argv[1] = arg2;
+				printf("arg1: %s arg2: %s \n",arg1,arg2);
+				ppsspp_main(argc,argv);
+				
+				restoreSDL();
+				break;
+#endif
+
+#ifdef DOLPHIN
+		
+			case dolphin:
+				str = "dolphin-emu";
+				n = str.length(); 
+				strcpy(arg1, str.c_str()); 
+				
+				n = gGame[gCurrentGame].length(); 
+				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				
+				argv[0] = arg1;
+				argv[1] = arg2;
+				printf("arg1: %s arg2: %s \n",arg1,arg2);
+				marley_wiimote = false;
+				dolphin_main(argc,argv);
+				marley_wiimote = true;
+				delay_after_shutdown = 10;
+				restoreSDL();
+				break;
+#endif
+		
+		
+#ifdef MEDNAFEN
+			case mednafen:
+				str = "mednafen";
+				n = str.length(); 
+				strcpy(arg1, str.c_str()); 
+				
+				n = gGame[gCurrentGame].length(); 
+				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				
+				argv[0] = arg1;
+				argv[1] = arg2;
+				printf("arg1: %s arg2: %s \n",arg1,arg2);
+				mednafen_main(argc,argv);
+				restoreSDL();
+				break;
+#endif
+			default:
+				(void) 0;
+				break;
+		}
+	}
+}
 
 void statemachine(int cmd)
 {
@@ -321,7 +611,7 @@ void statemachine(int cmd)
                             const char *homedir;
                             string slash;
         
-                            if ((homedir = getenv("HOME")) != NULL) 
+                            if ((homedir = getenv("HOME")) != nullptr) 
                             {
                                 gText = homedir;
                                 
@@ -369,7 +659,7 @@ void statemachine(int cmd)
                             const char *homedir;
                             string slash;
         
-                            if ((homedir = getenv("HOME")) != NULL) 
+                            if ((homedir = getenv("HOME")) != nullptr) 
                             {
                                 gText = homedir;
                                 
@@ -408,205 +698,7 @@ void statemachine(int cmd)
                         }
                         break;
                     case STATE_LAUNCH:
-                        if (gGame[gCurrentGame] != "")
-                        {
-                            int argc;
-                            char *argv[10]; 
-                            
-                            char arg1[1024]; 
-                            char arg2[1024];
-                            char arg3[1024]; 
-                            char arg4[1024]; 
-                            char arg5[1024]; 
-                            char arg6[1024]; 
-                            char arg7[1024]; 
-                            char arg8[1024]; 
-                            char arg9[1024]; 
-                            char arg10[1024]; 
-                            
-                            int n;
-                            string str, ext;
-                            bool emuFound = false;
-                            
-                            window_flags=SDL_GetWindowFlags(gWindow);
-                            if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
-                            {
-                                SDL_GetWindowSize(gWindow,&window_width,&window_height);
-                                SDL_GetWindowPosition(gWindow,&window_x,&window_y);
-                            }
-                            
-                            
-                            argc = 2;
-                            str = gGame[gCurrentGame];
-                            ext = str.substr(str.find_last_of(".") + 1);
-                            std::transform(ext.begin(), ext.end(), ext.begin(),
-                                [](unsigned char c){ return std::tolower(c); });
-                            std::transform(str.begin(), str.end(), str.begin(),
-                                [](unsigned char c){ return std::tolower(c); });
-
-#ifdef PCSX2
-                            
-                            if ((ext == "iso") && (str.find("ps2") != string::npos))
-                            {
-                                emuFound = true;
-                                str = "pcsx2";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                str = "--spu2=";
-                                str += gBaseDir;
-                                str += "PCSX2/libspu2x-2.0.0.so";
-                                n = str.length(); 
-                                strcpy(arg2, str.c_str()); 
-                                
-                                str = "--cdvd=";
-                                str += gBaseDir;
-                                str += "PCSX2/libCDVDnull.so";
-                                n = str.length(); 
-                                strcpy(arg3, str.c_str()); 
-
-                                str = "--usb=";
-                                str += gBaseDir;
-                                str += "PCSX2/libUSBnull-0.7.0.so";
-                                n = str.length(); 
-                                strcpy(arg4, str.c_str()); 
-
-                                str = "--fw=";
-                                str += gBaseDir;
-                                str += "PCSX2/libFWnull-0.7.0.so";
-                                n = str.length(); 
-                                strcpy(arg5, str.c_str()); 
-
-                                str = "--dev9=";
-                                str += gBaseDir;
-                                str += "PCSX2/libdev9null-0.5.0.so";
-                                n = str.length(); 
-                                strcpy(arg6, str.c_str()); 
-                                
-                                str = "--fullboot";
-                                n = str.length(); 
-                                strcpy(arg7, str.c_str()); 
-
-                                str = gGame[gCurrentGame];
-                                n = str.length(); 
-                                strcpy(arg8, str.c_str());
-                                
-                                str = "--nogui";
-                                n = str.length(); 
-                                strcpy(arg9, str.c_str());
-
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                argv[2] = arg3;
-                                argv[3] = arg4;
-                                argv[4] = arg5;
-                                argv[5] = arg6;
-                                argv[6] = arg7;
-                                argv[7] = arg8;
-                                argv[8] = arg9;
-
-                                argc = 9;
-                                
-                                freeTextures();
-                                SDL_DestroyRenderer( gRenderer );
-                                SDL_DestroyWindow(gWindow);
-                                SDL_QuitSubSystem(SDL_INIT_VIDEO);
-                                create_new_window();
-                                pcsx2_main(argc,argv);
-                                restoreSDL();
-                            }
-#endif
-
-
-#ifdef MUPEN64PLUS
-                            
-                            if (ext == "z64")
-                            {
-                                emuFound = true;
-                                
-                                str = "mupen64plus";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                n = gGame[gCurrentGame].length(); 
-                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
-                                
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                printf("arg1: %s arg2: %s \n",arg1,arg2);
-                                mupen64plus_main(argc,argv);
-                                restoreSDL();
-                            }
-#endif
-
-#ifdef PPSSPP
-                            
-                            if ((ext == "iso") && (str.find("psp") != string::npos))
-                            {
-                                emuFound = true;
-                                
-                                str = "ppsspp";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                n = gGame[gCurrentGame].length(); 
-                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
-                                
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                printf("arg1: %s arg2: %s \n",arg1,arg2);
-                                ppsspp_main(argc,argv);
-                                
-                                restoreSDL();
-                            }
-#endif
-
-#ifdef DOLPHIN
-                            
-                            if (((ext == "iso") ||(ext == "wbfs")) && ((str.find("wii") != string::npos)||(str.find("gamecube") != string::npos)))
-                            {
-                                
-                                emuFound = true;
-                                str = "dolphin-emu";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                n = gGame[gCurrentGame].length(); 
-                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
-                                
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                printf("arg1: %s arg2: %s \n",arg1,arg2);
-                                marley_wiimote = false;
-                                dolphin_main(argc,argv);
-                                marley_wiimote = true;
-                                delay_after_shutdown = 10;
-                                restoreSDL();
-                            }
-#endif
-                            
-                            
-#ifdef MEDNAFEN
-                            if (!emuFound)
-                            {
-                                str = "mednafen";
-                                n = str.length(); 
-                                strcpy(arg1, str.c_str()); 
-                                
-                                n = gGame[gCurrentGame].length(); 
-                                strcpy(arg2, gGame[gCurrentGame].c_str()); 
-                                
-                                argv[0] = arg1;
-                                argv[1] = arg2;
-                                printf("arg1: %s arg2: %s \n",arg1,arg2);
-                                mednafen_main(argc,argv);
-                                restoreSDL();
-                            }
-#endif
-                        } else
-                        {
-                            printf("no valid ROM found\n");
-                        }
+						launch_emulator();
                         break;
                     default:
                         (void) 0;

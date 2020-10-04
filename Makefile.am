@@ -247,8 +247,9 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisa
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a  
-
-
+marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
+marley_LDADD 	+= dolphin/build/Source/Core/UICommon/libuicommon.a 
+marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 #ppsspp, dynamic
 marley_LDADD 	+= -lGLEW
 
