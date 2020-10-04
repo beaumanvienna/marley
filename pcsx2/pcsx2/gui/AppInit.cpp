@@ -72,33 +72,32 @@ void Pcsx2App::DetectCpuAndUserMode()
 
 #define NO_WX_EVENT_HANDLING 0
 #define WX_EVENT_HANDLING -1
-int filter_event_cnt;
+
 int Pcsx2App::FilterEvent(wxEvent &event)
 {
-    int retVal = WX_EVENT_HANDLING;    
-    if (filter_event_cnt < 1000) filter_event_cnt ++;
+    int retVal = WX_EVENT_HANDLING;
+    
     int event_type = event.GetEventType();
+
     switch(event.GetEventCategory())
     {
-        case wxEVT_CATEGORY_UI:
-            //printf( "jc wxEVT_CATEGORY_UI int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() ); 
-            if ((event_type == 10004) || (event_type == 10073) || (filter_event_cnt > 1000))
-                retVal = NO_WX_EVENT_HANDLING;   
+        case wxEVT_CATEGORY_UI:        
+
             break;
         case wxEVT_CATEGORY_USER_INPUT:
-            //printf( "jc wxEVT_CATEGORY_USER_INPUT int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );      
+            
             break;
         case wxEVT_CATEGORY_SOCKET:
-            //printf( "jc wxEVT_CATEGORY_SOCKET int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            
             break;
         case wxEVT_CATEGORY_TIMER:
-            //printf( "jc wxEVT_CATEGORY_TIMER int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );    
+            
             break;
         case wxEVT_CATEGORY_THREAD:
-            //printf( "jc wxEVT_CATEGORY_THREAD int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            
             break;
         default:
-            //printf( "jc default int Pcsx2App::FilterEvent(wxEvent &event = %i) \n", event.GetEventType() );
+            
             break;
     }
     
