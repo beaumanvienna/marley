@@ -511,7 +511,7 @@ void statemachine(int cmd)
                                 SDL_DestroyRenderer( gRenderer );
                                 SDL_DestroyWindow(gWindow);
                                 SDL_QuitSubSystem(SDL_INIT_VIDEO);
-                                
+                                create_new_window();
                                 pcsx2_main(argc,argv);
                                 restoreSDL();
                             }

@@ -24,8 +24,6 @@
 #include "MTVU.h"
 #include "Elfheader.h"
 
-#include <X11/Xlib.h>
-#include <SDL.h>
 typedef unsigned int uint32;
 typedef unsigned char uint8;
 int GSopen2(void** dsp, uint32 flags);
@@ -198,9 +196,7 @@ static void dummyIrqCallback()
 	// dummy, because MTGS doesn't need this mess!
 	// (and zerogs does >_<)
 }
-extern Display* XDisplay;
-extern Window Xwindow;
-void create_new_window(void);  
+
 void SysMtgsThread::OpenPlugin()
 {
 
@@ -210,10 +206,6 @@ void SysMtgsThread::OpenPlugin()
 	GSsetBaseMem( RingBuffer.Regs );
 	GSirqCallback( dummyIrqCallback );
     
-	create_new_window();
-	pDsp[0] = (uptr)XDisplay;
-	pDsp[1] = (uptr)Xwindow;
-
 	int result;
 
 	if( GSopen2 != NULL )
@@ -290,95 +282,6 @@ class RingBufferLock {
 	}
 };
 
-
-void PrintEvent(const SDL_Event * event)
-{
-    if (event->type == SDL_WINDOWEVENT) {
-        switch (event->window.event) {
-        case SDL_WINDOWEVENT_SHOWN:
-            SDL_Log("jc: Window %d shown", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_HIDDEN:
-            SDL_Log("jc: Window %d hidden", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_EXPOSED:
-            SDL_Log("jc: Window %d exposed", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MOVED:
-            SDL_Log("jc: Window %d moved to %d,%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_RESIZED:
-            SDL_Log("jc: Window %d resized to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-            SDL_Log("jc: Window %d size changed to %dx%d",
-                    event->window.windowID, event->window.data1,
-                    event->window.data2);
-            break;
-        case SDL_WINDOWEVENT_MINIMIZED:
-            SDL_Log("jc: Window %d minimized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_MAXIMIZED:
-            SDL_Log("jc: Window %d maximized", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_RESTORED:
-            SDL_Log("jc: Window %d restored", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_ENTER:
-            SDL_Log("jc: Mouse entered window %d",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_LEAVE:
-            SDL_Log("jc: Mouse left window %d", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_GAINED:
-            SDL_Log("jc: Window %d gained keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_FOCUS_LOST:
-            SDL_Log("jc: Window %d lost keyboard focus",
-                    event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_CLOSE:
-            SDL_Log("jc: Window %d closed", event->window.windowID);
-            break;
-#if SDL_VERSION_ATLEAST(2, 0, 5)
-        case SDL_WINDOWEVENT_TAKE_FOCUS:
-            SDL_Log("jc: Window %d is offered a focus", event->window.windowID);
-            break;
-        case SDL_WINDOWEVENT_HIT_TEST:
-            SDL_Log("jc: Window %d has a special hit test", event->window.windowID);
-            break;
-#endif
-        default:
-            SDL_Log("jc: Window %d got unknown event %d",
-                    event->window.windowID, event->window.event);
-            break;
-        }
-    }
-}
-
-void shutdownExternal();
-void sdl_event_loop()
-{
-    SDL_Event event;
-    while( SDL_PollEvent( &event ) != 0 )
-    {
-        PrintEvent(&event);
-        switch (event.type)
-        {
-            case SDL_QUIT: 
-                shutdownExternal();
-                break;
-            default:
-                break;
-        }
-    }
-}
 void SysMtgsThread::ExecuteTaskInThread()
 {
 	// Threading info: run in MTGS thread
@@ -391,7 +294,6 @@ void SysMtgsThread::ExecuteTaskInThread()
 	RingBufferLock busy (*this);
 
 	while(true) {
-		sdl_event_loop();
 
 		busy.Release();
 

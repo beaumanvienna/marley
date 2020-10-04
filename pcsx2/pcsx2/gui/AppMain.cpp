@@ -1001,9 +1001,12 @@ void Pcsx2App::ReleaseVmReserve()
 {
     if (m_VmReserve) m_VmReserve.reset();
 }
-
+extern Display* XDisplay;	
+extern Window Xwindow;
 void Pcsx2App::OpenGsPanel()
 {
+	pDsp[0] = (uptr)XDisplay;	
+	pDsp[1] = (uptr)Xwindow;
 }
 
 void Pcsx2App::CloseGsPanel()
