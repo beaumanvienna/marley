@@ -221,73 +221,63 @@ void WiimoteLinux::IOWakeup()
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-bool busy = false;
 int WiimoteLinux::IORead(u8* buf)
 {
-  if (!busy) 
+
+  std::array<pollfd, 2> pollfds = {};
+
+  auto& poll_wakeup = pollfds[0];
+  poll_wakeup.fd = m_wakeup_pipe_r;
+  poll_wakeup.events = POLLIN;
+
+  auto& poll_sock = pollfds[1];
+  poll_sock.fd = m_int_sock;
+  poll_sock.events = POLLIN;
+
+  if (poll(pollfds.data(), pollfds.size(), -1) == -1)
   {
-      busy=true;
-      std::array<pollfd, 2> pollfds = {};
+    ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
+    printf("WiimoteScanner Unable to poll Wiimote %i input socket\n", m_index + 1);
+    return -1;
+  }
 
-      auto& poll_wakeup = pollfds[0];
-      poll_wakeup.fd = m_wakeup_pipe_r;
-      poll_wakeup.events = POLLIN;
-
-      auto& poll_sock = pollfds[1];
-      poll_sock.fd = m_int_sock;
-      poll_sock.events = POLLIN;
-
-      if (poll(pollfds.data(), pollfds.size(), -1) == -1)
-      {
-        ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
-        printf("WiimoteScanner Unable to poll Wiimote %i input socket\n", m_index + 1);
-        busy = false;
-        return -1;
-      }
-
-      if (poll_wakeup.revents & POLLIN)
-      {
-        char c;
-        if (read(m_wakeup_pipe_r, &c, 1) != 1)
-        {
-          ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
-          printf("WiimoteScanner Unable to read from wakeup pipe\n");
-        }
-        busy = false;
-        return -1;
-      }
-
-      if (!(poll_sock.revents & POLLIN))
-      {
-          //printf("WiimoteLinux::IORead return -1\n");
-          busy = false;
-        return -1;
-      }
-
-      // Read the pending message into the buffer
-      int r = read(m_int_sock, buf, MAX_PAYLOAD);
-      if (r == -1)
-      {
-        // Error reading data
-        ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
-        printf("WiimoteScanner Receiving data from Wiimote %i\n", m_index + 1);
-
-        if (errno == ENOTCONN)
-        {
-          // This can happen if the Bluetooth dongle is disconnected
-          ERROR_LOG(WIIMOTE,
-                    "Bluetooth appears to be disconnected.  "
-                    "Wiimote %i will be disconnected.",
-                    m_index + 1);
-          printf("WiimoteScanner Bluetooth appears to be disconnected. Wiimote %i will be disconnected\n",m_index + 1);
-        }
-
-        r = 0;
-      } 
-      busy = false;
-      return r;
+  if (poll_wakeup.revents & POLLIN)
+  {
+    char c;
+    if (read(m_wakeup_pipe_r, &c, 1) != 1)
+    {
+      ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
+      printf("WiimoteScanner Unable to read from wakeup pipe\n");
     }
     return -1;
+  }
+
+  if (!(poll_sock.revents & POLLIN))
+  {
+    return -1;
+  }
+
+  // Read the pending message into the buffer
+  int r = read(m_int_sock, buf, MAX_PAYLOAD);
+  if (r == -1)
+  {
+    // Error reading data
+    ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
+    printf("WiimoteScanner Receiving data from Wiimote %i\n", m_index + 1);
+
+    if (errno == ENOTCONN)
+    {
+      // This can happen if the Bluetooth dongle is disconnected
+      ERROR_LOG(WIIMOTE,
+                "Bluetooth appears to be disconnected.  "
+                "Wiimote %i will be disconnected.",
+                m_index + 1);
+      printf("WiimoteScanner Bluetooth appears to be disconnected. Wiimote %i will be disconnected\n",m_index + 1);
+    }
+
+    r = 0;
+  } 
+  return r;
 }
 
 int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
