@@ -60,6 +60,8 @@ Use "p" to print the current gamepad mapping(s) while in the front end.<br />
 <br />
 Use "l" to print a list of detected controllers to the command line while in the front end.<br />
 <br />
+Use B on the controller or arrow key down + LEFT_ALT on your keyboard to get from OFF to shutdown.<br />
+<br />
 command line options: <br />
 <br />
   --version             : print version <br />
