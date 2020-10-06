@@ -181,6 +181,17 @@ emulator_target getEmulatorTarget(string filename)
     return emu;
 }
 
+void shutdown_computer(void)
+{
+    string cmd = "shutdown now";
+    FILE *fp;
+    
+    if ((fp = popen(cmd.c_str(), "r")) == nullptr) 
+    {
+        printf("Error opening pipe for command %s\n",cmd.c_str());
+    }
+}
+
 void launch_emulator(void)
 {
 	if (gGame[gCurrentGame] != "")
@@ -415,6 +426,7 @@ void statemachine(int cmd)
                     case STATE_SETUP:
                         gState=STATE_OFF;
                         break;
+                    case STATE_SHUTDOWN:
                     case STATE_OFF:
                         if (gGamesFound)
                         {
@@ -498,6 +510,9 @@ void statemachine(int cmd)
                             gState=STATE_SETUP;
                         }
                         break;
+                    case STATE_SHUTDOWN:
+                        gState=STATE_OFF;
+                        break;
                      case STATE_CONF0:
                         gState=STATE_SETUP;
                         gSetupIsRunning=false;
@@ -547,6 +562,9 @@ void statemachine(int cmd)
                         break;
                 }
                 break;
+            case SDL_CONTROLLER_BUTTON_B:
+                if (gState == STATE_OFF) gState = STATE_SHUTDOWN;
+                break;
             case SDL_CONTROLLER_BUTTON_A:
                 switch (gState)
                 {
@@ -569,6 +587,10 @@ void statemachine(int cmd)
                         break;
                     case STATE_OFF:
                         gQuit=true;
+                        break;
+                    case STATE_SHUTDOWN:
+                        gQuit=true;
+                        shutdown_computer();
                         break;
                      case STATE_CONF0:
                      case STATE_CONF1:

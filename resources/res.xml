@@ -90,4 +90,10 @@
     <gresource prefix="/pictures/">
         <file>../pictures/Xbox-360-S-Controller.bmp</file>
     </gresource>
+    <gresource prefix="/pictures/">
+        <file>../pictures/shutdown.bmp</file>
+    </gresource>
+    <gresource prefix="/pictures/">
+        <file>../pictures/shutdown_inactive.bmp</file>
+    </gresource>
 </gresources>

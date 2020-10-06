@@ -35,6 +35,7 @@ using namespace std;
     #define STATE_LAUNCH    6
     #define STATE_FLR_GAMES 7
     #define STATE_FLR_FW    8
+    #define STATE_SHUTDOWN  9
     
     typedef enum
     {

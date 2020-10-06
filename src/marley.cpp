@@ -305,6 +305,8 @@ int main( int argc, char* argv[] )
         double y0=0;
         double x1=0;
         double y1=0;
+        
+        bool ALT = false;
 
         //Event handler
         SDL_Event event;
@@ -322,6 +324,9 @@ int main( int argc, char* argv[] )
                 // main event loop
                 switch (event.type)
                 {
+                    case SDL_KEYUP: 
+                        ALT = false;
+                        break;
                     case SDL_KEYDOWN: 
                         if (!gTextInput)
                         {
@@ -392,8 +397,18 @@ int main( int argc, char* argv[] )
                                         resetStatemachine();
                                     }
                                     break;
-                                case SDLK_UP:
                                 case SDLK_DOWN:
+                                    gActiveController=-1;
+                                    if (ALT)
+                                    {
+                                        statemachine(SDL_CONTROLLER_BUTTON_B);
+                                    }
+                                    else
+                                    {
+                                        statemachine(event.key.keysym.sym);
+                                    }
+                                    break;
+                                case SDLK_UP:
                                 case SDLK_LEFT:
                                 case SDLK_RIGHT:
                                     gActiveController=-1;
@@ -407,8 +422,18 @@ int main( int argc, char* argv[] )
                                     }
                                     else
                                     {
-                                        statemachine(SDL_CONTROLLER_BUTTON_A);
+                                        if (ALT)
+                                        {
+                                            statemachine(SDL_CONTROLLER_BUTTON_B);
+                                        }
+                                        else
+                                        {
+                                            statemachine(SDL_CONTROLLER_BUTTON_A);
+                                        }
                                     }
+                                    break;
+                                case SDLK_LALT:
+                                    ALT = true;
                                     break;
                                 default:
                                     printf("key not recognized \n");

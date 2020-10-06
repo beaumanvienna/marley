@@ -56,6 +56,7 @@ Uint32 window_flags;
 
 int x_offset_1150;
 int x_offset_1068;
+int x_offset_1026;
 int x_offset_900;
 int x_offset_720;
 int x_offset_630;
@@ -66,6 +67,7 @@ int x_offset_350;
 int x_offset_345;
 int x_offset_300;
 int x_offset_250;
+int x_offset_216;
 int x_offset_200;
 int x_offset_150;
 int x_offset_132;
@@ -270,6 +272,20 @@ bool loadMedia()
         ok = false;
     }
     
+    //shutdown icon
+    gTextures[TEX_ICON_SHUTDOWN] = loadTextureFromFile("/pictures/../pictures/shutdown.bmp");
+    if (!gTextures[TEX_ICON_SHUTDOWN])
+    {
+        ok = false;
+    }
+    
+    //shutdown icon inactive
+    gTextures[TEX_ICON_SHUTDOWN_IN] = loadTextureFromFile("/pictures/../pictures/shutdown_inactive.bmp");
+    if (!gTextures[TEX_ICON_SHUTDOWN_IN])
+    {
+        ok = false;
+    }
+    
     
     return ok;
 }
@@ -383,6 +399,7 @@ bool initGUI(void)
 	
 	x_offset_1150 = WINDOW_WIDTH / 1.087;
 	x_offset_1068 = WINDOW_WIDTH / 1.170412;
+    x_offset_1026 = WINDOW_WIDTH / 1.218;
 	x_offset_900 = WINDOW_WIDTH / 1.4;
 	x_offset_720 = WINDOW_WIDTH / 1.7;
 	x_offset_630 = WINDOW_WIDTH / 2;
@@ -393,6 +410,7 @@ bool initGUI(void)
 	x_offset_345 = WINDOW_WIDTH / 3.62;
 	x_offset_300 = WINDOW_WIDTH / 4.2;
 	x_offset_250 = WINDOW_WIDTH / 5;
+    x_offset_216 = WINDOW_WIDTH / 5.787;
 	x_offset_200 = WINDOW_WIDTH / 6.25;
 	x_offset_150 = WINDOW_WIDTH / 8.3;
 	x_offset_132 = WINDOW_WIDTH / 9.5;
@@ -488,6 +506,16 @@ void renderIcons(void)
     else
     {
         SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_OFF_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
+    }
+    
+    destination = { x_offset_1026+xOffset, y_offset_65+yOffset, x_offset_216, y_offset_45 };
+    if (gState == STATE_SHUTDOWN)
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SHUTDOWN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
+    } 
+    else
+    {
+        SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SHUTDOWN_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
     }
     
     if (gNumDesignatedControllers)

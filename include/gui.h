@@ -33,7 +33,7 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    23
+    #define NUM_TEXTURES    25
         #define TEX_BACKGROUND          0
         #define TEX_BARREL              1
         #define TEX_PS3                 2
@@ -57,6 +57,8 @@ using namespace std;
         #define TEX_PS4                 20
         #define TEX_WIIMOTE             21
         #define TEX_SNES                22
+        #define TEX_ICON_SHUTDOWN       23
+        #define TEX_ICON_SHUTDOWN_IN    24
     
     #define CURSOR_HIDE true
     #define CURSOR_SHOW false
