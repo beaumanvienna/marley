@@ -8,8 +8,45 @@ pkgdesc='A bundle of console emulators for Linux (git)'
 arch=(x86_64)
 url=https://github.com/beaumanvienna/marley
 license=(GPL)
-depends=(libaio libjpeg-turbo libpcap libpulse sdl2 boost boost-libs alsa-lib bluez-libs libevdev libx11 libxi libxrandr lzo mbedtls libsndfile mesa libudev.so libgl glew glibc zlib glu cmake libglvnd python freetype2 qt5-base sfml libavcodec.so libminiupnpc.so sdl2_image sdl2_ttf nasm libpng libsamplerate wxgtk2 sndio aom zip)
-makedepends=(git)
+depends=(libaio\
+         libjpeg-turbo\
+         libpcap\
+         libpulse\
+         sdl2\
+         boost\
+         boost-libs\
+         alsa-lib\
+         bluez-libs\
+         libevdev\
+         libx11\
+         libxi\
+         libxrandr\
+         lzo\
+         mbedtls\
+         libsndfile\
+         mesa\
+         libudev.so\
+         libgl\
+         glew\
+         glibc\
+         zlib\
+         glu\
+         libglvnd\
+         python\
+         freetype2\
+         qt5-base\
+         sfml\
+         libavcodec.so\
+         libminiupnpc.so\
+         sdl2_image\
+         sdl2_ttf\
+         libpng\
+         libsamplerate\
+         wxgtk2\
+         sndio\
+         aom
+         zip)
+makedepends=(git cmake nasm)
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
 source=(git+"${url}".git)
