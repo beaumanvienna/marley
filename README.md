@@ -10,7 +10,8 @@ https://github.com/beaumanvienna/marley
 - [User Manual](#user-manual)
 - [Controls](#controls)
 - [Developer information](#developer-information)
-- [Installation for Ubuntu 18.04 and 20.04](#installation-for-ubuntu-1804-and-2004)
+- [Installation for Ubuntu and derivatives](#installation-for-ubuntu-and-derivatives)
+- [Installation for Gentoo](#installation-for-gentoo)
 - [Compile from source](#compile-from-source)
 
 ## User Manual
@@ -91,14 +92,44 @@ There is a unit test for each core emulator available to help isolate faults, im
 To debug marley, run "configure --enable-debug" and "make" in the root directory. Start gdb and run "./marley". Create the unit tests as described above. To debug PCSX2, run the unit test version "./tests/pcsx2/PCSX2" without any additional arguments in the terminal (not gdb). The normally-dormant GUI of PCSX2 should come up. React with "no" to any assert messages. Select the interpreter instead of the recompiler for the Emotion Engine under Emulation Settings / EE and IOP and close PCSX2. Launch gdb in tests/pcsx2 and run "./PCSX2 myGame.iso". To debug dolphin, set "Fastmem" to "False" in ~/.marley/dolphin-emu/Config/Dolphin.ini. Start gdb in tests/dolphin and and run "./DOLPHIN myGame.iso". A good front end for gdb is gdbgui, see https://www.gdbgui.com/.<br />
 <br />
 
-
-
-## Installation for Ubuntu 18.04, 20.04, and Ubuntu derivatives
+## Installation for Ubuntu and derivatives
 
 sudo add-apt-repository ppa:beauman/marley <br />
 sudo apt update <br />
 sudo apt install marley <br />
 
+## Installation for Gentoo
+
+#To emerge Marley as a custom package, copy the files and folders in <br />
+#gentoo/etc and gentoo/var to their corresponding system-wide locations<br />
+#as admin: <br />
+sudo cp -r gentoo/var/db/repos/marley_repo /var/db/repos/<br />
+<br />
+#Change the file permissions of the new custom repositrory to portage with <br />
+sudo chown -R portage:portage /var/db/repos/marley_repo<br />
+<br />
+#Inform portage about the new repository:<br />
+sudo cp -r gentoo/etc/portage/repos.conf/marley_repo.conf /etc/portage/repos.conf/<br />
+<br />
+#Allow Marley to be used by emerge:<br />
+sudo cat gentoo/etc/portage/package.keywords >> /etc/portage/package.keywords<br />
+<br />
+#Install repoman, if necessary<br />
+sudo emerge --ask --verbose app-portage/repoman<br />
+<br />
+#Sync your system<br />
+emerge --sync<br />
+#Change into the ebuild directory and create the Manifest<br />
+cd /var/db/repos/marley_repo/games-emulation/marley/<br />
+sudo ebuild marley-0.1.5.ebuild manifest<br />
+pushd /var/db/repos/marley_repo/games-emulation/marley/<br />
+repoman manifest<br />
+popd<br />
+<br />
+#Set MAKEFLAGS and emerge the package<br />
+export MAKEFLAGS=-j$(nproc)<br />
+sudo emerge --ask --verbose games-emulation/marley<br />
+<br />
 ##  Compile from source
 
 #Install build dependencies specified in debian/control (search for 'Build-Depends'):  <br />
