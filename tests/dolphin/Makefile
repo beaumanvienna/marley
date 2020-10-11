@@ -79,7 +79,6 @@ LINKER_OBJECTS 	+= -ldl
 LINKER_OBJECTS 	+= -lrt 
 LINKER_OBJECTS 	+= -lXrandr 
 LINKER_OBJECTS 	+= -lpulse 
-LINKER_OBJECTS 	+= -lsndio
 LINKER_OBJECTS 	+= -lpthread
 LINKER_OBJECTS 	+= -lSDL2
 LINKER_OBJECTS 	+= -lz

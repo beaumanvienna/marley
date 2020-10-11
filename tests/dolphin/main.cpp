@@ -24,7 +24,7 @@ using namespace std;
 
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
-
+bool marley_wiimote = false;
 int dolphin_main(int argc, char* argv[]);
 
 

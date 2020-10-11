@@ -179,13 +179,13 @@ if(USE_AUDIOTRACK)
   target_link_libraries(cubeb PRIVATE log)
 endif()
 
-check_include_files(sndio.h USE_SNDIO)
-if(USE_SNDIO)
-  target_sources(cubeb PRIVATE
-    src/cubeb_sndio.c)
-  target_compile_definitions(cubeb PRIVATE USE_SNDIO)
-  target_link_libraries(cubeb PRIVATE sndio)
-endif()
+#check_include_files(sndio.h USE_SNDIO)
+#if(USE_SNDIO)
+#  target_sources(cubeb PRIVATE
+#    src/cubeb_sndio.c)
+#  target_compile_definitions(cubeb PRIVATE USE_SNDIO)
+#  target_link_libraries(cubeb PRIVATE sndio)
+#endif()
 
 check_include_files(kai.h USE_KAI)
 if(USE_KAI)

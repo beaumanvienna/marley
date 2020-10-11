@@ -41,6 +41,7 @@ echo "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE"
 # GTK2 or GTK3 depending on OS
 DETECT_GTK3=`./pcsx2/detect_gtk_flags.sh`
 AM_CONDITIONAL([PCSX2_USE_GTK3], test -n "$DETECT_GTK3")
+AM_CONDITIONAL([PCSX2_USE_GTK3_GENTOO], test "x$DETECT_GTK3" = "x-DGTK3_API=TRUE_GENTOO")
 if test -n "$DETECT_GTK3"
 then
 PCSX2_USE_GTK3_TRUE=
@@ -54,6 +55,16 @@ GTK_HEADERS_INCLUDE=`pkg-config --cflags gtk+-2.0`
 echo "using GTK2 for pcsx2"
 fi
 AC_SUBST([GTK_HEADERS_INCLUDE])
+
+if test "x$DETECT_GTK3" = "x-DGTK3_API=TRUE_GENTOO"
+then
+PCSX2_USE_GTK3_GENTOO_TRUE=
+PCSX2_USE_GTK3_GENTOO_FALSE='#'
+echo "using GTK3 for pcsx2 (gentoo)"
+else
+PCSX2_USE_GTK3_GENTOO_TRUE='#'
+PCSX2_USE_GTK3_GENTOO_FALSE=
+fi
 
 #resource system
 RESOURCE_LIST="\$(shell \$(glib-compile-resources --sourcedir= --generate-dependencies resources/res.xml))"

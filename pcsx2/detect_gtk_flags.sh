@@ -7,6 +7,7 @@ PRETTY_NAME=`grep PRETTY_NAME /etc/os-release`
 IS_UBUNTU=`echo $PRETTY_NAME | grep Ubuntu`
 IS_ARCH=`echo $PRETTY_NAME | grep Arch`
 IS_MINT=`echo $PRETTY_NAME | grep Mint`
+IS_GENTOO=`uname -r | grep gentoo`
 IS_VERSION_NUMBER_18_04=`echo $PRETTY_NAME | grep 18.04`
 IS_VERSION_NUMBER_20_04=`echo $PRETTY_NAME | grep 20.04`
 IS_VERSION_NUMBER_20=`echo $PRETTY_NAME | grep 20`
@@ -15,6 +16,12 @@ if test -n "$IS_ARCH"
 then
     #echo "Archibald found"
     DUMMY=`echo "null"`
+fi
+
+if test -n "$IS_GENTOO" 
+then
+    #echo "Gentoo found"
+    echo "-DGTK3_API=TRUE_GENTOO"
 fi
 
 if test -n "$IS_MINT" 

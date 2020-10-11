@@ -266,7 +266,7 @@ marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
 
 
-#dolphin, static
+#dolphin, dynamic
 marley_LDADD 	+= -lQt5Widgets
 marley_LDADD 	+= -lasound 
 marley_LDADD 	+= -llzo2
@@ -296,7 +296,6 @@ marley_LDADD    += -ldl
 marley_LDADD 	+= -lrt 
 marley_LDADD 	+= -lXrandr 
 marley_LDADD 	+= -lpulse 
-marley_LDADD 	+= -lsndio
 marley_LDADD 	+= -lpthread
 marley_LDADD 	+= -lSDL2
 marley_LDADD 	+= -lz
@@ -318,13 +317,20 @@ marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lsndfile -lz
 
 #pcsx2, dynamic
-marley_LDADD 	+= -lwx_baseu-3.0 
 if PCSX2_USE_GTK3
-marley_LDADD 	+= -lwx_gtk3u_core-3.0 
-marley_LDADD 	+= -lwx_gtk3u_adv-3.0 
+if PCSX2_USE_GTK3_GENTOO
+marley_LDADD 	+= -lwx_baseu-3.0-gtk3
+marley_LDADD 	+= -lwx_gtk3u_core-3.0-gtk3
+marley_LDADD 	+= -lwx_gtk3u_adv-3.0-gtk3
+else
+marley_LDADD 	+= -lwx_baseu-3.0
+marley_LDADD 	+= -lwx_gtk3u_core-3.0
+marley_LDADD 	+= -lwx_gtk3u_adv-3.0
+endif
 marley_LDADD 	+= -lgtk-3
 marley_LDADD 	+= -lgdk-3
 else
+marley_LDADD 	+= -lwx_baseu-3.0
 marley_LDADD 	+= -lwx_gtk2u_core-3.0
 marley_LDADD 	+= -lwx_gtk2u_adv-3.0
 marley_LDADD 	+= -lgdk-x11-2.0

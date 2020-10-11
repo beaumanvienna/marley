@@ -11,15 +11,23 @@ LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
-LINKER_OBJECTS += -lwx_baseu-3.0
 
 ifeq ($(USE_GTK3), -DGTK3_API=ON)
+LINKER_OBJECTS += -lwx_baseu-3.0
 LINKER_OBJECTS += -lwx_gtk3u_core-3.0 
 LINKER_OBJECTS += -lwx_gtk3u_adv-3.0 
 LINKER_OBJECTS += -lgtk-3
 LINKER_OBJECTS += -lgdk-3
 GTK_VERSION    = GTK3
+else ifeq ($(USE_GTK3), -DGTK3_API=TRUE_GENTOO)
+LINKER_OBJECTS += -lwx_baseu-3.0-gtk3
+LINKER_OBJECTS += -lwx_gtk3u_core-3.0-gtk3
+LINKER_OBJECTS += -lwx_gtk3u_adv-3.0-gtk3
+LINKER_OBJECTS += -lgtk-3
+LINKER_OBJECTS += -lgdk-3
+GTK_VERSION    = GTK3-GENTOO
 else
+LINKER_OBJECTS += -lwx_baseu-3.0
 LINKER_OBJECTS += -lwx_gtk2u_core-3.0
 LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
 LINKER_OBJECTS += -lgdk-x11-2.0
