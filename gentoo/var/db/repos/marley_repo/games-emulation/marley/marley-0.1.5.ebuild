@@ -9,9 +9,6 @@ inherit autotools git-r3
 DESCRIPTION="A bundle of console emulators for Linux (git)"
 HOMEPAGE="https://github.com/beaumanvienna/marley#readme"
 
-commit=6296cc1483da5d451c0bacd2b70cf0008286b834
-SRC_URI="https://github.com/beaumanvienna/marley/archive/${commit}.tar.gz -> ${P}.tar.gz"
-
 SRC_URI="https://github.com/beaumanvienna/marley/archive/master.zip"
 EGIT_REPO_URI="https://github.com/beaumanvienna/marley.git"
 
@@ -98,7 +95,11 @@ BDEPEND="
 
 src_prepare() {
 	default
-	eautoreconf
+	aclocal
+	autoconf
+	automake --add-missing --foreign
+	./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS
+	make
 }
 
 src_configure() {
