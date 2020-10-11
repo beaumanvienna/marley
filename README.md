@@ -119,6 +119,7 @@ sudo emerge --ask --verbose app-portage/repoman<br />
 <br />
 #Sync your system<br />
 emerge --sync<br />
+<br />
 #Change into the ebuild directory and create the Manifest<br />
 cd /var/db/repos/marley_repo/games-emulation/marley/<br />
 sudo ebuild marley-0.1.5.ebuild manifest<br />
