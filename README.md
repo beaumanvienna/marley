@@ -109,7 +109,7 @@ sudo cp -r gentoo/var/db/repos/marley_repo /var/db/repos/<br />
 sudo chown -R portage:portage /var/db/repos/marley_repo<br />
 <br />
 #Inform portage about the new repository:<br />
-sudo cp -r gentoo/etc/portage/repos.conf/marley_repo.conf /etc/portage/repos.conf/<br />
+sudo cp gentoo/etc/portage/repos.conf/marley_repo.conf /etc/portage/repos.conf/<br />
 <br />
 #Allow Marley to be used by emerge:<br />
 sudo cat gentoo/etc/portage/package.keywords >> /etc/portage/package.keywords<br />
@@ -126,8 +126,11 @@ pushd /var/db/repos/marley_repo/games-emulation/marley/<br />
 repoman manifest<br />
 popd<br />
 <br />
-#Set MAKEFLAGS and emerge the package<br />
+#Set MAKEFLAGS<br />
 export MAKEFLAGS=-j$(nproc)<br />
+<br />
+#Check the USE flags in /etc/portage/make.conf and emerge the package<br />
+#USE="gles2 alsa acl -qt5 -kde X gtk gnome systemd icu bluetooth pulseaudio udev systemd dbus glib"
 sudo emerge --ask --verbose games-emulation/marley<br />
 <br />
 ##  Compile from source
