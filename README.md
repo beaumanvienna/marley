@@ -130,7 +130,8 @@ popd<br />
 export MAKEFLAGS=-j$(nproc)<br />
 <br />
 #Check the USE flags in /etc/portage/make.conf and emerge the package<br />
-#USE="gles2 alsa acl -qt5 -kde X gtk gnome systemd icu bluetooth pulseaudio udev systemd dbus glib"
+#USE="gles2 alsa acl -qt5 -kde X gtk gnome systemd icu bluetooth pulseaudio udev systemd dbus glib"<br />
+<br />
 sudo emerge --ask --verbose games-emulation/marley<br />
 <br />
 ##  Compile from source
