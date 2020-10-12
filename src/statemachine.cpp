@@ -32,6 +32,13 @@
 #include <X11/Xlib.h>
 #include <fstream>
 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
+#include <dirent.h>
+#include <errno.h>
+
+
 int gState = 0;
 int gCurrentGame;
 std::vector<string> gGame;
@@ -77,6 +84,36 @@ void resetStatemachine(void)
     gControllerConfNum=-1;
 }
 void create_new_window(void);
+
+void create_cue_file(string filename)
+{
+    string cue_filename = filename.substr(0,filename.find_last_of(".")) + ".cue";
+    std::ofstream cue_file;
+
+    cue_file.open(cue_filename.c_str(), std::ios_base::app); 
+    if(cue_file) 
+    {
+        cue_file << "FILE \"";
+        if (filename.find_last_of("/") != string::npos)
+        {
+            cue_file << filename.substr(filename.find_last_of("/")+1);
+        }
+        else
+        {
+            cue_file << filename;
+        }
+        cue_file << "\" BINARY\n";
+        cue_file << "  TRACK 01 MODE2/2352\n";
+        cue_file << "    INDEX 01 00:00:00";
+        cue_file.close();
+        // replace mdf or bin file
+        gGame[gCurrentGame] = cue_filename;
+    }
+    else
+    {
+        printf("Could not create cue file for \n",filename.c_str());
+    }
+}
 
 #define BUFSIZE 1024
 enum emulator_target
@@ -134,6 +171,12 @@ emulator_target getEmulatorTarget(string filename)
 		}
 		else if ((file_type.find("sega mega drive") != string::npos) || (file_type.find("genesis") != string::npos))
 		{
+			emu = mednafen;
+			printf("mednafen ");
+		}
+		else if (file_type.find("sega saturn") != string::npos)
+		{
+            create_cue_file(filename);
 			emu = mednafen;
 			printf("mednafen ");
 		}

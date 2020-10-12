@@ -47,25 +47,30 @@
 using namespace std;
 typedef unsigned long long int checksum64;
 
-#define PS1_BIOS_SIZE   524288
-#define PS2_BIOS_SIZE  4194304
-#define SCPH5500_BIN  21715608
-#define SCPH5501_BIN  22714036
-#define SCPH5502_BIN  24215776
-#define SCPH77000_BIN 56837872
-#define SCPH77001_BIN 162002608
-#define SCPH77002_BIN 169569744
+#define PS1_BIOS_SIZE           524288
+#define SEGA_SATURN_BIOS_SIZE   524288
+#define PS2_BIOS_SIZE           4194304
+#define SCPH5500_BIN            21715608
+#define SCPH5501_BIN            22714036
+#define SCPH5502_BIN            24215776
+#define SCPH77000_BIN           56837872
+#define SCPH77001_BIN           162002608
+#define SCPH77002_BIN           169569744
+#define SEGA_SATURN_BIOS_JP     19759492
+#define SEGA_SATURN_BIOS_NA_EU  19688652
+
 
 bool isDirectory(const char *filename);
 
 bool gPS1_firmware;
 bool gPS2_firmware;
+bool gSegaSaturn_firmware;
 string gPathToFirmwarePSX;
 string gPathToFirmwarePS2;
 string gPathToGames;
 string gBaseDir;
-vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","snes","nes","gamecube","wii","n64", "gba", "gbc"};
-vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs"};
+vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","md (sega saturn)","snes","nes","gamecube","wii","n64", "gba", "gbc"};
+vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs","mdf"};
 bool gGamesFound;
 
 std::ifstream::pos_type filesize(const char* filename)
@@ -94,7 +99,7 @@ checksum64 calcChecksum(const char * filename)
     return checksum;
 }
 bool IsBIOS_PCSX2(const char * filename);
-void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2)
+void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2 = nullptr)
 {
     string str_with_path, str_without_path;
     string ext, str_with_path_lower_case;
@@ -136,13 +141,14 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
                 {
                     int file_size = filesize(str_with_path.c_str());
                     
-                    if (file_size == PS1_BIOS_SIZE)
+                    if ((file_size == PS1_BIOS_SIZE)||(file_size == SEGA_SATURN_BIOS_SIZE))
                     {
+                        printf("debug sega saturn bios: bios file name \"%s\", checksum: %i\n",str_with_path.c_str(),calcChecksum(str_with_path.c_str()));
                         tmpList_ps1[0].push_back(str_with_path);
                     }
                     else if (file_size == PS2_BIOS_SIZE)
                     {
-                        if (IsBIOS_PCSX2(str_with_path.c_str()))
+                        if (IsBIOS_PCSX2(str_with_path.c_str()) && tmpList_ps2)
                         {
                             tmpList_ps2[0].push_back(str_with_path);
                         }
@@ -385,6 +391,90 @@ void checkFirmwarePSX(void)
     }    
 }
 
+void checkFirmwareSEGA_SATURN(void)
+{
+    bool found_jp_sega_saturn = false;
+    bool found_na_eu_sega_saturn = false;
+    
+    string jp_sega_saturn = gBaseDir + "mednafen/firmware/sega_101.bin";
+    string na_eu_sega_saturn = gBaseDir + "mednafen/firmware/mpr-17933.bin";
+
+    ifstream jpF_sega_saturn (jp_sega_saturn.c_str());
+    ifstream na_euF_sega_saturn (na_eu_sega_saturn.c_str());
+    
+    // check if sega saturn bios files are already installed in base directory
+    if (jpF_sega_saturn.is_open())
+    {
+        jpF_sega_saturn.close();
+        if ( calcChecksum(jp_sega_saturn.c_str()) == SEGA_SATURN_BIOS_JP)
+        {
+            printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", jp_sega_saturn.c_str());
+            found_jp_sega_saturn = true;
+        }
+    }
+    
+    if (na_euF_sega_saturn.is_open())
+    {
+        na_euF_sega_saturn.close();
+        if ( calcChecksum(na_eu_sega_saturn.c_str()) == SEGA_SATURN_BIOS_NA_EU)
+        {
+            printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", na_eu_sega_saturn.c_str());
+            found_na_eu_sega_saturn = true;
+        }
+    }
+    
+    // if not all files are installed in base directory search firmware path
+    if (!(found_jp_sega_saturn && found_na_eu_sega_saturn))
+    {
+        if (gPathToFirmwarePSX!="")
+        {
+            std::list<string> tmpList_sega_saturn;
+            
+            findAllBiosFiles(gPathToFirmwarePSX.c_str(),&tmpList_sega_saturn);
+            
+            for (string str : tmpList_sega_saturn)
+            {
+                if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_JP) && !found_jp_sega_saturn)
+                {
+                    printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", str.c_str());
+                    found_jp_sega_saturn = copyFile(str.c_str(),jp_sega_saturn.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_NA_EU) && !found_na_eu_sega_saturn)
+                {
+                    printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", str.c_str());
+                    found_na_eu_sega_saturn = copyFile(str.c_str(),na_eu_sega_saturn.c_str());
+                }
+            }
+        }
+    }
+    // if still not all files are installed in base directory search game path
+    if (!(found_jp_sega_saturn && found_na_eu_sega_saturn))
+    {
+        if (gPathToGames!="")
+        {
+            std::list<string> tmpList_sega_saturn;
+            findAllBiosFiles(gPathToGames.c_str(),&tmpList_sega_saturn);
+            
+            for (string str : tmpList_sega_saturn)
+            {
+                
+                if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_JP) && !found_jp_sega_saturn)
+                {
+                    printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", str.c_str());
+                    found_jp_sega_saturn = copyFile(str.c_str(),jp_sega_saturn.c_str());
+                }
+                if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_NA_EU) && !found_na_eu_sega_saturn)
+                {
+                    printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", str.c_str());
+                    found_na_eu_sega_saturn = copyFile(str.c_str(),na_eu_sega_saturn.c_str());
+                }
+            }
+        }
+    }    
+    gSegaSaturn_firmware = found_jp_sega_saturn || found_na_eu_sega_saturn;
+}
+
+
 void printSupportedEmus(void)
 {
     bool notEmpty;
@@ -400,7 +490,37 @@ void printSupportedEmus(void)
         printf("%s\n",gSupportedEmulators[i].c_str());    
     }
 }
-
+bool createDir(string name)
+{	
+    bool ok = true;
+	DIR* dir;        
+	dir = opendir(name.c_str());
+	if ((dir) && (isDirectory(name.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",name.c_str());
+		if (mkdir(name.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+            ok = false;
+		}
+	}
+    return ok;
+}
+void initMEDNAFEN(void)
+{
+    createDir(gBaseDir+"mednafen");
+    createDir(gBaseDir+"mednafen/firmware");
+}
 void initMUPEN64PLUS(void)
 {
 	string font_dir = gBaseDir;
@@ -620,6 +740,7 @@ void initDOLPHIN(void)
 void initEMU(void)
 {
     printSupportedEmus();
+    initMEDNAFEN();
     initPCSX2();
     initPPSSPP();
     initDOLPHIN();
@@ -631,6 +752,10 @@ void initEMU(void)
         
     if (!gPS2_firmware)
         printf("No valid bios/firmware path for PS2 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
+    
+    checkFirmwareSEGA_SATURN();
+    if (!gSegaSaturn_firmware)
+        printf("No valid bios/firmware path for Sega Saturn found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
     
     if (gGame.size())
     {
@@ -715,11 +840,10 @@ void stripList(list<string> *tmpList,list<string> *toBeRemoved)
             {
                 strList_no_path = strList_no_path.substr(strList_no_path.find_last_of("/") + 1);
             }
-            
+
             if ( strRemove_no_path == strList_no_path )
             {
                 tmpList[0].erase(iteratorTmpList++);
-                break;
             }
             else
             {
@@ -742,7 +866,7 @@ void checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
     {
         while ( getline (cueFile,line))
         {
-            if (line.find("FILE ") == 0)
+            if (line.find("FILE") != string::npos)
             {
                 str_with_path.substr(str_with_path.find_last_of(".") + 1);
                 

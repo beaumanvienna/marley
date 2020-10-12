@@ -457,22 +457,22 @@ static const char* const MDMegaMouseConfig[] =
 
 static const char* const SSPadConfig[] =
 {
- MKDEF(KP_6),
- MKDEF(KP_5),
- MKDEF(KP_4),
- MKDEF(KP_9),
+ "joystick 0xbaadf00d00000000beefbabe00000000 abs_5+",
+ "joystick 0xbaadf00d00000000beefbabe00000000 abs_2+",
+ MKDEF_MARLEY(button_0),
+ MKDEF_MARLEY(button_10),
 
- MKDEF(W),
- MKDEF(S),
- MKDEF(A),
- MKDEF(D),
+ MKDEF_MARLEY(button_11),
+ MKDEF_MARLEY(button_12),
+ MKDEF_MARLEY(button_13),
+ MKDEF_MARLEY(button_14),
 
- MKDEF(KP_2),
- MKDEF(KP_3),
- MKDEF(KP_1),
- MKDEF(RETURN),
+ MKDEF_MARLEY(button_3),
+ MKDEF_MARLEY(button_1),
+ MKDEF_MARLEY(button_2),
+ MKDEF_MARLEY(button_6),
 
- MKDEF(KP_7),
+ MKDEF_MARLEY(button_9),
 
 };
 
