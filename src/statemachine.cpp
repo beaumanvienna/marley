@@ -85,8 +85,379 @@ void resetStatemachine(void)
 }
 void create_new_window(void);
 
+typedef unsigned char       u8;
+typedef unsigned short      u16;
+typedef int                 s32;
+typedef unsigned int        u32;
+typedef unsigned long int   u64;
+typedef struct
+{
+   s32 session_start;
+   s32 session_end;
+   u16 session_number;
+   u8 total_blocks;
+   u8 leadin_blocks;
+   u16 first_track;
+   u16 last_track;
+   u32 unused;
+   u32 track_blocks_offset;
+} mds_session_struct;
+
+typedef struct
+{
+   u8 ctl_addr;
+   u32 fad_start;
+   u32 fad_end;
+   u32 file_offset;
+   u32 sector_size;
+   FILE *fp;
+   FILE *sub_fp;
+   int file_size;
+   int file_id;
+   int interleaved_sub;
+} track_info_struct;
+
+typedef struct
+{
+   u32 fad_start;
+   u32 fad_end;
+   track_info_struct *track;
+   int track_num;
+} session_info_struct;
+
+typedef struct
+{
+   int session_num;
+   session_info_struct *session;
+} disc_info_struct;
+
+#pragma pack(push, 1)
+typedef struct
+{
+   u8 signature[16];
+   u8 version[2];
+   u16 medium_type;
+   u16 session_count;
+   u16 unused1[2];
+   u16 bca_length;
+   u32 unused2[2];
+   u32 bca_offset;
+   u32 unused3[6];
+   u32 disk_struct_offset;
+   u32 unused4[3];
+   u32 sessions_blocks_offset;
+   u32 dpm_blocks_offset;
+   u32 enc_key_offset;
+} mds_header_struct;
+typedef struct
+{
+   u8 mode;
+   u8 subchannel_mode;
+   u8 addr_ctl;
+   u8 unused1;
+   u8 track_num;
+   u32 unused2;
+   u8 m;
+   u8 s;
+   u8 f;
+   u32 extra_offset;
+   u16 sector_size;
+   u8 unused3[18];
+   u32 start_sector;
+   u64 start_offset;
+   u8 session;
+   u8 unused4[3];
+   u32 footer_offset;
+   u8 unused5[24];
+} mds_track_struct;
+
+typedef struct
+{
+   u32 filename_offset;
+   u32 is_widechar;
+   u32 unused1;
+   u32 unused2;
+} mds_footer_struct;
+
+#pragma pack(pop)
+#define MSF_TO_FAD(m,s,f) ((m * 4500) + (s * 75) + f)
+static char * wcsdupstr(const wchar_t * path)
+{
+   char* mbs;
+   size_t len = wcstombs(nullptr, path, 0);
+   if (len == (size_t) -1) return nullptr;
+
+   mbs = (char*)malloc(len);
+   len = wcstombs(mbs, path, len);
+   if (len == (size_t) -1)
+   {
+      free(mbs);
+      return nullptr;
+   }
+
+   return mbs;
+}
+static FILE * _wfopen(const wchar_t *wpath, const wchar_t *wmode)
+{
+   FILE * fd;
+   char * path;
+   char * mode;
+
+   path = wcsdupstr(wpath);
+   if (path == nullptr) return nullptr;
+
+   mode = wcsdupstr(wmode);
+   if (mode == nullptr)
+   {
+      free(path);
+      return nullptr;
+   }
+
+   fd = fopen(path, mode);
+
+   free(path);
+   free(mode);
+
+   return fd;
+}
+
+int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* mds_session, session_info_struct* session)
+{
+   printf("jc: int LoadMDSTracks(const char* mds_filename: \"%s\", FILE *mds_file, mds_session_struct *mds_session, session_info_struct *session)\n",mds_filename);
+   int i;
+   int track_num=0;
+   u32 fad_end = 0;
+
+   session->track = (track_info_struct*)malloc(sizeof(track_info_struct) * mds_session->last_track);
+   if (session->track == nullptr)
+   {
+      printf("error 7 memory allocation \n");
+      return -1;
+   }
+	memset(session->track, 0, sizeof(track_info_struct) * mds_session->last_track);
+
+   for (i = 0; i < mds_session->total_blocks; i++)
+   {
+      printf("jc: mds block %i, track_num %i\n",i,track_num);
+      mds_track_struct track;
+      FILE *fp=nullptr;
+      int file_size = 0;
+
+      fseek(mds_file, mds_session->track_blocks_offset + i * sizeof(mds_track_struct), SEEK_SET);
+      if (fread(&track, 1, sizeof(mds_track_struct), mds_file) != sizeof(mds_track_struct))
+      {
+         printf("error 8 could not read mds file \n");
+         free(session->track);
+         return -1;
+      }
+
+      if (track.track_num == 0xA2)
+         fad_end = MSF_TO_FAD(track.m, track.s, track.f);
+      if (!track.extra_offset)
+         continue;
+
+      if (track.footer_offset)
+      {
+         mds_footer_struct footer;
+         int found_dupe=0;
+         int j;
+
+         // Make sure the file was not opened already
+         for (j = 0; j < track_num; j++)
+         {
+            if (track.footer_offset == session->track[j].file_id)
+            {
+               found_dupe = 1;
+               break;
+            }
+         }
+
+         if (found_dupe)
+         {
+            printf("jc: found dupe\n");
+            fp = session->track[j].fp;
+            file_size = session->track[j].file_size;
+         }
+         else
+         {
+            fseek(mds_file, track.footer_offset, SEEK_SET);
+            if (fread(&footer, 1, sizeof(mds_footer_struct), mds_file) != sizeof(mds_footer_struct))
+            {
+               printf("error 9 could not read mds file \n");
+               free(session->track);
+               return -1;
+            }
+
+            fseek(mds_file, footer.filename_offset, SEEK_SET);
+            if (footer.is_widechar)
+            {
+               wchar_t filename[512];
+               wchar_t img_filename[512];
+               memset(img_filename, 0, 512 * sizeof(wchar_t));
+               
+               if (fwscanf(mds_file, L"%512c", img_filename) != 1)
+               {
+                  printf("error 9 could not read img file \n");
+                  free(session->track);
+                  return -1;
+               }
+
+               if (wcsncmp(img_filename, L"*.", 2) == 0)
+               {
+                  wchar_t *ext;
+                  swprintf(filename, sizeof(filename)/sizeof(wchar_t), L"%S", mds_filename);
+                  ext = wcsrchr(filename, '.');
+                  wcscpy(ext, img_filename+1);
+               }
+               else
+                  wcscpy(filename, img_filename);
+               printf("jc: img_filename: %s\n",img_filename); 
+               fp = _wfopen(filename, L"rb");
+            }
+            else
+            {
+               char filename[512];
+               char img_filename[512];
+               memset(img_filename, 0, 512);
+
+               if (fscanf(mds_file, "%512c", img_filename) != 1)
+               {
+                  printf("error 10 could not read img file \n");
+                  free(session->track);
+                  return -1;
+               }
+
+               if (strncmp(img_filename, "*.", 2) == 0)
+               {
+                  char *ext;
+                  size_t mds_filename_len = strlen(mds_filename);
+                  if (mds_filename_len >= 512)
+                  {
+                     printf("error 11 mds file length too big \n");
+                     free(session->track);
+                     return -1;
+                  }
+                  strcpy(filename, mds_filename);
+                  ext = strrchr(filename, '.');
+                  strcpy(ext, img_filename+1);
+               }
+               else
+                  strcpy(filename, img_filename);
+               printf("jc: img_filename: %s\n",img_filename); 
+               fp = fopen(filename, "rb");
+            }
+
+            if (fp == nullptr)
+            {
+               printf("error 12 could not open file \n");
+               free(session->track);
+               return -1;
+            }
+
+            fseek(fp, 0, SEEK_END);
+            file_size = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+         }
+      }
+
+      session->track[track_num].ctl_addr = (((track.addr_ctl << 4) | (track.addr_ctl >> 4)) & 0xFF);
+      session->track[track_num].fad_start = track.start_sector+150;
+      if (track_num > 0)
+         session->track[track_num-1].fad_end = session->track[track_num].fad_start;
+      session->track[track_num].file_offset = track.start_offset;
+      session->track[track_num].sector_size = track.sector_size;
+      session->track[track_num].fp = fp;
+      session->track[track_num].file_size = file_size;
+      session->track[track_num].file_id = track.footer_offset;
+      session->track[track_num].interleaved_sub = track.subchannel_mode != 0 ? 1 : 0;
+      
+      printf("jc: session->track[track_num].ctl_addr = 0x%lx\n",(u64)session->track[track_num].ctl_addr);
+      printf("jc: session->track[track_num].fad_start = 0x%lx\n",(u64)session->track[track_num].fad_start);
+      printf("jc: session->track[track_num-1].fad_end = 0x%lx\n",(u64)session->track[track_num-1].fad_end);
+      printf("jc: session->track[track_num].file_offset = 0x%lx\n",(u64)session->track[track_num].file_offset);
+      printf("jc: session->track[track_num].sector_size = 0x%lx\n",(u64)session->track[track_num].sector_size);
+      printf("jc: session->track[track_num].fp = 0x%lx\n",(u64)session->track[track_num].fp);
+      printf("jc: session->track[track_num].file_size = 0x%lx\n",(u64)session->track[track_num].file_size);
+      printf("jc: session->track[track_num].file_id = 0x%lx\n",(u64)session->track[track_num].file_id);
+      printf("jc: session->track[track_num].interleaved_sub = 0x%lx\n",(u64)session->track[track_num].interleaved_sub);
+      
+
+      track_num++;
+   }
+
+   session->track[track_num-1].fad_end = fad_end;
+   session->fad_start = session->track[0].fad_start;
+   session->fad_end = fad_end;
+   session->track_num = track_num;
+   return 0;
+}
+
+int LoadMDS(const char *mds_filename, FILE *mds_file)
+{
+   printf("jc: int LoadMDS(const char *mds_filename = %s, FILE *mds_file)\n",mds_filename);
+   s32 i;
+   mds_header_struct header;
+   disc_info_struct disc;
+
+   fseek(mds_file, 0, SEEK_SET);
+
+   if (fread((void *)&header, 1, sizeof(mds_header_struct), mds_file) != sizeof(mds_header_struct))
+   {
+      printf("error 1 mds file (bad size)\n");
+   }
+   else if (memcmp(&header.signature,  "MEDIA DESCRIPTOR", sizeof(header.signature)))
+   {
+      printf("error 2 mds file (bad mds descriptor)\n");
+   }
+   else if (header.version[0] > 1)
+   {
+      printf("error 3 mds file (bad version)\n");
+   }
+
+   if (header.medium_type & 0x10)
+   {
+      // DVDs are not supported
+      printf("error 4 mds file (bad medium type)\n");
+   }
+
+   disc.session_num = header.session_count;
+   disc.session = (session_info_struct*)malloc(sizeof(session_info_struct) * disc.session_num);
+   if (disc.session == nullptr)
+   {
+      printf("error 5 mds file (bad session number)\n");
+   }
+
+   for (i = 0; i < header.session_count; i++)
+   {
+      mds_session_struct session;
+
+      fseek(mds_file, header.sessions_blocks_offset + i * sizeof(mds_session_struct), SEEK_SET);
+      if (fread(&session, 1, sizeof(mds_session_struct), mds_file) != sizeof(mds_session_struct))
+      {
+         free(disc.session);
+         printf("error 6 mds file \n");
+      }
+
+      LoadMDSTracks(mds_filename, mds_file, &session, &disc.session[i]);
+   }
+
+   fclose(mds_file);
+
+   return 0;
+}
+
+bool exists(const char *fileName);
 void create_cue_file(string filename)
 {
+    // debug code to explore mds files
+    FILE *mds_file;
+    string mds_filename = filename.substr(0,filename.find_last_of(".")) + ".mds";    
+    if (exists(mds_filename.c_str()) && (mds_file = fopen(mds_filename.c_str(), "rb")))
+    {
+        LoadMDS(mds_filename.c_str(),mds_file);
+        //gGame[gCurrentGame] = mds_filename;
+    }
+    
     string cue_filename = filename.substr(0,filename.find_last_of(".")) + ".cue";
     std::ofstream cue_file;
 
