@@ -925,7 +925,16 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
                         (str_with_path_lower_case.find("bios") ==  string::npos) &&\
                         (str_with_path_lower_case.find("firmware") ==  string::npos))
                     {
-                        tmpList[0].push_back(str_with_path);
+                        if (ext == "mdf")
+                        {
+                            string bin_file;
+                            bin_file = str_with_path.substr(0,str_with_path.find_last_of(".")) + ".bin";
+                            if (!exists(bin_file.c_str())) tmpList[0].push_back(str_with_path);
+                        }
+                        else
+                        {
+                            tmpList[0].push_back(str_with_path);
+                        }
                         
                         //check if cue file
                         if (ext == "cue")
@@ -937,7 +946,6 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
             }
         }
         closedir (dir);
-        
     } 
 }
 

@@ -58,7 +58,7 @@ endif
 #project target
 
 bin_PROGRAMS 	= marley		
-marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp resources/pcsx2_res.cpp
+marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp resources/pcsx2_res.cpp src/mdf2iso.cpp
 
 #generate built-in resources
 BUILT_SOURCES = resources/res.cpp

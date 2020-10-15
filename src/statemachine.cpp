@@ -223,7 +223,6 @@ static FILE * _wfopen(const wchar_t *wpath, const wchar_t *wmode)
 
 int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* mds_session, session_info_struct* session)
 {
-   printf("jc: int LoadMDSTracks(const char* mds_filename: \"%s\", FILE *mds_file, mds_session_struct *mds_session, session_info_struct *session)\n",mds_filename);
    int i;
    int track_num=0;
    u32 fad_end = 0;
@@ -238,7 +237,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
 
    for (i = 0; i < mds_session->total_blocks; i++)
    {
-      printf("jc: mds block %i, track_num %i\n",i,track_num);
       mds_track_struct track;
       FILE *fp=nullptr;
       int file_size = 0;
@@ -274,7 +272,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
 
          if (found_dupe)
          {
-            printf("jc: found dupe\n");
             fp = session->track[j].fp;
             file_size = session->track[j].file_size;
          }
@@ -311,7 +308,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
                }
                else
                   wcscpy(filename, img_filename);
-               printf("jc: img_filename: %s\n",img_filename); 
                fp = _wfopen(filename, L"rb");
             }
             else
@@ -343,7 +339,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
                }
                else
                   strcpy(filename, img_filename);
-               printf("jc: img_filename: %s\n",img_filename); 
                fp = fopen(filename, "rb");
             }
 
@@ -370,17 +365,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
       session->track[track_num].file_size = file_size;
       session->track[track_num].file_id = track.footer_offset;
       session->track[track_num].interleaved_sub = track.subchannel_mode != 0 ? 1 : 0;
-      
-      printf("jc: session->track[track_num].ctl_addr = 0x%lx\n",(u64)session->track[track_num].ctl_addr);
-      printf("jc: session->track[track_num].fad_start = 0x%lx\n",(u64)session->track[track_num].fad_start);
-      printf("jc: session->track[track_num-1].fad_end = 0x%lx\n",(u64)session->track[track_num-1].fad_end);
-      printf("jc: session->track[track_num].file_offset = 0x%lx\n",(u64)session->track[track_num].file_offset);
-      printf("jc: session->track[track_num].sector_size = 0x%lx\n",(u64)session->track[track_num].sector_size);
-      printf("jc: session->track[track_num].fp = 0x%lx\n",(u64)session->track[track_num].fp);
-      printf("jc: session->track[track_num].file_size = 0x%lx\n",(u64)session->track[track_num].file_size);
-      printf("jc: session->track[track_num].file_id = 0x%lx\n",(u64)session->track[track_num].file_id);
-      printf("jc: session->track[track_num].interleaved_sub = 0x%lx\n",(u64)session->track[track_num].interleaved_sub);
-      
 
       track_num++;
    }
@@ -394,7 +378,6 @@ int LoadMDSTracks(const char* mds_filename, FILE* mds_file, mds_session_struct* 
 
 int LoadMDS(const char *mds_filename, FILE *mds_file)
 {
-   printf("jc: int LoadMDS(const char *mds_filename = %s, FILE *mds_file)\n",mds_filename);
    s32 i;
    mds_header_struct header;
    disc_info_struct disc;
@@ -447,43 +430,63 @@ int LoadMDS(const char *mds_filename, FILE *mds_file)
 }
 
 bool exists(const char *fileName);
+int mdf2iso_main (int argc, char **argv);
 void create_cue_file(string filename)
 {
-    // debug code to explore mds files
-    FILE *mds_file;
-    string mds_filename = filename.substr(0,filename.find_last_of(".")) + ".mds";    
-    if (exists(mds_filename.c_str()) && (mds_file = fopen(mds_filename.c_str(), "rb")))
-    {
-        LoadMDS(mds_filename.c_str(),mds_file);
-        //gGame[gCurrentGame] = mds_filename;
-    }
     
+    string ext = filename.substr(filename.find_last_of(".") + 1);
+    string bin_filename = filename.substr(0,filename.find_last_of(".")) + ".bin";
     string cue_filename = filename.substr(0,filename.find_last_of(".")) + ".cue";
-    std::ofstream cue_file;
-
-    cue_file.open(cue_filename.c_str(), std::ios_base::app); 
-    if(cue_file) 
+    if (ext.find("bin") != string::npos) 
     {
-        cue_file << "FILE \"";
-        if (filename.find_last_of("/") != string::npos)
+        std::ofstream cue_file;
+
+        cue_file.open(cue_filename.c_str(), std::ios_base::app); 
+        if(cue_file) 
         {
-            cue_file << filename.substr(filename.find_last_of("/")+1);
+            cue_file << "FILE \"";
+            if (filename.find_last_of("/") != string::npos)
+            {
+                cue_file << filename.substr(filename.find_last_of("/")+1);
+            }
+            else
+            {
+                cue_file << filename;
+            }
+            cue_file << "\" BINARY\n";
+            cue_file << "  TRACK 01 MODE2/2352\n";
+            cue_file << "    INDEX 01 00:00:00";
+            cue_file.close();
+            // replace bin file
         }
         else
         {
-            cue_file << filename;
+            printf("Could not create cue file for \n",filename.c_str());
         }
-        cue_file << "\" BINARY\n";
-        cue_file << "  TRACK 01 MODE2/2352\n";
-        cue_file << "    INDEX 01 00:00:00";
-        cue_file.close();
-        // replace mdf or bin file
-        gGame[gCurrentGame] = cue_filename;
     }
-    else
+    else if ((ext.find("mdf") != string::npos) && (!exists(bin_filename.c_str())))
     {
-        printf("Could not create cue file for \n",filename.c_str());
+        string bin_filename_no_path = bin_filename;
+        if (bin_filename.find("/") != string::npos)
+        {
+            bin_filename_no_path = bin_filename.substr(bin_filename.find_last_of("/") + 1);
+        }
+        char *argv[4]; 
+		char arg1[10] = "mdf2iso"; 
+		char arg2[10] = "--cue";
+		char arg3[1024];
+        char arg4[1024];
+        strcpy(arg3, filename.c_str());  
+        strcpy(arg4, bin_filename_no_path.c_str());
+
+        argv[0] = arg1;
+        argv[1] = arg2;
+        argv[2] = arg3;
+        argv[3] = arg4;
+        
+        mdf2iso_main (4, argv);
     }
+    gGame[gCurrentGame] = cue_filename;
 }
 
 #define BUFSIZE 1024
