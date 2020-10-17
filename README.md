@@ -199,7 +199,7 @@ echo $MAKEFLAGS
 
 ### Configure and make
 aclocal && autoconf && automake --add-missing --foreign<br /> 
-./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS<br />
+./configure --prefix=/usr<br />
 make<br />
 
 
@@ -213,5 +213,5 @@ sudo make install <br />
 #From where "Configure and make" is described above, say<br />
 export CXX=clang++<br />
 export CC=clang<br />
-aclocal && autoconf && automake --add-missing --foreign && ./configure MAKEFLAGS=$MAKEFLAGS CXX=$CXX CC=$CC<br />
+aclocal && autoconf && automake --add-missing --foreign && ./configure CXX=$CXX CC=$CC<br />
 make<br />
