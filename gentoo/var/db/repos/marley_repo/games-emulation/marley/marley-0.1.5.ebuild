@@ -98,7 +98,7 @@ src_prepare() {
 	aclocal
 	autoconf
 	automake --add-missing --foreign
-	./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS
+	./configure --prefix=/usr
 	make
 }
 
