@@ -19,30 +19,21 @@
 #
 # <component> can be one of:
 #   avcodec
-#   avdevice
-#   avfilter
 #   avformat
-#   postproc
 #   swresample
 #   swscale
 #
 
 set(_FFmpeg_ALL_COMPONENTS
   avcodec
-  avdevice
-  avfilter
   avformat
   avutil
-  postproc
   swresample
   swscale
 )
 
 set(_FFmpeg_DEPS_avcodec avutil)
-set(_FFmpeg_DEPS_avdevice avcodec avformat avutil)
-set(_FFmpeg_DEPS_avfilter avutil)
 set(_FFmpeg_DEPS_avformat avcodec avutil)
-set(_FFmpeg_DEPS_postproc avutil)
 set(_FFmpeg_DEPS_swresample avutil)
 set(_FFmpeg_DEPS_swscale avutil)
 
@@ -84,27 +75,17 @@ function(find_ffmpeg LIBNAME)
     )
   endif()
 
-  find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
-    HINTS ${INCLUDE_PATHS}
-  )
+  set(FFmpeg_INCLUDE_${LIBNAME} ${CMAKE_SOURCE_DIR}/ffmpeg/linux/x86_64/include)
+  set(FFmpeg_LIBRARY_${LIBNAME} ${CMAKE_SOURCE_DIR}/ffmpeg/linux/x86_64/lib/lib${LIBNAME}.a)
+  #message("jc  Found ${LIBNAME}: ${CMAKE_SOURCE_DIR}/ffmpeg/linux/x86_64/include ${CMAKE_SOURCE_DIR}/ffmpeg/linux/x86_64/lib/lib${LIBNAME}.a")
 
-  find_library(FFmpeg_LIBRARY_${LIBNAME} ${LIBNAME}
-    HINTS ${LIB_PATHS}
-  )
-
-  if(NOT FFMPEG_DIR AND (NOT FFmpeg_LIBRARY_${LIBNAME} OR NOT FFmpeg_INCLUDE_${LIBNAME}))
-    # Didn't find it in the usual paths, try pkg-config
-    find_package(PkgConfig QUIET)
-    pkg_check_modules(FFmpeg_PKGCONFIG_${LIBNAME} REQUIRED QUIET lib${LIBNAME})
-
-    find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
-      ${FFmpeg_PKGCONFIG_${LIBNAME}_INCLUDE_DIRS}
-    )
-
-    find_library(FFmpeg_LIBRARY_${LIBNAME} ${LIBNAME}
-      ${FFmpeg_PKGCONFIG_${LIBNAME}_LIBRARY_DIRS}
-    )
-  endif()
+  #find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
+  #  HINTS ${INCLUDE_PATHS}
+  #)
+      
+  #find_library(FFmpeg_LIBRARY_${LIBNAME} ${LIBNAME}
+  #  HINTS ${LIB_PATHS}
+  #)
 
   if(FFmpeg_INCLUDE_${LIBNAME} AND FFmpeg_LIBRARY_${LIBNAME})
     set(FFmpeg_INCLUDE_${LIBNAME} "${FFmpeg_INCLUDE_${LIBNAME}}" PARENT_SCOPE)
