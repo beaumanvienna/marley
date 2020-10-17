@@ -70,9 +70,6 @@ fi
 RESOURCE_LIST="\$(shell \$(glib-compile-resources --sourcedir= --generate-dependencies resources/res.xml))"
 AC_SUBST([RESOURCE_LIST])
 
-#compile ffmpeg so that the configure run of ppsspp can find it
-AC_CONFIG_COMMANDS_PRE([cd ppsspp/ffmpeg  && ./linux_x86-64.sh &&cd ../..])
-
 #run all configure scripts
 AC_CONFIG_COMMANDS_PRE([cd ppsspp  && mkdir -p build && cd build && cmake $CMAKE_BUILD_TYPE ..&&cd ../..])
 AC_CONFIG_COMMANDS_PRE([cd pcsx2  && mkdir -p build && cd build && cmake $CMAKE_BUILD_TYPE -DBUILTIN_PAD=ON -DBUILTIN_GS=ON `../detect_gtk_flags.sh` ..&&cd ../..])

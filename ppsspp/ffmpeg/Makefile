@@ -178,6 +178,7 @@ clean::
 	$(RM) $(CLEANSUFFIXES:%=tools/%)
 	$(RM) -r coverage-html
 	$(RM) -rf coverage.info coverage.info.in lcov
+	$(RM) -rf linux/x86_64/lib/libswscale.a linux/x86_64/lib/libavcodec.a linux/x86_64/lib/libavformat.a linux/x86_64/lib/libswresample.a linux/x86_64/lib/libavutil.a
 
 distclean::
 	$(RM) $(DISTCLEANSUFFIXES)

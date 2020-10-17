@@ -536,7 +536,7 @@ if(USE_FFMPEG)
 		endif()
 	endif()
 
-	find_package(FFmpeg REQUIRED avcodec avformat avutil swresample swscale)
+	#find_package(FFmpeg REQUIRED avcodec avformat avutil swresample swscale)
 endif(USE_FFMPEG)
 
 find_package(ZLIB)

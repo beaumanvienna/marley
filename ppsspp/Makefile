@@ -7,6 +7,7 @@ install:
 	$(info   *************** install checkpoint ***************)
 build:
 	$(info   *************** ppsspp build ***************)
+	cd ffmpeg  && ./linux_x86-64.sh &&cd ..
 	$(MAKE) -C $@
 
 clean:
