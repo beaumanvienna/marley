@@ -853,9 +853,10 @@ void stripList(list<string> *tmpList,list<string> *toBeRemoved)
     }
 }
 
-void checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
+bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 {
     string line, name;
+    bool file_exists = false;
 
     ifstream cueFile (str_with_path.c_str());
     if (!cueFile.is_open())
@@ -874,10 +875,21 @@ void checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
                 int length = line.find_last_of("\"")-start;
                 name = line.substr(start,length);
                 
-                toBeRemoved[0].push_back(name);
+                string name_with_path = name;
+                if (str_with_path.find("/") != string::npos)
+                {
+                    name_with_path = str_with_path.substr(0,str_with_path.find_last_of("/")+1) + name;
+                }
+
+                if (exists(name.c_str()) || (exists(name_with_path.c_str())))
+                {
+                    toBeRemoved[0].push_back(name);
+                    file_exists = true;
+                } else return false;
             }
         }
     }
+    return file_exists;
 }
 
 void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved)
@@ -931,15 +943,14 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
                             bin_file = str_with_path.substr(0,str_with_path.find_last_of(".")) + ".bin";
                             if (!exists(bin_file.c_str())) tmpList[0].push_back(str_with_path);
                         }
+                        else if (ext == "cue")
+                        {
+                            if(checkForCueFiles(str_with_path,toBeRemoved)) 
+                              tmpList[0].push_back(str_with_path);
+                        }
                         else
                         {
                             tmpList[0].push_back(str_with_path);
-                        }
-                        
-                        //check if cue file
-                        if (ext == "cue")
-                        {
-                            checkForCueFiles(str_with_path,toBeRemoved);
                         }
                     }
                 }

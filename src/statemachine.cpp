@@ -433,15 +433,16 @@ bool exists(const char *fileName);
 int mdf2iso_main (int argc, char **argv);
 void create_cue_file(string filename)
 {
-    
     string ext = filename.substr(filename.find_last_of(".") + 1);
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+      [](unsigned char c){ return std::tolower(c); });
     string bin_filename = filename.substr(0,filename.find_last_of(".")) + ".bin";
     string cue_filename = filename.substr(0,filename.find_last_of(".")) + ".cue";
     if (ext.find("bin") != string::npos) 
     {
         std::ofstream cue_file;
 
-        cue_file.open(cue_filename.c_str(), std::ios_base::app); 
+        cue_file.open(cue_filename.c_str(), std::ios_base::trunc); 
         if(cue_file) 
         {
             cue_file << "FILE \"";
