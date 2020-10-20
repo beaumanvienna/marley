@@ -33,24 +33,25 @@ void JoystickInfo::EnumerateJoysticks(std::vector<std::unique_ptr<GamePad>> &vjo
 {
     uint32_t flag = SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER;
 
-    if ((SDL_WasInit(0) & flag) != flag) {
-        // Tell SDL to catch event even if the window is not focussed
-        SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    
+    // Tell SDL to catch event even if the window is not focussed
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
-        if (SDL_Init(flag) < 0)
-            return;
-
-        struct sigaction action = {};
-        action.sa_handler = SIG_DFL;
-        sigaction(SIGINT, &action, nullptr);
-        sigaction(SIGTERM, &action, nullptr);
-
-        SDL_JoystickEventState(SDL_QUERY);
-        SDL_GameControllerEventState(SDL_QUERY);
-        SDL_EventState(SDL_CONTROLLERDEVICEADDED, SDL_ENABLE);
-        SDL_EventState(SDL_CONTROLLERDEVICEREMOVED, SDL_ENABLE);
-
+    if (SDL_Init(flag) < 0)
+    {
+        printf("SDL_Init(flag): failure\n");
+        return;
     }
+
+    struct sigaction action = {};
+    action.sa_handler = SIG_DFL;
+    sigaction(SIGINT, &action, nullptr);
+    sigaction(SIGTERM, &action, nullptr);
+
+    SDL_JoystickEventState(SDL_QUERY);
+    SDL_GameControllerEventState(SDL_QUERY);
+    SDL_EventState(SDL_CONTROLLERDEVICEADDED, SDL_ENABLE);
+    SDL_EventState(SDL_CONTROLLERDEVICEREMOVED, SDL_ENABLE);
 
     vjoysticks.clear();
     int slot = 0;

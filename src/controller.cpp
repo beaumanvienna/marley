@@ -48,7 +48,7 @@ bool initJoy(void)
     bool ok = true;
     int i;
     
-    SDL_Init(SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_EVENTS);
     
     string internal_db = gBaseDir;
     internal_db += "internaldb.txt";
