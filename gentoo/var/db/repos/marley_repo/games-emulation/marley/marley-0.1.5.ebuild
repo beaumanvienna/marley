@@ -94,12 +94,13 @@ BDEPEND="
 "
 
 src_prepare() {
+	echo MAKEOPTS $MAKEOPTS
 	default
 	aclocal
 	autoconf
 	automake --add-missing --foreign
 	./configure --prefix=/usr
-	make
+	make $MAKEOPTS
 }
 
 src_configure() {

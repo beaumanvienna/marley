@@ -24,7 +24,7 @@ gamepads. Gamepads can be hotplugged and automatically detected
 in the launcher interface. Marley also allows to configure 
 the button assignment of a controller manually. The controller settings 
 are shared with all emulators. Marley allows browsing
-ROM collections and launching games for the GBA, GBC, NES/SNES, Sega Genesis, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
+ROM collections and launching games for the GBA, GBC, NES/SNES, Sega Genesis, Sega Saturn, N64, PS1, PS2, PSP, Gamecube, and Wii. <br /> 
 <br />
 Please make sure to install an
 OpenGl driver for your graphics card. <br /> 
@@ -113,25 +113,6 @@ sudo cp gentoo/etc/portage/repos.conf/marley_repo.conf /etc/portage/repos.conf/<
 <br />
 #Allow Marley to be used by emerge:<br />
 sudo cat gentoo/etc/portage/package.keywords >> /etc/portage/package.keywords<br />
-<br />
-#Install repoman, if necessary<br />
-sudo emerge --ask --verbose app-portage/repoman<br />
-<br />
-#Sync your system<br />
-emerge --sync<br />
-<br />
-#Change into the ebuild directory and create the Manifest<br />
-cd /var/db/repos/marley_repo/games-emulation/marley/<br />
-sudo ebuild marley-0.1.5.ebuild manifest<br />
-pushd /var/db/repos/marley_repo/games-emulation/marley/<br />
-repoman manifest<br />
-popd<br />
-<br />
-#Set MAKEFLAGS<br />
-export MAKEFLAGS=-j$(nproc)<br />
-<br />
-#Check the USE flags in /etc/portage/make.conf and emerge the package<br />
-#USE="gles2 alsa acl -qt5 -kde X gtk gnome systemd icu bluetooth pulseaudio udev systemd dbus glib"<br />
 <br />
 sudo emerge --ask --verbose games-emulation/marley<br />
 <br />
