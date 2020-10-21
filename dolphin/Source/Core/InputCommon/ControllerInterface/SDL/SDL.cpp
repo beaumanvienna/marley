@@ -56,7 +56,7 @@ void Init()
 {
     requestShutdownGUIDE = false;
     #warning "jc: modified"
-    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+    if (SDL_Init(SDL_INIT_JOYSTICK) != 0)
     {
       ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
       return;
