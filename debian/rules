@@ -8,17 +8,4 @@ override_dh_auto_configure:
 	aclocal 
 	autoconf
 	automake --add-missing --foreign
-	./configure --prefix=/usr MAKEFLAGS=$MAKEFLAGS
-	
-override_dh_auto_build:
-
-override_dh_auto_install:
-
-override_dh_fixperms:
-
-	
-
-override_dh_installman:
-	
-	#man page
-	dh_installman resources/marley.6
+	./configure --prefix=/usr

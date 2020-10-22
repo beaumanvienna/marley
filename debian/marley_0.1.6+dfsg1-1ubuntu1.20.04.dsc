@@ -2,7 +2,7 @@ Format: 3.0 (native)
 Source: marley
 Binary: marley
 Architecture: amd64
-Version: 0.1.4
+Version: 0.1.6
 Maintainer: JC <beaumanvienna@gmail.com>
 Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
 Standards-Version: 4.1.4

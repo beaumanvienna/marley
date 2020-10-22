@@ -21,6 +21,18 @@ Files: configure.ac pictures/* resources/marley.6 resources/marley.desktop tests
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
 
+Files: include/* src/controller.cpp  src/emu.cpp  src/gui.cpp  src/marley.cpp
+Copyright: 2020 JC <beaumanvienna@gmail.com>
+License: GPL-2+
+
+Files: src/statemachine.cpp  src/wii.cpp
+Copyright: 2020 JC <beaumanvienna@gmail.com>
+License: GPL-2+
+
+Files: src/mdf2iso.cpp
+Copyright: 2004,2005 Salvatore Santagati <salvatore.santagati@gmail.com>   
+License: GPL-2+
+
 Files: resources/gamecontrollerdb.txt
 Copyright: 1997-2020 Sam Lantinga <slouken@libsdl.org>
 License: Zlib, see /usr/share/common-licenses
