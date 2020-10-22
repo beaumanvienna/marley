@@ -4,7 +4,11 @@
 	dh $@
 
 override_dh_auto_configure:
+	echo **************** make -j$(shell cat /proc/cpuinfo | grep -c vendor_id) ****************
 	aclocal 
 	autoconf
 	automake --add-missing --foreign
 	./configure --prefix=/usr
+
+override_dh_auto_build:
+	make -j$(shell cat /proc/cpuinfo | grep -c vendor_id)

@@ -25,7 +25,7 @@ Files: include/* src/controller.cpp  src/emu.cpp  src/gui.cpp  src/marley.cpp
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
 
-Files: src/statemachine.cpp  src/wii.cpp
+Files: src/statemachine.cpp  src/wii.cpp gentoo/* arch/*
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
 
