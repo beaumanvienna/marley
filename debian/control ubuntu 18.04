@@ -147,7 +147,8 @@ Depends: ${shlibs:Depends},
         libx11-6,
         locales,
         zip,
-        libx11-xcb1
+        libx11-xcb1,
+        libzstd1
 Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
 Description: Many Awesome Retro Linux Emulators, Yay!
  This package contains a bundle of console emulators and a launcher front-end.
