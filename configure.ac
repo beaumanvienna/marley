@@ -47,13 +47,28 @@ PCSX2_USE_GTK3_TRUE=
 PCSX2_USE_GTK3_FALSE='#'
 GTK_HEADERS_INCLUDE=`pkg-config --cflags gtk+-3.0`
 echo "using GTK3 for pcsx2"
+GTK_BASE=`find /usr/ -name "*wx_baseu-3.0*.so"      | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK_CORE=`find /usr/ -name "*wx_gtk3u_core-3.0*.so" | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK__ADV=`find /usr/ -name "*wx_gtk3u_adv-3.0*.so"  | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK_X=gtk-3
+GDK_X=gdk-3
 else
 PCSX2_USE_GTK3_TRUE='#'
 PCSX2_USE_GTK3_FALSE=
 GTK_HEADERS_INCLUDE=`pkg-config --cflags gtk+-2.0`
 echo "using GTK2 for pcsx2"
+GTK_BASE=wx_baseu-3.0
+GTK_CORE=wx_gtk2u_core-3.0
+GTK__ADV=wx_gtk2u_adv-3.0
+GTK_X=gtk-x11-2.0
+GDK_X=gdk-x11-2.0
 fi
 AC_SUBST([GTK_HEADERS_INCLUDE])
+AC_SUBST([GTK_BASE])
+AC_SUBST([GTK_CORE])
+AC_SUBST([GTK__ADV])
+AC_SUBST([GTK_X])
+AC_SUBST([GDK_X])
 
 if test "x$DETECT_GTK3" = "x-DGTK3_API=TRUE_GENTOO"
 then

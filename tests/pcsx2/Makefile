@@ -1,8 +1,5 @@
 #standalone pcsx2 test version
 
-USE_GTK3 = $(shell ../../pcsx2/detect_gtk_flags.sh)
-
-
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2
 
 LINKER_OBJECTS = ../../pcsx2/build/pcsx2/libPCSX2.a
@@ -12,27 +9,21 @@ LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
 
-ifeq ($(USE_GTK3), -DGTK3_API=ON)
-LINKER_OBJECTS += -lwx_baseu-3.0
-LINKER_OBJECTS += -lwx_gtk3u_core-3.0 
-LINKER_OBJECTS += -lwx_gtk3u_adv-3.0 
-LINKER_OBJECTS += -lgtk-3
-LINKER_OBJECTS += -lgdk-3
-GTK_VERSION    = GTK3
-else ifeq ($(USE_GTK3), -DGTK3_API=TRUE_GENTOO)
-LINKER_OBJECTS += -lwx_baseu-3.0-gtk3
-LINKER_OBJECTS += -lwx_gtk3u_core-3.0-gtk3
-LINKER_OBJECTS += -lwx_gtk3u_adv-3.0-gtk3
-LINKER_OBJECTS += -lgtk-3
-LINKER_OBJECTS += -lgdk-3
-GTK_VERSION    = GTK3-GENTOO
+PCSX2_USE_GTK3 = $(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so")
+ifeq ($(PCSX2_USE_GTK3),)
+LINKER_OBJECTS 	+= -lwx_baseu-3.0
+LINKER_OBJECTS 	+= -lwx_gtk2u_core-3.0
+LINKER_OBJECTS 	+= -lwx_gtk2u_adv-3.0
+LINKER_OBJECTS 	+= -lgdk-x11-2.0
+LINKER_OBJECTS 	+= -lgtk-x11-2.0
+GTK_VERSION      = GTK2
 else
-LINKER_OBJECTS += -lwx_baseu-3.0
-LINKER_OBJECTS += -lwx_gtk2u_core-3.0
-LINKER_OBJECTS += -lwx_gtk2u_adv-3.0
-LINKER_OBJECTS += -lgdk-x11-2.0
-LINKER_OBJECTS += -lgtk-x11-2.0
-GTK_VERSION    = GTK2
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_baseu-3.0*.so"      | xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so" | xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_adv-3.0*.so"  | xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -lgtk-3
+LINKER_OBJECTS 	+= -lgdk-3
+GTK_VERSION      = GTK3
 endif
 
 LINKER_OBJECTS += -lglib-2.0

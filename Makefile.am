@@ -317,25 +317,11 @@ marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lsndfile -lz
 
 #pcsx2, dynamic
-if PCSX2_USE_GTK3
-if PCSX2_USE_GTK3_GENTOO
-marley_LDADD 	+= -lwx_baseu-3.0-gtk3
-marley_LDADD 	+= -lwx_gtk3u_core-3.0-gtk3
-marley_LDADD 	+= -lwx_gtk3u_adv-3.0-gtk3
-else
-marley_LDADD 	+= -lwx_baseu-3.0
-marley_LDADD 	+= -lwx_gtk3u_core-3.0
-marley_LDADD 	+= -lwx_gtk3u_adv-3.0
-endif
-marley_LDADD 	+= -lgtk-3
-marley_LDADD 	+= -lgdk-3
-else
-marley_LDADD 	+= -lwx_baseu-3.0
-marley_LDADD 	+= -lwx_gtk2u_core-3.0
-marley_LDADD 	+= -lwx_gtk2u_adv-3.0
-marley_LDADD 	+= -lgdk-x11-2.0
-marley_LDADD 	+= -lgtk-x11-2.0
-endif
+marley_LDADD 	+= -l@GTK_BASE@
+marley_LDADD 	+= -l@GTK_CORE@
+marley_LDADD 	+= -l@GTK__ADV@
+marley_LDADD 	+= -l@GTK_X@
+marley_LDADD 	+= -l@GDK_X@
 
 marley_LDADD 	+= -lglib-2.0
 marley_LDADD 	+= -lgobject-2.0
