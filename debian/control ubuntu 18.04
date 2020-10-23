@@ -69,7 +69,8 @@ Build-Depends: debhelper,
         libx11-dev,
         locales,
         zip,
-        libx11-xcb
+        libx11-xcb,
+        libzstd-dev
 Standards-Version: 4.1.4
 Vcs-Git: https://github.com/beaumanvienna/marley
 
