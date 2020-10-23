@@ -47,9 +47,9 @@ PCSX2_USE_GTK3_TRUE=
 PCSX2_USE_GTK3_FALSE='#'
 GTK_HEADERS_INCLUDE=`pkg-config --cflags gtk+-3.0`
 echo "using GTK3 for pcsx2"
-GTK_BASE=`find /usr/ -name "*wx_baseu-3.0*.so"      | xargs basename | sed 's/lib//' | sed 's/\.so//'`
-GTK_CORE=`find /usr/ -name "*wx_gtk3u_core-3.0*.so" | xargs basename | sed 's/lib//' | sed 's/\.so//'`
-GTK__ADV=`find /usr/ -name "*wx_gtk3u_adv-3.0*.so"  | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK_BASE=`find /usr/ -name "*wx_baseu-3.0*.so" 2>/dev/null      | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK_CORE=`find /usr/ -name "*wx_gtk3u_core-3.0*.so" 2>/dev/null | xargs basename | sed 's/lib//' | sed 's/\.so//'`
+GTK__ADV=`find /usr/ -name "*wx_gtk3u_adv-3.0*.so" 2>/dev/null  | xargs basename | sed 's/lib//' | sed 's/\.so//'`
 GTK_X=gtk-3
 GDK_X=gdk-3
 else
