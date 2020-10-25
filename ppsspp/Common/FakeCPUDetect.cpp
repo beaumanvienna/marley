@@ -15,10 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <cstdint>
+#include <cstring>
+#include <memory>
 
-#include <memory.h>
-#include "base/logging.h"
-#include "base/basictypes.h"
 #include "Common.h"
 #include "CPUDetect.h"
 #include "StringUtils.h"
@@ -45,6 +45,6 @@ void CPUInfo::Detect()
 std::string CPUInfo::Summarize()
 {
 	std::string sum;
-	sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
+	sum = PStringFromFormat("%s, %i core", cpu_string, num_cores);
 	return sum;
 }

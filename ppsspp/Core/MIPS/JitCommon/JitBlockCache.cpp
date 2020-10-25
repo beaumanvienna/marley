@@ -312,7 +312,7 @@ int PJitBlockCache::GetBlockNumberFromEmuHackOp(MIPSOpcode inst, bool ignoreBad)
 	const u8 *baseoff = codeBlock_->GetBasePtr() + off;
 	if (baseoff < codeBlock_->GetBasePtr() || baseoff >= codeBlock_->GetCodePtr()) {
 		if (!ignoreBad) {
-			ERROR_LOG(JIT, "JitBlockCache: Invalid Emuhack Op %08x", inst.encoding);
+			ERROR_LOG(JIT, "PJitBlockCache: Invalid Emuhack Op %08x", inst.encoding);
 		}
 		return -1;
 	}
@@ -601,12 +601,12 @@ void PJitBlockCache::InvalidateChangedBlocks() {
 }
 
 int PJitBlockCache::GetBlockExitSize() {
-#if defined(ARM)
+#if PPSSPP_ARCH(ARM)
 	// Will depend on the sequence found to encode the destination address.
 	return 0;
-#elif defined(_M_IX86) || defined(_M_X64)
+#elif PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
 	return 15;
-#elif defined(ARM64)
+#elif PPSSPP_ARCH(ARM64)
 	// Will depend on the sequence found to encode the destination address.
 	return 0;
 #else
@@ -654,11 +654,11 @@ JitBlockDebugInfo PJitBlockCache::GetBlockDebugInfo(int blockNum) const {
 		debugInfo.origDisasm.push_back(mipsDis);
 	}
 
-#if defined(ARM)
+#if PPSSPP_ARCH(ARM)
 	debugInfo.targetDisasm = DisassembleArm2(block->normalEntry, block->codeSize);
-#elif defined(ARM64)
+#elif PPSSPP_ARCH(ARM64)
 	debugInfo.targetDisasm = DisassembleArm64(block->normalEntry, block->codeSize);
-#elif defined(_M_IX86) || defined(_M_X64)
+#elif PPSSPP_ARCH(X86) || PPSSPP_ARCH(AMD64)
 	debugInfo.targetDisasm = DisassembleX86(block->normalEntry, block->codeSize);
 #endif
 

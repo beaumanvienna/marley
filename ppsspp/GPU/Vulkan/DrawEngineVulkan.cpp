@@ -15,15 +15,15 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#include <cassert>
+#include <algorithm>
 
-#include "base/logging.h"
-#include "base/timeutil.h"
-#include "math/dataconv.h"
-#include "profiler/profiler.h"
-#include "thin3d/VulkanRenderManager.h"
+#include "Common/Data/Convert/SmallDataConvert.h"
+#include "Common/Profiler/Profiler.h"
+#include "Common/GPU/Vulkan/VulkanRenderManager.h"
 
+#include "Common/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/TimeUtil.h"
 #include "Core/MemMap.h"
 #include "Core/System.h"
 #include "Core/Reporting.h"
@@ -34,10 +34,9 @@
 #include "GPU/GPUState.h"
 #include "GPU/ge_constants.h"
 
-#include "Common/Vulkan/VulkanContext.h"
-#include "Common/Vulkan/VulkanMemory.h"
+#include "Common/GPU/Vulkan/VulkanContext.h"
+#include "Common/GPU/Vulkan/VulkanMemory.h"
 
-#include "GPU/Common/TextureDecoder.h"
 #include "GPU/Common/SplineCommon.h"
 #include "GPU/Common/TransformCommon.h"
 #include "GPU/Common/VertexDecoderCommon.h"
@@ -48,7 +47,7 @@
 #include "GPU/Vulkan/TextureCacheVulkan.h"
 #include "GPU/Vulkan/ShaderManagerVulkan.h"
 #include "GPU/Vulkan/PipelineManagerVulkan.h"
-#include "GPU/Vulkan/FramebufferVulkan.h"
+#include "GPU/Vulkan/FramebufferManagerVulkan.h"
 #include "GPU/Vulkan/GPU_Vulkan.h"
 
 
@@ -142,7 +141,7 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	dsl.bindingCount = ARRAY_SIZE(bindings);
 	dsl.pBindings = bindings;
 	VkResult res = PvkCreateDescriptorSetLayout(device, &dsl, nullptr, &descriptorSetLayout_);
-	assert(VK_SUCCESS == res);
+	_dbg_assert_(VK_SUCCESS == res);
 
 	// We are going to use one-shot descriptors in the initial implementation. Might look into caching them
 	// if creating and updating them turns out to be expensive.
@@ -164,7 +163,7 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	pl.pSetLayouts = &descriptorSetLayout_;
 	pl.flags = 0;
 	res = PvkCreatePipelineLayout(device, &pl, nullptr, &pipelineLayout_);
-	assert(VK_SUCCESS == res);
+	_dbg_assert_(VK_SUCCESS == res);
 
 	VkSamplerCreateInfo samp{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
 	samp.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -175,8 +174,9 @@ void DrawEngineVulkan::InitDeviceObjects() {
 	samp.magFilter = VK_FILTER_NEAREST;
 	samp.minFilter = VK_FILTER_NEAREST;
 	res = PvkCreateSampler(device, &samp, nullptr, &samplerSecondary_);
+	_dbg_assert_(VK_SUCCESS == res);
 	res = PvkCreateSampler(device, &samp, nullptr, &nullSampler_);
-	assert(VK_SUCCESS == res);
+	_dbg_assert_(VK_SUCCESS == res);
 
 	vertexCache_ = new VulkanPushBuffer(vulkan_, VERTEX_CACHE_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 
@@ -290,6 +290,9 @@ void DrawEngineVulkan::BeginFrame() {
 		vertexCache_->Destroy(vulkan_);
 		delete vertexCache_;  // orphans the buffers, they'll get deleted once no longer used by an in-flight frame.
 		vertexCache_ = new VulkanPushBuffer(vulkan_, VERTEX_CACHE_SIZE, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		vai_.Iterate([&](uint32_t hash, VertexArrayInfoVulkan *vai) {
+			delete vai;
+		});
 		vai_.Clear();
 	}
 
@@ -385,6 +388,10 @@ VkResult DrawEngineVulkan::RecreateDescriptorPool(FrameData &frame, int newSize)
 }
 
 VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView, VkSampler sampler, VkBuffer base, VkBuffer light, VkBuffer bone, bool tess) {
+	_dbg_assert_(base != VK_NULL_HANDLE);
+	_dbg_assert_(light != VK_NULL_HANDLE);
+	_dbg_assert_(bone != VK_NULL_HANDLE);
+
 	DescriptorSetKey key;
 	key.imageView_ = imageView;
 	key.sampler_ = sampler;
@@ -393,9 +400,6 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 	key.base_ = base;
 	key.light_ = light;
 	key.bone_ = bone;
-	_dbg_assert_(base != VK_NULL_HANDLE);
-	_dbg_assert_(light != VK_NULL_HANDLE);
-	_dbg_assert_(bone != VK_NULL_HANDLE);
 
 	FrameData &frame = frame_[vulkan_->GetCurFrame()];
 	// See if we already have this descriptor set cached.
@@ -407,7 +411,7 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 
 	if (!frame.descPool || frame.descPoolSize < frame.descCount + 1) {
 		VkResult res = RecreateDescriptorPool(frame, frame.descPoolSize * 2);
-		assert(res == VK_SUCCESS);
+		_dbg_assert_(res == VK_SUCCESS);
 	}
 
 	// Didn't find one in the frame descriptor set cache, let's make a new one.
@@ -422,7 +426,7 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 
 	if (result == VK_ERROR_FRAGMENTED_POOL || result < 0) {
 		// There seems to have been a spec revision. Here we should apparently recreate the descriptor pool,
-		// so let's do that. See https://www.khronos.org/registry/vulkan/specs/1.0/man/html/PvkAllocateDescriptorSets.html
+		// so let's do that. See https://www.khronos.org/registry/vulkan/specs/1.0/man/html/vkAllocateDescriptorSets.html
 		// Fragmentation shouldn't really happen though since we wipe the pool every frame..
 		VkResult res = RecreateDescriptorPool(frame, frame.descPoolSize);
 		_assert_msg_(res == VK_SUCCESS, "Ran out of descriptor space (frag?) and failed to recreate a descriptor pool. sz=%d res=%d", (int)frame.descSets.size(), (int)res);
@@ -435,16 +439,14 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 	_assert_msg_(result == VK_SUCCESS, "Ran out of descriptor space in pool. sz=%d res=%d", (int)frame.descSets.size(), (int)result);
 
 	// We just don't write to the slots we don't care about, which is fine.
-	VkWriteDescriptorSet writes[7]{};
+	VkWriteDescriptorSet writes[9]{};
 	// Main texture
 	int n = 0;
 	VkDescriptorImageInfo tex[3]{};
 	if (imageView) {
-#ifdef VULKAN_USE_GENERAL_LAYOUT_FOR_COLOR
-		tex[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-#else
+		_dbg_assert_(sampler != VK_NULL_HANDLE);
+
 		tex[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-#endif
 		tex[0].imageView = imageView;
 		tex[0].sampler = sampler;
 		writes[n].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -458,11 +460,7 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 	}
 
 	if (boundSecondary_) {
-#ifdef VULKAN_USE_GENERAL_LAYOUT_FOR_COLOR
-		tex[1].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-#else
 		tex[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-#endif
 		tex[1].imageView = boundSecondary_;
 		tex[1].sampler = samplerSecondary_;
 		writes[n].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -476,11 +474,7 @@ VkDescriptorSet DrawEngineVulkan::GetOrCreateDescriptorSet(VkImageView imageView
 	}
 
 	if (boundDepal_) {
-#ifdef VULKAN_USE_GENERAL_LAYOUT_FOR_COLOR
-		tex[2].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-#else
 		tex[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-#endif
 		tex[2].imageView = boundDepal_;
 		tex[2].sampler = samplerSecondary_;  // doesn't matter, we use load
 		writes[n].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -597,7 +591,8 @@ void DrawEngineVulkan::DoFlush() {
 	int curRenderStepId = renderManager->GetCurrentStepId();
 	if (lastRenderStepId_ != curRenderStepId) {
 		// Dirty everything that has dynamic state that will need re-recording.
-		gstate_c.Dirty(DIRTY_VIEWPORTSCISSOR_STATE | DIRTY_DEPTHSTENCIL_STATE | DIRTY_BLEND_STATE);
+		gstate_c.Dirty(DIRTY_VIEWPORTSCISSOR_STATE | DIRTY_DEPTHSTENCIL_STATE | DIRTY_BLEND_STATE | DIRTY_TEXTURE_IMAGE | DIRTY_TEXTURE_PARAMS);
+		textureCache_->ForgetLastTexture();
 		lastRenderStepId_ = curRenderStepId;
 	}
 
@@ -655,7 +650,7 @@ void DrawEngineVulkan::DoFlush() {
 			case VertexArrayInfoVulkan::VAI_NEW:
 			{
 				// Haven't seen this one before. We don't actually upload the vertex data yet.
-				ReliableHashType dataHash = ComputeHash();
+				uint64_t dataHash = ComputeHash();
 				vai->hash = dataHash;
 				vai->minihash = ComputeMiniHash();
 				vai->status = VertexArrayInfoVulkan::VAI_HASHING;
@@ -680,7 +675,7 @@ void DrawEngineVulkan::DoFlush() {
 				if (vai->drawsUntilNextFullHash == 0) {
 					// Let's try to skip a full hash if mini would fail.
 					const u32 newMiniHash = ComputeMiniHash();
-					ReliableHashType newHash = vai->hash;
+					uint64_t newHash = vai->hash;
 					if (newMiniHash == vai->minihash) {
 						newHash = ComputeHash();
 					}
@@ -844,7 +839,7 @@ void DrawEngineVulkan::DoFlush() {
 				lastRenderStepId_ = curRenderStepId;
 			}
 
-			renderManager->BindPipeline(pipeline->pipeline);
+			renderManager->BindPipeline(pipeline->pipeline, (PipelineFlags)pipeline->flags);
 			if (pipeline != lastPipeline_) {
 				if (lastPipeline_ && !(lastPipeline_->UsesBlendConstant() && pipeline->UsesBlendConstant())) {
 					gstate_c.Dirty(DIRTY_BLEND_STATE);
@@ -969,7 +964,7 @@ void DrawEngineVulkan::DoFlush() {
 					lastRenderStepId_ = curRenderStepId;
 				}
 
-				renderManager->BindPipeline(pipeline->pipeline);
+				renderManager->BindPipeline(pipeline->pipeline, (PipelineFlags)pipeline->flags);
 				if (pipeline != lastPipeline_) {
 					if (lastPipeline_ && !lastPipeline_->UsesBlendConstant() && pipeline->UsesBlendConstant()) {
 						gstate_c.Dirty(DIRTY_BLEND_STATE);

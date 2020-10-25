@@ -17,9 +17,9 @@
 
 #include <vector>
 
-#include "file/file_util.h"
-
-#include "Common/ChunkFile.h"
+#include "Common/Serialize/Serializer.h"
+#include "Common/Serialize/SerializeFuncs.h"
+#include "Common/Serialize/SerializeMap.h"
 #include "Core/Loaders.h"
 #include "Core/MemMap.h"
 #include "Core/System.h"
@@ -87,26 +87,26 @@ void __UmdDoState(PointerWrap &p)
 	if (!s)
 		return;
 
-	p.Do(umdActivated);
-	p.Do(umdStatus);
-	p.Do(umdErrorStat);
-	p.Do(driveCBId);
-	p.Do(umdStatTimeoutEvent);
+	Do(p, umdActivated);
+	Do(p, umdStatus);
+	Do(p, umdErrorStat);
+	Do(p, driveCBId);
+	Do(p, umdStatTimeoutEvent);
 	PCoreTiming::RestoreRegisterEvent(umdStatTimeoutEvent, "UmdTimeout", __UmdStatTimeout);
-	p.Do(umdStatChangeEvent);
+	Do(p, umdStatChangeEvent);
 	PCoreTiming::RestoreRegisterEvent(umdStatChangeEvent, "UmdChange", __UmdStatChange);
-	p.Do(umdWaitingThreads);
-	p.Do(umdPausedWaits);
+	Do(p, umdWaitingThreads);
+	Do(p, umdPausedWaits);
 
 	if (s > 1) {
-		p.Do(UMDReplacePermit);
+		Do(p, UMDReplacePermit);
 		if (UMDReplacePermit)
 			host->UpdateUI();
 	}
 	if (s > 2) {
-		p.Do(umdInsertChangeEvent);
+		Do(p, umdInsertChangeEvent);
 		PCoreTiming::RestoreRegisterEvent(umdInsertChangeEvent, "UmdInsertChange", __UmdInsertChange);
-		p.Do(UMDInserted);
+		Do(p, UMDInserted);
 	}
 	else
 		UMDInserted = true;
@@ -515,17 +515,21 @@ bool getUMDReplacePermit() {
 
 static u32 sceUmdReplaceProhibit()
 {
-	UMDReplacePermit = false;
 	DEBUG_LOG(SCEIO,"sceUmdReplaceProhibit()");
-	host->UpdateUI();
+	if (UMDReplacePermit) {
+		UMDReplacePermit = false;
+		host->NotifySwitchUMDUpdated();
+	}
 	return 0;
 }
 
 static u32 sceUmdReplacePermit()
 {
-	UMDReplacePermit = true;
 	DEBUG_LOG(SCEIO,"sceUmdReplacePermit()");
-	host->UpdateUI();
+	if (!UMDReplacePermit) {
+		UMDReplacePermit = true;
+		host->NotifySwitchUMDUpdated();
+	}
 	return 0;
 }
 

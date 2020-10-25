@@ -19,21 +19,30 @@
 #
 # <component> can be one of:
 #   avcodec
+#   avdevice
+#   avfilter
 #   avformat
+#   postproc
 #   swresample
 #   swscale
 #
 
 set(_FFmpeg_ALL_COMPONENTS
   avcodec
+  avdevice
+  avfilter
   avformat
   avutil
+  postproc
   swresample
   swscale
 )
 
 set(_FFmpeg_DEPS_avcodec avutil)
+set(_FFmpeg_DEPS_avdevice avcodec avformat avutil)
+set(_FFmpeg_DEPS_avfilter avutil)
 set(_FFmpeg_DEPS_avformat avcodec avutil)
+set(_FFmpeg_DEPS_postproc avutil)
 set(_FFmpeg_DEPS_swresample avutil)
 set(_FFmpeg_DEPS_swscale avutil)
 

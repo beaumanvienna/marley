@@ -1,12 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
-#ifndef MOBILE_DEVICE
+
 #include <string>
 
 #include "Core/WaveFile.h"
-#include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
+#include "Common/Log.h"
 #include "Core/Config.h"
 
 constexpr size_t PWaveFileWriter::BUFFER_SIZE;
@@ -30,7 +29,7 @@ bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleR
 
 	file.Open(filename, "wb");
 	if (!file) {
-		ERROR_LOG(SYSTEM, "The file %s could not be opened for writing. Please check if it's already opened by another program.", filename.c_str());
+		ERROR_LOG(IO, "The file %s could not be opened for writing. Please check if it's already opened by another program.", filename.c_str());
 		return false;
 	}
 
@@ -47,7 +46,7 @@ bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleR
 	Write(16);          // size of fmt block
 	Write(0x00020001);  // two channels, uncompressed
 
-	const u32 sample_rate = HLESampleRate;
+	const uint32_t sample_rate = HLESampleRate;
 	Write(sample_rate);
 	Write(sample_rate * 2 * 2);  // two channels, 16bit
 
@@ -56,7 +55,7 @@ bool PWaveFileWriter::Start(const std::string& filename, unsigned int HLESampleR
 	Write(100 * 1000 * 1000 - 32);
 
 	// We are now at offset 44
-	u64 offset = file.Tell();
+	uint64_t offset = file.Tell();
 	_assert_msg_(offset == 44, "Wrong offset: %lld", (long long)offset);
 	return true;
 }
@@ -92,7 +91,7 @@ void PWaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
 	{
 		bool all_zero = true;
 
-		for (u32 i = 0; i < count * 2; i++)
+		for (uint32_t i = 0; i < count * 2; i++)
 		{
 			if (sample_data[i])
 				all_zero = false;
@@ -105,4 +104,3 @@ void PWaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
 	file.WriteBytes(sample_data, count * 4);
 	audio_size += count * 4;
 }
-#endif

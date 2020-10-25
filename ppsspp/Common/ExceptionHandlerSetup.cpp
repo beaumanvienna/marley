@@ -6,7 +6,6 @@
 
 #include "ppsspp_config.h"
 
-#include "Common/ExceptionHandlerSetup.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,13 +14,13 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
 #include "Common/Log.h"
-#include "ext/native/thread/threadutil.h"
-
+#include "Common/Thread/ThreadUtil.h"
 #include "Common/MachineContext.h"
+#include "Common/ExceptionHandlerSetup.h"
 
 static BadAccessHandler g_badAccessHandler;
+static void *altStack = nullptr;
 
 #ifdef MACHINE_CONTEXT_SUPPORTED
 
@@ -77,9 +76,7 @@ static LONG NTAPI GlobalExceptionHandler(PEXCEPTION_POINTERS pPtrs) {
 }
 
 void InstallExceptionHandler(BadAccessHandler badAccessHandler) {
-	// Make sure this is only called once per process execution
-	// Instead, could make a Uninstall function, but whatever..
-	if (g_badAccessHandler) {
+	if (g_vectoredExceptionHandle) {
 		g_badAccessHandler = badAccessHandler;
 		return;
 	}
@@ -90,9 +87,12 @@ void InstallExceptionHandler(BadAccessHandler badAccessHandler) {
 }
 
 void UninstallExceptionHandler() {
-	RemoveVectoredExceptionHandler(g_vectoredExceptionHandle);
+	if (g_vectoredExceptionHandle) {
+		RemoveVectoredExceptionHandler(g_vectoredExceptionHandle);
+		INFO_LOG(SYSTEM, "Removed exception handler");
+		g_vectoredExceptionHandle = nullptr;
+	}
 	g_badAccessHandler = nullptr;
-	INFO_LOG(SYSTEM, "Removed exception handler");
 }
 
 #elif defined(__APPLE__)
@@ -275,28 +275,33 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context) {
 }
 
 void InstallExceptionHandler(BadAccessHandler badAccessHandler) {
+	if (!badAccessHandler) {
+		return;
+	}
 	if (g_badAccessHandler) {
 		g_badAccessHandler = badAccessHandler;
 		return;
 	}
-	NOTICE_LOG(SYSTEM, "Installed exception handler");
+
+	INFO_LOG(SYSTEM, "Installed exception handler");
 	g_badAccessHandler = badAccessHandler;
 
-	stack_t signal_stack;
+	stack_t signal_stack{};
+	altStack = malloc(SIGSTKSZ);
 #ifdef __FreeBSD__
-	signal_stack.ss_sp = (char*)malloc(SIGSTKSZ);
+	signal_stack.ss_sp = (char*)altStack;
 #else
-	signal_stack.ss_sp = malloc(SIGSTKSZ);
+	signal_stack.ss_sp = altStack;
 #endif
 	signal_stack.ss_size = SIGSTKSZ;
 	signal_stack.ss_flags = 0;
 	if (sigaltstack(&signal_stack, nullptr)) {
 		_assert_msg_(false, "sigaltstack failed");
 	}
-	struct sigaction sa;
+	struct sigaction sa{};
 	sa.sa_handler = nullptr;
 	sa.sa_sigaction = &sigsegv_handler;
-	sa.sa_flags = SA_SIGINFO;
+	sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, &old_sa_segv);
 #ifdef __APPLE__
@@ -305,16 +310,23 @@ void InstallExceptionHandler(BadAccessHandler badAccessHandler) {
 }
 
 void UninstallExceptionHandler() {
-	stack_t signal_stack, old_stack;
+	if (!g_badAccessHandler) {
+		return;
+	}
+	stack_t signal_stack{};
 	signal_stack.ss_flags = SS_DISABLE;
-	if (!sigaltstack(&signal_stack, &old_stack) && !(old_stack.ss_flags & SS_DISABLE)) {
-		free(old_stack.ss_sp);
+	if (0 != sigaltstack(&signal_stack, nullptr)) {
+		ERROR_LOG(SYSTEM, "Could not remove signal altstack");
+	}
+	if (altStack) {
+		free(altStack);
+		altStack = nullptr;
 	}
 	sigaction(SIGSEGV, &old_sa_segv, nullptr);
 #ifdef __APPLE__
 	sigaction(SIGBUS, &old_sa_bus, nullptr);
 #endif
-	NOTICE_LOG(SYSTEM, "Uninstalled exception handler");
+	INFO_LOG(SYSTEM, "Uninstalled exception handler");
 	g_badAccessHandler = nullptr;
 }
 

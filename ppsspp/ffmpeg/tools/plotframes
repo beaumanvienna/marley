@@ -78,7 +78,7 @@ ffprobe(1), gnuplot(1)
 use warnings;
 use strict;
 
-use PFile::Temp;
+use File::Temp;
 use JSON -support_by_pp;
 use Getopt::Long;
 use Pod::Usage;
@@ -121,7 +121,7 @@ foreach my $frame (@{$frames}) {
     my $type = $frame->{pict_type};
     $frame->{count} = $frame_count++;
     if (not $stats{$type}) {
-        $stats{$type}->{tmpfile} = PFile::Temp->new(SUFFIX => '.dat');
+        $stats{$type}->{tmpfile} = File::Temp->new(SUFFIX => '.dat');
         my $fn = $stats{$type}->{tmpfile}->filename;
         open($stats{$type}->{fh}, ">", $fn) or die "Can't open $fn";
     }
@@ -138,7 +138,7 @@ my %type_color_map = (
     "B" => "blue"
     );
 
-my $gnuplot_script_tmpfile = PFile::Temp->new(SUFFIX => '.gnuplot');
+my $gnuplot_script_tmpfile = File::Temp->new(SUFFIX => '.gnuplot');
 my $fn = $gnuplot_script_tmpfile->filename;
 open(FH, ">", $fn) or die "Couldn't open $fn: $!";
 print FH << "EOF";

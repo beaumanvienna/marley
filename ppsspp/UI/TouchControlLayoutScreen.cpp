@@ -18,13 +18,14 @@
 #include <algorithm>
 #include <vector>
 
-#include "base/colorutil.h"
-#include "gfx_es2/draw_buffer.h"
-#include "i18n/i18n.h"
-#include "math/math_util.h"
-#include "ui/ui_context.h"
+#include "Common/Data/Color/RGBAUtil.h"
+#include "Common/Render/DrawBuffer.h"
+#include "Common/Data/Text/I18n.h"
+#include "Common/Math/math_util.h"
+#include "Common/UI/Context.h"
 
 #include "Common/Common.h"
+#include "Common/Log.h"
 #include "Core/Config.h"
 #include "Core/System.h"
 #include "UI/GamepadEmu.h"
@@ -448,7 +449,7 @@ UI::EventReturn TouchControlLayoutScreen::OnVisibility(UI::EventParams &e) {
 }
 
 UI::EventReturn TouchControlLayoutScreen::OnReset(UI::EventParams &e) {
-	ILOG("Resetting touch control layout");
+	INFO_LOG(G3D, "Resetting touch control layout");
 	g_PConfig.ResetControlLayout();
 	const Bounds &bounds = screenManager()->getUIContext()->GetBounds();
 	InitPadLayout(bounds.w, bounds.h);

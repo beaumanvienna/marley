@@ -17,16 +17,17 @@
 
 #include <algorithm>
 
-#include "base/colorutil.h"
-#include "base/stringutil.h"
-#include "file/vfs.h"
-#include "gfx/texture_atlas.h"
-#include "gfx_es2/draw_text.h"
-#include "image/zim_load.h"
-#include "image/png_load.h"
-#include "util/text/utf8.h"
+#include "Common/Render/TextureAtlas.h"
+#include "Common/Render/Text/draw_text.h"
 
-#include "Common/ChunkFile.h"
+#include "Common/Data/Color/RGBAUtil.h"
+#include "Common/File/VFS/VFS.h"
+#include "Common/Data/Format/ZIMLoad.h"
+#include "Common/Data/Format/PNGLoad.h"
+#include "Common/Data/Encoding/Utf8.h"
+#include "Common/Serialize/Serializer.h"
+#include "Common/Serialize/SerializeFuncs.h"
+#include "Common/StringUtils.h"
 #include "Core/HDRemaster.h"
 #include "Core/Host.h"
 #include "GPU/ge_constants.h"
@@ -141,7 +142,7 @@ void PPGeSetTexture(u32 dataAddr, int width, int height);
 static void WriteCmd(u8 cmd, u32 data) {
 	PMemory::Write_U32((cmd << 24) | (data & 0xFFFFFF), dlWritePtr);
 	dlWritePtr += 4;
-	assert(dlWritePtr <= dlPtr + dlSize);
+	_dbg_assert_(dlWritePtr <= dlPtr + dlSize);
 }
 
 static void WriteCmdAddrWithBase(u8 cmd, u32 addr) {
@@ -180,7 +181,7 @@ static void Vertex(float x, float y, float u, float v, int tw, int th, u32 color
 		PMemory::WriteStruct(dataWritePtr, &vtx);
 		dataWritePtr += sizeof(vtx);
 	}
-	assert(dataWritePtr <= dataPtr + dataSize);
+	_dbg_assert_(dataWritePtr <= dataPtr + dataSize);
 	vertexCount++;
 }
 
@@ -282,23 +283,23 @@ void __PPGeDoState(PointerWrap &p)
 	if (!s)
 		return;
 
-	p.Do(atlasPtr);
-	p.Do(atlasWidth);
-	p.Do(atlasHeight);
-	p.Do(palette);
+	Do(p, atlasPtr);
+	Do(p, atlasWidth);
+	Do(p, atlasHeight);
+	Do(p, palette);
 
-	p.Do(savedContextPtr);
-	p.Do(savedContextSize);
+	Do(p, savedContextPtr);
+	Do(p, savedContextSize);
 
 	if (s == 1) {
 		listArgs = 0;
 	} else {
-		p.Do(listArgs);
+		Do(p, listArgs);
 	}
 
 	if (s >= 3) {
 		uint32_t sz = (uint32_t)textDrawerImages.size();
-		p.Do(sz);
+		Do(p, sz);
 
 		switch (p.mode) {
 		case PointerWrap::MODE_READ:
@@ -307,12 +308,12 @@ void __PPGeDoState(PointerWrap &p)
 				// We only care about the pointers, so we can free them.  We'll decimate right away.
 				PPGeTextDrawerCacheKey key{ PStringFromFormat("__savestate__%d", i), -1, -1 };
 				textDrawerImages[key] = PPGeTextDrawerImage{};
-				p.Do(textDrawerImages[key].ptr);
+				Do(p, textDrawerImages[key].ptr);
 			}
 			break;
 		default:
 			for (const auto &im : textDrawerImages) {
-				p.Do(im.second.ptr);
+				Do(p, im.second.ptr);
 			}
 			break;
 		}
@@ -320,19 +321,19 @@ void __PPGeDoState(PointerWrap &p)
 		textDrawerImages.clear();
 	}
 
-	p.Do(dlPtr);
-	p.Do(dlWritePtr);
-	p.Do(dlSize);
+	Do(p, dlPtr);
+	Do(p, dlWritePtr);
+	Do(p, dlSize);
 
-	p.Do(dataPtr);
-	p.Do(dataWritePtr);
-	p.Do(dataSize);
+	Do(p, dataPtr);
+	Do(p, dataWritePtr);
+	Do(p, dataSize);
 
-	p.Do(vertexStart);
-	p.Do(vertexCount);
+	Do(p, vertexStart);
+	Do(p, vertexCount);
 
-	p.Do(char_lines);
-	p.Do(char_lines_metrics);
+	Do(p, char_lines);
+	Do(p, char_lines_metrics);
 }
 
 void __PPGeShutdown()
@@ -419,8 +420,8 @@ void PPGeEnd()
 }
 
 void PPGeScissor(int x1, int y1, int x2, int y2) {
-	assert(x1 >= 0 && x1 <= 480 && x2 >= 0 && x2 <= 480);
-	assert(y1 >= 0 && y1 <= 272 && y2 >= 0 && y2 <= 272);
+	_dbg_assert_(x1 >= 0 && x1 <= 480 && x2 >= 0 && x2 <= 480);
+	_dbg_assert_(y1 >= 0 && y1 <= 272 && y2 >= 0 && y2 <= 272);
 	WriteCmd(GE_CMD_SCISSOR1, (y1 << 10) | x1);
 	WriteCmd(GE_CMD_SCISSOR2, ((y2 - 1) << 10) | (x2 - 1));
 }
@@ -1201,7 +1202,7 @@ bool PPGeImage::Load() {
 	unsigned char *textureData;
 	int success;
 	if (filename_.empty()) {
-		success = pngLoadPtr(PMemory::GetPointer(png_), size_, &width_, &height_, &textureData, false);
+		success = pngLoadPtr(PMemory::GetPointer(png_), size_, &width_, &height_, &textureData);
 	} else {
 		std::vector<u8> pngData;
 		if (pspFileSystem.ReadEntireFile(filename_, pngData) < 0) {
@@ -1209,7 +1210,7 @@ bool PPGeImage::Load() {
 			return false;
 		}
 
-		success = pngLoadPtr((const unsigned char *)&pngData[0], pngData.size(), &width_, &height_, &textureData, false);
+		success = pngLoadPtr((const unsigned char *)&pngData[0], pngData.size(), &width_, &height_, &textureData);
 	}
 	if (!success) {
 		WARN_LOG(SCEGE, "Bad PPGeImage - not a valid png");
@@ -1245,13 +1246,13 @@ void PPGeImage::DoState(PointerWrap &p) {
 	if (!s)
 		return;
 
-	p.Do(filename_);
-	p.Do(png_);
-	p.Do(size_);
-	p.Do(texture_);
-	p.Do(width_);
-	p.Do(height_);
-	p.Do(lastFrame_);
+	Do(p, filename_);
+	Do(p, png_);
+	Do(p, size_);
+	Do(p, texture_);
+	Do(p, width_);
+	Do(p, height_);
+	Do(p, lastFrame_);
 }
 
 void PPGeImage::CompatLoad(u32 texture, int width, int height) {

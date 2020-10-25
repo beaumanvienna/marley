@@ -27,7 +27,8 @@
 #include "Common/Common.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MemArena.h"
-#include "Common/ChunkFile.h"
+#include "Common/Serialize/Serializer.h"
+#include "Common/Serialize/SerializeFuncs.h"
 
 #include "Core/MemMap.h"
 #include "Core/MemFault.h"
@@ -281,10 +282,9 @@ void MemoryMap_Shutdown(u32 flags) {
 }
 
 bool Init() {
-	// On some 32 bit platforms, you can only map < 32 megs at a time.
-	// TODO: Wait, wtf? What platforms are those? This seems bad.
+	// On some 32 bit platforms (like Android, iOS, etc.), you can only map < 32 megs at a time.
 	const static int MAX_MMAP_SIZE = 31 * 1024 * 1024;
-	_dbg_assert_msg_(g_MemorySize < MAX_MMAP_SIZE * 3, "ACK - too much memory for three mmap views.");
+	_dbg_assert_msg_(g_MemorySize <= MAX_MMAP_SIZE * 3, "ACK - too much memory for three mmap views.");
 	for (size_t i = 0; i < ARRAY_SIZE(views); i++) {
 		if (views[i].flags & MV_IS_PRIMARY_RAM)
 			views[i].size = std::min((int)g_MemorySize, MAX_MMAP_SIZE);
@@ -326,7 +326,7 @@ void DoState(PointerWrap &p) {
 	} else if (s == 2) {
 		// In version 2, we determine memory size based on PSP model.
 		u32 oldMemorySize = g_MemorySize;
-		p.Do(g_PSPModel);
+		Do(p, g_PSPModel);
 		p.DoMarker("PSPModel");
 		if (!g_RemasterMode) {
 			g_MemorySize = g_PSPModel == PSP_MODEL_FAT ? RAM_NORMAL_SIZE : RAM_DOUBLE_SIZE;
@@ -338,20 +338,20 @@ void DoState(PointerWrap &p) {
 		// In version 3, we started just saving the memory size directly.
 		// It's no longer based strictly on the PSP model.
 		u32 oldMemorySize = g_MemorySize;
-		p.Do(g_PSPModel);
+		Do(p, g_PSPModel);
 		p.DoMarker("PSPModel");
-		p.Do(g_MemorySize);
+		Do(p, g_MemorySize);
 		if (oldMemorySize != g_MemorySize) {
 			Reinit();
 		}
 	}
 
-	p.DoArray(GetPointer(PSP_GetKernelMemoryBase()), g_MemorySize);
+	DoArray(p, GetPointer(PSP_GetKernelMemoryBase()), g_MemorySize);
 	p.DoMarker("RAM");
 
-	p.DoArray(m_pPhysicalVRAM1, VRAM_SIZE);
+	DoArray(p, m_pPhysicalVRAM1, VRAM_SIZE);
 	p.DoMarker("VRAM");
-	p.DoArray(m_pPhysicalScratchPad, SCRATCHPAD_SIZE);
+	DoArray(p, m_pPhysicalScratchPad, SCRATCHPAD_SIZE);
 	p.DoMarker("ScratchPad");
 }
 

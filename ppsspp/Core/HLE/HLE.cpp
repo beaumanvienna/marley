@@ -20,17 +20,17 @@
 #include <vector>
 #include <string>
 
-#include "base/logging.h"
-#include "base/timeutil.h"
-#include "profiler/profiler.h"
+#include "Common/Profiler/Profiler.h"
 
+#include "Common/Log.h"
+#include "Common/Serialize/SerializeFuncs.h"
+#include "Common/TimeUtil.h"
 #include "Core/Config.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Host.h"
 #include "Core/MemMapHelpers.h"
 #include "Core/Reporting.h"
-
-#include "Core/Core.h"
-#include "Core/Host.h"
 #include "Core/System.h"
 #include "Core/MIPS/MIPS.h"
 #include "Core/MIPS/MIPSCodeUtils.h"
@@ -128,19 +128,19 @@ void HLEDoState(PointerWrap &p) {
 
 	// Can't be inside a syscall, reset this so errors aren't misleading.
 	latestSyscall = nullptr;
-	p.Do(delayedResultEvent);
+	Do(p, delayedResultEvent);
 	PCoreTiming::RestoreRegisterEvent(delayedResultEvent, "HLEDelayedResult", hleDelayResultFinish);
 
 	if (s >= 2) {
 		int actions = (int)mipsCallActions.size();
-		p.Do(actions);
+		Do(p, actions);
 		if (actions != (int)mipsCallActions.size()) {
 			mipsCallActions.resize(actions);
 		}
 
 		for (auto &action : mipsCallActions) {
 			int actionTypeID = action != nullptr ? action->actionTypeID : -1;
-			p.Do(actionTypeID);
+			Do(p, actionTypeID);
 			if (actionTypeID != -1) {
 				if (p.mode == p.MODE_READ)
 					action = __KernelCreateAction(actionTypeID);
@@ -705,7 +705,6 @@ void CallSyscall(MIPSOpcode op)
 	PROFILE_THIS_SCOPE("syscall");
 	double start = 0.0;  // need to initialize to fix the race condition where coreCollectDebugStats is enabled in the middle of this func.
 	if (coreCollectDebugStats) {
-		time_update();
 		start = time_now_d();
 	}
 
@@ -729,7 +728,6 @@ void CallSyscall(MIPSOpcode op)
 	}
 
 	if (coreCollectDebugStats) {
-		time_update();
 		u32 callno = (op >> 6) & 0xFFFFF; //20 bits
 		int funcnum = callno & 0xFFF;
 		int modulenum = (callno & 0xFF000) >> 12;
@@ -875,7 +873,7 @@ void hleDoLogInternal(LogTypes::LOG_TYPE t, LogTypes::LOG_LEVELS level, u64 res,
 
 	if (reportTag != nullptr) {
 		// A blank string means always log, not just once.
-		if (reportTag[0] == '\0' || Reporting::ShouldLogOnce(reportTag)) {
+		if (reportTag[0] == '\0' || Reporting::ShouldLogNTimes(reportTag, 1)) {
 			// Here we want the original key, so that different args, etc. group together.
 			std::string key = std::string(kernelFlag) + std::string("%08x=") + funcName + "(%s)";
 			if (reason != nullptr)

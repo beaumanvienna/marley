@@ -18,10 +18,9 @@
 #include <algorithm>
 #include <cmath>
 
-#include "base/basictypes.h"
-#include "profiler/profiler.h"
+#include "Common/Profiler/Profiler.h"
 
-#include "Common/ThreadPools.h"
+#include "Core/ThreadPools.h"
 #include "Common/ColorConv.h"
 #include "Core/Config.h"
 #include "Core/MemMap.h"
@@ -268,6 +267,7 @@ static inline u32 GetPixelColor(int x, int y)
 		return fb.Get32(x, y, gstate.FrameBufStride());
 
 	case GE_FORMAT_INVALID:
+	case GE_FORMAT_DEPTH16:
 		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 	}
 	return 0;
@@ -293,6 +293,7 @@ static inline void SetPixelColor(int x, int y, u32 value)
 		break;
 
 	case GE_FORMAT_INVALID:
+	case GE_FORMAT_DEPTH16:
 		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 	}
 }
@@ -1034,9 +1035,9 @@ static inline void CalculateSamplingParams(const float ds, const float dt, const
 		levelFrac = 0;
 	}
 
-	if (g_PConfig.iTexFiltering == TEX_FILTER_LINEAR) {
+	if (g_PConfig.iTexFiltering == TEX_FILTER_FORCE_LINEAR) {
 		filt = true;
-	} else if (g_PConfig.iTexFiltering == TEX_FILTER_NEAREST) {
+	} else if (g_PConfig.iTexFiltering == TEX_FILTER_FORCE_NEAREST) {
 		filt = false;
 	} else {
 		filt = detail > 0 ? gstate.isMinifyFilteringEnabled() : gstate.isMagnifyFilteringEnabled();
@@ -1498,6 +1499,7 @@ void ClearRectangle(const VertexData &v0, const VertexData &v1)
 		break;
 
 	case GE_FORMAT_INVALID:
+	case GE_FORMAT_DEPTH16:
 		_dbg_assert_msg_(false, "Software: invalid framebuf format.");
 		break;
 	}

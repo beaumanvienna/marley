@@ -70,7 +70,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "base/basictypes.h"
 #include "Common/ArmEmitter.h"
 #include "ext/disarm.h"
 

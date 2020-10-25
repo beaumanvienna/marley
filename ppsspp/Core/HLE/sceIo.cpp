@@ -19,9 +19,13 @@
 #include <set>
 #include <thread>
 
-#include "thread/threadutil.h"
-#include "profiler/profiler.h"
+#include "Common/Thread/ThreadUtil.h"
+#include "Common/Profiler/Profiler.h"
 
+#include "Common/File/FileUtil.h"
+#include "Common/Serialize/SerializeFuncs.h"
+#include "Common/Serialize/SerializeMap.h"
+#include "Common/Serialize/SerializeSet.h"
 #include "Core/Core.h"
 #include "Core/Config.h"
 #include "Core/ConfigValues.h"
@@ -227,22 +231,22 @@ public:
 		if (!s)
 			return;
 
-		p.Do(fullpath);
-		p.Do(handle);
-		p.Do(callbackID);
-		p.Do(callbackArg);
-		p.Do(asyncResult);
-		p.Do(hasAsyncResult);
-		p.Do(pendingAsyncResult);
-		p.Do(sectorBlockMode);
-		p.Do(closePending);
-		p.Do(info);
-		p.Do(openMode);
+		Do(p, fullpath);
+		Do(p, handle);
+		Do(p, callbackID);
+		Do(p, callbackArg);
+		Do(p, asyncResult);
+		Do(p, hasAsyncResult);
+		Do(p, pendingAsyncResult);
+		Do(p, sectorBlockMode);
+		Do(p, closePending);
+		Do(p, info);
+		Do(p, openMode);
 
-		p.Do(npdrm);
-		p.Do(pgd_offset);
+		Do(p, npdrm);
+		Do(p, pgd_offset);
 		bool hasPGD = pgdInfo != NULL;
-		p.Do(hasPGD);
+		Do(p, hasPGD);
 		if (hasPGD) {
 			if (p.mode == p.MODE_READ) {
 				pgdInfo = (PGD_DESC*) malloc(sizeof(PGD_DESC));
@@ -253,11 +257,11 @@ public:
 			}
 		}
 
-		p.Do(waitingThreads);
+		Do(p, waitingThreads);
 		if (s >= 2) {
-			p.Do(waitingSyncThreads);
+			Do(p, waitingSyncThreads);
 		}
-		p.Do(pausedWaits);
+		Do(p, pausedWaits);
 	}
 
 	std::string fullpath;
@@ -617,8 +621,6 @@ static void __IoVblank() {
 }
 
 void __IoInit() {
-	MemoryStick_Init();
-
 	asyncNotifyEvent = PCoreTiming::RegisterEvent("IoAsyncNotify", __IoAsyncNotify);
 	syncNotifyEvent = PCoreTiming::RegisterEvent("IoSyncNotify", __IoSyncNotify);
 
@@ -659,6 +661,7 @@ void __IoInit() {
 
 	__KernelRegisterWaitTypeFuncs(WAITTYPE_ASYNCIO, __IoAsyncBeginCallback, __IoAsyncEndCallback);
 
+	MemoryStick_Init();
 	lastMemStickState = MemoryStick_State();
 	lastMemStickFatState = MemoryStick_FatState();
 	__DisplayListenVblank(__IoVblank);
@@ -670,10 +673,10 @@ void __IoDoState(PointerWrap &p) {
 		return;
 
 	ioManager.DoState(p);
-	p.DoArray(fds, ARRAY_SIZE(fds));
-	p.Do(asyncNotifyEvent);
+	DoArray(p, fds, ARRAY_SIZE(fds));
+	Do(p, asyncNotifyEvent);
 	PCoreTiming::RestoreRegisterEvent(asyncNotifyEvent, "IoAsyncNotify", __IoAsyncNotify);
-	p.Do(syncNotifyEvent);
+	Do(p, syncNotifyEvent);
 	PCoreTiming::RestoreRegisterEvent(syncNotifyEvent, "IoSyncNotify", __IoSyncNotify);
 	if (s < 2) {
 		std::set<SceUID> legacy;
@@ -681,22 +684,22 @@ void __IoDoState(PointerWrap &p) {
 		memStickFatCallbacks.clear();
 
 		// Convert from set to vector.
-		p.Do(legacy);
+		Do(p, legacy);
 		for (SceUID id : legacy) {
 			memStickCallbacks.push_back(id);
 		}
-		p.Do(legacy);
+		Do(p, legacy);
 		for (SceUID id : legacy) {
 			memStickFatCallbacks.push_back(id);
 		}
 	} else {
-		p.Do(memStickCallbacks);
-		p.Do(memStickFatCallbacks);
+		Do(p, memStickCallbacks);
+		Do(p, memStickFatCallbacks);
 	}
 
 	if (s >= 3) {
-		p.Do(lastMemStickState);
-		p.Do(lastMemStickFatState);
+		Do(p, lastMemStickState);
+		Do(p, lastMemStickFatState);
 	}
 
 	for (int i = 0; i < PSP_COUNT_FDS; ++i) {
@@ -710,11 +713,11 @@ void __IoDoState(PointerWrap &p) {
 		if (s >= 4) {
 			p.DoVoid(&asyncParams[i], (int)sizeof(IoAsyncParams));
 			bool hasThread = asyncThreads[i] != nullptr;
-			p.Do(hasThread);
+			Do(p, hasThread);
 			if (hasThread) {
 				if (p.GetMode() == p.MODE_READ)
 					clearThread();
-				p.DoClass(asyncThreads[i]);
+				DoClass(p, asyncThreads[i]);
 			} else if (!hasThread) {
 				clearThread();
 			}
@@ -726,7 +729,7 @@ void __IoDoState(PointerWrap &p) {
 	}
 
 	if (s >= 5) {
-		p.Do(asyncDefaultPriority);
+		Do(p, asyncDefaultPriority);
 	} else {
 		asyncDefaultPriority = -1;
 	}
@@ -963,6 +966,8 @@ static u32 npdrmRead(FileNode *f, u8 *data, int size) {
 	block  = pgd->file_offset/pgd->block_size;
 	offset = pgd->file_offset%pgd->block_size;
 
+	if (size > (int)pgd->data_size)
+		size = (int)pgd->data_size;
 	remain_size = size;
 
 	while(remain_size){
@@ -1479,7 +1484,7 @@ static u32 sceIoOpen(const char *filename, int flags, int mode) {
 	int error;
 	FileNode *f = __IoOpen(error, filename, flags, mode);
 	if (!f) {
-		assert(error != 0);
+		_assert_(error != 0);
 		if (error == (int)SCE_KERNEL_ERROR_NOCWD) {
 			// TODO: Timing is not accurate.
 			return hleLogError(SCEIO, hleDelayResult(error, "file opened", 10000), "no current working directory");
@@ -2059,7 +2064,7 @@ static u32 sceIoOpenAsync(const char *filename, int flags, int mode) {
 
 	// We have to return an fd here, which may have been destroyed when we reach Wait if it failed.
 	if (f == nullptr) {
-		assert(error != 0);
+		_assert_(error != 0);
 		if (error == SCE_KERNEL_ERROR_NODEV)
 			return hleLogError(SCEIO, error, "device not found");
 
@@ -2244,12 +2249,12 @@ public:
 		if (!s)
 			return;
 
-		p.Do(name);
-		p.Do(index);
+		Do(p, name);
+		Do(p, index);
 
 		// TODO: Is this the right way for it to wake up?
 		int count = (int) listing.size();
-		p.Do(count);
+		Do(p, count);
 		listing.resize(count);
 		for (int i = 0; i < count; ++i) {
 			listing[i].DoState(p);

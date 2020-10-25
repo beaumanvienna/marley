@@ -15,10 +15,13 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#include "base/logging.h"
+#include <set>
+
 #include "ext/xxhash.h"
-#include "profiler/profiler.h"
-#include "Common/ChunkFile.h"
+#include "Common/Profiler/Profiler.h"
+
+#include "Common/Log.h"
+#include "Common/Serialize/Serializer.h"
 #include "Common/StringUtils.h"
 
 #include "Core/Core.h"
@@ -60,7 +63,7 @@ void IRJit::UpdateFCR31() {
 }
 
 void IRJit::ClearCache() {
-	ILOG("IRJit: Clearing the cache!");
+	INFO_LOG(JIT, "IRJit: Clearing the cache!");
 	blocks_.Clear();
 }
 
@@ -478,7 +481,7 @@ u64 IRBlock::CalculateHash() const {
 			buffer[pos++] = instr.encoding;
 		}
 
-		return XXH64(&buffer[0], origSize_, 0x9A5C33B8);
+		return XXH3_64bits(&buffer[0], origSize_);
 	}
 
 	return 0;

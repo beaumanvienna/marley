@@ -16,26 +16,19 @@ SDLJoystick *joystick = NULL;
 
 #include <atomic>
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <thread>
 #include <locale>
 
-#include "base/display.h"
-#include "base/logging.h"
-#include "base/timeutil.h"
+#include "Common/System/Display.h"
+#include "Common/System/System.h"
+#include "Common/System/NativeApp.h"
 #include "ext/glslang/glslang/Public/ShaderLang.h"
-#include "image/png_load.h"
-#include "input/input_state.h"
-#include "input/keycodes.h"
-#include "net/resolve.h"
+#include "Common/Data/Format/PNGLoad.h"
+#include "Common/Net/Resolve.h"
 #include "NKCodeFromSDL.h"
-#include "util/const_map.h"
-#include "util/text/utf8.h"
-#include "math/math_util.h"
-#include "thin3d/GLRenderManager.h"
-#include "thread/threadutil.h"
-#include "math.h"
+#include "Common/Math/math_util.h"
+#include "Common/GPU/OpenGL/GLRenderManager.h"
 
 #include "SDL_syswm.h"
 
@@ -48,11 +41,17 @@ SDLJoystick *joystick = NULL;
 #include <X11/Xlib-xcb.h>
 #endif
 
+#include "Common/GraphicsContext.h"
+#include "Common/TimeUtil.h"
+#include "Common/Input/InputState.h"
+#include "Common/Input/KeyCodes.h"
+#include "Common/Data/Collections/ConstMap.h"
+#include "Common/Data/Encoding/Utf8.h"
+#include "Common/Thread/ThreadUtil.h"
 #include "Core/System.h"
 #include "Core/Core.h"
 #include "Core/Config.h"
 #include "Core/ConfigValues.h"
-#include "Common/GraphicsContext.h"
 #include "SDLGLGraphicsContext.h"
 #include "SDLVulkanGraphicsContext.h"
 #include "../../include/gui.h"
@@ -69,7 +68,6 @@ static int g_DesktopHeight = 0;
 static float g_RefreshRate = 60.f;
 
 static SDL_AudioSpec g_retFmt;
-void VFSShutdown();
 
 int getDisplayNumber(void) {
 	int displayNumber = 0;
@@ -111,24 +109,24 @@ static void InitSDLAudioDevice(const std::string &name = "") {
 	if (!startDevice.empty()) {
 		audioDev = SDL_OpenAudioDevice(startDevice.c_str(), 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
 		if (audioDev <= 0) {
-			WLOG("Failed to open audio device: %s", startDevice.c_str());
+			WARN_LOG(AUDIO, "Failed to open audio device: %s", startDevice.c_str());
 		}
 	}
 	if (audioDev <= 0) {
-		ILOG("SDL: Trying a different audio device");
+		INFO_LOG(AUDIO, "SDL: Trying a different audio device");
 		audioDev = SDL_OpenAudioDevice(nullptr, 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
 	}
 	if (audioDev <= 0) {
-		ELOG("Failed to open audio device: %s", SDL_GetError());
+		ERROR_LOG(AUDIO, "Failed to open audio device: %s", SDL_GetError());
 	} else {
 		if (g_retFmt.samples != fmt.samples) // Notify, but still use it
-			ELOG("Output audio samples: %d (requested: %d)", g_retFmt.samples, fmt.samples);
+			ERROR_LOG(AUDIO, "Output audio samples: %d (requested: %d)", g_retFmt.samples, fmt.samples);
 		if (g_retFmt.format != fmt.format || g_retFmt.channels != fmt.channels) {
-			ELOG("Sound buffer format does not match requested format.");
-			ELOG("Output audio freq: %d (requested: %d)", g_retFmt.freq, fmt.freq);
-			ELOG("Output audio format: %d (requested: %d)", g_retFmt.format, fmt.format);
-			ELOG("Output audio channels: %d (requested: %d)", g_retFmt.channels, fmt.channels);
-			ELOG("Provided output format does not match requirement, turning audio off");
+			ERROR_LOG(AUDIO, "Sound buffer format does not match requested format.");
+			ERROR_LOG(AUDIO, "Output audio freq: %d (requested: %d)", g_retFmt.freq, fmt.freq);
+			ERROR_LOG(AUDIO, "Output audio format: %d (requested: %d)", g_retFmt.format, fmt.format);
+			ERROR_LOG(AUDIO, "Output audio channels: %d (requested: %d)", g_retFmt.channels, fmt.channels);
+			ERROR_LOG(AUDIO, "Provided output format does not match requirement, turning audio off");
 			SDL_CloseAudioDevice(audioDev);
 		}
 		SDL_PauseAudioDevice(audioDev, 0);
@@ -207,7 +205,7 @@ void LaunchBrowser(const char *url) {
 	webWifiCreate(&conf, NULL, url, uuid, 0);
 	webWifiShow(&conf, NULL);
 #elif defined(MOBILE_DEVICE)
-	ILOG("Would have gone to %s but LaunchBrowser is not implemented on this platform", url);
+	INFO_LOG(SYSTEM, "Would have gone to %s but LaunchBrowser is not implemented on this platform", url);
 #elif defined(_WIN32)
 	std::wstring wurl = ConvertUTF8ToWString(url);
 	ShellExecute(NULL, L"open", wurl.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -218,7 +216,7 @@ void LaunchBrowser(const char *url) {
 	std::string command = std::string("xdg-open ") + url;
 	int err = system(command.c_str());
 	if (err) {
-		ILOG("Would have gone to %s but xdg-utils seems not to be installed", url)
+		INFO_LOG(SYSTEM, "Would have gone to %s but xdg-utils seems not to be installed", url);
 	}
 #endif
 }
@@ -230,7 +228,7 @@ void LaunchMarket(const char *url) {
 	webWifiCreate(&conf, NULL, url, uuid, 0);
 	webWifiShow(&conf, NULL);
 #elif defined(MOBILE_DEVICE)
-	ILOG("Would have gone to %s but LaunchMarket is not implemented on this platform", url);
+	INFO_LOG(SYSTEM, "Would have gone to %s but LaunchMarket is not implemented on this platform", url);
 #elif defined(_WIN32)
 	std::wstring wurl = ConvertUTF8ToWString(url);
 	ShellExecute(NULL, L"open", wurl.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -241,14 +239,14 @@ void LaunchMarket(const char *url) {
 	std::string command = std::string("xdg-open ") + url;
 	int err = system(command.c_str());
 	if (err) {
-		ILOG("Would have gone to %s but xdg-utils seems not to be installed", url)
+		INFO_LOG(SYSTEM, "Would have gone to %s but xdg-utils seems not to be installed", url);
 	}
 #endif
 }
 
 void LaunchEmail(const char *email_address) {
 #if defined(MOBILE_DEVICE)
-	ILOG("Would have opened your email client for %s but LaunchEmail is not implemented on this platform", email_address);
+	INFO_LOG(SYSTEM, "Would have opened your email client for %s but LaunchEmail is not implemented on this platform", email_address);
 #elif defined(_WIN32)
 	std::wstring mailto = std::wstring(L"mailto:") + ConvertUTF8ToWString(email_address);
 	ShellExecute(NULL, L"open", mailto.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -259,7 +257,7 @@ void LaunchEmail(const char *email_address) {
 	std::string command = std::string("xdg-email ") + email_address;
 	int err = system(command.c_str());
 	if (err) {
-		ILOG("Would have gone to %s but xdg-utils seems not to be installed", email_address)
+		INFO_LOG(SYSTEM, "Would have gone to %s but xdg-utils seems not to be installed", email_address);
 	}
 #endif
 }
@@ -285,12 +283,19 @@ std::string System_GetProperty(SystemProperty prop) {
 		// Set c and c++ strings back to POSIX
 		std::locale::global(std::locale("POSIX"));
 		if (!locale.empty()) {
+			// Technically, this is an opaque string, but try to find the locale code.
+			size_t messagesPos = locale.find("LC_MESSAGES=");
+			if (messagesPos != std::string::npos) {
+				messagesPos += strlen("LC_MESSAGES=");
+				size_t semi = locale.find(';', messagesPos);
+				locale = locale.substr(messagesPos, semi - messagesPos);
+			}
+
 			if (locale.find("_", 0) != std::string::npos) {
 				if (locale.find(".", 0) != std::string::npos) {
 					return locale.substr(0, locale.find(".",0));
-				} else {
-					return locale;
 				}
+				return locale;
 			}
 		}
 		return "en_US";
@@ -465,9 +470,6 @@ int ppsspp_main(int argc, char *argv[]) {
     g_RefreshRate = 60.f;
     gpu_features_reset();
 
-static SDL_AudioSpec g_retFmt;
-    
-
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "--version")) {
 			printf("%s\n", PPSSPP_GIT_VERSION);
@@ -488,10 +490,14 @@ static SDL_AudioSpec g_retFmt;
 	putenv((char*)"SDL_VIDEO_CENTERED=1");
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 
+#ifdef SDL_HINT_TOUCH_MOUSE_EVENTS
+	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#endif
+
 	/*if (VulkanMayBeAvailable()) {
-		//printf("DEBUG: Vulkan might be available.\n");
+		printf("DEBUG: Vulkan might be available.\n");
 	} else {
-		//printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
+		printf("DEBUG: Vulkan is not available, not using Vulkan.\n");
 	}*/
 
 	SDL_version compiled;
@@ -584,8 +590,8 @@ static SDL_AudioSpec g_retFmt;
     
     mode = SDL_GetWindowFlags(gWindow);
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-        pixel_xres = g_DesktopWidth;
-        pixel_yres = g_DesktopHeight;
+		pixel_xres = g_DesktopWidth;
+		pixel_yres = g_DesktopHeight;
 		g_PConfig.bFullScreen = true;
 	} else {
         pixel_xres = WINDOW_WIDTH;
@@ -693,7 +699,7 @@ static SDL_AudioSpec g_retFmt;
 	snprintf(iconPath, PATH_MAX, "%sassets/icon_regular_72.png", SDL_GetBasePath() ? SDL_GetBasePath() : "");
 	int width = 0, height = 0;
 	unsigned char *imageData;
-	if (pngLoad(iconPath, &width, &height, &imageData, false) == 1) {
+	if (pngLoad(iconPath, &width, &height, &imageData) == 1) {
 		SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32,
 							0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 		memcpy(surface->pixels, imageData, width*height*4);
@@ -708,6 +714,9 @@ static SDL_AudioSpec g_retFmt;
 		printf("Init from thread error: '%s'\n", error_message.c_str());
 	}
 
+#ifdef MOBILE_DEVICE
+	SDL_ShowCursor(SDL_DISABLE);
+#endif
 
 	if (!useEmuThread) {
 		NativeInitGraphics(graphicsContext);
@@ -792,6 +801,12 @@ static SDL_AudioSpec g_retFmt;
 					// Set variable here in case fullscreen was toggled by hotkey
 					g_PConfig.bFullScreen = fullscreen;
 
+					// Hide/Show cursor correctly toggling fullscreen
+					if (lastUIState == UISTATE_INGAME && fullscreen && !g_PConfig.bShowTouchControls) {
+						SDL_ShowCursor(SDL_DISABLE);
+					} else if (lastUIState != UISTATE_INGAME || !fullscreen) {
+						SDL_ShowCursor(SDL_DISABLE);
+					}
 					break;
 				}
 
@@ -851,68 +866,56 @@ static SDL_AudioSpec g_retFmt;
 					NativeKey(key);
 					break;
 				}
-#if !SDL_VERSION_ATLEAST(2, 0, 10)
 // This behavior doesn't feel right on a macbook with a touchpad.
 #if !PPSSPP_PLATFORM(MAC)
 			case SDL_FINGERMOTION:
 				{
 					SDL_GetWindowSize(window, &w, &h);
-					touchEvent.type = SDL_MOUSEMOTION;
-					touchEvent.motion.type = SDL_MOUSEMOTION;
-					touchEvent.motion.timestamp = event.tfinger.timestamp;
-					touchEvent.motion.windowID = SDL_GetWindowID(window);
-					touchEvent.motion.state = SDL_GetMouseState(NULL, NULL);
-					touchEvent.motion.x = event.tfinger.x * w;
-					touchEvent.motion.y = event.tfinger.y * h;
-
-					SDL_WarpMouseInWindow(window, event.tfinger.x * w, event.tfinger.y * h);
-
-					SDL_PushEvent(&touchEvent);
+					TouchInput input;
+					input.id = event.tfinger.fingerId;
+					input.x = event.tfinger.x * w;
+					input.y = event.tfinger.y * h;
+					input.flags = TOUCH_MOVE;
+					input.timestamp = event.tfinger.timestamp;
+					NativeTouch(input);
 					break;
 				}
 			case SDL_FINGERDOWN:
 				{
 					SDL_GetWindowSize(window, &w, &h);
-					touchEvent.type = SDL_MOUSEBUTTONDOWN;
-					touchEvent.button.type = SDL_MOUSEBUTTONDOWN;
-					touchEvent.button.timestamp = SDL_GetTicks();
-					touchEvent.button.windowID = SDL_GetWindowID(window);
-					touchEvent.button.button = SDL_BUTTON_LEFT;
-					touchEvent.button.state = SDL_PRESSED;
-					touchEvent.button.clicks = 1;
-					touchEvent.button.x = event.tfinger.x * w;
-					touchEvent.button.y = event.tfinger.y * h;
+					TouchInput input;
+					input.id = event.tfinger.fingerId;
+					input.x = event.tfinger.x * w;
+					input.y = event.tfinger.y * h;
+					input.flags = TOUCH_DOWN;
+					input.timestamp = event.tfinger.timestamp;
+					NativeTouch(input);
 
-					touchEvent.motion.type = SDL_MOUSEMOTION;
-					touchEvent.motion.timestamp = SDL_GetTicks();
-					touchEvent.motion.windowID = SDL_GetWindowID(window);
-					touchEvent.motion.x = event.tfinger.x * w;
-					touchEvent.motion.y = event.tfinger.y * h;
-					// Any real mouse cursor should also move
-					SDL_WarpMouseInWindow(window, event.tfinger.x * w, event.tfinger.y * h);
-					// First finger down event also has to be a motion to that position
-					SDL_PushEvent(&touchEvent);
-					touchEvent.motion.type = SDL_MOUSEBUTTONDOWN;
-					// Now we push the mouse button event
-					SDL_PushEvent(&touchEvent);
+					KeyInput key;
+					key.deviceId = DEVICE_ID_MOUSE;
+					key.keyCode = NKCODE_EXT_MOUSEBUTTON_1;
+					key.flags = KEY_DOWN;
+					NativeKey(key);
 					break;
 				}
 			case SDL_FINGERUP:
 				{
 					SDL_GetWindowSize(window, &w, &h);
-					touchEvent.type = SDL_MOUSEBUTTONUP;
-					touchEvent.button.type = SDL_MOUSEBUTTONUP;
-					touchEvent.button.timestamp = SDL_GetTicks();
-					touchEvent.button.windowID = SDL_GetWindowID(window);
-					touchEvent.button.button = SDL_BUTTON_LEFT;
-					touchEvent.button.state = SDL_RELEASED;
-					touchEvent.button.clicks = 1;
-					touchEvent.button.x = event.tfinger.x * w;
-					touchEvent.button.y = event.tfinger.y * h;
-					SDL_PushEvent(&touchEvent);
+					TouchInput input;
+					input.id = event.tfinger.fingerId;
+					input.x = event.tfinger.x * w;
+					input.y = event.tfinger.y * h;
+					input.flags = TOUCH_UP;
+					input.timestamp = event.tfinger.timestamp;
+					NativeTouch(input);
+
+					KeyInput key;
+					key.deviceId = DEVICE_ID_MOUSE;
+					key.keyCode = NKCODE_EXT_MOUSEBUTTON_1;
+					key.flags = KEY_UP;
+					NativeKey(key);
 					break;
 				}
-#endif
 #endif
 			case SDL_MOUSEBUTTONDOWN:
 				switch (event.button.button) {
@@ -1066,7 +1069,10 @@ static SDL_AudioSpec g_retFmt;
 #if !defined(MOBILE_DEVICE)
 		if (lastUIState != GetUIState()) {
 			lastUIState = GetUIState();
-
+			if (lastUIState == UISTATE_INGAME && g_PConfig.bFullScreen && !g_PConfig.bShowTouchControls)
+				SDL_ShowCursor(SDL_DISABLE);
+			if (lastUIState != UISTATE_INGAME || !g_PConfig.bFullScreen)
+				SDL_ShowCursor(SDL_DISABLE);
 		}
 #endif
 
@@ -1115,7 +1121,6 @@ static SDL_AudioSpec g_retFmt;
 		ToggleFullScreenIfFlagSet(window);
 
 		// Simple throttling to not burn the GPU in the menu.
-		time_update();
 		if (GetUIState() != UISTATE_INGAME || !PSP_IsInited() || renderThreadPaused) {
 			double diffTime = time_now_d() - startTime;
 			int sleepTime = (int)(1000.0 / 60.0) - (int)(diffTime * 1000.0);
@@ -1123,7 +1128,6 @@ static SDL_AudioSpec g_retFmt;
 				sleep_ms(sleepTime);
 		}
 
-		time_update();
 		framecount++;
 	}
 
@@ -1148,22 +1152,19 @@ static SDL_AudioSpec g_retFmt;
 	// Destroys Draw, which is used in NativeShutdown to shutdown.
 	graphicsContext->ShutdownFromRenderThread();
 	delete graphicsContext;
-    
-    if (audioDev > 0) 
-    {
-        SDL_PauseAudioDevice(audioDev, 1);
-        SDL_CloseAudioDevice(audioDev);
-    }
 
+	if (audioDev > 0) {
+		SDL_PauseAudioDevice(audioDev, 1);
+		SDL_CloseAudioDevice(audioDev);
+	}
 #if PPSSPP_PLATFORM(RPI)
 	bcm_host_deinit();
 #endif
 
 	glslang::FinalizeProcess();
-	ILOG("Leaving main");
+	printf("Leaving main\n");
 #ifdef HAVE_LIBNX
 	socketExit();
 #endif
-    VFSShutdown();
 	return 0;
 }

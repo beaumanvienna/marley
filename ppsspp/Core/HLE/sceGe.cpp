@@ -19,8 +19,11 @@
 #include <vector>
 #include <mutex>
 
-#include "Common/ChunkFile.h"
-#include "Common/ThreadSafeList.h"
+#include "Common/Serialize/Serializer.h"
+#include "Common/Serialize/SerializeFuncs.h"
+#include "Common/Serialize/SerializeList.h"
+#include "Common/Serialize/SerializeMap.h"
+#include "Common/Data/Collections/ThreadSafeList.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/FunctionWrappers.h"
 #include "Core/MIPS/MIPS.h"
@@ -219,14 +222,14 @@ void __GeDoState(PointerWrap &p) {
 	if (!s)
 		return;
 
-	p.DoArray(ge_callback_data, ARRAY_SIZE(ge_callback_data));
-	p.DoArray(ge_used_callbacks, ARRAY_SIZE(ge_used_callbacks));
+	DoArray(p, ge_callback_data, ARRAY_SIZE(ge_callback_data));
+	DoArray(p, ge_used_callbacks, ARRAY_SIZE(ge_used_callbacks));
 
 	if (s >= 2) {
-		p.Do(ge_pending_cb);
+		Do(p, ge_pending_cb);
 	} else {
 		std::list<GeInterruptData_v1> old;
-		p.Do(old);
+		Do(p, old);
 		ge_pending_cb.clear();
 		for (auto it = old.begin(), end = old.end(); it != end; ++it) {
 			GeInterruptData intrdata = {it->listid, it->pc};
@@ -235,15 +238,15 @@ void __GeDoState(PointerWrap &p) {
 		}
 	}
 
-	p.Do(geSyncEvent);
+	Do(p, geSyncEvent);
 	PCoreTiming::RestoreRegisterEvent(geSyncEvent, "GeSyncEvent", &__GeExecuteSync);
-	p.Do(geInterruptEvent);
+	Do(p, geInterruptEvent);
 	PCoreTiming::RestoreRegisterEvent(geInterruptEvent, "GeInterruptEvent", &__GeExecuteInterrupt);
-	p.Do(geCycleEvent);
+	Do(p, geCycleEvent);
 	PCoreTiming::RestoreRegisterEvent(geCycleEvent, "GeCycleEvent", &__GeCheckCycles);
 
-	p.Do(listWaitingThreads);
-	p.Do(drawWaitingThreads);
+	Do(p, listWaitingThreads);
+	Do(p, drawWaitingThreads);
 
 	// Everything else is done in sceDisplay.
 }

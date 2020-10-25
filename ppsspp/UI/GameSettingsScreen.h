@@ -21,7 +21,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
-#include "ui/ui_screen.h"
+#include "Common/UI/UIScreen.h"
 #include "UI/MiscScreens.h"
 
 class SettingInfoMessage;
@@ -80,8 +80,9 @@ private:
 	UI::EventReturn OnLanguage(UI::EventParams &e);
 	UI::EventReturn OnLanguageChange(UI::EventParams &e);
 	UI::EventReturn OnAutoFrameskip(UI::EventParams &e);
-	UI::EventReturn OnPostProcShader(UI::EventParams &e);
 	UI::EventReturn OnPostProcShaderChange(UI::EventParams &e);
+	UI::EventReturn OnTextureShader(UI::EventParams &e);
+	UI::EventReturn OnTextureShaderChange(UI::EventParams &e);
 	UI::EventReturn OnDeveloperTools(UI::EventParams &e);
 	UI::EventReturn OnRemoteISO(UI::EventParams &e);
 	UI::EventReturn OnChangeQuickChat0(UI::EventParams &e);
@@ -103,6 +104,7 @@ private:
 	UI::EventReturn OnRenderingDevice(UI::EventParams &e);
 	UI::EventReturn OnInflightFramesChoice(UI::EventParams &e);
 	UI::EventReturn OnCameraDeviceChange(UI::EventParams& e);
+	UI::EventReturn OnMicDeviceChange(UI::EventParams& e);
 	UI::EventReturn OnAudioDevice(UI::EventParams &e);
 	UI::EventReturn OnJitAffectingSetting(UI::EventParams &e);
 #if PPSSPP_PLATFORM(ANDROID)
@@ -129,6 +131,7 @@ private:
 	int prevInflightFrames_;
 	bool enableReports_;
 	bool tessHWEnable_;
+	std::string shaderNames_[256];
 
 	//edit the game-specific settings and restore the global settings after exiting
 	bool editThenRestore_;

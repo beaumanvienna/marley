@@ -33,7 +33,7 @@ struct MD5Context {
     int format_version;
 };
 
-static void Pmd5_finish(struct AVFormatContext *s, char *buf)
+static void md5_finish(struct AVFormatContext *s, char *buf)
 {
     struct MD5Context *c = s->priv_data;
     uint8_t md5[AV_HASH_MAX_SIZE];
@@ -92,7 +92,7 @@ static int write_trailer(struct AVFormatContext *s)
     av_strlcpy(buf, av_hash_get_name(c->hash), sizeof(buf) - 200);
     av_strlcat(buf, "=", sizeof(buf) - 200);
 
-    Pmd5_finish(s, buf);
+    md5_finish(s, buf);
 
     av_hash_freep(&c->hash);
     return 0;
@@ -137,7 +137,7 @@ static int framemd5_write_packet(struct AVFormatContext *s, AVPacket *pkt)
 
     snprintf(buf, sizeof(buf) - 64, "%d, %10"PRId64", %10"PRId64", %8"PRId64", %8d, ",
              pkt->stream_index, pkt->dts, pkt->pts, pkt->duration, pkt->size);
-    Pmd5_finish(s, buf);
+    md5_finish(s, buf);
     return 0;
 }
 

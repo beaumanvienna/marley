@@ -1,11 +1,13 @@
-#include "SDL/SDLJoystick.h"
-#include "Core/Config.h"
-#include "Common/FileUtil.h"
-#include "file/vfs.h"
-
 #include <iostream>
 #include <string>
 #include "../../include/controller.h"
+#include "Common/System/NativeApp.h"
+#include "Common/System/System.h"
+#include "Common/File/VFS/VFS.h"
+
+#include "Common/File/FileUtil.h"
+#include "Core/Config.h"
+#include "SDL/SDLJoystick.h"
 
 using namespace std;
 
@@ -15,8 +17,7 @@ static int SDLJoystickEventHandlerWrapper(void* userdata, SDL_Event* event)
 	return 0;
 }
 
-SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) 
-{
+SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false) {
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     #warning "JC: modified"
 	/*if (init_SDL) 
@@ -44,8 +45,7 @@ SDLJoystick::SDLJoystick(bool init_SDL ) : registeredAsEventHandler(false)
 	setUpControllers();
 }
 
-void SDLJoystick::setUpControllers() 
-{
+void SDLJoystick::setUpControllers() {
 	/*int numjoys = SDL_NumJoysticks();
 	for (int i = 0; i < numjoys; i++) {
 		setUpController(i);
@@ -64,72 +64,63 @@ void SDLJoystick::setUpControllers()
     }
 }
 
-void SDLJoystick::setUpController(int deviceIndex) 
-{
+void SDLJoystick::setUpController(int deviceIndex) {
 	/*if (!SDL_IsGameController(deviceIndex)) {
 		cout << "Control pad device " << deviceIndex << " not supported by SDL game controller database, attempting to create default mapping..." << endl;
 		int cbGUID = 33;
 		char pszGUID[cbGUID];
 		SDL_Joystick* joystick = SDL_JoystickOpen(deviceIndex);
-		SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), pszGUID, cbGUID);
-		// create default mapping - this is the PS3 dual shock mapping
-		std::string mapping = string(pszGUID) + "," + string(SDL_JoystickName(joystick)) + ",x:b3,a:b0,b:b1,y:b2,back:b8,guide:b10,start:b9,dpleft:b15,dpdown:b14,dpright:b16,dpup:b13,leftshoulder:b4,lefttrigger:a2,rightshoulder:b6,rightshoulder:b5,righttrigger:a5,leftstick:b7,leftstick:b11,rightstick:b12,leftx:a0,lefty:a1,rightx:a3,righty:a4";
-		if (SDL_GameControllerAddMapping(mapping.c_str()) == 1){
-			cout << "Added default mapping ok" << endl;
+		if (joystick) {
+			SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), pszGUID, cbGUID);
+			// create default mapping - this is the PS3 dual shock mapping
+			std::string mapping = string(pszGUID) + "," + string(SDL_JoystickName(joystick)) + ",x:b3,a:b0,b:b1,y:b2,back:b8,guide:b10,start:b9,dpleft:b15,dpdown:b14,dpright:b16,dpup:b13,leftshoulder:b4,lefttrigger:a2,rightshoulder:b6,rightshoulder:b5,righttrigger:a5,leftstick:b7,leftstick:b11,rightstick:b12,leftx:a0,lefty:a1,rightx:a3,righty:a4";
+			if (SDL_GameControllerAddMapping(mapping.c_str()) == 1){
+				cout << "Added default mapping ok" << endl;
+			} else {
+				cout << "Failed to add default mapping" << endl;
+			}
+			SDL_JoystickClose(joystick);
 		} else {
-			cout << "Failed to add default mapping" << endl;
+			cout << "Failed to get joystick identifier. Read-only device? Control pad device " + std::to_string(deviceIndex) << endl;
 		}
-		SDL_JoystickClose(joystick);
 	}
 	SDL_GameController *controller = SDL_GameControllerOpen(deviceIndex);
     */
     int devIndex = gDesignatedControllers[deviceIndex].index[0];
     SDL_GameController *controller = gDesignatedControllers[deviceIndex].gameCtrl[0];
-	if (controller) 
-    {
-		if (SDL_GameControllerGetAttached(controller)) 
-        {
+	if (controller) {
+		if (SDL_GameControllerGetAttached(controller)) {
 			controllers.push_back(controller);
 			controllerDeviceMap[SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))] = devIndex;
 			cout << "found control pad: " << SDL_GameControllerName(controller) << ", loading mapping: ";
 			auto mapping = SDL_GameControllerMapping(controller);
-			if (mapping == NULL) 
-            {
+			if (mapping == NULL) {
 				//cout << "FAILED" << endl;
 				cout << "Could not find mapping in SDL2 controller database" << endl;
-			} 
-            else 
-            {
+			} else {
 				cout << "SUCCESS, mapping is:" << endl << mapping << endl;
 			}
-		} 
-        else 
-        {
+		} else {
 			SDL_GameControllerClose(controller);
 		}
 	}
 }
 
-SDLJoystick::~SDLJoystick() 
-{
-	if (registeredAsEventHandler) 
-    {
+SDLJoystick::~SDLJoystick() {
+	if (registeredAsEventHandler) {
 		SDL_DelEventWatch(SDLJoystickEventHandlerWrapper, this);
 	}
-	/*for (auto & controller : controllers) 
-    {
+	/*for (auto & controller : controllers) {
 		SDL_GameControllerClose(controller);
 	}*/
 }
 
-void SDLJoystick::registerEventHandler() 
-{
+void SDLJoystick::registerEventHandler() {
 	SDL_AddEventWatch(SDLJoystickEventHandlerWrapper, this);
 	registeredAsEventHandler = true;
 }
 
-keycode_t SDLJoystick::getKeycodeForButton(SDL_GameControllerButton button) 
-{
+keycode_t SDLJoystick::getKeycodeForButton(SDL_GameControllerButton button) {
 	switch (button) {
 	case SDL_CONTROLLER_BUTTON_DPAD_UP:
 		return NKCODE_DPAD_UP;

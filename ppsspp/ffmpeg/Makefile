@@ -39,8 +39,6 @@ OBJS-ffmpeg-$(CONFIG_VIDEOTOOLBOX) += ffmpeg_videotoolbox.o
 OBJS-ffmpeg-$(CONFIG_LIBMFX)  += ffmpeg_qsv.o
 OBJS-ffserver                 += ffserver_config.o
 
-TESTTOOLS   = audiogen videogen rotozoom tiny_psnr tiny_ssim base64
-HOSTPROGS  := $(TESTTOOLS:%=tests/%) doc/print_options
 TOOLS       = qt-faststart trasher uncoded_frame
 TOOLS-$(CONFIG_ZLIB) += cws2fws
 
@@ -82,12 +80,12 @@ config.h: .config
 	@-printf '\nWARNING: $(?F) newer than config.h, rerun configure\n\n'
 	@-tput sgr0 2>/dev/null
 
-SUBDIR_VARS := CLEANFILES EXAMPLES FFLIBS HOSTPROGS TESTPROGS TOOLS      \
+SUBDIR_VARS := CLEANFILES EXAMPLES FFLIBS HOSTPROGS TOOLS      \
                HEADERS ARCH_HEADERS BUILT_HEADERS SKIPHEADERS            \
                ARMV5TE-OBJS ARMV6-OBJS ARMV8-OBJS VFP-OBJS NEON-OBJS     \
                ALTIVEC-OBJS MMX-OBJS YASM-OBJS                           \
                MIPSFPU-OBJS MIPSDSPR2-OBJS MIPSDSP-OBJS MSA-OBJS         \
-               MMI-OBJS OBJS SLIBOBJS HOSTOBJS TESTOBJS
+               MMI-OBJS OBJS SLIBOBJS HOSTOBJS
 
 define RESET
 $(1) :=
@@ -178,7 +176,6 @@ clean::
 	$(RM) $(CLEANSUFFIXES:%=tools/%)
 	$(RM) -r coverage-html
 	$(RM) -rf coverage.info coverage.info.in lcov
-	$(RM) -rf linux/x86_64/lib/libswscale.a linux/x86_64/lib/libavcodec.a linux/x86_64/lib/libavformat.a linux/x86_64/lib/libswresample.a linux/x86_64/lib/libavutil.a
 
 distclean::
 	$(RM) $(DISTCLEANSUFFIXES)
@@ -191,9 +188,7 @@ endif
 config:
 	$(SRC_PATH)/configure $(value FFMPEG_CONFIGURATION)
 
-check: all alltools examples testprogs fate
-
-include $(SRC_PATH)/tests/Makefile
+check: all alltools examples fate
 
 $(sort $(OBJDIRS)):
 	$(Q)mkdir -p $@
@@ -207,4 +202,4 @@ $(sort $(OBJDIRS)):
 .SUFFIXES:
 
 .PHONY: all all-yes alltools check *clean config install*
-.PHONY: testprogs uninstall*
+.PHONY: uninstall*

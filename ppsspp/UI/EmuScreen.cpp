@@ -19,25 +19,25 @@
 
 #include <algorithm>
 
-#include "base/display.h"
-#include "base/logging.h"
-#include "base/timeutil.h"
-#include "profiler/profiler.h"
+#include "Common/Render/TextureAtlas.h"
+#include "Common/GPU/OpenGL/GLFeatures.h"
+#include "Common/Render/Text/draw_text.h"
 
-#include "gfx/texture_atlas.h"
-#include "gfx_es2/gpu_features.h"
-#include "gfx_es2/draw_text.h"
+#include "Common/UI/Root.h"
+#include "Common/UI/UI.h"
+#include "Common/UI/Context.h"
+#include "Common/UI/Tween.h"
+#include "Common/UI/View.h"
 
-#include "input/input_state.h"
-#include "math/curves.h"
-#include "ui/root.h"
-#include "ui/ui.h"
-#include "ui/ui_context.h"
-#include "ui/ui_tween.h"
-#include "ui/view.h"
-#include "i18n/i18n.h"
-
-#include "Common/KeyMap.h"
+#include "Common/Data/Text/I18n.h"
+#include "Common/Input/InputState.h"
+#include "Common/Log.h"
+#include "Common/System/Display.h"
+#include "Common/System/System.h"
+#include "Common/System/NativeApp.h"
+#include "Common/Profiler/Profiler.h"
+#include "Common/Math/curves.h"
+#include "Common/TimeUtil.h"
 
 #ifndef MOBILE_DEVICE
 #include "Core/AVIDump.h"
@@ -48,11 +48,12 @@
 #include "Core/CoreParameter.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/KeyMap.h"
 #include "Core/Reporting.h"
 #include "Core/System.h"
 #include "GPU/GPUState.h"
 #include "GPU/GPUInterface.h"
-#include "GPU/Common/FramebufferCommon.h"
+#include "GPU/Common/FramebufferManagerCommon.h"
 #if !PPSSPP_PLATFORM(UWP)
 #include "GPU/Vulkan/DebugVisVulkan.h"
 #endif
@@ -77,7 +78,6 @@
 #include "UI/ControlMappingScreen.h"
 #include "UI/DisplayLayoutScreen.h"
 #include "UI/GameSettingsScreen.h"
-#include "UI/InstallZipScreen.h"
 #include "UI/ProfilerDraw.h"
 #include "UI/DiscordIntegration.h"
 #include "UI/ChatScreen.h"
@@ -194,7 +194,7 @@ void EmuScreen::bootGame(const std::string &filename) {
 		return;
 	}
 
-	SetBackgroundAudioGame("");
+	g_BackgroundAudio.SetGame("");
 
 	// Check permission status first, in case we came from a shortcut.
 	if (!bootAllowStorage(filename))
@@ -405,7 +405,7 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 
 		std::string resetError;
 		if (!PSP_InitStart(PSP_CoreParameter(), &resetError)) {
-			ELOG("Error resetting: %s", resetError.c_str());
+			ERROR_LOG(LOADER, "Error resetting: %s", resetError.c_str());
 			stopRender_ = true;
 			screenManager()->switchScreen(new MainScreen());
 			System_SendMessage("event", "failstartgame");
@@ -857,7 +857,7 @@ void EmuScreen::pspKey(int pspKeyCode, int flags) {
 			onVKeyUp(pspKeyCode);
 		}
 	} else {
-		// ILOG("pspKey %i %i", pspKeyCode, flags);
+		// INFO_LOG(SYSTEM, "pspKey %i %i", pspKeyCode, flags);
 		if (flags & KEY_DOWN)
 			__CtrlButtonDown(pspKeyCode);
 		if (flags & KEY_UP)
@@ -1029,6 +1029,7 @@ void EmuScreen::CreateViews() {
 	cardboardDisableButton_ = root_->Add(new Button(sc->T("Cardboard VR OFF"), new AnchorLayoutParams(bounds.centerX(), NONE, NONE, 30, true)));
 	cardboardDisableButton_->OnClick.Handle(this, &EmuScreen::OnDisableCardboard);
 	cardboardDisableButton_->SetVisibility(V_GONE);
+	cardboardDisableButton_->SetScale(0.65f);  // make it smaller - this button can be in the way otherwise.
 
 	if (g_PConfig.bEnableNetworkChat) {
 		switch (g_PConfig.iChatButtonPosition) {
@@ -1091,7 +1092,6 @@ void EmuScreen::CreateViews() {
 	loadingSpinner->SetTag("LoadingSpinner");
 
 	// Don't really need this, and it creates a lot of strings to translate...
-	// Maybe just show "Loading game..." only?
 	loadingTextView->SetVisibility(V_GONE);
 	loadingTextView->SetShadow(true);
 
@@ -1163,14 +1163,6 @@ void EmuScreen::update() {
 	}
 
 	if (errorMessage_.size()) {
-		// Special handling for ZIP files. It's not very robust to check an error message but meh,
-		// at least it's pre-translation.
-		if (errorMessage_.find("ZIP") != std::string::npos) {
-			screenManager()->push(new InstallZipScreen(gamePath_));
-			errorMessage_ = "";
-			quit_ = true;
-			return;
-		}
 		auto err = GetI18NCategory("Error");
 		std::string errLoadingFile = gamePath_ + "\n";
 		errLoadingFile.append(err->T("Error loading file", "Could not load game"));
@@ -1240,7 +1232,7 @@ void EmuScreen::checkPowerDown() {
 		if (PSP_IsInited()) {
 			PSP_Shutdown();
 		}
-		ILOG("SELF-POWERDOWN!");
+		INFO_LOG(SYSTEM, "SELF-POWERDOWN!");
 		screenManager()->switchScreen(new MainScreen());
 		bootPending_ = false;
 		invalid_ = true;
@@ -1297,7 +1289,7 @@ ABI: %s
 	int x = 20;
 	int y = 50;
 	draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
-	y += 100;
+	y += 140;
 
 	if (info.type == ExceptionType::MEMORY) {
 		snprintf(statbuf, sizeof(statbuf), R"(
@@ -1318,7 +1310,13 @@ PC: %08x)",
 			info.address,
 			info.pc);
 		draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
-		y += 120;
+		y += 180;
+	} else {
+		snprintf(statbuf, sizeof(statbuf), R"(
+BREAK
+)");
+		draw2d->DrawTextShadow(ubuntu24, statbuf, x, y, 0xFFFFFFFF);
+		y += 180;
 	}
 
 	std::string kernelState = __KernelStateSummary();
@@ -1448,13 +1446,15 @@ void EmuScreen::render() {
 		return;
 	}
 
+	// Freeze-frame functionality (loads a savestate on every frame).
 	if (PSP_CoreParameter().freezeNext) {
 		PSP_CoreParameter().frozen = true;
 		PSP_CoreParameter().freezeNext = false;
 		SaveState::SaveToRam(freezeState_);
 	} else if (PSP_CoreParameter().frozen) {
-		if (CChunkFileReader::ERROR_NONE != SaveState::LoadFromRam(freezeState_)) {
-			ERROR_LOG(SAVESTATE, "Failed to load freeze state. Unfreezing.");
+		std::string errorString;
+		if (CChunkFileReader::ERROR_NONE != SaveState::LoadFromRam(freezeState_, &errorString)) {
+			ERROR_LOG(SAVESTATE, "Failed to load freeze state (%s). Unfreezing.", errorString.c_str());
 			PSP_CoreParameter().frozen = false;
 		}
 	}
@@ -1512,23 +1512,6 @@ void EmuScreen::render() {
 		screenManager()->getUIContext()->BeginFrame();
 		renderUI();
 	}
-
-	// We have no use for backbuffer depth or stencil, so let tiled renderers discard them after tiling.
-	/*
-	if (gl_extensions.GLES3 && glInvalidateFramebuffer != nullptr) {
-		GLenum attachments[2] = { GL_DEPTH, GL_STENCIL };
-		glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-	} else if (!gl_extensions.GLES3) {
-#ifdef USING_GLES2
-		// Tiled renderers like PowerVR should benefit greatly from this. However - seems I can't call it?
-		bool hasDiscard = gl_extensions.EXT_discard_framebuffer;  // TODO
-		if (hasDiscard) {
-			//const GLenum targets[3] = { GL_COLOR_EXT, GL_DEPTH_EXT, GL_STENCIL_EXT };
-			//glDiscardFramebufferEXT(GL_FRAMEBUFFER, 3, targets);
-		}
-#endif
-	}
-	*/
 }
 
 bool EmuScreen::hasVisibleUI() {
@@ -1597,7 +1580,7 @@ void EmuScreen::renderUI() {
 	}
 
 	if (g_PConfig.iGPUBackend == (int)GPUBackend::VULKAN && g_PConfig.bShowGpuProfile) {
-		DrawProfilerVis(ctx, gpu);
+		DrawGPUProfilerVis(ctx, gpu);
 	}
 
 #endif

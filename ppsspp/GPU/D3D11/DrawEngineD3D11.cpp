@@ -17,10 +17,9 @@
 
 #include <algorithm>
 
-#include "base/logging.h"
-#include "base/timeutil.h"
-
+#include "Common/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/TimeUtil.h"
 #include "Core/MemMap.h"
 #include "Core/System.h"
 #include "Core/Reporting.h"
@@ -331,7 +330,7 @@ void DrawEngineD3D11::DoFlush() {
 	int curRenderStepId = draw_->GetCurrentStepId();
 	if (lastRenderStepId_ != curRenderStepId) {
 		// Dirty everything that has dynamic state that will need re-recording.
-		gstate_c.Dirty(DIRTY_VIEWPORTSCISSOR_STATE);
+		gstate_c.Dirty(DIRTY_VIEWPORTSCISSOR_STATE | DIRTY_TEXTURE_IMAGE | DIRTY_TEXTURE_PARAMS);
 		lastRenderStepId_ = curRenderStepId;
 	}
 
@@ -372,7 +371,7 @@ void DrawEngineD3D11::DoFlush() {
 			case VertexArrayInfoD3D11::VAI_NEW:
 				{
 					// Haven't seen this one before.
-					ReliableHashType dataHash = ComputeHash();
+					uint64_t dataHash = ComputeHash();
 					vai->hash = dataHash;
 					vai->minihash = ComputeMiniHash();
 					vai->status = VertexArrayInfoD3D11::VAI_HASHING;
@@ -396,7 +395,7 @@ void DrawEngineD3D11::DoFlush() {
 					if (vai->drawsUntilNextFullHash == 0) {
 						// Let's try to skip a full hash if mini would fail.
 						const u32 newMiniHash = ComputeMiniHash();
-						ReliableHashType newHash = vai->hash;
+						uint64_t newHash = vai->hash;
 						if (newMiniHash == vai->minihash) {
 							newHash = ComputeHash();
 						}

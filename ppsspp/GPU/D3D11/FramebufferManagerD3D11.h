@@ -24,8 +24,8 @@
 // pixel data.
 
 #include "GPU/GPUCommon.h"
-#include "GPU/Common/FramebufferCommon.h"
-#include "ext/native/thin3d/thin3d.h"
+#include "GPU/Common/FramebufferManagerCommon.h"
+#include "Common/GPU/thin3d.h"
 
 class TextureCacheD3D11;
 class DrawEngineD3D11;
@@ -44,8 +44,6 @@ public:
 	void EndFrame();
 	void DeviceLost();
 	void ReformatFramebufferFrom(VirtualFramebuffer *vfb, GEBufferFormat old) override;
-
-	void BlitFramebufferDepth(VirtualFramebuffer *src, VirtualFramebuffer *dst) override;
 
 	void BindFramebufferAsColorTexture(int stage, VirtualFramebuffer *framebuffer, int flags);
 

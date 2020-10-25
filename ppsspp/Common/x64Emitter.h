@@ -15,14 +15,15 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DOLPHIN_INTEL_CODEGEN_
-#define _DOLPHIN_INTEL_CODEGEN_
+#pragma once
 
 #include "ppsspp_config.h"
 
 #include <cstddef>
-#include "Common.h"
-#include "CodeBlock.h"
+
+#include "Common/Common.h"
+#include "Common/Log.h"
+#include "Common/CodeBlock.h"
 
 #if PPSSPP_ARCH(64BIT)
 #define PTRBITS 64
@@ -531,7 +532,7 @@ public:
 	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
 	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
-	// Available only on Atom or >= Haswell so far. Test with Pcpu_info.bMOVBE.
+	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
@@ -1083,5 +1084,3 @@ public:
 };
 
 }  // namespace
-
-#endif

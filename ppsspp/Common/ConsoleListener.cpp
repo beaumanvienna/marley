@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <algorithm>  // min
+#include <cstring>
 #include <string> // System: To be able to add strings with "+"
 #include <math.h>
 #ifdef _WIN32
@@ -31,10 +32,11 @@
 #endif
 
 #include "ppsspp_config.h"
-#include "thread/threadutil.h"
-#include "util/text/utf8.h"
-#include "Common.h"
-#include "ConsoleListener.h" // Common
+#include "Common/Thread/ThreadUtil.h"
+#include "Common/Data/Encoding/Utf8.h"
+#include "Common/Common.h"
+#include "Common/ConsoleListener.h"
+#include "Common/StringUtils.h"
 
 #if defined(USING_WIN_UI)
 const int LOG_PENDING_MAX = 120 * 10000;
@@ -48,8 +50,8 @@ HANDLE PConsoleListener::hTriggerEvent = NULL;
 CRITICAL_SECTION PConsoleListener::criticalSection;
 
 char *PConsoleListener::logPending = NULL;
-std::atomic<u32> PConsoleListener::logPendingReadPos;
-std::atomic<u32> PConsoleListener::logPendingWritePos;
+std::atomic<uint32_t> PConsoleListener::logPendingReadPos;
+std::atomic<uint32_t> PConsoleListener::logPendingWritePos;
 #endif
 
 PConsoleListener::PConsoleListener() : bHidden(true)

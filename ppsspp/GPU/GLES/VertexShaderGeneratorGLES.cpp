@@ -19,13 +19,9 @@
 #include <cstdlib>
 #include <locale.h>
 
-#include "gfx_es2/gpu_features.h"
+#include "Common/GPU/OpenGL/GLFeatures.h"
 
-#if defined(_WIN32) && defined(_DEBUG)
-#include "Common/CommonWindows.h"
-#endif
-
-#include "base/stringutil.h"
+#include "Common/StringUtils.h"
 #include "GPU/ge_constants.h"
 #include "GPU/GPUState.h"
 #include "Core/Config.h"
@@ -62,13 +58,6 @@ static const char * const boneWeightInDecl[9] = {
 	"in mediump vec4 w1, w2;\n",
 };
 
-enum DoLightComputation {
-	LIGHT_OFF,
-	LIGHT_SHADE,
-	LIGHT_FULL,
-};
-
-
 // Depth range and viewport
 //
 // After the multiplication with the projection matrix, we have a 4D vector in clip space.
@@ -98,71 +87,34 @@ enum DoLightComputation {
 // TODO: Skip all this if we can actually get a 16-bit depth buffer along with stencil, which
 // is a bit of a rare configuration, although quite common on mobile.
 
-
-void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask, uint64_t *uniformMask) {
-	char *p = buffer;
+bool GenerateVertexShaderGLSL(const VShaderID &id, char *buffer, const GLSLShaderCompat &compat, uint32_t *attrMask, uint64_t *uniformMask, std::string *errorString) {
 	*attrMask = 0;
 	*uniformMask = 0;
-	// #define USE_FOR_LOOP
 
-	// In GLSL ES 3.0, you use "out" variables instead.
-	bool glslES30 = false;
-	const char *varying = "varying";
-	const char *attribute = "attribute";
-	const char * const * boneWeightDecl = boneWeightAttrDecl;
-	const char *texelFetch = NULL;
+	char *p = buffer;
+	WRITE(p, "#version %d%s\n", compat.glslVersionNumber, compat.gles ? " es" : "");
+
 	bool highpFog = false;
 	bool highpTexcoord = false;
-
-	if (gl_extensions.IsGLES) {
-		if (gstate_c.Supports(GPU_SUPPORTS_GLSL_ES_300)) {
-			WRITE(p, "#version 300 es\n");
-			glslES30 = true;
-			texelFetch = "texelFetch";
-		} else {
-			WRITE(p, "#version 100\n");  // GLSL ES 1.0
-			if (gl_extensions.EXT_gpu_shader4) {
-				WRITE(p, "#extension GL_EXT_gpu_shader4 : enable\n");
-				texelFetch = "texelFetch2D";
-			}
-		}
-		WRITE(p, "precision highp float;\n");
-
+	if (compat.gles) {
 		// PowerVR needs highp to do the fog in MHU correctly.
 		// Others don't, and some can't handle highp in the fragment shader.
 		highpFog = (gl_extensions.bugs & BUG_PVR_SHADER_PRECISION_BAD) ? true : false;
 		highpTexcoord = highpFog;
-	} else {
-		if (!gl_extensions.ForceGL2 || gl_extensions.IsCoreContext) {
-			if (gl_extensions.VersionGEThan(3, 3, 0)) {
-				glslES30 = true;
-				WRITE(p, "#version 330\n");
-				texelFetch = "texelFetch";
-			} else if (gl_extensions.VersionGEThan(3, 0, 0)) {
-				WRITE(p, "#version 130\n");
-				if (gl_extensions.EXT_gpu_shader4) {
-					WRITE(p, "#extension GL_EXT_gpu_shader4 : enable\n");
-					texelFetch = "texelFetch";
-				}
-			} else {
-				WRITE(p, "#version 110\n");
-				if (gl_extensions.EXT_gpu_shader4) {
-					WRITE(p, "#extension GL_EXT_gpu_shader4 : enable\n");
-					texelFetch = "texelFetch2D";
-				}
-			}
-		}
+	}
 
-		// We remove these everywhere - GL4, GL3, Mac-forced-GL2, etc.
+	if (gl_extensions.EXT_gpu_shader4) {
+		WRITE(p, "#extension GL_EXT_gpu_shader4 : enable\n");
+	}
+
+	WRITE(p, "#define splat3(x) vec3(x)\n");
+
+	if (compat.gles) {
+		WRITE(p, "precision highp float;\n");
+	} else {
 		WRITE(p, "#define lowp\n");
 		WRITE(p, "#define mediump\n");
 		WRITE(p, "#define highp\n");
-	}
-
-	if (glslES30 || gl_extensions.IsCoreContext) {
-		attribute = "in";
-		varying = "out";
-		boneWeightDecl = boneWeightInDecl;
 	}
 
 	bool isModeThrough = id.Bit(VS_BIT_IS_THROUGH);
@@ -197,7 +149,7 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 	bool flipNormalTess = id.Bit(VS_BIT_NORM_REVERSE_TESS);
 
 	const char *shading = "";
-	if (glslES30)
+	if (compat.glslES30)
 		shading = doFlatShading ? "flat " : "";
 
 	DoLightComputation doLight[4] = { LIGHT_OFF, LIGHT_OFF, LIGHT_OFF, LIGHT_OFF };
@@ -216,6 +168,10 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 	int boneWeightScale = id.Bits(VS_BIT_WEIGHT_FMTSCALE, 2);
 	if (enableBones) {
 		numBoneWeights = 1 + id.Bits(VS_BIT_BONES, 3);
+		const char * const * boneWeightDecl = boneWeightAttrDecl;
+		if (!strcmp(compat.attribute, "in")) {
+			boneWeightDecl = boneWeightInDecl;
+		}
 		WRITE(p, "%s", boneWeightDecl[numBoneWeights]);
 		*attrMask |= 1 << ATTR_W1;
 		if (numBoneWeights >= 5)
@@ -223,31 +179,31 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 	}
 
 	if (useHWTransform)
-		WRITE(p, "%s vec3 position;\n", attribute);
+		WRITE(p, "%s vec3 position;\n", compat.attribute);
 	else
-		WRITE(p, "%s vec4 position;\n", attribute);  // need to pass the fog coord in w
+		WRITE(p, "%s vec4 position;\n", compat.attribute);  // need to pass the fog coord in w
 	*attrMask |= 1 << ATTR_POSITION;
 
 	if (useHWTransform && hasNormal) {
-		WRITE(p, "%s mediump vec3 normal;\n", attribute);
+		WRITE(p, "%s mediump vec3 normal;\n", compat.attribute);
 		*attrMask |= 1 << ATTR_NORMAL;
 	}
 
 	bool texcoordVec3In = false;
 	if (doTexture && hasTexcoord) {
 		if (!useHWTransform && doTextureProjection && !isModeThrough) {
-			WRITE(p, "%s vec3 texcoord;\n", attribute);
+			WRITE(p, "%s vec3 texcoord;\n", compat.attribute);
 			texcoordVec3In = true;
 		} else {
-			WRITE(p, "%s vec2 texcoord;\n", attribute);
+			WRITE(p, "%s vec2 texcoord;\n", compat.attribute);
 		}
 		*attrMask |= 1 << ATTR_TEXCOORD;
 	}
 	if (hasColor) {
-		WRITE(p, "%s lowp vec4 color0;\n", attribute);
+		WRITE(p, "%s lowp vec4 color0;\n", compat.attribute);
 		*attrMask |= 1 << ATTR_COLOR0;
 		if (lmode && !useHWTransform) { // only software transform supplies color1 as vertex data
-			WRITE(p, "%s lowp vec3 color1;\n", attribute);
+			WRITE(p, "%s lowp vec3 color1;\n", compat.attribute);
 			*attrMask |= 1 << ATTR_COLOR1;
 		}
 	}
@@ -346,21 +302,21 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 		*uniformMask |= DIRTY_CULLRANGE;
 	}
 
-	WRITE(p, "%s%s lowp vec4 v_color0;\n", shading, varying);
+	WRITE(p, "%s%s lowp vec4 v_color0;\n", shading, compat.varying_vs);
 	if (lmode) {
-		WRITE(p, "%s%s lowp vec3 v_color1;\n", shading, varying);
+		WRITE(p, "%s%s lowp vec3 v_color1;\n", shading, compat.varying_vs);
 	}
 
 	if (doTexture) {
-		WRITE(p, "%s %s vec3 v_texcoord;\n", varying, highpTexcoord ? "highp" : "mediump");
+		WRITE(p, "%s %s vec3 v_texcoord;\n", compat.varying_vs, highpTexcoord ? "highp" : "mediump");
 	}
 
 	if (enableFog) {
 		// See the fragment shader generator
 		if (highpFog) {
-			WRITE(p, "%s highp float v_fogdepth;\n", varying);
+			WRITE(p, "%s highp float v_fogdepth;\n", compat.varying_vs);
 		} else {
-			WRITE(p, "%s mediump float v_fogdepth;\n", varying);
+			WRITE(p, "%s mediump float v_fogdepth;\n", compat.varying_vs);
 		}
 	}
 
@@ -427,17 +383,17 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 			for (int j = 0; j < 4; j++) {
 				WRITE(p, "  index_u = (%i + point_pos.x);\n", j);
 				WRITE(p, "  index_v = (%i + point_pos.y);\n", i);
-				WRITE(p, "  _pos[%i] = %s(u_tess_points, ivec2(index_u, index_v), 0).xyz;\n", i * 4 + j, texelFetch);
+				WRITE(p, "  _pos[%i] = %s(u_tess_points, ivec2(index_u, index_v), 0).xyz;\n", i * 4 + j, compat.texelFetch);
 				if (doTexture && hasTexcoordTess)
-					WRITE(p, "  _tex[%i] = %s(u_tess_points, ivec2(index_u + u_spline_counts, index_v), 0).xy;\n", i * 4 + j, texelFetch);
+					WRITE(p, "  _tex[%i] = %s(u_tess_points, ivec2(index_u + u_spline_counts, index_v), 0).xy;\n", i * 4 + j, compat.texelFetch);
 				if (hasColorTess)
-					WRITE(p, "  _col[%i] = %s(u_tess_points, ivec2(index_u + u_spline_counts * 2, index_v), 0).rgba;\n", i * 4 + j, texelFetch);
+					WRITE(p, "  _col[%i] = %s(u_tess_points, ivec2(index_u + u_spline_counts * 2, index_v), 0).rgba;\n", i * 4 + j, compat.texelFetch);
 			}
 		}
 
 		// Basis polynomials as weight coefficients
-		WRITE(p, "  vec4 basis_u = %s(u_tess_weights_u, %s, 0);\n", texelFetch, "ivec2(weight_idx.x * 2, 0)");
-		WRITE(p, "  vec4 basis_v = %s(u_tess_weights_v, %s, 0);\n", texelFetch, "ivec2(weight_idx.y * 2, 0)");
+		WRITE(p, "  vec4 basis_u = %s(u_tess_weights_u, %s, 0);\n", compat.texelFetch, "ivec2(weight_idx.x * 2, 0)");
+		WRITE(p, "  vec4 basis_v = %s(u_tess_weights_v, %s, 0);\n", compat.texelFetch, "ivec2(weight_idx.y * 2, 0)");
 		WRITE(p, "  mat4 basis = outerProduct(basis_u, basis_v);\n");
 
 		// Tessellate
@@ -454,8 +410,8 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 			WRITE(p, "  tess.col = u_matambientalpha;\n");
 		if (hasNormalTess) {
 			// Derivatives as weight coefficients
-			WRITE(p, "  vec4 deriv_u = %s(u_tess_weights_u, %s, 0);\n", texelFetch, "ivec2(weight_idx.x * 2 + 1, 0)");
-			WRITE(p, "  vec4 deriv_v = %s(u_tess_weights_v, %s, 0);\n", texelFetch, "ivec2(weight_idx.y * 2 + 1, 0)");
+			WRITE(p, "  vec4 deriv_u = %s(u_tess_weights_u, %s, 0);\n", compat.texelFetch, "ivec2(weight_idx.x * 2 + 1, 0)");
+			WRITE(p, "  vec4 deriv_v = %s(u_tess_weights_v, %s, 0);\n", compat.texelFetch, "ivec2(weight_idx.y * 2 + 1, 0)");
 
 			WRITE(p, "  vec3 du = tess_sample(_pos, outerProduct(deriv_u, basis_v));\n");
 			WRITE(p, "  vec3 dv = tess_sample(_pos, outerProduct(basis_u, deriv_v));\n");
@@ -528,30 +484,6 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 				"w2.x", "w2.y", "w2.z", "w2.w",
 			};
 
-#if defined(USE_FOR_LOOP) && defined(USE_BONE_ARRAY)
-
-			// To loop through the weights, we unfortunately need to put them in a float array.
-			// GLSL ES sucks - no way to directly initialize an array!
-			switch (numBoneWeights) {
-			case 1: WRITE(p, "  float w[1]; w[0] = w1;\n"); break;
-			case 2: WRITE(p, "  float w[2]; w[0] = w1.x; w[1] = w1.y;\n"); break;
-			case 3: WRITE(p, "  float w[3]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z;\n"); break;
-			case 4: WRITE(p, "  float w[4]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z; w[3] = w1.w;\n"); break;
-			case 5: WRITE(p, "  float w[5]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z; w[3] = w1.w; w[4] = w2;\n"); break;
-			case 6: WRITE(p, "  float w[6]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z; w[3] = w1.w; w[4] = w2.x; w[5] = w2.y;\n"); break;
-			case 7: WRITE(p, "  float w[7]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z; w[3] = w1.w; w[4] = w2.x; w[5] = w2.y; w[6] = w2.z;\n"); break;
-			case 8: WRITE(p, "  float w[8]; w[0] = w1.x; w[1] = w1.y; w[2] = w1.z; w[3] = w1.w; w[4] = w2.x; w[5] = w2.y; w[6] = w2.z; w[7] = w2.w;\n"); break;
-			}
-
-			WRITE(p, "  mat4 skinMatrix = w[0] * u_bone[0];\n");
-			if (numBoneWeights > 1) {
-				WRITE(p, "  for (int i = 1; i < %i; i++) {\n", numBoneWeights);
-				WRITE(p, "    skinMatrix += w[i] * u_bone[i];\n");
-				WRITE(p, "  }\n");
-			}
-
-#else
-
 #ifdef USE_BONE_ARRAY
 			if (numBoneWeights == 1)
 				WRITE(p, "  mat4 skinMatrix = w1 * u_bone[0]");
@@ -578,8 +510,6 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 				if (numBoneWeights == 5 && i == 4) weightAttr = "w2";
 				WRITE(p, " + %s * u_bone%i", weightAttr, i);
 			}
-#endif
-
 #endif
 
 			WRITE(p, ";\n");
@@ -849,4 +779,5 @@ void GenerateVertexShader(const VShaderID &id, char *buffer, uint32_t *attrMask,
 	WRITE(p, "  gl_Position = outPos;\n");
 
 	WRITE(p, "}\n");
+	return true;
 }

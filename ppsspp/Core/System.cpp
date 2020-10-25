@@ -32,12 +32,13 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "base/timeutil.h"
-#include "base/NativeApp.h"
-#include "math/math_util.h"
-#include "thread/threadutil.h"
-#include "util/text/utf8.h"
+#include "Common/System/System.h"
+#include "Common/Math/math_util.h"
+#include "Common/Thread/ThreadUtil.h"
+#include "Common/Data/Encoding/Utf8.h"
 
+#include "Common/File/FileUtil.h"
+#include "Common/TimeUtil.h"
 #include "Common/GraphicsContext.h"
 #include "Core/MemFault.h"
 #include "Core/HDRemaster.h"
@@ -47,6 +48,7 @@
 #include "Core/Host.h"
 #include "Core/System.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HLE/Plugins.h"
 #include "Core/HLE/ReplaceTables.h"
 #include "Core/HLE/sceKernel.h"
 #include "Core/HLE/sceKernelMemory.h"
@@ -67,6 +69,7 @@
 
 #include "GPU/GPUState.h"
 #include "GPU/GPUInterface.h"
+#include "GPU/Debugger/RecordFormat.h"
 
 enum CPUThreadState {
 	CPU_THREAD_NOT_RUNNING,
@@ -107,9 +110,9 @@ static GPUBackend gpuBackend;
 static std::string gpuBackendDevice;
 
 // Ugly!
-static bool pspIsInited = false;
-static bool pspIsIniting = false;
-static bool pspIsQuitting = false;
+static volatile bool pspIsInited = false;
+static volatile bool pspIsIniting = false;
+static volatile bool pspIsQuitting = false;
 
 void ResetUIState() {
 	globalUIState = UISTATE_MENU;
@@ -184,6 +187,33 @@ bool CPU_HasPendingAction() {
 
 void CPU_Shutdown();
 
+bool DiscIDFromGEDumpPath(const std::string &path, FileLoader *fileLoader, std::string *id) {
+	using namespace GPURecord;
+
+	// For newer files, it's stored in the dump.
+	Header header;
+	if (fileLoader->ReadAt(0, sizeof(header), &header) == sizeof(header)) {
+		const bool magicMatch = memcmp(header.magic, HEADER_MAGIC, sizeof(header.magic)) == 0;
+		if (magicMatch && header.version <= VERSION && header.version >= 4) {
+			size_t gameIDLength = strnlen(header.gameID, sizeof(header.gameID));
+			if (gameIDLength != 0) {
+				*id = std::string(header.gameID, gameIDLength);
+				return true;
+			}
+		}
+	}
+
+	// Fall back to using the filename.
+	std::string filename = PFile::GetFilename(path);
+	// Could be more discerning, but hey..
+	if (filename.size() > 10 && filename[0] == 'U' && filename[9] == '_') {
+		*id = filename.substr(0, 9);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 bool CPU_Init() {
 	coreState = CORE_POWERUP;
 	currentMIPS = &mipsr4k;
@@ -215,34 +245,49 @@ bool CPU_Init() {
 	MIPSAnalyst::Reset();
 	Replacement_Init();
 
+	std::string discID;
+
 	switch (type) {
 	case IdentifiedFileType::PSP_ISO:
 	case IdentifiedFileType::PSP_ISO_NP:
 	case IdentifiedFileType::PSP_DISC_DIRECTORY:
 		InitMemoryForGameISO(loadedFile);
+		discID = g_paramSFO.GetDiscID();
 		break;
 	case IdentifiedFileType::PSP_PBP:
 	case IdentifiedFileType::PSP_PBP_DIRECTORY:
 		// This is normal for homebrew.
 		// ERROR_LOG(LOADER, "PBP directory resolution failed.");
 		InitMemoryForGamePBP(loadedFile);
+		discID = g_paramSFO.GetDiscID();
 		break;
 	case IdentifiedFileType::PSP_ELF:
 		if (PMemory::g_PSPModel != PSP_MODEL_FAT) {
 			INFO_LOG(LOADER, "ELF, using full PSP-2000 memory access");
 			PMemory::g_MemorySize = PMemory::RAM_DOUBLE_SIZE;
 		}
+		discID = g_paramSFO.GetDiscID();
+		break;
+	case IdentifiedFileType::PPSSPP_GE_DUMP:
+		// Try to grab the disc ID from the filename, since unfortunately, we don't store
+		// it in the GE dump. This should probably be fixed, but as long as you don't rename the dumps,
+		// this will do the trick.
+		if (!DiscIDFromGEDumpPath(filename, loadedFile, &discID)) {
+			// Failed? Let the param SFO autogen a fake disc ID.
+			discID = g_paramSFO.GetDiscID();
+		}
 		break;
 	default:
+		discID = g_paramSFO.GetDiscID();
 		break;
 	}
 
 	// Here we have read the PARAM.SFO, let's see if we need any compatibility overrides.
 	// Homebrew usually has an empty discID, and even if they do have a disc id, it's not
 	// likely to collide with any commercial ones.
-	std::string discID = g_paramSFO.GetDiscID();
 	coreParameter.compat.Load(discID);
 
+	HLEPlugins::Init();
 	if (!PMemory::Init()) {
 		// We're screwed.
 		return false;
@@ -308,6 +353,7 @@ void CPU_Shutdown() {
 	pspFileSystem.Shutdown();
 	mipsr4k.Shutdown();
 	PMemory::Shutdown();
+	HLEPlugins::Shutdown();
 
 	delete loadedFile;
 	loadedFile = nullptr;
@@ -549,6 +595,8 @@ std::string GetSysDirectory(PSPDirectories directoryType) {
 		return g_PConfig.memStickDirectory + "PSP/SYSTEM/CACHE/";
 	case DIRECTORY_TEXTURES:
 		return g_PConfig.memStickDirectory + "PSP/TEXTURES/";
+	case DIRECTORY_PLUGINS:
+		return g_PConfig.memStickDirectory + "PSP/PLUGINS/";
 	case DIRECTORY_APP_CACHE:
 		if (!g_PConfig.appCacheDirectory.empty()) {
 			return g_PConfig.appCacheDirectory;

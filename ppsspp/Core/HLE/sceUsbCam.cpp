@@ -18,11 +18,14 @@
 #include <algorithm>
 #include <mutex>
 
-#include "base/NativeApp.h"
 #include "ppsspp_config.h"
-#include "Common/ChunkFile.h"
+
+#include "Common/System/System.h"
+#include "Common/Serialize/Serializer.h"
+#include "Common/Serialize/SerializeFuncs.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/sceUsbCam.h"
+#include "Core/HLE/sceUsbMic.h"
 #include "Core/HW/Camera.h"
 #include "Core/MemMapHelpers.h"
 
@@ -61,7 +64,7 @@ void __UsbCamDoState(PointerWrap &p) {
 		return;
 	}
 
-	p.Do(*Pconfig);
+	Do(p, *Pconfig);
 	if (Pconfig->mode == Camera::Mode::Video) { // stillImage? TBD
 		Camera::stopCapture();
 		Camera::startCapture();
@@ -112,7 +115,7 @@ static int getCameraResolution(Camera::ConfigType type, int *width, int *height)
 
 
 static int sceUsbCamSetupMic(u32 paramAddr, u32 workareaAddr, int wasize) {
-	INFO_LOG(HLE, "UNIMPL sceUsbCamSetupMic");
+	INFO_LOG(HLE, "sceUsbCamSetupMic");
 	if (PMemory::IsValidRange(paramAddr, sizeof(PspUsbCamSetupMicParam))) {
 		PMemory::ReadStruct(paramAddr, &Pconfig->micParam);
 	}
@@ -131,13 +134,7 @@ static int sceUsbCamStopMic() {
 
 static int sceUsbCamReadMicBlocking(u32 bufAddr, u32 size) {
 	INFO_LOG(HLE, "UNIMPL sceUsbCamReadMicBlocking: size: %d", size);
-	for (unsigned int i = 0; i < size; i++) {
-		if (PMemory::IsValidAddress(bufAddr + i)) {
-			PMemory::Write_U8(i & 0xFF, bufAddr + i);
-		}
-	}
-	hleEatMicro(1000000 / Pconfig->micParam.frequency * (size / 2));
-	return size;
+	return __MicInputBlocking(size >> 1, Pconfig->micParam.frequency, bufAddr);
 }
 
 static int sceUsbCamSetupVideo(u32 paramAddr, u32 workareaAddr, int wasize) {
