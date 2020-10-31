@@ -279,8 +279,6 @@ void SysThreadBase::OnResumeInThread( bool isSuspended ) {}
 // Return value:
 //   TRUE if the thread was paused or closed; FALSE if the thread
 //   continued execution unimpeded.
-void wxRequestExit(void);
-extern bool requestShutdown;
 bool SysThreadBase::StateCheckInThread()
 {
 	switch( m_ExecMode.load() )
@@ -316,7 +314,8 @@ bool SysThreadBase::StateCheckInThread()
 			m_RunningLock.Acquire();
 			if( m_ExecMode != ExecMode_Closing )
 			{
-				OnResumeInThread( false );
+				OnResumeInThread( g_CDVDReset );
+				g_CDVDReset = false;
 				break;
 			}
 			m_sem_ChangingExecMode.Post();
@@ -329,10 +328,6 @@ bool SysThreadBase::StateCheckInThread()
 			OnSuspendInThread();
 			m_ExecMode = ExecMode_Closed;
 			m_RunningLock.Release();
-			if (requestShutdown) 
-			{
-				wxRequestExit();
-			}
 		}
 		// Fall through
 

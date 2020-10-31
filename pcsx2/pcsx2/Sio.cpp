@@ -17,16 +17,12 @@
 #include "IopCommon.h"
 
 #include "Common.h"
-typedef unsigned int uint32;
-void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "Sio.h"
 #include "sio_internal.h"
 
 #ifndef DISABLE_RECORDING
 #	include "Recording/InputRecording.h"
-#	include "Recording/PadData.h"
-#	include "Recording/RecordingInputManager.h"
 #endif
 
 _sio sio;
@@ -216,7 +212,6 @@ SIO_WRITE sioWriteController(u8 data)
 
 	default:
 		sio.buf[sio.bufCount] = PADpoll(data);
-
 #ifndef DISABLE_RECORDING
 		if (g_Conf->EmuOptions.EnableRecordingTools)
 		{
@@ -224,12 +219,6 @@ SIO_WRITE sioWriteController(u8 data)
 			if (sio.slot[sio.port] == 0)
 			{
 				g_InputRecording.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
-				if (g_InputRecording.IsInterruptFrame())
-				{
-					g_RecordingInput.ControllerInterrupt(data, sio.port, sio.bufCount, sio.buf);
-				}
-
-				PadData::LogPadData(sio.port, sio.bufCount, sio.buf);
 			}
 		}
 #endif
@@ -301,12 +290,9 @@ SIO_WRITE sioWriteMultitap(u8 data)
 		case 0x21:
 			{
 				sio.slot[sio.port] = data;
-#ifndef BUILTIN_PAD_PLUGIN
 				u32 ret = PADsetSlot(sio.port+1, data+1);
 				sio.buf[5] = ret? data : 0xFF;
-				sio.buf[6] = ret? 0x5A : 0x66;
-#endif
-			}
+				sio.buf[6] = ret? 0x5A : 0x66;			}
 			break;
 
 		case 0x22:

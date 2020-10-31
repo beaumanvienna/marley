@@ -20,11 +20,8 @@
 #include "Gif_Unit.h"
 #include "VUmicro.h"
 #include "newVif.h"
-typedef unsigned char uint8;
-typedef unsigned int uint32;
-void GSreadFIFO2(uint8* mem, uint32 size);
-u32 g_vif1Cycles = 0;
 
+u32 g_vif1Cycles = 0;
 void initVif1_Dma()
 {
     g_vif1Cycles = 0;
@@ -79,7 +76,7 @@ void vif1TransferToMemory()
 		GetMTGS().SendPointerPacket(GS_RINGTYPE_INIT_READ_FIFO2, size, pMem);
 		GetMTGS().WaitGS(false); // wait without reg sync
 	}
-	GSreadFIFO2((uint8*)pMem, size);
+	GSreadFIFO2((u64*)pMem, size);
 //	pMem += size;
 
 	//Some games such as Alex Ferguson's Player Manager 2001 reads less than GSLastDownloadSize by VIF then reads the remainder by FIFO
@@ -171,7 +168,7 @@ __fi void vif1SetupTransfer()
 	if (!vif1.done && ((dmacRegs.ctrl.STD == STD_VIF1) && (ptag->ID == TAG_REFS)))   // STD == VIF1
 	{
 		// there are still bugs, need to also check if gif->madr +16*qwc >= stadr, if not, stall
-		if ((vif1ch.madr + vif1ch.qwc * 16) >= dmacRegs.stadr.ADDR)
+		if ((vif1ch.madr + vif1ch.qwc * 16) > dmacRegs.stadr.ADDR)
 		{
 			//DevCon.Warning("VIF1 DMA Stall");
 			// stalled
@@ -338,7 +335,8 @@ __fi void vif1Interrupt()
 	if (vif1.irq && vif1.vifstalled.enabled && vif1.vifstalled.value == VIF_IRQ_STALL)
 	{
 		VIF_LOG("VIF IRQ Firing");
-		vif1Regs.stat.INT = true;
+		if (!vif1Regs.stat.ER1)
+			vif1Regs.stat.INT = true;
 		
 		//Yakuza watches VIF_STAT so lets do this here.
 		if (((vif1Regs.code >> 24) & 0x7f) != 0x7) {
@@ -357,6 +355,7 @@ __fi void vif1Interrupt()
 			vif1Regs.stat.FQC = std::min((u16)0x10, vif1ch.qwc);
 			if((vif1ch.qwc > 0 || !vif1.done) && !CHECK_VIF1STALLHACK)	
 			{
+				vif1Regs.stat.VPS = VPS_DECODING; //If there's more data you need to say it's decoding the next VIF CMD (Onimusha - Blade Warriors)
 				VIF_LOG("VIF1 Stalled");
 				return;
 			}
@@ -411,8 +410,8 @@ __fi void vif1Interrupt()
 		return; //Dont want to end if vif is stalled.
 	}
 #ifdef PCSX2_DEVBUILD
-	if (vif1ch.qwc > 0) Console.WriteLn("VIF1 Ending with %x QWC left", vif1ch.qwc);
-	if (vif1.cmd != 0) Console.WriteLn("vif1.cmd still set %x tag size %x", vif1.cmd, vif1.tag.size);
+	if (vif1ch.qwc > 0) DevCon.WriteLn("VIF1 Ending with %x QWC left", vif1ch.qwc);
+	if (vif1.cmd != 0) DevCon.WriteLn("vif1.cmd still set %x tag size %x", vif1.cmd, vif1.tag.size);
 #endif
 
 	if((vif1ch.chcr.DIR == VIF_NORMAL_TO_MEM_MODE) && vif1.GSLastDownloadSize <= 16)
@@ -441,13 +440,6 @@ void dmaVIF1()
 	        vif1ch.tadr, vif1ch.asr0, vif1ch.asr1);
 
 	g_vif1Cycles = 0;
-
-#ifdef PCSX2_DEVBUILD
-	if (dmacRegs.ctrl.STD == STD_VIF1)
-	{
-		//DevCon.WriteLn("VIF Stall Control Source = %x, Drain = %x", (psHu32(0xe000) >> 4) & 0x3, (psHu32(0xe000) >> 6) & 0x3);
-	}
-#endif
 
 	if (vif1ch.qwc > 0)   // Normal Mode
 	{

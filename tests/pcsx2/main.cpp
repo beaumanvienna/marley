@@ -15,8 +15,8 @@
 #include <SDL_syswm.h>
 using namespace std;
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 750
+int WINDOW_WIDTH = 1280;
+int WINDOW_HEIGHT = 750;
 
 int pcsx2_main(int argc, char* argv[]);
 
@@ -141,11 +141,13 @@ bool initJoy(void)
     SDL_Init(SDL_INIT_GAMECONTROLLER);
     string internal = gBaseDir;
     internal += "internaldb.txt";
+    string gamecontrollerdb = gBaseDir;
+    gamecontrollerdb += "gamecontrollerdb.txt";
     
     if ( SDL_GameControllerAddMappingsFromFile(internal.c_str()) == -1 )
     {
     }
-    if( SDL_GameControllerAddMappingsFromFile("../../resources/gamecontrollerdb.txt") == -1 )
+    if( SDL_GameControllerAddMappingsFromFile(gamecontrollerdb.c_str()) == -1 )
     {
         printf( "Warning: Unable to open gamecontrollerdb.txt\n");
     }
@@ -253,13 +255,13 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
 bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 {
     char guidStr[1024];
-    string line, append, filename;
+    string line, append, filename, gamecontrollerdb;
     
     mappingOK[0] = false;
     
     //set up guidStr
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
-    
+    gamecontrollerdb = gBaseDir + "gamecontrollerdb.txt";
     filename = gBaseDir + "internaldb.txt";
     if (findGuidInFile(filename.c_str(), guidStr,32,&line))
     {
@@ -270,7 +272,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
     {
 
         //check public db
-        mappingOK[0] = findGuidInFile("../../resources/gamecontrollerdb.txt", guidStr,32,&line);
+        mappingOK[0] = findGuidInFile(gamecontrollerdb.c_str(), guidStr,32,&line);
         
         if (mappingOK[0])
         {
@@ -284,7 +286,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
             {
                 
                 //check in public db
-                mappingOK[0] = findGuidInFile("../../resources/gamecontrollerdb.txt",guidStr,i,&line);
+                mappingOK[0] = findGuidInFile(gamecontrollerdb.c_str(),guidStr,i,&line);
                 
                 if (mappingOK[0])
                 {
@@ -568,67 +570,45 @@ int main(int argc, char* argv[])
     n = str.length(); 
     strcpy(arg1, str.c_str()); 
 
-	str = "--spu2=";
-	str += gBaseDir;
-	str += "PCSX2/libspu2x-2.0.0.so";
-	n = str.length(); 
-	strcpy(arg2, str.c_str()); 
-	
-	str = "--cdvd=";
-	str += gBaseDir;
-	str += "PCSX2/libCDVDnull.so";
-	n = str.length(); 
-	strcpy(arg3, str.c_str()); 
-
 	str = "--usb=";
 	str += gBaseDir;
-	str += "PCSX2/libUSBnull-0.7.0.so";
+	str += "PCSX2/libUSBnull-0.7.0.so";  //ok
 	n = str.length(); 
-	strcpy(arg4, str.c_str()); 
-
-	str = "--fw=";
-	str += gBaseDir;
-	str += "PCSX2/libFWnull-0.7.0.so";
-	n = str.length(); 
-	strcpy(arg5, str.c_str()); 
+	strcpy(arg2, str.c_str()); 
 
 	str = "--dev9=";
 	str += gBaseDir;
-	str += "PCSX2/libdev9null-0.5.0.so";
+	str += "PCSX2/libdev9null-0.5.0.so"; //ok
 	n = str.length(); 
-	strcpy(arg6, str.c_str()); 
+	strcpy(arg3, str.c_str()); 
     
     str = "--nogui";
     n = str.length(); 
-    strcpy(arg7, str.c_str()); 
-    
+    strcpy(arg4, str.c_str()); 
+
     str = "--fullboot";
     n = str.length(); 
-    strcpy(arg8, str.c_str()); 
+    strcpy(arg5, str.c_str()); 
 
     pcsx2_argv[0] = arg1;
     pcsx2_argv[1] = arg2;
     pcsx2_argv[2] = arg3;
     pcsx2_argv[3] = arg4;
     pcsx2_argv[4] = arg5;
-    pcsx2_argv[5] = arg6;
-    pcsx2_argv[6] = arg7;
-    pcsx2_argv[7] = arg8;
 
     if (argc > 1)
     {
         str = argv[1];
         n = str.length(); 
-        strcpy(arg9, str.c_str());
+        strcpy(arg6, str.c_str());
 
-        pcsx2_argv[8] = arg9;
-        pcsx2_argc = 9; // nogui, fullboot
+        pcsx2_argv[5] = arg6;
+        pcsx2_argc = 6;
     }
     else
     {
-        pcsx2_argc = 6; // only plugins, no other options
+        pcsx2_argc = 3; // only plugins, no other options
     }
-
 
     SDL_SysWMinfo sdlWindowInfo;
     SDL_VERSION(&sdlWindowInfo.version);
@@ -640,7 +620,11 @@ int main(int argc, char* argv[])
             XDisplay     = sdlWindowInfo.info.x11.display;
             
             pcsx2_main(pcsx2_argc,pcsx2_argv);
-            printf("jc exit test\n");    
+            printf("jc *******************************\n");
+            pcsx2_main(pcsx2_argc,pcsx2_argv);
+            printf("jc *******************************\n");
+            pcsx2_main(pcsx2_argc,pcsx2_argv);
+            printf("jc *******************************\n");
         }
     }
 

@@ -565,7 +565,7 @@ void App_LoadSaveInstallSettings( IniInterface& ini )
 
 	ini.EnumEntry( L"DocumentsFolderMode",	DocsFolderMode,	DocsFolderModeNames, (InstallationMode == InstallMode_Registered) ? DocsFolder_User : DocsFolder_Custom);
 
-	ini.Entry( L"CustomDocumentsFolder",	CustomDocumentsFolder,		(wxDirName)(wxFileName("/usr/games/Marley/PCSX2") ));
+	ini.Entry( L"CustomDocumentsFolder",	CustomDocumentsFolder,		PathDefs::AppRoot() );
 
 	ini.Entry( L"UseDefaultSettingsFolder", UseDefaultSettingsFolder,	true );
 	ini.Entry( L"SettingsFolder",			SettingsFolder,				PathDefs::GetSettings() );
@@ -573,7 +573,7 @@ void App_LoadSaveInstallSettings( IniInterface& ini )
 	// "Install_Dir" conforms to the NSIS standard install directory key name.
 	// Attempt to load plugins based on the Install Folder.
 
-	ini.Entry( L"Install_Dir",				InstallFolder,				(wxDirName)(wxFileName("/usr/games/Marley/PCSX2") ));
+	ini.Entry( L"Install_Dir",				InstallFolder,				(wxDirName)(wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath()) );
 	SetFullBaseDir( InstallFolder );
 
 	//ini.Entry( L"PluginsFolder",			PluginsFolder,				InstallFolder + PathDefs::Base::Plugins() );
@@ -670,6 +670,9 @@ void AppConfig::LoadSave( IniInterface& ini )
 	BaseFilenames	.LoadSave( ini );
 	GSWindow		.LoadSave( ini );
 	Framerate		.LoadSave( ini );
+#ifndef DISABLE_RECORDING
+	inputRecording.loadSave(ini);
+#endif
 	Templates		.LoadSave( ini );
 
 	ini.Flush();
@@ -708,7 +711,7 @@ void AppConfig::FolderOptions::ApplyDefaults()
 	if( UseDefaultMemoryCards )	MemoryCards	  = PathDefs::GetMemoryCards();
 	if( UseDefaultLogs )		Logs		  = PathDefs::GetLogs();
 	if( UseDefaultLangs )		Langs		  = PathDefs::GetLangs();
-	if( UseDefaultPluginsFolder)PluginsFolder = "/usr/games/Marley/PCSX2/";
+	if( UseDefaultPluginsFolder)PluginsFolder = PathDefs::GetPlugins();
 	if( UseDefaultCheats )      Cheats		  = PathDefs::GetCheats();
 	if( UseDefaultCheatsWS )    CheatsWS	  = PathDefs::GetCheatsWS();
 }
@@ -724,8 +727,9 @@ AppConfig::FolderOptions::FolderOptions()
 	, Cheats		( PathDefs::GetCheats() )
 	, CheatsWS      ( PathDefs::GetCheatsWS() )
 
-	, RunIso( PathDefs::GetDocuments() )			// raw default is always the Documents folder.
-	, RunELF( PathDefs::GetDocuments() )			// raw default is always the Documents folder.
+	, RunIso	( PathDefs::GetDocuments() )			// raw default is always the Documents folder.
+	, RunELF	( PathDefs::GetDocuments() )			// raw default is always the Documents folder.
+	, RunDisc	( PathDefs::GetDocuments().GetFilename() )
 {
 	bitset = 0xffffffff;
 }
@@ -765,6 +769,7 @@ void AppConfig::FolderOptions::LoadSave( IniInterface& ini )
 
 	IniEntryDirFile( RunIso, rel );
 	IniEntryDirFile( RunELF, rel );
+	IniEntryDirFile( RunDisc, rel );
 
 	if( ini.IsLoading() )
 	{
@@ -899,6 +904,20 @@ void AppConfig::GSWindowOptions::LoadSave( IniInterface& ini )
 
 	if( ini.IsLoading() ) SanityCheck();
 }
+
+#ifndef DISABLE_RECORDING
+AppConfig::InputRecordingOptions::InputRecordingOptions()
+	: VirtualPadPosition(wxDefaultPosition)
+{
+}
+
+void AppConfig::InputRecordingOptions::loadSave(IniInterface& ini)
+{
+	ScopedIniGroup path(ini, L"InputRecording");
+
+	IniEntry(VirtualPadPosition);
+}
+#endif
 
 // ----------------------------------------------------------------------------
 AppConfig::FramerateOptions::FramerateOptions()
@@ -1256,7 +1275,21 @@ static void LoadUiSettings()
 	g_Conf->LoadSave( loader );
 
 	if( !wxFile::Exists( g_Conf->CurrentIso ) )
+	{
 		g_Conf->CurrentIso.clear();
+	}
+
+#if defined(_WIN32)
+	if( !g_Conf->Folders.RunDisc.DirExists() )
+	{
+		g_Conf->Folders.RunDisc.Clear();
+	}
+#else
+	if (!g_Conf->Folders.RunDisc.Exists())
+	{
+		g_Conf->Folders.RunDisc.Clear();
+	}
+#endif
 
 	sApp.DispatchUiSettingsEvent( loader );
 }
@@ -1289,7 +1322,21 @@ void AppLoadSettings()
 static void SaveUiSettings()
 {	
 	if( !wxFile::Exists( g_Conf->CurrentIso ) )
+	{
 		g_Conf->CurrentIso.clear();
+	}
+
+#if defined(_WIN32)
+	if (!g_Conf->Folders.RunDisc.DirExists())
+	{
+		g_Conf->Folders.RunDisc.Clear();
+	}
+#else
+	if (!g_Conf->Folders.RunDisc.Exists())
+	{
+		g_Conf->Folders.RunDisc.Clear();
+	}
+#endif
 
 	sApp.GetRecentIsoManager().Add( g_Conf->CurrentIso );
 

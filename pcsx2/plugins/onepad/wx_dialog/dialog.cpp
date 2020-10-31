@@ -184,8 +184,8 @@ static std::string KeyName(int pad, int key, int keysym)
 }
 #endif
 
-// Construtor of Dialog
-Dialog::Dialog()
+// Construtor of DialogOP
+DialogOP::DialogOP()
     : wxDialog(NULL,                                  // Parent
                wxID_ANY,                              // ID
                _T("OnePad configuration"),            // Title
@@ -442,7 +442,7 @@ Dialog::Dialog()
         m_bt_gamepad[i][Analog]->Disable();
     }
 
-    Bind(wxEVT_BUTTON, &Dialog::OnButtonClicked, this);
+    Bind(wxEVT_BUTTON, &DialogOP::OnButtonClicked, this);
 
     for (int i = 0; i < GAMEPAD_NUMBER; ++i) {
         for (int j = 0; j < NB_IMG; ++j) {
@@ -451,7 +451,7 @@ Dialog::Dialog()
     }
 }
 
-void Dialog::InitDialog()
+void DialogOP::InitDialog()
 {
     GamePad::EnumerateGamePads(s_vgamePad); // activate gamepads
     LoadConfig();                           // Load configuration from the ini file
@@ -462,7 +462,7 @@ void Dialog::InitDialog()
 /*********** Events functions ***********/
 /****************************************/
 
-void Dialog::OnButtonClicked(wxCommandEvent &event)
+void DialogOP::OnButtonClicked(wxCommandEvent &event)
 {
     // Affichage d'un message à chaque clic sur le bouton
     wxButton *bt_tmp = (wxButton *)event.GetEventObject(); // get the button object
@@ -569,7 +569,7 @@ void Dialog::OnButtonClicked(wxCommandEvent &event)
 /*********** Methods functions **********/
 /****************************************/
 
-void Dialog::config_key(int pad, int key)
+void DialogOP::config_key(int pad, int key)
 {
     bool captured = false;
     u32 key_pressed = 0;
@@ -590,7 +590,7 @@ void Dialog::config_key(int pad, int key)
         KeyName(pad, key, m_simulatedKeys[pad][key]).c_str());
 }
 
-void Dialog::clear_key(int pad, int key)
+void DialogOP::clear_key(int pad, int key)
 {
     // Erase the keyboard binded key
     u32 keysim = m_simulatedKeys[pad][key];
@@ -602,7 +602,7 @@ void Dialog::clear_key(int pad, int key)
 
 
 // Set button values
-void Dialog::repopulate()
+void DialogOP::repopulate()
 {
     for (int gamepad_id = 0; gamepad_id < GAMEPAD_NUMBER; ++gamepad_id) {
         // keyboard/mouse key
@@ -633,7 +633,7 @@ void DisplayDialog()
         SaveConfig();
     }
 
-    Dialog dialog;
+    DialogOP dialog;
 
     dialog.InitDialog();
     dialog.ShowModal();

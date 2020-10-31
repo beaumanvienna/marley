@@ -21,6 +21,7 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "../include/marley.h"
+#ifdef DOLPHIN
 #include "../include/gui.h"
 #include "../include/controller.h"
 #include "../include/statemachine.h"
@@ -136,3 +137,4 @@ void shutdownWii(void)
     UICommon::Shutdown();
 }
 
+#endif

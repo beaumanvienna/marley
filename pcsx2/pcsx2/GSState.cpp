@@ -207,21 +207,7 @@ void vSyncDebugStuff( uint frame )
 #ifdef OLD_TESTBUILD_STUFF
 	if( g_TestRun.enabled && g_TestRun.frame > 0 ) {
 		if( frame > g_TestRun.frame ) {
-			// take a snapshot
-			if( g_TestRun.pimagename != NULL && GSmakeSnapshot2 != NULL ) {
-				if( g_TestRun.snapdone ) {
-					g_TestRun.curimage++;
-					g_TestRun.snapdone = 0;
-					g_TestRun.frame += 20;
-					if( g_TestRun.curimage >= g_TestRun.numimages ) {
-						// exit
-						g_EmuThread->Cancel();
-					}
-				}
-				else {
-					// query for the image
-					GSmakeSnapshot2(g_TestRun.pimagename, &g_TestRun.snapdone, g_TestRun.jpgcapture);
-				}
+
 			}
 			else {
 				// exit

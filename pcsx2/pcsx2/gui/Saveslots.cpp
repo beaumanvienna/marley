@@ -16,8 +16,6 @@
 #include "PrecompiledHeader.h"
 #include "App.h"
 #include "AppSaveStates.h"
-typedef unsigned int uint32;
-void GSosdLog(const char *utf8, uint32 color);
 #include "ConsoleLogger.h"
 #include "MainFrame.h"
 
@@ -32,8 +30,6 @@ void GSosdLog(const char *utf8, uint32 color);
 // --------------------------------------------------------------------------------------
 
 static int StatesC = 0;
-
-void GSchangeSaveState(s32 state, const char *filename) {}
 
 #ifdef USE_NEW_SAVESLOTS_UI
 std::array<Saveslot,StateSlotsCount> saveslot_cache = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -79,7 +75,6 @@ void States_FreezeCurrentSlot()
 	}
 	Sstates_updateLoadBackupMenuItem(true);
 
-	GSchangeSaveState(StatesC, SaveStateBase::GetFilename(StatesC).ToUTF8());
 	StateCopy_SaveToSlot(StatesC);
 
 #ifdef USE_NEW_SAVESLOTS_UI
@@ -103,7 +98,6 @@ void _States_DefrostCurrentSlot(bool isFromBackup)
 		return;
 	}
 
-	GSchangeSaveState(StatesC, SaveStateBase::GetFilename(StatesC).ToUTF8());
 	StateCopy_LoadFromSlot(StatesC, isFromBackup);
 
 	GetSysExecutorThread().PostIdleEvent(SysExecEvent_ClearSavingLoadingFlag());
@@ -138,9 +132,6 @@ void Sstates_updateLoadBackupMenuItem(bool isBeforeSave)
 static void OnSlotChanged()
 {
 	OSDlog(Color_StrongGreen, true, " > Selected savestate slot %d", StatesC);
-
-	if (GSchangeSaveState != NULL)
-		GSchangeSaveState(StatesC, SaveStateBase::GetFilename(StatesC).utf8_str());
 
 	Sstates_updateLoadBackupMenuItem(false);
 }

@@ -594,12 +594,7 @@ void initPCSX2(void)
 	}
 	
 	vector<string> plugins = {
-		"libCDVDnull.so",
-		"libcdvdGigaherz.so",
 		"libUSBnull-0.7.0.so",
-		"libspu2x-2.0.0.so",
-		"libFWnull-0.7.0.so",
-		"libdev9ghzdrk-0.4.so",
 		"libdev9null-0.5.0.so"
 	};
 	

@@ -121,7 +121,9 @@ bool init()
     }
     
     checkConf();
+#ifdef DOLPHIN
     initWii();
+#endif
     initEMU();
 
     return ok;
@@ -317,7 +319,9 @@ int main( int argc, char* argv[] )
         while( !gQuit )
         {
             SDL_Delay(33); // 30 fps
+#ifdef DOLPHIN
             mainLoopWii();
+#endif
             //Handle events on queue
             while( SDL_PollEvent( &event ) != 0 )
             {
@@ -586,8 +590,9 @@ int main( int argc, char* argv[] )
 
     //Free resources, shut down SDL
     closeAll();
+#ifdef DOLPHIN
     shutdownWii();
-
+#endif
     return 0;
 }
 

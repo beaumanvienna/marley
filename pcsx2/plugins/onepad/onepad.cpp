@@ -84,20 +84,20 @@ static void InitLibraryName()
 }
 
 EXPORT_C_(u32)
-PS2EgetLibType()
+PS2EgetLibTypeOP()
 {
     return PS2E_LT_PAD;
 }
 
 EXPORT_C_(const char *)
-PS2EgetLibName()
+PS2EgetLibNameOP()
 {
     InitLibraryName();
     return libraryName;
 }
 
 EXPORT_C_(u32)
-PS2EgetLibVersion2(u32 type)
+PS2EgetLibVersion2OP(u32 type)
 {
     return (version << 16) | (revision << 8) | build;
 }

@@ -6,10 +6,11 @@ LINKER_OBJECTS = ../../pcsx2/build/pcsx2/libPCSX2.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/x86emitter/libx86emitter.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
+LINKER_OBJECTS += ../../pcsx2/build/3rdparty/fmt/fmt/libfmt.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/onepad/libonepad.a
 LINKER_OBJECTS += ../../pcsx2/build/plugins/GSdx/libGSdx.a
 
-PCSX2_USE_GTK3 = $(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so")
+PCSX2_USE_GTK3 = $(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so" 2>/dev/null)
 ifeq ($(PCSX2_USE_GTK3),)
 LINKER_OBJECTS 	+= -lwx_baseu-3.0
 LINKER_OBJECTS 	+= -lwx_gtk2u_core-3.0
@@ -18,9 +19,9 @@ LINKER_OBJECTS 	+= -lgdk-x11-2.0
 LINKER_OBJECTS 	+= -lgtk-x11-2.0
 GTK_VERSION      = GTK2
 else
-LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_baseu-3.0*.so"      | xargs basename | sed 's/lib//' | sed 's/\.so//')
-LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so" | xargs basename | sed 's/lib//' | sed 's/\.so//')
-LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_adv-3.0*.so"  | xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_baseu-3.0*.so"      2>/dev/null| xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_core-3.0*.so" 2>/dev/null| xargs basename | sed 's/lib//' | sed 's/\.so//')
+LINKER_OBJECTS 	+= -l$(shell find /usr/ -name "*wx_gtk3u_adv-3.0*.so"  2>/dev/null| xargs basename | sed 's/lib//' | sed 's/\.so//')
 LINKER_OBJECTS 	+= -lgtk-3
 LINKER_OBJECTS 	+= -lgdk-3
 GTK_VERSION      = GTK3
@@ -57,6 +58,8 @@ LINKER_OBJECTS += -lX11
 LINKER_OBJECTS += -lX11-xcb
 LINKER_OBJECTS += -lxcb
 LINKER_OBJECTS += -lEGL
+LINKER_OBJECTS += -lSoundTouch
+LINKER_OBJECTS += -lasound
 
 all: PCSX2
 
