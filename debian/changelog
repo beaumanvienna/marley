@@ -1,3 +1,13 @@
+marley (0.1.7) focal; urgency=medium
+
+  * PCSX2 rebased
+  * PPSSPP rebased
+  * This is a release version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Sat, 31 Oct 2020 09:35:00 -0800
+
 marley (0.1.6.2) bionic; urgency=medium
 
   * Bios file management for Sega Saturn added
