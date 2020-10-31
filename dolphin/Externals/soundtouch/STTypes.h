@@ -61,7 +61,7 @@ typedef unsigned long   ulong;
 #endif
 
 
-namespace soundtouch
+namespace Dsoundtouch
 {
     /// Activate these undef's to overrule the possible sampletype 
     /// setting inherited from some other header file:

@@ -47,7 +47,7 @@
 #include "AAFilter.h"
 #include "FIRFilter.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 #define PI        3.141592655357989
 #define TWOPI    (2 * PI)

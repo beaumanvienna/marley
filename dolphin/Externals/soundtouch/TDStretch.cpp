@@ -51,7 +51,7 @@
 #include "cpu_detect.h"
 #include "TDStretch.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 
@@ -744,7 +744,7 @@ TDStretch * TDStretch::newInstance()
 {
     uint uExtensions;
 
-    uExtensions = detectCPUextensions();
+    uExtensions = DdetectCPUextensions();
 
     // Check if MMX/SSE instruction set extensions supported by CPU
 

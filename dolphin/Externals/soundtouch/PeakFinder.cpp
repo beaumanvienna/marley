@@ -44,7 +44,7 @@
 
 #include "PeakFinder.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 

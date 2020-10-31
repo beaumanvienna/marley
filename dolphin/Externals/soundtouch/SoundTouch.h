@@ -75,7 +75,7 @@
 #include "FIFOSamplePipe.h"
 #include "STTypes.h"
 
-namespace soundtouch
+namespace Dsoundtouch
 {
 
 /// Soundtouch library version string

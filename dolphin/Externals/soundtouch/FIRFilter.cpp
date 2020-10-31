@@ -46,7 +46,7 @@
 #include "FIRFilter.h"
 #include "cpu_detect.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 /*****************************************************************************
  *
@@ -299,7 +299,7 @@ FIRFilter * FIRFilter::newInstance()
 {
     uint uExtensions;
 
-    uExtensions = detectCPUextensions();
+    uExtensions = DdetectCPUextensions();
 
     // Check if MMX/SSE instruction set extensions supported by CPU
 

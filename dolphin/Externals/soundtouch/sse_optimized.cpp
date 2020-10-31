@@ -54,7 +54,7 @@
 #include "cpu_detect.h"
 #include "STTypes.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 #ifdef SOUNDTOUCH_ALLOW_SSE
 

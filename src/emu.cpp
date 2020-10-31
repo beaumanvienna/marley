@@ -148,10 +148,12 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
                     }
                     else if (file_size == PS2_BIOS_SIZE)
                     {
+#ifdef PCSX2
                         if (IsBIOS_PCSX2(str_with_path.c_str()) && tmpList_ps2)
                         {
                             tmpList_ps2[0].push_back(str_with_path);
                         }
+#endif
                     }
                 }
             }

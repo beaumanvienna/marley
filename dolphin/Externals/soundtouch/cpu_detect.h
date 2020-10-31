@@ -40,8 +40,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _CPU_DETECT_H_
-#define _CPU_DETECT_H_
+#ifndef _DCPU_DETECT_H_
+#define _DCPU_DETECT_H_
 
 #include "STTypes.h"
 
@@ -54,9 +54,9 @@
 /// Checks which instruction set extensions are supported by the CPU.
 ///
 /// \return A bitmask of supported extensions, see SUPPORT_... defines.
-uint detectCPUextensions(void);
+uint DdetectCPUextensions(void);
 
 /// Disables given set of instruction extensions. See SUPPORT_... defines.
-void disableExtensions(uint wDisableMask);
+void DdisableExtensions(uint wDisableMask);
 
 #endif  // _CPU_DETECT_H_

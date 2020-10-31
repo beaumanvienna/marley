@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include "InterpolateLinear.h"
 
-using namespace soundtouch;
+using namespace Dsoundtouch;
 
 //////////////////////////////////////////////////////////////////////////////
 //

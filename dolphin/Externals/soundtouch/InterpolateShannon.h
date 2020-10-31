@@ -44,7 +44,7 @@
 #include "RateTransposer.h"
 #include "STTypes.h"
 
-namespace soundtouch
+namespace Dsoundtouch
 {
 
 class InterpolateShannon : public TransposerBase

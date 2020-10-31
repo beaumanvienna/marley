@@ -33,7 +33,7 @@ using namespace std;
 #define MARLEY_H
 
     #define MEDNAFEN    1
-//    #define DOLPHIN     1
+    #define DOLPHIN     1
     #define MUPEN64PLUS 1
     #define PPSSPP      1
     #define PCSX2       1

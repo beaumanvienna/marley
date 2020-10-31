@@ -39,7 +39,7 @@
 #include "RateTransposer.h"
 #include "STTypes.h"
 
-namespace soundtouch
+namespace Dsoundtouch
 {
 
 class InterpolateCubic : public TransposerBase

@@ -39,7 +39,7 @@
 #include "RateTransposer.h"
 #include "STTypes.h"
 
-namespace soundtouch
+namespace Dsoundtouch
 {
 
 /// Linear transposer class that uses integer arithmetics

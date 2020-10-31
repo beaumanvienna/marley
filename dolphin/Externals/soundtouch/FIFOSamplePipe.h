@@ -52,7 +52,7 @@
 #include <stdlib.h>
 #include "STTypes.h"
 
-namespace soundtouch
+namespace Dsoundtouch
 {
 
 /// Abstract base class for FIFO (first-in-first-out) sample processing classes.
