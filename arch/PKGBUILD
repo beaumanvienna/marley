@@ -2,7 +2,7 @@
 # Maintainer: beaumanvienna (JC) <beaumanvienna@gmail.com>
 
 pkgname=marley-git
-pkgver=0.1.5
+pkgver=0.1.7
 pkgrel=1
 pkgdesc='A bundle of console emulators for Linux (git)'
 arch=(x86_64)

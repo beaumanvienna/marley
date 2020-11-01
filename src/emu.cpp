@@ -605,15 +605,15 @@ void initPCSX2(void)
 		string plugin = gBaseDir;
 		plugin += "PCSX2/";
 		plugin += plugins[i].c_str();
-		if (( access( plugin.c_str(), F_OK ) == -1 ))
+		//if (( access( plugin.c_str(), F_OK ) == -1 )) //file does not exist
+        if (true) // always overwrite to account for updates
 		{
-			//file does not exist
 			string uri = "resource:///plugins/pcsx2/";
 			uri += plugins[i].c_str();
 			GError *error;
 			GFile* out_file = g_file_new_for_path(plugin.c_str());
 			GFile* src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+			g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
 		}
 	}	
 }
