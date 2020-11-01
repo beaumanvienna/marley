@@ -5,6 +5,7 @@
 
 override_dh_auto_configure:
 	echo **************** make -j$(shell cat /proc/cpuinfo | grep -c vendor_id) ****************
+	export DEB_BUILD_MAINT_OPTIONS=
 	aclocal 
 	autoconf
 	automake --add-missing --foreign
