@@ -44,13 +44,13 @@ void (*DEV9irq)(int);
 
 __aligned16 s8 dev9regs[0x10000];
 
-std::string s_strIniPath = "inis";
-std::string s_strLogPath = "logs";
+std::string s_strIniPathDEV = "inis";
+std::string s_strLogPathDEV = "logs";
 
 EXPORT_C_(void)
 DEV9configure()
 {
-    const std::string ini_path = s_strIniPath + "/Dev9null.ini";
+    const std::string ini_path = s_strIniPathDEV + "/Dev9null.ini";
     LoadConfig(ini_path);
     ConfigureLogging();
     SaveConfig(ini_path);
@@ -58,7 +58,7 @@ DEV9configure()
 
 void LogInit()
 {
-    const std::string LogFile(s_strLogPath + "/dev9null.log");
+    const std::string LogFile(s_strLogPathDEV + "/dev9null.log");
     g_plugin_log.Open(LogFile);
 }
 
@@ -66,7 +66,7 @@ EXPORT_C_(void)
 DEV9setLogDir(const char *dir)
 {
     // Get the path to the log directory.
-    s_strLogPath = (dir == NULL) ? "logs" : dir;
+    s_strLogPathDEV = (dir == NULL) ? "logs" : dir;
 
     // Reload the log file after updated the path
     g_plugin_log.Close();
@@ -74,20 +74,20 @@ DEV9setLogDir(const char *dir)
 }
 
 EXPORT_C_(u32)
-PS2EgetLibType()
+PS2EgetLibTypeDEV()
 {
     return PS2E_LT_DEV9;
 }
 
 EXPORT_C_(const char *)
-PS2EgetLibName()
+PS2EgetLibNameDEV()
 {
     snprintf(libraryName, 255, "DEV9null Driver %lld%s", SVN_REV, SVN_MODS ? "m" : "");
     return libraryName;
 }
 
 EXPORT_C_(u32)
-PS2EgetLibVersion2(u32 type)
+PS2EgetLibVersion2DEV(u32 type)
 {
     return (version << 16) | (revision << 8) | build;
 }
@@ -95,7 +95,7 @@ PS2EgetLibVersion2(u32 type)
 EXPORT_C_(s32)
 DEV9init()
 {
-    LoadConfig(s_strIniPath + "/Dev9null.ini");
+    LoadConfig(s_strIniPathDEV + "/Dev9null.ini");
     LogInit();
     g_plugin_log.WriteLn("dev9null plugin version %d,%d", revision, build);
     g_plugin_log.WriteLn("Initializing dev9null");
@@ -301,7 +301,7 @@ EXPORT_C_(void)
 DEV9setSettingsDir(const char *dir)
 {
     // Grab the ini directory.
-    s_strIniPath = (dir == NULL) ? "inis" : dir;
+    s_strIniPathDEV = (dir == NULL) ? "inis" : dir;
 }
 
 // extended funcs
@@ -330,3 +330,22 @@ DEV9freeze(int mode, freezeData *data)
     }
     return 0;
 }
+
+
+EXPORT_C_(void)
+DEV9about()
+{
+}
+
+EXPORT_C_(void)
+DEV9keyEvent(keyEvent* ev)
+{
+}
+
+EXPORT_C_(void)
+DEV9async(u32 cycles)
+{
+}
+
+
+

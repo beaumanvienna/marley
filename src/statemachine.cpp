@@ -322,39 +322,25 @@ void launch_emulator(void)
 				str = "pcsx2";
 				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
-
-				str = "--usb=";
-				str += gBaseDir;
-				str += "PCSX2/libUSBnull-0.7.0.so";
-				n = str.length(); 
-				strcpy(arg2, str.c_str()); 
-
-				str = "--dev9=";
-				str += gBaseDir;
-				str += "PCSX2/libdev9null-0.5.0.so";
-				n = str.length(); 
-				strcpy(arg3, str.c_str()); 
 				
 				str = "--fullboot";
 				n = str.length(); 
-				strcpy(arg4, str.c_str()); 
+				strcpy(arg2, str.c_str()); 
 
 				str = gGame[gCurrentGame];
 				n = str.length(); 
-				strcpy(arg5, str.c_str());
+				strcpy(arg3, str.c_str());
 				
 				str = "--nogui";
 				n = str.length(); 
-				strcpy(arg6, str.c_str());
+				strcpy(arg4, str.c_str());
 
 				argv[0] = arg1;
 				argv[1] = arg2;
 				argv[2] = arg3;
 				argv[3] = arg4;
-				argv[4] = arg5;
-                argv[5] = arg6;
 
-				argc = 6;
+				argc = 4;
 				
 				freeTextures();
 				SDL_DestroyRenderer( gRenderer );

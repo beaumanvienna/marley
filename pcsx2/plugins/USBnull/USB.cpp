@@ -17,10 +17,11 @@
 #include <string>
 #include "svnrev.h"
 #include "USB.h"
+#define USBNULL
 #include "null/config.inl"
 
-std::string s_strIniPath = "inis";
-std::string s_strLogPath = "logs";
+std::string s_strIniPathUSB = "inis";
+std::string s_strLogPathUSB = "logs";
 
 const unsigned char version = PS2E_USB_VERSION;
 const unsigned char revision = 0;
@@ -35,15 +36,15 @@ s8 *usbregs, *ram;
 EXPORT_C_(void)
 USBconfigure()
 {
-    const std::string ini_path = s_strIniPath + "/USBnull.ini";
+    const std::string ini_path = s_strIniPathUSB + "/USBnull.ini";
     LoadConfig(ini_path);
     ConfigureLogging();
     SaveConfig(ini_path);
 }
 
-void LogInit()
+void ULogInit()
 {
-    const std::string LogFile(s_strLogPath + "/USBnull.log");
+    const std::string LogFile(s_strLogPathUSB + "/USBnull.log");
     g_plugin_log.Open(LogFile);
 }
 
@@ -51,28 +52,28 @@ EXPORT_C_(void)
 USBsetLogDir(const char *dir)
 {
     // Get the path to the log directory.
-    s_strLogPath = (dir == NULL) ? "logs" : dir;
+    s_strLogPathUSB = (dir == NULL) ? "logs" : dir;
 
     // Reload the log file after updated the path
     g_plugin_log.Close();
-    LogInit();
+    ULogInit();
 }
 
 EXPORT_C_(u32)
-PS2EgetLibType()
+PS2EgetLibTypeUSB()
 {
     return PS2E_LT_USB;
 }
 
 EXPORT_C_(const char *)
-PS2EgetLibName()
+PS2EgetLibNameUSB()
 {
     snprintf(libraryName, 255, "USBnull Driver %lld%s", SVN_REV, SVN_MODS ? "m" : "");
     return libraryName;
 }
 
 EXPORT_C_(u32)
-PS2EgetLibVersion2(u32 type)
+PS2EgetLibVersion2USB(u32 type)
 {
     return (version << 16) | (revision << 8) | build;
 }
@@ -80,8 +81,8 @@ PS2EgetLibVersion2(u32 type)
 EXPORT_C_(s32)
 USBinit()
 {
-    LoadConfig(s_strIniPath + "/USBnull.ini");
-    LogInit();
+    LoadConfig(s_strIniPathUSB + "/USBnull.ini");
+    ULogInit();
     g_plugin_log.WriteLn("USBnull plugin version %d,%d", revision, build);
     g_plugin_log.WriteLn("Initializing USBnull");
 
@@ -259,7 +260,7 @@ EXPORT_C_(void)
 USBsetSettingsDir(const char *dir)
 {
     // Get the path to the ini directory.
-    s_strIniPath = (dir == NULL) ? "inis" : dir;
+    s_strIniPathUSB = (dir == NULL) ? "inis" : dir;
 }
 
 // extended funcs
@@ -293,4 +294,16 @@ USBtest()
 {
     // 0 if the plugin works, non-0 if it doesn't.
     return 0;
+}
+EXPORT_C_(void)
+USBkeyEvent(keyEvent* ev)
+{
+}
+EXPORT_C_(void)
+USBasync(u32 cycles)
+{
+}
+EXPORT_C_(void)
+USBabout()
+{
 }

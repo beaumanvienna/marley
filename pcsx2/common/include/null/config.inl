@@ -21,8 +21,11 @@
 #include <wx/wx.h>
 #endif
 #include <string>
-
+#ifndef USBNULL
 PluginLog g_plugin_log;
+#else
+extern PluginLog g_plugin_log;
+#endif
 
 #if defined(_WIN32)
 
@@ -66,7 +69,7 @@ void ConfigureLogging()
 }
 
 #elif defined(__unix__) || defined(__APPLE__)
-
+#ifndef USBNULL
 void ConfigureLogging()
 {
     auto *dialog = new wxDialog;
@@ -93,7 +96,9 @@ void ConfigureLogging()
     }
     wxDELETE(dialog);
 }
-
+#else
+void ConfigureLogging();
+#endif
 #else
 
 void ConfigureLogging()
@@ -101,7 +106,7 @@ void ConfigureLogging()
 }
 
 #endif
-
+#ifndef USBNULL
 void SaveConfig(const std::string &pathname)
 {
     PluginConf ini;
@@ -128,3 +133,7 @@ void LoadConfig(const std::string &pathname)
     g_plugin_log.WriteToFile = ini.ReadInt("write_to_file", 0) != 0;
     ini.Close();
 }
+#else
+void SaveConfig(const std::string &pathname);
+void LoadConfig(const std::string &pathname);
+#endif

@@ -76,31 +76,7 @@ resources/dolphin_data_sys.zip:
 	
 #pcsx2
 
-pcsx2/build/pcsx2/libPCSX2.a: pcsx2 resources/pcsx2_res.cpp
-
-resources/pcsx2/libUSBnull-0.7.0.so: 	pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.so
-resources/pcsx2/libdev9null-0.5.0.so: 	pcsx2/build/plugins/dev9null/libdev9null-0.5.0.so
-
-#generate pcsx2 built-in resources
-
-PCSX2_RESOURCES = resources/pcsx2/libUSBnull-0.7.0.so
-PCSX2_RESOURCES += resources/pcsx2/libdev9null-0.5.0.so
-
-$(PCSX2_RESOURCES):
-	cp -f $< $@
-
-resources/pcsx2_res.cpp: resources/pcsx2_res.xml resources/pcsx2_res.h $(PCSX2_RESOURCES)
-	glib-compile-resources resources/pcsx2_res.xml --target=resources/pcsx2_res.cpp --sourcedir=resources/ --generate-source
-
-#the header needs to be generated upfront
-#trick glib-compile-resources with touch
-BUILT_SOURCES += resources/pcsx2_res.h
-resources/pcsx2_res.h: resources/pcsx2_res.xml
-	rm -rf resources/pcsx2/
-	mkdir resources/pcsx2/
-	touch $(PCSX2_RESOURCES)
-	glib-compile-resources resources/pcsx2_res.xml --target=resources/pcsx2_res.h --sourcedir=resources/ --generate-header
-	rm -f resources/pcsx2/*.so
+pcsx2/build/pcsx2/libPCSX2.a: pcsx2
 
 pcsx2:
 	$(info   ++++++++++++++++ pcsx2 ++++++++++++++++)
@@ -255,6 +231,8 @@ marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
 marley_LDADD 	+= pcsx2/build/3rdparty/fmt/fmt/libfmt.a
 marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
+marley_LDADD 	+= pcsx2/build/plugins/dev9null/libdev9null-0.5.0.a
+marley_LDADD 	+= pcsx2/build/plugins/USBnull/libUSBnull-0.7.0.a
 
 
 #dolphin, dynamic
