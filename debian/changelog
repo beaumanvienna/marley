@@ -1,3 +1,12 @@
+marley (0.1.8) focal; urgency=medium
+
+  * PCSX2 plugins removed
+  * This is a release version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Tue, 03 Nov 2020 07:35:00 -0800
+
 marley (0.1.7.1) focal; urgency=medium
 
   * PCSX2 rebased
