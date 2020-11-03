@@ -228,7 +228,11 @@ marley_LDADD 	+= pcsx2/build/pcsx2/libPCSX2.a
 marley_LDADD 	+= pcsx2/build/common/src/x86emitter/libx86emitter.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities.a
 marley_LDADD 	+= pcsx2/build/common/src/Utilities/libUtilities_NO_TLS.a
+if DEBUG
+marley_LDADD 	+= pcsx2/build/3rdparty/fmt/fmt/libfmtd.a
+else
 marley_LDADD 	+= pcsx2/build/3rdparty/fmt/fmt/libfmt.a
+endif
 marley_LDADD 	+= pcsx2/build/plugins/onepad/libonepad.a
 marley_LDADD 	+= pcsx2/build/plugins/GSdx/libGSdx.a
 marley_LDADD 	+= pcsx2/build/plugins/dev9null/libdev9null-0.5.0.a
