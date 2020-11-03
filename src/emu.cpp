@@ -42,7 +42,6 @@
 #include "../include/controller.h"
 
 #include <gtk/gtk.h>
-#include "../resources/pcsx2_res.h"
 
 using namespace std;
 typedef unsigned long long int checksum64;
