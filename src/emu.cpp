@@ -36,6 +36,7 @@
 #include <iterator>
 #include <algorithm>
 
+#include "../include/marley.h"
 #include "../include/emu.h"
 #include "../include/gui.h"
 #include "../include/statemachine.h"
