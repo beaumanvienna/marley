@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        pcsx2_argc = 1; // only plugins, no other options
+        pcsx2_argc = 1; 
     }
 
     SDL_SysWMinfo sdlWindowInfo;
