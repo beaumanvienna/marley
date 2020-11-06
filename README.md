@@ -16,7 +16,7 @@ https://github.com/beaumanvienna/marley
 
 ## User Manual
 
-Marley is a bundle of console emulators for Linux.
+Marley is a bundle of console emulators for Linux x86_64.
 The project is comprised of Mednafen, Dolphin, 
 Mupen64plus, PPSSPP, and PCSX2.
 Marley's launcher interface is designed to be used with 
