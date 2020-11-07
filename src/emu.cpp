@@ -61,6 +61,7 @@ typedef unsigned long long int checksum64;
 
 
 bool isDirectory(const char *filename);
+void render_splash(string onScreenDisplay);
 
 bool gPS1_firmware;
 bool gPS2_firmware;
@@ -189,6 +190,7 @@ void checkFirmwarePSX(void)
         jpF_ps1.close();
         if ( calcChecksum(jp_ps1.c_str()) == SCPH5500_BIN)
         {
+            render_splash("PS1 bios found with signature 'Japan SCPH-5500/v3.0J'");
             printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", jp_ps1.c_str());
             found_jp_ps1 = true;
         }
@@ -199,6 +201,7 @@ void checkFirmwarePSX(void)
         naF_ps1.close();
         if ( calcChecksum(na_ps1.c_str()) == SCPH5501_BIN)
         {
+            render_splash("PS1 bios found with signature 'North America SCPH-5501/v3.0A'");
             printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", na_ps1.c_str());
             found_na_ps1 = true;
         }
@@ -209,6 +212,7 @@ void checkFirmwarePSX(void)
         euF_ps1.close();
         if ( calcChecksum(eu_ps1.c_str()) == SCPH5502_BIN)
         {
+            render_splash("PS1 bios found with signature 'Europe SCPH-5502/v3.0E'");
             printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", eu_ps1.c_str());
             found_eu_ps1 = true;
         }
@@ -233,6 +237,7 @@ void checkFirmwarePSX(void)
         jpF_ps2.close();
         if ( calcChecksum(jp_ps2.c_str()) == SCPH77000_BIN)
         {
+            render_splash("PS2 bios found with signature 'Japan SCPH-77000'");
             printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", jp_ps2.c_str());
             found_jp_ps2 = true;
         }
@@ -243,6 +248,7 @@ void checkFirmwarePSX(void)
         naF_ps2.close();
         if ( calcChecksum(na_ps2.c_str()) == SCPH77001_BIN)
         {
+            render_splash("PS2 bios found with signature 'North America SCPH-77001'");
             printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", na_ps2.c_str());
             found_na_ps2 = true;
         }
@@ -253,6 +259,7 @@ void checkFirmwarePSX(void)
         euF_ps2.close();
         if ( calcChecksum(eu_ps2.c_str()) == SCPH77002_BIN)
         {
+            render_splash("PS2 bios found with signature 'Europe SCPH-77002'");
             printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", eu_ps2.c_str());
             found_eu_ps2 = true;
         }
@@ -281,16 +288,19 @@ void checkFirmwarePSX(void)
                 
                 if (( calcChecksum(str.c_str()) == SCPH5500_BIN) && !found_jp_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'Japan SCPH-5500/v3.0J'");
                     printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", str.c_str());
                     found_jp_ps1 = copyFile(str.c_str(),jp_ps1.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH5501_BIN) && !found_na_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'North America SCPH-5501/v3.0A'");
                     printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", str.c_str());
                     found_na_ps1 = copyFile(str.c_str(),na_ps1.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH5502_BIN) && !found_eu_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'Europe SCPH-5502/v3.0E'");
                     printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", str.c_str());
                     found_eu_ps1 = copyFile(str.c_str(),eu_ps1.c_str());
                 }
@@ -301,16 +311,19 @@ void checkFirmwarePSX(void)
                 tempBios_ps2_bios = str;
                 if (( calcChecksum(str.c_str()) == SCPH77000_BIN) && !found_jp_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'Japan SCPH-77000'");
                     printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", str.c_str());
                     found_jp_ps2 = copyFile(str.c_str(),jp_ps2.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH77001_BIN) && !found_na_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'North America SCPH-77001'");
                     printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", str.c_str());
                     found_na_ps2 = copyFile(str.c_str(),na_ps2.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH77002_BIN) && !found_eu_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'Europe SCPH-77002'");
                     printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", str.c_str());
                     found_eu_ps2 = copyFile(str.c_str(),eu_ps2.c_str());
                 }
@@ -331,16 +344,19 @@ void checkFirmwarePSX(void)
                 
                 if (( calcChecksum(str.c_str()) == SCPH5500_BIN) && !found_jp_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'Japan SCPH-5500/v3.0J'");
                     printf( "PS1 bios found with signature 'Japan SCPH-5500/v3.0J'        : %s\n", str.c_str());
                     found_jp_ps1 = copyFile(str.c_str(),jp_ps1.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH5501_BIN) && !found_na_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'North America SCPH-5501/v3.0A'");
                     printf( "PS1 bios found with signature 'North America SCPH-5501/v3.0A': %s\n", str.c_str());
                     found_na_ps1 = copyFile(str.c_str(),na_ps1.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH5502_BIN) && !found_eu_ps1)
                 {
+                    render_splash("PS1 bios found with signature 'Europe SCPH-5502/v3.0E'");
                     printf( "PS1 bios found with signature 'Europe SCPH-5502/v3.0E'       : %s\n", str.c_str());
                     found_eu_ps1 = copyFile(str.c_str(),eu_ps1.c_str());
                 }
@@ -351,16 +367,19 @@ void checkFirmwarePSX(void)
                 tempBios_ps2_bios = str;
                 if (( calcChecksum(str.c_str()) == SCPH77000_BIN) && !found_jp_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'Japan SCPH-77000'");
                     printf( "PS2 bios found with signature 'Japan SCPH-77000'        : %s\n", str.c_str());
                     found_jp_ps2 = copyFile(str.c_str(),jp_ps2.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH77001_BIN) && !found_na_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'North America SCPH-77001'");
                     printf( "PS2 bios found with signature 'North America SCPH-77001': %s\n", str.c_str());
                     found_na_ps2 = copyFile(str.c_str(),na_ps2.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SCPH77002_BIN) && !found_eu_ps2)
                 {
+                    render_splash("PS2 bios found with signature 'Europe SCPH-77002'");
                     printf( "PS2 bios found with signature 'Europe SCPH-77002'       : %s\n", str.c_str());
                     found_eu_ps2 = copyFile(str.c_str(),eu_ps2.c_str());
                 }
@@ -386,6 +405,7 @@ void checkFirmwarePSX(void)
             gPathToFirmwarePS2 = gBaseDir + "tempBios.bin";
             if (tempBios_ps2_bios!=gPathToFirmwarePS2) 
                 copyFile(tempBios_ps2_bios.c_str(),gPathToFirmwarePS2.c_str());
+            render_splash("PS2 bios found " + tempBios_ps2_bios);
             printf( "PS2 bios found: %s\n", tempBios_ps2_bios.c_str());
             gPS2_firmware = true;
         }
@@ -409,6 +429,7 @@ void checkFirmwareSEGA_SATURN(void)
         jpF_sega_saturn.close();
         if ( calcChecksum(jp_sega_saturn.c_str()) == SEGA_SATURN_BIOS_JP)
         {
+            render_splash("Sega Saturn bios found with signature 'Japan' " + jp_sega_saturn);
             printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", jp_sega_saturn.c_str());
             found_jp_sega_saturn = true;
         }
@@ -419,6 +440,7 @@ void checkFirmwareSEGA_SATURN(void)
         na_euF_sega_saturn.close();
         if ( calcChecksum(na_eu_sega_saturn.c_str()) == SEGA_SATURN_BIOS_NA_EU)
         {
+            render_splash("Sega Saturn bios found with signature 'North America / Europa': " + na_eu_sega_saturn);
             printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", na_eu_sega_saturn.c_str());
             found_na_eu_sega_saturn = true;
         }
@@ -437,11 +459,13 @@ void checkFirmwareSEGA_SATURN(void)
             {
                 if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_JP) && !found_jp_sega_saturn)
                 {
+                    render_splash("Sega Saturn bios found with signature 'Japan' " + str);
                     printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", str.c_str());
                     found_jp_sega_saturn = copyFile(str.c_str(),jp_sega_saturn.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_NA_EU) && !found_na_eu_sega_saturn)
                 {
+                    render_splash("Sega Saturn bios found with signature 'North America / Europa': " + str);
                     printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", str.c_str());
                     found_na_eu_sega_saturn = copyFile(str.c_str(),na_eu_sega_saturn.c_str());
                 }
@@ -461,11 +485,13 @@ void checkFirmwareSEGA_SATURN(void)
                 
                 if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_JP) && !found_jp_sega_saturn)
                 {
+                    render_splash("Sega Saturn bios found with signature 'Japan' " + str);
                     printf( "Sega Saturn bios found with signature 'Japan'                 : %s\n", str.c_str());
                     found_jp_sega_saturn = copyFile(str.c_str(),jp_sega_saturn.c_str());
                 }
                 if (( calcChecksum(str.c_str()) == SEGA_SATURN_BIOS_NA_EU) && !found_na_eu_sega_saturn)
                 {
+                    render_splash("Sega Saturn bios found with signature 'North America / Europa': " + str);
                     printf( "Sega Saturn bios found with signature 'North America / Europa': %s\n", str.c_str());
                     found_na_eu_sega_saturn = copyFile(str.c_str(),na_eu_sega_saturn.c_str());
                 }
@@ -738,6 +764,7 @@ void initEMU(void)
     
     for (int i=0;i<gGame.size();i++)
     {
+        render_splash(gGame[i]);
         printf("%s\n",gGame[i].c_str());
     }
 }

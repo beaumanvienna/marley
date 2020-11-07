@@ -50,6 +50,7 @@ void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
 bool setBaseDir(void);
 void initApp(void);
+void render_splash(string onScreenDisplay);
 
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
@@ -125,7 +126,11 @@ bool init()
     initWii();
 #endif
     initEMU();
-
+    render_splash("");
+    while (splashScreenRunning) 
+    {
+        SDL_Delay(100);
+    }
     return ok;
 }
 

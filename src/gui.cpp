@@ -91,6 +91,33 @@ int y_offset_45;
 int y_offset_36;
 int y_offset_10;
 
+void render_splash(string onScreenDisplay)
+{
+    string osd_short = onScreenDisplay;
+    SDL_Rect destination;
+    SDL_Surface* surfaceMessage = nullptr; 
+    SDL_Texture* message = nullptr;     
+    
+    SDL_RenderClear(gRenderer);
+    
+    //draw splash screen to main window
+    SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH],nullptr,nullptr);
+
+    if(osd_short.length()>130)
+    {
+        osd_short = osd_short.substr(osd_short.length()-130,osd_short.length());
+    }
+    SDL_Color active = {222, 81, 223};  
+    surfaceMessage = TTF_RenderText_Solid(gFont, osd_short.c_str(), active); 
+    
+    int strLength = osd_short.length();
+    destination = { 1, 1, strLength*x_offset_20*0.5, y_offset_36*0.5 };
+    message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
+    SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );    
+    
+    SDL_RenderPresent(gRenderer);
+}
+
 void hide_or_show_cursor_X11(bool hide) 
 {
     Display *display   = XOpenDisplay(NULL);
@@ -112,6 +139,12 @@ bool loadMedia()
 {
     bool ok = true;
     
+    // splash
+    gTextures[TEX_SPLASH] = loadTextureFromFile("/pictures/../pictures/splash.bmp");
+    if (!gTextures[TEX_SPLASH])
+    {
+        ok = false;
+    }
     // background
     gTextures[TEX_BACKGROUND] = loadTextureFromFile("/pictures/../pictures/beach.bmp");
     if (!gTextures[TEX_BACKGROUND])
@@ -382,6 +415,12 @@ void initOpenGL(void)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 }
+bool splashScreenRunning = true;
+Uint32 my_callbackfunc(Uint32 interval, void *param)
+{
+    splashScreenRunning = false;
+    return 0;
+}
 
 bool initGUI(void)
 {
@@ -475,6 +514,8 @@ bool initGUI(void)
         {
             ok =false;
         }
+        render_splash("");
+        SDL_TimerID myTimer =SDL_AddTimer(5000,my_callbackfunc,nullptr);
         SDL_DisableScreenSaver();
         setAppIcon();
     }
@@ -776,7 +817,7 @@ bool createRenderer(void)
         }
         SDL_RenderClear(gRenderer);
         
-        //draw backround to main window
+        //draw background to main window
         SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
         SDL_RenderPresent(gRenderer);
     }
