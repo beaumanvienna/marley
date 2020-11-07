@@ -9,6 +9,7 @@ https://github.com/beaumanvienna/marley
 
 - [User Manual](#user-manual)
 - [Controls](#controls)
+- [Hardware Requirements](#hardware-requirements)
 - [Developer information](#developer-information)
 - [Installation for Ubuntu and derivatives](#installation-for-ubuntu-and-derivatives)
 - [Installation for Gentoo](#installation-for-gentoo)
@@ -68,6 +69,16 @@ command line options: <br />
   --version             : print version <br />
   --fullscreen, -f      : start in fullscreen mode<br />
   --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
+<br />
+## Hardware Requirements
+<br />
+Marley runs on the x86_64 (aka AMD64) Linux platform. Marley allows the use of USB and Bluetooth gamepads. It supports Wiimote game controllers, which make Bluetooth a mandatory requirement.
+
+Marley's emulator cores Mednafen and Mupen64Plus are used to emulate gaming consoles of the '90s and require a CPU performance comparable to a Rasberry Pi 4. Marley's other cores for emulating gaming consoles of the '2000s require more CPU power. Their demand, however, is still modest. A high-end desktop PC from 2014 (for example Core i7 / NVidia GTK770) would still be overkill, while a higher-end 2015 laptop (for example Acer Aspire V5, Core i5 (3rd Gen) 3317U, Intel HD Graphics 4000) could be used as a minimum requirement. Marley runs flawlessly on a Udoo Bolt V8 single-board computer, which is based on an AMD RYZEN Embedded V1605B Quad-Core processor and an AMD Radeon VEGA 8 GPU. This SCB has about twice the performance of a MacBook 2013. 
+
+When it comes to the graphics card requirements, Marley does require OpenGL acceleration. Demands are, as with the CPU performance, quite modest. A 3D PassMark ranking of about 1800 is sufficient. A recent graphics card based on an AMD Radeon HD 7450 chipset for about $30 will do the trick.
+
+Marley runs best on X11-based desktops with either NVidia or AMD graphics acceleration. It also runs well on Wayland systems, although on some configuration for both Arch and Majaro, skipping sound could be observed for the HDMI outputs.<br />
 <br />
 
 ## Developer information
