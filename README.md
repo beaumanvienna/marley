@@ -67,7 +67,7 @@ command line options: <br />
 <br />
   --version             : print version <br />
   --fullscreen, -f      : start in fullscreen mode<br />
-  --keepX11pointer, -k  : do not switch off X11 mouse pointer<br />
+  --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
 <br />
 
 ## Developer information

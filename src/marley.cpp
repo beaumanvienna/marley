@@ -237,7 +237,7 @@ int main( int argc, char* argv[] )
     int k,l,m,id;
     string cmd;
     bool ignoreESC=false;
-    bool keepX11pointer=false;
+    bool keepX11pointer=true;
     
     gFullscreen=false;
     
@@ -261,7 +261,8 @@ int main( int argc, char* argv[] )
             printSupportedEmus();
             printf("\nOptions:\n\n");
             printf("  --version             : print version\n");
-            printf("  --fullscreen, -f      : start in fullscreen mode\n\n");
+            printf("  --fullscreen, -f      : start in fullscreen mode\n");
+            printf("  --killX11pointer, -k  : switch off the mouse pointer for the entire desktop\n\n");
             printf("Use your controller or arrow keys/enter on your keyboard to navigate.\n\n");
             printf("Use \"l\" to print a list of detected controllers to the command line.\n\n");
             printf("Use \"f\" to toggle fullscreen.\n\n");
@@ -278,9 +279,9 @@ int main( int argc, char* argv[] )
             gFullscreen=true;
         } 
         
-        if ((str.find("--keepX11pointer") == 0) || (str.find("-k") == 0))
+        if ((str.find("--killX11pointer") == 0) || (str.find("-k") == 0))
         {
-            keepX11pointer=true;
+            keepX11pointer=false;
         } 
                     
         if (( access( str.c_str(), F_OK ) != -1 ))
