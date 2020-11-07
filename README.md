@@ -70,7 +70,9 @@ command line options: <br />
   --fullscreen, -f      : start in fullscreen mode<br />
   --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
 <br />
+
 ## Hardware Requirements
+
 <br />
 Marley runs on the x86_64 (aka AMD64) Linux platform. Marley allows the use of USB and Bluetooth gamepads. It supports Wiimote game controllers, which make Bluetooth a mandatory requirement.
 
