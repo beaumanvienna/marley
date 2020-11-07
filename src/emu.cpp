@@ -143,7 +143,6 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
                     
                     if ((file_size == PS1_BIOS_SIZE)||(file_size == SEGA_SATURN_BIOS_SIZE))
                     {
-                        printf("debug sega saturn bios: bios file name \"%s\", checksum: %i\n",str_with_path.c_str(),calcChecksum(str_with_path.c_str()));
                         tmpList_ps1[0].push_back(str_with_path);
                     }
                     else if (file_size == PS2_BIOS_SIZE)
