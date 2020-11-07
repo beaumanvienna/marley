@@ -74,7 +74,7 @@ command line options: <br />
 ## Hardware Requirements
 
 <br />
-Marley runs on the x86_64 (aka AMD64) Linux platform. Marley allows the use of USB and Bluetooth gamepads. It supports Wiimote game controllers, which make Bluetooth a mandatory requirement.<br />
+Marley runs on the x86_64 (aka AMD64) Linux platform. Marley allows the use of USB and Bluetooth gamepads. It also supports Wiimote game controllers, which make Bluetooth a mandatory requirement.<br />
 <br />
 Marley's emulator cores Mednafen and Mupen64Plus are used to emulate gaming consoles of the '90s. They require a CPU performance comparable to a Rasberry Pi 4 (just performance-wise, ARM as a CPU architecture is not supported). Marley's other cores PPSSPP, PCSX2, and Dolphin for emulating gaming consoles of the '2000s require more CPU power. Their demand, however, is still modest. A high-end desktop PC from 2014 (for example Core i7 / NVidia GTX770) would still be overkill, while a higher-end 2015 laptop (for example Acer Aspire V5, Core i5 (3rd Gen) 3317U, Intel HD Graphics 4000) could be cited as a minimum requirement. Marley runs flawlessly on a Udoo Bolt V8 single-board computer, which is based on an AMD Ryzen Embedded V1605B Quad-Core processor and an AMD Radeon Vega 8 GPU. This SCB has about twice the performance of a MacBook 2013 with a CPU PassMark rating of 7900. <br />
 <br />
