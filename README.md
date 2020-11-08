@@ -80,7 +80,9 @@ Marley's emulator cores Mednafen and Mupen64Plus are used to emulate gaming cons
 <br />
 When it comes to graphics card requirements, Marley does require OpenGL acceleration. Demands are, as with the CPU performance, quite modest. A 3D PassMark ranking of about 1800 is sufficient. A recent graphics card based on an AMD Radeon HD 7450 chipset for about $30 will do the trick.<br />
 <br />
-Marley runs best on X11-based desktops with either NVidia or AMD graphics acceleration. It also runs well on Wayland systems, although on some configurations for both Arch and Majaro, skipping sound could be observed with HDMI as sound output.<br />
+The above settings apply to an upscaling factor of 2x (=two times the native resolution) for the internal resolution of PCSX2 and PPSSPP.<br />
+<br />
+The Marley team recommends using X11-based desktops such as Ubuntu or Linux Mint with either NVidia or AMD graphics acceleration. Narley also runs well on Wayland systems, although on some configurations for both Arch and Majaro, skipping sound could be observed with HDMI as sound output.<br />
 <br />
 
 ## Developer information
