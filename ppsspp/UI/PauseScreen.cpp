@@ -380,10 +380,10 @@ void GamePauseScreen::CreateViews() {
 
 	// TODO, also might be nice to show overall compat rating here?
 	// Based on their platform or even cpu/gpu/config.  Would add an API for it.
-	if (Reporting::IsSupported() && g_paramSFO.GetValueString("DISC_ID").size()) {
+/*	if (Reporting::IsSupported() && g_paramSFO.GetValueString("DISC_ID").size()) {
 		auto rp = GetI18NCategory("Reporting");
 		rightColumnItems->Add(new Choice(rp->T("ReportButton", "Report Feedback")))->OnClick.Handle(this, &GamePauseScreen::OnReportFeedback);
-	}
+	}*/
 	rightColumnItems->Add(new Spacer(25.0));
 	if (g_PConfig.bPauseMenuExitsEmulator) {
 		auto mm = GetI18NCategory("MainMenu");
