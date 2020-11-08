@@ -391,10 +391,10 @@ void checkFirmwarePSX(void)
     
     if (gPS2_firmware)
     {
-        if (found_jp_ps2)
-            gPathToFirmwarePS2 = jp_ps2; // faster than NA and EU because it doesn't have a language settings dialog
-        else if (found_na_ps2)
+        if (found_na_ps2)
             gPathToFirmwarePS2 = na_ps2;
+        else if (found_jp_ps2)
+            gPathToFirmwarePS2 = jp_ps2; // faster than NA and EU because it doesn't have a language settings dialog
         else if (found_eu_ps2)
             gPathToFirmwarePS2 = eu_ps2;
     } 

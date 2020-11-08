@@ -322,16 +322,16 @@ void launch_emulator(void)
 				str = "pcsx2";
 				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
-				
+                
+   				str = "--nogui";
+				n = str.length(); 
+				strcpy(arg2, str.c_str());
+
 				str = "--fullboot";
 				n = str.length(); 
-				strcpy(arg2, str.c_str()); 
+				strcpy(arg3, str.c_str());
 
 				str = gGame[gCurrentGame];
-				n = str.length(); 
-				strcpy(arg3, str.c_str());
-				
-				str = "--nogui";
 				n = str.length(); 
 				strcpy(arg4, str.c_str());
 

@@ -2,6 +2,8 @@
 
 COMPILER_ARTIFACTS = --std=c++17 -I/usr/include/SDL2
 
+#USE_FRONTEND=YES
+
 LINKER_OBJECTS = ../../pcsx2/build/pcsx2/libPCSX2.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/x86emitter/libx86emitter.a
 LINKER_OBJECTS += ../../pcsx2/build/common/src/Utilities/libUtilities.a
@@ -63,14 +65,30 @@ LINKER_OBJECTS += -lEGL
 LINKER_OBJECTS += -lSoundTouch
 LINKER_OBJECTS += -lasound
 
+ifeq ($(USE_FRONTEND),YES)
+LINKER_OBJECTS += -lSDL2_image -lSDL2_ttf -lXfixes
+COMPILER_ARTIFACTS += $(shell pkg-config --cflags gtk+-3.0)
+COMPILER_ARTIFACTS += -DPACKAGE_VERSION=\"9.9.9\"
+SOURCE_FILES = ../../resources/res.cpp
+SOURCE_FILES += ../../src/controller.cpp
+SOURCE_FILES += ../../src/emu.cpp
+SOURCE_FILES += ../../src/gui.cpp
+SOURCE_FILES += ../../src/marley.cpp
+SOURCE_FILES += ../../src/mdf2iso.cpp
+SOURCE_FILES += ../../src/statemachine.cpp
+SOURCE_FILES += ../../src/wii.cpp
+else
+SOURCE_FILES = main.cpp
+endif
+
+
 all: PCSX2
 
-PCSX2: main.cpp
+PCSX2: $(SOURCE_FILES) Makefile
 	$(info   *************** tests make pcsx2 ***************)
 	$(info $(GTK_VERSION))
 	$(MAKE) -C ../../pcsx2/build
-	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PCSX2 main.cpp $(LINKER_OBJECTS)
-
+	g++ $(COMPILER_ARTIFACTS) -o PCSX2 $(SOURCE_FILES) $(LINKER_OBJECTS)
 
 clean:
 	$(info   *************** tests pcsx2 clean ***************)
