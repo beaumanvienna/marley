@@ -9,7 +9,7 @@ https://github.com/beaumanvienna/marley
 
 - [User Manual](#user-manual)
 - [Controls](#controls)
-- [Hardware Requirements](#hardware-requirements)
+- [System Requirements](#system-requirements)
 - [Developer information](#developer-information)
 - [Installation for Ubuntu and derivatives](#installation-for-ubuntu-and-derivatives)
 - [Installation for Gentoo](#installation-for-gentoo)
@@ -71,18 +71,20 @@ command line options: <br />
   --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
 <br />
 
-## Hardware Requirements
-
-<br />
-Marley runs on the x86_64 (aka AMD64) Linux platform. Marley allows the use of USB and Bluetooth gamepads. It also supports Wiimote game controllers, which make Bluetooth a mandatory requirement.<br />
-<br />
-Marley's emulator cores Mednafen and Mupen64Plus are used to emulate gaming consoles of the '90s. They require a CPU performance comparable to a Rasberry Pi 4 (just performance-wise, ARM as a CPU architecture is not supported). Marley's other cores PPSSPP, PCSX2, and Dolphin for emulating gaming consoles of the '2000s require more CPU power. Their demand, however, is still modest. A high-end desktop PC from 2014 (for example Core i7 / NVidia GTX770) would still be overkill, while a higher-end 2015 laptop (for example Acer Aspire V5, Core i5 (3rd Gen) 3317U, Intel HD Graphics 4000) could be cited as a minimum requirement. Marley runs flawlessly on a Udoo Bolt V8 single-board computer, which is based on an AMD Ryzen Embedded V1605B Quad-Core processor and an AMD Radeon Vega 8 GPU. This SCB has about twice the performance of a MacBook 2013 with a CPU PassMark rating of 7900. <br />
-<br />
-When it comes to graphics card requirements, Marley does require OpenGL acceleration. Demands are, as with the CPU performance, quite modest. A 3D PassMark ranking of about 1800 is sufficient. A recent graphics card based on an AMD Radeon HD 7450 chipset for about $30 will do the trick.<br />
-<br />
-The above settings apply to an upscaling factor of 2x (=two times the native resolution) for the internal resolution of PCSX2 and PPSSPP.<br />
-<br />
-The Marley team recommends using X11-based desktops such as Ubuntu or Linux Mint with either NVidia or AMD graphics acceleration. Narley also runs well on Wayland systems, although on some configurations for both Arch and Majaro, skipping sound could be observed with HDMI as sound output.<br />
+## System requirements
+<strong />OS:</strong>
+ <br />
+Marley runs on 64-bit Linux platforms such as Linux Mint, Ubuntu or Arch Linux, with Nvidia or AMD OpenGL graphics acceleration.  Either X11- or Wayland-based desktops are supported, though sound skipping has been observed with HDMI configured as sound output on Arch Linux and Manjaro.
+ <p />
+<strong />CPU/GPU:</strong>
+ <br />
+Marley's system requirements vary by core, and while it is difficult to ascertain specific hardware configurations, general guidelines may be considered.  For example, PlayStation 1 and Nintendo 64 emulator cores may run at full speed on 2010-era systems; while PlayStation Portable, PlayStation 2, GameCube and Wii systems may require more advanced processing power from 2015-era systems to achieve full speed.  For GPU performance, a 3D PassMark rating of about 1800 is sufficient for any and all of its cores.
+ <p />
+As a point of reference, Marley runs all emulator cores flawlessly on a Udoo Bolt V8 single-board computer (SBC), which is based on an AMD Ryzen Embedded V1605B Quad-Core processor and an AMD Radeon Vega 8 GPU. This SBC has roughly twice the performance of a MacBook 2013 with a CPU PassMark rating of 7900.
+ <p />
+<strong />Input:</strong>
+ <br />
+USB and Bluetooth gamepads are supported.  Bluetooth is required for some input devices such as the Nintendo Wiimote and Wii MotionPlus.
 <br />
 
 ## Developer information
