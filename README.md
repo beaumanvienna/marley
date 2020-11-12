@@ -74,7 +74,7 @@ command line options: <br />
 ## System requirements
 <strong />OS:</strong>
  <br />
-Marley runs on 64-bit Linux platforms such as Linux Mint, Ubuntu or Arch Linux, with Nvidia or AMD OpenGL graphics acceleration.  Either X11- or Wayland-based desktops are supported, though sound skipping has been observed with HDMI configured as sound output on Arch Linux and Manjaro.
+Marley runs on 64-bit Linux platforms such as Linux Mint, Ubuntu or Arch Linux, with Nvidia, Intel, or AMD OpenGL graphics acceleration.  Either X11- or Wayland-based desktops are supported, though sound skipping has been observed with HDMI configured as sound output on Arch Linux and Manjaro.
  <p />
 <strong />CPU/GPU:</strong>
  <br />
