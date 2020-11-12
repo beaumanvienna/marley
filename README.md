@@ -9,7 +9,7 @@ https://github.com/beaumanvienna/marley
 
 - [User Manual](#user-manual)
 - [Controls](#controls)
-- [Hardware Requirements](#hardware-requirements)
+- [System Requirements](#system-requirements)
 - [Developer information](#developer-information)
 - [Installation for Ubuntu and derivatives](#installation-for-ubuntu-and-derivatives)
 - [Installation for Gentoo](#installation-for-gentoo)
@@ -71,14 +71,14 @@ command line options: <br />
   --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
 <br />
 
-## System Requirements
+## System requirements
 <strong />OS:</strong>
  <br />
 Marley runs on 64-bit Linux platforms such as Linux Mint, Ubuntu or Arch Linux, with Nvidia or AMD OpenGL graphics acceleration.  Either X11- or Wayland-based desktops are supported, though sound skipping has been observed with HDMI configured as sound output on Arch Linux and Manjaro.
  <p />
 <strong />CPU/GPU:</strong>
  <br />
-Maryley's system requirements vary by core, and while it is difficult to ascertain specific hardware configurations, general guidelines may be considered.  For example, PlayStation 1 and Nintendo 64 emulator cores may run at full speed on 2010-era systems; while PlayStation Portable, PlayStation 2, GameCube and Wii systems may require more advanced processing power from 2015-era systems to achieve full speed.  For GPU performance, a 3D PassMark rating of about 1800 is sufficient for any and all of its cores.
+Marley's system requirements vary by core, and while it is difficult to ascertain specific hardware configurations, general guidelines may be considered.  For example, PlayStation 1 and Nintendo 64 emulator cores may run at full speed on 2010-era systems; while PlayStation Portable, PlayStation 2, GameCube and Wii systems may require more advanced processing power from 2015-era systems to achieve full speed.  For GPU performance, a 3D PassMark rating of about 1800 is sufficient for any and all of its cores.
  <p />
 As a point of reference, Marley runs all emulator cores flawlessly on a Udoo Bolt V8 single-board computer (SBC), which is based on an AMD Ryzen Embedded V1605B Quad-Core processor and an AMD Radeon Vega 8 GPU. This SBC has roughly twice the performance of a MacBook 2013 with a CPU PassMark rating of 7900.
  <p />
