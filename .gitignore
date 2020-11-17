@@ -402,3 +402,4 @@ ppsspp/ffmpeg/linux/x86_64/include/libavutil/ffversion.h
 tests/.debug_build
 confdefs.h
 GSdx_opengl_debug_sw.txt
+screen_manager/build
