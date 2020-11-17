@@ -97,6 +97,12 @@
         <file>../pictures/shutdown_inactive.bmp</file>
     </gresource>
     <gresource prefix="/pictures/">
+        <file>../pictures/config.bmp</file>
+    </gresource>
+    <gresource prefix="/pictures/">
+        <file>../pictures/config_inactive.bmp</file>
+    </gresource>
+    <gresource prefix="/pictures/">
         <file>../pictures/splash.bmp</file>
     </gresource>
 </gresources>

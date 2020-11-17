@@ -6,7 +6,7 @@ SUBDIRS += mednafen
 SUBDIRS += dolphin
 SUBDIRS += ppsspp
 SUBDIRS += tests
-SUBDIRS += screenManager
+SUBDIRS += screen_manager
 
 #installation files
 man6_MANS = resources/marley.6

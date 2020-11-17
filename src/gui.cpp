@@ -319,6 +319,21 @@ bool loadMedia()
         ok = false;
     }
     
+    //config icon
+    gTextures[TEX_ICON_CONF] = loadTextureFromFile("/pictures/../pictures/config.bmp");
+    if (!gTextures[TEX_ICON_CONF])
+    {
+        ok = false;
+    }
+    
+    //config icon inactive
+    gTextures[TEX_ICON_CONF_IN] = loadTextureFromFile("/pictures/../pictures/config_inactive.bmp");
+    if (!gTextures[TEX_ICON_CONF_IN])
+    {
+        ok = false;
+    }
+
+    
     
     return ok;
 }
@@ -590,6 +605,17 @@ void renderIcons(void)
         {
             SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
         }
+        
+        destination = { x_offset_345+xOffset, y_offset_10+yOffset, x_offset_150, y_offset_45 };
+        if (gState == STATE_CONFIG)
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_CONF], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
+        } 
+        else
+        {
+            SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_CONF_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
+        }
+        
         if (!gSetupIsRunning)
         {
             if (gGamesFound)

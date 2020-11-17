@@ -253,7 +253,7 @@ void ToggleFullScreenIfFlagSet(SDL_Window *window) {
 	}
 }
 
-int ppsspp_main(int argc, char *argv[]) {
+int screen_manager_main(int argc, char *argv[]) {
 
     SDL_GL_ResetAttributes();
     lastUIState = UISTATE_MENU;

@@ -137,7 +137,7 @@ void create_cue_file(string filename)
         }
         else
         {
-            printf("Could not create cue file for \n",filename.c_str());
+            printf("Could not create cue file for %s\n",filename.c_str());
         }
     }
     else if ((ext.find("mdf") != string::npos) && (!exists(bin_filename.c_str())))
@@ -441,6 +441,12 @@ void statemachine(int cmd)
     string execute;
     bool emuReturn = false;
     
+    int screen_man_argc;
+    char *screen_man_argv[1];
+    char arg1[1024];
+    int n;
+    string str;    
+    
     if (!gControllerConf)
     {
         switch (cmd)
@@ -482,6 +488,9 @@ void statemachine(int cmd)
                         gState=STATE_SETUP;
                         break;
                     case STATE_SETUP:
+                        gState=STATE_CONFIG;
+                        break;
+                    case STATE_CONFIG:
                         gState=STATE_OFF;
                         break;
                     case STATE_SHUTDOWN:
@@ -562,10 +571,13 @@ void statemachine(int cmd)
                             gState=STATE_OFF;
                         }
                         break;
+                    case STATE_CONFIG:
+                        gState=STATE_SETUP;
+                        break;
                     case STATE_OFF:
                         if (gNumDesignatedControllers)
                         {
-                            gState=STATE_SETUP;
+                            gState=STATE_CONFIG;
                         }
                         break;
                     case STATE_SHUTDOWN:
@@ -642,6 +654,16 @@ void statemachine(int cmd)
                             gState=STATE_CONF1;
                         }
                         gSetupIsRunning=true;
+                        break;
+                    case STATE_CONFIG:
+                        str = "screen_manager";
+                        n = str.length(); 
+                        strcpy(arg1, str.c_str()); 
+
+                        screen_man_argv[0] = arg1;
+                        screen_man_argc = 1;
+                    
+                        //screen_manager_main(screen_man_argc,screen_man_argv);
                         break;
                     case STATE_OFF:
                         gQuit=true;
