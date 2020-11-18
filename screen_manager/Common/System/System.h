@@ -70,8 +70,8 @@ enum PermissionStatus {
 
 // These APIs must be implemented by every port (for example app-android.cpp, SDLMain.cpp).
 // Ideally these should be safe to call from any thread.
-void SystemToast(const char *text);
-void ShowKeyboard();
+void SCREEN_SystemToast(const char *text);
+void SCREEN_ShowKeyboard();
 
 // Vibrate either takes a number of milliseconds to vibrate unconditionally,
 // or you can specify these constants for "standard" feedback. On Android,
@@ -83,15 +83,11 @@ enum {
 	HAPTIC_VIRTUAL_KEY = -2,
 	HAPTIC_LONG_PRESS_ACTIVATED = -3,
 };
-void Vibrate(int length_ms);
-void OpenDirectory(const char *path);
-void LaunchBrowser(const char *url);
-void LaunchMarket(const char *url);
-void LaunchEmail(const char *email_address);
-void System_InputBoxGetString(const std::string &title, const std::string &defaultValue, std::function<void(bool, const std::string &)> cb);
-void System_SendMessage(const char *command, const char *parameter);
-PermissionStatus System_GetPermissionStatus(SystemPermission permission);
-void System_AskForPermission(SystemPermission permission);
+void SCREEN_Vibrate(int length_ms);
+void SCREEN_OpenDirectory(const char *path);
+void SCREEN_System_SendMessage(const char *command, const char *parameter);
+PermissionStatus SCREEN_System_GetPermissionStatus(SystemPermission permission);
+void SCREEN_System_AskForPermission(SystemPermission permission);
 
 // This will get muddy with multi-screen support :/ But this will always be the type of the main device.
 enum SystemDeviceType {
@@ -146,9 +142,9 @@ enum SystemProperty {
 	SYSPROP_SUPPORTS_SUSTAINED_PERF_MODE,
 };
 
-std::string System_GetProperty(SystemProperty prop);
-int System_GetPropertyInt(SystemProperty prop);
-float System_GetPropertyFloat(SystemProperty prop);
-bool System_GetPropertyBool(SystemProperty prop);
+std::string SCREEN_System_GetProperty(SystemProperty prop);
+int SCREEN_System_GetPropertyInt(SystemProperty prop);
+float SCREEN_System_GetPropertyFloat(SystemProperty prop);
+bool SCREEN_System_GetPropertyBool(SystemProperty prop);
 
 std::vector<std::string> __cameraGetDeviceList();

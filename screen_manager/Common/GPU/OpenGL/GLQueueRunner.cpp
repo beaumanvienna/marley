@@ -17,7 +17,7 @@
 
 #define TEXCACHE_NAME_CACHE_SIZE 16
 
-GLuint g_defaultFBO = 0;
+GLuint SCREEN_g_defaultFBO = 0;
 
 void SCREEN_GLQueueRunner::CreateDeviceObjects() {
 	CHECK_GL_ERROR_IF_DEBUG();
@@ -1627,12 +1627,12 @@ void SCREEN_GLQueueRunner::fbo_unbind() {
 	CHECK_GL_ERROR_IF_DEBUG();
 #ifndef USING_GLES2
 	if (gl_extensions.ARB_framebuffer_object || gl_extensions.IsGLES) {
-		glBindFramebuffer(GL_FRAMEBUFFER, g_defaultFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, SCREEN_g_defaultFBO);
 	} else if (gl_extensions.EXT_framebuffer_object) {
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, g_defaultFBO);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, SCREEN_g_defaultFBO);
 	}
 #else
-	glBindFramebuffer(GL_FRAMEBUFFER, g_defaultFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, SCREEN_g_defaultFBO);
 #endif
 
 #ifdef IOS
@@ -1654,14 +1654,14 @@ SCREEN_GLRFramebuffer::~SCREEN_GLRFramebuffer() {
 			glBindFramebuffer(GL_FRAMEBUFFER, handle);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-			glBindFramebuffer(GL_FRAMEBUFFER, g_defaultFBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, SCREEN_g_defaultFBO);
 			glDeleteFramebuffers(1, &handle);
 #ifndef USING_GLES2
 		} else if (gl_extensions.EXT_framebuffer_object) {
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, handle);
 			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, 0);
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, g_defaultFBO);
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, SCREEN_g_defaultFBO);
 			glDeleteFramebuffersEXT(1, &handle);
 #endif
 		}

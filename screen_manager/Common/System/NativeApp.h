@@ -18,58 +18,58 @@ class SCREEN_GraphicsContext;
 
 // The first function to get called, just write strings to the two pointers.
 // This might get called multiple times in some implementations, you must be able to handle that.
-void NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, bool *landscape, std::string *version);
+void SCREEN_NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, bool *landscape, std::string *version);
 
 // Generic host->C++ messaging, used for functionality like system-native popup input boxes.
-void NativeMessageReceived(const char *message, const char *value);
+void SCREEN_NativeMessageReceived(const char *message, const char *value);
 
 // This is used to communicate back and thread requested input box strings.
-void NativeInputBoxReceived(std::function<void(bool, const std::string &)> cb, bool result, const std::string &value);
+void SCREEN_NativeInputBoxReceived(std::function<void(bool, const std::string &)> cb, bool result, const std::string &value);
 
 // Easy way for the Java side to ask the C++ side for configuration options, such as
 // the rotation lock which must be controlled from Java on Android.
 // It is currently not called on non-Android platforms.
-std::string NativeQueryConfig(std::string query);
+std::string SCREEN_NativeQueryConfig(std::string query);
 
 // For the back button to work right, this should return true on your main or title screen.
 // Otherwise, just return false.
-bool NativeIsAtTopLevel();
+bool SCREEN_NativeIsAtTopLevel();
 
-// The very first function to be called after NativeGetAppInfo. Even NativeMix is not called
+// The very first function to be called after SCREEN_NativeGetAppInfo. Even NativeMix is not called
 // before this, although it may be called at any point in time afterwards (on any thread!)
 // This functions must NOT call OpenGL. Main thread.
-void NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir);
+void SCREEN_NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir);
 
-// Runs after NativeInit() at some point. May (and probably should) call OpenGL.
+// Runs after SCREEN_NativeInit() at some point. May (and probably should) call OpenGL.
 // Should not initialize anything screen-size-dependent - do that in NativeResized.
-bool NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext);
+bool SCREEN_NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext);
 
 // If you want to change DPI stuff (such as modifying dp_xres and dp_yres), this is the
 // place to do it. You should only read g_dpi_scale and pixel_xres and pixel_yres in this,
 // and only write dp_xres and dp_yres.
-void NativeResized();
+void SCREEN_NativeResized();
 
-// Set a flag to indicate a restart.  Reset after NativeInit().
-void NativeSetRestarting();
+// Set a flag to indicate a restart.  Reset after SCREEN_NativeInit().
+void SCREEN_NativeSetRestarting();
 
 // Retrieve current restarting flag.
-bool NativeIsRestarting();
+bool SCREEN_NativeIsRestarting();
 
 // Called ~sixty times a second, delivers the current input state.
 // Main thread.
-void NativeUpdate();
+void SCREEN_NativeUpdate();
 
-// Delivers touch events "instantly", without waiting for the next frame so that NativeUpdate can deliver.
+// Delivers touch events "instantly", without waiting for the next frame so that SCREEN_NativeUpdate can deliver.
 // Useful for triggering audio events, saving a few ms.
 // If you don't care about touch latency, just do a no-op implementation of this.
 // time is not yet implemented. finger can be from 0 to 7, inclusive.
-bool NativeTouch(const TouchInput &touch);
-bool NativeKey(const KeyInput &key);
-bool NativeAxis(const AxisInput &axis);
+bool SCREEN_NativeTouch(const TouchInput &touch);
+bool SCREEN_NativeKey(const KeyInput &key);
+bool SCREEN_NativeAxis(const AxisInput &axis);
 
 // Called when it's time to render. If the device can keep up, this
 // will also be called sixty times per second. Main thread.
-void NativeRender(SCREEN_GraphicsContext *graphicsContext);
+void SCREEN_NativeRender(SCREEN_GraphicsContext *graphicsContext);
 
 // This should render num_samples 44khz stereo samples.
 // Try not to make too many assumptions on the granularity
@@ -87,5 +87,5 @@ void NativeSetMixer(void* mixer);
 // The graphics context should still be active when calling this, as freeing
 // of graphics resources happens here.
 // Main thread.
-void NativeShutdownGraphics();
-void NativeShutdown();
+void SCREEN_NativeShutdownGraphics();
+void SCREEN_NativeShutdown();

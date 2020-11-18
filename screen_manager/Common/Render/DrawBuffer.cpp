@@ -365,13 +365,13 @@ void SCREEN_DrawBuffer::DrawImage2GridH(ImageID atlas_image, float x1, float y1,
 class SCREEN_AtlasWordWrapper : public SCREEN_WordWrapper {
 public:
 	// Note: maxW may be height if rotated.
-	SCREEN_AtlasWordWrapper(const AtlasFont &atlasfont, float scale, const char *str, float maxW, int flags) : SCREEN_WordWrapper(str, maxW, flags), atlasfont_(atlasfont), scale_(scale) {
+	SCREEN_AtlasWordWrapper(const SCREEN_AtlasFont &atlasfont, float scale, const char *str, float maxW, int flags) : SCREEN_WordWrapper(str, maxW, flags), atlasfont_(atlasfont), scale_(scale) {
 	}
 
 protected:
 	float MeasureWidth(const char *str, size_t bytes) override;
 
-	const AtlasFont &atlasfont_;
+	const SCREEN_AtlasFont &atlasfont_;
 	const float scale_;
 };
 
@@ -393,7 +393,7 @@ float SCREEN_AtlasWordWrapper::MeasureWidth(const char *str, size_t bytes) {
 }
 
 void SCREEN_DrawBuffer::MeasureTextCount(FontID font, const char *text, int count, float *w, float *h) {
-	const AtlasFont *atlasfont = atlas->getFont(font);
+	const SCREEN_AtlasFont *atlasfont = atlas->getFont(font);
 	if (!atlasfont) {
 		*w = 0.0f;
 		*h = 0.0f;
@@ -444,7 +444,7 @@ void SCREEN_DrawBuffer::MeasureTextRect(FontID font_id, const char *text, int co
 	std::string toMeasure = std::string(text, count);
 	int wrap = align & (FLAG_WRAP_TEXT | FLAG_ELLIPSIZE_TEXT);
 	if (wrap) {
-		const AtlasFont *font = atlas->getFont(font_id);
+		const SCREEN_AtlasFont *font = atlas->getFont(font_id);
 		if (!font) {
 			*w = 0.0f;
 			*h = 0.0f;
@@ -493,7 +493,7 @@ void SCREEN_DrawBuffer::DrawTextRect(FontID font, const char *text, float x, flo
 
 	std::string toDraw = text;
 	int wrap = align & (FLAG_WRAP_TEXT | FLAG_ELLIPSIZE_TEXT);
-	const AtlasFont *atlasfont = atlas->getFont(font);
+	const SCREEN_AtlasFont *atlasfont = atlas->getFont(font);
 	if (wrap && atlasfont) {
 		SCREEN_AtlasWordWrapper wrapper(*atlasfont, fontscalex, toDraw.c_str(), w, wrap);
 		toDraw = wrapper.Wrapped();
@@ -535,7 +535,7 @@ void SCREEN_DrawBuffer::DrawText(FontID font, const char *text, float x, float y
 		}
 	}
 
-	const AtlasFont *atlasfont = atlas->getFont(font);
+	const SCREEN_AtlasFont *atlasfont = atlas->getFont(font);
 	if (!atlasfont)
 		return;
 	unsigned int cval;

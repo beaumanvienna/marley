@@ -764,7 +764,7 @@ bool SCREEN_IOFile::Resize(uint64_t size)
 
 } // namespace
 
-bool readFileToString(bool text_file, const char *filename, std::string & str)
+bool SCREEN_readFileToString(bool text_file, const char *filename, std::string & str)
 {
 	FILE *f = SCREEN_PFile::OpenCFile(filename, text_file ? "r" : "rb");
 	if (!f)
@@ -778,7 +778,7 @@ bool readFileToString(bool text_file, const char *filename, std::string & str)
 	return true;
 }
 
-uint8_t *ReadLocalFile(const char *filename, size_t * size) {
+uint8_t *SCREEN_ReadLocalFile(const char *filename, size_t * size) {
 	FILE *file = SCREEN_PFile::OpenCFile(filename, "rb");
 	if (!file) {
 		*size = 0;
@@ -805,7 +805,7 @@ uint8_t *ReadLocalFile(const char *filename, size_t * size) {
 	return contents;
 }
 
-bool writeStringToFile(bool text_file, const std::string &str, const char *filename)
+bool SCREEN_writeStringToFile(bool text_file, const std::string &str, const char *filename)
 {
 	FILE *f = SCREEN_PFile::OpenCFile(filename, text_file ? "w" : "wb");
 	if (!f)
@@ -820,7 +820,7 @@ bool writeStringToFile(bool text_file, const std::string &str, const char *filen
 	return true;
 }
 
-bool writeDataToFile(bool text_file, const void* data, const unsigned int size, const char *filename)
+bool SCREEN_writeDataToFile(bool text_file, const void* data, const unsigned int size, const char *filename)
 {
 	FILE *f = SCREEN_PFile::OpenCFile(filename, text_file ? "w" : "wb");
 	if (!f)

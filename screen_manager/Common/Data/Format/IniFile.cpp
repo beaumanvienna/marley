@@ -528,7 +528,7 @@ bool SCREEN_IniFile::Load(const char* filename)
 
 bool SCREEN_IniFile::LoadFromVFS(const std::string &filename) {
 	size_t size;
-	uint8_t *data = VFSReadFile(filename.c_str(), &size);
+	uint8_t *data = SCREEN_VFSReadFile(filename.c_str(), &size);
 	if (!data)
 		return false;
 	std::string str((const char*)data, size);

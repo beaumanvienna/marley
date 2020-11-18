@@ -11,15 +11,15 @@
 #include "Common/Render/TextureAtlas.h"
 #include "Common/Render/DrawBuffer.h"
 
-SCREEN_DrawBuffer ui_draw2d;
-SCREEN_DrawBuffer ui_draw2d_front;
+SCREEN_DrawBuffer SCREEN_ui_draw2d;
+SCREEN_DrawBuffer SCREEN_ui_draw2d_front;
 
 void UIBegin(SCREEN_Draw::SCREEN_Pipeline *pipeline) {
-	ui_draw2d.Begin(pipeline);
-	ui_draw2d_front.Begin(pipeline);
+	SCREEN_ui_draw2d.Begin(pipeline);
+	SCREEN_ui_draw2d_front.Begin(pipeline);
 }
 
-void UIFlush() {
-	ui_draw2d.Flush();
-	ui_draw2d_front.Flush();
+void SCREEN_UIFlush() {
+	SCREEN_ui_draw2d.Flush();
+	SCREEN_ui_draw2d_front.Flush();
 }

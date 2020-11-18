@@ -23,7 +23,7 @@ uint8_t *DirectorySCREEN_AssetReader::ReadAsset(const char *path, size_t *size) 
 		strcpy(new_path, path_);
 	}
 	strcat(new_path, path);
-	return ReadLocalFile(new_path, size);
+	return SCREEN_ReadLocalFile(new_path, size);
 }
 
 bool DirectorySCREEN_AssetReader::GetFileListing(const char *path, std::vector<FileInfo> *listing, const char *filter = 0)

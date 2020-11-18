@@ -75,8 +75,8 @@ void SCREEN_UIContext::Flush() {
 }
 
 void SCREEN_UIContext::SetCurZ(float curZ) {
-	ui_draw2d.SetCurZ(curZ);
-	ui_draw2d_front.SetCurZ(curZ);
+	SCREEN_ui_draw2d.SetCurZ(curZ);
+	SCREEN_ui_draw2d_front.SetCurZ(curZ);
 }
 
 // TODO: Support transformed bounds using stencil instead.
@@ -107,10 +107,10 @@ Bounds SCREEN_UIContext::GetScissorBounds() {
 Bounds SCREEN_UIContext::GetLayoutBounds() const {
 	Bounds bounds = GetBounds();
 
-	float left = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_LEFT);
-	float right = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_RIGHT);
-	float top = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_TOP);
-	float bottom = System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_BOTTOM);
+	float left = SCREEN_System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_LEFT);
+	float right = SCREEN_System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_RIGHT);
+	float top = SCREEN_System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_TOP);
+	float bottom = SCREEN_System_GetPropertyFloat(SYSPROP_DISPLAY_SAFE_INSET_BOTTOM);
 
 	// ILOG("Insets: %f %f %f %f", left, right, top, bottom);
 

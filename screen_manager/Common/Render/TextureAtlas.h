@@ -96,8 +96,8 @@ struct AtlasFontHeader {
 	char name[32];
 };
 
-struct AtlasFont {
-	~AtlasFont();
+struct SCREEN_AtlasFont {
+	~SCREEN_AtlasFont();
 
 	float padding;
 	float height;
@@ -133,13 +133,13 @@ struct SCREEN_Atlas {
 		return images != nullptr;
 	}
 
-	AtlasFont *fonts = nullptr;
+	SCREEN_AtlasFont *fonts = nullptr;
 	int num_fonts = 0;
 	AtlasImage *images = nullptr;
 	int num_images = 0;
 
 	// These are inefficient linear searches, try not to call every frame.
-	const AtlasFont *getFont(FontID id) const;
+	const SCREEN_AtlasFont *getFont(FontID id) const;
 	const AtlasImage *getImage(ImageID id) const;
 
 	bool measureImage(ImageID id, float *w, float *h) const;

@@ -80,9 +80,9 @@ struct TextureShaderInfo {
 };
 
 
-extern std::string boot_filename;
+extern std::string SCREEN_boot_filename;
 void UIBackgroundInit(SCREEN_UIContext &dc);
-void UIBackgroundShutdown();
+void SCREEN_UIBackgroundShutdown();
 
 inline void NoOpVoidBool(bool) {}
 
@@ -124,9 +124,9 @@ protected:
 	std::string gamePath_;
 };
 
-class PromptScreen : public SCREEN_UIDialogScreenWithBackground {
+class SCREEN_PromptScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
-	PromptScreen(std::string message, std::string yesButtonText, std::string noButtonText,
+	SCREEN_PromptScreen(std::string message, std::string yesButtonText, std::string noButtonText,
 		std::function<void(bool)> callback = &NoOpVoidBool);
 
 	void CreateViews() override;
@@ -176,9 +176,9 @@ private:
 	std::vector<TextureShaderInfo> shaders_;
 };
 
-class LogoScreen : public SCREEN_UIScreen {
+class SCREEN_LogoScreen : public SCREEN_UIScreen {
 public:
-	LogoScreen(bool gotoGameSettings = false)
+	SCREEN_LogoScreen(bool gotoGameSettings = false)
 		: gotoGameSettings_(gotoGameSettings) {}
 	bool key(const KeyInput &key) override;
 	bool touch(const TouchInput &touch) override;
@@ -194,9 +194,9 @@ private:
 	bool gotoGameSettings_ = false;
 };
 
-class CreditsScreen : public SCREEN_UIDialogScreenWithBackground {
+class SCREEN_CreditsScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
-	CreditsScreen() : frames_(0) {}
+	SCREEN_CreditsScreen() : frames_(0) {}
 	void update() override;
 	void render() override;
 

@@ -35,8 +35,8 @@ struct SCREEN_Atlas;
 
 // This is the drawbuffer used for UI. Remember to flush it at the end of the frame.
 // TODO: One should probably pass it in through UIInit.
-extern SCREEN_DrawBuffer ui_draw2d;
-extern SCREEN_DrawBuffer ui_draw2d_front;	// for things that need to be on top of the rest
+extern SCREEN_DrawBuffer SCREEN_ui_draw2d;
+extern SCREEN_DrawBuffer SCREEN_ui_draw2d_front;	// for things that need to be on top of the rest
 
 // TODO: These don't really belong here.
 
@@ -62,5 +62,5 @@ private:
 
 // Begins/flushes the two UI drawbuffers together.
 void UIBegin(SCREEN_Draw::SCREEN_Pipeline *shaderSet);
-void UIFlush();
+void SCREEN_UIFlush();
 

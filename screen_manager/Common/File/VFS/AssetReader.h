@@ -11,7 +11,7 @@
 #include "Common/File/VFS/VFS.h"
 
 // Direct readers. deallocate using delete [].
-uint8_t *ReadLocalFile(const char *filename, size_t *size);
+uint8_t *SCREEN_ReadLocalFile(const char *filename, size_t *size);
 
 class SCREEN_AssetReader {
 public:

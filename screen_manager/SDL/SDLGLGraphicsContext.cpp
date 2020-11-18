@@ -360,7 +360,7 @@ int SDLGLSCREEN_GraphicsContext::Init(SDL_Window *&window, int x, int y, int mod
 
 		window = SDL_CreateWindow("PPSSPP", x, y, pixel_xres, pixel_yres, mode);
 		if (window == nullptr) {
-			NativeShutdown();
+			SCREEN_NativeShutdown();
 			fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
 			//SDL_Quit();
 			return 2;
@@ -368,7 +368,7 @@ int SDLGLSCREEN_GraphicsContext::Init(SDL_Window *&window, int x, int y, int mod
 
 		glContext = SDL_GL_CreateContext(window);
 		if (glContext == nullptr) {
-			NativeShutdown();
+			SCREEN_NativeShutdown();
 			fprintf(stderr, "SDL_GL_CreateContext failed: %s\n", SDL_GetError());
 			//SDL_Quit();
 			return 2;

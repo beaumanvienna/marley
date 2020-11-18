@@ -13,8 +13,7 @@ using namespace std;
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
 
-int ppsspp_main(int argc, char* argv[]);
-
+int screen_manager_main(int argc, char* argv[]);
 
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
@@ -515,7 +514,7 @@ int main(int argc, char* argv[])
         ppsspp_argc = 1; 
     }
 
-    ppsspp_main(ppsspp_argc,ppsspp_argv);
+    screen_manager_main(ppsspp_argc,ppsspp_argv);
 
     printf("jc exit test\n");
 

@@ -101,22 +101,22 @@ private:
 	DISALLOW_COPY_AND_ASSIGN(SCREEN_I18NRepo);
 };
 
-extern SCREEN_I18NRepo i18nrepo;
+extern SCREEN_I18NRepo SCREEN_i18nrepo;
 
 // These are simply talking to the one global instance of SCREEN_I18NRepo.
 
 inline std::shared_ptr<SCREEN_I18NCategory> GetI18NCategory(const char *categoryName) {
 	if (!categoryName)
 		return nullptr;
-	return i18nrepo.GetCategory(categoryName);
+	return SCREEN_i18nrepo.GetCategory(categoryName);
 }
 
 inline bool I18NCategoryLoaded(const char *categoryName) {
-	return i18nrepo.HasCategory(categoryName);
+	return SCREEN_i18nrepo.HasCategory(categoryName);
 }
 
 inline const char *T(const char *category, const char *key, const char *def = 0) {
-	return i18nrepo.T(category, key, def);
+	return SCREEN_i18nrepo.T(category, key, def);
 }
 
 

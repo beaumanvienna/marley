@@ -46,7 +46,7 @@ bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
 	}
 
 	images = reader.ReadMultipleAlloc<AtlasImage>(num_images);
-	fonts = new AtlasFont[num_fonts];
+	fonts = new SCREEN_AtlasFont[num_fonts];
 	for (int i = 0; i < num_fonts; i++) {
 		AtlasFontHeader font_header = reader.Read<AtlasFontHeader>();
 		fonts[i].padding = font_header.padding;
@@ -62,7 +62,7 @@ bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
 	return true;
 }
 
-const AtlasFont *SCREEN_Atlas::getFont(FontID id) const {
+const SCREEN_AtlasFont *SCREEN_Atlas::getFont(FontID id) const {
 	if (id.isInvalid())
 		return nullptr;
 
@@ -97,7 +97,7 @@ bool SCREEN_Atlas::measureImage(ImageID id, float *w, float *h) const {
 	}
 }
 
-const AtlasChar *AtlasFont::getChar(int utf32) const {
+const AtlasChar *SCREEN_AtlasFont::getChar(int utf32) const {
 	for (int i = 0; i < numRanges; i++) {
 		if (utf32 >= ranges[i].start && utf32 < ranges[i].end) {
 			const AtlasChar *c = &charData[ranges[i].result_index + utf32 - ranges[i].start];
@@ -115,7 +115,7 @@ SCREEN_Atlas::~SCREEN_Atlas() {
 	delete[] fonts;
 }
 
-AtlasFont::~AtlasFont() {
+SCREEN_AtlasFont::~SCREEN_AtlasFont() {
 	delete[] ranges;
 	delete[] charData;
 }

@@ -117,7 +117,7 @@ int LoadZIMPtr(const uint8_t *zim, size_t datasize, int *width, int *height, int
 
 int LoadZIM(const char *filename, int *width, int *height, int *format, uint8_t **image) {
 	size_t size;
-	uint8_t *buffer = VFSReadFile(filename, &size);
+	uint8_t *buffer = SCREEN_VFSReadFile(filename, &size);
 	if (!buffer) {
 		printf("Couldn't read data for '%s'", buffer);
 		return 0;

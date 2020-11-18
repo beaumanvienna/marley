@@ -939,11 +939,11 @@ bool TextEdit::Key(const KeyInput &input) {
 			switch (input.keyCode) {
 			case NKCODE_C:
 				// Just copy the entire text contents, until we get selection support.
-				System_SendMessage("setclipboardtext", text_.c_str());
+				SCREEN_System_SendMessage("setclipboardtext", text_.c_str());
 				break;
 			case NKCODE_V:
 				{
-					std::string clipText = System_GetProperty(SYSPROP_CLIPBOARD_TEXT);
+					std::string clipText = SCREEN_System_GetProperty(SYSPROP_CLIPBOARD_TEXT);
 					clipText = FirstLine(clipText);
 					if (clipText.size()) {
 						// Until we get selection, replace the whole text

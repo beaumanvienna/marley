@@ -4,7 +4,7 @@
 
 #include "Common/StringUtils.h"
 
-SCREEN_I18NRepo i18nrepo;
+SCREEN_I18NRepo SCREEN_i18nrepo;
 
 SCREEN_I18NRepo::~SCREEN_I18NRepo() {
 	Clear();
@@ -73,7 +73,7 @@ std::string SCREEN_I18NRepo::GetIniPath(const std::string &languageID) const {
 
 bool SCREEN_I18NRepo::IniExists(const std::string &languageID) const {
 	FileInfo info;
-	if (!VFSGetFileInfo(GetIniPath(languageID).c_str(), &info))
+	if (!SCREEN_VFSGetFileInfo(GetIniPath(languageID).c_str(), &info))
 		return false;
 	if (!info.exists)
 		return false;

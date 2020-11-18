@@ -28,7 +28,7 @@ SCREEN_SDLJoystick::SCREEN_SDLJoystick(bool init_SDL ) : registeredAsEventHandle
 	cout << "loading control pad mappings from " << dbPath << ": ";
 
 	size_t size;
-	u8 *mappingData = VFSReadFile(dbPath, &size);
+	u8 *mappingData = SCREEN_VFSReadFile(dbPath, &size);
 	if (mappingData) {
 		SDL_RWops *rw = SDL_RWFromConstMem(mappingData, size);
 		// 1 to free the rw after use
@@ -167,7 +167,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 				key.flags = KEY_DOWN;
 				key.keyCode = code;
 				key.deviceId = DEVICE_ID_PAD_0 + getDeviceIndex(event.cbutton.which);
-				NativeKey(key);
+				SCREEN_NativeKey(key);
 			}
 		}
 		break;
@@ -179,7 +179,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 				key.flags = KEY_UP;
 				key.keyCode = code;
 				key.deviceId = DEVICE_ID_PAD_0 + getDeviceIndex(event.cbutton.which);
-				NativeKey(key);
+				SCREEN_NativeKey(key);
 			}
 		}
 		break;
@@ -192,7 +192,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 		if (axis.value < -1.0f) axis.value = -1.0f;
 		axis.deviceId = DEVICE_ID_PAD_0 + getDeviceIndex(event.caxis.which);
 		axis.flags = 0;
-		NativeAxis(axis);
+		SCREEN_NativeAxis(axis);
 		break;
 	case SDL_CONTROLLERDEVICEREMOVED:
 		// for removal events, "which" is the instance ID for SDL_CONTROLLERDEVICEREMOVED		

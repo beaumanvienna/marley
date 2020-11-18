@@ -8,7 +8,7 @@
 #include "ppsspp_config.h"
 #include "SDL.h"
 #include "SDL/SDLJoystick.h"
-SCREEN_SDLJoystick *joystick = NULL;
+SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 
 #if PPSSPP_PLATFORM(RPI)
 #include <bcm_host.h>
@@ -50,19 +50,19 @@ SCREEN_SDLJoystick *joystick = NULL;
 #include "SDLGLGraphicsContext.h"
 #include "../../include/gui.h"
 
-GlobalUIState lastUIState = UISTATE_MENU;
+GlobalUIState SCREEN_lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
 GlobalUIState globalUIState;
 
-static bool g_ToggleFullScreenNextFrame = false;
-static int g_ToggleFullScreenType;
-static int g_QuitRequested = 0;
+static bool SCREEN_g_ToggleFullScreenNextFrame = false;
+static int SCREEN_g_ToggleFullScreenType;
+static int SCREEN_g_QuitRequested = 0;
 
-static int g_DesktopWidth = 0;
-static int g_DesktopHeight = 0;
-static float g_RefreshRate = 60.f;
+static int SCREEN_g_DesktopWidth = 0;
+static int SCREEN_g_DesktopHeight = 0;
+static float SCREEN_g_RefreshRate = 60.f;
 
-int getDisplayNumber(void) {
+int SCREEN_getDisplayNumber(void) {
 	int displayNumber = 0;
 	char * displayNumberStr;
 
@@ -76,48 +76,48 @@ int getDisplayNumber(void) {
 	return displayNumber;
 }
 
-void SystemToast(const char *text) {
+void SCREEN_SystemToast(const char *text) {
 	puts(text);
 }
 
-void ShowKeyboard() {
+void SCREEN_ShowKeyboard() {
 	// Irrelevant on PC
 }
 
-void Vibrate(int length_ms) {
+void SCREEN_Vibrate(int length_ms) {
 	// Ignore on PC
 }
 
-void System_SendMessage(const char *command, const char *parameter) {
+void SCREEN_System_SendMessage(const char *command, const char *parameter) {
 	if (!strcmp(command, "toggle_fullscreen")) {
-		g_ToggleFullScreenNextFrame = true;
+		SCREEN_g_ToggleFullScreenNextFrame = true;
 		if (strcmp(parameter, "1") == 0) {
-			g_ToggleFullScreenType = 1;
+			SCREEN_g_ToggleFullScreenType = 1;
 		} else if (strcmp(parameter, "0") == 0) {
-			g_ToggleFullScreenType = 0;
+			SCREEN_g_ToggleFullScreenType = 0;
 		} else {
 			// Just toggle.
-			g_ToggleFullScreenType = -1;
+			SCREEN_g_ToggleFullScreenType = -1;
 		}
 	} else if (!strcmp(command, "finish")) {
 		// Do a clean exit
-		g_QuitRequested = true;
+		SCREEN_g_QuitRequested = true;
 	} else if (!strcmp(command, "graphics_restart")) {
 		// Not sure how we best do this, but do a clean exit, better than being stuck in a bad state.
-		g_QuitRequested = true;
+		SCREEN_g_QuitRequested = true;
 	} else if (!strcmp(command, "setclipboardtext")) {
 		SDL_SetClipboardText(parameter);
 	} 
 }
 
-void System_AskForPermission(SystemPermission permission) {}
-PermissionStatus System_GetPermissionStatus(SystemPermission permission) { return PERMISSION_STATUS_GRANTED; }
+void SCREEN_System_AskForPermission(SystemPermission permission) {}
+PermissionStatus SCREEN_System_GetPermissionStatus(SystemPermission permission) { return PERMISSION_STATUS_GRANTED; }
 
-void OpenDirectory(const char *path) {
+void SCREEN_OpenDirectory(const char *path) {
 
 }
 
-std::string System_GetProperty(SystemProperty prop) {
+std::string SCREEN_System_GetProperty(SystemProperty prop) {
 	switch (prop) {
 	case SYSPROP_NAME:
 #ifdef _WIN32
@@ -180,7 +180,7 @@ std::string System_GetProperty(SystemProperty prop) {
 	}
 }
 
-int System_GetPropertyInt(SystemProperty prop) {
+int SCREEN_System_GetPropertyInt(SystemProperty prop) {
 	switch (prop) {
 	case SYSPROP_DEVICE_TYPE:
 		return DEVICE_TYPE_DESKTOP;
@@ -191,10 +191,10 @@ int System_GetPropertyInt(SystemProperty prop) {
 	}
 }
 
-float System_GetPropertyFloat(SystemProperty prop) {
+float SCREEN_System_GetPropertyFloat(SystemProperty prop) {
 	switch (prop) {
 	case SYSPROP_DISPLAY_REFRESH_RATE:
-		return g_RefreshRate;
+		return SCREEN_g_RefreshRate;
 	case SYSPROP_DISPLAY_SAFE_INSET_LEFT:
 	case SYSPROP_DISPLAY_SAFE_INSET_RIGHT:
 	case SYSPROP_DISPLAY_SAFE_INSET_TOP:
@@ -205,7 +205,7 @@ float System_GetPropertyFloat(SystemProperty prop) {
 	}
 }
 
-bool System_GetPropertyBool(SystemProperty prop) {
+bool SCREEN_System_GetPropertyBool(SystemProperty prop) {
 	switch (prop) {
 	case SYSPROP_HAS_BACK_BUTTON:
 		return true;
@@ -237,14 +237,14 @@ static float parseFloat(const char *str) {
 	}
 }
 
-void ToggleFullScreenIfFlagSet(SDL_Window *window) {
-	if (g_ToggleFullScreenNextFrame) {
-		g_ToggleFullScreenNextFrame = false;
+void SCREEN_ToggleFullScreenIfFlagSet(SDL_Window *window) {
+	if (SCREEN_g_ToggleFullScreenNextFrame) {
+		SCREEN_g_ToggleFullScreenNextFrame = false;
 
 		Uint32 window_flags = SDL_GetWindowFlags(window);
-		if (g_ToggleFullScreenType == -1) {
+		if (SCREEN_g_ToggleFullScreenType == -1) {
 			window_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
-		} else if (g_ToggleFullScreenType == 1) {
+		} else if (SCREEN_g_ToggleFullScreenType == 1) {
 			window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		} else {
 			window_flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -256,12 +256,12 @@ void ToggleFullScreenIfFlagSet(SDL_Window *window) {
 int screen_manager_main(int argc, char *argv[]) {
 
     SDL_GL_ResetAttributes();
-    lastUIState = UISTATE_MENU;
-    g_ToggleFullScreenNextFrame = false;
-    g_QuitRequested = 0;
-    g_DesktopWidth  = 0;
-    g_DesktopHeight = 0;
-    g_RefreshRate = 60.f;
+    SCREEN_lastUIState = UISTATE_MENU;
+    SCREEN_g_ToggleFullScreenNextFrame = false;
+    SCREEN_g_QuitRequested = 0;
+    SCREEN_g_DesktopWidth  = 0;
+    SCREEN_g_DesktopHeight = 0;
+    SCREEN_g_RefreshRate = 60.f;
 
 	SDL_version compiled;
 	SDL_version linked;
@@ -299,9 +299,9 @@ int screen_manager_main(int argc, char *argv[]) {
 		fprintf(stderr, "Could not get display mode: %s\n", SDL_GetError());
 		return 1;
 	}
-	g_DesktopWidth = displayMode.w;
-	g_DesktopHeight = displayMode.h;
-	g_RefreshRate = displayMode.refresh_rate;
+	SCREEN_g_DesktopWidth = displayMode.w;
+	SCREEN_g_DesktopHeight = displayMode.h;
+	SCREEN_g_RefreshRate = displayMode.refresh_rate;
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -312,8 +312,8 @@ int screen_manager_main(int argc, char *argv[]) {
     
     mode = SDL_GetWindowFlags(gWindow);
 	if (mode & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-		pixel_xres = g_DesktopWidth;
-		pixel_yres = g_DesktopHeight;
+		pixel_xres = SCREEN_g_DesktopWidth;
+		pixel_yres = SCREEN_g_DesktopHeight;
 	} else {
         pixel_xres = WINDOW_WIDTH;
         pixel_yres = WINDOW_HEIGHT;
@@ -353,7 +353,7 @@ int screen_manager_main(int argc, char *argv[]) {
 	if (strlen(path) > 0 && path[strlen(path) - 1] != '/')
 		strcat(path, "/");
 
-	NativeInit(remain_argc, (const char **)remain_argv, path, "/tmp", nullptr);
+	SCREEN_NativeInit(remain_argc, (const char **)remain_argv, path, "/tmp", nullptr);
 
     if (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP)
 		mode |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -376,9 +376,9 @@ int screen_manager_main(int argc, char *argv[]) {
 		printf("Init from thread error: '%s'\n", error_message.c_str());
 	}
 
-	joystick = new SCREEN_SDLJoystick();
+	SCREEN_joystick = new SCREEN_SDLJoystick();
 
-	NativeInitGraphics(graphicsContext);
+	SCREEN_NativeInitGraphics(graphicsContext);
     	
 	graphicsContext->ThreadStart();
 
@@ -389,13 +389,13 @@ int screen_manager_main(int argc, char *argv[]) {
 
 			switch (event.type) {
 			case SDL_QUIT:
-				g_QuitRequested = 1;
+				SCREEN_g_QuitRequested = 1;
 				break;
 			case SDL_KEYDOWN:
 				{
 					if (event.key.repeat > 0) { break;}
 					int k = event.key.keysym.sym;
-                    if (k == 27) g_QuitRequested = 1;
+                    if (k == 27) SCREEN_g_QuitRequested = 1;
 					KeyInput key;
 					key.flags = KEY_DOWN;
 					auto mapped = KeyMapRawSDLtoNative.find(k);
@@ -404,7 +404,7 @@ int screen_manager_main(int argc, char *argv[]) {
 					}
 					key.keyCode = mapped->second;
 					key.deviceId = DEVICE_ID_KEYBOARD;
-					NativeKey(key);
+					SCREEN_NativeKey(key);
 					break;
 				}
 			case SDL_KEYUP:
@@ -419,38 +419,38 @@ int screen_manager_main(int argc, char *argv[]) {
 					}
 					key.keyCode = mapped->second;
 					key.deviceId = DEVICE_ID_KEYBOARD;
-					NativeKey(key);
+					SCREEN_NativeKey(key);
 					break;
 				}
 			default:
-				if (joystick) {
-					joystick->ProcessInput(event);
+				if (SCREEN_joystick) {
+					SCREEN_joystick->ProcessInput(event);
 				}
 				break;
 			}
 		}
 		
-        NativeUpdate();
-        NativeRender(graphicsContext);
+        SCREEN_NativeUpdate();
+        SCREEN_NativeRender(graphicsContext);
 		
         graphicsContext->ThreadFrame();
 
 		graphicsContext->SwapBuffers();
 
-        if (g_QuitRequested) break;
+        if (SCREEN_g_QuitRequested) break;
 		SDL_Delay(10);
 
 	}
 
-    NativeShutdownGraphics();
+    SCREEN_NativeShutdownGraphics();
 
-	delete joystick;
+	delete SCREEN_joystick;
 
 	graphicsContext->ThreadEnd();
 
-	NativeShutdown();
+	SCREEN_NativeShutdown();
 
-	// Destroys Draw, which is used in NativeShutdown to shutdown.
+	// Destroys Draw, which is used in SCREEN_NativeShutdown to shutdown.
 	graphicsContext->ShutdownFromRenderThread();
 
 	delete graphicsContext;

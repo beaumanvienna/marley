@@ -59,7 +59,7 @@ static std::unique_ptr<SCREEN_ManagedTexture> bgTexture;
 
 static bool backgroundInited;
 extern GlobalUIState globalUIState;
-void UpdateUIState(GlobalUIState newState) {
+void SCREEN_UpdateUIState(GlobalUIState newState) {
 
 	if (globalUIState != newState && globalUIState != UISTATE_EXIT) {
 		globalUIState = newState;
@@ -72,7 +72,7 @@ void UpdateUIState(GlobalUIState newState) {
 		case UISTATE_PAUSEMENU: state = "pausemenu"; break;
 		}
 		if (state) {
-			System_SendMessage("uistate", state);
+			SCREEN_System_SendMessage("uistate", state);
 		}
 	}
 }
@@ -86,7 +86,7 @@ void UIBackgroundInit(SCREEN_UIContext &dc) {
 	}
 }
 
-void UIBackgroundShutdown() {
+void SCREEN_UIBackgroundShutdown() {
 	bgTexture.reset(nullptr);
 	backgroundInited = false;
 }
@@ -132,7 +132,7 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 		float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
 		float angle = (float)sin(i + t);
 		int n = i & 3;
-		ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
+		SCREEN_ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
 	}
 
 }
@@ -179,19 +179,19 @@ void HandleCommonMessages(const char *message, const char *value, SCREEN_ScreenM
 			currentMIPS->UpdateCore((CPUCore)g_PConfig.iCpuCore);
 		}
 	} else if (!strcmp(message, "control mapping") && isActiveScreen && activeScreen->tag() != "control mapping") {
-		UpdateUIState(UISTATE_MENU);
+		SCREEN_UpdateUIState(UISTATE_MENU);
 		manager->push(new ControlMappingScreen());
 	} else if (!strcmp(message, "display layout editor") && isActiveScreen && activeScreen->tag() != "display layout screen") {
-		UpdateUIState(UISTATE_MENU);
+		SCREEN_UpdateUIState(UISTATE_MENU);
 		manager->push(new DisplayLayoutScreen());
 	} else if (!strcmp(message, "settings") && isActiveScreen && activeScreen->tag() != "settings") {
-		UpdateUIState(UISTATE_MENU);
+		SCREEN_UpdateUIState(UISTATE_MENU);
 		manager->push(new GameSettingsScreen(""));
 	} else if (!strcmp(message, "language screen") && isActiveScreen) {
 		auto dev = GetI18NCategory("Developer");
 		auto langScreen = new SCREEN_NewLanguageScreen(dev->T("Language"));
 		langScreen->OnChoice.Add([](SCREEN_UI::EventParams &) {
-			NativeMessageReceived("recreateviews", "");
+			SCREEN_NativeMessageReceived("recreateviews", "");
 			if (host) {
 				host->UpdateUI();
 			}
@@ -266,14 +266,14 @@ void SCREEN_UIDialogScreenWithBackground::sendMessage(const char *message, const
 	HandleCommonMessages(message, value, screenManager(), this);
 }
 
-PromptScreen::PromptScreen(std::string message, std::string yesButtonText, std::string noButtonText, std::function<void(bool)> callback)
+SCREEN_PromptScreen::SCREEN_PromptScreen(std::string message, std::string yesButtonText, std::string noButtonText, std::function<void(bool)> callback)
 		: message_(message), callback_(callback) {
 	auto di = GetI18NCategory("Dialog");
 	yesButtonText_ = di->T(yesButtonText.c_str());
 	noButtonText_ = di->T(noButtonText.c_str());
 }
 
-void PromptScreen::CreateViews() {
+void SCREEN_PromptScreen::CreateViews() {
 	// Information in the top left.
 	// Back button to the bottom left.
 	// Scrolling action menu to the right.
@@ -292,23 +292,23 @@ void PromptScreen::CreateViews() {
 	ViewGroup *rightColumnItems = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
 	root_->Add(rightColumnItems);
 	Choice *yesButton = rightColumnItems->Add(new Choice(yesButtonText_));
-	yesButton->OnClick.Handle(this, &PromptScreen::OnYes);
+	yesButton->OnClick.Handle(this, &SCREEN_PromptScreen::OnYes);
 	root_->SetDefaultFocusView(yesButton);
 	if (!noButtonText_.empty())
-		rightColumnItems->Add(new Choice(noButtonText_))->OnClick.Handle(this, &PromptScreen::OnNo);
+		rightColumnItems->Add(new Choice(noButtonText_))->OnClick.Handle(this, &SCREEN_PromptScreen::OnNo);
 }
 
-SCREEN_UI::EventReturn PromptScreen::OnYes(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_PromptScreen::OnYes(SCREEN_UI::EventParams &e) {
 	TriggerFinish(DR_OK);
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn PromptScreen::OnNo(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_PromptScreen::OnNo(SCREEN_UI::EventParams &e) {
 	TriggerFinish(DR_CANCEL);
 	return SCREEN_UI::EVENT_DONE;
 }
 
-void PromptScreen::TriggerFinish(DialogResult result) {
+void SCREEN_PromptScreen::TriggerFinish(DialogResult result) {
 	callback_(result == DR_OK || result == DR_YES);
 	SCREEN_UIDialogScreenWithBackground::TriggerFinish(result);
 }
@@ -368,7 +368,7 @@ SCREEN_NewLanguageScreen::SCREEN_NewLanguageScreen(const std::string &title) : L
 	langValuesMapping = GetLangValuesMapping();
 
 	std::vector<FileInfo> tempLangs;
-	VFSGetFileListing("lang", &tempLangs, "ini");
+	SCREEN_VFSGetFileListing("lang", &tempLangs, "ini");
 	std::vector<std::string> listing;
 	int selected = -1;
 	int counter = 0;
@@ -438,9 +438,9 @@ void SCREEN_NewLanguageScreen::OnCompleted(DialogResult result) {
 
 	// If we run into the unlikely case that "lang" is actually a file, just use the built-in translations.
 	if (!SCREEN_PFile::Exists(langOverridePath) || !SCREEN_PFile::IsDirectory(langOverridePath))
-		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni);
+		iniLoadedSuccessfully = SCREEN_i18nrepo.LoadIni(g_PConfig.sLanguageIni);
 	else
-		iniLoadedSuccessfully = i18nrepo.LoadIni(g_PConfig.sLanguageIni, langOverridePath);
+		iniLoadedSuccessfully = SCREEN_i18nrepo.LoadIni(g_PConfig.sLanguageIni, langOverridePath);
 
 	if (iniLoadedSuccessfully) {
 		// Dunno what else to do here.
@@ -457,18 +457,18 @@ void SCREEN_NewLanguageScreen::OnCompleted(DialogResult result) {
 */
 }
 
-void LogoScreen::Next() {
+void SCREEN_LogoScreen::Next() {
 /*	if (!switched_) {
 		switched_ = true;
 		if (gotoGameSettings_) {
-			if (boot_filename.size()) {
-				screenManager()->switchScreen(new EmuScreen(boot_filename));
+			if (SCREEN_boot_filename.size()) {
+				screenManager()->switchScreen(new EmuScreen(SCREEN_boot_filename));
 			} else {
 				screenManager()->switchScreen(new MainScreen());
 			}
-			screenManager()->push(new GameSettingsScreen(boot_filename));
-		} else if (boot_filename.size()) {
-			screenManager()->switchScreen(new EmuScreen(boot_filename));
+			screenManager()->push(new GameSettingsScreen(SCREEN_boot_filename));
+		} else if (SCREEN_boot_filename.size()) {
+			screenManager()->switchScreen(new EmuScreen(SCREEN_boot_filename));
 		} else {
 			screenManager()->switchScreen(new MainScreen());
 		}
@@ -478,7 +478,7 @@ void LogoScreen::Next() {
 
 const float logoScreenSeconds = 2.5f;
 
-void LogoScreen::update() {
+void SCREEN_LogoScreen::update() {
 	SCREEN_UIScreen::update();
 	frames_++;
 	if (frames_ > 60 * logoScreenSeconds) {
@@ -486,14 +486,14 @@ void LogoScreen::update() {
 	}
 }
 
-void LogoScreen::sendMessage(const char *message, const char *value) {
+void SCREEN_LogoScreen::sendMessage(const char *message, const char *value) {
 /*	if (!strcmp(message, "boot") && screenManager()->topScreen() == this) {
 		screenManager()->switchScreen(new EmuScreen(value));
 	}
 */
 }
 
-bool LogoScreen::key(const KeyInput &key) {
+bool SCREEN_LogoScreen::key(const KeyInput &key) {
 	if (key.deviceId != DEVICE_ID_MOUSE) {
 		Next();
 		return true;
@@ -501,7 +501,7 @@ bool LogoScreen::key(const KeyInput &key) {
 	return false;
 }
 
-bool LogoScreen::touch(const TouchInput &touch) {
+bool SCREEN_LogoScreen::touch(const TouchInput &touch) {
 	if (touch.flags & TOUCH_DOWN) {
 		Next();
 		return true;
@@ -509,7 +509,7 @@ bool LogoScreen::touch(const TouchInput &touch) {
 	return false;
 }
 
-void LogoScreen::render() {
+void SCREEN_LogoScreen::render() {
 	using namespace SCREEN_Draw;
 
 	SCREEN_UIScreen::render();
@@ -538,7 +538,7 @@ void LogoScreen::render() {
 	char temp[256];
 	// Manually formatting UTF-8 is fun.  \xXX doesn't work everywhere.
 	snprintf(temp, sizeof(temp), "%s Henrik Rydg%c%crd", cr->T("created", "Created by"), 0xC3, 0xA5);
-	if (System_GetPropertyBool(SYSPROP_APP_GOLD)) {
+	if (SCREEN_System_GetPropertyBool(SYSPROP_APP_GOLD)) {
 		dc.Draw()->DrawImage(ImageID("I_ICONGOLD"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
 	} else {
 		dc.Draw()->DrawImage(ImageID("I_ICON"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
@@ -565,66 +565,66 @@ void LogoScreen::render() {
 	dc.Flush();
 }
 
-void CreditsScreen::CreateViews() {
+void SCREEN_CreditsScreen::CreateViews() {
 	using namespace SCREEN_UI;
 	auto di = GetI18NCategory("Dialog");
 	auto cr = GetI18NCategory("PSPCredits");
 
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 	Button *back = root_->Add(new Button(di->T("Back"), new AnchorLayoutParams(260, 64, NONE, NONE, 10, 10, false)));
-	back->OnClick.Handle(this, &CreditsScreen::OnOK);
+	back->OnClick.Handle(this, &SCREEN_CreditsScreen::OnOK);
 	root_->SetDefaultFocusView(back);
 
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnSupport(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnSupport(SCREEN_UI::EventParams &e) {
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnTwitter(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnTwitter(SCREEN_UI::EventParams &e) {
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnPPSSPPOrg(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnPPSSPPOrg(SCREEN_UI::EventParams &e) {
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnPrivacy(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnPrivacy(SCREEN_UI::EventParams &e) {
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnForums(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnForums(SCREEN_UI::EventParams &e) {
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnDiscord(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnDiscord(SCREEN_UI::EventParams &e) {
 	
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnShare(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnShare(SCREEN_UI::EventParams &e) {
 	auto cr = GetI18NCategory("PSPCredits");
-	System_SendMessage("sharetext", cr->T("CheckOutPPSSPP", "Check out PPSSPP, the awesome PSP emulator: https://www.ppsspp.org/"));
+	SCREEN_System_SendMessage("sharetext", cr->T("CheckOutPPSSPP", "Check out PPSSPP, the awesome PSP emulator: https://www.ppsspp.org/"));
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn CreditsScreen::OnOK(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_CreditsScreen::OnOK(SCREEN_UI::EventParams &e) {
 	TriggerFinish(DR_OK);
 	return SCREEN_UI::EVENT_DONE;
 }
 
-void CreditsScreen::update() {
+void SCREEN_CreditsScreen::update() {
 	SCREEN_UIScreen::update();
-	UpdateUIState(UISTATE_MENU);
+	SCREEN_UpdateUIState(UISTATE_MENU);
 	frames_++;
 }
 
-void CreditsScreen::render() {
+void SCREEN_CreditsScreen::render() {
 	SCREEN_UIScreen::render();
 
 	auto cr = GetI18NCategory("PSPCredits");
@@ -762,7 +762,7 @@ void CreditsScreen::render() {
 
 	// TODO: This is kinda ugly, done on every frame...
 	char temp[256];
-	if (System_GetPropertyBool(SYSPROP_APP_GOLD)) {
+	if (SCREEN_System_GetPropertyBool(SYSPROP_APP_GOLD)) {
 		snprintf(temp, sizeof(temp), "PPSSPP Gold %s", "0.1.9");
 	} else {
 		snprintf(temp, sizeof(temp), "PPSSPP %s", "0.1.9");

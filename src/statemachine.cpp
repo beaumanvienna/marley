@@ -663,7 +663,7 @@ void statemachine(int cmd)
                         screen_man_argv[0] = arg1;
                         screen_man_argc = 1;
                     
-                        //screen_manager_main(screen_man_argc,screen_man_argv);
+                        screen_manager_main(screen_man_argc,screen_man_argv);
                         break;
                     case STATE_OFF:
                         gQuit=true;

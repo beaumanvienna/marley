@@ -17,7 +17,7 @@ void VFSRegister(const char *prefix, SCREEN_AssetReader *reader) {
 	num_entries++;
 }
 
-void VFSShutdown() {
+void SCREEN_VFSShutdown() {
 	for (int i = 0; i < num_entries; i++) {
 		delete entries[i].reader;
 	}
@@ -31,11 +31,11 @@ static bool IsLocalPath(const char *path) {
 }
 
 // The returned data should be free'd with delete[].
-uint8_t *VFSReadFile(const char *filename, size_t *size) {
+uint8_t *SCREEN_VFSReadFile(const char *filename, size_t *size) {
 	if (IsLocalPath(filename)) {
 		// Local path, not VFS.
 		// INFO_LOG(IO, "Not a VFS path: %s . Reading local file.", filename);
-		return ReadLocalFile(filename, size);
+		return SCREEN_ReadLocalFile(filename, size);
 	}
 
 	int fn_len = (int)strlen(filename);
@@ -60,7 +60,7 @@ uint8_t *VFSReadFile(const char *filename, size_t *size) {
 	return 0;
 }
 
-bool VFSGetFileListing(const char *path, std::vector<FileInfo> *listing, const char *filter) {
+bool SCREEN_VFSGetFileListing(const char *path, std::vector<FileInfo> *listing, const char *filter) {
 	if (IsLocalPath(path)) {
 		// Local path, not VFS.
 		// INFO_LOG(IO, "Not a VFS path: %s . Reading local directory.", path);
@@ -87,7 +87,7 @@ bool VFSGetFileListing(const char *path, std::vector<FileInfo> *listing, const c
 	return false;
 }
 
-bool VFSGetFileInfo(const char *path, FileInfo *info) {
+bool SCREEN_VFSGetFileInfo(const char *path, FileInfo *info) {
 	if (IsLocalPath(path)) {
 		// Local path, not VFS.
 		// INFO_LOG(IO, "Not a VFS path: %s . Getting local file info.", path);

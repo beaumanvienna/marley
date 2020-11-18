@@ -15,7 +15,7 @@
 #include "PauseScreenPCSX2.h"
 
 void GamePauseScreenPCSX2::update() {
-	//UpdateUIState(UISTATE_PAUSEMENU);
+	//SCREEN_UpdateUIState(UISTATE_PAUSEMENU);
 	SCREEN_UIScreen::update();
 
 	if (finishNextFrame_) {

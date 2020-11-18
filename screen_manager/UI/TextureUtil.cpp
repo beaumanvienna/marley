@@ -136,7 +136,7 @@ bool SCREEN_ManagedTexture::LoadFromFileData(const uint8_t *data, size_t dataSiz
 bool SCREEN_ManagedTexture::LoadFromFile(const std::string &filename, ImageFileType type, bool generateMips) {
 	generateMips_ = generateMips;
 	size_t fileSize;
-	uint8_t *buffer = VFSReadFile(filename.c_str(), &fileSize);
+	uint8_t *buffer = SCREEN_VFSReadFile(filename.c_str(), &fileSize);
 	if (!buffer) {
 		filename_ = "";
 		printf("Failed to read file '%s'", filename.c_str());

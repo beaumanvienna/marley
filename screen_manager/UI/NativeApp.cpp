@@ -26,7 +26,7 @@
 #include "ppsspp_config.h"
 
 // Background worker threads should be spawned in NativeInit and joined
-// in NativeShutdown.
+// in SCREEN_NativeShutdown.
 
 #include <locale.h>
 #include <algorithm>
@@ -71,22 +71,16 @@
 
 static SCREEN_UI::Theme ui_theme;
 extern GlobalUIState globalUIState;
-static SCREEN_GPUBackend gpuBackend;
-static std::string gpuBackendDevice;
+static SCREEN_GPUBackend SCREEN_gpuBackend;
+static std::string SCREEN_gpuBackendDevice;
 
-SCREEN_Atlas g_ui_atlas;
+SCREEN_Atlas SCREEN_g_ui_atlas;
 
-SCREEN_ScreenManager *screenManager;
-std::string config_filename;
+SCREEN_ScreenManager *SCREEN_screenManager;
+std::string SCREEN_config_filename;
 
-bool g_TakeScreenshot;
-bool g_ShaderNameListChanged = false;
-static bool isOuya;
-static bool resized = false;
+static bool SCREEN_resized = false;
 static bool restarting = false;
-
-static bool askedForStoragePermission = false;
-static int renderCounter = 0;
 
 struct PendingMessage {
 	std::string msg;
@@ -107,24 +101,24 @@ static SCREEN_Draw::SCREEN_Pipeline *colorPipeline;
 static SCREEN_Draw::SCREEN_Pipeline *texColorPipeline;
 static SCREEN_UIContext *uiContext;
 
-std::thread *graphicsLoadThread;
+std::thread *SCREEN_graphicsLoadThread;
 
 static SCREEN_LogListener *logger = nullptr;
-std::string boot_filename = "";
+std::string SCREEN_boot_filename = "";
 
 void SetGPUBackend(SCREEN_GPUBackend type, const std::string &device) {
-	gpuBackend = type;
-	gpuBackendDevice = device;
+	SCREEN_gpuBackend = type;
+	SCREEN_gpuBackendDevice = device;
 }
 
-std::string NativeQueryConfig(std::string query) {
+std::string SCREEN_NativeQueryConfig(std::string query) {
 	char temp[128];
 
 	return "";
 }
 
 // This is called before NativeInit so we do a little bit of initialization here.
-void NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, bool *landscape, std::string *version) {
+void SCREEN_NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, bool *landscape, std::string *version) {
 	*app_nice_name = "MARLEY";
 	*app_dir_name = "marley";
 	*landscape = true;
@@ -134,7 +128,7 @@ void NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, boo
 static void PostLoadConfig() {
 }
 
-void NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
+void SCREEN_NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
 
 	globalUIState = UISTATE_MENU;
     
@@ -162,8 +156,8 @@ void NativeInit(int argc, const char *argv[], const char *savegame_dir, const ch
 	foldername += ".marley/ppsspp/assets/";
 	VFSRegister("", new DirectorySCREEN_AssetReader(foldername.c_str()));	
     
-	screenManager = new SCREEN_ScreenManager();
-    screenManager->push(new GamePauseScreenPCSX2());
+	SCREEN_screenManager = new SCREEN_ScreenManager();
+    SCREEN_screenManager->push(new GamePauseScreenPCSX2());
 
 }
 
@@ -207,22 +201,22 @@ static void UIThemeInit() {
 }
 
 void RenderOverlays(SCREEN_UIContext *dc, void *userdata);
-bool CreateGlobalPipelines();
+bool SCREEN_CreateGlobalPipelines();
 
-bool NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext) {
+bool SCREEN_NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext) {
 	
 	g_draw = graphicsContext->GetSCREEN_DrawContext();
 
-	if (!CreateGlobalPipelines()) {
+	if (!SCREEN_CreateGlobalPipelines()) {
 		printf("Failed to create global pipelines");
 		return false;
 	}
 
 	// Load the atlas.
 	size_t atlas_data_size = 0;
-	if (!g_ui_atlas.IsMetadataLoaded()) {
-		const uint8_t *atlas_data = VFSReadFile("ui_atlas.meta", &atlas_data_size);
-		bool load_success = atlas_data != nullptr && g_ui_atlas.Load(atlas_data, atlas_data_size);
+	if (!SCREEN_g_ui_atlas.IsMetadataLoaded()) {
+		const uint8_t *atlas_data = SCREEN_VFSReadFile("ui_atlas.meta", &atlas_data_size);
+		bool load_success = atlas_data != nullptr && SCREEN_g_ui_atlas.Load(atlas_data, atlas_data_size);
 		if (!load_success) {
 			printf("Failed to load ui_atlas.meta - graphics will be broken.");
 			// Stumble along with broken visuals instead of dying.
@@ -230,31 +224,31 @@ bool NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext) {
 		delete[] atlas_data;
 	}
 
-	ui_draw2d.SetAtlas(&g_ui_atlas);
-	ui_draw2d_front.SetAtlas(&g_ui_atlas);
+	SCREEN_ui_draw2d.SetAtlas(&SCREEN_g_ui_atlas);
+	SCREEN_ui_draw2d_front.SetAtlas(&SCREEN_g_ui_atlas);
 
 	UIThemeInit();
 
 	uiContext = new SCREEN_UIContext();
 	uiContext->theme = &ui_theme;
 
-	ui_draw2d.Init(g_draw, texColorPipeline);
-	ui_draw2d_front.Init(g_draw, texColorPipeline);
+	SCREEN_ui_draw2d.Init(g_draw, texColorPipeline);
+	SCREEN_ui_draw2d_front.Init(g_draw, texColorPipeline);
 
-	uiContext->Init(g_draw, texColorPipeline, colorPipeline, &ui_draw2d, &ui_draw2d_front);
+	uiContext->Init(g_draw, texColorPipeline, colorPipeline, &SCREEN_ui_draw2d, &SCREEN_ui_draw2d_front);
 	if (uiContext->Text())
 		uiContext->Text()->SetFont("Tahoma", 20, 0);
 
-	screenManager->setUIContext(uiContext);
-	screenManager->setSCREEN_DrawContext(g_draw);
+	SCREEN_screenManager->setUIContext(uiContext);
+	SCREEN_screenManager->setSCREEN_DrawContext(g_draw);
 
 	return true;
 }
 
-bool CreateGlobalPipelines() {
+bool SCREEN_CreateGlobalPipelines() {
 	using namespace SCREEN_Draw;
 
-	SCREEN_InputLayout *inputLayout = ui_draw2d.CreateInputLayout(g_draw);
+	SCREEN_InputLayout *inputLayout = SCREEN_ui_draw2d.CreateInputLayout(g_draw);
 	SCREEN_BlendState *blendNormal = g_draw->CreateBlendState({ true, 0xF, SCREEN_BlendFactor::SRC_ALPHA, SCREEN_BlendFactor::ONE_MINUS_SRC_ALPHA });
 	SCREEN_DepthStencilState *depth = g_draw->CreateDepthStencilState({ false, false, SCREEN_Comparison::LESS });
 	SCREEN_RasterState *rasterNoCull = g_draw->CreateRasterState({});
@@ -291,16 +285,16 @@ bool CreateGlobalPipelines() {
 	return true;
 }
 
-void NativeShutdownGraphics() {
-	screenManager->deviceLost();
+void SCREEN_NativeShutdownGraphics() {
+	SCREEN_screenManager->deviceLost();
 	
-	UIBackgroundShutdown();
+	SCREEN_UIBackgroundShutdown();
 
 	delete uiContext;
 	uiContext = nullptr;
 
-	ui_draw2d.Shutdown();
-	ui_draw2d_front.Shutdown();
+	SCREEN_ui_draw2d.Shutdown();
+	SCREEN_ui_draw2d_front.Shutdown();
 
 	if (colorPipeline) {
 		colorPipeline->Release();
@@ -313,7 +307,7 @@ void NativeShutdownGraphics() {
 }
 
 
-void NativeRender(SCREEN_GraphicsContext *graphicsContext) {
+void SCREEN_NativeRender(SCREEN_GraphicsContext *graphicsContext) {
 
 	float xres = dp_xres;
 	float yres = dp_yres;
@@ -322,25 +316,25 @@ void NativeRender(SCREEN_GraphicsContext *graphicsContext) {
 	SCREEN_Matrix4x4 ortho;
     ortho.setOrtho(0.0f, xres, yres, 0.0f, -1.0f, 1.0f);
     
-	ui_draw2d.PushDrawMatrix(ortho);
-	ui_draw2d_front.PushDrawMatrix(ortho);
+	SCREEN_ui_draw2d.PushDrawMatrix(ortho);
+	SCREEN_ui_draw2d_front.PushDrawMatrix(ortho);
 
 	// All actual rendering happens in here
-	screenManager->render();
-	if (screenManager->getUIContext()->Text()) {
-		screenManager->getUIContext()->Text()->OncePerFrame();
+	SCREEN_screenManager->render();
+	if (SCREEN_screenManager->getUIContext()->Text()) {
+		SCREEN_screenManager->getUIContext()->Text()->OncePerFrame();
 	}
 
-	ui_draw2d.PopDrawMatrix();
-	ui_draw2d_front.PopDrawMatrix();
+	SCREEN_ui_draw2d.PopDrawMatrix();
+	SCREEN_ui_draw2d_front.PopDrawMatrix();
     
 }
 
-void HandleGlobalMessage(const std::string &msg, const std::string &value) {
+void SCREEN_HandleGlobalMessage(const std::string &msg, const std::string &value) {
 	
 }
 
-void NativeUpdate() {
+void SCREEN_NativeUpdate() {
 
 	std::vector<PendingMessage> toProcess;
 	std::vector<PendingInputBox> inputToProcess;
@@ -353,24 +347,24 @@ void NativeUpdate() {
 	}
 
 	for (const auto &item : toProcess) {
-		HandleGlobalMessage(item.msg, item.value);
-		screenManager->sendMessage(item.msg.c_str(), item.value.c_str());
+		SCREEN_HandleGlobalMessage(item.msg, item.value);
+		SCREEN_screenManager->sendMessage(item.msg.c_str(), item.value.c_str());
 	}
 	for (const auto &item : inputToProcess) {
 		item.cb(item.result, item.value);
 	}
 
-	screenManager->update();
+	SCREEN_screenManager->update();
 
 }
 
-bool NativeIsAtTopLevel() {
+bool SCREEN_NativeIsAtTopLevel() {
 	// This might need some synchronization?
-	if (!screenManager) {
+	if (!SCREEN_screenManager) {
 		printf("No screen manager active");
 		return false;
 	}
-	SCREEN_Screen *currentScreen = screenManager->topScreen();
+	SCREEN_Screen *currentScreen = SCREEN_screenManager->topScreen();
 	if (currentScreen) {
 		bool top = currentScreen->isTopLevel();
 		printf("Screen toplevel: %i", (int)top);
@@ -381,32 +375,32 @@ bool NativeIsAtTopLevel() {
 	}
 }
 
-bool NativeTouch(const TouchInput &touch) {
-	if (screenManager) {
+bool SCREEN_NativeTouch(const TouchInput &touch) {
+	if (SCREEN_screenManager) {
 		// Brute force prevent NaNs from getting into the UI system
 		if (my_isnan(touch.x) || my_isnan(touch.y)) {
 			return false;
 		}
-		screenManager->touch(touch);
+		SCREEN_screenManager->touch(touch);
 		return true;
 	} else {
 		return false;
 	}
 }
 
-bool NativeKey(const KeyInput &key) {
+bool SCREEN_NativeKey(const KeyInput &key) {
 	bool retval = false;
-	if (screenManager)
-		retval = screenManager->key(key);
+	if (SCREEN_screenManager)
+		retval = SCREEN_screenManager->key(key);
 	return retval;
 }
 
-bool NativeAxis(const AxisInput &axis) {
+bool SCREEN_NativeAxis(const AxisInput &axis) {
 	
     return false;
 }
 
-void NativeMessageReceived(const char *message, const char *value) {
+void SCREEN_NativeMessageReceived(const char *message, const char *value) {
 	// We can only have one message queued.
 	std::lock_guard<std::mutex> lock(pendingMutex);
 	PendingMessage pendingMessage;
@@ -415,7 +409,7 @@ void NativeMessageReceived(const char *message, const char *value) {
 	pendingMessages.push_back(pendingMessage);
 }
 
-void NativeInputBoxReceived(std::function<void(bool, const std::string &)> cb, bool result, const std::string &value) {
+void SCREEN_NativeInputBoxReceived(std::function<void(bool, const std::string &)> cb, bool result, const std::string &value) {
 	std::lock_guard<std::mutex> lock(pendingMutex);
 	PendingInputBox pendingMessage;
 	pendingMessage.cb = cb;
@@ -424,27 +418,27 @@ void NativeInputBoxReceived(std::function<void(bool, const std::string &)> cb, b
 	pendingInputBoxes.push_back(pendingMessage);
 }
 
-void NativeResized() {
-	// NativeResized can come from any thread so we just set a flag, then process it later.
-	printf("NativeResized - setting flag");
-	resized = true;
+void SCREEN_NativeResized() {
+	// SCREEN_NativeResized can come from any thread so we just set a flag, then process it later.
+	printf("SCREEN_NativeResized - setting flag");
+	SCREEN_resized = true;
 }
 
-void NativeSetRestarting() {
+void SCREEN_NativeSetRestarting() {
 	restarting = true;
 }
 
-bool NativeIsRestarting() {
+bool SCREEN_NativeIsRestarting() {
 	return restarting;
 }
 
-void NativeShutdown() {
-	if (screenManager)
-		screenManager->shutdown();
-	delete screenManager;
-	screenManager = nullptr;
+void SCREEN_NativeShutdown() {
+	if (SCREEN_screenManager)
+		SCREEN_screenManager->shutdown();
+	delete SCREEN_screenManager;
+	SCREEN_screenManager = nullptr;
 
-	System_SendMessage("finish", "");
+	SCREEN_System_SendMessage("finish", "");
 
 	if (logger) {
 		delete logger;
