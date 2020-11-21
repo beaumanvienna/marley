@@ -1,4 +1,5 @@
 add_library(common
+KeyMap.cpp
 StringUtils.cpp
 Buffer.cpp
 TimeUtil.cpp

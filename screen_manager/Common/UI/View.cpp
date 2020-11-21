@@ -266,16 +266,16 @@ static bool MatchesKeyDef(const std::vector<SCREEN_KeyDef> &defs, const KeyInput
 // TODO: O/X confirm preference for xperia play?
 
 bool IsDPadKey(const KeyInput &key) {
-	if (dpadKeys.empty()) {
+	if (SCREEN_dpadKeys.empty()) {
 		return key.keyCode >= NKCODE_DPAD_UP && key.keyCode <= NKCODE_DPAD_RIGHT;
 	} else {
-		return MatchesKeyDef(dpadKeys, key);
+		return MatchesKeyDef(SCREEN_dpadKeys, key);
 	}
 }
 
-bool IsAcceptKey(const KeyInput &key) {
-	if (confirmKeys.empty()) {
-		// This path is pretty much not used, confirmKeys should be set.
+bool IsAcceptKey(const KeyInput &key) {    
+	if (SCREEN_confirmKeys.empty()) {
+		// This path is pretty much not used, SCREEN_confirmKeys should be set.
 		// TODO: Get rid of this stuff?
 		if (key.deviceId == DEVICE_ID_KEYBOARD) {
 			return key.keyCode == NKCODE_SPACE || key.keyCode == NKCODE_ENTER || key.keyCode == NKCODE_Z;
@@ -283,13 +283,13 @@ bool IsAcceptKey(const KeyInput &key) {
 			return key.keyCode == NKCODE_BUTTON_A || key.keyCode == NKCODE_BUTTON_CROSS || key.keyCode == NKCODE_BUTTON_1 || key.keyCode == NKCODE_DPAD_CENTER;
 		}
 	} else {
-		return MatchesKeyDef(confirmKeys, key);
+		return MatchesKeyDef(SCREEN_confirmKeys, key);
 	}
 }
 
 bool IsEscapeKey(const KeyInput &key) {
-	if (cancelKeys.empty()) {
-		// This path is pretty much not used, cancelKeys should be set.
+	if (SCREEN_cancelKeys.empty()) {
+		// This path is pretty much not used, SCREEN_cancelKeys should be set.
 		// TODO: Get rid of this stuff?
 		if (key.deviceId == DEVICE_ID_KEYBOARD) {
 			return key.keyCode == NKCODE_ESCAPE || key.keyCode == NKCODE_BACK;
@@ -297,27 +297,27 @@ bool IsEscapeKey(const KeyInput &key) {
 			return key.keyCode == NKCODE_BUTTON_CIRCLE || key.keyCode == NKCODE_BUTTON_B || key.keyCode == NKCODE_BUTTON_2;
 		}
 	} else {
-		return MatchesKeyDef(cancelKeys, key);
+		return MatchesKeyDef(SCREEN_cancelKeys, key);
 	}
 }
 
 bool IsTabLeftKey(const KeyInput &key) {
-	if (tabLeftKeys.empty()) {
-		// This path is pretty much not used, tabLeftKeys should be set.
+	if (SCREEN_tabLeftKeys.empty()) {
+		// This path is pretty much not used, SCREEN_tabLeftKeys should be set.
 		// TODO: Get rid of this stuff?
 		return key.keyCode == NKCODE_BUTTON_L1;
 	} else {
-		return MatchesKeyDef(tabLeftKeys, key);
+		return MatchesKeyDef(SCREEN_tabLeftKeys, key);
 	}
 }
 
 bool IsTabRightKey(const KeyInput &key) {
-	if (tabRightKeys.empty()) {
-		// This path is pretty much not used, tabRightKeys should be set.
+	if (SCREEN_tabRightKeys.empty()) {
+		// This path is pretty much not used, SCREEN_tabRightKeys should be set.
 		// TODO: Get rid of this stuff?
 		return key.keyCode == NKCODE_BUTTON_R1;
 	} else {
-		return MatchesKeyDef(tabRightKeys, key);
+		return MatchesKeyDef(SCREEN_tabRightKeys, key);
 	}
 }
 
@@ -326,7 +326,6 @@ bool Clickable::Key(const KeyInput &key) {
 		down_ = false;
 		return false;
 	}
-	// TODO: Replace most of Update with this.
 
 	bool ret = false;
 	if (key.flags & KEY_DOWN) {
@@ -609,7 +608,9 @@ void CheckBox::Toggle() {
 
 bool CheckBox::Toggled() const {
 	if (toggle_)
-		return *toggle_;
+    {
+        return *toggle_;
+    }
 	return false;
 }
 

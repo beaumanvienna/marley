@@ -58,7 +58,7 @@ private:
 
 class SCREEN_UIDialogScreen : public SCREEN_UIScreen {
 public:
-	SCREEN_UIDialogScreen() : SCREEN_UIScreen(), finished_(false) {printf("jc: SCREEN_UIDialogScreen() : SCREEN_UIScreen(), finished_(false)\n");}
+	SCREEN_UIDialogScreen() : SCREEN_UIScreen(), finished_(false) {}
 	bool key(const KeyInput &key) override;
 	void sendMessage(const char *msg, const char *value) override;
 

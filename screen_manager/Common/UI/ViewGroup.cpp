@@ -99,7 +99,9 @@ bool ViewGroup::Key(const KeyInput &input) {
 	for (auto iter = views_.begin(); iter != views_.end(); ++iter) {
 		// TODO: If there is a transformation active, transform input coordinates accordingly.
 		if ((*iter)->GetVisibility() == V_VISIBLE)
+        {
 			ret = ret || (*iter)->Key(input);
+        }
 	}
 	return ret;
 }

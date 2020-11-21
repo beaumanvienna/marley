@@ -1,6 +1,4 @@
 // SDL/EGL implementation of the framework.
-// This is quite messy due to platform-specific implementations and #ifdef's.
-// If your platform is not supported, it is suggested to use Qt instead.
 
 #include <unistd.h>
 #include <pwd.h>
@@ -46,7 +44,7 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "Common/Data/Collections/ConstMap.h"
 #include "Common/Data/Encoding/Utf8.h"
 #include "Common/Thread/ThreadUtil.h"
-
+#include "Common/KeyMap.h"
 #include "SDLGLGraphicsContext.h"
 #include "../../include/gui.h"
 
@@ -377,6 +375,8 @@ int screen_manager_main(int argc, char *argv[]) {
 	}
 
 	SCREEN_joystick = new SCREEN_SDLJoystick();
+    //SCREEN_KeyMap::UpdateNativeMenuKeys();
+    SCREEN_KeyMap::RestoreDefault();
 
 	SCREEN_NativeInitGraphics(graphicsContext);
     	

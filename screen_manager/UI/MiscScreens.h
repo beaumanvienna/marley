@@ -106,7 +106,7 @@ protected:
 
 class SCREEN_UIDialogScreenWithBackground : public SCREEN_UIDialogScreen {
 public:
-	SCREEN_UIDialogScreenWithBackground() : SCREEN_UIDialogScreen() {printf("jc: SCREEN_UIDialogScreenWithBackground() : SCREEN_UIDialogScreen()\n");}
+	SCREEN_UIDialogScreenWithBackground() : SCREEN_UIDialogScreen() {}
 protected:
 	void DrawBackground(SCREEN_UIContext &dc) override;
 	void sendMessage(const char *message, const char *value) override;

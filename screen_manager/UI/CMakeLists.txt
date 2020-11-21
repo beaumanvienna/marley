@@ -4,6 +4,7 @@ TextureUtil.cpp
 MiscScreens.cpp
 OnScreenDisplay.cpp
 PauseScreenPCSX2.cpp
+SettingsScreen.cpp
 )
 
 target_include_directories(ui PUBLIC 

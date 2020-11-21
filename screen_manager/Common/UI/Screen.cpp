@@ -9,7 +9,6 @@
 #include "Common/TimeUtil.h"
 
 SCREEN_ScreenManager::SCREEN_ScreenManager() {
-    printf("jc: SCREEN_ScreenManager::SCREEN_ScreenManager() \n");
 	uiContext_ = 0;
 	dialogFinished_ = 0;
 }
@@ -140,7 +139,6 @@ void SCREEN_ScreenManager::resized() {
 }
 
 void SCREEN_ScreenManager::render() {
-    //printf("jc: void SCREEN_ScreenManager::render()\n");
 	if (!stack_.empty()) {
 		switch (stack_.back().flags) {
 		case LAYER_SIDEMENU:

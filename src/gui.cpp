@@ -93,6 +93,7 @@ int y_offset_10;
 
 void render_splash(string onScreenDisplay)
 {
+    if (!splashScreenRunning) return;
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
     SDL_Surface* surfaceMessage = nullptr; 
@@ -530,7 +531,7 @@ bool initGUI(void)
             ok =false;
         }
         render_splash("");
-        SDL_TimerID myTimer =SDL_AddTimer(5000,my_callbackfunc,nullptr);
+        SDL_TimerID myTimer =SDL_AddTimer(750,my_callbackfunc,nullptr);
         SDL_DisableScreenSaver();
         setAppIcon();
     }

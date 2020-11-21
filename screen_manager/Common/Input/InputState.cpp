@@ -2,7 +2,7 @@
 #include "Common/Input/KeyCodes.h"
 #include <vector>
 
-const char *GetDeviceName(int deviceId) {
+const char *SCREEN_GetDeviceName(int deviceId) {
 	switch (deviceId) {
 	case DEVICE_ID_ANY: return "any";
 	case DEVICE_ID_DEFAULT: return "built-in";
@@ -28,11 +28,11 @@ const char *GetDeviceName(int deviceId) {
 	}
 }
 
-std::vector<SCREEN_KeyDef> dpadKeys;
-std::vector<SCREEN_KeyDef> confirmKeys;
-std::vector<SCREEN_KeyDef> cancelKeys;
-std::vector<SCREEN_KeyDef> tabLeftKeys;
-std::vector<SCREEN_KeyDef> tabRightKeys;
+std::vector<SCREEN_KeyDef> SCREEN_dpadKeys;
+std::vector<SCREEN_KeyDef> SCREEN_confirmKeys;
+std::vector<SCREEN_KeyDef> SCREEN_cancelKeys;
+std::vector<SCREEN_KeyDef> SCREEN_tabLeftKeys;
+std::vector<SCREEN_KeyDef> SCREEN_tabRightKeys;
 
 static void AppendKeys(std::vector<SCREEN_KeyDef> &keys, const std::vector<SCREEN_KeyDef> &newKeys) {
 	for (auto iter = newKeys.begin(); iter != newKeys.end(); ++iter) {
@@ -42,22 +42,22 @@ static void AppendKeys(std::vector<SCREEN_KeyDef> &keys, const std::vector<SCREE
 
 void SetDPadKeys(const std::vector<SCREEN_KeyDef> &leftKey, const std::vector<SCREEN_KeyDef> &rightKey,
 		const std::vector<SCREEN_KeyDef> &upKey, const std::vector<SCREEN_KeyDef> &downKey) {
-	dpadKeys.clear();
+	SCREEN_dpadKeys.clear();
 
 	// Store all directions into one vector for now.  In the future it might be
 	// useful to keep track of the different directions separately.
-	AppendKeys(dpadKeys, leftKey);
-	AppendKeys(dpadKeys, rightKey);
-	AppendKeys(dpadKeys, upKey);
-	AppendKeys(dpadKeys, downKey);
+	AppendKeys(SCREEN_dpadKeys, leftKey);
+	AppendKeys(SCREEN_dpadKeys, rightKey);
+	AppendKeys(SCREEN_dpadKeys, upKey);
+	AppendKeys(SCREEN_dpadKeys, downKey);
 }
 
 void SetConfirmCancelKeys(const std::vector<SCREEN_KeyDef> &confirm, const std::vector<SCREEN_KeyDef> &cancel) {
-	confirmKeys = confirm;
-	cancelKeys = cancel;
+	SCREEN_confirmKeys = confirm;
+	SCREEN_cancelKeys = cancel;
 }
 
 void SetTabLeftRightKeys(const std::vector<SCREEN_KeyDef> &tabLeft, const std::vector<SCREEN_KeyDef> &tabRight) {
-	tabLeftKeys = tabLeft;
-	tabRightKeys = tabRight;
+	SCREEN_tabLeftKeys = tabLeft;
+	SCREEN_tabRightKeys = tabRight;
 }

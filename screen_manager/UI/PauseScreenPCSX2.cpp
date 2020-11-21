@@ -57,12 +57,10 @@ void GamePauseScreenPCSX2::dialogFinished(const SCREEN_Screen *dialog, DialogRes
 
 
 SCREEN_UI::EventReturn GamePauseScreenPCSX2::OnGameSettings(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn GamePauseScreenPCSX2::OnGameSettings(SCREEN_UI::EventParams &e) {\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn GamePauseScreenPCSX2::OnExitToMarley(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn GamePauseScreenPCSX2::OnExitToMarley(SCREEN_UI::EventParams &e) {\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 

@@ -20,7 +20,6 @@ static const bool ClickDebug = false;
 
 SCREEN_UIScreen::SCREEN_UIScreen()
 	: SCREEN_Screen() {
-    printf("jc: SCREEN_UIScreen::SCREEN_UIScreen() \n");
 }
 
 SCREEN_UIScreen::~SCREEN_UIScreen() {
@@ -28,7 +27,6 @@ SCREEN_UIScreen::~SCREEN_UIScreen() {
 }
 
 void SCREEN_UIScreen::DoRecreateViews() {
-    //printf("jc: void SCREEN_UIScreen::DoRecreateViews()\n");
 	std::lock_guard<std::recursive_mutex> guard(screenManager()->inputLock_);
 
 	if (recreateViews_) {
@@ -62,7 +60,6 @@ void SCREEN_UIScreen::DoRecreateViews() {
 }
 
 void SCREEN_UIScreen::update() {
-    //printf("jc: void SCREEN_UIScreen::update()\n");
 	DoRecreateViews();
 
 	if (root_) {
@@ -81,7 +78,6 @@ void SCREEN_UIScreen::deviceRestored() {
 }
 
 void SCREEN_UIScreen::preRender() {
-    //printf("jc: void SCREEN_UIScreen::preRender()\n");
 	using namespace SCREEN_Draw;
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 	if (!draw) {
@@ -104,7 +100,6 @@ void SCREEN_UIScreen::preRender() {
 }
 
 void SCREEN_UIScreen::postRender() {
-    //printf("jc: void SCREEN_UIScreen::postRender()\n");
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 	if (!draw) {
 		return;
@@ -113,7 +108,6 @@ void SCREEN_UIScreen::postRender() {
 }
 
 void SCREEN_UIScreen::render() {
-    //printf("jc: void SCREEN_UIScreen::render()\n");
 	DoRecreateViews();
 
 	if (root_) {
@@ -175,7 +169,7 @@ bool SCREEN_UIDialogScreen::key(const KeyInput &key) {
 	bool retval = SCREEN_UIScreen::key(key);
 	if (!retval && (key.flags & KEY_DOWN) && SCREEN_UI::IsEscapeKey(key)) {
 		if (finished_) {
-			printf("Screen already finished");
+			printf("Screen already finished\n");
 		} else {
 			finished_ = true;
 			TriggerFinish(DR_BACK);

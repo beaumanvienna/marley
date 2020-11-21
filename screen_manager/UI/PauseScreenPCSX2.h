@@ -27,7 +27,7 @@
 
 class GamePauseScreenPCSX2 : public SCREEN_UIDialogScreenWithBackground {
 public:
-	GamePauseScreenPCSX2() {printf("jc: GamePauseScreenPCSX2()\n");}
+	GamePauseScreenPCSX2() {}
 	virtual ~GamePauseScreenPCSX2();
 
 	virtual void dialogFinished(const SCREEN_Screen *dialog, DialogResult dr) override;

@@ -37,7 +37,7 @@ enum {
 //number of contiguous generic joypad IDs
 const int MAX_NUM_PADS = 10;
 
-const char *GetDeviceName(int deviceId);
+const char *SCREEN_GetDeviceName(int deviceId);
 
 enum {
 	PAD_BUTTON_A = 1,
@@ -153,11 +153,11 @@ struct AxisInput {
 };
 
 // Is there a nicer place for this stuff? It's here to avoid dozens of linking errors in UnitTest..
-extern std::vector<SCREEN_KeyDef> dpadKeys;
-extern std::vector<SCREEN_KeyDef> confirmKeys;
-extern std::vector<SCREEN_KeyDef> cancelKeys;
-extern std::vector<SCREEN_KeyDef> tabLeftKeys;
-extern std::vector<SCREEN_KeyDef> tabRightKeys;
+extern std::vector<SCREEN_KeyDef> SCREEN_dpadKeys;
+extern std::vector<SCREEN_KeyDef> SCREEN_confirmKeys;
+extern std::vector<SCREEN_KeyDef> SCREEN_cancelKeys;
+extern std::vector<SCREEN_KeyDef> SCREEN_tabLeftKeys;
+extern std::vector<SCREEN_KeyDef> SCREEN_tabRightKeys;
 void SetDPadKeys(const std::vector<SCREEN_KeyDef> &leftKey, const std::vector<SCREEN_KeyDef> &rightKey,
 		const std::vector<SCREEN_KeyDef> &upKey, const std::vector<SCREEN_KeyDef> &downKey);
 void SetConfirmCancelKeys(const std::vector<SCREEN_KeyDef> &confirm, const std::vector<SCREEN_KeyDef> &cancel);

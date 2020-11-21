@@ -38,7 +38,7 @@ void SCREEN_UIContext::Init(SCREEN_Draw::SCREEN_DrawContext *thin3d, SCREEN_Draw
 void SCREEN_UIContext::BeginFrame() {
 	if (!uitexture_) {
 		uitexture_ = CreateTextureFromFile(draw_, "ui_atlas.zim", ImageFileType::ZIM, false);
-		printf("Failed to load ui_atlas.zim.\n\nPlace it in the directory \"assets\" under your PPSSPP directory.");
+        _dbg_assert_msg_(uitexture_, "Failed to load ui_atlas.zim.\n\nPlace it in the directory \"assets\" under your PPSSPP directory.");
 	}
 	uidrawbufferTop_->SetCurZ(0.0f);
 	uidrawbuffer_->SetCurZ(0.0f);

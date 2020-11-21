@@ -41,7 +41,7 @@ namespace SCREEN_Draw {
 
 class SCREEN_Screen {
 public:
-	SCREEN_Screen() : screenManager_(nullptr) {printf("jc: Screen() : screenManager_(nullptr) \n"); }
+	SCREEN_Screen() : screenManager_(nullptr) { }
 	virtual ~SCREEN_Screen() {
 		screenManager_ = nullptr;
 	}
