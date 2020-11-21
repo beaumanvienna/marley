@@ -53,7 +53,7 @@ Copyright: refer to dolphin/copyright
 Files: mupen64plus/*
 Copyright: refer to mupen64plus/Packages/*/LICENSES
 
-Files: ppsspp/*
+Files: ppsspp/* screen_manager/*
 Copyright: refer to ppsspp/copyright
 
 

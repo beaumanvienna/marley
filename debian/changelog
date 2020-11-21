@@ -1,3 +1,12 @@
+marley (0.2.0) focal; urgency=medium
+
+  * Settings screen added
+  * This is a test version.
+  * support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Sat, 21 Nov 2020 15:38:00 -0800
+
 marley (0.1.9) focal; urgency=medium
 
   * Splash screen added
