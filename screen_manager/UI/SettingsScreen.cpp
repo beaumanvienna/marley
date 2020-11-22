@@ -41,13 +41,28 @@
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
 
-SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
+int SCREEN_upscale_multiplier;
+bool SCREEN_bVSync;
 
+SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
+    inputBackend = 1;
+    inputBios = 0;
+    inputRes = PCSX2_upscale_multiplier() -1;
+    inputVSync = true;
 }
-int intVar1 = 1;
-int intVar2 = 0;
-int intVar3 = 1;
-bool bVSync = true;
+
+SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
+    SCREEN_upscale_multiplier = inputRes;
+    SCREEN_bVSync = inputVSync;
+}
+
+int SCREEN_SettingsScreen::PCSX2_upscale_multiplier(void)
+{
+    int upscale_multiplier = 2;
+    //if PCSX2 config file exists get value from there
+    return upscale_multiplier;
+}
+
 void SCREEN_SettingsScreen::CreateViews() {
     
 	using namespace SCREEN_UI;
@@ -91,23 +106,29 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- rendering mode --------
 	static const char *renderingBackend[] = { "OpenGL Hardware", "OpenGL Software" };
     
-	SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&intVar1, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
+	SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
 	renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
     
     // -------- bios --------
     static const char *selectBIOS[] = { "North America", "Japan", "Europe" };
     
-	SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&intVar2, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+	SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
 	selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
     
     // -------- resolution --------
-    static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "4K" };
+    // 1, "Native", "PS2"
+    // 2, "2x Native", "~720p"
+    // 3, "3x Native", "~1080p"
+    // 4, "4x Native", "~1440p 2K"
+    // 5, "5x Native", "~1620p 3K"
+    // 6, "6x Native", "~2160p 4K"
+    static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
     
-	SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&intVar3, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
+	SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
 	selectResolutionChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
     
     // -------- resolution --------
-   	CheckBox *vSync = graphicsSettings->Add(new CheckBox(&bVSync, gr->T("Disable screen tearing", "Disable screen tearing (VSync)")));
+   	CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Disable screen tearing", "Disable screen tearing (VSync)")));
 	vSync->OnClick.Add([=](EventParams &e) {
 		return SCREEN_UI::EVENT_CONTINUE;
 	});

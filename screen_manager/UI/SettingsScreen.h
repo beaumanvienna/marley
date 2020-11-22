@@ -30,8 +30,9 @@ class SCREEN_SettingInfoMessage;
 // per game.
 class SCREEN_SettingsScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
-    SCREEN_SettingsScreen() {}
+    SCREEN_SettingsScreen();
     virtual ~SCREEN_SettingsScreen();
+    int PCSX2_upscale_multiplier();
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
@@ -45,6 +46,12 @@ protected:
 	bool UseVerticalLayout() const;
 
 private:
+
+    int inputBackend;
+    int inputBios;
+    int inputRes;
+    bool inputVSync;
+
 	void TriggerRestart(const char *why);
 
 	std::string gameID_;
