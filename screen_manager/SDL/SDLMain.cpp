@@ -250,9 +250,9 @@ void SCREEN_ToggleFullScreenIfFlagSet(SDL_Window *window) {
 		SDL_SetWindowFullscreen(window, window_flags);
 	}
 }
-
+void gpu_features_reset(void);
 int screen_manager_main(int argc, char *argv[]) {
-
+    gpu_features_reset();
     SDL_GL_ResetAttributes();
     SCREEN_lastUIState = UISTATE_MENU;
     SCREEN_g_ToggleFullScreenNextFrame = false;
