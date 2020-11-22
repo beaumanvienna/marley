@@ -9,7 +9,7 @@ clean:
 	$(MAKE) -C mupen64plus $@
 	$(MAKE) -C mednafen $@
 	$(MAKE) -C dolphin $@
-	$(MAKE) -C screenManager $@
+	$(MAKE) -C screen_manager $@
 
 install:
 	$(info   *************** install checkpoint ***************)
@@ -21,7 +21,7 @@ unit_tests:
 	$(MAKE) -C mupen64plus all
 	$(MAKE) -C mednafen all
 	$(MAKE) -C dolphin all
-	$(MAKE) -C screenManager all
+	$(MAKE) -C screen_manager all
 
 check: all
 
