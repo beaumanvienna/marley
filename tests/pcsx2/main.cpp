@@ -607,10 +607,10 @@ int main(int argc, char* argv[])
             
             pcsx2_main(pcsx2_argc,pcsx2_argv);
             printf("jc *******************************\n");
-            pcsx2_main(pcsx2_argc,pcsx2_argv);
+/*            pcsx2_main(pcsx2_argc,pcsx2_argv);
             printf("jc *******************************\n");
             pcsx2_main(pcsx2_argc,pcsx2_argv);
-            printf("jc *******************************\n");
+            printf("jc *******************************\n");*/
         }
     }
 

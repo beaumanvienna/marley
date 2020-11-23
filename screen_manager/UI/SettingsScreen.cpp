@@ -41,26 +41,64 @@
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
 
-int SCREEN_upscale_multiplier;
-bool SCREEN_bVSync;
+extern std::string gBaseDir;
 
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
-    inputBackend = 1;
-    inputBios = 0;
-    inputRes = PCSX2_upscale_multiplier() -1;
-    inputVSync = true;
+    inputVSync = false;
+    inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
+    inputBackend = 0;
+
+    std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
+    std::string line,str_dec;
+    std::string::size_type sz;   // alias of size_t
+
+    //if PCSX2 config file exists get value from there
+    std::ifstream GSdx_ini_filehandle(GSdx_ini);
+    if (GSdx_ini_filehandle.is_open())
+    {
+        while ( getline (GSdx_ini_filehandle,line))
+        {
+            if(line.find("upscale_multiplier") != std::string::npos)
+            {
+                str_dec = line.substr(line.find_last_of("=") + 1);
+                inputRes = std::stoi(str_dec,&sz) - 1; // 
+            } else 
+            if(line.find("vsync") != std::string::npos)
+            {
+                str_dec = line.substr(line.find_last_of("=") + 1);
+                if(std::stoi(str_dec,&sz)) inputVSync = true;
+            } else 
+            if(line.find("Renderer") != std::string::npos)
+            {
+                str_dec = line.substr(line.find_last_of("=") + 1);
+                if(std::stoi(str_dec,&sz) == 13) inputBackend = 1;
+            } else
+            {
+                GSdx_entries.push_back(line);
+            }
+        }
+        GSdx_ini_filehandle.close();
+    }
 }
 
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
-    SCREEN_upscale_multiplier = inputRes;
-    SCREEN_bVSync = inputVSync;
-}
+    std::string line, str;
+    std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
+    std::ofstream GSdx_ini_filehandle;
 
-int SCREEN_SettingsScreen::PCSX2_upscale_multiplier(void)
-{
-    int upscale_multiplier = 2;
-    //if PCSX2 config file exists get value from there
-    return upscale_multiplier;
+    GSdx_ini_filehandle.open(GSdx_ini.c_str(), std::ios_base::out); 
+    if(GSdx_ini_filehandle)
+    {
+        for(int i=0; i<GSdx_entries.size(); i++)
+        {
+            line = GSdx_entries[i];
+            GSdx_ini_filehandle << line << "\n";
+        }
+        GSdx_ini_filehandle << "upscale_multiplier = " <<  inputRes+1 << "\n";
+        GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
+        GSdx_ini_filehandle << "Renderer = " <<  inputBackend+12 << "\n";
+        GSdx_ini_filehandle.close();
+    }
 }
 
 void SCREEN_SettingsScreen::CreateViews() {
@@ -104,7 +142,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 	graphicsSettings->Add(new ItemHeader(gr->T("")));
     
     // -------- rendering mode --------
-	static const char *renderingBackend[] = { "OpenGL Hardware", "OpenGL Software" };
+	static const char *renderingBackend[] = { "OpenGL Hardware", "OpenGL Hardware+Software" };
     
 	SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
 	renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);

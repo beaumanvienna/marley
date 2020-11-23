@@ -32,7 +32,6 @@ class SCREEN_SettingsScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
     SCREEN_SettingsScreen();
     virtual ~SCREEN_SettingsScreen();
-    int PCSX2_upscale_multiplier();
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
@@ -51,6 +50,7 @@ private:
     int inputBios;
     int inputRes;
     bool inputVSync;
+    std::vector<std::string> GSdx_entries;
 
 	void TriggerRestart(const char *why);
 
