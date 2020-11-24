@@ -280,7 +280,9 @@ void SCREEN_SettingsScreen::CreateViews() {
         graphicsSettings->Add(new ItemHeader(gr->T(header)));
         
         // -------- rendering mode --------
-        static const char *renderingBackend[] = { "Fastest rendering, lower graphics accuracy", "Fast rendering, high graphics accuracy" };
+        static const char *renderingBackend[] = {
+            "GPU: High gfx accuracy, faster",
+            "GPU+CPU: Higher gfx accuracy, fast"};
         
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
@@ -346,6 +348,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         // -------- user hacks --------
         CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));
         vUserHacks->OnClick.Add([=](EventParams &e) {
+            RecreateViews();
             return SCREEN_UI::EVENT_CONTINUE;
         });
         
