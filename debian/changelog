@@ -1,3 +1,12 @@
+marley (0.2.1) focal; urgency=medium
+
+  * PCSX2 settings on settings screen fully functional
+  * This is a release version.
+  * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Mon, 23 Nov 2020 20:22:00 -0800
+
 marley (0.2.0.1) focal; urgency=medium
 
   * Settings screen added
