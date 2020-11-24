@@ -53,6 +53,26 @@ private:
     std::vector<std::string> GSdx_entries;
     bool found_bios_ps2;
     int bios_selection[3];
+    bool inputUserHacks;
+    bool inputUserHacks_AutoFlush;
+    bool inputUserHacks_CPU_FB_Conversion;
+    bool inputUserHacks_DisableDepthSupport;
+    bool inputUserHacks_DisablePartialInvalidation;
+    bool inputUserHacks_Disable_Safe_Features;
+    bool inputUserHacks_HalfPixelOffset;
+    
+    /*
+UserHacks_Half_Bottom_Override = -1
+UserHacks_SkipDraw = 0
+UserHacks_SkipDraw_Offset = 0
+UserHacks_TCOffsetX = 0
+UserHacks_TCOffsetY = 0
+UserHacks_TriFilter = 0
+UserHacks_WildHack = 0
+UserHacks_align_sprite_X = 0
+UserHacks_merge_pp_sprite = 0
+UserHacks_round_sprite_offset = 0
+    */
 
 	void TriggerRestart(const char *why);
 

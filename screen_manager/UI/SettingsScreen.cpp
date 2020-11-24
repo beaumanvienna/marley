@@ -61,10 +61,11 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         bios_selection[1] = EMPTY;
         bios_selection[2] = EMPTY;
         inputBios = 0;
-        
+
         inputVSync = true;
         inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
         inputBackend = 1; // OpenGL Hardware + Software
+        inputUserHacks = false;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::string line,str_dec;
@@ -84,7 +85,25 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 if(line.find("vsync") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
-                    if(std::stoi(str_dec,&sz)) inputVSync = true;
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputVSync = true;
+                    } else
+                    {
+                        inputVSync = false;
+                    }
+                } else 
+                if(line.find("UserHacks =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks = true;
+                    } else
+                    {
+                        inputUserHacks = false;
+                    }
                 } else 
                 if(line.find("bios_region") != std::string::npos)
                 {
@@ -189,7 +208,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                     gPathToFirmwarePS2 = gBaseDir + "scph77002.bin";
                 }
             }
-            else {printf("jc: ~SCREEN_SettingsScreen if (bios_selection[inputBios] == EMPTY)\n" );}
+            GSdx_ini_filehandle << "UserHacks = " << inputUserHacks << "\n";
             GSdx_ini_filehandle.close();
         }
     }
@@ -233,7 +252,32 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- PCSX2 --------
     if (found_bios_ps2)
     {
-        graphicsSettings->Add(new ItemHeader(gr->T("")));
+        int cnt = 0;
+        std::string biosRegions, header;
+        if (found_na_ps2) 
+        {
+            biosRegions += "North America ";
+            cnt++;
+        }
+        if (found_jp_ps2) 
+        {
+            biosRegions += "Japan ";
+            cnt++;
+        }
+        if (found_eu_ps2) 
+        {
+            biosRegions += "Europe ";
+            cnt++;
+        }
+        if (cnt > 1) 
+        {
+            header = "Bios files found from: " + biosRegions;
+        } else
+        {
+            header = "Bios file found from: " + biosRegions;
+        }
+        
+        graphicsSettings->Add(new ItemHeader(gr->T(header)));
         
         // -------- rendering mode --------
         static const char *renderingBackend[] = { "OpenGL", "OpenGL Plus" };
@@ -288,12 +332,6 @@ void SCREEN_SettingsScreen::CreateViews() {
         }
 
         // -------- resolution --------
-        // 1, "Native", "PS2"
-        // 2, "2x Native", "~720p"
-        // 3, "3x Native", "~1080p"
-        // 4, "4x Native", "~1440p 2K"
-        // 5, "5x Native", "~1620p 3K"
-        // 6, "6x Native", "~2160p 4K"
         static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
         
         SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
@@ -304,7 +342,47 @@ void SCREEN_SettingsScreen::CreateViews() {
         vSync->OnClick.Add([=](EventParams &e) {
             return SCREEN_UI::EVENT_CONTINUE;
         });
-        vSync->SetEnabled(true);
+        
+        // -------- user hacks --------
+        CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));
+        vUserHacks->OnClick.Add([=](EventParams &e) {
+            return SCREEN_UI::EVENT_CONTINUE;
+        });
+        
+        if (inputUserHacks)
+        {
+            graphicsSettings->Add(new ItemHeader(gr->T("User hacks")));
+            
+            CheckBox *vUserHacks_AutoFlush = graphicsSettings->Add(new CheckBox(&inputUserHacks_AutoFlush, gr->T("Enable 'auto flush'", "Enable 'auto flush'")));
+            vUserHacks_AutoFlush->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_CPU_FB_Conversion = graphicsSettings->Add(new CheckBox(&inputUserHacks_CPU_FB_Conversion, gr->T("Enable 'CPU framebuffer conversion'", "Enable 'CPU framebuffer conversion'")));
+            vUserHacks_CPU_FB_Conversion->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_DisableDepthSupport = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisableDepthSupport, gr->T("Enable 'no depth support'", "Enable 'no depth support'")));
+            vUserHacks_DisableDepthSupport->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_DisablePartialInvalidation = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisablePartialInvalidation, gr->T("Enable 'no partial invalidation'", "Enable 'no partial invalidation'")));
+            vUserHacks_DisablePartialInvalidation->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_Disable_Safe_Features = graphicsSettings->Add(new CheckBox(&inputUserHacks_Disable_Safe_Features, gr->T("Enable 'no safe features'", "Enable 'no safe features'")));
+            vUserHacks_Disable_Safe_Features->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_HalfPixelOffset = graphicsSettings->Add(new CheckBox(&inputUserHacks_HalfPixelOffset, gr->T("Enable 'half pixel offset'", "Enable 'half pixel offset'")));
+            vUserHacks_HalfPixelOffset->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+        }
     } else
     {
         graphicsSettings->Add(new ItemHeader(gr->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
