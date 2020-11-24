@@ -51,6 +51,8 @@ private:
     int inputRes;
     bool inputVSync;
     std::vector<std::string> GSdx_entries;
+    bool found_bios_ps2;
+    int bios_selection[3];
 
 	void TriggerRestart(const char *why);
 

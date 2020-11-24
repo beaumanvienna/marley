@@ -59,6 +59,9 @@ typedef unsigned long long int checksum64;
 #define SEGA_SATURN_BIOS_JP     19759492
 #define SEGA_SATURN_BIOS_NA_EU  19688652
 
+#define BIOS_NA 10
+#define BIOS_JP 11
+#define BIOS_EU 12
 
 bool isDirectory(const char *filename);
 void render_splash(string onScreenDisplay);
@@ -169,7 +172,9 @@ bool copyFile(const char *SRC, const char* DEST)
     dest << src.rdbuf();
     return src && dest;
 }
-
+bool found_jp_ps2;
+bool found_na_ps2;
+bool found_eu_ps2;
 void checkFirmwarePSX(void)
 {
     // ---------- PS1 ----------
@@ -218,9 +223,9 @@ void checkFirmwarePSX(void)
         }
     }
     // ---------- PS2 ----------
-    bool found_jp_ps2 = false;
-    bool found_na_ps2 = false;
-    bool found_eu_ps2 = false;
+    found_jp_ps2 = false;
+    found_na_ps2 = false;
+    found_eu_ps2 = false;
     
     string jp_ps2 = gBaseDir + "scph77000.bin";
     string na_ps2 = gBaseDir + "scph77001.bin";
@@ -394,7 +399,7 @@ void checkFirmwarePSX(void)
         if (found_na_ps2)
             gPathToFirmwarePS2 = na_ps2;
         else if (found_jp_ps2)
-            gPathToFirmwarePS2 = jp_ps2; // faster than NA and EU because it doesn't have a language settings dialog
+            gPathToFirmwarePS2 = jp_ps2; 
         else if (found_eu_ps2)
             gPathToFirmwarePS2 = eu_ps2;
     } 
@@ -410,6 +415,43 @@ void checkFirmwarePSX(void)
             gPS2_firmware = true;
         }
     }    
+    
+    string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
+    string line,str_dec;
+    string::size_type sz;   // alias of size_t
+
+    //if PCSX2 config file exists get value from there
+    ifstream GSdx_ini_filehandle(GSdx_ini);
+    if (GSdx_ini_filehandle.is_open())
+    {
+        while ( getline (GSdx_ini_filehandle,line))
+        {
+            if(line.find("bios_region") != std::string::npos)
+            {
+                str_dec = line.substr(line.find_last_of("=") + 1);
+                int bios_ini_val = std::stoi(str_dec,&sz);
+                if ((bios_ini_val < BIOS_NA) || (bios_ini_val > BIOS_EU))
+                {
+                    bios_ini_val = BIOS_NA;
+                }
+                                
+                if ((bios_ini_val == BIOS_NA) && found_na_ps2 )
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77001.bin";
+                } else
+                if ((bios_ini_val == BIOS_JP) && found_jp_ps2 )
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77000.bin";
+                } else
+                if ((bios_ini_val == BIOS_EU) && found_eu_ps2 )
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77002.bin";
+                }
+                
+                break;
+            }
+        }
+    }
 }
 
 void checkFirmwareSEGA_SATURN(void)

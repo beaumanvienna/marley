@@ -42,62 +42,156 @@
 #include "Common/StringUtils.h"
 
 extern std::string gBaseDir;
+extern std::string gPathToFirmwarePS2;
+extern bool found_jp_ps2;
+extern bool found_na_ps2;
+extern bool found_eu_ps2;
+
+#define BIOS_NA 10
+#define BIOS_JP 11
+#define BIOS_EU 12
+#define EMPTY   0 
 
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
-    inputVSync = false;
-    inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
-    inputBackend = 0;
-
-    std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
-    std::string line,str_dec;
-    std::string::size_type sz;   // alias of size_t
-
-    //if PCSX2 config file exists get value from there
-    std::ifstream GSdx_ini_filehandle(GSdx_ini);
-    if (GSdx_ini_filehandle.is_open())
+    found_bios_ps2 = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
+    
+    if (found_bios_ps2)
     {
-        while ( getline (GSdx_ini_filehandle,line))
+        bios_selection[0] = EMPTY;
+        bios_selection[1] = EMPTY;
+        bios_selection[2] = EMPTY;
+        inputBios = 0;
+        
+        inputVSync = true;
+        inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
+        inputBackend = 1; // OpenGL Hardware + Software
+
+        std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
+        std::string line,str_dec;
+        std::string::size_type sz;   // alias of size_t
+
+        //if PCSX2 config file exists get value from there
+        std::ifstream GSdx_ini_filehandle(GSdx_ini);
+        if (GSdx_ini_filehandle.is_open())
         {
-            if(line.find("upscale_multiplier") != std::string::npos)
+            while ( getline (GSdx_ini_filehandle,line))
             {
-                str_dec = line.substr(line.find_last_of("=") + 1);
-                inputRes = std::stoi(str_dec,&sz) - 1; // 
-            } else 
-            if(line.find("vsync") != std::string::npos)
-            {
-                str_dec = line.substr(line.find_last_of("=") + 1);
-                if(std::stoi(str_dec,&sz)) inputVSync = true;
-            } else 
-            if(line.find("Renderer") != std::string::npos)
-            {
-                str_dec = line.substr(line.find_last_of("=") + 1);
-                if(std::stoi(str_dec,&sz) == 13) inputBackend = 1;
-            } else
-            {
-                GSdx_entries.push_back(line);
+                if(line.find("upscale_multiplier") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputRes = std::stoi(str_dec,&sz) - 1;
+                } else 
+                if(line.find("vsync") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) inputVSync = true;
+                } else 
+                if(line.find("bios_region") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    int bios_ini_val = std::stoi(str_dec,&sz);
+                    if ((bios_ini_val < BIOS_NA) || (bios_ini_val > BIOS_EU))
+                    {
+                        bios_ini_val = BIOS_NA;
+                    }
+                    
+                    if (found_na_ps2 && found_jp_ps2 && !found_eu_ps2)
+                    {
+
+                        bios_selection[0] = BIOS_NA;
+                        bios_selection[1] = BIOS_JP;
+                        bios_selection[2] = EMPTY;
+                        if (bios_ini_val == BIOS_JP) inputBios = 1;
+
+                    } else
+                    if (found_na_ps2 && !found_jp_ps2 && found_eu_ps2)
+                    {
+
+                        bios_selection[0] = BIOS_NA;
+                        bios_selection[1] = BIOS_EU;
+                        bios_selection[2] = EMPTY;
+                        if (bios_ini_val == BIOS_EU) inputBios = 1;
+                        
+                    } else
+                    if (!found_na_ps2 && found_jp_ps2 && found_eu_ps2)
+                    {
+
+                        bios_selection[0] = BIOS_JP;
+                        bios_selection[1] = BIOS_EU;
+                        bios_selection[2] = EMPTY;
+                        if (bios_ini_val == BIOS_EU) inputBios = 1;
+                        
+                    } else
+                    if (found_na_ps2 && found_jp_ps2 && found_eu_ps2)
+                    {
+
+                        bios_selection[0] = BIOS_NA;
+                        bios_selection[1] = BIOS_JP;
+                        bios_selection[2] = BIOS_EU;
+                        inputBios = bios_ini_val - BIOS_NA;
+                    }
+                } else 
+                if(line.find("Renderer") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz) == 12) 
+                    {
+                        inputBackend = 0;
+                    } else
+                    if(std::stoi(str_dec,&sz) == 13) 
+                    {
+                        inputBackend = 1;
+                    }
+                } else
+                {
+                    GSdx_entries.push_back(line);
+                }
             }
+            GSdx_ini_filehandle.close();
         }
-        GSdx_ini_filehandle.close();
     }
 }
-
+bool createDir(std::string name);
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
-    std::string line, str;
-    std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
-    std::ofstream GSdx_ini_filehandle;
-
-    GSdx_ini_filehandle.open(GSdx_ini.c_str(), std::ios_base::out); 
-    if(GSdx_ini_filehandle)
+    if (found_bios_ps2)
     {
-        for(int i=0; i<GSdx_entries.size(); i++)
+        std::string line, str;
+        std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
+        std::ofstream GSdx_ini_filehandle;
+        
+        createDir(gBaseDir + "PCSX2");
+        createDir(gBaseDir + "PCSX2/inis");
+
+        GSdx_ini_filehandle.open(GSdx_ini.c_str(), std::ios_base::out); 
+        if(GSdx_ini_filehandle)
         {
-            line = GSdx_entries[i];
-            GSdx_ini_filehandle << line << "\n";
+            for(int i=0; i<GSdx_entries.size(); i++)
+            {
+                line = GSdx_entries[i];
+                GSdx_ini_filehandle << line << "\n";
+            }
+            GSdx_ini_filehandle << "upscale_multiplier = " <<  inputRes+1 << "\n";
+            GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
+            GSdx_ini_filehandle << "Renderer = " <<  inputBackend+12 << "\n";
+            if (bios_selection[inputBios] != EMPTY)
+            {
+                GSdx_ini_filehandle << "bios_region = " <<  bios_selection[inputBios] << "\n";
+                if (bios_selection[inputBios] == BIOS_NA)
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77001.bin";
+                } else
+                if (bios_selection[inputBios] == BIOS_JP)
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77000.bin";
+                } else
+                if (bios_selection[inputBios] == BIOS_EU)
+                {
+                    gPathToFirmwarePS2 = gBaseDir + "scph77002.bin";
+                }
+            }
+            else {printf("jc: ~SCREEN_SettingsScreen if (bios_selection[inputBios] == EMPTY)\n" );}
+            GSdx_ini_filehandle.close();
         }
-        GSdx_ini_filehandle << "upscale_multiplier = " <<  inputRes+1 << "\n";
-        GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
-        GSdx_ini_filehandle << "Renderer = " <<  inputBackend+12 << "\n";
-        GSdx_ini_filehandle.close();
     }
 }
 
@@ -128,8 +222,6 @@ void SCREEN_SettingsScreen::CreateViews() {
 	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingInfo_);
 
-	// TODO: These currently point to global settings, not game specific ones.
-
 	// Graphics
 	ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 	graphicsSettingsScroll->SetTag("GameSettingsGraphics");
@@ -139,39 +231,84 @@ void SCREEN_SettingsScreen::CreateViews() {
 	tabHolder->AddTab(ms->T("PCSX2"), graphicsSettingsScroll);
 
     // -------- PCSX2 --------
-	graphicsSettings->Add(new ItemHeader(gr->T("")));
-    
-    // -------- rendering mode --------
-	static const char *renderingBackend[] = { "OpenGL Hardware", "OpenGL Hardware+Software" };
-    
-	SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
-	renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
-    
-    // -------- bios --------
-    static const char *selectBIOS[] = { "North America", "Japan", "Europe" };
-    
-	SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
-	selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
-    
-    // -------- resolution --------
-    // 1, "Native", "PS2"
-    // 2, "2x Native", "~720p"
-    // 3, "3x Native", "~1080p"
-    // 4, "4x Native", "~1440p 2K"
-    // 5, "5x Native", "~1620p 3K"
-    // 6, "6x Native", "~2160p 4K"
-    static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
-    
-	SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
-	selectResolutionChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
-    
-    // -------- resolution --------
-   	CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Disable screen tearing", "Disable screen tearing (VSync)")));
-	vSync->OnClick.Add([=](EventParams &e) {
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
-	vSync->SetEnabled(true);
+    if (found_bios_ps2)
+    {
+        graphicsSettings->Add(new ItemHeader(gr->T("")));
+        
+        // -------- rendering mode --------
+        static const char *renderingBackend[] = { "OpenGL", "OpenGL Plus" };
+        
+        SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
+        renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        
+        // -------- bios --------
+        if (found_na_ps2 && found_jp_ps2 && !found_eu_ps2)
+        {
+            bios_selection[0] = BIOS_NA;
+            bios_selection[1] = BIOS_JP;
+            bios_selection[2] = EMPTY;
+            
+            static const char *selectBIOS[] = { "North America", "Japan" };
+            
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        } else
+        if (found_na_ps2 && !found_jp_ps2 && found_eu_ps2)
+        {
+            bios_selection[0] = BIOS_NA;
+            bios_selection[1] = BIOS_EU;
+            bios_selection[2] = EMPTY;
+            
+            static const char *selectBIOS[] = { "North America", "Europe" };
 
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        } else
+        if (!found_na_ps2 && found_jp_ps2 && found_eu_ps2)
+        {
+            bios_selection[0] = BIOS_JP;
+            bios_selection[1] = BIOS_EU;
+            bios_selection[2] = EMPTY;
+            
+            static const char *selectBIOS[] = { "Japan", "Europe" };
+            
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        } else
+        if (found_na_ps2 && found_jp_ps2 && found_eu_ps2)
+        {
+            bios_selection[0] = BIOS_NA;
+            bios_selection[1] = BIOS_JP;
+            bios_selection[2] = BIOS_EU;
+            
+            static const char *selectBIOS[] = { "North America", "Japan", "Europe" };
+
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        }
+
+        // -------- resolution --------
+        // 1, "Native", "PS2"
+        // 2, "2x Native", "~720p"
+        // 3, "3x Native", "~1080p"
+        // 4, "4x Native", "~1440p 2K"
+        // 5, "5x Native", "~1620p 3K"
+        // 6, "6x Native", "~2160p 4K"
+        static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
+        
+        SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
+        selectResolutionChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+        
+        // -------- vsync --------
+        CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Disable screen tearing", "Disable screen tearing (VSync)")));
+        vSync->OnClick.Add([=](EventParams &e) {
+            return SCREEN_UI::EVENT_CONTINUE;
+        });
+        vSync->SetEnabled(true);
+    } else
+    {
+        graphicsSettings->Add(new ItemHeader(gr->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
+    }
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
 }
