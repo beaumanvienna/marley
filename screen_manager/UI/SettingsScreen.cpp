@@ -271,16 +271,16 @@ void SCREEN_SettingsScreen::CreateViews() {
         }
         if (cnt > 1) 
         {
-            header = "Bios files found from: " + biosRegions;
+            header = "Bios files found for: " + biosRegions;
         } else
         {
-            header = "Bios file found from: " + biosRegions;
+            header = "Bios file found for: " + biosRegions;
         }
         
         graphicsSettings->Add(new ItemHeader(gr->T(header)));
         
         // -------- rendering mode --------
-        static const char *renderingBackend[] = { "OpenGL", "OpenGL Plus" };
+        static const char *renderingBackend[] = { "Fastest rendering, lower graphics accuracy", "Fast rendering, high graphics accuracy" };
         
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
