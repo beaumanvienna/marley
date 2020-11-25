@@ -888,11 +888,11 @@ float ScrollView::ClampedScrollPos(float pos) {
 	if (!views_.size()) {
 		return 0.0f;
 	}
-/*
+
 	float childSize = orientation_ == ORIENT_VERTICAL ? views_[0]->GetBounds().h : views_[0]->GetBounds().w;
 	float scrollMax = std::max(0.0f, childSize - (orientation_ == ORIENT_VERTICAL ? bounds_.h : bounds_.w));
 
-	Gesture gesture = orientation_ == ORIENT_VERTICAL ? GESTURE_DRAG_VERTICAL : GESTURE_DRAG_HORIZONTAL;
+/*	Gesture gesture = orientation_ == ORIENT_VERTICAL ? GESTURE_DRAG_VERTICAL : GESTURE_DRAG_HORIZONTAL;
 
 	if (scrollTouchId_ >= 0 && gesture_.IsGestureActive(gesture, scrollTouchId_) && bounds_.h > 0) {
 		float maxPull = bounds_.h * 0.1f;
@@ -905,7 +905,7 @@ float ScrollView::ClampedScrollPos(float pos) {
 		} else {
 			pull_ = 0.0f;
 		}
-	}
+	}*/
 
 	if (pos < 0.0f && pos < pull_) {
 		pos = pull_;
@@ -913,7 +913,7 @@ float ScrollView::ClampedScrollPos(float pos) {
 	if (pos > scrollMax && pos > scrollMax + pull_) {
 		pos = scrollMax + pull_;
 	}
-*/
+
 	return pos;
 }
 
@@ -938,14 +938,13 @@ bool ScrollView::CanScroll() const {
 }
 
 void ScrollView::Update() {
-    /*
 	if (visibility_ != V_VISIBLE) {
 		inertia_ = 0.0f;
 	}
 	ViewGroup::Update();
 
-	Gesture gesture = orientation_ == ORIENT_VERTICAL ? GESTURE_DRAG_VERTICAL : GESTURE_DRAG_HORIZONTAL;
-	gesture_.UpdateFrame();
+//	Gesture gesture = orientation_ == ORIENT_VERTICAL ? GESTURE_DRAG_VERTICAL : GESTURE_DRAG_HORIZONTAL;
+//	gesture_.UpdateFrame();
 	if (scrollToTarget_) {
 		float target = ClampedScrollPos(scrollTarget_);
 
@@ -956,21 +955,21 @@ void ScrollView::Update() {
 		} else {
 			scrollPos_ += (target - scrollPos_) * 0.3f;
 		}
-	} else if (inertia_ != 0.0f && !gesture_.IsGestureActive(gesture, scrollTouchId_)) {
+	}/* else if (inertia_ != 0.0f && !gesture_.IsGestureActive(gesture, scrollTouchId_)) {
 		scrollPos_ -= inertia_;
 		inertia_ *= friction;
 		if (fabsf(inertia_) < stop_threshold)
 			inertia_ = 0.0f;
-	}
+	}*/
 
-	if (!gesture_.IsGestureActive(gesture, scrollTouchId_)) {
+	//if (!gesture_.IsGestureActive(gesture, scrollTouchId_)) {
 		scrollPos_ = ClampedScrollPos(scrollPos_);
 
 		pull_ *= friction;
 		if (fabsf(pull_) < 0.01f) {
 			pull_ = 0.0f;
 		}
-	}*/
+	//}
 }
 
 void AnchorLayout::Measure(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert) {

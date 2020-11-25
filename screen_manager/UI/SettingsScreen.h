@@ -60,19 +60,16 @@ private:
     bool inputUserHacks_DisablePartialInvalidation;
     bool inputUserHacks_Disable_Safe_Features;
     bool inputUserHacks_HalfPixelOffset;
-    
-    /*
-UserHacks_Half_Bottom_Override = -1
-UserHacks_SkipDraw = 0
-UserHacks_SkipDraw_Offset = 0
-UserHacks_TCOffsetX = 0
-UserHacks_TCOffsetY = 0
-UserHacks_TriFilter = 0
-UserHacks_WildHack = 0
-UserHacks_align_sprite_X = 0
-UserHacks_merge_pp_sprite = 0
-UserHacks_round_sprite_offset = 0
-    */
+    int  inputUserHacks_Half_Bottom_Override;
+    bool inputUserHacks_SkipDraw;
+    bool inputUserHacks_SkipDraw_Offset;
+    bool inputUserHacks_TCOffsetX;
+    bool inputUserHacks_TCOffsetY;
+    bool inputUserHacks_TriFilter;
+    bool inputUserHacks_WildHack;
+    bool inputUserHacks_align_sprite_X;
+    bool inputUserHacks_merge_pp_sprite;
+    bool inputUserHacks_round_sprite_offset;
 
 	void TriggerRestart(const char *why);
 
