@@ -155,24 +155,6 @@ std::string SCREEN_System_GetProperty(SystemProperty prop) {
 	}
 	case SYSPROP_CLIPBOARD_TEXT:
 		return SDL_HasClipboardText() ? SDL_GetClipboardText() : "";
-	case SYSPROP_AUDIO_DEVICE_LIST:
-		{
-			std::string result;
-			for (int i = 0; i < SDL_GetNumAudioDevices(0); ++i) {
-				const char *name = SDL_GetAudioDeviceName(i, 0);
-				if (!name) {
-					continue;
-				}
-
-				if (i == 0) {
-					result = name;
-				} else {
-					result.append(1, '\0');
-					result.append(name);
-				}
-			}
-			return result;
-		}
 	default:
 		return "";
 	}
@@ -280,14 +262,6 @@ int screen_manager_main(int argc, char *argv[]) {
 	std::string app_name;
 	std::string app_name_nice;
 	std::string version;
-
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL with joystick support. Retrying without.\n");
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-			fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
-			return 1;
-		}
-	}
 
 	// Get the video info before doing anything else, so we don't get skewed resolution results.
 	// TODO: support multiple displays correctly

@@ -70,6 +70,10 @@ private:
     bool inputUserHacks_align_sprite_X;
     bool inputUserHacks_merge_pp_sprite;
     bool inputUserHacks_round_sprite_offset;
+    bool inputAutoflush_sw;
+    bool inputMipmapping_sw;
+    int  inputExtrathreads_sw;
+    bool inputAnti_aliasing_sw;
 
 	void TriggerRestart(const char *why);
 

@@ -916,5 +916,3 @@ bool addControllerToInternalDB(string entry)
     
     return ok;
 }
-
-

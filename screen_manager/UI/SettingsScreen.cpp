@@ -40,6 +40,7 @@
 #include "Common/OSVersion.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
+#include <SDL.h>
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -51,6 +52,18 @@ extern bool found_eu_ps2;
 #define BIOS_JP 11
 #define BIOS_EU 12
 #define EMPTY   0 
+
+#define BACKEND_OPENGL_HARDWARE 0
+#define BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE 1
+
+int calcExtraThreadsPCSX2()
+{
+    int cnt = SDL_GetCPUCount() -2;
+    if (cnt < 2) cnt = 0; // 1 is debugging that we do not want, negative values set to 0
+    if (cnt > 7) cnt = 7; // limit to 1 main thread and 7 extra threads
+    
+    return cnt;
+}
 
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
     found_bios_ps2 = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
@@ -64,8 +77,10 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
 
         inputVSync = true;
         inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
-        inputBackend = 1; // OpenGL Hardware + Software
+        inputBackend = BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE; // OpenGL Hardware + Software
         inputUserHacks = false;
+        inputExtrathreads_sw = calcExtraThreadsPCSX2();
+        if (inputExtrathreads_sw > 1) inputExtrathreads_sw = inputExtrathreads_sw -1;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::string line,str_dec;
@@ -81,6 +96,45 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     inputRes = std::stoi(str_dec,&sz) - 1;
+                } else 
+                if(line.find("extrathreads") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputExtrathreads_sw = std::stoi(str_dec,&sz) ;
+                    if (inputExtrathreads_sw > 1) inputExtrathreads_sw = inputExtrathreads_sw -1;
+                } else 
+                if(line.find("mipmapping") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputMipmapping_sw = true;
+                    } else
+                    {
+                        inputMipmapping_sw = false;
+                    }
+                } else 
+                if(line.find("aa1") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputAnti_aliasing_sw = true;
+                    } else
+                    {
+                        inputAnti_aliasing_sw = false;
+                    }
+                } else 
+                if(line.find("autoflush_sw") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputAutoflush_sw = true;
+                    } else
+                    {
+                        inputAutoflush_sw = false;
+                    }
                 } else 
                 if(line.find("vsync") != std::string::npos)
                 {
@@ -155,11 +209,11 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz) == 12) 
                     {
-                        inputBackend = 0;
+                        inputBackend = BACKEND_OPENGL_HARDWARE;
                     } else
                     if(std::stoi(str_dec,&sz) == 13) 
                     {
-                        inputBackend = 1;
+                        inputBackend = BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE;
                     }
                 } else
                 {
@@ -209,6 +263,18 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                 }
             }
             GSdx_ini_filehandle << "UserHacks = " << inputUserHacks << "\n";
+
+            GSdx_ini_filehandle << "autoflush_sw = " << inputAutoflush_sw << "\n";
+            GSdx_ini_filehandle << "mipmap = " << inputMipmapping_sw << "\n";
+            if (inputExtrathreads_sw == 0)
+            {
+                GSdx_ini_filehandle << "extrathreads = 0" << "\n";
+            } else
+            {
+                GSdx_ini_filehandle << "extrathreads = " << inputExtrathreads_sw + 1<< "\n";
+            }
+            GSdx_ini_filehandle << "aa1 = " << inputAnti_aliasing_sw << "\n";
+
             GSdx_ini_filehandle.close();
         }
     }
@@ -341,7 +407,36 @@ void SCREEN_SettingsScreen::CreateViews() {
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         
-        if (inputBackend == 0)
+        
+        if (inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE)
+        {          
+            // -------- auto flush --------
+            CheckBox *vAutoflush_sw = graphicsSettings->Add(new CheckBox(&inputAutoflush_sw, gr->T("Enable 'Auto flush framebuffer'", "Enable 'Auto flush framebuffer'")));
+            vAutoflush_sw->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+                   
+            // -------- mipmapping --------
+            CheckBox *vMipmapping_sw = graphicsSettings->Add(new CheckBox(&inputMipmapping_sw, gr->T("Enable 'Mipmapping'", "Enable 'Mipmapping'")));
+            vMipmapping_sw->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            // -------- anti aliasing --------
+            CheckBox *vAnti_aliasing_sw = graphicsSettings->Add(new CheckBox(&inputAnti_aliasing_sw, gr->T("Enable 'Edge anti-aliasing'", "Enable 'Edge anti-aliasing'")));
+            vAnti_aliasing_sw->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+
+            // -------- extra threads --------
+            static const char *Extrathreads_sw[] = { "0","2", "3","4","5","6","7"};
+
+            SCREEN_PopupMultiChoice *Extrathreads_swChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputExtrathreads_sw, gr->T("Extra threads"), Extrathreads_sw, 0, ARRAY_SIZE(Extrathreads_sw), gr->GetName(), screenManager()));
+            Extrathreads_swChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+                
+        }
+        
+        if (inputBackend == BACKEND_OPENGL_HARDWARE)
         {
             // -------- resolution --------
             static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
@@ -357,7 +452,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             });
         }
         
-        if ((inputUserHacks) && (inputBackend == 0) )
+        if ((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) )
         {
             graphicsSettings->Add(new ItemHeader(gr->T("User hacks")));
             
