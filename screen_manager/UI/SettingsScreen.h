@@ -65,6 +65,7 @@ private:
     bool inputUserHacks_SkipDraw_Offset;
     bool inputUserHacks_TCOffsetX;
     bool inputUserHacks_TCOffsetY;
+    bool inputUserHacks_TextureInsideRt;
     bool inputUserHacks_TriFilter;
     bool inputUserHacks_WildHack;
     bool inputUserHacks_align_sprite_X;

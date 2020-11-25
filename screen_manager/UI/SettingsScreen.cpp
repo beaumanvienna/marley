@@ -78,9 +78,32 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputVSync = true;
         inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
         inputBackend = BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE; // OpenGL Hardware + Software
-        inputUserHacks = false;
+        
         inputExtrathreads_sw = calcExtraThreadsPCSX2();
         if (inputExtrathreads_sw > 1) inputExtrathreads_sw = inputExtrathreads_sw -1;
+        
+        
+        
+        inputUserHacks = false;
+        inputUserHacks_AutoFlush = false;
+        inputUserHacks_CPU_FB_Conversion = false;
+        inputUserHacks_DisableDepthSupport = false;
+        inputUserHacks_DisablePartialInvalidation = false;
+        inputUserHacks_Disable_Safe_Features = false;
+        inputUserHacks_HalfPixelOffset = false;
+        inputUserHacks_Half_Bottom_Override = -1;
+        inputUserHacks_SkipDraw = false;
+        inputUserHacks_SkipDraw_Offset = false;
+        inputUserHacks_TCOffsetX = false;
+        inputUserHacks_TCOffsetY = false;
+        inputUserHacks_TextureInsideRt = false;
+        inputUserHacks_TriFilter = false;
+        inputUserHacks_WildHack = false;
+        inputUserHacks_align_sprite_X = false;
+        inputUserHacks_merge_pp_sprite = false;
+        inputUserHacks_round_sprite_offset = false;
+        inputAutoflush_sw = false;
+        inputMipmapping_sw = false;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::string line,str_dec;
@@ -151,12 +174,192 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
-                    if(std::stoi(str_dec,&sz)) 
                     {
                         inputUserHacks = true;
                     } else
                     {
                         inputUserHacks = false;
+                    }
+                } else 
+                if(line.find("UserHacks_AutoFlush") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_AutoFlush = true;
+                    } else
+                    {
+                        inputUserHacks_AutoFlush = false;
+                    }
+                } else 
+                if(line.find("UserHacks_CPU_FB_Conversion =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_CPU_FB_Conversion = true;
+                    } else
+                    {
+                        inputUserHacks_CPU_FB_Conversion = false;
+                    }
+                } else 
+                if(line.find("Hacks_DisableDepthSupport =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_DisableDepthSupport = true;
+                    } else
+                    {
+                        inputUserHacks_DisableDepthSupport = false;
+                    }
+                } else 
+                if(line.find("UserHacks_DisablePartialInvalidation =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_DisablePartialInvalidation = true;
+                    } else
+                    {
+                        inputUserHacks_DisablePartialInvalidation = false;
+                    }
+                } else 
+                if(line.find("UserHacks_Disable_Safe_Features =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_Disable_Safe_Features = true;
+                    } else
+                    {
+                        inputUserHacks_Disable_Safe_Features = false;
+                    }
+                } else 
+                if(line.find("UserHacks_HalfPixelOffset =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_HalfPixelOffset = true;
+                    } else
+                    {
+                        inputUserHacks_HalfPixelOffset = false;
+                    }
+                } else 
+                if(line.find("UserHacks_Half_Bottom_Override =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputUserHacks_Half_Bottom_Override = std::stoi(str_dec,&sz) + 1;
+                } else 
+                if(line.find("UserHacks_SkipDraw =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_SkipDraw = true;
+                    } else
+                    {
+                        inputUserHacks_SkipDraw = false;
+                    }
+                } else 
+                if(line.find("UserHacks_SkipDraw_Offset =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_SkipDraw_Offset = true;
+                    } else
+                    {
+                        inputUserHacks_SkipDraw_Offset = false;
+                    }
+                } else 
+                if(line.find("UserHacks_TCOffsetX =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_TCOffsetX = true;
+                    } else
+                    {
+                        inputUserHacks_TCOffsetX = false;
+                    }
+                } else 
+                if(line.find("UserHacks_TCOffsetY =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_TCOffsetY = true;
+                    } else
+                    {
+                        inputUserHacks_TCOffsetY = false;
+                    }
+                } else 
+                if(line.find("UserHacks_TextureInsideRt =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_TextureInsideRt = true;
+                    } else
+                    {
+                        inputUserHacks_TextureInsideRt = false;
+                    }
+                } else 
+                if(line.find("UserHacks_TriFilter =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_TriFilter = true;
+                    } else
+                    {
+                        inputUserHacks_TriFilter = false;
+                    }
+                } else 
+                if(line.find("UserHacks_WildHack =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_WildHack = true;
+                    } else
+                    {
+                        inputUserHacks_WildHack = false;
+                    }
+                } else 
+                if(line.find("UserHacks_align_sprite_X =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_align_sprite_X = true;
+                    } else
+                    {
+                        inputUserHacks_align_sprite_X = false;
+                    }
+                } else 
+                if(line.find("UserHacks_merge_pp_sprite =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_merge_pp_sprite = true;
+                    } else
+                    {
+                        inputUserHacks_merge_pp_sprite = false;
+                    }
+                } else 
+                if(line.find("UserHacks_round_sprite_offset =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputUserHacks_round_sprite_offset = true;
+                    } else
+                    {
+                        inputUserHacks_round_sprite_offset = false;
                     }
                 } else 
                 if(line.find("bios_region") != std::string::npos)
@@ -262,8 +465,28 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                     gPathToFirmwarePS2 = gBaseDir + "scph77002.bin";
                 }
             }
+            // user hacks
             GSdx_ini_filehandle << "UserHacks = " << inputUserHacks << "\n";
+            GSdx_ini_filehandle << "UserHacks_AutoFlush = " << inputUserHacks_AutoFlush << "\n";
+            GSdx_ini_filehandle << "UserHacks_CPU_FB_Conversion = " << inputUserHacks_CPU_FB_Conversion << "\n";
+            GSdx_ini_filehandle << "UserHacks_DisableDepthSupport = " << inputUserHacks_DisableDepthSupport << "\n";
+            GSdx_ini_filehandle << "UserHacks_DisablePartialInvalidation = " << inputUserHacks_DisablePartialInvalidation << "\n";
+            GSdx_ini_filehandle << "UserHacks_Disable_Safe_Features = " << inputUserHacks_Disable_Safe_Features << "\n";
+            GSdx_ini_filehandle << "UserHacks_HalfPixelOffset = " << inputUserHacks_HalfPixelOffset << "\n";
+            GSdx_ini_filehandle << "UserHacks_Half_Bottom_Override = " << inputUserHacks_Half_Bottom_Override -1 << "\n";
+            GSdx_ini_filehandle << "UserHacks_SkipDraw = " << inputUserHacks_SkipDraw << "\n";
+            GSdx_ini_filehandle << "UserHacks_SkipDraw_Offset = " << inputUserHacks_SkipDraw_Offset << "\n";
+            GSdx_ini_filehandle << "UserHacks_TCOffsetX = " << inputUserHacks_TCOffsetX << "\n";
+            GSdx_ini_filehandle << "UserHacks_TCOffsetY = " << inputUserHacks_TCOffsetY << "\n";
+            GSdx_ini_filehandle << "UserHacks_TCOffsetY = " << inputUserHacks_TCOffsetY << "\n";
+            GSdx_ini_filehandle << "UserHacks_TextureInsideRt = " << inputUserHacks_TextureInsideRt << "\n";
+            GSdx_ini_filehandle << "UserHacks_WildHack = " << inputUserHacks_WildHack << "\n";
+            GSdx_ini_filehandle << "UserHacks_align_sprite_X = " << inputUserHacks_align_sprite_X << "\n";
+            GSdx_ini_filehandle << "UserHacks_merge_pp_sprite = " << inputUserHacks_merge_pp_sprite << "\n";
+            GSdx_ini_filehandle << "UserHacks_round_sprite_offset = " << inputUserHacks_round_sprite_offset << "\n";
 
+            
+            // settings for software rendering
             GSdx_ini_filehandle << "autoflush_sw = " << inputAutoflush_sw << "\n";
             GSdx_ini_filehandle << "mipmap = " << inputMipmapping_sw << "\n";
             if (inputExtrathreads_sw == 0)
@@ -509,6 +732,11 @@ void SCREEN_SettingsScreen::CreateViews() {
 
             CheckBox *vUserHacks_TCOffsetY = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetY, gr->T("Enable 'TC offset X'", "Enable 'TC offset X'")));
             vUserHacks_TCOffsetY->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_TextureInsideRt = graphicsSettings->Add(new CheckBox(&inputUserHacks_TextureInsideRt, gr->T("Enable 'texture inside Rt'", "Enable 'texture inside Rt'")));
+            vUserHacks_TextureInsideRt->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
