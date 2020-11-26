@@ -117,7 +117,6 @@ bool closeAllJoy(void)
 bool closeJoy(int instance_id)
 {
     int designation, instance, n, num_controller, ctrlType, devPerType;
-    printf("closeJoy(int %i)\n",instance_id);
     
     //Close gamepad
     SDL_JoystickClose( gGamepad[instance_id] );

@@ -429,7 +429,6 @@ int SDLGLSCREEN_GraphicsContext::Init(SDL_Window *&window, int x, int y, int mod
 	});
 
 	renderManager_->SetSwapIntervalFunction([&](int interval) {
-		printf("SDL SwapInterval: %d", interval);
 		SDL_GL_SetSwapInterval(interval);
 	});
 	window_ = window;

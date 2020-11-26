@@ -82,7 +82,14 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputExtrathreads_sw = calcExtraThreadsPCSX2();
         if (inputExtrathreads_sw > 1) inputExtrathreads_sw = inputExtrathreads_sw -1;
         
+        inputAdvancedSettings = false;
         
+        inputInterlace = 7;
+        inputBiFilter = 2;
+        inputAnisotropy = 0;
+        inputDithering = 2;
+        inputHW_mipmapping = 0;
+        inputCRC_level = 0;
         
         inputUserHacks = false;
         inputUserHacks_AutoFlush = false;
@@ -137,6 +144,17 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputMipmapping_sw = false;
                     }
                 } else 
+                if(line.find("advanced_settings =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(std::stoi(str_dec,&sz)) 
+                    {
+                        inputAdvancedSettings = true;
+                    } else
+                    {
+                        inputAdvancedSettings = false;
+                    }
+                } else 
                 if(line.find("aa1 ") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
@@ -169,6 +187,54 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                     {
                         inputVSync = false;
                     }
+                } else 
+                if(line.find("interlace =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputInterlace = std::stoi(str_dec,&sz) ;
+                } else 
+                if(line.find("filter =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputBiFilter = std::stoi(str_dec,&sz) ;
+                } else 
+                if(line.find("MaxAnisotropy =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputAnisotropy = std::stoi(str_dec,&sz) ;
+                    switch(inputAnisotropy)
+                    {
+                        case 2:
+                            inputAnisotropy = 1;
+                            break;
+                        case 4:
+                            inputAnisotropy = 2;
+                            break;
+                        case 8:
+                            inputAnisotropy = 3;
+                            break;
+                        case 16:
+                            inputAnisotropy = 4;
+                            break;
+                        default:
+                            inputAnisotropy = 0;
+                            break;
+                    }
+                } else 
+                if(line.find("dithering_ps2 =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputDithering = std::stoi(str_dec,&sz) ;
+                } else 
+                if(line.find("mipmap_hw =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputHW_mipmapping = std::stoi(str_dec,&sz) +1;
+                } else 
+                if(line.find("crc_hack_level =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputCRC_level = std::stoi(str_dec,&sz) +1;
                 } else 
                 if(line.find("UserHacks =") != std::string::npos)
                 {
@@ -473,6 +539,34 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                     gPathToFirmwarePS2 = gBaseDir + "scph77002.bin";
                 }
             }
+            // advanced settings
+            GSdx_ini_filehandle << "advanced_settings = " << inputAdvancedSettings << "\n";
+            GSdx_ini_filehandle << "interlace = " << inputInterlace << "\n";
+            GSdx_ini_filehandle << "filter = " << inputBiFilter << "\n";
+
+            switch(inputAnisotropy)
+            {
+                case 1:
+                    GSdx_ini_filehandle << "MaxAnisotropy = 2\n";
+                    break;
+                case 2:
+                    GSdx_ini_filehandle << "MaxAnisotropy = 4\n";
+                    break;
+                case 3:
+                    GSdx_ini_filehandle << "MaxAnisotropy = 8\n";
+                    break;
+                case 4:
+                    GSdx_ini_filehandle << "MaxAnisotropy = 16\n";
+                    break;
+                default:
+                    GSdx_ini_filehandle << "MaxAnisotropy = 0\n";
+                    break;
+            }            
+            
+            GSdx_ini_filehandle << "dithering_ps2 = " << inputDithering << "\n";
+            GSdx_ini_filehandle << "mipmap_hw = " << inputHW_mipmapping - 1 << "\n";
+            GSdx_ini_filehandle << "crc_hack_level = " << inputCRC_level - 1 << "\n";
+            
             // user hacks
             GSdx_ini_filehandle << "UserHacks = " << inputUserHacks << "\n";
             GSdx_ini_filehandle << "UserHacks_AutoFlush = " << inputUserHacks_AutoFlush << "\n";
@@ -494,6 +588,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             GSdx_ini_filehandle << "UserHacks_round_sprite_offset = " << inputUserHacks_round_sprite_offset << "\n";
             GSdx_ini_filehandle << "UserHacks_TextureInsideRt = " << inputUserHacks_TextureInsideRt << "\n";
             
+
             // settings for software rendering
             GSdx_ini_filehandle << "autoflush_sw = " << inputAutoflush_sw << "\n";
             GSdx_ini_filehandle << "mipmap = " << inputMipmapping_sw << "\n";
@@ -646,17 +741,26 @@ void SCREEN_SettingsScreen::CreateViews() {
         vSync->OnClick.Add([=](EventParams &e) {
             return SCREEN_UI::EVENT_CONTINUE;
         });
-        
+
         // -------- rendering mode --------
         static const char *renderingBackend[] = {
-            "OpenGL (fast renderer)",
-            "CPU + OpenGL (high gfx accuracy)"};
-        
+            "OpenGL (Hardware)",
+            "OpenGL (Software)"};
+
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
-        
-        
+
         if (inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE)
+        {
+            // -------- advanced settings --------
+            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, gr->T("Advanced Settings", "Advanced Settings")));
+            vAdvancedSettings->OnClick.Add([=](EventParams &e) {
+                RecreateViews();
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+        }
+
+        if ((inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE) && (inputAdvancedSettings) )
         {          
             // -------- auto flush --------
             CheckBox *vAutoflush_sw = graphicsSettings->Add(new CheckBox(&inputAutoflush_sw, gr->T("Enable 'Auto flush framebuffer'", "Enable 'Auto flush framebuffer'")));
@@ -691,7 +795,84 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
             selectResolutionChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);        
+            
+            // -------- advanced settings --------
+            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, gr->T("Advanced Settings", "Advanced Settings")));
+            vAdvancedSettings->OnClick.Add([=](EventParams &e) {
+                RecreateViews();
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+        }
+        
+        if ((inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings))
+        {
+            
+            // -------- interlace --------
+            static const char *interlace[] = {
+                "None",
+                "Weave tff",
+                "Weave bff",
+                "Bob tff",
+                "Bob bff",
+                "Blend tff",
+                "Blend bff",
+                "Automatic"};
 
+            SCREEN_PopupMultiChoice *interlaceChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputInterlace, gr->T("Interlace"), interlace, 0, ARRAY_SIZE(interlace), gr->GetName(), screenManager()));
+            interlaceChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- bi filter --------
+            static const char *biFilter[] = {
+                "Nearest",
+                "Bilinear Forced excluding sprite",
+                "Bilinear Forced",
+                "Bilinear PS2"};
+
+            SCREEN_PopupMultiChoice *biFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBiFilter, gr->T("Bi Filter"), biFilter, 0, ARRAY_SIZE(biFilter), gr->GetName(), screenManager()));
+            biFilterChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- max anisotropy --------
+            static const char *anisotropy[] = {
+                "Off",
+                "2x",
+                "4x",
+                "8x",
+                "16x"};
+
+            SCREEN_PopupMultiChoice *anisotropyChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAnisotropy, gr->T("Max anisotropy"), anisotropy, 0, ARRAY_SIZE(anisotropy), gr->GetName(), screenManager()));
+            anisotropyChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- dithering --------
+            static const char *dithering[] = {
+                "Off",
+                "Scaled",
+                "Unscaled"};
+
+            SCREEN_PopupMultiChoice *ditheringChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputDithering, gr->T("Dithering"), dithering, 0, ARRAY_SIZE(dithering), gr->GetName(), screenManager()));
+            ditheringChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- HW mipmapping --------
+            static const char *hw_mipmapping[] = {
+                "Automatic",
+                "Off",
+                "Basic",
+                "Full"};
+
+            SCREEN_PopupMultiChoice *hw_mipmappingChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputHW_mipmapping, gr->T("HW mipmapping"), hw_mipmapping, 0, ARRAY_SIZE(hw_mipmapping), gr->GetName(), screenManager()));
+            hw_mipmappingChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- CRC level --------
+            static const char *crc_level[] = {
+                "Automatic",
+                "None",
+                "Minimum",
+                "Partial",
+                "Full",
+                "Aggressive"};
+                
+            SCREEN_PopupMultiChoice *crc_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputCRC_level, gr->T("CRC level"), crc_level, 0, ARRAY_SIZE(crc_level), gr->GetName(), screenManager()));
+            crc_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
             // -------- user hacks --------
             CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));
             vUserHacks->OnClick.Add([=](EventParams &e) {
@@ -700,7 +881,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             });
         }
         
-        if ((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) )
+        if ((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings))
         {
             graphicsSettings->Add(new ItemHeader(gr->T("User hacks")));
             

@@ -54,6 +54,13 @@ private:
     std::vector<std::string> PCSX2_vm_entries;
     bool found_bios_ps2;
     int bios_selection[3];
+    bool inputAdvancedSettings;
+    int  inputInterlace;
+    int  inputBiFilter;
+    int  inputAnisotropy;
+    int  inputDithering;
+    int  inputHW_mipmapping;
+    int  inputCRC_level;
     bool inputUserHacks;
     bool inputUserHacks_AutoFlush;
     bool inputUserHacks_CPU_FB_Conversion;
@@ -67,7 +74,7 @@ private:
     bool inputUserHacks_TCOffsetX;
     bool inputUserHacks_TCOffsetY;
     bool inputUserHacks_TextureInsideRt;
-    int inputUserHacks_TriFilter;
+    int  inputUserHacks_TriFilter;
     bool inputUserHacks_WildHack;
     bool inputUserHacks_align_sprite_X;
     bool inputUserHacks_merge_pp_sprite;
@@ -76,6 +83,7 @@ private:
     bool inputMipmapping_sw;
     int  inputExtrathreads_sw;
     bool inputAnti_aliasing_sw;
+
 
 	void TriggerRestart(const char *why);
 

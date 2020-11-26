@@ -284,10 +284,10 @@ void SCREEN_ScreenManager::processFinishDialog() {
 			}
 
 			if (!caller) {
-				printf("ERROR: no top screen when finishing dialog");
+				printf("ERROR: no top screen when finishing dialog\n");
 			} else if (caller != topScreen()) {
 				// The caller may get confused if we call dialogFinished() now.
-				printf("Skipping non-top dialog when finishing dialog.");
+				printf("Skipping non-top dialog when finishing dialog.\n");
 			} else {
 				caller->dialogFinished(dialogFinished_, dialogResult_);
 			}
