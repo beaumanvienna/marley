@@ -13,7 +13,7 @@ static int num_entries = 0;
 void VFSRegister(const char *prefix, SCREEN_AssetReader *reader) {
 	entries[num_entries].prefix = prefix;
 	entries[num_entries].reader = reader;
-	printf("Registered VFS for prefix %s: %s", prefix, reader->toString().c_str());
+	printf("Registered VFS for prefix %s: %s\n", prefix, reader->toString().c_str());
 	num_entries++;
 }
 

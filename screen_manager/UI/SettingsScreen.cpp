@@ -90,6 +90,9 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputDithering = 2;
         inputHW_mipmapping = 0;
         inputCRC_level = 0;
+        inputAcc_date_level = 1;
+        inputAcc_blend_level = 1;
+        inputAspectratio = 0;
         
         inputUserHacks = false;
         inputUserHacks_AutoFlush = false;
@@ -235,6 +238,16 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     inputCRC_level = std::stoi(str_dec,&sz) +1;
+                } else 
+                if(line.find("accurate_date =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputAcc_date_level = std::stoi(str_dec,&sz);
+                } else 
+                if(line.find("accurate_blending_unit =") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    inputAcc_blend_level = std::stoi(str_dec,&sz);
                 } else 
                 if(line.find("UserHacks =") != std::string::npos)
                 {
@@ -497,6 +510,19 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
             }
             PCSX2_vm_ini_filehandle.close();
         }
+        
+                
+        //read PCSX2_ui into buffer
+        std::string PCSX2_ui_ini = gBaseDir + "PCSX2/inis/PCSX2_ui.ini";
+        std::ifstream PCSX2_ui_ini_filehandle(PCSX2_ui_ini);
+        if (PCSX2_ui_ini_filehandle.is_open())
+        {
+            while ( getline (PCSX2_ui_ini_filehandle,line))
+            {
+                PCSX2_ui_entries.push_back(line);
+            }
+            PCSX2_ui_ini_filehandle.close();
+        }
     }
 }
 bool createDir(std::string name);
@@ -508,6 +534,8 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
         std::ofstream GSdx_ini_filehandle;
         std::string PCSX2_vm_ini = gBaseDir + "PCSX2/inis/PCSX2_vm.ini";
         std::ofstream PCSX2_vm_ini_filehandle;
+        std::string PCSX2_ui_ini = gBaseDir + "PCSX2/inis/PCSX2_ui.ini";
+        std::ofstream PCSX2_ui_ini_filehandle;
         
         createDir(gBaseDir + "PCSX2");
         createDir(gBaseDir + "PCSX2/inis");
@@ -566,7 +594,9 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             GSdx_ini_filehandle << "dithering_ps2 = " << inputDithering << "\n";
             GSdx_ini_filehandle << "mipmap_hw = " << inputHW_mipmapping - 1 << "\n";
             GSdx_ini_filehandle << "crc_hack_level = " << inputCRC_level - 1 << "\n";
-            
+            GSdx_ini_filehandle << "accurate_date = " << inputAcc_date_level << "\n";
+            GSdx_ini_filehandle << "accurate_blending_unit = " << inputAcc_blend_level << "\n";
+
             // user hacks
             GSdx_ini_filehandle << "UserHacks = " << inputUserHacks << "\n";
             GSdx_ini_filehandle << "UserHacks_AutoFlush = " << inputUserHacks_AutoFlush << "\n";
@@ -587,7 +617,6 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             GSdx_ini_filehandle << "UserHacks_merge_pp_sprite = " << inputUserHacks_merge_pp_sprite << "\n";
             GSdx_ini_filehandle << "UserHacks_round_sprite_offset = " << inputUserHacks_round_sprite_offset << "\n";
             GSdx_ini_filehandle << "UserHacks_TextureInsideRt = " << inputUserHacks_TextureInsideRt << "\n";
-            
 
             // settings for software rendering
             GSdx_ini_filehandle << "autoflush_sw = " << inputAutoflush_sw << "\n";
@@ -603,7 +632,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
 
             GSdx_ini_filehandle.close();
         }
-        
+
         // output PCSX2_vm.ini
         PCSX2_vm_ini_filehandle.open(PCSX2_vm_ini.c_str(), std::ios_base::out); 
         if(PCSX2_vm_ini_filehandle)
@@ -619,12 +648,37 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                     PCSX2_vm_ini_filehandle << line << "\n";
                 }
             }
+            PCSX2_vm_ini_filehandle.close();
+        }
+        
+        // output PCSX2_ui.ini
+        PCSX2_ui_ini_filehandle.open(PCSX2_ui_ini.c_str(), std::ios_base::out); 
+        if(PCSX2_ui_ini_filehandle)
+        {
+            for(int i=0; i<PCSX2_ui_entries.size(); i++)
+            {
+                line = PCSX2_ui_entries[i];
+                if(line.find("AspectRatio=") != std::string::npos)
+                {
+                    if (inputAspectratio)
+                    {
+                        PCSX2_ui_ini_filehandle << "AspectRatio=4:3\n";
+                    } else
+                    {
+                        PCSX2_ui_ini_filehandle << "AspectRatio=16:9\n";
+                    }
+                } else
+                {
+                    PCSX2_ui_ini_filehandle << line << "\n";
+                }
+            }
+            PCSX2_ui_ini_filehandle.close();
         }
     }
 }
 
 void SCREEN_SettingsScreen::CreateViews() {
-    
+
 	using namespace SCREEN_UI;
 
 	auto di = GetI18NCategory("General");
@@ -735,7 +789,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         }
-        
+
         // -------- vsync --------
         CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
         vSync->OnClick.Add([=](EventParams &e) {
@@ -749,6 +803,14 @@ void SCREEN_SettingsScreen::CreateViews() {
 
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+
+        // -------- aspect ratio --------
+        static const char *aspect_ratio[] = {
+            "16:9",
+            "4:3"};
+
+        SCREEN_PopupMultiChoice *aspect_ratioChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAspectratio, gr->T("Aspect ratio"), aspect_ratio, 0, ARRAY_SIZE(aspect_ratio), gr->GetName(), screenManager()));
+        aspect_ratioChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);            
 
         if (inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE)
         {
@@ -872,6 +934,27 @@ void SCREEN_SettingsScreen::CreateViews() {
                 
             SCREEN_PopupMultiChoice *crc_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputCRC_level, gr->T("CRC level"), crc_level, 0, ARRAY_SIZE(crc_level), gr->GetName(), screenManager()));
             crc_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- accurate date --------
+            static const char *acc_date_level[] = {
+                "Off",
+                "Fast",
+                "Full"};
+                
+            SCREEN_PopupMultiChoice *acc_date_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_date_level, gr->T("DATE accuracy"), acc_date_level, 0, ARRAY_SIZE(acc_date_level), gr->GetName(), screenManager()));
+            acc_date_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- accurate blending unit --------
+            static const char *acc_blend_level[] = {
+                "None",
+                "Basic",
+                "Medium",
+                "High",
+                "Full",
+                "Ultra"};
+                                
+            SCREEN_PopupMultiChoice *acc_blend_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_blend_level, gr->T("Blending accuracy"), acc_blend_level, 0, ARRAY_SIZE(acc_blend_level), gr->GetName(), screenManager()));
+            acc_blend_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- user hacks --------
             CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));

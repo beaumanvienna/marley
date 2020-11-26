@@ -87,7 +87,7 @@ void SCREEN_SDLJoystick::setUpController(int deviceIndex) {
     */
     int devIndex = gDesignatedControllers[deviceIndex].index[0];
     SDL_GameController *controller = gDesignatedControllers[deviceIndex].gameCtrl[0];
-	if (controller) {
+/*	if (controller) {
 		if (SDL_GameControllerGetAttached(controller)) {
 			controllers.push_back(controller);
 			controllerDeviceMap[SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))] = devIndex;
@@ -102,7 +102,7 @@ void SCREEN_SDLJoystick::setUpController(int deviceIndex) {
 		} else {
 			SDL_GameControllerClose(controller);
 		}
-	}
+	}*/
 }
 
 SCREEN_SDLJoystick::~SCREEN_SDLJoystick() {

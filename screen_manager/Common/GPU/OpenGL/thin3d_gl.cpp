@@ -229,7 +229,7 @@ GLuint ShaderStageToOpenGL(SCREEN_ShaderStage stage) {
 class OpenGLShaderModule : public SCREEN_ShaderModule {
 public:
 	OpenGLShaderModule(SCREEN_GLRenderManager *render, SCREEN_ShaderStage stage, const std::string &tag) : render_(render), stage_(stage), tag_(tag) {
-		printf("Shader module created (%p)", this);
+		//printf("Shader module created (%p)", this);
 		glstage_ = ShaderStageToOpenGL(stage);
 	}
 
