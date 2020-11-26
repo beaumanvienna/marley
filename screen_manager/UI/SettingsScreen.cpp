@@ -97,13 +97,13 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputUserHacks_TCOffsetX = false;
         inputUserHacks_TCOffsetY = false;
         inputUserHacks_TextureInsideRt = false;
-        inputUserHacks_TriFilter = false;
+        inputUserHacks_TriFilter = 0;
         inputUserHacks_WildHack = false;
         inputUserHacks_align_sprite_X = false;
         inputUserHacks_merge_pp_sprite = false;
         inputUserHacks_round_sprite_offset = false;
-        inputAutoflush_sw = false;
-        inputMipmapping_sw = false;
+        inputAutoflush_sw = true;
+        inputMipmapping_sw = true;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::string line,str_dec;
@@ -115,18 +115,18 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         {
             while ( getline (GSdx_ini_filehandle,line))
             {
-                if(line.find("upscale_multiplier") != std::string::npos)
+                if(line.find("upscale_multiplier =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     inputRes = std::stoi(str_dec,&sz) - 1;
                 } else 
-                if(line.find("extrathreads") != std::string::npos)
+                if(line.find("extrathreads =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     inputExtrathreads_sw = std::stoi(str_dec,&sz) ;
                     if (inputExtrathreads_sw > 1) inputExtrathreads_sw = inputExtrathreads_sw -1;
                 } else 
-                if(line.find("mipmapping") != std::string::npos)
+                if(line.find("mipmap =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
@@ -137,7 +137,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputMipmapping_sw = false;
                     }
                 } else 
-                if(line.find("aa1") != std::string::npos)
+                if(line.find("aa1 ") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
@@ -148,7 +148,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputAnti_aliasing_sw = false;
                     }
                 } else 
-                if(line.find("autoflush_sw") != std::string::npos)
+                if(line.find("autoflush_sw =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
@@ -159,7 +159,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputAutoflush_sw = false;
                     }
                 } else 
-                if(line.find("vsync") != std::string::npos)
+                if(line.find("vsync =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
@@ -181,7 +181,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputUserHacks = false;
                     }
                 } else 
-                if(line.find("UserHacks_AutoFlush") != std::string::npos)
+                if(line.find("UserHacks_AutoFlush =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
@@ -310,13 +310,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 if(line.find("UserHacks_TriFilter =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
-                    if(std::stoi(str_dec,&sz)) 
-                    {
-                        inputUserHacks_TriFilter = true;
-                    } else
-                    {
-                        inputUserHacks_TriFilter = false;
-                    }
+                    inputUserHacks_TriFilter = std::stoi(str_dec,&sz);
                 } else 
                 if(line.find("UserHacks_WildHack =") != std::string::npos)
                 {
@@ -362,7 +356,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputUserHacks_round_sprite_offset = false;
                     }
                 } else 
-                if(line.find("bios_region") != std::string::npos)
+                if(line.find("bios_region =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     int bios_ini_val = std::stoi(str_dec,&sz);
@@ -407,7 +401,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                         inputBios = bios_ini_val - BIOS_NA;
                     }
                 } else 
-                if(line.find("Renderer") != std::string::npos)
+                if(line.find("Renderer =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz) == 12) 
@@ -425,26 +419,40 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
             }
             GSdx_ini_filehandle.close();
         }
+        
+        //read PCSX2_vm into buffer
+        std::string PCSX2_vm_ini = gBaseDir + "PCSX2/inis/PCSX2_vm.ini";
+        std::ifstream PCSX2_vm_ini_filehandle(PCSX2_vm_ini);
+        if (PCSX2_vm_ini_filehandle.is_open())
+        {
+            while ( getline (PCSX2_vm_ini_filehandle,line))
+            {
+                PCSX2_vm_entries.push_back(line);
+            }
+            PCSX2_vm_ini_filehandle.close();
+        }
     }
 }
 bool createDir(std::string name);
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
     if (found_bios_ps2)
     {
-        std::string line, str;
+        std::string str, line;
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::ofstream GSdx_ini_filehandle;
+        std::string PCSX2_vm_ini = gBaseDir + "PCSX2/inis/PCSX2_vm.ini";
+        std::ofstream PCSX2_vm_ini_filehandle;
         
         createDir(gBaseDir + "PCSX2");
         createDir(gBaseDir + "PCSX2/inis");
-
+        
+        // output GSdx.ini
         GSdx_ini_filehandle.open(GSdx_ini.c_str(), std::ios_base::out); 
         if(GSdx_ini_filehandle)
         {
             for(int i=0; i<GSdx_entries.size(); i++)
             {
-                line = GSdx_entries[i];
-                GSdx_ini_filehandle << line << "\n";
+                GSdx_ini_filehandle << GSdx_entries[i] << "\n";
             }
             GSdx_ini_filehandle << "upscale_multiplier = " <<  inputRes+1 << "\n";
             GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
@@ -479,12 +487,12 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             GSdx_ini_filehandle << "UserHacks_TCOffsetX = " << inputUserHacks_TCOffsetX << "\n";
             GSdx_ini_filehandle << "UserHacks_TCOffsetY = " << inputUserHacks_TCOffsetY << "\n";
             GSdx_ini_filehandle << "UserHacks_TCOffsetY = " << inputUserHacks_TCOffsetY << "\n";
-            GSdx_ini_filehandle << "UserHacks_TextureInsideRt = " << inputUserHacks_TextureInsideRt << "\n";
+            GSdx_ini_filehandle << "UserHacks_TriFilter = " << inputUserHacks_TriFilter << "\n";
             GSdx_ini_filehandle << "UserHacks_WildHack = " << inputUserHacks_WildHack << "\n";
             GSdx_ini_filehandle << "UserHacks_align_sprite_X = " << inputUserHacks_align_sprite_X << "\n";
             GSdx_ini_filehandle << "UserHacks_merge_pp_sprite = " << inputUserHacks_merge_pp_sprite << "\n";
             GSdx_ini_filehandle << "UserHacks_round_sprite_offset = " << inputUserHacks_round_sprite_offset << "\n";
-
+            GSdx_ini_filehandle << "UserHacks_TextureInsideRt = " << inputUserHacks_TextureInsideRt << "\n";
             
             // settings for software rendering
             GSdx_ini_filehandle << "autoflush_sw = " << inputAutoflush_sw << "\n";
@@ -499,6 +507,23 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             GSdx_ini_filehandle << "aa1 = " << inputAnti_aliasing_sw << "\n";
 
             GSdx_ini_filehandle.close();
+        }
+        
+        // output PCSX2_vm.ini
+        PCSX2_vm_ini_filehandle.open(PCSX2_vm_ini.c_str(), std::ios_base::out); 
+        if(PCSX2_vm_ini_filehandle)
+        {
+            for(int i=0; i<PCSX2_vm_entries.size(); i++)
+            {
+                line = PCSX2_vm_entries[i];
+                if(line.find("VsyncEnable") != std::string::npos)
+                {
+                    PCSX2_vm_ini_filehandle << "VsyncEnable=" << inputVSync << "\n";
+                } else
+                {
+                    PCSX2_vm_ini_filehandle << line << "\n";
+                }
+            }
         }
     }
 }
@@ -730,20 +755,14 @@ void SCREEN_SettingsScreen::CreateViews() {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
-            CheckBox *vUserHacks_TCOffsetY = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetY, gr->T("Enable 'TC offset X'", "Enable 'TC offset X'")));
+            CheckBox *vUserHacks_TCOffsetY = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetY, gr->T("Enable 'TC offset Y'", "Enable 'TC offset Y'")));
             vUserHacks_TCOffsetY->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
-            
-            CheckBox *vUserHacks_TextureInsideRt = graphicsSettings->Add(new CheckBox(&inputUserHacks_TextureInsideRt, gr->T("Enable 'texture inside Rt'", "Enable 'texture inside Rt'")));
-            vUserHacks_TextureInsideRt->OnClick.Add([=](EventParams &e) {
-                return SCREEN_UI::EVENT_CONTINUE;
-            });
 
-            CheckBox *vUserHacks_TriFilter = graphicsSettings->Add(new CheckBox(&inputUserHacks_TriFilter, gr->T("Enable 'tri filter'", "Enable 'tri filter'")));
-            vUserHacks_TriFilter->OnClick.Add([=](EventParams &e) {
-                return SCREEN_UI::EVENT_CONTINUE;
-            });
+            static const char *UserHacks_TriFilter[] = { "None","PS2","Forced"};
+            SCREEN_PopupMultiChoice *UserHacks_TriFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputUserHacks_TriFilter, gr->T("Enable 'tri filter'"), UserHacks_TriFilter, 0, ARRAY_SIZE(UserHacks_TriFilter), gr->GetName(), screenManager()));
+            UserHacks_TriFilterChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
 
             CheckBox *vUserHacks_WildHack = graphicsSettings->Add(new CheckBox(&inputUserHacks_WildHack, gr->T("Enable 'wild hack'", "Enable 'wild hack'")));
             vUserHacks_WildHack->OnClick.Add([=](EventParams &e) {
@@ -762,6 +781,11 @@ void SCREEN_SettingsScreen::CreateViews() {
 
             CheckBox *vUserHacks_round_sprite_offset = graphicsSettings->Add(new CheckBox(&inputUserHacks_round_sprite_offset, gr->T("Enable 'round sprite offset'", "Enable 'round sprite offset'")));
             vUserHacks_round_sprite_offset->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+            
+            CheckBox *vUserHacks_TextureInsideRt = graphicsSettings->Add(new CheckBox(&inputUserHacks_TextureInsideRt, gr->T("Enable 'texture inside Rt'", "Enable 'texture inside Rt'")));
+            vUserHacks_TextureInsideRt->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
         }

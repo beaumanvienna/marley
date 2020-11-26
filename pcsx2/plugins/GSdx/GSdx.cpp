@@ -25,7 +25,7 @@
 #include <fstream>
 
 static void* s_hModule;
-
+int calcExtraThreadsPCSX2();
 #ifdef _WIN32
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -195,9 +195,12 @@ void GSdxApp::Init()
 {
 	static bool is_initialised = false;
 	if (is_initialised)
+    {
+        ReloadConfig();
 		return;
+    }
 	is_initialised = true;
-
+    
 	m_current_renderer_type = GSRendererType::Undefined;
 
 	if (m_ini.empty())
@@ -337,7 +340,7 @@ void GSdxApp::Init()
 	m_default_configuration["disable_hw_gl_draw"]                         = "0";
 	m_default_configuration["dithering_ps2"]                              = "2";
 	m_default_configuration["dump"]                                       = "0";
-	m_default_configuration["extrathreads"]                               = "2";
+	m_default_configuration["extrathreads"]                               = std::to_string(calcExtraThreadsPCSX2());
 	m_default_configuration["extrathreads_height"]                        = "4";
 	m_default_configuration["filter"]                                     = std::to_string(static_cast<int8>(BiFiltering::PS2));
 	m_default_configuration["force_texture_clear"]                        = "0";
@@ -402,7 +405,7 @@ void GSdxApp::Init()
 	m_default_configuration["shaderfx_conf"]                              = "shaders/GSdx_FX_Settings.ini";
 	m_default_configuration["shaderfx_glsl"]                              = "shaders/GSdx.fx";
 	m_default_configuration["TVShader"]                                   = "0";
-	m_default_configuration["upscale_multiplier"]                         = "1";
+	m_default_configuration["upscale_multiplier"]                         = "2";
 	m_default_configuration["UserHacks"]                                  = "0";
 	m_default_configuration["UserHacks_align_sprite_X"]                   = "0";
 	m_default_configuration["UserHacks_AutoFlush"]                        = "0";
@@ -422,7 +425,7 @@ void GSdxApp::Init()
 	m_default_configuration["UserHacks_TriFilter"]                        = std::to_string(static_cast<int8>(TriFiltering::None));
 	m_default_configuration["UserHacks_WildHack"]                         = "0";
 	m_default_configuration["wrap_gs_mem"]                                = "0";
-	m_default_configuration["vsync"]                                      = "0";
+	m_default_configuration["vsync"]                                      = "1";
 }
 
 void GSdxApp::ReloadConfig()

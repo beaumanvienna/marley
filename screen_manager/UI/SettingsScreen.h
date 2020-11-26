@@ -51,6 +51,7 @@ private:
     int inputRes;
     bool inputVSync;
     std::vector<std::string> GSdx_entries;
+    std::vector<std::string> PCSX2_vm_entries;
     bool found_bios_ps2;
     int bios_selection[3];
     bool inputUserHacks;
@@ -66,7 +67,7 @@ private:
     bool inputUserHacks_TCOffsetX;
     bool inputUserHacks_TCOffsetY;
     bool inputUserHacks_TextureInsideRt;
-    bool inputUserHacks_TriFilter;
+    int inputUserHacks_TriFilter;
     bool inputUserHacks_WildHack;
     bool inputUserHacks_align_sprite_X;
     bool inputUserHacks_merge_pp_sprite;
