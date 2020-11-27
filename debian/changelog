@@ -1,3 +1,13 @@
+marley (0.2.3) focal; urgency=medium
+
+  * More PCSX2 settings on settings screen functional
+  * 4:3 for PCSX2 in windowed mode
+  * This is a test version.
+  * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  THU, 26 Nov 2020 20:24:00 -0800
+
 marley (0.2.2) focal; urgency=medium
 
   * More PCSX2 settings on settings screen functional
