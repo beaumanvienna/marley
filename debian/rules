@@ -12,4 +12,4 @@ override_dh_auto_configure:
 	./configure --prefix=/usr
 
 override_dh_auto_build:
-	make -j$(shell cat /proc/cpuinfo | grep -c vendor_id)
+	make -j$(shell cat /proc/cpuinfo | grep -c vendor_id) VERBOSE=1
