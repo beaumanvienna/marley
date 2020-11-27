@@ -2,9 +2,9 @@ Format: 3.0 (native)
 Source: marley
 Binary: marley
 Architecture: amd64
-Version: 0.2.3.1
+Version: 0.2.3.2
 Maintainer: JC <beaumanvienna@gmail.com>
-Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
+Homepage: https://github.com/beaumanvienna/marley
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), libsdl2-dev, libsdl2-image-dev, cmake, chrpath, libsdl2-ttf-dev, \
                autotools-dev, dh-autoreconf, libasound2-dev [linux-any], libgl1-mesa-dev | libgl-dev, \
