@@ -32,7 +32,7 @@
 #include <X11/extensions/Xfixes.h>
 #include <SDL_syswm.h>
 #include <GL/gl.h>
-
+#include <fstream>
 //rendering window 
 SDL_Window* gWindow = nullptr;
 
@@ -1011,15 +1011,51 @@ void create_new_window(void)
     }
     // create new
     initOpenGL();
+    
+    
+    //read PCSX2_ui
+    bool aspectratio_4_3 = false;
+    string line, substr;
+    string PCSX2_ui_ini = gBaseDir + "PCSX2/inis/PCSX2_ui.ini";
+    ifstream PCSX2_ui_ini_filehandle(PCSX2_ui_ini);
+    if (PCSX2_ui_ini_filehandle.is_open())
+    {
+        while ( getline (PCSX2_ui_ini_filehandle,line))
+        {
+            if(line.find("AspectRatio=") != string::npos)
+            {
+                substr = line.substr(line.find_last_of("=") + 1);
+                if(substr.find("4:3") != string::npos)
+                {
+                    aspectratio_4_3 = true;
+                }
+                break;
+            }
+        }
+        PCSX2_ui_ini_filehandle.close();
+    }
+
+    
 
     string str = "marley ";
     str += PACKAGE_VERSION;
-    gWindow = SDL_CreateWindow( str.c_str(), 
+    if (aspectratio_4_3)
+    {
+        gWindow = SDL_CreateWindow( str.c_str(), 
+                                SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED,
+                                window_height*1.733333333, 
+                                window_height*1.3, 
+                                window_flags );
+    } else
+    {
+        gWindow = SDL_CreateWindow( str.c_str(), 
                                 window_x, 
                                 window_y, 
                                 window_width, 
                                 window_height, 
                                 window_flags );
+    }
     setAppIcon();
     //hide_or_show_cursor_X11(CURSOR_HIDE); 
     

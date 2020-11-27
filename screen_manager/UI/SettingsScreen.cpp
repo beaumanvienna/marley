@@ -520,6 +520,17 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
             while ( getline (PCSX2_ui_ini_filehandle,line))
             {
                 PCSX2_ui_entries.push_back(line);
+                if(line.find("AspectRatio=") != std::string::npos)
+                {
+                    str_dec = line.substr(line.find_last_of("=") + 1);
+                    if(str_dec.find("4:3") != std::string::npos)
+                    {
+                        inputAspectratio = 1;
+                    } else
+                    {
+                        inputAspectratio = 0;
+                    }
+                }
             }
             PCSX2_ui_ini_filehandle.close();
         }
