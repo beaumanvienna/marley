@@ -6,9 +6,9 @@
 override_dh_auto_configure:
 	echo **************** make -j$(shell cat /proc/cpuinfo | grep -c vendor_id) ****************
 	export DEB_BUILD_MAINT_OPTIONS=
-	export DEB_CFLAGS_MAINT_STRIP = -g -fstack-protector-strong
-	export DEB_CPPFLAGS_MAINT_STRIP = -g -fstack-protector-strong
-	export DEB_CXXFLAGS_MAINT_STRIP = -g -fstack-protector-strong
+	export DEB_CFLAGS_MAINT_STRIP="-g -fstack-protector-strong"
+	export DEB_CPPFLAGS_MAINT_STRIP="-g -fstack-protector-strong"
+	export DEB_CXXFLAGS_MAINT_STRIP="-g -fstack-protector-strong"
 	aclocal 
 	autoconf
 	automake --add-missing --foreign

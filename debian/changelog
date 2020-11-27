@@ -1,4 +1,4 @@
-marley (0.2.3.2) focal; urgency=medium
+marley (0.2.3.3) focal; urgency=medium
 
   * More PCSX2 settings on settings screen functional
   * 4:3 for PCSX2 in windowed mode
@@ -6,7 +6,7 @@ marley (0.2.3.2) focal; urgency=medium
   * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
    
- -- JC <beaumanvienna@gmail.com>  Fri, 27 Nov 2020 13:45:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Fri, 27 Nov 2020 14:08:00 -0800
 
 marley (0.2.2) focal; urgency=medium
 
