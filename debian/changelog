@@ -1,3 +1,13 @@
+marley (0.2.4) focal; urgency=medium
+
+  * More PCSX2 settings on settings screen functional
+  * Always 4:3 aspect ratio for PCSX2
+  * This is a release version.
+  * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
+    NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
+   
+ -- JC <beaumanvienna@gmail.com>  Fri, 27 Nov 2020 19:15:00 -0800
+
 marley (0.2.3.3) focal; urgency=medium
 
   * More PCSX2 settings on settings screen functional
