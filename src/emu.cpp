@@ -779,6 +779,43 @@ void initDOLPHIN(void)
 	}
 }
 
+void initScreen_manager(void)
+{
+	string screen_manager_dir = gBaseDir + "screen_manager";
+	
+	DIR* dir;        
+	dir = opendir(screen_manager_dir.c_str());
+	if ((dir) && (isDirectory(screen_manager_dir.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",screen_manager_dir.c_str());
+		if (mkdir(screen_manager_dir.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+		}
+	}
+
+	string background_pic = screen_manager_dir + "/settings_pcsx2.png";
+    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    {
+        //file does not exist
+        string uri = "resource:///pictures/settings_pcsx2.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(background_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+    }
+}
+
 void initEMU(void)
 {
     printSupportedEmus();
@@ -787,6 +824,7 @@ void initEMU(void)
     initPPSSPP();
     initDOLPHIN();
     initMUPEN64PLUS();
+    initScreen_manager();
     
     checkFirmwarePSX();
     if (!gPS1_firmware)

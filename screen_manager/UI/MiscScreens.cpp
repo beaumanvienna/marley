@@ -91,6 +91,7 @@ void SCREEN_UIBackgroundShutdown() {
 	backgroundInited = false;
 }
 
+extern std::string gBaseDir;
 void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 	if (!backgroundInited) {
 		UIBackgroundInit(dc);
@@ -115,7 +116,8 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 	}
 	
 	uint32_t bgColor = whiteAlpha(alpha);
-    bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), "/home/yo/dev/marley/pictures/splash_pcsx2.png", DETECT, true);
+    std::string bgPic = gBaseDir + "screen_manager/settings_pcsx2.png";
+    bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgPic.c_str(), DETECT, true);
 
 	if (bgTexture != nullptr) {
 		dc.Flush();
