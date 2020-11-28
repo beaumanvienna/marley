@@ -509,7 +509,8 @@ static __fi void GSVSync()
 			gsIrq();
 	}
 }
-
+bool startupMessageShown;
+void showStartupMessage();
 static __fi void VSyncEnd(u32 sCycle)
 {
 	if(EmuConfig.Trace.Enabled && EmuConfig.Trace.EE.m_EnableAll)
@@ -517,7 +518,14 @@ static __fi void VSyncEnd(u32 sCycle)
 
 	g_FrameCount++;
 
-
+    if (!startupMessageShown)
+    {
+        if (g_FrameCount > 300)
+        {
+            showStartupMessage();
+            startupMessageShown = true;
+        }
+    }
 
 	hwIntcIrq(INTC_VBLANK_E);  // HW Irq
 	psxVBlankEnd(); // psxCounters vBlank End

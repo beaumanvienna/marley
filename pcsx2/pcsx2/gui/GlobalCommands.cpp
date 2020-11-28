@@ -44,6 +44,10 @@ static int g_Pcsx2Recording = 0; // true 1 if recording video and sound
 extern SDL_Window* gWindow;
 extern bool requestShutdown;
 
+void showStartupMessage()
+{
+    OSDlog(Color_StrongRed, true, "PCSX2 is ready for PS2 emulation");
+}
 
 KeyAcceleratorCode::KeyAcceleratorCode(const wxKeyEvent& evt)
 {

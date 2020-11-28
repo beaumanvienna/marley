@@ -2387,7 +2387,7 @@ void newSwapBuffers()
       char buf[256];
       buf[0] = 0;
       char * message = 0;
-      message = strcat(buf, "THIS IS MUPEN64PLUS (MARLEY): N64 is online ");
+      message = strcat(buf, "MUPEN64PLUS is ready for N64 emulation");
       
       if (hotkey_info.hk_ref)
       {
