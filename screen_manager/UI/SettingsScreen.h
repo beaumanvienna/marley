@@ -52,7 +52,6 @@ private:
     bool inputVSync;
     std::vector<std::string> GSdx_entries;
     std::vector<std::string> PCSX2_vm_entries;
-    std::vector<std::string> PCSX2_ui_entries;
     bool found_bios_ps2;
     int bios_selection[3];
     bool inputAdvancedSettings;
@@ -64,7 +63,6 @@ private:
     int  inputCRC_level;
     int  inputAcc_date_level;
     int  inputAcc_blend_level;
-    int  inputAspectratio;
     bool inputUserHacks;
     bool inputUserHacks_AutoFlush;
     bool inputUserHacks_CPU_FB_Conversion;

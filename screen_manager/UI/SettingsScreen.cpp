@@ -92,7 +92,6 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputCRC_level = 0;
         inputAcc_date_level = 1;
         inputAcc_blend_level = 1;
-        inputAspectratio = 0;
         
         inputUserHacks = false;
         inputUserHacks_AutoFlush = false;
@@ -510,30 +509,6 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
             }
             PCSX2_vm_ini_filehandle.close();
         }
-        
-                
-        //read PCSX2_ui into buffer
-        std::string PCSX2_ui_ini = gBaseDir + "PCSX2/inis/PCSX2_ui.ini";
-        std::ifstream PCSX2_ui_ini_filehandle(PCSX2_ui_ini);
-        if (PCSX2_ui_ini_filehandle.is_open())
-        {
-            while ( getline (PCSX2_ui_ini_filehandle,line))
-            {
-                PCSX2_ui_entries.push_back(line);
-                if(line.find("AspectRatio=") != std::string::npos)
-                {
-                    str_dec = line.substr(line.find_last_of("=") + 1);
-                    if(str_dec.find("4:3") != std::string::npos)
-                    {
-                        inputAspectratio = 1;
-                    } else
-                    {
-                        inputAspectratio = 0;
-                    }
-                }
-            }
-            PCSX2_ui_ini_filehandle.close();
-        }
     }
 }
 bool createDir(std::string name);
@@ -545,8 +520,6 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
         std::ofstream GSdx_ini_filehandle;
         std::string PCSX2_vm_ini = gBaseDir + "PCSX2/inis/PCSX2_vm.ini";
         std::ofstream PCSX2_vm_ini_filehandle;
-        std::string PCSX2_ui_ini = gBaseDir + "PCSX2/inis/PCSX2_ui.ini";
-        std::ofstream PCSX2_ui_ini_filehandle;
         
         createDir(gBaseDir + "PCSX2");
         createDir(gBaseDir + "PCSX2/inis");
@@ -660,30 +633,6 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                 }
             }
             PCSX2_vm_ini_filehandle.close();
-        }
-        
-        // output PCSX2_ui.ini
-        PCSX2_ui_ini_filehandle.open(PCSX2_ui_ini.c_str(), std::ios_base::out); 
-        if(PCSX2_ui_ini_filehandle)
-        {
-            for(int i=0; i<PCSX2_ui_entries.size(); i++)
-            {
-                line = PCSX2_ui_entries[i];
-                if(line.find("AspectRatio=") != std::string::npos)
-                {
-                    if (inputAspectratio)
-                    {
-                        PCSX2_ui_ini_filehandle << "AspectRatio=4:3\n";
-                    } else
-                    {
-                        PCSX2_ui_ini_filehandle << "AspectRatio=16:9\n";
-                    }
-                } else
-                {
-                    PCSX2_ui_ini_filehandle << line << "\n";
-                }
-            }
-            PCSX2_ui_ini_filehandle.close();
         }
     }
 }
@@ -801,12 +750,6 @@ void SCREEN_SettingsScreen::CreateViews() {
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         }
 
-        // -------- vsync --------
-        CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
-        vSync->OnClick.Add([=](EventParams &e) {
-            return SCREEN_UI::EVENT_CONTINUE;
-        });
-
         // -------- rendering mode --------
         static const char *renderingBackend[] = {
             "OpenGL (Hardware)",
@@ -814,14 +757,6 @@ void SCREEN_SettingsScreen::CreateViews() {
 
         SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
-
-        // -------- aspect ratio --------
-        static const char *aspect_ratio[] = {
-            "16:9",
-            "4:3"};
-
-        SCREEN_PopupMultiChoice *aspect_ratioChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAspectratio, gr->T("Aspect ratio"), aspect_ratio, 0, ARRAY_SIZE(aspect_ratio), gr->GetName(), screenManager()));
-        aspect_ratioChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);            
 
         if (inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE)
         {
@@ -967,6 +902,15 @@ void SCREEN_SettingsScreen::CreateViews() {
             SCREEN_PopupMultiChoice *acc_blend_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_blend_level, gr->T("Blending accuracy"), acc_blend_level, 0, ARRAY_SIZE(acc_blend_level), gr->GetName(), screenManager()));
             acc_blend_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
+            if (inputUserHacks)
+            {
+                // -------- vsync --------
+                CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+                vSync->OnClick.Add([=](EventParams &e) {
+                    return SCREEN_UI::EVENT_CONTINUE;
+                });
+            }
+            
             // -------- user hacks --------
             CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));
             vUserHacks->OnClick.Add([=](EventParams &e) {
@@ -1064,6 +1008,16 @@ void SCREEN_SettingsScreen::CreateViews() {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
         }
+
+        if (!((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings)))
+        {
+            // -------- vsync --------
+            CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+            vSync->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
+        }
+        
     } else
     {
         graphicsSettings->Add(new ItemHeader(gr->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));

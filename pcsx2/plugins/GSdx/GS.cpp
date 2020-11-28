@@ -464,7 +464,7 @@ EXPORT_C_(int) GSopen2(void** dsp, uint32 flags)
 	int retval = _GSopen(dsp, "", current_renderer);
 
 	if (s_gs != NULL)
-		s_gs->SetAspectRatio(0);	 // PCSX2 manages the aspect ratios
+		s_gs->SetAspectRatio(1);	 // 4:3
 
 	gsopen_done = true;
 
