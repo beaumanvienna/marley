@@ -223,7 +223,7 @@ A good solution for this problem is to compile in a clean chroot.<br />
 Under Arch Linux, there is a script called 'extra-x86_64-build' to build a PKGBUILD file in a clean chroot, <br />
 see https://wiki.archlinux.org/index.php/DeveloperWiki:Building_in_a_clean_chroot:<br />
 <br />
-Under Debian, follow the below process:<br />
+Under Debian-based installations, follow the below process:<br />
 (And see also https://packaging.ubuntu.com/html/chroots.html):<br />
 <br />
 # install Debian bootstrap tool<br />
