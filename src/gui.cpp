@@ -90,10 +90,10 @@ int y_offset_65;
 int y_offset_45;
 int y_offset_36;
 int y_offset_10;
-
+extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
-    if (!splashScreenRunning) return;
+    if ((!splashScreenRunning) && (!searchingForGames)) return;
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
     SDL_Surface* surfaceMessage = nullptr; 

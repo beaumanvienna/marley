@@ -76,7 +76,9 @@ string gBaseDir;
 vector<string> gSupportedEmulators = {"ps1","ps2","psp","md (sega genesis)","md (sega saturn)","snes","nes","gamecube","wii","n64", "gba", "gbc"};
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs","mdf"};
 bool gGamesFound;
-
+int findAllFiles_counter;
+bool searchingForGames;
+bool stopSearching;
 std::ifstream::pos_type filesize(const char* filename)
 {
     std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
@@ -975,6 +977,22 @@ bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 
 void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved)
 {
+    if (stopSearching) return;
+    findAllFiles_counter++;
+    if (!(findAllFiles_counter % 250))
+    {
+        string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
+        str += directory;
+        render_splash(str.c_str());
+        
+        // allow cancel
+        SDL_Event event;
+        if ( (SDL_PollEvent( &event ) != 0 ) && (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE) )
+        {
+            stopSearching=true;
+            exit(0);
+        }
+    }
     string str_with_path, str_without_path;
     string ext, str_with_path_lower_case;
     DIR *dir;
@@ -1091,10 +1109,12 @@ void buildGameList(void)
 {
     std::list<string> tmpList;
     std::list<string> toBeRemoved;
-    
+    searchingForGames=true;
+    stopSearching=false;
     findAllFiles(gPathToGames.c_str(),&tmpList,&toBeRemoved);
     stripList (&tmpList,&toBeRemoved); // strip cue file entries
     finalizeList(&tmpList);
+    searchingForGames=false;
 }
 
 

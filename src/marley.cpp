@@ -54,6 +54,7 @@ void render_splash(string onScreenDisplay);
 
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
+extern int findAllFiles_counter;
 
 //initializes SDL and creates main window
 bool init()
@@ -245,6 +246,8 @@ int main( int argc, char* argv[] )
     bool keepX11pointer=true;
     
     gFullscreen=false;
+    int findAllFiles_counter;
+    findAllFiles_counter=0;
     
     gCurrentGame=0;
     for (int i = 1; i < gGame.size(); i++) 
