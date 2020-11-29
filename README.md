@@ -229,7 +229,7 @@ Under Debian, follow the below process:<br />
 # install Debian bootstrap tool<br />
 sudo apt-get install debootstrap <br />
 <br />
-# create change root environmant for Ubuntu 20.04 (Focal)<br />
+# create change root environment for Ubuntu 20.04 (Focal)<br />
 sudo debootstrap focal focal/<br />
 <br />
 #chroot into the system<br />
