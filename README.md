@@ -213,3 +213,40 @@ export CXX=clang++<br />
 export CC=clang<br />
 aclocal && autoconf && automake --add-missing --foreign && ./configure CXX=$CXX CC=$CC<br />
 make<br />
+<br />
+##  Having trouble compiling?<br />
+<br />
+Sometimes similar packages can cause compile issues. This means too many packages are installed.<br />
+A good solution for this problem is to compile in a clean chroot.<br />
+<br />
+Under Arch Linux, there is a script called 'extra-x86_64-build' to build a PKGBUILD file in a clean chroot <br />
+See also https://wiki.archlinux.org/index.php/DeveloperWiki:Building_in_a_clean_chroot:<br />
+<br />
+Under Debian, follow the below process:<br />
+(See also https://packaging.ubuntu.com/html/chroots.html):<br />
+<br />
+# install Debian bootstrap tool<br />
+sudo apt-get install debootstrap <br />
+<br />
+# create change root environmant for Ubuntu 20.04 (Focal)<br />
+sudo debootstrap focal focal/<br />
+<br />
+#chroot into the system<br />
+sudo chroot focal/<br />
+<br />
+#install 'add-apt-repository'<br />
+sudo apt-get install software-properties-common<br />
+<br />
+#add repository 'universe' <br />
+sudo add-apt-repository universe<br />
+sudo apt update<br />
+<br />
+#get dependencies for focal (returns an error, which can be ignored)<br />
+sudo apt install git libwxgtk3.0-gtk3-dev libgtk-3-dev debhelper cmake chrpath libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev autotools-dev dh-autoreconf libasound2-dev libgl1-mesa-dev libjack-dev liblzo2-dev libmpcdec-dev libsamplerate0-dev libsndio-dev libsndfile1-dev libtrio-dev libvorbisidec-dev x11proto-core-dev zlib1g-dev dpkg-dev pkg-config lsb-release libao-dev libavcodec-dev libavformat-dev libbluetooth-dev libcurl4-gnutls-dev libegl1-mesa-dev libenet-dev libevdev-dev libgtk2.0-dev libminiupnpc-dev libopenal-dev libmbedtls-dev libpulse-dev libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev libusb-1.0-0-dev libwxbase3.0-dev libxext-dev libx11-xcb-dev libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip build-essential libzstd-dev <br />
+<br />
+#usual compile instructions<br />
+git clone https://github.com/beaumanvienna/marley<br />
+cd marley<br />
+export MAKEFLAGS=-j$(nproc)<br />
+aclocal  && autoconf && automake --add-missing --foreign && ./configure --prefix=/usr  && make<br />
+
