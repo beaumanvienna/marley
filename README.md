@@ -14,6 +14,7 @@ https://github.com/beaumanvienna/marley
 - [Installation for Ubuntu and derivatives](#installation-for-ubuntu-and-derivatives)
 - [Installation for Gentoo](#installation-for-gentoo)
 - [Compile from source](#compile-from-source)
+- [Havng trouble compiling?](#having-trouble-compiling)
 
 ## User Manual
 
