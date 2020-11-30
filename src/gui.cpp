@@ -1004,27 +1004,7 @@ void renderScreen(void)
 
 }
 void create_new_window(void)
-{
-    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
-    {
-        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-    }
-    // create new
-    initOpenGL();
-    
-    string str = "marley ";
-    str += PACKAGE_VERSION;
-    
-    gWindow = SDL_CreateWindow( str.c_str(), 
-                            SDL_WINDOWPOS_CENTERED,
-                            SDL_WINDOWPOS_CENTERED,
-                            window_height*1.733333333, 
-                            window_height*1.3, 
-                            window_flags );
-
-    setAppIcon();
-    //hide_or_show_cursor_X11(CURSOR_HIDE); 
-    
+{  
     SDL_SysWMinfo sdlWindowInfo;
     SDL_VERSION(&sdlWindowInfo.version);
     if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
