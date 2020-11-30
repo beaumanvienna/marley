@@ -531,7 +531,7 @@ bool initGUI(void)
             ok =false;
         }
         render_splash("");
-        SDL_TimerID myTimer =SDL_AddTimer(750,my_callbackfunc,nullptr);
+        SDL_TimerID myTimer =SDL_AddTimer(3000,my_callbackfunc,nullptr);
         SDL_DisableScreenSaver();
         setAppIcon();
     }

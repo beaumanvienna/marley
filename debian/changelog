@@ -1,4 +1,4 @@
-marley (0.2.4.2) focal; urgency=medium
+marley (0.2.4.3) focal; urgency=medium
 
   * More PCSX2 settings on settings screen functional
   * Always 4:3 aspect ratio for PCSX2
