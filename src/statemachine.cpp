@@ -69,6 +69,7 @@ extern Display* XDisplay;
 extern Window Xwindow;
 extern int delay_after_shutdown;
 extern bool marley_wiimote;
+extern bool stopSearching;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -736,6 +737,7 @@ void statemachine(int cmd)
                                     addSettingToConfigFile(setting);
                                     
                                     gTextForGamingFolder=gText;
+                                    stopSearching=false;
                                     buildGameList();
                                     checkFirmwarePSX();
                                 }

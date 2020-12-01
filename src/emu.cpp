@@ -65,6 +65,7 @@ typedef unsigned long long int checksum64;
 
 bool isDirectory(const char *filename);
 void render_splash(string onScreenDisplay);
+void event_loop(void);
 
 bool gPS1_firmware;
 bool gPS2_firmware;
@@ -985,13 +986,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
         str += directory;
         render_splash(str.c_str());
         
-        // allow cancel
-        SDL_Event event;
-        if ( (SDL_PollEvent( &event ) != 0 ) && (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE) )
-        {
-            stopSearching=true;
-            exit(0);
-        }
+        event_loop();
     }
     string str_with_path, str_without_path;
     string ext, str_with_path_lower_case;
@@ -1110,7 +1105,6 @@ void buildGameList(void)
     std::list<string> tmpList;
     std::list<string> toBeRemoved;
     searchingForGames=true;
-    stopSearching=false;
     findAllFiles(gPathToGames.c_str(),&tmpList,&toBeRemoved);
     stripList (&tmpList,&toBeRemoved); // strip cue file entries
     finalizeList(&tmpList);

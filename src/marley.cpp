@@ -45,17 +45,24 @@ double amplitude0L = 0;
 double amplitude1L = 0;
 double amplitude0R = 0;
 double amplitude1R = 0;
+double g_x0=0;
+double g_y0=0;
+double g_x1=0;
+double g_y1=0;
+
 
 void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y);
 bool checkConf(void);
 bool setBaseDir(void);
 void initApp(void);
 void render_splash(string onScreenDisplay);
+void event_loop(void);
 
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
+bool ALT = false;
 extern int findAllFiles_counter;
-
+extern bool stopSearching;
 //initializes SDL and creates main window
 bool init()
 {
@@ -240,16 +247,10 @@ void closeAll()
 
 int main( int argc, char* argv[] )
 {
-    int k,l,m,id;
-    string cmd;
-    bool ignoreESC=false;
     bool keepX11pointer=true;
-    
     gFullscreen=false;
-    int findAllFiles_counter;
-    findAllFiles_counter=0;
-    
     gCurrentGame=0;
+    
     for (int i = 1; i < gGame.size(); i++) 
     {
         gGame[i]="";
@@ -310,17 +311,6 @@ int main( int argc, char* argv[] )
     }
     else
     {
-        //Main loop flag
-        bool emuReturn;
-        double x0=0;
-        double y0=0;
-        double x1=0;
-        double y1=0;
-        
-        bool ALT = false;
-
-        //Event handler
-        SDL_Event event;
         
         gQuit=false;
 
@@ -331,267 +321,7 @@ int main( int argc, char* argv[] )
 #ifdef DOLPHIN
             mainLoopWii();
 #endif
-            //Handle events on queue
-            while( SDL_PollEvent( &event ) != 0 )
-            {
-                // main event loop
-                switch (event.type)
-                {
-                    case SDL_KEYUP: 
-                        ALT = false;
-                        break;
-                    case SDL_KEYDOWN: 
-                        if (!gTextInput)
-                        {
-                            switch( event.key.keysym.sym )
-                            {
-                                case SDLK_l:
-                                    k = SDL_NumJoysticks();
-                                    if (k)
-                                    {
-                                        printf("************* List all (number: %i) ************* \n",k);
-                                        for (l=0; l<k; l++)
-                                        {
-                                            printJoyInfo(l);
-                                        }
-                                        m=0; //count designated controllers
-                                        for (l=0; l < MAX_GAMEPADS;l++)
-                                        {
-                                            if ( gDesignatedControllers[l].numberOfDevices != 0 )
-                                            {
-                                                for (int j=0; j<gDesignatedControllers[l].numberOfDevices;j++)
-                                                {
-                                                    printf("found on designated controller %i with SDL instance %i %s\n",\
-                                                        l, gDesignatedControllers[l].instance[j],gDesignatedControllers[l].name[j].c_str());
-                                                }
-                                                m++;
-                                            }
-                                        }
-                                        printf("%i designated controllers found\n",m);
-                                    } else
-                                    {
-                                        printf("************* no controllers found ************* \n");
-                                    }
-                                    break;
-                                case SDLK_f:
-                                    gFullscreen= !gFullscreen;
-                                    if (gFullscreen)
-                                    {
-                                        setFullscreen();
-                                    }
-                                    else
-                                    {
-                                        setWindowed();
-                                    }
-                                    break;
-                                case SDLK_p:
-                                    
-                                    for (l=0; l < MAX_GAMEPADS;l++)
-                                    {
-                                        if ( gDesignatedControllers[l].numberOfDevices != 0 )
-                                        {
-                                            char *mapping;
-                                            for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
-                                            {
-                                                mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
-                                                printf("\n\n%s\n\n",mapping);
-                                                SDL_free(mapping);
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case SDLK_ESCAPE:
-                                    if (gState == STATE_OFF)
-                                    {
-                                        gQuit=true;
-                                    }
-                                    else
-                                    {
-                                        resetStatemachine();
-                                    }
-                                    break;
-                                case SDLK_DOWN:
-                                    gActiveController=-1;
-                                    if (ALT)
-                                    {
-                                        statemachine(SDL_CONTROLLER_BUTTON_B);
-                                    }
-                                    else
-                                    {
-                                        statemachine(event.key.keysym.sym);
-                                    }
-                                    break;
-                                case SDLK_UP:
-                                case SDLK_LEFT:
-                                case SDLK_RIGHT:
-                                    gActiveController=-1;
-                                    statemachine(event.key.keysym.sym);
-                                    break;
-                                case SDLK_RETURN:
-                                    gActiveController=-1;
-                                    if (gControllerConf)
-                                    {
-                                        statemachineConf(STATE_CONF_SKIP_ITEM);
-                                    }
-                                    else
-                                    {
-                                        if (ALT)
-                                        {
-                                            statemachine(SDL_CONTROLLER_BUTTON_B);
-                                        }
-                                        else
-                                        {
-                                            statemachine(SDL_CONTROLLER_BUTTON_A);
-                                        }
-                                    }
-                                    break;
-                                case SDLK_LALT:
-                                    ALT = true;
-                                    break;
-                                default:
-                                    printf("key not recognized \n");
-                                    break;
-                            }
-                        }
-                        else // text input mode
-                        {
-                            string str;
-                            switch( event.key.keysym.sym )
-                            {
-                                case SDLK_BACKSPACE:
-                                    if ( gText.length() > 0 )
-                                    {
-                                        gText.pop_back();
-                                    }
-                                    break;
-                                case SDLK_ESCAPE:
-                                        gTextInput=false;
-                                        statemachine(SDL_CONTROLLER_BUTTON_A);
-                                    break;
-                                case SDLK_RETURN:
-                                        statemachine(SDL_CONTROLLER_BUTTON_A);
-                                    break;
-                                default:
-                                    (void) 0;
-                                    break;
-                            }
-                        }
-                        break;
-                    case SDL_TEXTINPUT: 
-                        if (gTextInput)
-                        {
-                            gText += event.text.text;
-                        }
-                        break;
-                    case SDL_JOYDEVICEADDED: 
-                        printf("\n*** Found new controller ");
-                        openJoy(event.jdevice.which);
-                        break;
-                    case SDL_JOYDEVICEREMOVED: 
-                        printf("*** controller removed\n");
-                        closeJoy(event.jdevice.which);
-                        break;
-                    case SDL_JOYHATMOTION: 
-                    
-                        if (gControllerConf)
-                        {
-                            if ( (event.jhat.value == SDL_HAT_UP) || (event.jhat.value == SDL_HAT_DOWN) || \
-                                    (event.jhat.value == SDL_HAT_LEFT) || (event.jhat.value == SDL_HAT_RIGHT) )
-                            {
-                                if (event.jdevice.which == gDesignatedControllers[0].instance[0])
-                                {
-                                    gActiveController=0;  
-                                    statemachineConfHat(event.jhat.hat,event.jhat.value);
-                                }
-                                else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
-                                {
-                                    gActiveController=1;  
-                                    statemachineConfHat(event.jhat.hat,event.jhat.value);
-                                }
-                            }
-                        }
-                    
-                        break;
-                    case SDL_JOYAXISMOTION: 
-                        if (abs(event.jaxis.value) > ANALOG_DEAD_ZONE)
-                        {
-                            if (event.jdevice.which == gDesignatedControllers[0].instance[0])
-                            {
-                                joyMotion(event,0,&x0,&y0);
-                            }
-                            else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
-                            {
-                                joyMotion(event,1,&x1,&y1);
-                            }
-                            
-                            if((event.jaxis.axis == 0) || (event.jaxis.axis == 1))
-                            {
-                                angle0L=atan2(y0,x0)*180.0 / PI;
-                                angle1L=atan2(y1,x1)*180.0 / PI;
-                                amplitude0L=sqrt(x0*x0+y0*y0);
-                                amplitude1L=sqrt(x1*x1+y1*y1);
-                            } 
-                            else if((event.jaxis.axis == 3) || (event.jaxis.axis == 4))
-                            {
-                                angle0R=atan2(y0,x0)*180.0 / PI;
-                                angle1R=atan2(y1,x1)*180.0 / PI;
-                                amplitude0R=sqrt(x0*x0+y0*y0);
-                                amplitude1R=sqrt(x1*x1+y1*y1);
-                            }
-                        }
-                        if (gControllerConf)
-                        {
-                            if (abs(event.jaxis.value) > 16384)
-                            {
-                                if (event.jdevice.which == gDesignatedControllers[0].instance[0])
-                                {
-                                    gActiveController=0; 
-                                    statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
-                                }
-                                else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
-                                {
-                                    gActiveController=1;  
-                                    statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
-                                }
-                            }
-                        }
-                        break;
-                    case SDL_QUIT: 
-                        gQuit = true;
-                        break;
-                    case SDL_JOYBUTTONDOWN: 
-                        if (gControllerConf)
-                        {
-                            if (event.jdevice.which == gDesignatedControllers[0].instance[0])
-                            {
-                                gActiveController=0;  
-                                statemachineConf(event.jbutton.button);
-                            }
-                            else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
-                            {
-                                gActiveController=1;  
-                                statemachineConf(event.jbutton.button);
-                            }
-                        }
-                        break;
-                    case SDL_CONTROLLERBUTTONDOWN: 
-                        if (event.cdevice.which == gDesignatedControllers[0].instance[0])
-                        {
-                            gActiveController=0;  
-                            statemachine(event.cbutton.button);
-                        }
-                        else if (event.cdevice.which == gDesignatedControllers[1].instance[0])
-                        {
-                            gActiveController=1;  
-                            statemachine(event.cbutton.button);
-                        }
-                        break;
-                    default: 
-                        ignoreESC = false;
-                        (void) 0;
-                        break;
-                }
-            }
+            event_loop();
             renderScreen();
         }
         
@@ -603,6 +333,276 @@ int main( int argc, char* argv[] )
     shutdownWii();
 #endif
     return 0;
+}
+
+void event_loop(void)
+{
+    int k,l,m;
+    //Event handler
+    SDL_Event event;
+    
+    
+    //Handle events on queue
+    while( SDL_PollEvent( &event ) != 0 )
+    {
+        // main event loop
+        switch (event.type)
+        {
+            case SDL_KEYUP: 
+                ALT = false;
+                break;
+            case SDL_KEYDOWN: 
+                if (!gTextInput)
+                {
+                    switch( event.key.keysym.sym )
+                    {
+                        case SDLK_l:
+                            k = SDL_NumJoysticks();
+                            if (k)
+                            {
+                                printf("************* List all (number: %i) ************* \n",k);
+                                for (l=0; l<k; l++)
+                                {
+                                    printJoyInfo(l);
+                                }
+                                m=0; //count designated controllers
+                                for (l=0; l < MAX_GAMEPADS;l++)
+                                {
+                                    if ( gDesignatedControllers[l].numberOfDevices != 0 )
+                                    {
+                                        for (int j=0; j<gDesignatedControllers[l].numberOfDevices;j++)
+                                        {
+                                            printf("found on designated controller %i with SDL instance %i %s\n",\
+                                                l, gDesignatedControllers[l].instance[j],gDesignatedControllers[l].name[j].c_str());
+                                        }
+                                        m++;
+                                    }
+                                }
+                                printf("%i designated controllers found\n",m);
+                            } else
+                            {
+                                printf("************* no controllers found ************* \n");
+                            }
+                            break;
+                        case SDLK_f:
+                            gFullscreen= !gFullscreen;
+                            if (gFullscreen)
+                            {
+                                setFullscreen();
+                            }
+                            else
+                            {
+                                setWindowed();
+                            }
+                            break;
+                        case SDLK_p:
+                            
+                            for (l=0; l < MAX_GAMEPADS;l++)
+                            {
+                                if ( gDesignatedControllers[l].numberOfDevices != 0 )
+                                {
+                                    char *mapping;
+                                    for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
+                                    {
+                                        mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
+                                        printf("\n\n%s\n\n",mapping);
+                                        SDL_free(mapping);
+                                    }
+                                }
+                            }
+                            break;
+                        case SDLK_ESCAPE:
+                            stopSearching=true;
+                            if (gState == STATE_OFF)
+                            {
+                                gQuit=true;
+                            }
+                            else
+                            {
+                                resetStatemachine();
+                            }
+                            break;
+                        case SDLK_DOWN:
+                            gActiveController=-1;
+                            if (ALT)
+                            {
+                                statemachine(SDL_CONTROLLER_BUTTON_B);
+                            }
+                            else
+                            {
+                                statemachine(event.key.keysym.sym);
+                            }
+                            break;
+                        case SDLK_UP:
+                        case SDLK_LEFT:
+                        case SDLK_RIGHT:
+                            gActiveController=-1;
+                            statemachine(event.key.keysym.sym);
+                            break;
+                        case SDLK_RETURN:
+                            gActiveController=-1;
+                            if (gControllerConf)
+                            {
+                                statemachineConf(STATE_CONF_SKIP_ITEM);
+                            }
+                            else
+                            {
+                                if (ALT)
+                                {
+                                    statemachine(SDL_CONTROLLER_BUTTON_B);
+                                }
+                                else
+                                {
+                                    statemachine(SDL_CONTROLLER_BUTTON_A);
+                                }
+                            }
+                            break;
+                        case SDLK_LALT:
+                            ALT = true;
+                            break;
+                        default:
+                            printf("key not recognized \n");
+                            break;
+                    }
+                }
+                else // text input mode
+                {
+                    string str;
+                    switch( event.key.keysym.sym )
+                    {
+                        case SDLK_BACKSPACE:
+                            if ( gText.length() > 0 )
+                            {
+                                gText.pop_back();
+                            }
+                            break;
+                        case SDLK_ESCAPE:
+                                gTextInput=false;
+                                statemachine(SDL_CONTROLLER_BUTTON_A);
+                            break;
+                        case SDLK_RETURN:
+                                statemachine(SDL_CONTROLLER_BUTTON_A);
+                            break;
+                        default:
+                            (void) 0;
+                            break;
+                    }
+                }
+                break;
+            case SDL_TEXTINPUT: 
+                if (gTextInput)
+                {
+                    gText += event.text.text;
+                }
+                break;
+            case SDL_JOYDEVICEADDED: 
+                printf("\n*** Found new controller ");
+                openJoy(event.jdevice.which);
+                break;
+            case SDL_JOYDEVICEREMOVED: 
+                printf("*** controller removed\n");
+                closeJoy(event.jdevice.which);
+                break;
+            case SDL_JOYHATMOTION: 
+            
+                if (gControllerConf)
+                {
+                    if ( (event.jhat.value == SDL_HAT_UP) || (event.jhat.value == SDL_HAT_DOWN) || \
+                            (event.jhat.value == SDL_HAT_LEFT) || (event.jhat.value == SDL_HAT_RIGHT) )
+                    {
+                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                        {
+                            gActiveController=0;  
+                            statemachineConfHat(event.jhat.hat,event.jhat.value);
+                        }
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                        {
+                            gActiveController=1;  
+                            statemachineConfHat(event.jhat.hat,event.jhat.value);
+                        }
+                    }
+                }
+            
+                break;
+            case SDL_JOYAXISMOTION: 
+                if (abs(event.jaxis.value) > ANALOG_DEAD_ZONE)
+                {
+                    if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                    {
+                        joyMotion(event,0,&g_x0,&g_y0);
+                    }
+                    else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                    {
+                        joyMotion(event,1,&g_x1,&g_y1);
+                    }
+                    
+                    if((event.jaxis.axis == 0) || (event.jaxis.axis == 1))
+                    {
+                        angle0L=atan2(g_y0,g_x0)*180.0 / PI;
+                        angle1L=atan2(g_y1,g_x1)*180.0 / PI;
+                        amplitude0L=sqrt(g_x0*g_x0+g_y0*g_y0);
+                        amplitude1L=sqrt(g_x1*g_x1+g_y1*g_y1);
+                    } 
+                    else if((event.jaxis.axis == 3) || (event.jaxis.axis == 4))
+                    {
+                        angle0R=atan2(g_y0,g_x0)*180.0 / PI;
+                        angle1R=atan2(g_y1,g_x1)*180.0 / PI;
+                        amplitude0R=sqrt(g_x0*g_x0+g_y0*g_y0);
+                        amplitude1R=sqrt(g_x1*g_x1+g_y1*g_y1);
+                    }
+                }
+                if (gControllerConf)
+                {
+                    if (abs(event.jaxis.value) > 16384)
+                    {
+                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                        {
+                            gActiveController=0; 
+                            statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
+                        }
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                        {
+                            gActiveController=1;  
+                            statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
+                        }
+                    }
+                }
+                break;
+            case SDL_QUIT: 
+                gQuit = true;
+                break;
+            case SDL_JOYBUTTONDOWN: 
+                if (gControllerConf)
+                {
+                    if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                    {
+                        gActiveController=0;  
+                        statemachineConf(event.jbutton.button);
+                    }
+                    else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                    {
+                        gActiveController=1;  
+                        statemachineConf(event.jbutton.button);
+                    }
+                }
+                break;
+            case SDL_CONTROLLERBUTTONDOWN: 
+                if (event.cdevice.which == gDesignatedControllers[0].instance[0])
+                {
+                    gActiveController=0;  
+                    statemachine(event.cbutton.button);
+                }
+                else if (event.cdevice.which == gDesignatedControllers[1].instance[0])
+                {
+                    gActiveController=1;  
+                    statemachine(event.cbutton.button);
+                }
+                break;
+            default: 
+                (void) 0;
+                break;
+        }
+    }
 }
 
 void restoreSDL(void)
@@ -708,8 +708,9 @@ void loadConfig(ifstream* configFile)
     
     gPathToFirmwarePSX="";
     gPathToGames="";
+    stopSearching=false;
     
-    while ( getline (configFile[0],line))
+    while (( getline (configFile[0],line)) && !stopSearching)
     {
         if (line.find("search_dir_firmware_PSX=") == 0)
         {
