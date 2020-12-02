@@ -31,6 +31,15 @@ SDL_Window* gWindow = nullptr;
 Display* XDisplay;
 Window Xwindow;
 
+int calcExtraThreadsPCSX2()
+{
+    int cnt = SDL_GetCPUCount() -2;
+    if (cnt < 2) cnt = 0; // 1 is debugging that we do not want, negative values set to 0
+    if (cnt > 7) cnt = 7; // limit to 1 main thread and 7 extra threads
+    
+    return cnt;
+}
+
 void initOpenGL(void)
 {	
     SDL_GL_ResetAttributes();

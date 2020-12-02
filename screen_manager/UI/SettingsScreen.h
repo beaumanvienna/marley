@@ -85,6 +85,7 @@ private:
     bool inputMipmapping_sw;
     int  inputExtrathreads_sw;
     bool inputAnti_aliasing_sw;
+    bool inputInterpreter;
 
 
 	void TriggerRestart(const char *why);

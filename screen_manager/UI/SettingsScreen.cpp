@@ -113,6 +113,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputUserHacks_round_sprite_offset = false;
         inputAutoflush_sw = true;
         inputMipmapping_sw = true;
+        inputInterpreter = false;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::string line,str_dec;
@@ -506,6 +507,18 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
             while ( getline (PCSX2_vm_ini_filehandle,line))
             {
                 PCSX2_vm_entries.push_back(line);
+                
+                if(line.find("EnableEE=") != std::string::npos)
+                {
+                    if(line.find("disabled") != std::string::npos)
+                    {
+                        inputInterpreter = true;
+                    } 
+                    else
+                    {
+                        inputInterpreter = false;
+                    }
+                }
             }
             PCSX2_vm_ini_filehandle.close();
         }
@@ -627,6 +640,46 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                 if(line.find("VsyncEnable") != std::string::npos)
                 {
                     PCSX2_vm_ini_filehandle << "VsyncEnable=" << inputVSync << "\n";
+                } else if(line.find("EnableEE=") != std::string::npos)
+                {
+                    if(inputInterpreter)
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableEE=disabled\n";
+                    } 
+                    else
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableEE=enabled\n";
+                    }
+                } else if(line.find("EnableIOP=") != std::string::npos)
+                {
+                    if(inputInterpreter)
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableIOP=disabled\n";
+                    } 
+                    else
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableIOP=enabled\n";
+                    }
+                } else if(line.find("EnableVU0=") != std::string::npos)
+                {
+                    if(inputInterpreter)
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableVU0=disabled\n";
+                    } 
+                    else
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableVU0=enabled\n";
+                    }
+                } else if(line.find("EnableVU1=") != std::string::npos)
+                {
+                    if(inputInterpreter)
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableVU1=disabled\n";
+                    } 
+                    else
+                    {
+                        PCSX2_vm_ini_filehandle << "EnableVU1=enabled\n";
+                    }
                 } else
                 {
                     PCSX2_vm_ini_filehandle << line << "\n";
@@ -793,6 +846,12 @@ void SCREEN_SettingsScreen::CreateViews() {
 
             SCREEN_PopupMultiChoice *Extrathreads_swChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputExtrathreads_sw, gr->T("Extra threads"), Extrathreads_sw, 0, ARRAY_SIZE(Extrathreads_sw), gr->GetName(), screenManager()));
             Extrathreads_swChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- interpreter --------
+            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, gr->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
+            vInterpreter->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
                 
         }
         
@@ -901,6 +960,12 @@ void SCREEN_SettingsScreen::CreateViews() {
                                 
             SCREEN_PopupMultiChoice *acc_blend_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_blend_level, gr->T("Blending accuracy"), acc_blend_level, 0, ARRAY_SIZE(acc_blend_level), gr->GetName(), screenManager()));
             acc_blend_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+            
+            // -------- interpreter --------
+            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, gr->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
+            vInterpreter->OnClick.Add([=](EventParams &e) {
+                return SCREEN_UI::EVENT_CONTINUE;
+            });
             
             if (inputUserHacks)
             {
