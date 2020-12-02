@@ -11,6 +11,7 @@ license=(GPL)
 depends=(sdl2\
          sdl2_image\
          sdl2_ttf\
+         sdl2_mixer\
          qt5-base\
          wxgtk2\
          libaio\

@@ -294,7 +294,7 @@ marley_LDADD 	+= -lmbedx509
 marley_LDADD 	+= -lmbedcrypto 
 
 #mednafen, dynamic
-marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf -lXfixes
+marley_LDADD 	+= -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lXfixes
 marley_LDADD 	+= -lasound -lm -ldl -lpthread -ljack -lsndfile -lz
 
 #pcsx2, dynamic

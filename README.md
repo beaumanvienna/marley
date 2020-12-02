@@ -150,7 +150,7 @@ libavcodec-dev libavformat-dev libbluetooth-dev libcurl4-gnutls-dev \ |
 libegl1-mesa-dev libenet-dev libevdev-dev libgtk2.0-dev \ |
 libminiupnpc-dev libopenal-dev libmbedtls-dev libpulse-dev \ |
 libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \ |
-libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev libx11-xcb-dev \ |
+libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev libx11-xcb-dev libsdl2-mixer-dev \ |
 libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \ |
 libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
 libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip libzstd-dev |
@@ -168,7 +168,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | libegl1-mesa-dev libenet-dev libevdev-dev libgtk2.0-dev \ |
 | libminiupnpc-dev libopenal-dev libmbedtls-dev libpulse-dev \ |
 | libreadline-dev libsfml-dev libsoil-dev libswscale-dev libudev-dev \ |
-| libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev libx11-xcb-dev \ |
+| libusb-1.0-0-dev libwxbase3.0-dev  libxext-dev libx11-xcb-dev libsdl2-mixer-dev \ |
 | libxrandr-dev portaudio19-dev qtbase5-private-dev libsamplerate0-dev libfreetype6-dev libglu1-mesa-dev nasm \ |
 | libboost-filesystem-dev libboost-system-dev libswresample-dev libglew-dev libsnappy-dev libavutil-dev \ |
 | libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev libx11-dev locales zip build-essential libzstd-dev |
@@ -180,7 +180,7 @@ libaio-dev liblzma-dev libpcap0.8-dev libpng-dev libsoundtouch-dev libxml2-dev l
 | alsa-lib bluez-libs enet libevdev libx11 libxi libxrandr lzo mbedtls libsndfile mesa libsamplerate \ | 
 | libudev.so libusb-1.0.so libgl glew glibc zlib glu cmake git libglvnd python qt5-tools  freetype2 \ |
 | qt5-base sfml libavcodec.so libavformat.so libavutil.so libcurl.so libminiupnpc.so libswscale.so \ |
-| sdl2_image sdl2_ttf nasm boost libpng wxgtk2 libzip sndio aom zip bluez bluez-plugins bluez-utils |
+| sdl2_image sdl2_ttf nasm boost libpng wxgtk2 libzip sndio aom zip bluez bluez-plugins bluez-utils sdl2_mixer |
 
 ### clone and check out branch <br />
 git clone https://github.com/beaumanvienna/marley  <br />

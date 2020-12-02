@@ -30,6 +30,7 @@ RDEPEND="
 	media-libs/libsdl2
 	media-libs/sdl2-image
 	media-libs/sdl2-ttf
+	media-libs/sdl2-mixer
 	media-libs/glew
 	media-libs/glu
 	media-libs/libglvnd

@@ -33,6 +33,7 @@
 #include <SDL_syswm.h>
 #include <GL/gl.h>
 #include <fstream>
+#include "SDL_mixer.h"
 //rendering window 
 SDL_Window* gWindow = nullptr;
 
@@ -90,6 +91,67 @@ int y_offset_65;
 int y_offset_45;
 int y_offset_36;
 int y_offset_10;
+
+
+vector<string> soundFileName = 
+{
+"wind.ogg",
+"wind.ogg",
+};
+Mix_Chunk* soundFile[2];
+
+bool init_audio(void) 
+{
+    for (int i = 0; i < soundFileName.size(); i++)
+    {	
+		string snd = gBaseDir + soundFileName[i];
+		
+		if (( access( snd.c_str(), F_OK ) == -1 ))
+		{
+			//file does not exist
+			string uri = "resource:///sounds/";
+			uri += soundFileName[i];
+			GError *error;
+			GFile* out_file = g_file_new_for_path(snd.c_str());
+			GFile* src_file = g_file_new_for_uri(uri.c_str());
+			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+		}
+	}
+    
+    
+    bool ok = true;
+    memset(soundFile, 0, sizeof(Mix_Chunk*) * 2);
+
+    // Set up the audio stream
+    int result = Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512);
+    if( result < 0 )
+    {
+        printf("Unable to open audio: %s\n", SDL_GetError());
+        ok=false;
+    }
+
+    result = Mix_AllocateChannels(4);
+    if( result < 0 )
+    {
+        printf("Unable to allocate mixing channels: %s\n", SDL_GetError());
+        ok=false;
+    }
+
+    // Load sound files
+    for( int i = 0; i < soundFileName.size(); i++ )
+    {
+        string filename = gBaseDir + soundFileName[i];
+        soundFile[i] = Mix_LoadWAV(filename.c_str());
+        if( soundFile[i] == nullptr )
+        {
+            printf("Unable to load sound file: %s\n", filename.c_str());
+            ok=false;
+        }
+    }
+
+    return ok;
+}
+
 extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
@@ -530,14 +592,15 @@ bool initGUI(void)
         {
             ok =false;
         }
+        init_audio();
         render_splash("");
-        SDL_TimerID myTimer =SDL_AddTimer(3000,my_callbackfunc,nullptr);
+        SDL_TimerID myTimer =SDL_AddTimer(5000,my_callbackfunc,nullptr);
+        Mix_PlayChannel(-1, soundFile[0], 0);
         SDL_DisableScreenSaver();
         setAppIcon();
     }
     return ok;
 }
-
 
 void closeGUI(void)
 {
