@@ -983,8 +983,10 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
     if (!(findAllFiles_counter % 250))
     {
         string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
+        printf("jc: %s\n",str.c_str());
         str += directory;
         render_splash(str.c_str());
+        
         
         event_loop();
     }

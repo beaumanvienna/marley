@@ -587,6 +587,7 @@ void event_loop(void)
                 }
                 break;
             case SDL_CONTROLLERBUTTONDOWN: 
+                if (event.cbutton.button == SDL_CONTROLLER_BUTTON_GUIDE) stopSearching=true;
                 if (event.cdevice.which == gDesignatedControllers[0].instance[0])
                 {
                     gActiveController=0;  
