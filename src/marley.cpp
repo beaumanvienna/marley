@@ -61,6 +61,8 @@ void event_loop(void);
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
 bool ALT = false;
+vector<string> gSearchDirectoriesGames;
+vector<string> gSearchDirectoriesFirmware;
 extern int findAllFiles_counter;
 extern bool stopSearching;
 //initializes SDL and creates main window
@@ -662,16 +664,28 @@ bool setPathToFirmware(string str)
     string slash;
     bool ok = false;
     
+    slash = filename.substr(filename.length()-1,1);
+    if (slash != "/")
+    {
+        filename += "/";
+    }
+    
+    //check if already in list
+    for (int i=0; i<gSearchDirectoriesFirmware.size();i++)
+    {
+        if (gSearchDirectoriesFirmware[i] == filename)
+        {
+            printf("duplicate in ~/.marley/marley.cfg found for 'search_dir_firmware_PSX=' \n");
+            return false;
+        }
+    }
+    
     dir = opendir(filename.c_str());
     if ((dir) && (isDirectory(filename.c_str()) ))
     {
         // Directory exists
         closedir(dir);
-        slash = filename.substr(filename.length()-1,1);
-        if (slash != "/")
-        {
-            filename += "/";
-        }
+        gSearchDirectoriesFirmware.push_back(filename);
         gPathToFirmwarePSX = filename;
         ok = true;
     }
@@ -685,16 +699,28 @@ bool setPathToGames(string str)
     string slash;
     bool ok = false;
     
+    slash = filename.substr(filename.length()-1,1);
+    if (slash != "/")
+    {
+        filename += "/";
+    }
+    
+    //check if already in list
+    for (int i=0; i<gSearchDirectoriesGames.size();i++)
+    {
+        if (gSearchDirectoriesGames[i] == filename)
+        {
+            printf("duplicate in ~/.marley/marley.cfg found for 'search_dir_games=' \n");
+            return false;
+        }
+    }
+    
     dir = opendir(filename.c_str());
     if ((dir) && (isDirectory(filename.c_str()) ))
     {
         // Directory exists
         closedir(dir);
-        slash = filename.substr(filename.length()-1,1);
-        if (slash != "/")
-        {
-            filename += "/";
-        }
+        gSearchDirectoriesGames.push_back(filename);
         gPathToGames = filename;
         ok = true;
     }
