@@ -1,4 +1,4 @@
-marley (0.2.4.5) bionic; urgency=medium
+marley (0.2.4.6) bionic; urgency=medium
 
   * Interpreter added to PCSX2 settings screen
   * Always 4:3 aspect ratio for PCSX2
@@ -7,7 +7,7 @@ marley (0.2.4.5) bionic; urgency=medium
   * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
    
- -- JC <beaumanvienna@gmail.com>  Wed, 02 Nov 2020 13:10:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Wed, 02 Nov 2020 15:30:00 -0800
 
 marley (0.2.3.3) focal; urgency=medium
 
