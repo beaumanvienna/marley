@@ -102,6 +102,7 @@ Mix_Chunk* soundFile[2];
 
 bool init_audio(void) 
 {
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
     for (int i = 0; i < soundFileName.size(); i++)
     {	
 		string snd = gBaseDir + soundFileName[i];
@@ -497,6 +498,15 @@ bool splashScreenRunning = true;
 Uint32 my_callbackfunc(Uint32 interval, void *param)
 {
     splashScreenRunning = false;
+    
+    for( int i = 0; i < soundFileName.size(); i++ )
+    {
+        Mix_FreeChunk(soundFile[i]);
+    }
+
+    Mix_CloseAudio();
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    
     return 0;
 }
 
@@ -592,8 +602,9 @@ bool initGUI(void)
         {
             ok =false;
         }
-        init_audio();
+        SDL_ShowCursor(SDL_DISABLE);
         render_splash("");
+        init_audio();
         SDL_TimerID myTimer =SDL_AddTimer(5000,my_callbackfunc,nullptr);
         Mix_PlayChannel(-1, soundFile[0], 0);
         SDL_DisableScreenSaver();
