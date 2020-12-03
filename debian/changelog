@@ -1,4 +1,4 @@
-marley (0.2.4.7) bionic; urgency=medium
+marley (0.2.4.8) focal; urgency=medium
 
   * Interpreter added to PCSX2 settings screen
   * Always 4:3 aspect ratio for PCSX2

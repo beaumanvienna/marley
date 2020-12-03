@@ -342,11 +342,12 @@ void launch_emulator(void)
 				argv[3] = arg4;
 
 				argc = 4;
-
+#ifdef PCSX2_WINDOW_TREAD_DOWN
                 freeTextures();
 				SDL_DestroyRenderer( gRenderer );
 				SDL_DestroyWindow(gWindow);
 				SDL_QuitSubSystem(SDL_INIT_VIDEO);
+#endif
 				create_new_window();
 				pcsx2_main(argc,argv);
 				restoreSDL();

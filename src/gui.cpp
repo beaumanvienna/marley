@@ -1079,6 +1079,7 @@ void renderScreen(void)
 }
 void create_new_window(void)
 {  
+#ifdef PCSX2_WINDOW_TREAD_DOWN
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_TIMER ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
@@ -1097,7 +1098,7 @@ void create_new_window(void)
                             window_flags );
 
     setAppIcon();
-    
+#endif
     SDL_SysWMinfo sdlWindowInfo;
     SDL_VERSION(&sdlWindowInfo.version);
     if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))

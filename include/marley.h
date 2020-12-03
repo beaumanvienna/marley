@@ -57,6 +57,7 @@ using namespace std;
     
     #ifdef PCSX2
         int pcsx2_main(int argc, char* argv[]);
+        //#define PCSX2_WINDOW_TREAD_DOWN
     #endif
     
     #ifdef SCREEN_MAN
