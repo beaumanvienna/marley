@@ -37,7 +37,7 @@
 #include <string>
 #include <dirent.h>
 #include <errno.h>
-
+#include <SDL_syswm.h>
 
 int gState = 0;
 int gCurrentGame;
@@ -84,7 +84,6 @@ void resetStatemachine(void)
     gControllerConf = false;
     gControllerConfNum=-1;
 }
-void create_new_window(void);
 
 bool exists(const char *fileName);
 bool copyFile(const char *SRC, const char* DEST);
@@ -342,15 +341,28 @@ void launch_emulator(void)
 				argv[3] = arg4;
 
 				argc = 4;
-#ifdef PCSX2_WINDOW_TREAD_DOWN
+
                 freeTextures();
 				SDL_DestroyRenderer( gRenderer );
-				SDL_DestroyWindow(gWindow);
-				SDL_QuitSubSystem(SDL_INIT_VIDEO);
-#endif
-				create_new_window();
-				pcsx2_main(argc,argv);
-				restoreSDL();
+
+                SDL_SysWMinfo sdlWindowInfo;
+                SDL_VERSION(&sdlWindowInfo.version);
+                if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+                {
+                    if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+                    {
+                        Xwindow      = sdlWindowInfo.info.x11.window;
+                        XDisplay     = sdlWindowInfo.info.x11.display;
+
+                    }
+                    pcsx2_main(argc,argv);
+                    restoreSDL();
+                } 
+                else
+                {
+                    printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+                }
+
 				break;
 #endif
 
