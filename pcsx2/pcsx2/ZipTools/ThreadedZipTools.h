@@ -204,6 +204,7 @@ protected:
 	}
 
 	void SetPendingSave();
+    void ClearPendingSave();
 	void ExecuteTaskInThread();
 	void OnCleanupInThread();
 };

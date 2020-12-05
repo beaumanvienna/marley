@@ -21,15 +21,13 @@
 #include "Utilities/SafeArray.inl"
 #include "wx/wfstream.h"
 
-
 BaseCompressThread::~BaseCompressThread()
 {
 	try {
 		_parent::Cancel();
 		if( m_PendingSaveFlag )
 		{
-			wxGetApp().ClearPendingSave();
-			m_PendingSaveFlag = false;
+			ClearPendingSave();
 		}
 	}
 	DESTRUCTOR_CATCHALL
@@ -39,6 +37,12 @@ void BaseCompressThread::SetPendingSave()
 {
 	wxGetApp().StartPendingSave();
 	m_PendingSaveFlag = true;
+}
+
+void BaseCompressThread::ClearPendingSave()
+{
+    wxGetApp().ClearPendingSave();
+	m_PendingSaveFlag = false;
 }
 
 void BaseCompressThread::ExecuteTaskInThread()
@@ -78,11 +82,12 @@ void BaseCompressThread::ExecuteTaskInThread()
 	}
 
 	m_gzfp->Close();
-
-	if( !wxRenameFile( m_gzfp->GetStreamName(), m_final_filename, true ) )
+    bool result = wxRenameFile( m_gzfp->GetStreamName(), m_final_filename, true );
+    ClearPendingSave();
+	if( !result )
 		throw Exception::BadStream( m_final_filename )
 		.SetDiagMsg(L"Failed to move or copy the temporary archive to the destination filename.")
-		.SetUserMsg(_("The savestate was not properly saved. The temporary file was created successfully but could not be moved to its final resting place."));
+		.SetUserMsg(_("The savestate was not properly saved. The temporary file was created successfully but could not be moved to its final destination."));
 
 	Console.WriteLn( "(gzipThread) Data saved to disk without error." );
 }

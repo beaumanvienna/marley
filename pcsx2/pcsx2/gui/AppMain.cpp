@@ -804,7 +804,6 @@ void Pcsx2App::HandleEvent(wxEvtHandler* handler, wxEventFunction func, wxEvent&
 			gsframe->Close();
 
 		Console.Error( ex.FormatDiagnosticMessage() );
-		// I should probably figure out how to have the error message as well.
 		if (wxGetApp().HasGUI())
 			Msgbox::Alert( ex.FormatDisplayMessage() );
 	}
@@ -830,7 +829,7 @@ void Pcsx2App::StartPendingSave()
 // such calls are detected (though the detection is far from fool-proof).
 void Pcsx2App::ClearPendingSave()
 {
-	if( AppRpc_TryInvokeAsync(&Pcsx2App::ClearPendingSave) ) return;
+	//if( AppRpc_TryInvokeAsync(&Pcsx2App::ClearPendingSave) ) return;
 
 	--m_PendingSaves;
 	pxAssertDev( m_PendingSaves >= 0, "Pending saves count mismatch (pending count is less than 0)" );

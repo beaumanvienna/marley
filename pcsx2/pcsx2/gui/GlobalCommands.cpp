@@ -34,6 +34,7 @@
 #include "R3000A.h"
 #include "SPU2/spu2.h"
 #include <SDL.h>
+
 // renderswitch - tells GSdx to go into dx9 sw if "renderswitch" is set.
 bool renderswitch = false;
 uint renderswitch_delay = 0;
@@ -43,7 +44,6 @@ extern bool switchAR;
 static int g_Pcsx2Recording = 0; // true 1 if recording video and sound
 extern SDL_Window* gWindow;
 extern bool requestShutdown;
-
 void showStartupMessage()
 {
     OSDlog(Color_StrongRed, true, "PCSX2 is ready for PS2 emulation");
@@ -316,10 +316,13 @@ namespace Implementations
 
 		SetZoom(z);
 	}
-
-
+    
 	void Sys_Suspend()
 	{
+        while (wxGetApp().HasPendingSaves())
+        {
+            SDL_Delay(100);
+        }
 		GSFrame* gsframe = wxGetApp().GetGsFramePtr();
 		if (gsframe && gsframe->IsShown() && gsframe->IsFullScreen())
 		{
@@ -663,7 +666,9 @@ namespace Implementations
 void shutdownExternal()
 {
     if (CoreThread.HasPendingStateChangeRequest())
+    {
         return;
+    }
 
     Implementations::Sys_Suspend();
 
