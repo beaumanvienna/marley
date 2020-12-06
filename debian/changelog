@@ -1,13 +1,13 @@
-marley (0.2.4.8) focal; urgency=medium
+marley (0.2.4.9) focal; urgency=medium
 
   * Interpreter added to PCSX2 settings screen
   * Always 4:3 aspect ratio for PCSX2
   * Show activity / allow cancel when searching for games
-  * This is a test version.
+  * This is a test version with lots of debug outputs.
   * Support for Wii, Gamecube, N64, PS1, PS2, PSP,
     NES, SNES, Sega Genesis, Sega Saturn, GBA, GBC
    
- -- JC <beaumanvienna@gmail.com>  Wed, 02 Nov 2020 15:30:00 -0800
+ -- JC <beaumanvienna@gmail.com>  Sat, 05 Nov 2020 17:33:00 -0800
 
 marley (0.2.3.3) focal; urgency=medium
 
