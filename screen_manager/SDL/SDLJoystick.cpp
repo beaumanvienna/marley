@@ -144,9 +144,9 @@ keycode_t SCREEN_SDLJoystick::getKeycodeForButton(SDL_GameControllerButton butto
 	case SDL_CONTROLLER_BUTTON_START:
 		return NKCODE_BUTTON_10;
 	case SDL_CONTROLLER_BUTTON_BACK:
-		return NKCODE_BUTTON_9; // select button
+		return NKCODE_BUTTON_9;
 	case SDL_CONTROLLER_BUTTON_GUIDE:
-		return NKCODE_BACK; // pause menu
+		return NKCODE_BACK;
 	case SDL_CONTROLLER_BUTTON_LEFTSTICK:
 		return NKCODE_BUTTON_THUMBL;
 	case SDL_CONTROLLER_BUTTON_RIGHTSTICK:

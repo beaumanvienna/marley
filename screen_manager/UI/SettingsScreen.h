@@ -45,10 +45,17 @@ protected:
 	bool UseVerticalLayout() const;
 
 private:
-
+    
+    // general
+    int inputSearchDirectories;
+    
+    // dolphin
+    int inputResDolphin;
+    bool inputEnableSoundDolphin;
+    
     int inputBackend;
     int inputBios;
-    int inputRes;
+    int inputResPCSX2;
     bool inputVSync;
     std::vector<std::string> GSdx_entries;
     std::vector<std::string> PCSX2_vm_entries;
@@ -90,79 +97,14 @@ private:
 
 	void TriggerRestart(const char *why);
 
-	std::string gameID_;
 	bool lastVertical_;
-	SCREEN_UI::CheckBox *enableReportsCheckbox_;
-	SCREEN_UI::Choice *layoutEditorChoice_;
-	SCREEN_UI::Choice *postProcChoice_;
-	SCREEN_UI::Choice *displayEditor_;
-	SCREEN_UI::Choice *backgroundChoice_ = nullptr;
-	SCREEN_UI::SCREEN_PopupMultiChoice *resolutionChoice_;
-	SCREEN_UI::CheckBox *frameSkipAuto_;
 	SCREEN_SettingInfoMessage *settingInfo_;
 
 	// Event handlers
-	SCREEN_UI::EventReturn OnControlMapping(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnTouchControlLayout(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnDumpNextFrameToLog(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnTiltTypeChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnTiltCustomize(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnComboKey(SCREEN_UI::EventParams &e);
-
-	// Global settings handlers
-	SCREEN_UI::EventReturn OnLanguage(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnLanguageChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnAutoFrameskip(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnPostProcShaderChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnTextureShader(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnTextureShaderChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnDeveloperTools(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRemoteISO(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeQuickChat0(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeQuickChat1(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeQuickChat2(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeQuickChat3(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeQuickChat4(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeNickname(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeproAdhocServerAddress(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeMacAddress(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnChangeBackground(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnFullscreenChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnDisplayLayoutEditor(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnResolutionChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnHwScaleChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRestoreDefaultSettings(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRenderingMode(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRenderingBackend(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRenderingDevice(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnInflightFramesChoice(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnCameraDeviceChange(SCREEN_UI::EventParams& e);
-	SCREEN_UI::EventReturn OnMicDeviceChange(SCREEN_UI::EventParams& e);
-	SCREEN_UI::EventReturn OnAudioDevice(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnJitAffectingSetting(SCREEN_UI::EventParams &e);
-
-	SCREEN_UI::EventReturn OnSoftwareRendering(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnHardwareTransform(SCREEN_UI::EventParams &e);
-
-	SCREEN_UI::EventReturn OnScreenRotation(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnImmersiveModeChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnSustainedPerformanceModeChange(SCREEN_UI::EventParams &e);
-
-	SCREEN_UI::EventReturn OnAdhocGuides(SCREEN_UI::EventParams &e);
-
-	SCREEN_UI::EventReturn OnSavedataManager(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnSysInfo(SCREEN_UI::EventParams &e);
-
-	// Temporaries to convert setting types, cache enabled, etc.
-	int iAlternateSpeedPercent1_;
-	int iAlternateSpeedPercent2_;
-	int prevInflightFrames_;
-	bool enableReports_;
-	bool tessHWEnable_;
-	std::string shaderNames_[256];
-
-	//edit the game-specific settings and restore the global settings after exiting
-	bool editThenRestore_;
+    
+    SCREEN_UI::EventReturn OnRenderingBackend(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn OnDeleteSearchDirectories(SCREEN_UI::EventParams &e);
+    
 
 };
 

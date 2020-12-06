@@ -369,7 +369,6 @@ int screen_manager_main(int argc, char *argv[]) {
 				{
 					if (event.key.repeat > 0) { break;}
 					int k = event.key.keysym.sym;
-                    if (k == 27) SCREEN_g_QuitRequested = 1;
 					KeyInput key;
 					key.flags = KEY_DOWN;
 					auto mapped = KeyMapRawSDLtoNative.find(k);

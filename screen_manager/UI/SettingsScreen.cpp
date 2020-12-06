@@ -47,7 +47,7 @@ extern std::string gPathToFirmwarePS2;
 extern bool found_jp_ps2;
 extern bool found_na_ps2;
 extern bool found_eu_ps2;
-
+extern std::vector<std::string> gSearchDirectoriesGames;
 #define BIOS_NA 10
 #define BIOS_JP 11
 #define BIOS_EU 12
@@ -76,7 +76,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputBios = 0;
 
         inputVSync = true;
-        inputRes = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
+        inputResPCSX2 = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
         inputBackend = BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE; // OpenGL Hardware + Software
         
         inputExtrathreads_sw = calcExtraThreadsPCSX2();
@@ -128,7 +128,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                 if(line.find("upscale_multiplier =") != std::string::npos)
                 {
                     str_dec = line.substr(line.find_last_of("=") + 1);
-                    inputRes = std::stoi(str_dec,&sz) - 1;
+                    inputResPCSX2 = std::stoi(str_dec,&sz) - 1;
                 } else 
                 if(line.find("extrathreads =") != std::string::npos)
                 {
@@ -545,7 +545,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
             {
                 GSdx_ini_filehandle << GSdx_entries[i] << "\n";
             }
-            GSdx_ini_filehandle << "upscale_multiplier = " <<  inputRes+1 << "\n";
+            GSdx_ini_filehandle << "upscale_multiplier = " <<  inputResPCSX2+1 << "\n";
             GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
             GSdx_ini_filehandle << "Renderer = " <<  inputBackend+12 << "\n";
             if (bios_selection[inputBios] != EMPTY)
@@ -694,9 +694,9 @@ void SCREEN_SettingsScreen::CreateViews() {
 
 	using namespace SCREEN_UI;
 
-	auto di = GetI18NCategory("General");
-	auto gr = GetI18NCategory("PCSX2");
-    auto ms = GetI18NCategory("Main Settings");
+	auto ge = GetI18NCategory("General");
+	auto ps2 = GetI18NCategory("PCSX2");
+    auto dol = GetI18NCategory("Dolphin");
 
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 
@@ -705,7 +705,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
     verticalLayout->Add(tabHolder);
-    verticalLayout->Add(new Choice(di->T("Back"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    verticalLayout->Add(new Choice(ge->T("Back"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     root_->Add(verticalLayout);
 
 	tabHolder->SetTag("GameSettings");
@@ -717,19 +717,66 @@ void SCREEN_SettingsScreen::CreateViews() {
 	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingInfo_);
 
-	// PCSX2
-	ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-	graphicsSettingsScroll->SetTag("GameSettingsGraphics");
+	// -------- general --------
+    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	generalSettingsScroll->SetTag("GameSettingsGeneral");
+	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
+	generalSettings->SetSpacing(0);
+	generalSettingsScroll->Add(generalSettings);
+	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
+
+	generalSettings->Add(new ItemHeader(ge->T("")));
+    
+    // -------- search directories --------
+
+    static const char *selectSearchDirectories[128];
+    int numChoices=gSearchDirectoriesGames.size();
+    static const char *emptyStr="";
+    
+    if (numChoices)
+    {
+        for (int i=0;i<numChoices;i++)
+        {
+            selectSearchDirectories[i]=gSearchDirectoriesGames[i].c_str();
+        }
+        selectSearchDirectories[numChoices]=emptyStr;
+    }
+    else
+    {
+        selectSearchDirectories[0]=emptyStr;
+    }
+
+    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search directories"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
+    selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
+
+
+    // -------- Dolphin --------
+	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	dolphinSettingsScroll->SetTag("GameSettingsDolphin");
+	LinearLayout *dolphinSettings = new LinearLayout(ORIENT_VERTICAL);
+	dolphinSettings->SetSpacing(0);
+	dolphinSettingsScroll->Add(dolphinSettings);
+	tabHolder->AddTab(dol->T("Dolphin"), dolphinSettingsScroll);
+
+	dolphinSettings->Add(new ItemHeader(dol->T("")));
+
+	dolphinSettings->Add(new CheckBox(&inputEnableSoundDolphin, dol->T("Enable fun factor 100")));
+
+    // -------- PCSX2 --------
+    ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	graphicsSettingsScroll->SetTag("GameSettingsPCSX2");
 	LinearLayout *graphicsSettings = new LinearLayout(ORIENT_VERTICAL);
 	graphicsSettings->SetSpacing(0);
 	graphicsSettingsScroll->Add(graphicsSettings);
-	tabHolder->AddTab(ms->T("PCSX2"), graphicsSettingsScroll);
+    std::string header = "";
+    
+	tabHolder->AddTab(ps2->T("PCSX2"), graphicsSettingsScroll);
 
     // -------- PCSX2 --------
     if (found_bios_ps2)
     {
         int cnt = 0;
-        std::string biosRegions, header;
+        std::string biosRegions;
         if (found_na_ps2) 
         {
             biosRegions += "North America";
@@ -755,7 +802,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             header = "Bios file found for: " + biosRegions;
         }
         
-        graphicsSettings->Add(new ItemHeader(gr->T(header)));
+        graphicsSettings->Add(new ItemHeader(ps2->T(header)));
         
         // -------- bios --------
         if (found_na_ps2 && found_jp_ps2 && !found_eu_ps2)
@@ -766,7 +813,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             static const char *selectBIOS[] = { "North America", "Japan" };
             
-            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, ps2->T("Bios selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), ps2->GetName(), screenManager()));
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         } else
         if (found_na_ps2 && !found_jp_ps2 && found_eu_ps2)
@@ -777,7 +824,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             static const char *selectBIOS[] = { "North America", "Europe" };
 
-            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, ps2->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), ps2->GetName(), screenManager()));
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         } else
         if (!found_na_ps2 && found_jp_ps2 && found_eu_ps2)
@@ -788,7 +835,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             static const char *selectBIOS[] = { "Japan", "Europe" };
             
-            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, ps2->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), ps2->GetName(), screenManager()));
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         } else
         if (found_na_ps2 && found_jp_ps2 && found_eu_ps2)
@@ -799,7 +846,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             static const char *selectBIOS[] = { "North America", "Japan", "Europe" };
 
-            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, gr->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *selectBIOSChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBios, ps2->T("Bios Selection"), selectBIOS, 0, ARRAY_SIZE(selectBIOS), ps2->GetName(), screenManager()));
             selectBIOSChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
         }
 
@@ -808,13 +855,13 @@ void SCREEN_SettingsScreen::CreateViews() {
             "OpenGL (Hardware)",
             "OpenGL (Software)"};
 
-        SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, gr->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), gr->GetName(), screenManager()));
+        SCREEN_PopupMultiChoice *renderingBackendChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBackend, ps2->T("Backend"), renderingBackend, 0, ARRAY_SIZE(renderingBackend), ps2->GetName(), screenManager()));
         renderingBackendChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
 
         if (inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE)
         {
             // -------- advanced settings --------
-            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, gr->T("Advanced Settings", "Advanced Settings")));
+            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, ps2->T("Advanced Settings", "Advanced Settings")));
             vAdvancedSettings->OnClick.Add([=](EventParams &e) {
                 RecreateViews();
                 return SCREEN_UI::EVENT_CONTINUE;
@@ -824,19 +871,19 @@ void SCREEN_SettingsScreen::CreateViews() {
         if ((inputBackend == BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE) && (inputAdvancedSettings) )
         {          
             // -------- auto flush --------
-            CheckBox *vAutoflush_sw = graphicsSettings->Add(new CheckBox(&inputAutoflush_sw, gr->T("Enable 'Auto flush framebuffer'", "Enable 'Auto flush framebuffer'")));
+            CheckBox *vAutoflush_sw = graphicsSettings->Add(new CheckBox(&inputAutoflush_sw, ps2->T("Enable 'Auto flush framebuffer'", "Enable 'Auto flush framebuffer'")));
             vAutoflush_sw->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
                    
             // -------- mipmapping --------
-            CheckBox *vMipmapping_sw = graphicsSettings->Add(new CheckBox(&inputMipmapping_sw, gr->T("Enable 'Mipmapping'", "Enable 'Mipmapping'")));
+            CheckBox *vMipmapping_sw = graphicsSettings->Add(new CheckBox(&inputMipmapping_sw, ps2->T("Enable 'Mipmapping'", "Enable 'Mipmapping'")));
             vMipmapping_sw->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
             // -------- anti aliasing --------
-            CheckBox *vAnti_aliasing_sw = graphicsSettings->Add(new CheckBox(&inputAnti_aliasing_sw, gr->T("Enable 'Edge anti-aliasing'", "Enable 'Edge anti-aliasing'")));
+            CheckBox *vAnti_aliasing_sw = graphicsSettings->Add(new CheckBox(&inputAnti_aliasing_sw, ps2->T("Enable 'Edge anti-aliasing'", "Enable 'Edge anti-aliasing'")));
             vAnti_aliasing_sw->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -844,11 +891,11 @@ void SCREEN_SettingsScreen::CreateViews() {
             // -------- extra threads --------
             static const char *Extrathreads_sw[] = { "0","2", "3","4","5","6","7"};
 
-            SCREEN_PopupMultiChoice *Extrathreads_swChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputExtrathreads_sw, gr->T("Extra threads"), Extrathreads_sw, 0, ARRAY_SIZE(Extrathreads_sw), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *Extrathreads_swChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputExtrathreads_sw, ps2->T("Extra threads"), Extrathreads_sw, 0, ARRAY_SIZE(Extrathreads_sw), ps2->GetName(), screenManager()));
             Extrathreads_swChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- interpreter --------
-            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, gr->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
+            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, ps2->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
             vInterpreter->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -860,11 +907,11 @@ void SCREEN_SettingsScreen::CreateViews() {
             // -------- resolution --------
             static const char *selectResolution[] = { "Native PS2", "720p", "1080p", "1440p 2K", "1620p 3K", "2160p 4K" };
             
-            SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputRes, gr->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *selectResolutionChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputResPCSX2, ps2->T("Resolution"), selectResolution, 0, ARRAY_SIZE(selectResolution), ps2->GetName(), screenManager()));
             selectResolutionChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);        
             
             // -------- advanced settings --------
-            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, gr->T("Advanced Settings", "Advanced Settings")));
+            CheckBox *vAdvancedSettings = graphicsSettings->Add(new CheckBox(&inputAdvancedSettings, ps2->T("Advanced Settings", "Advanced Settings")));
             vAdvancedSettings->OnClick.Add([=](EventParams &e) {
                 RecreateViews();
                 return SCREEN_UI::EVENT_CONTINUE;
@@ -885,7 +932,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Blend bff",
                 "Automatic"};
 
-            SCREEN_PopupMultiChoice *interlaceChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputInterlace, gr->T("Interlace"), interlace, 0, ARRAY_SIZE(interlace), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *interlaceChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputInterlace, ps2->T("Interlace"), interlace, 0, ARRAY_SIZE(interlace), ps2->GetName(), screenManager()));
             interlaceChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- bi filter --------
@@ -895,7 +942,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Bilinear Forced",
                 "Bilinear PS2"};
 
-            SCREEN_PopupMultiChoice *biFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBiFilter, gr->T("Bi Filter"), biFilter, 0, ARRAY_SIZE(biFilter), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *biFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputBiFilter, ps2->T("Bi Filter"), biFilter, 0, ARRAY_SIZE(biFilter), ps2->GetName(), screenManager()));
             biFilterChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- max anisotropy --------
@@ -906,7 +953,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "8x",
                 "16x"};
 
-            SCREEN_PopupMultiChoice *anisotropyChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAnisotropy, gr->T("Max anisotropy"), anisotropy, 0, ARRAY_SIZE(anisotropy), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *anisotropyChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAnisotropy, ps2->T("Max anisotropy"), anisotropy, 0, ARRAY_SIZE(anisotropy), ps2->GetName(), screenManager()));
             anisotropyChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- dithering --------
@@ -915,7 +962,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Scaled",
                 "Unscaled"};
 
-            SCREEN_PopupMultiChoice *ditheringChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputDithering, gr->T("Dithering"), dithering, 0, ARRAY_SIZE(dithering), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *ditheringChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputDithering, ps2->T("Dithering"), dithering, 0, ARRAY_SIZE(dithering), ps2->GetName(), screenManager()));
             ditheringChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- HW mipmapping --------
@@ -925,7 +972,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Basic",
                 "Full"};
 
-            SCREEN_PopupMultiChoice *hw_mipmappingChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputHW_mipmapping, gr->T("HW mipmapping"), hw_mipmapping, 0, ARRAY_SIZE(hw_mipmapping), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *hw_mipmappingChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputHW_mipmapping, ps2->T("HW mipmapping"), hw_mipmapping, 0, ARRAY_SIZE(hw_mipmapping), ps2->GetName(), screenManager()));
             hw_mipmappingChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- CRC level --------
@@ -937,7 +984,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Full",
                 "Aggressive"};
                 
-            SCREEN_PopupMultiChoice *crc_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputCRC_level, gr->T("CRC level"), crc_level, 0, ARRAY_SIZE(crc_level), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *crc_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputCRC_level, ps2->T("CRC level"), crc_level, 0, ARRAY_SIZE(crc_level), ps2->GetName(), screenManager()));
             crc_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- accurate date --------
@@ -946,7 +993,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Fast",
                 "Full"};
                 
-            SCREEN_PopupMultiChoice *acc_date_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_date_level, gr->T("DATE accuracy"), acc_date_level, 0, ARRAY_SIZE(acc_date_level), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *acc_date_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_date_level, ps2->T("DATE accuracy"), acc_date_level, 0, ARRAY_SIZE(acc_date_level), ps2->GetName(), screenManager()));
             acc_date_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- accurate blending unit --------
@@ -958,11 +1005,11 @@ void SCREEN_SettingsScreen::CreateViews() {
                 "Full",
                 "Ultra"};
                                 
-            SCREEN_PopupMultiChoice *acc_blend_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_blend_level, gr->T("Blending accuracy"), acc_blend_level, 0, ARRAY_SIZE(acc_blend_level), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *acc_blend_levelChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputAcc_blend_level, ps2->T("Blending accuracy"), acc_blend_level, 0, ARRAY_SIZE(acc_blend_level), ps2->GetName(), screenManager()));
             acc_blend_levelChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
             
             // -------- interpreter --------
-            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, gr->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
+            CheckBox *vInterpreter = graphicsSettings->Add(new CheckBox(&inputInterpreter, ps2->T("Enable 'Interpreter'", "Enable 'Interpreter'")));
             vInterpreter->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -970,14 +1017,14 @@ void SCREEN_SettingsScreen::CreateViews() {
             if (inputUserHacks)
             {
                 // -------- vsync --------
-                CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+                CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
                 vSync->OnClick.Add([=](EventParams &e) {
                     return SCREEN_UI::EVENT_CONTINUE;
                 });
             }
             
             // -------- user hacks --------
-            CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, gr->T("Enable user hacks", "Enable user hacks")));
+            CheckBox *vUserHacks = graphicsSettings->Add(new CheckBox(&inputUserHacks, ps2->T("Enable user hacks", "Enable user hacks")));
             vUserHacks->OnClick.Add([=](EventParams &e) {
                 RecreateViews();
                 return SCREEN_UI::EVENT_CONTINUE;
@@ -986,34 +1033,34 @@ void SCREEN_SettingsScreen::CreateViews() {
         
         if ((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings))
         {
-            graphicsSettings->Add(new ItemHeader(gr->T("User hacks")));
+            graphicsSettings->Add(new ItemHeader(ps2->T("User hacks")));
             
-            CheckBox *vUserHacks_AutoFlush = graphicsSettings->Add(new CheckBox(&inputUserHacks_AutoFlush, gr->T("Enable 'auto flush'", "Enable 'auto flush'")));
+            CheckBox *vUserHacks_AutoFlush = graphicsSettings->Add(new CheckBox(&inputUserHacks_AutoFlush, ps2->T("Enable 'auto flush'", "Enable 'auto flush'")));
             vUserHacks_AutoFlush->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_CPU_FB_Conversion = graphicsSettings->Add(new CheckBox(&inputUserHacks_CPU_FB_Conversion, gr->T("Enable 'CPU framebuffer conversion'", "Enable 'CPU framebuffer conversion'")));
+            CheckBox *vUserHacks_CPU_FB_Conversion = graphicsSettings->Add(new CheckBox(&inputUserHacks_CPU_FB_Conversion, ps2->T("Enable 'CPU framebuffer conversion'", "Enable 'CPU framebuffer conversion'")));
             vUserHacks_CPU_FB_Conversion->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_DisableDepthSupport = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisableDepthSupport, gr->T("Enable 'no depth support'", "Enable 'no depth support'")));
+            CheckBox *vUserHacks_DisableDepthSupport = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisableDepthSupport, ps2->T("Enable 'no depth support'", "Enable 'no depth support'")));
             vUserHacks_DisableDepthSupport->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_DisablePartialInvalidation = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisablePartialInvalidation, gr->T("Enable 'no partial invalidation'", "Enable 'no partial invalidation'")));
+            CheckBox *vUserHacks_DisablePartialInvalidation = graphicsSettings->Add(new CheckBox(&inputUserHacks_DisablePartialInvalidation, ps2->T("Enable 'no partial invalidation'", "Enable 'no partial invalidation'")));
             vUserHacks_DisablePartialInvalidation->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_Disable_Safe_Features = graphicsSettings->Add(new CheckBox(&inputUserHacks_Disable_Safe_Features, gr->T("Enable 'no safe features'", "Enable 'no safe features'")));
+            CheckBox *vUserHacks_Disable_Safe_Features = graphicsSettings->Add(new CheckBox(&inputUserHacks_Disable_Safe_Features, ps2->T("Enable 'no safe features'", "Enable 'no safe features'")));
             vUserHacks_Disable_Safe_Features->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_HalfPixelOffset = graphicsSettings->Add(new CheckBox(&inputUserHacks_HalfPixelOffset, gr->T("Enable 'half pixel offset'", "Enable 'half pixel offset'")));
+            CheckBox *vUserHacks_HalfPixelOffset = graphicsSettings->Add(new CheckBox(&inputUserHacks_HalfPixelOffset, ps2->T("Enable 'half pixel offset'", "Enable 'half pixel offset'")));
             vUserHacks_HalfPixelOffset->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -1021,54 +1068,54 @@ void SCREEN_SettingsScreen::CreateViews() {
             
             static const char *half_Bottom[] = { "Auto", "Force-disable", "Force-enable"};
             
-            SCREEN_PopupMultiChoice *half_BottomChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputUserHacks_Half_Bottom_Override, gr->T("Half bottom override"), half_Bottom, 0, ARRAY_SIZE(half_Bottom), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *half_BottomChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputUserHacks_Half_Bottom_Override, ps2->T("Half bottom override"), half_Bottom, 0, ARRAY_SIZE(half_Bottom), ps2->GetName(), screenManager()));
             half_BottomChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);        
             
-            CheckBox *vUserHacks_SkipDraw = graphicsSettings->Add(new CheckBox(&inputUserHacks_SkipDraw, gr->T("Enable 'skip draw'", "Enable 'skip draw'")));
+            CheckBox *vUserHacks_SkipDraw = graphicsSettings->Add(new CheckBox(&inputUserHacks_SkipDraw, ps2->T("Enable 'skip draw'", "Enable 'skip draw'")));
             vUserHacks_SkipDraw->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_SkipDraw_Offset = graphicsSettings->Add(new CheckBox(&inputUserHacks_SkipDraw_Offset, gr->T("Enable 'skip draw offset'", "Enable 'skip draw offset'")));
+            CheckBox *vUserHacks_SkipDraw_Offset = graphicsSettings->Add(new CheckBox(&inputUserHacks_SkipDraw_Offset, ps2->T("Enable 'skip draw offset'", "Enable 'skip draw offset'")));
             vUserHacks_SkipDraw_Offset->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_TCOffsetX = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetX, gr->T("Enable 'TC offset X'", "Enable 'TC offset X'")));
+            CheckBox *vUserHacks_TCOffsetX = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetX, ps2->T("Enable 'TC offset X'", "Enable 'TC offset X'")));
             vUserHacks_TCOffsetX->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
-            CheckBox *vUserHacks_TCOffsetY = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetY, gr->T("Enable 'TC offset Y'", "Enable 'TC offset Y'")));
+            CheckBox *vUserHacks_TCOffsetY = graphicsSettings->Add(new CheckBox(&inputUserHacks_TCOffsetY, ps2->T("Enable 'TC offset Y'", "Enable 'TC offset Y'")));
             vUserHacks_TCOffsetY->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
             static const char *UserHacks_TriFilter[] = { "None","PS2","Forced"};
-            SCREEN_PopupMultiChoice *UserHacks_TriFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputUserHacks_TriFilter, gr->T("Enable 'tri filter'"), UserHacks_TriFilter, 0, ARRAY_SIZE(UserHacks_TriFilter), gr->GetName(), screenManager()));
+            SCREEN_PopupMultiChoice *UserHacks_TriFilterChoice = graphicsSettings->Add(new SCREEN_PopupMultiChoice(&inputUserHacks_TriFilter, ps2->T("Enable 'tri filter'"), UserHacks_TriFilter, 0, ARRAY_SIZE(UserHacks_TriFilter), ps2->GetName(), screenManager()));
             UserHacks_TriFilterChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
 
-            CheckBox *vUserHacks_WildHack = graphicsSettings->Add(new CheckBox(&inputUserHacks_WildHack, gr->T("Enable 'wild hack'", "Enable 'wild hack'")));
+            CheckBox *vUserHacks_WildHack = graphicsSettings->Add(new CheckBox(&inputUserHacks_WildHack, ps2->T("Enable 'wild hack'", "Enable 'wild hack'")));
             vUserHacks_WildHack->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
-            CheckBox *vUserHacks_align_sprite_X = graphicsSettings->Add(new CheckBox(&inputUserHacks_align_sprite_X, gr->T("Enable 'align sprite X'", "Enable 'align sprite X'")));
+            CheckBox *vUserHacks_align_sprite_X = graphicsSettings->Add(new CheckBox(&inputUserHacks_align_sprite_X, ps2->T("Enable 'align sprite X'", "Enable 'align sprite X'")));
             vUserHacks_align_sprite_X->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
-            CheckBox *vUserHacks_merge_pp_sprite = graphicsSettings->Add(new CheckBox(&inputUserHacks_merge_pp_sprite, gr->T("Enable 'merge pp sprite'", "Enable 'merge pp sprite'")));
+            CheckBox *vUserHacks_merge_pp_sprite = graphicsSettings->Add(new CheckBox(&inputUserHacks_merge_pp_sprite, ps2->T("Enable 'merge pp sprite'", "Enable 'merge pp sprite'")));
             vUserHacks_merge_pp_sprite->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
 
-            CheckBox *vUserHacks_round_sprite_offset = graphicsSettings->Add(new CheckBox(&inputUserHacks_round_sprite_offset, gr->T("Enable 'round sprite offset'", "Enable 'round sprite offset'")));
+            CheckBox *vUserHacks_round_sprite_offset = graphicsSettings->Add(new CheckBox(&inputUserHacks_round_sprite_offset, ps2->T("Enable 'round sprite offset'", "Enable 'round sprite offset'")));
             vUserHacks_round_sprite_offset->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
             
-            CheckBox *vUserHacks_TextureInsideRt = graphicsSettings->Add(new CheckBox(&inputUserHacks_TextureInsideRt, gr->T("Enable 'texture inside Rt'", "Enable 'texture inside Rt'")));
+            CheckBox *vUserHacks_TextureInsideRt = graphicsSettings->Add(new CheckBox(&inputUserHacks_TextureInsideRt, ps2->T("Enable 'texture inside Rt'", "Enable 'texture inside Rt'")));
             vUserHacks_TextureInsideRt->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -1077,7 +1124,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         if (!((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings)))
         {
             // -------- vsync --------
-            CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, gr->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+            CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
             vSync->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
@@ -1085,13 +1132,66 @@ void SCREEN_SettingsScreen::CreateViews() {
         
     } else
     {
-        graphicsSettings->Add(new ItemHeader(gr->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
+        graphicsSettings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
     }
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnRenderingBackend(SCREEN_UI::EventParams &e) {
+    RecreateViews();
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_UI::EventParams &e) {
+    
+    std::string str, line;
+    std::vector<std::string> marley_cfg_entries;
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::ifstream marley_cfg_in_filehandle(marley_cfg);
+    std::ofstream marley_cfg_out_filehandle;
+
+    if (marley_cfg_in_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_in_filehandle,line))
+        {
+            bool found = false;
+            std::string subStr, slash;
+            if (line.find("search_dir_games=") != std::string::npos)
+            {
+                subStr = line.substr(line.find("=")+1,line.length());
+                
+                // add slash to end if necessary
+                slash = subStr.substr(subStr.length()-1,1);
+                if (slash != "/")
+                {
+                    subStr += "/";
+                }
+                
+                found = (subStr == gSearchDirectoriesGames[inputSearchDirectories]);
+            }
+            printf("jc: subStr=%s, toDelete=%s, %d\n",subStr.c_str(),gSearchDirectoriesGames[inputSearchDirectories].c_str(),found);
+            
+            if (!found)
+            {
+                marley_cfg_entries.push_back(line);
+            }
+        }
+        marley_cfg_in_filehandle.close();
+    }
+    
+    // output marley.cfg
+    marley_cfg_out_filehandle.open(marley_cfg.c_str(), std::ios_base::out); 
+    if(marley_cfg_out_filehandle)
+    {
+        for(int i=0; i<marley_cfg_entries.size(); i++)
+        {
+            marley_cfg_out_filehandle << marley_cfg_entries[i] << "\n";
+        }
+        
+        marley_cfg_out_filehandle.close();
+    }
+    gSearchDirectoriesGames.erase(gSearchDirectoriesGames.begin()+inputSearchDirectories);
     RecreateViews();
 	return SCREEN_UI::EVENT_DONE;
 }
