@@ -746,7 +746,7 @@ void statemachine(int cmd)
                         {
                             if (gTextInput) // input exit with RETURN
                             {
-                                //if (setPathToGames(gText))
+                                if (setPathToGames(gText))
                                 {
                                     
                                     string setting = "search_dir_games=";
