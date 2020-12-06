@@ -80,14 +80,17 @@ bool gGamesFound;
 int findAllFiles_counter;
 bool searchingForGames;
 bool stopSearching;
+bool stopSearchingDuringSplash;
 std::ifstream::pos_type filesize(const char* filename)
 {
+    printf("jc: std::ifstream::pos_type filesize(const char* filename = %s)\n",filename);
     std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
     return in.tellg(); 
 }
 
 checksum64 calcChecksum(const char * filename)
 {
+    printf("jc: checksum64 calcChecksum(const char * filename = %s)\n",filename);
     ifstream ifs(filename, ios::binary|ios::ate);
     ifstream::pos_type pos = ifs.tellg();
     checksum64 checksum = 0;
@@ -108,6 +111,20 @@ checksum64 calcChecksum(const char * filename)
 bool IsBIOS_PCSX2(const char * filename);
 void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2 = nullptr)
 {
+    if (stopSearching) return;
+    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
+    findAllFiles_counter++;
+    if (!(findAllFiles_counter % 5))
+    {
+        string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
+        printf("jc: %s\n",str.c_str());
+        str += directory;
+        render_splash(str.c_str());
+        
+        event_loop();
+    }
+    
+    printf("jc: void findAllBiosFiles(const char * directory = %s, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2 = nullptr)\n",directory);
     string str_with_path, str_without_path;
     string ext, str_with_path_lower_case;
     DIR *dir;
@@ -115,8 +132,8 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
     struct dirent *ent;
     if ((dir = opendir (directory)) != NULL) 
     {
-        // print all files and directories in directory
-        while ((ent = readdir (dir)) != NULL) 
+        // search all files and directories in directory
+        while (((ent = readdir (dir)) != NULL) && !stopSearching)
         {
             str_with_path = directory;
             str_with_path +=ent->d_name;
@@ -170,6 +187,7 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
 
 bool copyFile(const char *SRC, const char* DEST)
 {
+    printf("jc: bool copyFile(const char *SRC=%s, const char* DEST=%s)\n",SRC,DEST);
     std::ifstream src(SRC, std::ios::binary);
     std::ofstream dest(DEST, std::ios::binary);
     dest << src.rdbuf();
@@ -180,6 +198,7 @@ bool found_na_ps2;
 bool found_eu_ps2;
 void checkFirmwarePSX(void)
 {
+    printf("jc: void checkFirmwarePSX(void)\n");
     // ---------- PS1 ----------
     bool found_jp_ps1 = false;
     bool found_na_ps1 = false;
@@ -459,6 +478,7 @@ void checkFirmwarePSX(void)
 
 void checkFirmwareSEGA_SATURN(void)
 {
+    printf("jc: void checkFirmwareSEGA_SATURN(void)\n");
     bool found_jp_sega_saturn = false;
     bool found_na_eu_sega_saturn = false;
     
@@ -549,6 +569,7 @@ void checkFirmwareSEGA_SATURN(void)
 
 void printSupportedEmus(void)
 {
+    printf("jc: void printSupportedEmus(void)\n");
     bool notEmpty;
     int i;
     notEmpty = (gSupportedEmulators.size() > 0);
@@ -564,6 +585,7 @@ void printSupportedEmus(void)
 }
 bool createDir(string name)
 {	
+    printf("jc: bool createDir(string name=%s)\n",name.c_str());
     bool ok = true;
 	DIR* dir;        
 	dir = opendir(name.c_str());
@@ -590,11 +612,13 @@ bool createDir(string name)
 }
 void initMEDNAFEN(void)
 {
+    printf("jc: void initMEDNAFEN(void)\n");
     createDir(gBaseDir+"mednafen");
     createDir(gBaseDir+"mednafen/firmware");
 }
 void initMUPEN64PLUS(void)
 {
+    printf("jc: void initMUPEN64PLUS(void)\n");
 	string font_dir = gBaseDir;
 	font_dir += "fonts";
 	
@@ -641,6 +665,7 @@ void initMUPEN64PLUS(void)
 
 void initPCSX2(void)
 {
+    printf("jc: void initPCSX2(void)\n");
 	string plugin_dir = gBaseDir;
 	plugin_dir += "PCSX2";
 	
@@ -668,6 +693,7 @@ void initPCSX2(void)
 
 void initPPSSPP(void)
 {
+    printf("jc: void initPPSSPP(void)\n");
 	string ppsspp_dir = gBaseDir + "ppsspp";
 	string assets_dir = gBaseDir + "ppsspp/assets";
 	string command;
@@ -726,6 +752,7 @@ void initPPSSPP(void)
 
 void initDOLPHIN(void)
 {
+    printf("jc: void initDOLPHIN(void)\n");
 	string dolphin_dir = gBaseDir + "dolphin-emu";
 	string assets_dir = gBaseDir + "dolphin-emu/Data";
 	string command;
@@ -784,6 +811,7 @@ void initDOLPHIN(void)
 
 void initScreen_manager(void)
 {
+    printf("jc: void initScreen_manager(void)\n");
 	string screen_manager_dir = gBaseDir + "screen_manager";
 	
 	DIR* dir;        
@@ -821,6 +849,7 @@ void initScreen_manager(void)
 
 void initEMU(void)
 {
+    printf("jc: void initEMU(void)\n");
     printSupportedEmus();
     initMEDNAFEN();
     initPCSX2();
@@ -829,37 +858,50 @@ void initEMU(void)
     initMUPEN64PLUS();
     initScreen_manager();
     
-    checkFirmwarePSX();
-    if (!gPS1_firmware)
-        printf("No valid bios/firmware path for PS1 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
-        
-    if (!gPS2_firmware)
-        printf("No valid bios/firmware path for PS2 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
-    
-    checkFirmwareSEGA_SATURN();
-    if (!gSegaSaturn_firmware)
-        printf("No valid bios/firmware path for Sega Saturn found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
-    
-    if (gGame.size())
+    if (!stopSearching) 
     {
-            printf("Available games:\n");
+        checkFirmwarePSX();
+        if (!gPS1_firmware)
+            printf("No valid bios/firmware path for PS1 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
+            
+        if (!gPS2_firmware)
+            printf("No valid bios/firmware path for PS2 found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
+
+        checkFirmwareSEGA_SATURN();
+        if (!gSegaSaturn_firmware)
+            printf("No valid bios/firmware path for Sega Saturn found --> Use the setup screen to enter a bios/firmware path. Marley will search it recursively.\n");
+
+        if (gGame.size())
+        {
+                printf("Available games:\n");
+        }
+
+        for (int i=0;i<gGame.size();i++)
+        {
+            render_splash(gGame[i]);
+            printf("%s\n",gGame[i].c_str());
+        }
+    } else
+    {
+        gGame.clear();
+        gGamesFound=false;
+        gPS1_firmware=false;
+        gPS2_firmware=false;
+        gSegaSaturn_firmware=false;
     }
     
-    for (int i=0;i<gGame.size();i++)
-    {
-        render_splash(gGame[i]);
-        printf("%s\n",gGame[i].c_str());
-    }
 }
 
-bool exists(const char *fileName)
+bool exists(const char *filename)
 {
-    ifstream infile(fileName);
+    printf("jc: bool exists(const char *fileName=%s)\n",filename);
+    ifstream infile(filename);
     return infile.good();
 }
 
 bool isDirectory(const char *filename)
 {
+    printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
     struct stat p_lstatbuf;
     struct stat p_statbuf;
     bool ok = false;
@@ -895,6 +937,7 @@ bool isDirectory(const char *filename)
 
 void stripList(list<string> *tmpList,list<string> *toBeRemoved)
 {
+    printf("jc: void stripList(list<string> *tmpList,list<string> *toBeRemoved)\n");
     list<string>::iterator iteratorTmpList;
     list<string>::iterator iteratorToBeRemoved;
     
@@ -939,6 +982,7 @@ void stripList(list<string> *tmpList,list<string> *toBeRemoved)
 
 bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 {
+    printf("jc: bool checkForCueFiles(string str_with_path=%s,std::list<string> *toBeRemoved)\n",str_with_path.c_str());
     string line, name;
     bool file_exists = false;
 
@@ -979,8 +1023,9 @@ bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved)
 {
     if (stopSearching) return;
+    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
     findAllFiles_counter++;
-    if (!(findAllFiles_counter % 250))
+    if (!(findAllFiles_counter % 5))
     {
         string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
         printf("jc: %s\n",str.c_str());
@@ -997,8 +1042,8 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
     struct dirent *ent;
     if ((dir = opendir (directory)) != NULL) 
     {
-        // print all files and directories in directory
-        while ((ent = readdir (dir)) != NULL) 
+        // search all files and directories in directory
+        while (((ent = readdir (dir)) != NULL) && !stopSearching)
         {
             str_with_path = directory;
             str_with_path +=ent->d_name;
@@ -1058,6 +1103,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
 
 bool findInVector(vector<string>* vec, string str)
 {
+    printf("jc: bool findInVector(vector<string>* vec, string str=%s)\n",str.c_str());
     bool ok = false;
     string element;
     
@@ -1077,6 +1123,7 @@ bool findInVector(vector<string>* vec, string str)
 
 void finalizeList(std::list<string> *tmpList)
 {
+    printf("jc: void finalizeList(std::list<string> *tmpList)\n");
     list<string>::iterator iteratorTmpList;
     string strList;
     
@@ -1104,6 +1151,7 @@ void finalizeList(std::list<string> *tmpList)
 
 void buildGameList(void)
 {
+    printf("jc: void buildGameList(void)\n");
     std::list<string> tmpList;
     std::list<string> toBeRemoved;
     searchingForGames=true;

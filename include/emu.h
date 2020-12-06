@@ -31,6 +31,7 @@ using namespace std;
 
     extern bool gPS1_firmware;
     extern bool gPS2_firmware;
+    extern bool gSegaSaturn_firmware;
     extern string gBaseDir;
     extern string gPathToFirmwarePSX;
     extern string gPathToGames;

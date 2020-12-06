@@ -746,7 +746,7 @@ void statemachine(int cmd)
                         {
                             if (gTextInput) // input exit with RETURN
                             {
-                                if (setPathToGames(gText))
+                                //if (setPathToGames(gText))
                                 {
                                     
                                     string setting = "search_dir_games=";
@@ -757,6 +757,14 @@ void statemachine(int cmd)
                                     stopSearching=false;
                                     buildGameList();
                                     checkFirmwarePSX();
+                                    if (stopSearching)
+                                    {
+                                        gGame.clear();
+                                        gGamesFound=false;
+                                        gPS1_firmware=false;
+                                        gPS2_firmware=false;
+                                        gSegaSaturn_firmware=false;
+                                    }
                                 }
                             }
                             else // input exit with ESC

@@ -34,6 +34,9 @@
 #include <GL/gl.h>
 #include <fstream>
 #include "SDL_mixer.h"
+
+#define SPLASHSCREEN_DURATION 5000
+
 //rendering window 
 SDL_Window* gWindow = nullptr;
 
@@ -54,6 +57,7 @@ int WINDOW_HEIGHT;
 
 int window_width, window_height, window_x, window_y;
 Uint32 window_flags;
+SDL_TimerID splashTimer;
 
 int x_offset_1150;
 int x_offset_1068;
@@ -102,6 +106,7 @@ Mix_Chunk* soundFile[2];
 
 bool init_audio(void) 
 {
+    printf("jc: bool init_audio(void) \n");
     SDL_InitSubSystem(SDL_INIT_AUDIO);
     for (int i = 0; i < soundFileName.size(); i++)
     {	
@@ -156,7 +161,8 @@ bool init_audio(void)
 extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
-    if ((!splashScreenRunning) && (!searchingForGames)) return;
+    if (!splashScreenRunning) return;
+    printf("jc: void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
     SDL_Surface* surfaceMessage = nullptr; 
@@ -184,6 +190,7 @@ void render_splash(string onScreenDisplay)
 
 void hide_or_show_cursor_X11(bool hide) 
 {
+    printf("jc: void hide_or_show_cursor_X11(bool hide) \n");
     Display *display   = XOpenDisplay(NULL);
     int active_screen  = DefaultScreen(display);
     Window active_root = RootWindow(display, active_screen);
@@ -199,8 +206,9 @@ void hide_or_show_cursor_X11(bool hide)
     XFlush(display);
 }
 
-bool loadMedia()
+bool loadMedia(void)
 {
+    printf("jc: bool loadMedia(void)\n");
     bool ok = true;
     
     // splash
@@ -404,6 +412,7 @@ bool loadMedia()
 
 bool freeTextures(void)
 {
+    printf("jc: bool freeTextures(void)\n");
     for (int i;i<NUM_TEXTURES;i++)
     {
         SDL_DestroyTexture(gTextures[i]);
@@ -414,6 +423,7 @@ bool freeTextures(void)
 
 void setAppIcon(void)
 {
+    printf("jc: void setAppIcon(void)\n");
     SDL_Surface* surf = nullptr;
     
     size_t file_size = 0;
@@ -444,6 +454,7 @@ void setAppIcon(void)
 
 SDL_Texture* loadTextureFromFile(string str)
 {
+    printf("jc: SDL_Texture* loadTextureFromFile(string str=%s)\n",str.c_str());
     SDL_Surface* surf = nullptr;
     SDL_Texture* texture = nullptr;
     
@@ -481,6 +492,7 @@ SDL_Texture* loadTextureFromFile(string str)
 
 void initOpenGL(void)
 {	
+    printf("jc: void initOpenGL(void)\n");
     SDL_GL_ResetAttributes();
   
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
@@ -495,8 +507,9 @@ void initOpenGL(void)
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 }
 bool splashScreenRunning = true;
-Uint32 my_callbackfunc(Uint32 interval, void *param)
+Uint32 splash_callbackfunc(Uint32 interval, void *param)
 {
+    printf("jc: Uint32 my_callbackfunc(Uint32 interval, void *param)\n");
     splashScreenRunning = false;
     
     for( int i = 0; i < soundFileName.size(); i++ )
@@ -512,6 +525,7 @@ Uint32 my_callbackfunc(Uint32 interval, void *param)
 
 bool initGUI(void)
 {
+    printf("jc: bool initGUI(void)\n");
     bool ok = true;
     Uint32 windowFlags;
     int imgFlags;
@@ -605,7 +619,7 @@ bool initGUI(void)
         SDL_ShowCursor(SDL_DISABLE);
         render_splash("");
         init_audio();
-        SDL_TimerID myTimer =SDL_AddTimer(5000,my_callbackfunc,nullptr);
+        splashTimer =SDL_AddTimer(SPLASHSCREEN_DURATION,splash_callbackfunc,nullptr);
         Mix_PlayChannel(-1, soundFile[0], 0);
         SDL_DisableScreenSaver();
         setAppIcon();
@@ -615,6 +629,7 @@ bool initGUI(void)
 
 void closeGUI(void)
 {
+    printf("jc: void closeGUI(void)\n");
     //Destroy main window    
     SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
@@ -681,7 +696,15 @@ void renderIcons(void)
             SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_SETUP_IN], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
         }
         
-        destination = { x_offset_345+xOffset, y_offset_10+yOffset, x_offset_150, y_offset_45 };
+        if (gGamesFound)
+        {
+            destination = { x_offset_345+xOffset, y_offset_10+yOffset, x_offset_150, y_offset_45 };
+        }
+        else
+        {
+            destination = { x_offset_200+xOffset, y_offset_10+yOffset, x_offset_150, y_offset_45 };
+        }
+        
         if (gState == STATE_CONFIG)
         {
             SDL_RenderCopyEx( gRenderer, gTextures[TEX_ICON_CONF], nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );
@@ -858,6 +881,7 @@ void renderIcons(void)
 
 void setFullscreen(void)
 {
+    printf("jc: void setFullscreen(void)\n");
     window_flags=SDL_GetWindowFlags(gWindow);
     if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
     {
@@ -872,6 +896,7 @@ void setFullscreen(void)
 }
 void setWindowed(void)
 {
+    printf("jc: void setWindowed(void)\n");
     SDL_SetWindowFullscreen(gWindow, 0);
     SDL_SetWindowSize(gWindow,window_width,window_height);
     SDL_SetWindowPosition(gWindow,window_x,window_y);
@@ -882,6 +907,7 @@ void setWindowed(void)
 
 bool createRenderer(void)
 {
+    printf("jc: bool createRenderer(void)\n");
     bool ok = true;
     SDL_GL_ResetAttributes();
     //Create renderer for main window
@@ -929,6 +955,7 @@ bool createRenderer(void)
                                     
 bool restoreGUI(void)
 {
+    printf("jc: bool restoreGUI(void)\n");
     bool ok = true;
     string str;
     
@@ -954,6 +981,7 @@ bool restoreGUI(void)
     
 void renderScreen(void)
 {
+    printf("jc: void renderScreen(void)\n");
     //render destination 
     SDL_Rect destination;
     

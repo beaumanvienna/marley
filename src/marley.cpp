@@ -57,7 +57,7 @@ bool setBaseDir(void);
 void initApp(void);
 void render_splash(string onScreenDisplay);
 void event_loop(void);
-
+Uint32 splash_callbackfunc(Uint32 interval, void *param);
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
 bool ALT = false;
@@ -65,9 +65,12 @@ vector<string> gSearchDirectoriesGames;
 vector<string> gSearchDirectoriesFirmware;
 extern int findAllFiles_counter;
 extern bool stopSearching;
+extern bool stopSearchingDuringSplash;
+extern SDL_TimerID splashTimer;
 //initializes SDL and creates main window
-bool init()
+bool init(void)
 {
+    printf("jc: bool init(void)\n");
     //Initialization flag
     bool ok = true;
     int i,j;
@@ -139,6 +142,9 @@ bool init()
     render_splash("");
     while (splashScreenRunning) 
     {
+        printf("jc: waiting for splash screen to finish  ");
+        event_loop();
+        render_splash("");
         SDL_Delay(100);
     }
     return ok;
@@ -146,7 +152,7 @@ bool init()
 
 void initApp(void)
 {
-    
+    printf("jc: void initApp(void)\n");
     const char *homedir;
     string home_folder, slash, uri;
     string app_dir, app_starter;
@@ -231,8 +237,9 @@ void initApp(void)
 }
 
 //Free media and shut down SDL
-void closeAll()
+void closeAll(void)
 {
+    printf("jc: void closeAll(void)\n");
     //Free loaded textures
     freeTextures();
     
@@ -249,6 +256,7 @@ void closeAll()
 
 int main( int argc, char* argv[] )
 {
+    printf("jc: int main( int argc, char* argv[] )\n");
     bool keepX11pointer=true;
     gFullscreen=false;
     gCurrentGame=0;
@@ -339,6 +347,7 @@ int main( int argc, char* argv[] )
 
 void event_loop(void)
 {
+    printf("jc: void event_loop(void)\n");
     int k,l,m;
     //Event handler
     SDL_Event event;
@@ -362,7 +371,7 @@ void event_loop(void)
                             k = SDL_NumJoysticks();
                             if (k)
                             {
-                                printf("************* List all (number: %i) ************* \n",k);
+                                printf("++++++++++++ List all (number: %i) ++++++++++++ \n",k);
                                 for (l=0; l<k; l++)
                                 {
                                     printJoyInfo(l);
@@ -383,7 +392,7 @@ void event_loop(void)
                                 printf("%i designated controllers found\n",m);
                             } else
                             {
-                                printf("************* no controllers found ************* \n");
+                                printf("++++++++++++ no controllers found ++++++++++++ \n");
                             }
                             break;
                         case SDLK_f:
@@ -414,6 +423,21 @@ void event_loop(void)
                             }
                             break;
                         case SDLK_ESCAPE:
+                            printf("jc: ++++++++++++++++++++++++++++++++++++++++++ case SDLK_ESCAPE: ++++++++++++++++++++++++++++++++++++++++++ \n");
+                            if (splashScreenRunning) 
+                            {
+                                if (!stopSearchingDuringSplash) // ESC hit once
+                                {
+                                    stopSearchingDuringSplash=true;
+                                    printf("jc: ############ ESC hit once ########## stop search ########################################### s\n");
+                                }
+                                else // ESC hit twice
+                                {
+                                    printf("jc: ############ ESC hit twice ########## stop splash screen ########################################### s\n");
+                                    SDL_RemoveTimer(splashTimer);
+                                    splash_callbackfunc(0,nullptr);
+                                }
+                            }
                             stopSearching=true;
                             if (gState == STATE_OFF)
                             {
@@ -480,6 +504,7 @@ void event_loop(void)
                             break;
                         case SDLK_ESCAPE:
                                 gTextInput=false;
+                                stopSearching=true;
                                 statemachine(SDL_CONTROLLER_BUTTON_A);
                             break;
                         case SDLK_RETURN:
@@ -498,11 +523,11 @@ void event_loop(void)
                 }
                 break;
             case SDL_JOYDEVICEADDED: 
-                printf("\n*** Found new controller ");
+                printf("\n+++ Found new controller ");
                 openJoy(event.jdevice.which);
                 break;
             case SDL_JOYDEVICEREMOVED: 
-                printf("*** controller removed\n");
+                printf("+++ controller removed\n");
                 closeJoy(event.jdevice.which);
                 break;
             case SDL_JOYHATMOTION: 
@@ -610,6 +635,7 @@ void event_loop(void)
 
 void restoreSDL(void)
 {
+    printf("jc: void restoreSDL(void)\n");
     restoreController();
     restoreGUI();
 }
@@ -617,6 +643,7 @@ void restoreSDL(void)
 //Motion on gamepad x
 void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 {
+    printf("jc: void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)\n");
     if((event.jaxis.axis == 0) || (event.jaxis.axis == 3))
     {
         //X axis motion
@@ -632,6 +659,7 @@ void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 
 bool createTemplate(string name)
 {
+    printf("jc: bool createTemplate(string name=%s)\n",name.c_str());
     bool ok=false;
     std::ofstream outfile;
 
@@ -659,6 +687,7 @@ bool createTemplate(string name)
 
 bool setPathToFirmware(string str)
 {
+    printf("jc: bool setPathToFirmware(string str=%s)\n",str.c_str());
     DIR* dir;
     string filename=str;
     string slash;
@@ -694,6 +723,7 @@ bool setPathToFirmware(string str)
 
 bool setPathToGames(string str)
 {
+    printf("jc: bool setPathToGames(string str=%s)\n",str.c_str());
     DIR* dir;
     string filename=str;
     string slash;
@@ -729,6 +759,7 @@ bool setPathToGames(string str)
 
 void loadConfig(ifstream* configFile)
 {
+    printf("jc: void loadConfig(ifstream* configFile)\n");
     string entry, line, slash;
     int pos;
     DIR* dir;
@@ -736,6 +767,7 @@ void loadConfig(ifstream* configFile)
     gPathToFirmwarePSX="";
     gPathToGames="";
     stopSearching=false;
+    stopSearchingDuringSplash=false;
     
     while (( getline (configFile[0],line)) && !stopSearching)
     {
@@ -768,6 +800,7 @@ void loadConfig(ifstream* configFile)
 
 bool setBaseDir(void)
 {
+    printf("jc: bool setBaseDir(void)\n");
     const char *homedir;
     string filename, slash;
     DIR* dir;
@@ -821,6 +854,7 @@ bool setBaseDir(void)
 
 bool checkConf(void)
 {
+    printf("jc: bool checkConf(void)\n");
     string filename;
     int pos;
     DIR* dir;
@@ -853,6 +887,7 @@ bool checkConf(void)
 
 bool addSettingToConfigFile(string setting)
 {
+    printf("jc: bool addSettingToConfigFile(string setting=%s)\n",setting.c_str());
     bool ok = false;
     string filename;
     
@@ -878,6 +913,7 @@ bool addSettingToConfigFile(string setting)
 
 void removeDuplicatesInDB(void)
 {
+    printf("jc: void removeDuplicatesInDB(void)\n");
     string line, guidStr;
     long guid;
     vector<string> entryVec;
@@ -926,6 +962,7 @@ void removeDuplicatesInDB(void)
 
 bool addControllerToInternalDB(string entry)
 {
+    printf("jc: bool addControllerToInternalDB(string entry=%s)\n",entry.c_str());
     bool ok = false;
     string filename = gBaseDir;
 
