@@ -1,4 +1,5 @@
-// Copyright (c) 2013- PPSSPP Project.
+// Copyright (c) 2013-2020 PPSSPP project
+// Copyright (c) 2020 Marley project
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -51,12 +52,13 @@ private:
     
     // dolphin
     int inputResDolphin;
-    bool inputEnableSoundDolphin;
+    bool inputVSyncDolphin;
+    std::vector<std::string> GFX_entries;
     
     int inputBackend;
     int inputBios;
     int inputResPCSX2;
-    bool inputVSync;
+    bool inputVSyncPCSX2;
     std::vector<std::string> GSdx_entries;
     std::vector<std::string> PCSX2_vm_entries;
     bool found_bios_ps2;

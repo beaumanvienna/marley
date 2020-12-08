@@ -1,4 +1,5 @@
-// Copyright (c) 2013- PPSSPP Project.
+// Copyright (c) 2013-2020 PPSSPP project
+// Copyright (c) 2020 Marley project
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -65,7 +66,37 @@ int calcExtraThreadsPCSX2()
     return cnt;
 }
 
-SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
+SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
+{    
+    // Dolphin
+    inputVSyncDolphin = true;
+    inputResDolphin = 1; // UI starts with 0, dolphin has 1 = native, 2 = 2x native
+    
+    std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
+    std::string line,str_dec;
+    std::string::size_type sz;   // alias of size_t
+
+    //if GFX.ini exists get value from there
+    std::ifstream GFX_ini_filehandle(GFX_ini);
+    if (GFX_ini_filehandle.is_open())
+    {
+        while ( getline (GFX_ini_filehandle,line))
+        {
+            if(line.find("InternalResolution =") != std::string::npos)
+            {
+                str_dec = line.substr(line.find_last_of("=") + 1);
+                inputResDolphin = std::stoi(str_dec,&sz) - 1;
+            } else 
+            if(line.find("VSync =") != std::string::npos)
+            {
+                inputVSyncDolphin = (line.find("True") != std::string::npos);
+            }
+            GFX_entries.push_back(line);
+        }
+        GFX_ini_filehandle.close();
+    }
+    
+    // PCSX2
     found_bios_ps2 = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
     
     if (found_bios_ps2)
@@ -75,7 +106,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         bios_selection[2] = EMPTY;
         inputBios = 0;
 
-        inputVSync = true;
+        inputVSyncPCSX2 = true;
         inputResPCSX2 = 1; // UI starts with 0 = native, 1 = 2x native PCSX2
         inputBackend = BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE; // OpenGL Hardware + Software
         
@@ -116,10 +147,8 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
         inputInterpreter = false;
 
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
-        std::string line,str_dec;
-        std::string::size_type sz;   // alias of size_t
-
-        //if PCSX2 config file exists get value from there
+        
+        //if GSdx.ini exists get value from there
         std::ifstream GSdx_ini_filehandle(GSdx_ini);
         if (GSdx_ini_filehandle.is_open())
         {
@@ -185,10 +214,10 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
                     str_dec = line.substr(line.find_last_of("=") + 1);
                     if(std::stoi(str_dec,&sz)) 
                     {
-                        inputVSync = true;
+                        inputVSyncPCSX2 = true;
                     } else
                     {
-                        inputVSync = false;
+                        inputVSyncPCSX2 = false;
                     }
                 } else 
                 if(line.find("interlace =") != std::string::npos)
@@ -525,10 +554,87 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen() {
     }
 }
 bool createDir(std::string name);
-SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
+SCREEN_SettingsScreen::~SCREEN_SettingsScreen() 
+{
+    
+    std::string str, line;
+    std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
+    std::ofstream GFX_ini_filehandle;
+    
+    createDir(gBaseDir + "dolphin-emu");
+    createDir(gBaseDir + "dolphin-emu/Config");
+    
+    // output GFX.ini
+    GFX_ini_filehandle.open(GFX_ini.c_str(), std::ios_base::out); 
+    if(GFX_ini_filehandle)
+    {
+        if (GFX_entries.size())
+        {
+            for(int i=0; i<GFX_entries.size(); i++)
+            {
+                line = GFX_entries[i];
+                if(line.find("InternalResolution =") != std::string::npos)
+                {
+                    GFX_ini_filehandle << "InternalResolution = ";
+                    GFX_ini_filehandle <<  inputResDolphin+1;
+                    GFX_ini_filehandle << "\n";
+                } else 
+                if(line.find("VSync =") != std::string::npos)
+                {
+                    GFX_ini_filehandle << "VSync = ";
+                    if (inputVSyncDolphin)
+                    {
+                        GFX_ini_filehandle << "True\n";
+                    }
+                    else
+                    {
+                        GFX_ini_filehandle << "False\n";
+                    }
+                } else
+                {
+                    GFX_ini_filehandle << GFX_entries[i] << "\n";
+                }
+            }
+        }
+        else
+        {
+            GFX_ini_filehandle << "[Enhancements]\n";
+            GFX_ini_filehandle << "ArbitraryMipmapDetection = True\n";
+            GFX_ini_filehandle << "DisableCopyFilter = True\n";
+            GFX_ini_filehandle << "ForceTrueColor = True\n";
+            GFX_ini_filehandle << "[Hacks]\n";
+            GFX_ini_filehandle << "BBoxEnable = False\n";
+            GFX_ini_filehandle << "DeferEFBCopies = True\n";
+            GFX_ini_filehandle << "EFBEmulateFormatChanges = False\n";
+            GFX_ini_filehandle << "EFBScaledCopy = True\n";
+            GFX_ini_filehandle << "EFBToTextureEnable = True\n";
+            GFX_ini_filehandle << "SkipDuplicateXFBs = True\n";
+            GFX_ini_filehandle << "XFBToTextureEnable = True\n";
+            GFX_ini_filehandle << "[Hardware]\n";
+            if (inputVSyncDolphin)
+            {
+                GFX_ini_filehandle << "VSync = True\n";
+            }
+            else
+            {
+                GFX_ini_filehandle << "VSync = False\n";
+            }
+            GFX_ini_filehandle << "[Settings]\n";
+            GFX_ini_filehandle << "BackendMultithreading = True\n";
+            GFX_ini_filehandle << "DumpBaseTextures = True\n";
+            GFX_ini_filehandle << "DumpMipTextures = True\n";
+            GFX_ini_filehandle << "FastDepthCalc = True\n";
+            GFX_ini_filehandle << "InternalResolution = ";
+            GFX_ini_filehandle <<  inputResDolphin+1;
+            GFX_ini_filehandle << "\n";
+            GFX_ini_filehandle << "SaveTextureCacheToState = True\n";
+        }
+        GFX_ini_filehandle.close();
+    }
+
+
     if (found_bios_ps2)
     {
-        std::string str, line;
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
         std::ofstream GSdx_ini_filehandle;
         std::string PCSX2_vm_ini = gBaseDir + "PCSX2/inis/PCSX2_vm.ini";
@@ -546,7 +652,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                 GSdx_ini_filehandle << GSdx_entries[i] << "\n";
             }
             GSdx_ini_filehandle << "upscale_multiplier = " <<  inputResPCSX2+1 << "\n";
-            GSdx_ini_filehandle << "vsync = " << inputVSync << "\n";
+            GSdx_ini_filehandle << "vsync = " << inputVSyncPCSX2 << "\n";
             GSdx_ini_filehandle << "Renderer = " <<  inputBackend+12 << "\n";
             if (bios_selection[inputBios] != EMPTY)
             {
@@ -639,7 +745,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen() {
                 line = PCSX2_vm_entries[i];
                 if(line.find("VsyncEnable") != std::string::npos)
                 {
-                    PCSX2_vm_ini_filehandle << "VsyncEnable=" << inputVSync << "\n";
+                    PCSX2_vm_ini_filehandle << "VsyncEnable=" << inputVSyncPCSX2 << "\n";
                 } else if(line.find("EnableEE=") != std::string::npos)
                 {
                     if(inputInterpreter)
@@ -759,8 +865,18 @@ void SCREEN_SettingsScreen::CreateViews() {
 	tabHolder->AddTab(dol->T("Dolphin"), dolphinSettingsScroll);
 
 	dolphinSettings->Add(new ItemHeader(dol->T("")));
-
-	dolphinSettings->Add(new CheckBox(&inputEnableSoundDolphin, dol->T("Enable fun factor 100")));
+    
+    // -------- resolution --------
+    static const char *selectResolutionDolphin[] = { "Native Wii", "2x Native (720p)", "3x Native (1080p)", "4x Native (1440p)", "5x Native ", "6x Native (4K)", "7x Native ", "8x Native (5K)" };
+    
+    SCREEN_PopupMultiChoice *selectResolutionDolphinChoice = dolphinSettings->Add(new SCREEN_PopupMultiChoice(&inputResDolphin, dol->T("Resolution"), selectResolutionDolphin, 0, ARRAY_SIZE(selectResolutionDolphin), dol->GetName(), screenManager()));
+    selectResolutionDolphinChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);        
+            
+    // -------- vsync --------
+    CheckBox *vSyncDolphin = dolphinSettings->Add(new CheckBox(&inputVSyncDolphin, dol->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+    vSyncDolphin->OnClick.Add([=](EventParams &e) {
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
 
     // -------- PCSX2 --------
     ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -1017,7 +1133,7 @@ void SCREEN_SettingsScreen::CreateViews() {
             if (inputUserHacks)
             {
                 // -------- vsync --------
-                CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+                CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSyncPCSX2, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
                 vSync->OnClick.Add([=](EventParams &e) {
                     return SCREEN_UI::EVENT_CONTINUE;
                 });
@@ -1124,7 +1240,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         if (!((inputUserHacks) && (inputBackend == BACKEND_OPENGL_HARDWARE) && (inputAdvancedSettings)))
         {
             // -------- vsync --------
-            CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSync, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
+            CheckBox *vSync = graphicsSettings->Add(new CheckBox(&inputVSyncPCSX2, ps2->T("Supress screen tearing", "Supress screen tearing (VSync)")));
             vSync->OnClick.Add([=](EventParams &e) {
                 return SCREEN_UI::EVENT_CONTINUE;
             });
