@@ -63,7 +63,6 @@
 #include "Common/OSVersion.h"
 
 #include "UI/SettingsScreen.h"
-#include "UI/PauseScreenPCSX2.h"
 #include "UI/MiscScreens.h"
 #include "UI/OnScreenDisplay.h"
 #include "UI/TextureUtil.h"

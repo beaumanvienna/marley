@@ -3,7 +3,6 @@ NativeApp.cpp
 TextureUtil.cpp
 MiscScreens.cpp
 OnScreenDisplay.cpp
-PauseScreenPCSX2.cpp
 SettingsScreen.cpp
 )
 
