@@ -17,6 +17,7 @@ Data/Text/Parsers.cpp
 File/FileDescriptor.cpp
 File/FileUtil.cpp
 File/DirListing.cpp
+File/PathBrowser.cpp
 File/VFS/VFS.cpp
 File/VFS/AssetReader.cpp
 GPU/thin3d.cpp
