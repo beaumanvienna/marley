@@ -44,7 +44,7 @@
 #include <sstream>
 void SCREEN_UpdateUIState(GlobalUIState newState);
 bool SCREEN_MainScreen::showHomebrewTab = false;
-std::string currentDirectory;
+
 bool bGridView1;
 bool bGridView2;
 bool bGridView3;
@@ -140,6 +140,7 @@ public:
 	}
 
 	bool Key(const KeyInput &key) override {
+        printf("jc: bool Key(const KeyInput &key) override\n");
 		std::vector<int> pspKeys;
 		bool showInfo = false;
 
@@ -293,22 +294,25 @@ void DirButton::Draw(SCREEN_UIContext &dc) {
 SCREEN_GameBrowser::SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
+    printf("jc: SCREEN_GameBrowser::SCREEN_GameBrowser\n");
 	Refresh();
 }
 
 void SCREEN_GameBrowser::FocusGame(const std::string &gamePath) {
+    printf("jc: void SCREEN_GameBrowser::FocusGame(const std::string &gamePath)\n");
 	focusGamePath_ = gamePath;
 	Refresh();
 	focusGamePath_.clear();
 }
 
 void SCREEN_GameBrowser::SetPath(const std::string &path) {
+    printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
-	currentDirectory = path_.GetPath();
 	Refresh();
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
 	*gridStyle_ = e.a == 0 ? true : false;
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
@@ -320,13 +324,14 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::LastClick(SCREEN_UI::EventParams &e) 
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e) {
-
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
 	SetPath(getenv("HOME"));
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::PinToggleClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::PinToggleClick(SCREEN_UI::EventParams &e)\n");
     std::vector<std::string> vPinnedPaths = {"/home/yo"};
 	auto &pinnedPaths = vPinnedPaths;
 	const std::string path = SCREEN_PFile::ResolvePath(path_.GetPath());
@@ -340,10 +345,17 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::PinToggleClick(SCREEN_UI::EventParams
 }
 
 bool SCREEN_GameBrowser::DisplayTopBar() {
+    printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
 	return path_.GetPath() != "!RECENT";
 }
 
 bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
+    printf("jc: bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
+    for (int i = 0; i<filenames.size();i++) 
+    {
+        std::string str = filenames[i];
+        printf("jc: %s\n",str.c_str());
+    }
 	if (path_.GetPath() == "!RECENT") {
 		//filenames = g_PConfig.recentIsos;
 		return true;
@@ -393,16 +405,16 @@ void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
 
 static bool IsValidPBP(const std::string &path, bool allowHomebrew) {
 	
-	return true;
+	return false;
 }
 
 void SCREEN_GameBrowser::Refresh() {
 	using namespace SCREEN_UI;
-
+printf("jc: void SCREEN_GameBrowser::Refresh()\n");
 	lastScale_ = 1.0f;
 	lastLayoutWasGrid_ = *gridStyle_;
 
-	// Kill all the contents
+	// Reset content
 	Clear();
 
 	Add(new Spacer(1.0f));
@@ -414,11 +426,7 @@ void SCREEN_GameBrowser::Refresh() {
 		if (browseFlags_ & BrowseFlags::NAVIGATE) {
 			topBar->Add(new Spacer(2.0f));
 			topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
-			if (SCREEN_System_GetPropertyBool(SYSPROP_HAS_FILE_BROWSER)) {
-				topBar->Add(new Choice(mm->T("Browse", "Browse..."), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-			} else {
-				topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-			}
+			topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
 		} else {
 			topBar->Add(new Spacer(new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
 		}
@@ -459,24 +467,22 @@ void SCREEN_GameBrowser::Refresh() {
 
 	std::vector<std::string> filenames;
 	if (HasSpecialFiles(filenames)) {
+        printf("jc: if (HasSpecialFiles(filenames))\n");
 		for (size_t i = 0; i < filenames.size(); i++) {
 			gameButtons.push_back(new GameButton(filenames[i], *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
 		}
 	} else if (!listingPending_) {
+        printf("jc: } else if (!listingPending_) {\n");
 		std::vector<FileInfo> fileInfo;
 		path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
+        printf("jc: fileInfo.size()=%ld\n",fileInfo.size());
 		for (size_t i = 0; i < fileInfo.size(); i++) {
-			bool isGame = !fileInfo[i].isDirectory;
+            std::string str=fileInfo[i].name;
+            printf("jc: fileInfo[i].name=%s\n",str.c_str());
+			bool isGame = false;
 			bool isSaveData = false;
-			// Check if eboot directory
-			if (!isGame && path_.GetPath().size() >= 4 && IsValidPBP(path_.GetPath() + fileInfo[i].name + "/EBOOT.PBP", true))
-				isGame = true;
-			else if (!isGame && SCREEN_PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PSP_GAME/SYSDIR"))
-				isGame = true;
-			else if (!isGame && SCREEN_PFile::Exists(path_.GetPath() + fileInfo[i].name + "/PARAM.SFO"))
-				isSaveData = true;
-
-			if (!isGame && !isSaveData) {
+			
+			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & BrowseFlags::NAVIGATE) {
 					dirButtons.push_back(new DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
 				}
@@ -507,12 +513,12 @@ void SCREEN_GameBrowser::Refresh() {
 		gameList_->Add(new DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
 			OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
 
-		// Add any pinned paths before other directories.
+		/*// Add any pinned paths before other directories.
 		auto pinnedPaths = GetPinnedPaths();
 		for (auto it = pinnedPaths.begin(), end = pinnedPaths.end(); it != end; ++it) {
 			gameList_->Add(new DirButton(*it, GetBaseName(*it), *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
 				OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
-		}
+		}*/
 	}
 
 	if (listingPending_) {
@@ -520,10 +526,12 @@ void SCREEN_GameBrowser::Refresh() {
 	}
 
 	for (size_t i = 0; i < dirButtons.size(); i++) {
+        std::string str = dirButtons[i]->GetPath();
+        printf("jc: for (size_t i = 0; i < dirButtons.size(); i++)  %s\n",str.c_str());
 		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
 	}
 
-	for (size_t i = 0; i < gameButtons.size(); i++) {
+	/*for (size_t i = 0; i < gameButtons.size(); i++) {
 		GameButton *b = gameList_->Add(gameButtons[i]);
 		b->OnClick.Handle(this, &SCREEN_GameBrowser::GameButtonClick);
 		b->OnHoldClick.Handle(this, &SCREEN_GameBrowser::GameButtonHoldClick);
@@ -552,16 +560,19 @@ void SCREEN_GameBrowser::Refresh() {
 	if (!lastText_.empty() && gameButtons.empty()) {
 		Add(new Spacer());
 		Add(new Choice(lastText_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::WRAP_CONTENT, SCREEN_UI::WRAP_CONTENT)))->OnClick.Handle(this, &SCREEN_GameBrowser::LastClick);
-	}
+	}*/
 }
 
 bool SCREEN_GameBrowser::IsCurrentPathPinned() {
     std::vector<std::string> vPinnedPaths = {"/home/yo"};
 	const auto paths = vPinnedPaths;
-	return std::find(paths.begin(), paths.end(), SCREEN_PFile::ResolvePath(path_.GetPath())) != paths.end();
+    bool retVal = std::find(paths.begin(), paths.end(), SCREEN_PFile::ResolvePath(path_.GetPath())) != paths.end();
+    printf("jc: bool SCREEN_GameBrowser::IsCurrentPathPinned() retVal=%d\n",retVal);
+	return retVal;
 }
 
 const std::vector<std::string> SCREEN_GameBrowser::GetPinnedPaths() {
+    printf("jc: const std::vector<std::string> SCREEN_GameBrowser::GetPinnedPaths()\n");
     std::vector<std::string> vPinnedPaths = {"/home/yo"};
 	static const std::string sepChars = "/";
 
@@ -587,8 +598,8 @@ const std::vector<std::string> SCREEN_GameBrowser::GetPinnedPaths() {
 }
 
 const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
-
-	static const std::string sepChars = "/";
+printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
+	static const std::string sepChars = getenv("HOME");
 
 	auto trailing = path.find_last_not_of(sepChars);
 	if (trailing != path.npos) {
@@ -607,6 +618,7 @@ const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParams &e)\n");
 	GameButton *button = static_cast<GameButton *>(e.v);
 	SCREEN_UI::EventParams e2{};
 	e2.s = button->GamePath();
@@ -616,6 +628,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParam
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonHoldClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonHoldClick(SCREEN_UI::EventParams &e)\n");
 	GameButton *button = static_cast<GameButton *>(e.v);
 	SCREEN_UI::EventParams e2{};
 	e2.s = button->GamePath();
@@ -625,12 +638,14 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonHoldClick(SCREEN_UI::EventP
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonHighlight(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonHighlight(SCREEN_UI::EventParams &e)\n");
 	// Insta-update - here we know we are already on the right thread.
 	OnHighlight.Trigger(e);
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
 	DirButton *button = static_cast<DirButton *>(e.v);
 	std::string text = button->GetPath();
 	if (button->PathAbsolute()) {
@@ -638,12 +653,12 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams 
 	} else {
 		path_.Navigate(text);
 	}
-	currentDirectory = path_.GetPath();
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
 	auto sy = GetI18NCategory("System");
 	auto gridSettings = new GridSettingsScreen(sy->T("Games list settings"));
 	gridSettings->OnRecentChanged.Handle(this, &SCREEN_GameBrowser::OnRecentClear);
@@ -655,6 +670,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventPar
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
 	screenManager_->RecreateAllViews();
 	/*if (host) {
 		host->UpdateUI();
@@ -676,12 +692,9 @@ SCREEN_MainScreen::~SCREEN_MainScreen() {
 }
 
 void SCREEN_MainScreen::CreateViews() {
-	// Information in the top left.
-	// Back button to the bottom left.
-	// Scrolling action menu to the right.
 	using namespace SCREEN_UI;
-
-	bool vertical = UseVerticalLayout();
+printf("jc: void SCREEN_MainScreen::CreateViews()\n");
+	bool vertical = true;
 
 	auto mm = GetI18NCategory("MainMenu");
 
@@ -693,144 +706,26 @@ void SCREEN_MainScreen::CreateViews() {
 	gameBrowsers_.clear();
 
 	tabHolder_->SetClip(true);
-
-	bool showRecent = false;
-	bool hasStorageAccess = SCREEN_System_GetPermissionStatus(SYSTEM_PERMISSION_STORAGE) == PERMISSION_STATUS_GRANTED;
-	bool storageIsTemporary = false;
-	if (showRecent && !hasStorageAccess) {
-		showRecent = false;
-	}
-
 	
+    ScrollView *scrollAllGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+    scrollAllGames->SetTag("MainScreenAllGames");
+    
+    SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
+        mm->T("Use the Y/❒/North button to confirm"), "https://github.com/beaumanvienna/marley",
+        new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    
+    scrollAllGames->Add(tabAllGames);
+    gameBrowsers_.push_back(tabAllGames);
+    
+    tabHolder_->AddTab(mm->T("Games"), scrollAllGames);
+    tabAllGames->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    tabAllGames->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
+    tabAllGames->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
+		
+    root_ = new LinearLayout(ORIENT_VERTICAL);
+    root_->Add(leftColumn);
 
-	Button *focusButton = nullptr;
-	if (hasStorageAccess) {
-		ScrollView *scrollAllGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-		scrollAllGames->SetTag("MainScreenAllGames");
-		ScrollView *scrollHomebrew = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-		scrollHomebrew->SetTag("MainScreenHomebrew");
-
-		SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(currentDirectory, BrowseFlags::STANDARD, &bGridView2, screenManager(),
-			mm->T("How to get games"), "https://www.ppsspp.org/getgames.html",
-			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-		SCREEN_GameBrowser *tabHomebrew = new SCREEN_GameBrowser("/home/yo/Gaming", BrowseFlags::HOMEBREW_STORE, &bGridView3, screenManager(),
-			mm->T("How to get homebrew & demos", "How to get homebrew && demos"), "https://www.ppsspp.org/gethomebrew.html",
-			new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-
-		scrollAllGames->Add(tabAllGames);
-		gameBrowsers_.push_back(tabAllGames);
-		scrollHomebrew->Add(tabHomebrew);
-		gameBrowsers_.push_back(tabHomebrew);
-
-		tabHolder_->AddTab(mm->T("Games"), scrollAllGames);
-		tabHolder_->AddTab(mm->T("Homebrew & Demos"), scrollHomebrew);
-
-		tabAllGames->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-		tabHomebrew->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-
-		tabAllGames->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
-		tabHomebrew->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
-
-		tabAllGames->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
-		tabHomebrew->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
-
-
-		if (backFromStore_ || showHomebrewTab) {
-			tabHolder_->SetCurrentTab(2, true);
-			backFromStore_ = false;
-			showHomebrewTab = false;
-		}
-
-		if (storageIsTemporary) {
-			LinearLayout *buttonHolder = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-			buttonHolder->Add(new Spacer(new LinearLayoutParams(1.0f)));
-			focusButton = new Button(mm->T("SavesAreTemporaryIgnore", "Ignore warning"), new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-			focusButton->SetPadding(32, 16);
-			buttonHolder->Add(focusButton)->OnClick.Add([this](SCREEN_UI::EventParams &e) {
-				confirmedTemporary_ = true;
-				RecreateViews();
-				return SCREEN_UI::EVENT_DONE;
-			});
-			buttonHolder->Add(new Spacer(new LinearLayoutParams(1.0f)));
-
-			leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
-			leftColumn->Add(new TextView(mm->T("SavesAreTemporary", "PPSSPP saving in temporary storage"), ALIGN_HCENTER, false));
-			leftColumn->Add(new TextView(mm->T("SavesAreTemporaryGuidance", "Extract PPSSPP somewhere to save permanently"), ALIGN_HCENTER, false));
-			leftColumn->Add(new Spacer(10.0f));
-			leftColumn->Add(buttonHolder);
-			leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
-		}
-	} else {
-		if (!showRecent) {
-			leftColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0f));
-			// Just so it's destroyed on recreate.
-			leftColumn->Add(tabHolder_);
-			tabHolder_->SetVisibility(V_GONE);
-		}
-
-		LinearLayout *buttonHolder = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-		buttonHolder->Add(new Spacer(new LinearLayoutParams(1.0f)));
-		focusButton = new Button(mm->T("Give PPSSPP permission to access storage"), new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-		focusButton->SetPadding(32, 16);
-		buttonHolder->Add(focusButton)->OnClick.Handle(this, &SCREEN_MainScreen::OnAllowStorage);
-		buttonHolder->Add(new Spacer(new LinearLayoutParams(1.0f)));
-
-		leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
-		leftColumn->Add(buttonHolder);
-		leftColumn->Add(new Spacer(10.0f));
-		leftColumn->Add(new TextView(mm->T("PPSSPP can't load games or save right now"), ALIGN_HCENTER, false));
-		leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
-	}
-
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL);
-	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-	rightColumnItems->SetSpacing(0.0f);
-	rightColumn->Add(rightColumnItems);
-
-	char versionString[256];
-	sprintf(versionString, "%s", "1.0");
-	rightColumnItems->SetSpacing(0.0f);
-	LinearLayout *logos = new LinearLayout(ORIENT_HORIZONTAL);
-	if (SCREEN_System_GetPropertyBool(SYSPROP_APP_GOLD)) {
-		logos->Add(new ImageView(ImageID("I_ICONGOLD"), IS_DEFAULT, new AnchorLayoutParams(64, 64, 10, 10, NONE, NONE, false)));
-	} else {
-		logos->Add(new ImageView(ImageID("I_ICON"), IS_DEFAULT, new AnchorLayoutParams(64, 64, 10, 10, NONE, NONE, false)));
-	}
-	logos->Add(new ImageView(ImageID("I_LOGO"), IS_DEFAULT, new LinearLayoutParams(Margins(-12, 0, 0, 0))));
-	rightColumnItems->Add(logos);
-	TextView *ver = rightColumnItems->Add(new TextView(versionString, new LinearLayoutParams(Margins(70, -6, 0, 0))));
-	ver->SetSmall(true);
-	ver->SetClip(false);
-
-	rightColumnItems->Add(new Choice(mm->T("Game Settings", "Settings")))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSettings);
-	rightColumnItems->Add(new Choice(mm->T("Credits")))->OnClick.Handle(this, &SCREEN_MainScreen::OnCredits);
-	rightColumnItems->Add(new Choice(mm->T("www.ppsspp.org")))->OnClick.Handle(this, &SCREEN_MainScreen::OnPPSSPPOrg);
-	if (!SCREEN_System_GetPropertyBool(SYSPROP_APP_GOLD)) {
-		Choice *gold = rightColumnItems->Add(new Choice(mm->T("Buy PPSSPP Gold")));
-		gold->OnClick.Handle(this, &SCREEN_MainScreen::OnSupport);
-		gold->SetIcon(ImageID("I_ICONGOLD"));
-	}
-
-	rightColumnItems->Add(new Spacer(25.0));
-	rightColumnItems->Add(new Choice(mm->T("Exit")))->OnClick.Handle(this, &SCREEN_MainScreen::OnExit);
-
-	if (vertical) {
-		root_ = new LinearLayout(ORIENT_VERTICAL);
-		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.75));
-		root_->Add(rightColumn);
-		root_->Add(leftColumn);
-	} else {
-		root_ = new LinearLayout(ORIENT_HORIZONTAL);
-		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
-		root_->Add(leftColumn);
-		root_->Add(rightColumn);
-	}
-
-	if (focusButton) {
-		root_->SetDefaultFocusView(focusButton);
-	} else if (tabHolder_->GetVisibility() != V_GONE) {
-		root_->SetDefaultFocusView(tabHolder_);
-	}
+	root_->SetDefaultFocusView(tabHolder_);
 
 	auto u = GetI18NCategory("Upgrade");
 
@@ -857,6 +752,7 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::OnDismissUpgrade(SCREEN_UI::EventParam
 }
 
 void SCREEN_MainScreen::sendMessage(const char *message, const char *value) {
+    printf("jc: void SCREEN_MainScreen::sendMessage(const char *message, const char *value)\n");
 	// Always call the base class method first to handle the most common messages.
 	SCREEN_UIScreenWithBackground::sendMessage(message, value);
 
@@ -887,10 +783,12 @@ void SCREEN_MainScreen::update() {
 }
 
 bool SCREEN_MainScreen::UseVerticalLayout() const {
-	return dp_yres > dp_xres * 1.1f;
+    bool retVal = dp_yres > dp_xres * 1.1f;
+	return retVal;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnLoadFile(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnLoadFile(SCREEN_UI::EventParams &e)\n");
 	if (SCREEN_System_GetPropertyBool(SYSPROP_HAS_FILE_BROWSER)) {
 		SCREEN_System_SendMessage("browse_file", "");
 	}
@@ -952,7 +850,7 @@ bool SCREEN_MainScreen::DrawBackgroundFor(SCREEN_UIContext &dc, const std::strin
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
-
+printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
 	/*std::string path = e.s;
 
 	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(nullptr, path, GAMEINFO_WANTBG);
@@ -972,6 +870,7 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams 
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
 	/*using namespace SCREEN_UI;
 
 	std::string path = e.s;
@@ -1000,7 +899,7 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
-
+printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
 	std::string path = e.s;
 
 	SCREEN_ScreenManager *screen = screenManager();
@@ -1008,34 +907,8 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::Event
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSettings(SCREEN_UI::EventParams &e) {
-	//screenManager()->push(new GameSettingsScreen("", ""));
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_MainScreen::OnCredits(SCREEN_UI::EventParams &e) {
-	//screenManager()->push(new CreditsScreen());
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_MainScreen::OnSupport(SCREEN_UI::EventParams &e) {
-
-//	LaunchBrowser("https://central.ppsspp.org/buygold");
-
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_MainScreen::OnPPSSPPOrg(SCREEN_UI::EventParams &e) {
-//	LaunchBrowser("https://www.ppsspp.org");
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_MainScreen::OnForums(SCREEN_UI::EventParams &e) {
-//	LaunchBrowser("https://forums.ppsspp.org");
-	return SCREEN_UI::EVENT_DONE;
-}
-
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnExit(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnExit(SCREEN_UI::EventParams &e)\n");
 	SCREEN_System_SendMessage("event", "exitprogram");
 
 	// Request the framework to exit cleanly.
@@ -1066,92 +939,6 @@ void SCREEN_MainScreen::dialogFinished(const SCREEN_Screen *dialog, DialogResult
 			restoreFocusGamePath_.clear();
 		} 
 	}
-}
-
-void SCREEN_UmdReplaceScreen::CreateViews() {
-	using namespace SCREEN_UI;
-	Margins actionMenuMargins(0, 100, 15, 0);
-	auto mm = GetI18NCategory("MainMenu");
-	auto di = GetI18NCategory("Dialog");
-
-	TabHolder *leftColumn = new TabHolder(ORIENT_HORIZONTAL, 64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0));
-	leftColumn->SetTag("UmdReplace");
-	leftColumn->SetClip(true);
-
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(270, FILL_PARENT, actionMenuMargins));
-	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-	rightColumnItems->SetSpacing(0.0f);
-	rightColumn->Add(rightColumnItems);
-
-	ScrollView *scrollAllGames = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-	scrollAllGames->SetTag("UmdReplaceAllGames");
-
-	SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(currentDirectory, BrowseFlags::STANDARD, &bGridView2, screenManager(),
-		mm->T("How to get games"), "https://www.ppsspp.org/getgames.html",
-		new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-
-	scrollAllGames->Add(tabAllGames);
-
-	leftColumn->AddTab(mm->T("Games"), scrollAllGames);
-
-	tabAllGames->OnChoice.Handle(this, &SCREEN_UmdReplaceScreen::OnGameSelectedInstant);
-
-	tabAllGames->OnHoldChoice.Handle(this, &SCREEN_UmdReplaceScreen::OnGameSelected);
-
-	rightColumnItems->Add(new Choice(di->T("Cancel")))->OnClick.Handle(this, &SCREEN_UmdReplaceScreen::OnCancel);
-	rightColumnItems->Add(new Choice(mm->T("Game Settings")))->OnClick.Handle(this, &SCREEN_UmdReplaceScreen::OnGameSettings);
-
-	root_ = new LinearLayout(ORIENT_HORIZONTAL);
-	root_->Add(leftColumn);
-	root_->Add(rightColumn);
-}
-
-void SCREEN_UmdReplaceScreen::update() {
-	SCREEN_UpdateUIState(UISTATE_PAUSEMENU);
-	SCREEN_UIScreen::update();
-}
-
-SCREEN_UI::EventReturn SCREEN_UmdReplaceScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
-//	__UmdReplace(e.s);
-	TriggerFinish(DR_OK);
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_UmdReplaceScreen::OnCancel(SCREEN_UI::EventParams &e) {
-	TriggerFinish(DR_CANCEL);
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_UmdReplaceScreen::OnGameSettings(SCREEN_UI::EventParams &e) {
-	//screenManager()->push(new GameSettingsScreen(""));
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_UmdReplaceScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
-//	__UmdReplace(e.s);
-	TriggerFinish(DR_OK);
-	return SCREEN_UI::EVENT_DONE;
-}
-
-void GridSettingsScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
-	using namespace SCREEN_UI;
-
-	auto di = GetI18NCategory("Dialog");
-	auto sy = GetI18NCategory("System");
-
-	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 50, 1.0f));
-	LinearLayout *items = new LinearLayout(ORIENT_VERTICAL);
-
-	items->Add(new CheckBox(&bGridView1, sy->T("Display Recent on a grid")));
-	items->Add(new CheckBox(&bGridView2, sy->T("Display Games on a grid")));
-	items->Add(new CheckBox(&bGridView3, sy->T("Display Homebrew on a grid")));
-
-	items->Add(new ItemHeader(sy->T("Grid icon size")));
-	items->Add(new Choice(sy->T("Increase size")))->OnClick.Handle(this, &GridSettingsScreen::GridPlusClick);
-	items->Add(new Choice(sy->T("Decrease size")))->OnClick.Handle(this, &GridSettingsScreen::GridMinusClick);
-
-	scroll->Add(items);
-	parent->Add(scroll);
 }
 
 SCREEN_UI::EventReturn GridSettingsScreen::GridPlusClick(SCREEN_UI::EventParams &e) {

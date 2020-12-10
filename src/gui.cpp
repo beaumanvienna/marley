@@ -509,7 +509,7 @@ void initOpenGL(void)
 bool splashScreenRunning = true;
 Uint32 splash_callbackfunc(Uint32 interval, void *param)
 {
-    printf("jc: Uint32 my_callbackfunc(Uint32 interval, void *param)\n");
+    printf("jc: Uint32 splash_callbackfunc(Uint32 interval, void *param)\n");
     splashScreenRunning = false;
     
     for( int i = 0; i < soundFileName.size(); i++ )
@@ -981,7 +981,6 @@ bool restoreGUI(void)
     
 void renderScreen(void)
 {
-    printf("jc: void renderScreen(void)\n");
     //render destination 
     SDL_Rect destination;
     

@@ -347,7 +347,6 @@ int main( int argc, char* argv[] )
 
 void event_loop(void)
 {
-    printf("jc: void event_loop(void)\n");
     int k,l,m;
     //Event handler
     SDL_Event event;
