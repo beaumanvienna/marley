@@ -49,14 +49,14 @@ bool bGridView1;
 bool bGridView2;
 bool bGridView3;
 
-int calcExtraThreadsPCSX2()
+/*int calcExtraThreadsPCSX2()
 {
     int cnt = 2;
     if (cnt < 2) cnt = 0; // 1 is debugging that we do not want, negative values set to 0
     if (cnt > 7) cnt = 7; // limit to 1 main thread and 7 extra threads
     
     return cnt;
-}
+}*/
 
 bool LaunchFile(SCREEN_ScreenManager *screenManager, std::string path) {
 	// Depending on the file type, we don't want to launch EmuScreen at all.

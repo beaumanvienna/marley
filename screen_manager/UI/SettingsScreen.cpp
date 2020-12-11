@@ -20,13 +20,13 @@
 
 #include <algorithm>
 
+#include "Common/KeyMap.h"
 #include "Common/GPU/OpenGL/GLFeatures.h"
 #include "Common/Render/DrawBuffer.h"
 #include "Common/UI/Root.h"
 #include "Common/UI/View.h"
 #include "Common/UI/ViewGroup.h"
 #include "Common/UI/Context.h"
-
 #include "Common/System/Display.h"
 #include "Common/System/System.h"
 #include "Common/System/NativeApp.h"
@@ -34,13 +34,12 @@
 #include "Common/Math/curves.h"
 #include "Common/Data/Text/I18n.h"
 #include "Common/Data/Encoding/Utf8.h"
-#include "UI/SettingsScreen.h"
-#include "UI/MiscScreens.h"
-
 #include "Common/File/FileUtil.h"
 #include "Common/OSVersion.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
+#include "UI/SettingsScreen.h"
+#include "UI/MiscScreens.h"
 #include <SDL.h>
 
 extern std::string gBaseDir;
@@ -854,6 +853,18 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search directories"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
+    
+    // game browser
+    gameBrowsers_.clear();
+    SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
+        ge->T("Use the Y/[]/North button to confirm"), "https://github.com/beaumanvienna/marley",
+        new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    generalSettings->Add(tabAllGames);
+    gameBrowsers_.push_back(tabAllGames);
+    
+    tabAllGames->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
+    tabAllGames->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
+    tabAllGames->OnHighlight.Handle(this, &SCREEN_SettingsScreen::OnGameHighlight);
 
 
     // -------- Dolphin --------
@@ -1326,6 +1337,65 @@ void SCREEN_SettingsScreen::update() {
 	}
 }
 
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
+printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
+	/*std::string path = e.s;
+
+	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(nullptr, path, GAMEINFO_WANTBG);
+	if (ginfo && ginfo->fileType == IdentifiedFileType::PSP_SAVEDATA_DIRECTORY) {
+		return SCREEN_UI::EVENT_DONE;
+	}
+
+	if (g_GameManager.GetState() == GameManagerState::INSTALLING)
+		return SCREEN_UI::EVENT_DONE;
+
+	// Restore focus if it was highlighted (e.g. by gamepad.)
+	restoreFocusGamePath_ = highlightedGamePath_;
+	g_BackgroundAudio.SetGame(path);
+	lockBackgroundAudio_ = true;
+	screenManager()->push(new GameScreen(path));*/
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
+	/*using namespace SCREEN_UI;
+
+	std::string path = e.s;
+
+	// Don't change when re-highlighting what's already highlighted.
+	if (path != highlightedGamePath_ || e.a == FF_LOSTFOCUS) {
+		if (!highlightedGamePath_.empty()) {
+			if (prevHighlightedGamePath_.empty() || prevHighlightProgress_ >= 0.75f) {
+				prevHighlightedGamePath_ = highlightedGamePath_;
+				prevHighlightProgress_ = 1.0 - highlightProgress_;
+			}
+			highlightedGamePath_.clear();
+		}
+		if (e.a == FF_GOTFOCUS) {
+			highlightedGamePath_ = path;
+			highlightProgress_ = 0.0f;
+		}
+	}
+
+	if ((!highlightedGamePath_.empty() || e.a == FF_LOSTFOCUS) && !lockBackgroundAudio_) {
+		g_BackgroundAudio.SetGame(highlightedGamePath_);
+	}
+
+	lockBackgroundAudio_ = false;*/
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
+printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
+	std::string path = e.s;
+
+	SCREEN_ScreenManager *screen = screenManager();
+	//LaunchFile(screen, path);
+	return SCREEN_UI::EVENT_DONE;
+}
+
+
 
 SCREEN_SettingInfoMessage::SCREEN_SettingInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
@@ -1374,4 +1444,325 @@ void SCREEN_SettingInfoMessage::Draw(SCREEN_UIContext &dc) {
 
 	text_->SetTextColor(whiteAlpha(alpha));
 	ViewGroup::Draw(dc);
+}
+
+
+
+class DirButton : public SCREEN_UI::Button {
+public:
+	DirButton(const std::string &path, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams)
+		: SCREEN_UI::Button(path, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(false) {}
+	DirButton(const std::string &path, const std::string &text, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
+		: SCREEN_UI::Button(text, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(true) {}
+
+	virtual void Draw(SCREEN_UIContext &dc);
+
+	const std::string GetPath() const {
+		return path_;
+	}
+
+	bool PathAbsolute() const {
+		return absolute_;
+	}
+
+private:
+	std::string path_;
+	bool absolute_;
+	bool gridStyle_;
+};
+
+void DirButton::Draw(SCREEN_UIContext &dc) {
+	using namespace SCREEN_UI;
+	Style style = dc.theme->buttonStyle;
+
+	if (HasFocus()) style = dc.theme->buttonFocusedStyle;
+	if (down_) style = dc.theme->buttonDownStyle;
+	if (!IsEnabled()) style = dc.theme->buttonDisabledStyle;
+
+	dc.FillRect(style.background, bounds_);
+
+	const std::string text = GetText();
+
+	ImageID image = ImageID("I_FOLDER");
+	if (text == "..") {
+		image = ImageID("I_UP_DIRECTORY");
+	}
+
+	float tw, th;
+	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+
+	bool compact = bounds_.w < 180;
+
+	if (gridStyle_) {
+		dc.SetFontScale(1.0f, 1.0f);
+	}
+	if (compact) {
+		// No icon, except "up"
+		dc.PushScissor(bounds_);
+		if (image == ImageID("I_FOLDER")) {
+			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+		} else {
+			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
+		}
+		dc.PopScissor();
+	} else {
+		bool scissor = false;
+		if (tw + 150 > bounds_.w) {
+			dc.PushScissor(bounds_);
+			scissor = true;
+		}
+		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+
+		if (scissor) {
+			dc.PopScissor();
+		}
+	}
+	if (gridStyle_) {
+		dc.SetFontScale(1.0, 1.0);
+	}
+}
+
+SCREEN_GameBrowser::SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
+	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
+	using namespace SCREEN_UI;
+    printf("jc: SCREEN_GameBrowser::SCREEN_GameBrowser\n");
+	Refresh();
+}
+
+void SCREEN_GameBrowser::FocusGame(const std::string &gamePath) {
+    printf("jc: void SCREEN_GameBrowser::FocusGame(const std::string &gamePath)\n");
+	focusGamePath_ = gamePath;
+	Refresh();
+	focusGamePath_.clear();
+}
+
+void SCREEN_GameBrowser::SetPath(const std::string &path) {
+    printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
+	path_.SetPath(path);
+	Refresh();
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
+	*gridStyle_ = e.a == 0 ? true : false;
+	Refresh();
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::LastClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LastClick(SCREEN_UI::EventParams &e) {\n");
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
+	SetPath(getenv("HOME"));
+
+	return SCREEN_UI::EVENT_DONE;
+}
+
+bool SCREEN_GameBrowser::DisplayTopBar() {
+    printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
+	return path_.GetPath() != "!RECENT";
+}
+
+bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
+    printf("jc: bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
+
+	return false;
+}
+
+void SCREEN_GameBrowser::Update() {
+	LinearLayout::Update();
+	if (listingPending_ && path_.IsListingReady()) {
+		Refresh();
+	}
+}
+
+void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
+	using namespace SCREEN_UI;
+
+	if (lastScale_ != 1.0f || lastLayoutWasGrid_ != *gridStyle_) {
+		Refresh();
+	}
+
+	if (hasDropShadow_) {
+		// Darken things behind.
+		dc.FillRect(SCREEN_UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
+		float dropsize = 30.0f;
+		dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
+			bounds_.x - dropsize, bounds_.y,
+			bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
+	}
+
+	if (clip_) {
+		dc.PushScissor(bounds_);
+	}
+
+	dc.FillRect(bg_, bounds_);
+	for (View *view : views_) {
+		if (view->GetVisibility() == V_VISIBLE) {
+			// Check if bounds are in current scissor rectangle.
+			if (dc.GetScissorBounds().Intersects(dc.TransformBounds(view->GetBounds())))
+				view->Draw(dc);
+		}
+	}
+	if (clip_) {
+		dc.PopScissor();
+	}
+}
+
+void SCREEN_GameBrowser::Refresh() {
+	using namespace SCREEN_UI;
+printf("jc: void SCREEN_GameBrowser::Refresh()\n");
+	lastScale_ = 1.0f;
+	lastLayoutWasGrid_ = *gridStyle_;
+
+	// Reset content
+	Clear();
+
+	Add(new Spacer(1.0f));
+	auto mm = GetI18NCategory("MainMenu");
+
+	// No topbar on recent screen
+	if (DisplayTopBar()) {
+		LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+		if (browseFlags_ & BrowseFlags::NAVIGATE) {
+			topBar->Add(new Spacer(2.0f));
+			topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+			topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
+		} else {
+			topBar->Add(new Spacer(new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+		}
+		ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
+		layoutChoice->AddChoice(ImageID("I_GRID"));
+		layoutChoice->AddChoice(ImageID("I_LINES"));
+		layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
+		layoutChoice->OnChoice.Handle(this, &SCREEN_GameBrowser::LayoutChange);
+		topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::GridSettingsClick);
+		Add(topBar);
+
+		if (*gridStyle_) {
+			gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+			Add(gameList_);
+		} else {
+			SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+			gl->SetSpacing(4.0f);
+			gameList_ = gl;
+			Add(gameList_);
+		}
+	} else {
+		if (*gridStyle_) {
+			gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+		} else {
+			SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+			gl->SetSpacing(4.0f);
+			gameList_ = gl;
+		}
+		
+		Add(gameList_);
+	}
+
+	// Find games in the current directory and create new ones.
+	std::vector<DirButton *> dirButtons;
+
+	listingPending_ = !path_.IsListingReady();
+
+	std::vector<std::string> filenames;
+	if (!listingPending_) {
+        printf("jc: if (!listingPending_)\n");
+		std::vector<FileInfo> fileInfo;
+		path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
+        printf("jc: fileInfo.size()=%ld\n",fileInfo.size());
+		for (size_t i = 0; i < fileInfo.size(); i++) {
+            std::string str=fileInfo[i].name;
+            printf("jc: fileInfo[i].name=%s\n",str.c_str());
+			
+			if (fileInfo[i].isDirectory) {
+				if (browseFlags_ & BrowseFlags::NAVIGATE) {
+					dirButtons.push_back(new DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+				}
+			} 
+		}
+	}
+
+	if (browseFlags_ & BrowseFlags::NAVIGATE) {
+		gameList_->Add(new DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
+			OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
+
+	}
+
+	if (listingPending_) {
+		gameList_->Add(new SCREEN_UI::TextView(mm->T("Loading..."), ALIGN_CENTER, false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+	}
+
+	for (size_t i = 0; i < dirButtons.size(); i++) {
+        std::string str = dirButtons[i]->GetPath();
+        printf("jc: for (size_t i = 0; i < dirButtons.size(); i++)  %s\n",str.c_str());
+		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
+	}
+}
+
+
+const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
+printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
+	static const std::string sepChars = "/";
+
+	auto trailing = path.find_last_not_of(sepChars);
+	if (trailing != path.npos) {
+		size_t start = path.find_last_of(sepChars, trailing);
+		if (start != path.npos) {
+			return path.substr(start + 1, trailing - start);
+		}
+		return path.substr(0, trailing);
+	}
+
+	size_t start = path.find_last_of(sepChars);
+	if (start != path.npos) {
+		return path.substr(start + 1);
+	}
+	return path;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
+	DirButton *button = static_cast<DirButton *>(e.v);
+	std::string text = button->GetPath();
+	if (button->PathAbsolute()) {
+		path_.SetPath(text);
+	} else {
+		path_.Navigate(text);
+	}
+	Refresh();
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
+	auto sy = GetI18NCategory("System");
+	auto gridSettings = new GridSettingsScreen(sy->T("Games list settings"));
+	gridSettings->OnRecentChanged.Handle(this, &SCREEN_GameBrowser::OnRecentClear);
+	if (e.v)
+		gridSettings->SetPopupOrigin(e.v);
+
+	screenManager_->push(gridSettings);
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
+	screenManager_->RecreateAllViews();
+	return SCREEN_UI::EVENT_DONE;
+}
+SCREEN_UI::EventReturn GridSettingsScreen::GridPlusClick(SCREEN_UI::EventParams &e) {
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn GridSettingsScreen::GridMinusClick(SCREEN_UI::EventParams &e) {
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn GridSettingsScreen::OnRecentClearClick(SCREEN_UI::EventParams &e) {
+	return SCREEN_UI::EVENT_DONE;
 }

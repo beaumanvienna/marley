@@ -63,7 +63,6 @@
 #include "Common/OSVersion.h"
 
 #include "UI/SettingsScreen.h"
-#include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include "UI/OnScreenDisplay.h"
 #include "UI/TextureUtil.h"
@@ -158,8 +157,7 @@ void SCREEN_NativeInit(int argc, const char *argv[], const char *savegame_dir, c
 	VFSRegister("", new DirectorySCREEN_AssetReader(foldername.c_str()));	
     
 	SCREEN_screenManager = new SCREEN_ScreenManager();
-//    SCREEN_screenManager->push(new SCREEN_SettingsScreen());
-    SCREEN_screenManager->push(new SCREEN_MainScreen());
+    SCREEN_screenManager->push(new SCREEN_SettingsScreen());
 
 }
 

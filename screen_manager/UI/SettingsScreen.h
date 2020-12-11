@@ -23,9 +23,11 @@
 #include <mutex>
 #include <thread>
 #include "Common/UI/UIScreen.h"
+#include "Common/File/PathBrowser.h"
 #include "UI/MiscScreens.h"
 
 class SCREEN_SettingInfoMessage;
+class SCREEN_GameBrowser;
 
 // Per-game settings screen - enables you to configure graphic options, control options, etc
 // per game.
@@ -44,6 +46,14 @@ protected:
 	void CallbackRenderingDevice(bool yes);
 	void CallbackInflightFrames(bool yes);
 	bool UseVerticalLayout() const;
+    
+    // game browser
+    bool bGridView2;
+    std::vector<SCREEN_GameBrowser *> gameBrowsers_;
+   	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
+
 
 private:
     
@@ -125,4 +135,79 @@ private:
 	SCREEN_UI::TextView *text_ = nullptr;
 	double timeShown_ = 0.0;
 	float cutOffY_;
+};
+
+
+enum class BrowseFlags {
+	NONE = 0,
+	NAVIGATE = 1,
+	ARCHIVES = 2,
+	PIN = 4,
+	HOMEBREW_STORE = 8,
+	STANDARD = 1 | 2 | 4,
+};
+ENUM_CLASS_BITOPS(BrowseFlags);
+
+class SCREEN_GameBrowser : public SCREEN_UI::LinearLayout {
+public:
+	SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
+
+	SCREEN_UI::Event OnChoice;
+	SCREEN_UI::Event OnHoldChoice;
+	SCREEN_UI::Event OnHighlight;
+
+	void FocusGame(const std::string &gamePath);
+	void SetPath(const std::string &path);
+	void Draw(SCREEN_UIContext &dc) override;
+	void Update() override;
+
+protected:
+	virtual bool DisplayTopBar();
+	virtual bool HasSpecialFiles(std::vector<std::string> &filenames);
+
+	void Refresh();
+
+private:
+	bool IsCurrentPathPinned();
+	const std::vector<std::string> GetPinnedPaths();
+	const std::string GetBaseName(const std::string &path);
+
+	SCREEN_UI::EventReturn GameButtonClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GameButtonHoldClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GameButtonHighlight(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn LastClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn PinToggleClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GridSettingsClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnHomebrewStore(SCREEN_UI::EventParams &e);
+
+	SCREEN_UI::ViewGroup *gameList_ = nullptr;
+	SCREEN_PathBrowser path_;
+	bool *gridStyle_ = nullptr;
+	BrowseFlags browseFlags_;
+	std::string lastText_;
+	std::string lastLink_;
+	std::string focusGamePath_;
+	bool listingPending_ = false;
+	float lastScale_ = 1.0f;
+	bool lastLayoutWasGrid_ = true;
+	SCREEN_ScreenManager *screenManager_;
+};
+
+
+class GridSettingsScreen : public SCREEN_PopupScreen {
+public:
+	GridSettingsScreen(std::string label) : SCREEN_PopupScreen(label) {}
+	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
+	SCREEN_UI::Event OnRecentChanged;
+
+private:
+	SCREEN_UI::EventReturn GridPlusClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GridMinusClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnRecentClearClick(SCREEN_UI::EventParams &e);
+	const float MAX_GAME_GRID_SCALE = 3.0f;
+	const float MIN_GAME_GRID_SCALE = 0.8f;
 };
