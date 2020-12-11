@@ -66,7 +66,8 @@ int calcExtraThreadsPCSX2()
 }
 
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
-{    
+{
+    printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     // Dolphin
     inputVSyncDolphin = true;
     inputResDolphin = 1; // UI starts with 0, dolphin has 1 = native, 2 = 2x native
@@ -555,7 +556,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
 bool createDir(std::string name);
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() 
 {
-    
+    printf("jc: SCREEN_SettingsScreen::~SCREEN_SettingsScreen() \n");
     std::string str, line;
     std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
     std::ofstream GFX_ini_filehandle;
@@ -796,8 +797,9 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
 }
 
 void SCREEN_SettingsScreen::CreateViews() {
-
 	using namespace SCREEN_UI;
+    
+    printf("jc: void SCREEN_SettingsScreen::CreateViews() {\n");
 
 	auto ge = GetI18NCategory("General");
 	auto ps2 = GetI18NCategory("PCSX2");
@@ -865,7 +867,6 @@ void SCREEN_SettingsScreen::CreateViews() {
     tabAllGames->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
     tabAllGames->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
     tabAllGames->OnHighlight.Handle(this, &SCREEN_SettingsScreen::OnGameHighlight);
-
 
     // -------- Dolphin --------
 	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));

@@ -129,7 +129,7 @@ static void PostLoadConfig() {
 }
 
 void SCREEN_NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
-
+    printf("jc: void SCREEN_NativeInit\n");
 	globalUIState = UISTATE_MENU;
     
 	pendingMessages.clear();
