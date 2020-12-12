@@ -42,6 +42,8 @@
 #include "UI/MiscScreens.h"
 #include <SDL.h>
 
+bool setPathToGames(std::string str);
+
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
 extern bool found_jp_ps2;
@@ -57,7 +59,7 @@ extern std::vector<std::string> gSearchDirectoriesGames;
 #define BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE 1
 
 bool bGridView1;
-bool bGridView2;
+bool bGridView2=true;
 
 int calcExtraThreadsPCSX2()
 {
@@ -835,10 +837,8 @@ void SCREEN_SettingsScreen::CreateViews() {
 	generalSettingsScroll->Add(generalSettings);
 	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
 
-	generalSettings->Add(new ItemHeader(ge->T("")));
-
-    // -------- search directories --------
-
+    // -------- delete search path entry --------
+    generalSettings->Add(new ItemHeader(ge->T("Remove search path entry:")));
     static const char *selectSearchDirectories[128];
     int numChoices=gSearchDirectoriesGames.size();
     static const char *emptyStr="";
@@ -856,13 +856,14 @@ void SCREEN_SettingsScreen::CreateViews() {
         selectSearchDirectories[0]=emptyStr;
     }
 
-    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search directories"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
+    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search path entry"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
 
     // game browser
+    generalSettings->Add(new ItemHeader(ge->T("Add search path entry (Start button/Space):")));
     gameBrowsers_.clear();
     SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
-        ge->T("Use the Y/[]/North button to confirm"), "https://github.com/beaumanvienna/marley",
+        ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
         new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
     generalSettings->Add(tabAllGames);
     gameBrowsers_.push_back(tabAllGames);
@@ -1421,6 +1422,19 @@ public:
 	bool PathAbsolute() const {
 		return absolute_;
 	}
+    
+    bool Key(const KeyInput &key) override {
+        
+        if (key.flags & KEY_DOWN) {
+            if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {
+                printf("jc: (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE)))\n");
+                setPathToGames(path_.c_str());
+            }
+        } 
+
+		return Clickable::Key(key);
+	}
+    
 
 private:
 	std::string path_;

@@ -11,16 +11,18 @@
 
 using namespace std;
 
+int screen_manager_main(int argc, char* argv[]);
+bool isDirectory(const char *filename);
+
 bool found_jp_ps2;
 bool found_na_ps2;
 bool found_eu_ps2;
 vector<string> gSearchDirectoriesGames;
 string gPathToFirmwarePS2;
+string gPathToGames;
 
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
-
-int screen_manager_main(int argc, char* argv[]);
 
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
@@ -28,6 +30,42 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 SDL_Window* gWindow = nullptr;
+
+bool setPathToGames(string str)
+{
+    printf("jc: bool setPathToGames(string str=%s)\n",str.c_str());
+    DIR* dir;
+    string filename=str;
+    string slash;
+    bool ok = false;
+    
+    slash = filename.substr(filename.length()-1,1);
+    if (slash != "/")
+    {
+        filename += "/";
+    }
+    
+    //check if already in list
+    for (int i=0; i<gSearchDirectoriesGames.size();i++)
+    {
+        if (gSearchDirectoriesGames[i] == filename)
+        {
+            printf("duplicate in ~/.marley/marley.cfg found for 'search_dir_games=' \n");
+            return false;
+        }
+    }
+    
+    dir = opendir(filename.c_str());
+    if ((dir) && (isDirectory(filename.c_str()) ))
+    {
+        // Directory exists
+        closedir(dir);
+        gSearchDirectoriesGames.push_back(filename);
+        gPathToGames = filename;
+        ok = true;
+    }
+    return ok;    
+}
 
 bool isDirectory(const char *filename)
 {

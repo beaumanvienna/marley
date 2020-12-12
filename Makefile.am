@@ -4,7 +4,7 @@ SUBDIRS = pcsx2
 SUBDIRS += mupen64plus
 SUBDIRS += mednafen
 SUBDIRS += dolphin
-SUBDIRS += ppsspp
+#SUBDIRS += ppsspp
 SUBDIRS += tests
 SUBDIRS += screen_manager
 
@@ -170,7 +170,7 @@ PPSSPP_LD = \
 	ppsspp/ffmpeg/linux/x86_64/lib/libavformat.a \
 	ppsspp/ffmpeg/linux/x86_64/lib/libswresample.a \
 	ppsspp/build/lib/libminiupnpc.a
-marley_LDADD 	+= $(PPSSPP_LD) $(PPSSPP_LD) $(PPSSPP_LD)
+#marley_LDADD 	+= $(PPSSPP_LD) $(PPSSPP_LD) $(PPSSPP_LD)
 
 #screen_manager, static
 SCREEN_MAN_LD = \

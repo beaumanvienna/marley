@@ -42,7 +42,7 @@ protected:
 	virtual void CreateViews() = 0;
 	virtual void DrawBackground(SCREEN_UIContext &dc) {}
 
-	virtual void RecreateViews() override { printf("jc: recreateViews_ = true; 2\n"); recreateViews_ = true; }
+	virtual void RecreateViews() override { recreateViews_ = true; }
 
 	SCREEN_UI::ViewGroup *root_ = nullptr;
 	SCREEN_Vec3 translation_ = SCREEN_Vec3(0.0f);
@@ -53,7 +53,7 @@ protected:
 private:
 	void DoRecreateViews();
 
-	bool recreateViews_ = false;
+	bool recreateViews_ = true;
 };
 
 class SCREEN_UIDialogScreen : public SCREEN_UIScreen {

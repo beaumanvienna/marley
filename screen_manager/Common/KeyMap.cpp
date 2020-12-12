@@ -206,7 +206,7 @@ static const DefMappingStruct defaultPadMap[] = {
 	{CTRL_RIGHT          , NKCODE_DPAD_RIGHT},
 	{CTRL_DOWN           , NKCODE_DPAD_DOWN},
 	{CTRL_LEFT           , NKCODE_DPAD_LEFT},
-	{CTRL_START          , NKCODE_BUTTON_10},
+	{CTRL_START          , NKCODE_BUTTON_STRT},
 	{CTRL_SELECT         , NKCODE_BUTTON_9},
 	{CTRL_LTRIGGER       , NKCODE_BUTTON_6},
 	{CTRL_RTRIGGER       , NKCODE_BUTTON_5},
@@ -282,7 +282,6 @@ void UpdateNativeMenuKeys() {
 
 	// Push several hard-coded keys before submitting to native.
 	const SCREEN_KeyDef hardcodedConfirmKeys[] = {
-		SCREEN_KeyDef(DEVICE_ID_KEYBOARD, NKCODE_SPACE),
 		SCREEN_KeyDef(DEVICE_ID_KEYBOARD, NKCODE_ENTER),
 		SCREEN_KeyDef(DEVICE_ID_ANY, NKCODE_BUTTON_A),
 		SCREEN_KeyDef(DEVICE_ID_PAD_0, NKCODE_DPAD_CENTER),  // A number of Android devices.
@@ -487,7 +486,7 @@ static const KeyMap_IntStrPair key_names[] = {
 	{NKCODE_BUTTON_7, "b7"},
 	{NKCODE_BUTTON_8, "b8"},
 	{NKCODE_BUTTON_9, "b9"},
-	{NKCODE_BUTTON_10, "b10"},
+	{NKCODE_BUTTON_STRT, "b10"},
 	{NKCODE_BUTTON_11, "b11"},
 	{NKCODE_BUTTON_12, "b12"},
 	{NKCODE_BUTTON_13, "b13"},

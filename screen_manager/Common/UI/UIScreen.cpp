@@ -31,7 +31,6 @@ void SCREEN_UIScreen::DoRecreateViews() {
 	std::lock_guard<std::recursive_mutex> guard(screenManager()->inputLock_);
 
 	if (recreateViews_) {
-        printf("jc: if (recreateViews_) void SCREEN_UIScreen::DoRecreateViews()\n");
 		SCREEN_UI::PersistMap persisted;
 		bool persisting = root_ != nullptr;
 		if (persisting) {
@@ -45,7 +44,6 @@ void SCREEN_UIScreen::DoRecreateViews() {
 		if (defaultView && defaultView->GetVisibility() == SCREEN_UI::V_VISIBLE) {
 			defaultView->SetFocus();
 		}
-        printf("jc: recreateViews_ = false; 1\n");
 		recreateViews_ = false;
 
 		if (persisting && root_ != nullptr) {

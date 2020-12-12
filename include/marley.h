@@ -35,7 +35,7 @@ using namespace std;
     #define MEDNAFEN    1
     #define DOLPHIN     1
     #define MUPEN64PLUS 1
-    #define PPSSPP      1
+  //  #define PPSSPP      1
     #define PCSX2       1
     #define SCREEN_MAN  1
     
