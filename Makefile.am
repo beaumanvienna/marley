@@ -172,7 +172,7 @@ PPSSPP_LD = \
 	ppsspp/build/lib/libminiupnpc.a
 marley_LDADD 	+= $(PPSSPP_LD) $(PPSSPP_LD) $(PPSSPP_LD)
 
-#ppsspp, static
+#screen_manager, static
 SCREEN_MAN_LD = \
 	screen_manager/build/UI/libui.a \
 	screen_manager/build/Common/libcommon.a \

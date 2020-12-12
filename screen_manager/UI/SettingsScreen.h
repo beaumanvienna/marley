@@ -48,7 +48,6 @@ protected:
 	bool UseVerticalLayout() const;
     
     // game browser
-    bool bGridView2;
     std::vector<SCREEN_GameBrowser *> gameBrowsers_;
    	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
@@ -198,9 +197,9 @@ private:
 };
 
 
-class GridSettingsScreen : public SCREEN_PopupScreen {
+class SCREEN_GridSettingsScreen : public SCREEN_PopupScreen {
 public:
-	GridSettingsScreen(std::string label) : SCREEN_PopupScreen(label) {}
+	SCREEN_GridSettingsScreen(std::string label) : SCREEN_PopupScreen(label) {}
 	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
 	SCREEN_UI::Event OnRecentChanged;
 

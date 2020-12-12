@@ -56,6 +56,9 @@ extern std::vector<std::string> gSearchDirectoriesGames;
 #define BACKEND_OPENGL_HARDWARE 0
 #define BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE 1
 
+bool bGridView1;
+bool bGridView2;
+
 int calcExtraThreadsPCSX2()
 {
     int cnt = SDL_GetCPUCount() -2;
@@ -833,7 +836,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
 
 	generalSettings->Add(new ItemHeader(ge->T("")));
-    
+
     // -------- search directories --------
 
     static const char *selectSearchDirectories[128];
@@ -855,7 +858,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search directories"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
-    
+
     // game browser
     gameBrowsers_.clear();
     SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
@@ -1339,64 +1342,19 @@ void SCREEN_SettingsScreen::update() {
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
-printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
-	/*std::string path = e.s;
-
-	std::shared_ptr<GameInfo> ginfo = g_gameInfoCache->GetInfo(nullptr, path, GAMEINFO_WANTBG);
-	if (ginfo && ginfo->fileType == IdentifiedFileType::PSP_SAVEDATA_DIRECTORY) {
-		return SCREEN_UI::EVENT_DONE;
-	}
-
-	if (g_GameManager.GetState() == GameManagerState::INSTALLING)
-		return SCREEN_UI::EVENT_DONE;
-
-	// Restore focus if it was highlighted (e.g. by gamepad.)
-	restoreFocusGamePath_ = highlightedGamePath_;
-	g_BackgroundAudio.SetGame(path);
-	lockBackgroundAudio_ = true;
-	screenManager()->push(new GameScreen(path));*/
+    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
-	/*using namespace SCREEN_UI;
-
-	std::string path = e.s;
-
-	// Don't change when re-highlighting what's already highlighted.
-	if (path != highlightedGamePath_ || e.a == FF_LOSTFOCUS) {
-		if (!highlightedGamePath_.empty()) {
-			if (prevHighlightedGamePath_.empty() || prevHighlightProgress_ >= 0.75f) {
-				prevHighlightedGamePath_ = highlightedGamePath_;
-				prevHighlightProgress_ = 1.0 - highlightProgress_;
-			}
-			highlightedGamePath_.clear();
-		}
-		if (e.a == FF_GOTFOCUS) {
-			highlightedGamePath_ = path;
-			highlightProgress_ = 0.0f;
-		}
-	}
-
-	if ((!highlightedGamePath_.empty() || e.a == FF_LOSTFOCUS) && !lockBackgroundAudio_) {
-		g_BackgroundAudio.SetGame(highlightedGamePath_);
-	}
-
-	lockBackgroundAudio_ = false;*/
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
-printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
-	std::string path = e.s;
-
-	SCREEN_ScreenManager *screen = screenManager();
-	//LaunchFile(screen, path);
+    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
-
-
 
 SCREEN_SettingInfoMessage::SCREEN_SettingInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
@@ -1446,8 +1404,6 @@ void SCREEN_SettingInfoMessage::Draw(SCREEN_UIContext &dc) {
 	text_->SetTextColor(whiteAlpha(alpha));
 	ViewGroup::Draw(dc);
 }
-
-
 
 class DirButton : public SCREEN_UI::Button {
 public:
@@ -1565,7 +1521,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e) 
 
 bool SCREEN_GameBrowser::DisplayTopBar() {
     printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
-	return path_.GetPath() != "!RECENT";
+    return true;
 }
 
 bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
@@ -1705,7 +1661,6 @@ printf("jc: void SCREEN_GameBrowser::Refresh()\n");
 	}
 }
 
-
 const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
 printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
 	static const std::string sepChars = "/";
@@ -1742,7 +1697,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
 	auto sy = GetI18NCategory("System");
-	auto gridSettings = new GridSettingsScreen(sy->T("Games list settings"));
+	auto gridSettings = new SCREEN_GridSettingsScreen(sy->T("Games list settings"));
 	gridSettings->OnRecentChanged.Handle(this, &SCREEN_GameBrowser::OnRecentClear);
 	if (e.v)
 		gridSettings->SetPopupOrigin(e.v);
@@ -1756,14 +1711,36 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams 
 	screenManager_->RecreateAllViews();
 	return SCREEN_UI::EVENT_DONE;
 }
-SCREEN_UI::EventReturn GridSettingsScreen::GridPlusClick(SCREEN_UI::EventParams &e) {
+void SCREEN_GridSettingsScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
+	using namespace SCREEN_UI;
+
+	auto di = GetI18NCategory("Dialog");
+	auto sy = GetI18NCategory("System");
+
+	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 50, 1.0f));
+	LinearLayout *items = new LinearLayout(ORIENT_VERTICAL);
+
+	items->Add(new CheckBox(&bGridView1, sy->T("Display Recent on a grid")));
+	items->Add(new CheckBox(&bGridView2, sy->T("Display Games on a grid")));
+
+	items->Add(new ItemHeader(sy->T("Grid icon size")));
+	items->Add(new Choice(sy->T("Increase size")))->OnClick.Handle(this, &SCREEN_GridSettingsScreen::GridPlusClick);
+	items->Add(new Choice(sy->T("Decrease size")))->OnClick.Handle(this, &SCREEN_GridSettingsScreen::GridMinusClick);
+
+	items->Add(new ItemHeader(sy->T("Display Extra Info")));
+	
+	scroll->Add(items);
+	parent->Add(scroll);
+}
+
+SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::GridPlusClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn GridSettingsScreen::GridMinusClick(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::GridMinusClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn GridSettingsScreen::OnRecentClearClick(SCREEN_UI::EventParams &e) {
+SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::OnRecentClearClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }

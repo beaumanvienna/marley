@@ -45,6 +45,7 @@ UI/Root.cpp
 UI/View.cpp
 UI/Context.cpp
 UI/UI.cpp
+Thread/ThreadUtil.cpp
 )
 target_include_directories(common PUBLIC 
 ../Common

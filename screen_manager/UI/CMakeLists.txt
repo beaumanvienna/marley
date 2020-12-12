@@ -4,7 +4,6 @@ TextureUtil.cpp
 MiscScreens.cpp
 OnScreenDisplay.cpp
 SettingsScreen.cpp
-#MainScreen.cpp
 )
 
 target_include_directories(ui PUBLIC 

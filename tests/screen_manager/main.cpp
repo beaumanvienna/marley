@@ -7,8 +7,15 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
+
+bool found_jp_ps2;
+bool found_na_ps2;
+bool found_eu_ps2;
+vector<string> gSearchDirectoriesGames;
+string gPathToFirmwarePS2;
 
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
@@ -21,6 +28,71 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 SDL_Window* gWindow = nullptr;
+
+bool isDirectory(const char *filename)
+{
+    printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
+    struct stat p_lstatbuf;
+    struct stat p_statbuf;
+    bool ok = false;
+
+    if (lstat(filename, &p_lstatbuf) < 0) 
+    {
+        //printf("abort\n");
+    }
+    else
+    {
+        if (S_ISLNK(p_lstatbuf.st_mode) == 1) 
+        {
+            //printf("%s is a symbolic link\n", filename);
+        } 
+        else 
+        {
+            if (stat(filename, &p_statbuf) < 0) 
+            {
+                //printf("abort\n");
+            }
+            else
+            {
+                if (S_ISDIR(p_statbuf.st_mode) == 1) 
+                {
+                    //printf("%s is a directory\n", filename);
+                    ok = true;
+                } 
+            }
+        }
+    }
+    return ok;
+}
+
+
+bool createDir(string name)
+{	
+    printf("jc: bool createDir(string name=%s)\n",name.c_str());
+    bool ok = true;
+	DIR* dir;        
+	dir = opendir(name.c_str());
+	if ((dir) && (isDirectory(name.c_str()) ))
+	{
+		// Directory exists
+		closedir(dir);
+	} 
+	else if (ENOENT == errno) 
+	{
+		// Directory does not exist
+		printf("creating directory %s ",name.c_str());
+		if (mkdir(name.c_str(), S_IRWXU ) == 0)
+		{
+			printf("(ok)\n");
+		}
+		else
+		{
+			printf("(failed)\n");
+            ok = false;
+		}
+	}
+    return ok;
+}
 
 bool setBaseDir(void)
 {
