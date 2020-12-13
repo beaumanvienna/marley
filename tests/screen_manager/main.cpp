@@ -14,6 +14,10 @@ using namespace std;
 int screen_manager_main(int argc, char* argv[]);
 bool isDirectory(const char *filename);
 
+bool gSegaSaturn_firmware;
+bool found_jp_ps1;
+bool found_na_ps1;
+bool found_eu_ps1;
 bool found_jp_ps2;
 bool found_na_ps2;
 bool found_eu_ps2;
@@ -131,6 +135,20 @@ bool createDir(string name)
 	}
     return ok;
 }
+
+bool searchAllFolders(void)
+{
+    bool canceled=false;
+        
+    return canceled;
+}
+bool addSearchPathToConfigFile(string searchPath)
+{
+    bool searchDirAdded=true;
+    
+    return searchDirAdded;
+}
+
 
 bool setBaseDir(void)
 {

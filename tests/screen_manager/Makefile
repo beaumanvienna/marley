@@ -57,6 +57,7 @@ SOURCE_FILES += ../../screen_manager/Common/File/PathBrowser.cpp
 SOURCE_FILES += ../../screen_manager/Common/KeyMap.cpp
 SOURCE_FILES += ../../screen_manager/Common/Thread/ThreadUtil.cpp
 SOURCE_FILES += ../../screen_manager/UI/SettingsScreen.cpp
+SOURCE_FILES += ../../screen_manager/UI/MainScreen.cpp
 
 #screen_manager, static
 SCREEN_MAN_LD = \

@@ -25,16 +25,17 @@
 #include "Common/UI/UIScreen.h"
 #include "Common/File/PathBrowser.h"
 #include "UI/MiscScreens.h"
+#include "UI/SettingsScreen.h"
 
-class SCREEN_SettingInfoMessage;
-class SCREEN_DirBrowser;
+class SCREEN_MainInfoMessage;
+class SCREEN_GameBrowser;
 
 // Per-game settings screen - enables you to configure graphic options, control options, etc
 // per game.
-class SCREEN_SettingsScreen : public SCREEN_UIDialogScreenWithBackground {
+class SCREEN_MainScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
-    SCREEN_SettingsScreen();
-    virtual ~SCREEN_SettingsScreen();
+    SCREEN_MainScreen();
+    virtual ~SCREEN_MainScreen();
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
@@ -48,7 +49,7 @@ protected:
 	bool UseVerticalLayout() const;
     
     // game browser
-    SCREEN_DirBrowser *searchDirBrowser;
+    SCREEN_GameBrowser *searchDirBrowser;
    	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
@@ -56,72 +57,20 @@ protected:
 
 private:
     
-    // general
-    int inputSearchDirectories;
-    
-    // dolphin
-    int inputResDolphin;
-    bool inputVSyncDolphin;
-    std::vector<std::string> GFX_entries;
-    
-    int inputBackend;
-    int inputBios;
-    int inputResPCSX2;
-    bool inputVSyncPCSX2;
-    std::vector<std::string> GSdx_entries;
-    std::vector<std::string> PCSX2_vm_entries;
-    bool found_bios_ps2;
-    int bios_selection[3];
-    bool inputAdvancedSettings;
-    int  inputInterlace;
-    int  inputBiFilter;
-    int  inputAnisotropy;
-    int  inputDithering;
-    int  inputHW_mipmapping;
-    int  inputCRC_level;
-    int  inputAcc_date_level;
-    int  inputAcc_blend_level;
-    bool inputUserHacks;
-    bool inputUserHacks_AutoFlush;
-    bool inputUserHacks_CPU_FB_Conversion;
-    bool inputUserHacks_DisableDepthSupport;
-    bool inputUserHacks_DisablePartialInvalidation;
-    bool inputUserHacks_Disable_Safe_Features;
-    bool inputUserHacks_HalfPixelOffset;
-    int  inputUserHacks_Half_Bottom_Override;
-    bool inputUserHacks_SkipDraw;
-    bool inputUserHacks_SkipDraw_Offset;
-    bool inputUserHacks_TCOffsetX;
-    bool inputUserHacks_TCOffsetY;
-    bool inputUserHacks_TextureInsideRt;
-    int  inputUserHacks_TriFilter;
-    bool inputUserHacks_WildHack;
-    bool inputUserHacks_align_sprite_X;
-    bool inputUserHacks_merge_pp_sprite;
-    bool inputUserHacks_round_sprite_offset;
-    bool inputAutoflush_sw;
-    bool inputMipmapping_sw;
-    int  inputExtrathreads_sw;
-    bool inputAnti_aliasing_sw;
-    bool inputInterpreter;
-
-
 	void TriggerRestart(const char *why);
 
 	bool lastVertical_;
-	SCREEN_SettingInfoMessage *settingInfo_;
+	SCREEN_MainInfoMessage *settingInfo_;
 
 	// Event handlers
     
-    SCREEN_UI::EventReturn OnRenderingBackend(SCREEN_UI::EventParams &e);
-    SCREEN_UI::EventReturn OnDeleteSearchDirectories(SCREEN_UI::EventParams &e);
     
 
 };
 
-class SCREEN_SettingInfoMessage : public SCREEN_UI::LinearLayout {
+class SCREEN_MainInfoMessage : public SCREEN_UI::LinearLayout {
 public:
-	SCREEN_SettingInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
+	SCREEN_MainInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
 
 	void SetBottomCutoff(float y) {
 		cutOffY_ = y;
@@ -136,21 +85,10 @@ private:
 	float cutOffY_;
 };
 
-
-enum class SCREEN_BrowseFlags {
-	NONE = 0,
-	NAVIGATE = 1,
-	ARCHIVES = 2,
-	PIN = 4,
-	HOMEBREW_STORE = 8,
-	STANDARD = 1 | 2 | 4,
-};
-ENUM_CLASS_BITOPS(SCREEN_BrowseFlags);
-
-class SCREEN_DirBrowser : public SCREEN_UI::LinearLayout {
+class SCREEN_GameBrowser : public SCREEN_UI::LinearLayout {
 public:
-	SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
-    ~SCREEN_DirBrowser();
+	SCREEN_GameBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
+    ~SCREEN_GameBrowser();
 	SCREEN_UI::Event OnChoice;
 	SCREEN_UI::Event OnHoldChoice;
 	SCREEN_UI::Event OnHighlight;
@@ -172,12 +110,14 @@ private:
 	const std::vector<std::string> GetPinnedPaths();
 	const std::string GetBaseName(const std::string &path);
 
+	SCREEN_UI::EventReturn GameButtonClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GameButtonHoldClick(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn GameButtonHighlight(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn GridSettingsClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
-	
 
 	SCREEN_UI::ViewGroup *gameList_ = nullptr;
 	SCREEN_PathBrowser path_;
@@ -193,9 +133,9 @@ private:
 };
 
 
-class SCREEN_GridSettingsScreen : public SCREEN_PopupScreen {
+class SCREEN_GridMainScreen : public SCREEN_PopupScreen {
 public:
-	SCREEN_GridSettingsScreen(std::string label) : SCREEN_PopupScreen(label) {}
+	SCREEN_GridMainScreen(std::string label) : SCREEN_PopupScreen(label) {}
 	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
 	SCREEN_UI::Event OnRecentChanged;
 

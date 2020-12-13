@@ -853,7 +853,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     // game browser
     
-    searchDirBrowser = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
+    searchDirBrowser = new SCREEN_DirBrowser(getenv("HOME"), SCREEN_BrowseFlags::STANDARD, &bGridView2, screenManager(),
         ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
         new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
     generalSettings->Add(searchDirBrowser);
@@ -1470,11 +1470,11 @@ void SCREEN_SettingInfoMessage::Draw(SCREEN_UIContext &dc) {
 	ViewGroup::Draw(dc);
 }
 
-class DirButton : public SCREEN_UI::Button {
+class SCREEN_DirButton : public SCREEN_UI::Button {
 public:
-	DirButton(const std::string &path, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams)
+	SCREEN_DirButton(const std::string &path, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams)
 		: SCREEN_UI::Button(path, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(false) {}
-	DirButton(const std::string &path, const std::string &text, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
+	SCREEN_DirButton(const std::string &path, const std::string &text, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
 		: SCREEN_UI::Button(text, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(true) {}
 
 	virtual void Draw(SCREEN_UIContext &dc);
@@ -1512,7 +1512,7 @@ private:
 	bool gridStyle_;
 };
 
-void DirButton::Draw(SCREEN_UIContext &dc) {
+void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 	using namespace SCREEN_UI;
 	Style style = dc.theme->buttonStyle;
 
@@ -1564,74 +1564,69 @@ void DirButton::Draw(SCREEN_UIContext &dc) {
 	}
 }
 
-SCREEN_GameBrowser::SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
+SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
-    printf("jc: SCREEN_GameBrowser::SCREEN_GameBrowser\n");
+    printf("jc: SCREEN_DirBrowser::SCREEN_DirBrowser\n");
 	Refresh();
 }
 
-SCREEN_GameBrowser::~SCREEN_GameBrowser() {
-    printf("jc: SCREEN_GameBrowser::~SCREEN_GameBrowser()\n");
+SCREEN_DirBrowser::~SCREEN_DirBrowser() {
+    printf("jc: SCREEN_DirBrowser::~SCREEN_DirBrowser()\n");
 }
 
-void SCREEN_GameBrowser::FocusGame(const std::string &gamePath) {
-    printf("jc: void SCREEN_GameBrowser::FocusGame(const std::string &gamePath)\n");
+void SCREEN_DirBrowser::FocusGame(const std::string &gamePath) {
+    printf("jc: void SCREEN_DirBrowser::FocusGame(const std::string &gamePath)\n");
 	focusGamePath_ = gamePath;
 	Refresh();
 	focusGamePath_.clear();
 }
 
-void SCREEN_GameBrowser::SetPath(const std::string &path) {
-    printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
+void SCREEN_DirBrowser::SetPath(const std::string &path) {
+    printf("jc: void SCREEN_DirBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
 	Refresh();
 }
 
-std::string SCREEN_GameBrowser::GetPath() {
-    printf("jc: std::string SCREEN_GameBrowser::GetPath() \n");
+std::string SCREEN_DirBrowser::GetPath() {
+    printf("jc: std::string SCREEN_DirBrowser::GetPath() \n");
     std::string str = path_.GetPath();
 	return str;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
 	*gridStyle_ = e.a == 0 ? true : false;
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::LastClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LastClick(SCREEN_UI::EventParams &e) {\n");
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
 	SetPath(getenv("HOME"));
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-bool SCREEN_GameBrowser::DisplayTopBar() {
-    printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
+bool SCREEN_DirBrowser::DisplayTopBar() {
+    printf("jc: bool SCREEN_DirBrowser::DisplayTopBar()\n");
     return true;
 }
 
-bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
-    printf("jc: bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
+bool SCREEN_DirBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
+    printf("jc: bool SCREEN_DirBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
 
 	return false;
 }
 
-void SCREEN_GameBrowser::Update() {
+void SCREEN_DirBrowser::Update() {
 	LinearLayout::Update();
 	if (listingPending_ && path_.IsListingReady()) {
 		Refresh();
 	}
 }
 
-void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
+void SCREEN_DirBrowser::Draw(SCREEN_UIContext &dc) {
 	using namespace SCREEN_UI;
 
 	if (lastScale_ != 1.0f || lastLayoutWasGrid_ != *gridStyle_) {
@@ -1664,9 +1659,9 @@ void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
 	}
 }
 
-void SCREEN_GameBrowser::Refresh() {
+void SCREEN_DirBrowser::Refresh() {
 	using namespace SCREEN_UI;
-    printf("jc: void SCREEN_GameBrowser::Refresh()\n");
+    printf("jc: void SCREEN_DirBrowser::Refresh()\n");
     
 	lastScale_ = 1.0f;
 	lastLayoutWasGrid_ = *gridStyle_;
@@ -1682,13 +1677,13 @@ void SCREEN_GameBrowser::Refresh() {
     topBar->Add(new Spacer(2.0f));
     topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
     currentSearchPath=path_.GetPath();
-    topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
+    topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
 
     ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
     layoutChoice->AddChoice(ImageID("I_GRID"));
     layoutChoice->AddChoice(ImageID("I_LINES"));
     layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
-    layoutChoice->OnChoice.Handle(this, &SCREEN_GameBrowser::LayoutChange);
+    layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
     
     Add(topBar);
 
@@ -1703,7 +1698,7 @@ void SCREEN_GameBrowser::Refresh() {
     }
 
 	// Find games in the current directory and create new ones.
-	std::vector<DirButton *> dirButtons;
+	std::vector<SCREEN_DirButton *> dirButtons;
 
 	listingPending_ = !path_.IsListingReady();
 
@@ -1718,16 +1713,16 @@ void SCREEN_GameBrowser::Refresh() {
             printf("jc: fileInfo[i].name=%s\n",str.c_str());
 			
 			if (fileInfo[i].isDirectory) {
-				if (browseFlags_ & BrowseFlags::NAVIGATE) {
-					dirButtons.push_back(new DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
+					dirButtons.push_back(new SCREEN_DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
 				}
 			} 
 		}
 	}
 
-	if (browseFlags_ & BrowseFlags::NAVIGATE) {
-		gameList_->Add(new DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
-			OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
+	if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
+		gameList_->Add(new SCREEN_DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
+			OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
 
 	}
 
@@ -1738,12 +1733,12 @@ void SCREEN_GameBrowser::Refresh() {
 	for (size_t i = 0; i < dirButtons.size(); i++) {
         std::string str = dirButtons[i]->GetPath();
         printf("jc: for (size_t i = 0; i < dirButtons.size(); i++)  %s\n",str.c_str());
-		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
+		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
 	}
 }
 
-const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
-printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
+const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path) {
+printf("jc: const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path)\n");
 	static const std::string sepChars = "/";
 
 	auto trailing = path.find_last_not_of(sepChars);
@@ -1762,9 +1757,9 @@ printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string 
 	return path;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
-	DirButton *button = static_cast<DirButton *>(e.v);
+SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
+	SCREEN_DirButton *button = static_cast<SCREEN_DirButton *>(e.v);
 	std::string text = button->GetPath();
 	if (button->PathAbsolute()) {
 		path_.SetPath(text);
@@ -1775,11 +1770,11 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams 
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_DirBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
 	auto sy = GetI18NCategory("System");
 	auto gridSettings = new SCREEN_GridSettingsScreen(sy->T("Games list settings"));
-	gridSettings->OnRecentChanged.Handle(this, &SCREEN_GameBrowser::OnRecentClear);
+	gridSettings->OnRecentChanged.Handle(this, &SCREEN_DirBrowser::OnRecentClear);
 	if (e.v)
 		gridSettings->SetPopupOrigin(e.v);
 
@@ -1787,8 +1782,8 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventPar
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
 	screenManager_->RecreateAllViews();
 	return SCREEN_UI::EVENT_DONE;
 }

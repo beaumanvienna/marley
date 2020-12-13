@@ -960,7 +960,7 @@ bool addSearchPathToConfigFile(string searchPath)
 
 bool searchAllFolders(void)
 {
-    bool canceled;
+    bool canceled = false;
     
     //reset all
     resetSearch();
