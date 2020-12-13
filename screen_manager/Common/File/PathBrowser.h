@@ -25,10 +25,7 @@ public:
 	void Navigate(const std::string &path);
 
 	std::string GetPath() const {
-		if (path_ != "/")
-			return path_;
-		else
-			return "";
+		return path_;
 	}
 	std::string GetFriendlyPath() const {
 		std::string str = GetPath();
@@ -38,7 +35,7 @@ public:
 			str = str.substr(strlen(home));
 			str.insert(0, 1, '~');
 		}
-        if (str=="") str="/";
+
 		return str;
 	}
 

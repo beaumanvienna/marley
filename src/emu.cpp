@@ -87,6 +87,11 @@ int findAllFiles_counter;
 bool searchingForGames;
 bool stopSearching;
 bool stopSearchingDuringSplash;
+
+#define SHOW_OSD_DURING_SPLASH_FREQUENTLY 5
+#define SHOW_OSD_DURING_SPLASH_INFREQUENTLY 1000
+int intervalOSD = SHOW_OSD_DURING_SPLASH_FREQUENTLY;
+
 std::ifstream::pos_type filesize(const char* filename)
 {
     printf("jc: std::ifstream::pos_type filesize(const char* filename = %s)\n",filename);
@@ -120,8 +125,9 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
     if (stopSearching) return;
     printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
     findAllFiles_counter++;
-    if (!(findAllFiles_counter % 5))
+    if (!(findAllFiles_counter % intervalOSD))
     {
+        if (!splashScreenRunning) intervalOSD = SHOW_OSD_DURING_SPLASH_INFREQUENTLY;
         string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
         printf("jc: %s\n",str.c_str());
         str += directory;
@@ -1029,14 +1035,14 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
     if (stopSearching) return;
     printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
     findAllFiles_counter++;
-    if (!(findAllFiles_counter % 5))
+    if (!(findAllFiles_counter % intervalOSD))
     {
+        if (!splashScreenRunning) intervalOSD = SHOW_OSD_DURING_SPLASH_INFREQUENTLY;
         string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
         printf("jc: %s\n",str.c_str());
         str += directory;
         render_splash(str.c_str());
-        
-        
+                
         event_loop();
     }
     string str_with_path, str_without_path;
@@ -1166,3 +1172,22 @@ void buildGameList(void)
 }
 
 
+void resetSearch(void)
+{
+
+    gPathToFirmwarePS2="";
+    found_jp_ps1=false;
+    found_na_ps1=false;
+    found_eu_ps1=false;
+    found_jp_ps2=false;
+    found_na_ps2=false;
+    found_eu_ps2=false;
+    gSegaSaturn_firmware=false;
+    stopSearching=false;
+    gGame.clear();
+    gGamesFound=false;
+    gPS1_firmware=false;
+    gPS2_firmware=false;
+    gCurrentGame=0;
+    
+}

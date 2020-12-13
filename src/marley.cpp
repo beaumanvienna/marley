@@ -58,6 +58,8 @@ void initApp(void);
 void render_splash(string onScreenDisplay);
 void event_loop(void);
 Uint32 splash_callbackfunc(Uint32 interval, void *param);
+void checkFirmwareSEGA_SATURN(void);
+void resetSearch(void);
 TTF_Font* gFont = nullptr;
 int gActiveController=-1;
 bool ALT = false;
@@ -67,6 +69,8 @@ extern int findAllFiles_counter;
 extern bool stopSearching;
 extern bool stopSearchingDuringSplash;
 extern SDL_TimerID splashTimer;
+bool gStartUp=true;
+
 //initializes SDL and creates main window
 bool init(void)
 {
@@ -321,7 +325,7 @@ int main( int argc, char* argv[] )
     }
     else
     {
-        
+        gStartUp=false;
         gQuit=false;
 
         //main loop
@@ -740,6 +744,7 @@ bool setPathToGames(string str)
         if (gSearchDirectoriesGames[i] == filename)
         {
             printf("duplicate in ~/.marley/marley.cfg found for 'search_dir_games=' \n");
+            gPathToGames = filename;
             return false;
         }
     }
@@ -926,6 +931,48 @@ bool addSettingToConfigFile(string setting)
     }
     
     return ok;
+}
+
+bool updateSearchPath(string searchPath)
+{
+    setPathToGames(searchPath);
+        
+    //update games list
+    stopSearching=false;
+    buildGameList();
+    checkFirmwarePSX();
+    checkFirmwareSEGA_SATURN();
+    if (stopSearching) resetSearch();
+    return stopSearching;
+}
+
+bool addSearchPathToConfigFile(string searchPath)
+{
+    bool searchDirAdded=false;
+    string setting = "search_dir_games=" + searchPath;
+    if (addSettingToConfigFile(setting))
+    {
+        updateSearchPath(searchPath);
+        searchDirAdded=true;
+    }
+    return searchDirAdded;
+}
+
+bool searchAllFolders(void)
+{
+    bool canceled;
+    
+    //reset all
+    resetSearch();
+    
+    //rebuild for every search directory
+    for (int i = 0; i < gSearchDirectoriesGames.size();i++)
+    {
+        canceled = updateSearchPath(gSearchDirectoriesGames[i]);
+        if (canceled) break;
+    }
+    
+    return canceled;
 }
 
 void removeDuplicatesInDB(void)

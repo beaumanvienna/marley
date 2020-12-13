@@ -36,6 +36,8 @@
 #include "SDL_mixer.h"
 
 #define SPLASHSCREEN_DURATION 5000
+bool splashScreenRunning = true;
+extern bool gStartUp;
 
 //rendering window 
 SDL_Window* gWindow = nullptr;
@@ -161,7 +163,7 @@ bool init_audio(void)
 extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
-    if (!splashScreenRunning) return;
+    if (!gStartUp) return;
     printf("jc: void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
@@ -506,7 +508,7 @@ void initOpenGL(void)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 }
-bool splashScreenRunning = true;
+
 Uint32 splash_callbackfunc(Uint32 interval, void *param)
 {
     printf("jc: Uint32 splash_callbackfunc(Uint32 interval, void *param)\n");

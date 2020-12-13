@@ -58,12 +58,8 @@ extern bool gPS1_firmware;
 extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
 
-bool addSettingToConfigFile(std::string setting);
-bool setPathToGames(std::string str);
-void buildGameList(void);
-void checkFirmwarePSX(void);
-void checkFirmwareSEGA_SATURN(void);
-
+bool addSearchPathToConfigFile(std::string searchPath);
+bool searchAllFolders(void);
 #define BIOS_NA 10
 #define BIOS_JP 11
 #define BIOS_EU 12
@@ -75,7 +71,7 @@ void checkFirmwareSEGA_SATURN(void);
 bool bGridView1;
 bool bGridView2=true;
 bool searchDirAdded;
-
+std::string currentSearchPath;
 int calcExtraThreadsPCSX2()
 {
     int cnt = SDL_GetCPUCount() -2;
@@ -868,46 +864,47 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     // bios info
     uint32_t warningColor = 0xFF000000;
+    uint32_t okColor = 0xFF006400;
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_eu_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
 
     if (found_eu_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (gSegaSaturn_firmware)
-      generalSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+      generalSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       generalSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
 
@@ -1385,6 +1382,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_U
         marley_cfg_out_filehandle.close();
     }
     gSearchDirectoriesGames.erase(gSearchDirectoriesGames.begin()+inputSearchDirectories);
+    searchAllFolders();
     RecreateViews();
 	return SCREEN_UI::EVENT_DONE;
 }
@@ -1493,36 +1491,15 @@ public:
         std::string searchPath;
         if (key.flags & KEY_DOWN) {
             if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {
-                printf("jc: (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE)))\n");
                 if (path_=="..")
                 {
-                    #warning "todo"
-                    //searchPath = parent->GetPath();
+                    searchPath = currentSearchPath;
                 }
                 else
                 {
                     searchPath = path_;
                 }
-                std::string setting = "search_dir_games=" + path_;
-                if (addSettingToConfigFile(setting))
-                {
-                    setPathToGames(path_);
-                    
-                    //update games list
-                    stopSearching=false;
-                    buildGameList();
-                    checkFirmwarePSX();
-                    checkFirmwareSEGA_SATURN();
-                    if (stopSearching)
-                    {
-                        gGame.clear();
-                        gGamesFound=false;
-                        gPS1_firmware=false;
-                        gPS2_firmware=false;
-                        gSegaSaturn_firmware=false;
-                    }
-                    searchDirAdded=true;
-                }
+                searchDirAdded = addSearchPathToConfigFile(searchPath);
             }
         } 
 
@@ -1704,6 +1681,7 @@ void SCREEN_GameBrowser::Refresh() {
 
     topBar->Add(new Spacer(2.0f));
     topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+    currentSearchPath=path_.GetPath();
     topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
 
     ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
