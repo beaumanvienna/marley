@@ -537,6 +537,9 @@ bool initGUI(void)
     SDL_GetCurrentDisplayMode(0, &current);
     WINDOW_WIDTH = current.w / 1.5; 
     WINDOW_HEIGHT = current.h / 1.5;
+    
+    window_x = current.w / 6; 
+    window_y = current.h / 6;
 	
 	x_offset_1150 = WINDOW_WIDTH / 1.087;
 	x_offset_1068 = WINDOW_WIDTH / 1.170412;

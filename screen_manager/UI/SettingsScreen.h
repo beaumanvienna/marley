@@ -48,7 +48,7 @@ protected:
 	bool UseVerticalLayout() const;
     
     // game browser
-    std::vector<SCREEN_GameBrowser *> gameBrowsers_;
+    SCREEN_GameBrowser *searchDirBrowser;
    	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
@@ -150,13 +150,14 @@ ENUM_CLASS_BITOPS(BrowseFlags);
 class SCREEN_GameBrowser : public SCREEN_UI::LinearLayout {
 public:
 	SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
-
+    ~SCREEN_GameBrowser();
 	SCREEN_UI::Event OnChoice;
 	SCREEN_UI::Event OnHoldChoice;
 	SCREEN_UI::Event OnHighlight;
 
 	void FocusGame(const std::string &gamePath);
 	void SetPath(const std::string &path);
+    std::string GetPath();
 	void Draw(SCREEN_UIContext &dc) override;
 	void Update() override;
 

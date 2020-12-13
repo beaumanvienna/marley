@@ -42,14 +42,28 @@
 #include "UI/MiscScreens.h"
 #include <SDL.h>
 
-bool setPathToGames(std::string str);
-
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
+extern bool found_jp_ps1;
+extern bool found_na_ps1;
+extern bool found_eu_ps1;
 extern bool found_jp_ps2;
 extern bool found_na_ps2;
 extern bool found_eu_ps2;
+extern bool gSegaSaturn_firmware;
+extern bool stopSearching;
+extern std::vector<std::string> gGame;
+extern bool gGamesFound;
+extern bool gPS1_firmware;
+extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
+
+bool addSettingToConfigFile(std::string setting);
+bool setPathToGames(std::string str);
+void buildGameList(void);
+void checkFirmwarePSX(void);
+void checkFirmwareSEGA_SATURN(void);
+
 #define BIOS_NA 10
 #define BIOS_JP 11
 #define BIOS_EU 12
@@ -60,6 +74,7 @@ extern std::vector<std::string> gSearchDirectoriesGames;
 
 bool bGridView1;
 bool bGridView2=true;
+bool searchDirAdded;
 
 int calcExtraThreadsPCSX2()
 {
@@ -72,6 +87,7 @@ int calcExtraThreadsPCSX2()
 
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
 {
+    searchDirAdded=false;
     printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     // Dolphin
     inputVSyncDolphin = true;
@@ -835,10 +851,68 @@ void SCREEN_SettingsScreen::CreateViews() {
 	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
 	generalSettings->SetSpacing(0);
 	generalSettingsScroll->Add(generalSettings);
-	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
+	tabHolder->AddTab(ge->T("Search Path"), generalSettingsScroll);
+    
+    generalSettings->Add(new ItemHeader(ge->T("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.")));
+
+    // game browser
+    
+    searchDirBrowser = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
+        ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
+        new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    generalSettings->Add(searchDirBrowser);
+    
+    searchDirBrowser->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
+    searchDirBrowser->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
+    searchDirBrowser->OnHighlight.Handle(this, &SCREEN_SettingsScreen::OnGameHighlight);
+    
+    // bios info
+    uint32_t warningColor = 0xFF000000;
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (found_na_ps1) 
+      generalSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (found_jp_ps1) 
+      generalSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (found_eu_ps1) 
+      generalSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (found_na_ps2) 
+      generalSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (found_jp_ps2) 
+      generalSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+
+    if (found_eu_ps2) 
+      generalSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    
+    if (gSegaSaturn_firmware)
+      generalSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)));
+    else
+      generalSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
 
     // -------- delete search path entry --------
-    generalSettings->Add(new ItemHeader(ge->T("Remove search path entry:")));
+    generalSettings->Add(new ItemHeader(ge->T("")));
     static const char *selectSearchDirectories[128];
     int numChoices=gSearchDirectoriesGames.size();
     static const char *emptyStr="";
@@ -856,21 +930,8 @@ void SCREEN_SettingsScreen::CreateViews() {
         selectSearchDirectories[0]=emptyStr;
     }
 
-    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Delete search path entry"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
+    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Remove search path entry from settings"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
-
-    // game browser
-    generalSettings->Add(new ItemHeader(ge->T("Add search path entry (Start button/Space):")));
-    gameBrowsers_.clear();
-    SCREEN_GameBrowser *tabAllGames = new SCREEN_GameBrowser(getenv("HOME"), BrowseFlags::STANDARD, &bGridView2, screenManager(),
-        ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-        new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-    generalSettings->Add(tabAllGames);
-    gameBrowsers_.push_back(tabAllGames);
-    
-    tabAllGames->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
-    tabAllGames->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
-    tabAllGames->OnHighlight.Handle(this, &SCREEN_SettingsScreen::OnGameHighlight);
 
     // -------- Dolphin --------
 	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -928,10 +989,10 @@ void SCREEN_SettingsScreen::CreateViews() {
         }
         if (cnt > 1) 
         {
-            header = "Bios files found for: " + biosRegions;
+            header = "PS2 Bios files found for: " + biosRegions;
         } else
         {
-            header = "Bios file found for: " + biosRegions;
+            header = "PS2 Bios file found for: " + biosRegions;
         }
         
         graphicsSettings->Add(new ItemHeader(ps2->T(header)));
@@ -1340,6 +1401,11 @@ void SCREEN_SettingsScreen::update() {
 		RecreateViews();
 		lastVertical_ = vertical;
 	}
+    if (searchDirAdded)
+    {
+        searchDirAdded=false;
+        RecreateViews();
+    }
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
@@ -1424,17 +1490,44 @@ public:
 	}
     
     bool Key(const KeyInput &key) override {
-        
+        std::string searchPath;
         if (key.flags & KEY_DOWN) {
             if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {
                 printf("jc: (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE)))\n");
-                setPathToGames(path_.c_str());
+                if (path_=="..")
+                {
+                    #warning "todo"
+                    //searchPath = parent->GetPath();
+                }
+                else
+                {
+                    searchPath = path_;
+                }
+                std::string setting = "search_dir_games=" + path_;
+                if (addSettingToConfigFile(setting))
+                {
+                    setPathToGames(path_);
+                    
+                    //update games list
+                    stopSearching=false;
+                    buildGameList();
+                    checkFirmwarePSX();
+                    checkFirmwareSEGA_SATURN();
+                    if (stopSearching)
+                    {
+                        gGame.clear();
+                        gGamesFound=false;
+                        gPS1_firmware=false;
+                        gPS2_firmware=false;
+                        gSegaSaturn_firmware=false;
+                    }
+                    searchDirAdded=true;
+                }
             }
         } 
 
 		return Clickable::Key(key);
 	}
-    
 
 private:
 	std::string path_;
@@ -1501,6 +1594,10 @@ SCREEN_GameBrowser::SCREEN_GameBrowser(std::string path, BrowseFlags browseFlags
 	Refresh();
 }
 
+SCREEN_GameBrowser::~SCREEN_GameBrowser() {
+    printf("jc: SCREEN_GameBrowser::~SCREEN_GameBrowser()\n");
+}
+
 void SCREEN_GameBrowser::FocusGame(const std::string &gamePath) {
     printf("jc: void SCREEN_GameBrowser::FocusGame(const std::string &gamePath)\n");
 	focusGamePath_ = gamePath;
@@ -1512,6 +1609,12 @@ void SCREEN_GameBrowser::SetPath(const std::string &path) {
     printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
 	Refresh();
+}
+
+std::string SCREEN_GameBrowser::GetPath() {
+    printf("jc: std::string SCREEN_GameBrowser::GetPath() \n");
+    std::string str = path_.GetPath();
+	return str;
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
@@ -1586,7 +1689,8 @@ void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
 
 void SCREEN_GameBrowser::Refresh() {
 	using namespace SCREEN_UI;
-printf("jc: void SCREEN_GameBrowser::Refresh()\n");
+    printf("jc: void SCREEN_GameBrowser::Refresh()\n");
+    
 	lastScale_ = 1.0f;
 	lastLayoutWasGrid_ = *gridStyle_;
 
@@ -1595,45 +1699,30 @@ printf("jc: void SCREEN_GameBrowser::Refresh()\n");
 
 	Add(new Spacer(1.0f));
 	auto mm = GetI18NCategory("MainMenu");
+	
+    LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 
-	// No topbar on recent screen
-	if (DisplayTopBar()) {
-		LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-		if (browseFlags_ & BrowseFlags::NAVIGATE) {
-			topBar->Add(new Spacer(2.0f));
-			topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
-			topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-		} else {
-			topBar->Add(new Spacer(new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
-		}
-		ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
-		layoutChoice->AddChoice(ImageID("I_GRID"));
-		layoutChoice->AddChoice(ImageID("I_LINES"));
-		layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
-		layoutChoice->OnChoice.Handle(this, &SCREEN_GameBrowser::LayoutChange);
-		topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::GridSettingsClick);
-		Add(topBar);
+    topBar->Add(new Spacer(2.0f));
+    topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+    topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
 
-		if (*gridStyle_) {
-			gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-			Add(gameList_);
-		} else {
-			SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-			gl->SetSpacing(4.0f);
-			gameList_ = gl;
-			Add(gameList_);
-		}
-	} else {
-		if (*gridStyle_) {
-			gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-		} else {
-			SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-			gl->SetSpacing(4.0f);
-			gameList_ = gl;
-		}
-		
-		Add(gameList_);
-	}
+    ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
+    layoutChoice->AddChoice(ImageID("I_GRID"));
+    layoutChoice->AddChoice(ImageID("I_LINES"));
+    layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
+    layoutChoice->OnChoice.Handle(this, &SCREEN_GameBrowser::LayoutChange);
+    
+    Add(topBar);
+
+    if (*gridStyle_) {
+        gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+        Add(gameList_);
+    } else {
+        SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+        gl->SetSpacing(4.0f);
+        gameList_ = gl;
+        Add(gameList_);
+    }
 
 	// Find games in the current directory and create new ones.
 	std::vector<DirButton *> dirButtons;

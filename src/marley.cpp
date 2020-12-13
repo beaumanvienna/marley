@@ -888,23 +888,41 @@ bool addSettingToConfigFile(string setting)
 {
     printf("jc: bool addSettingToConfigFile(string setting=%s)\n",setting.c_str());
     bool ok = false;
-    string filename;
-    
-    filename = gBaseDir;
-    filename += "marley.cfg";
-    
-    std::ofstream configFile;
-    configFile.open (filename.c_str(), std::ofstream::app);    
-    if (configFile.fail())
+    std::string str, line;
+    std::vector<std::string> marley_cfg_entries;
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::ifstream marley_cfg_in_filehandle(marley_cfg);
+    std::ofstream marley_cfg_out_filehandle;
+    bool duplicate;
+    if (marley_cfg_in_filehandle.is_open())
     {
-        printf("Could not open config file: %s, no setting added\n",filename.c_str());
+        while ( getline (marley_cfg_in_filehandle,line))
+        {
+            duplicate = (line == setting);
+            if (duplicate)
+            {
+                printf("Not adding duplicate: %s\n",setting.c_str());
+                break;
+            }
+        }
+        marley_cfg_in_filehandle.close();
     }
-    else 
+    
+    // output marley.cfg
+    if (!duplicate)
     {
-        configFile << setting; 
-        configFile << "\n"; 
-        printf("added to configuration file: %s\n",setting.c_str());
-        configFile.close();
+        marley_cfg_out_filehandle.open(marley_cfg.c_str(), std::ios_base::app); 
+        if(marley_cfg_out_filehandle)
+        {
+            marley_cfg_out_filehandle << setting << "\n";
+            marley_cfg_out_filehandle.close();
+            printf("Added to configuration file: %s\n",setting.c_str());
+            ok = true;
+        } 
+        else
+        {
+            printf("Could not open config file: %s, no setting added\n",marley_cfg.c_str());
+        }
     }
     
     return ok;

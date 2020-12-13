@@ -32,15 +32,13 @@ public:
 	}
 	std::string GetFriendlyPath() const {
 		std::string str = GetPath();
-#if defined(__ANDROID__)
-		// Do nothing
-#elif defined(__linux)
+
 		char *home = getenv("HOME");
 		if (home != nullptr && !strncmp(str.c_str(), home, strlen(home))) {
 			str = str.substr(strlen(home));
 			str.insert(0, 1, '~');
 		}
-#endif
+        if (str=="") str="/";
 		return str;
 	}
 

@@ -70,6 +70,12 @@ void event_loop(void);
 bool gPS1_firmware;
 bool gPS2_firmware;
 bool gSegaSaturn_firmware;
+bool found_jp_ps1;
+bool found_na_ps1;
+bool found_eu_ps1;
+bool found_jp_ps2;
+bool found_na_ps2;
+bool found_eu_ps2;
 string gPathToFirmwarePSX;
 string gPathToFirmwarePS2;
 string gPathToGames;
@@ -193,16 +199,14 @@ bool copyFile(const char *SRC, const char* DEST)
     dest << src.rdbuf();
     return src && dest;
 }
-bool found_jp_ps2;
-bool found_na_ps2;
-bool found_eu_ps2;
+
 void checkFirmwarePSX(void)
 {
     printf("jc: void checkFirmwarePSX(void)\n");
     // ---------- PS1 ----------
-    bool found_jp_ps1 = false;
-    bool found_na_ps1 = false;
-    bool found_eu_ps1 = false;
+    found_jp_ps1 = false;
+    found_na_ps1 = false;
+    found_eu_ps1 = false;
     
     string jp_ps1 = gBaseDir + "scph5500.bin";
     string na_ps1 = gBaseDir + "scph5501.bin";
