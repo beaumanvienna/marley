@@ -111,4 +111,13 @@
     <gresource prefix="/pictures/">
         <file>settings_pcsx2.png</file>
     </gresource>
+    <gresource prefix="/pictures/">
+        <file>settings_general.png</file>
+    </gresource>
+    <gresource prefix="/pictures/">
+        <file>settings_dolphin.png</file>
+    </gresource>
+    <gresource prefix="/pictures/">
+        <file>beach.png</file>
+    </gresource>
 </gresources>

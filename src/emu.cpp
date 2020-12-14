@@ -855,6 +855,39 @@ void initScreen_manager(void)
         GFile* src_file = g_file_new_for_uri(uri.c_str());
         g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
     }
+    
+    background_pic = screen_manager_dir + "/settings_general.png";
+    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    {
+        //file does not exist
+        string uri = "resource:///pictures/settings_general.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(background_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+    }
+    
+    background_pic = screen_manager_dir + "/settings_dolphin.png";
+    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    {
+        //file does not exist
+        string uri = "resource:///pictures/settings_dolphin.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(background_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+    }
+    
+    background_pic = screen_manager_dir + "/beach.png";
+    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    {
+        //file does not exist
+        string uri = "resource:///pictures/beach.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(background_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+    }
 }
 
 void initEMU(void)

@@ -562,7 +562,7 @@ void SCREEN_GameBrowser::Refresh() {
 	if (!listingPending_) {
         printf("jc: if (!listingPending_)\n");
 		std::vector<FileInfo> fileInfo;
-		path_.GetListing(fileInfo, "iso");
+		path_.GetListing(fileInfo, "iso:smc:iso:smd:bin:cue:z64:v64:nes:sfc:gba:gbc:wbfs:mdf");
 		for (size_t i = 0; i < fileInfo.size(); i++) {
 			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {

@@ -812,6 +812,30 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
         }
     }
 }
+#define PCSX2       2
+#define DOLPHIN     1
+#define GENERAL     0
+void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
+void SCREEN_SettingsScreen::DrawBackground(SCREEN_UIContext &dc) {
+    std::string bgPng; 
+    int tab = tabHolder->GetCurrentTab();
+    switch(tab)
+    {
+        case PCSX2:
+            bgPng = gBaseDir + "screen_manager/settings_pcsx2.png";
+            break;
+        case DOLPHIN:
+            bgPng = gBaseDir + "screen_manager/settings_dolphin.png";
+            break;
+        case GENERAL:
+        default:
+            bgPng = gBaseDir + "screen_manager/settings_general.png";
+            break;
+            
+    }
+    
+    UISetBackground(dc,bgPng);
+}
 
 void SCREEN_SettingsScreen::CreateViews() {
 	using namespace SCREEN_UI;
@@ -823,8 +847,6 @@ void SCREEN_SettingsScreen::CreateViews() {
     auto dol = GetI18NCategory("Dolphin");
 
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
-
-	TabHolder *tabHolder;
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));

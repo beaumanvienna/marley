@@ -39,7 +39,7 @@
 #include <errno.h>
 #include <SDL_syswm.h>
 
-int gState = 0;
+int gState = STATE_CONFIG;
 int gCurrentGame;
 std::vector<string> gGame;
 bool gQuit=false;
@@ -318,37 +318,26 @@ void launch_emulator(void)
 		argc = 2;
         emulator_target emulatorTarget;
         if (launch_request_from_screen_manager)
-        {
-            emulatorTarget = getEmulatorTarget(game_screen_manager);
-        }
+          emulatorTarget = getEmulatorTarget(game_screen_manager);
         else
-        {
-            emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
-        }
+          emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
 		switch((int)emulatorTarget)
 		{
 #ifdef PCSX2
 			case pcsx2:
 				str = "pcsx2";
-				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
                 
    				str = "--nogui";
-				n = str.length(); 
 				strcpy(arg2, str.c_str());
 
 				str = "--fullboot";
-				n = str.length(); 
 				strcpy(arg3, str.c_str());
+                
                 if (launch_request_from_screen_manager)
-                {
-                    str = game_screen_manager;
-                }
+                  str = game_screen_manager;
                 else
-                {
-                    str = gGame[gCurrentGame];
-                }
-				n = str.length(); 
+                  str = gGame[gCurrentGame];
 				strcpy(arg4, str.c_str());
 
 				argv[0] = arg1;
@@ -387,11 +376,13 @@ void launch_emulator(void)
 			case mupen64plus:
 				
 				str = "mupen64plus";
-				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
 				
-				n = gGame[gCurrentGame].length(); 
-				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+                if (launch_request_from_screen_manager)
+                  str = game_screen_manager;
+                else
+                  str = gGame[gCurrentGame];
+				strcpy(arg2, str.c_str()); 
 				
 				argv[0] = arg1;
 				argv[1] = arg2;
@@ -406,11 +397,13 @@ void launch_emulator(void)
 			case ppsspp:
 			
 				str = "ppsspp";
-				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
 				
-				n = gGame[gCurrentGame].length(); 
-				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				if (launch_request_from_screen_manager)
+                  str = game_screen_manager;
+                else
+                  str = gGame[gCurrentGame];
+				strcpy(arg2, str.c_str()); 
 				
 				argv[0] = arg1;
 				argv[1] = arg2;
@@ -425,11 +418,13 @@ void launch_emulator(void)
 		
 			case dolphin:
 				str = "dolphin-emu";
-				n = str.length(); 
 				strcpy(arg1, str.c_str()); 
 				
-				n = gGame[gCurrentGame].length(); 
-				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				if (launch_request_from_screen_manager)
+                  str = game_screen_manager;
+                else
+                  str = gGame[gCurrentGame];
+				strcpy(arg2, str.c_str()); 
 				
 				argv[0] = arg1;
 				argv[1] = arg2;
@@ -445,12 +440,14 @@ void launch_emulator(void)
 		
 #ifdef MEDNAFEN
 			case mednafen:
-				str = "mednafen";
-				n = str.length(); 
+				str = "mednafen"; 
 				strcpy(arg1, str.c_str()); 
 				
-				n = gGame[gCurrentGame].length(); 
-				strcpy(arg2, gGame[gCurrentGame].c_str()); 
+				if (launch_request_from_screen_manager)
+                  str = game_screen_manager;
+                else
+                  str = gGame[gCurrentGame];
+				strcpy(arg2, str.c_str()); 
 				
 				argv[0] = arg1;
 				argv[1] = arg2;
@@ -475,7 +472,7 @@ void statemachine(int cmd)
     char *screen_man_argv[1];
     char arg1[1024];
     int n;
-    string str;    
+    string str;
     
     if (!gControllerConf)
     {

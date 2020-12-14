@@ -327,6 +327,9 @@ int main( int argc, char* argv[] )
     {
         gStartUp=false;
         gQuit=false;
+        
+        // launch into new interface
+        statemachine(SDL_CONTROLLER_BUTTON_A);
 
         //main loop
         while( !gQuit )
@@ -427,6 +430,7 @@ void event_loop(void)
                             break;
                         case SDLK_ESCAPE:
                             printf("jc: ++++++++++++++++++++++++++++++++++++++++++ case SDLK_ESCAPE: ++++++++++++++++++++++++++++++++++++++++++ \n");
+                            stopSearching=true;
                             if (splashScreenRunning) 
                             {
                                 if (!stopSearchingDuringSplash) // ESC hit once
@@ -440,15 +444,16 @@ void event_loop(void)
                                     SDL_RemoveTimer(splashTimer);
                                     splash_callbackfunc(0,nullptr);
                                 }
-                            }
-                            stopSearching=true;
-                            if (gState == STATE_OFF)
+                            } else
                             {
-                                gQuit=true;
-                            }
-                            else
-                            {
-                                resetStatemachine();
+                                if (gState == STATE_OFF)
+                                {
+                                    gQuit=true;
+                                }
+                                else
+                                {
+                                    resetStatemachine();
+                                }
                             }
                             break;
                         case SDLK_DOWN:

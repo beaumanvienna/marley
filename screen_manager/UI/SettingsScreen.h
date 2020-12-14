@@ -38,6 +38,7 @@ public:
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
+    void DrawBackground(SCREEN_UIContext &dc) override;
 
 protected:
 	void CreateViews() override;
@@ -55,7 +56,7 @@ protected:
 
 
 private:
-    
+    SCREEN_UI::TabHolder *tabHolder = nullptr;
     // general
     int inputSearchDirectories;
     

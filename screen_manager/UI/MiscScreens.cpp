@@ -41,6 +41,8 @@
 #include "UI/MiscScreens.h"
 #include "UI/TextureUtil.h"
 
+extern std::string gBaseDir;
+
 static const ImageID symbols[4] = {
 	ImageID("I_CROSS"),
 	ImageID("I_CIRCLE"),
@@ -77,13 +79,25 @@ void SCREEN_UpdateUIState(GlobalUIState newState) {
 	}
 }
 
-
 void UIBackgroundInit(SCREEN_UIContext &dc) {
-	const std::string bgPng = "background.png";
+	const std::string bgPng = gBaseDir + "screen_manager/beach.png";
 	if (SCREEN_PFile::Exists(bgPng)) {
 		const std::string &bgFile = bgPng;
 		bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgFile.c_str(), DETECT, true);
 	}
+}
+void DrawBackground(SCREEN_UIContext &dc, float alpha);
+void UISetBackground(SCREEN_UIContext &dc,std::string bgPng) {
+    static std::string last_bgPng;
+    if (last_bgPng!=bgPng)
+    {
+        last_bgPng=bgPng;
+        if (SCREEN_PFile::Exists(bgPng)) {
+            const std::string &bgFile = bgPng;
+            bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgFile.c_str(), DETECT, true);
+        }
+    }
+    DrawBackground(dc,1.0f);
 }
 
 void SCREEN_UIBackgroundShutdown() {
@@ -91,7 +105,6 @@ void SCREEN_UIBackgroundShutdown() {
 	backgroundInited = false;
 }
 
-extern std::string gBaseDir;
 void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 	if (!backgroundInited) {
 		UIBackgroundInit(dc);
@@ -116,8 +129,6 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 	}
 	
 	uint32_t bgColor = whiteAlpha(alpha);
-    std::string bgPic = gBaseDir + "screen_manager/settings_pcsx2.png";
-    bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgPic.c_str(), DETECT, true);
 
 	if (bgTexture != nullptr) {
 		dc.Flush();
