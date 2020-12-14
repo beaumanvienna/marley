@@ -64,6 +64,8 @@ int axisIterator;
 int secondRun;
 int secondRunHat;
 int secondRunValue;
+bool launch_request_from_screen_manager;
+string game_screen_manager;
 
 extern Display* XDisplay;
 extern Window Xwindow;
@@ -314,7 +316,15 @@ void launch_emulator(void)
 		}
 		
 		argc = 2;
-		auto emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
+        emulator_target emulatorTarget;
+        if (launch_request_from_screen_manager)
+        {
+            emulatorTarget = getEmulatorTarget(game_screen_manager);
+        }
+        else
+        {
+            emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
+        }
 		switch((int)emulatorTarget)
 		{
 #ifdef PCSX2
@@ -330,8 +340,14 @@ void launch_emulator(void)
 				str = "--fullboot";
 				n = str.length(); 
 				strcpy(arg3, str.c_str());
-
-				str = gGame[gCurrentGame];
+                if (launch_request_from_screen_manager)
+                {
+                    str = game_screen_manager;
+                }
+                else
+                {
+                    str = gGame[gCurrentGame];
+                }
 				n = str.length(); 
 				strcpy(arg4, str.c_str());
 
@@ -670,14 +686,21 @@ void statemachine(int cmd)
                         gSetupIsRunning=true;
                         break;
                     case STATE_CONFIG:
-                        str = "screen_manager";
-                        n = str.length(); 
-                        strcpy(arg1, str.c_str()); 
+                        do
+                        {
+                            str = "screen_manager";
+                            n = str.length(); 
+                            strcpy(arg1, str.c_str()); 
 
-                        screen_man_argv[0] = arg1;
-                        screen_man_argc = 1;
-                    
-                        screen_manager_main(screen_man_argc,screen_man_argv);
+                            screen_man_argv[0] = arg1;
+                            screen_man_argc = 1;
+                        
+                            screen_manager_main(screen_man_argc,screen_man_argv);
+                            if (launch_request_from_screen_manager)
+                            {
+                                launch_emulator();
+                            }
+                        } while (launch_request_from_screen_manager);
                         break;
                     case STATE_OFF:
                         gQuit=true;

@@ -42,13 +42,17 @@
 #include "UI/MiscScreens.h"
 #include <SDL.h>
 
+extern bool launch_request_from_screen_manager;
+extern std::string game_screen_manager;
+
 
 bool bGridViewMain1;
-bool bGridViewMain2=true;
+bool bGridViewMain2=false;
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
+    launch_request_from_screen_manager=false;
 }
 bool createDir(std::string name);
 SCREEN_MainScreen::~SCREEN_MainScreen() 
@@ -70,7 +74,7 @@ void SCREEN_MainScreen::CreateViews() {
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
     verticalLayout->Add(tabHolder);
-    verticalLayout->Add(new Choice(ma->T("Back"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    verticalLayout->Add(new Choice(ma->T("Off"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     root_->Add(verticalLayout);
 
 	tabHolder->SetTag("Main");
@@ -184,6 +188,155 @@ void SCREEN_MainInfoMessage::Draw(SCREEN_UIContext &dc) {
 	text_->SetTextColor(whiteAlpha(alpha));
 	ViewGroup::Draw(dc);
 }
+
+class SCREEN_GameButton : public SCREEN_UI::Clickable {
+public:
+	SCREEN_GameButton(const std::string &gamePath, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
+		: SCREEN_UI::Clickable(layoutParams), gridStyle_(gridStyle), gamePath_(gamePath) {}
+
+	void Draw(SCREEN_UIContext &dc) override;
+	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override {
+		if (gridStyle_) {
+			w = 144;
+			h = 80;
+		} else {
+			w = 500;
+			h = 50;
+		}
+	}
+
+	const std::string &GetPath() const { return gamePath_; }
+
+	void SetHoldEnabled(bool hold) {
+		holdEnabled_ = hold;
+	}
+	void Touch(const TouchInput &input) override {
+		SCREEN_UI::Clickable::Touch(input);
+		hovering_ = bounds_.Contains(input.x, input.y);
+		if (hovering_ && (input.flags & TOUCH_DOWN)) {
+			holdStart_ = time_now_d();
+		}
+		if (input.flags & TOUCH_UP) {
+			holdStart_ = 0;
+		}
+	}
+
+	bool Key(const KeyInput &key) override {
+		std::vector<int> pspKeys;
+		bool showInfo = false;
+
+		if (SCREEN_KeyMap::KeyToPspButton(key.deviceId, key.keyCode, &pspKeys)) {
+			for (auto it = pspKeys.begin(), end = pspKeys.end(); it != end; ++it) {
+				// If the button mapped to triangle, then show the info.
+				if (HasFocus() && (key.flags & KEY_UP) && *it == CTRL_TRIANGLE) {
+					showInfo = true;
+				}
+			}
+		} else if (hovering_ && key.deviceId == DEVICE_ID_MOUSE && key.keyCode == NKCODE_EXT_MOUSEBUTTON_2) {
+			// If it's the right mouse button, and it's not otherwise mapped, show the info also.
+			if (key.flags & KEY_DOWN) {
+				showInfoPressed_ = true;
+			}
+			if ((key.flags & KEY_UP) && showInfoPressed_) {
+				showInfo = true;
+				showInfoPressed_ = false;
+			}
+		}
+
+		if (showInfo) {
+			TriggerOnHoldClick();
+			return true;
+		}
+
+		return Clickable::Key(key);
+	}
+
+	void Update() override {
+		// Hold button for 1.5 seconds to launch the game options
+		if (holdEnabled_ && holdStart_ != 0.0 && holdStart_ < time_now_d() - 1.5) {
+			TriggerOnHoldClick();
+		}
+	}
+
+	void FocusChanged(int focusFlags) override {
+		SCREEN_UI::Clickable::FocusChanged(focusFlags);
+		TriggerOnHighlight(focusFlags);
+	}
+
+	SCREEN_UI::Event OnHoldClick;
+	SCREEN_UI::Event OnHighlight;
+
+private:
+	void TriggerOnHoldClick() {
+		holdStart_ = 0.0;
+		SCREEN_UI::EventParams e{};
+		e.v = this;
+		e.s = gamePath_;
+		down_ = false;
+		OnHoldClick.Trigger(e);
+	}
+	void TriggerOnHighlight(int focusFlags) {
+		SCREEN_UI::EventParams e{};
+		e.v = this;
+		e.s = gamePath_;
+		e.a = focusFlags;
+		OnHighlight.Trigger(e);
+	}
+
+	bool gridStyle_;
+	std::string gamePath_;
+	std::string title_;
+
+	double holdStart_ = 0.0;
+	bool holdEnabled_ = true;
+	bool showInfoPressed_ = false;
+	bool hovering_ = false;
+};
+
+void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
+    	using namespace SCREEN_UI;
+	Style style = dc.theme->buttonStyle;
+
+	if (HasFocus()) style = dc.theme->buttonFocusedStyle;
+	if (down_) style = dc.theme->buttonDownStyle;
+	if (!IsEnabled()) style = dc.theme->buttonDisabledStyle;
+
+	dc.FillRect(style.background, bounds_);
+
+	const std::string text = gamePath_.substr(gamePath_.find_last_of("/") + 1);
+
+	ImageID image = ImageID("I_CIRCLE");
+
+	float tw, th;
+	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+
+	bool compact = bounds_.w < 180;
+
+	if (gridStyle_) {
+		dc.SetFontScale(1.0f, 1.0f);
+	}
+	if (compact) {
+		dc.PushScissor(bounds_);
+		dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER); 
+		dc.PopScissor();
+	} else {
+		bool scissor = false;
+		if (tw + 150 > bounds_.w) {
+			dc.PushScissor(bounds_);
+			scissor = true;
+		}
+		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+
+		if (scissor) {
+			dc.PopScissor();
+		}
+	}
+	if (gridStyle_) {
+		dc.SetFontScale(1.0, 1.0);
+	}
+}
+
 
 class SCREEN_DirButtonMain : public SCREEN_UI::Button {
 public:
@@ -384,12 +537,6 @@ void SCREEN_GameBrowser::Refresh() {
     topBar->Add(new Spacer(2.0f));
     topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
     topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-
-    ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
-    layoutChoice->AddChoice(ImageID("I_GRID"));
-    layoutChoice->AddChoice(ImageID("I_LINES"));
-    layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
-    layoutChoice->OnChoice.Handle(this, &SCREEN_GameBrowser::LayoutChange);
     topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::GridSettingsClick);
     Add(topBar);
 
@@ -403,7 +550,10 @@ void SCREEN_GameBrowser::Refresh() {
         Add(gameList_);
     }
 
-	// Find games in the current directory and create new ones.
+    // Show games in the current directory
+	std::vector<SCREEN_GameButton *> gameButtons;
+
+	// Show folders in the current directory
 	std::vector<SCREEN_DirButtonMain *> dirButtons;
 
 	listingPending_ = !path_.IsListingReady();
@@ -412,17 +562,18 @@ void SCREEN_GameBrowser::Refresh() {
 	if (!listingPending_) {
         printf("jc: if (!listingPending_)\n");
 		std::vector<FileInfo> fileInfo;
-		path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
-        printf("jc: fileInfo.size()=%ld\n",fileInfo.size());
+		path_.GetListing(fileInfo, "iso");
 		for (size_t i = 0; i < fileInfo.size(); i++) {
-            std::string str=fileInfo[i].name;
-            printf("jc: fileInfo[i].name=%s\n",str.c_str());
-			
 			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
 					dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
 				}
-			} 
+			} else
+            {
+                std::string str=fileInfo[i].fullName;
+                printf("jc: fileInfo[i].name=%s\n",str.c_str());
+                gameButtons.push_back(new SCREEN_GameButton(fileInfo[i].fullName, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
+            }
 		}
 	}
 
@@ -435,10 +586,13 @@ void SCREEN_GameBrowser::Refresh() {
 	if (listingPending_) {
 		gameList_->Add(new SCREEN_UI::TextView(mm->T("Loading..."), ALIGN_CENTER, false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
 	}
+    
+   	for (size_t i = 0; i < gameButtons.size(); i++) {
+		gameList_->Add(gameButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::GameButtonClick);
+	}
 
 	for (size_t i = 0; i < dirButtons.size(); i++) {
         std::string str = dirButtons[i]->GetPath();
-        printf("jc: for (size_t i = 0; i < dirButtons.size(); i++)  %s\n",str.c_str());
 		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
 	}
 }
@@ -474,6 +628,19 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams 
 		path_.Navigate(text);
 	}
 	Refresh();
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParams &e) {
+	SCREEN_GameButton *button = static_cast<SCREEN_GameButton *>(e.v);
+	std::string text = button->GetPath();
+    
+    printf("jc: ###############  launching %s ############### \n",text.c_str());
+    launch_request_from_screen_manager = true;
+    game_screen_manager = text;
+
+    SCREEN_System_SendMessage("finish", "");
+
 	return SCREEN_UI::EVENT_DONE;
 }
 

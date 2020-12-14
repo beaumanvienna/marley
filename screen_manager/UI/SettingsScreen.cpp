@@ -1388,7 +1388,8 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_U
 }
 
 void SCREEN_SettingsScreen::onFinish(DialogResult result) {
-    SCREEN_System_SendMessage("finish", "");
+    printf("jc: void SCREEN_SettingsScreen::onFinish(DialogResult result)\n");
+    //SCREEN_System_SendMessage("finish", "");
 }
 
 void SCREEN_SettingsScreen::update() {
@@ -1697,7 +1698,7 @@ void SCREEN_DirBrowser::Refresh() {
         Add(gameList_);
     }
 
-	// Find games in the current directory and create new ones.
+	// Show folders in the current directory
 	std::vector<SCREEN_DirButton *> dirButtons;
 
 	listingPending_ = !path_.IsListingReady();
