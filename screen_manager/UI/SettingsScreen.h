@@ -57,7 +57,7 @@ protected:
 
 private:
     SCREEN_UI::TabHolder *tabHolder = nullptr;
-    // general
+    // search
     int inputSearchDirectories;
     
     // dolphin

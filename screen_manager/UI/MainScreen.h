@@ -39,6 +39,7 @@ public:
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
+    void DrawBackground(SCREEN_UIContext &dc) override;
 
 protected:
 	void CreateViews() override;

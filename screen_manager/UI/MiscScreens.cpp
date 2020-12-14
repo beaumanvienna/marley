@@ -41,6 +41,9 @@
 #include "UI/MiscScreens.h"
 #include "UI/TextureUtil.h"
 
+void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
+void DrawBackground(SCREEN_UIContext &dc, float alpha);
+
 extern std::string gBaseDir;
 
 static const ImageID symbols[4] = {
@@ -58,9 +61,9 @@ static const uint32_t colors[4] = {
 };
 
 static std::unique_ptr<SCREEN_ManagedTexture> bgTexture;
-
-static bool backgroundInited;
+static bool backgroundInited = false;
 extern GlobalUIState globalUIState;
+
 void SCREEN_UpdateUIState(GlobalUIState newState) {
 
 	if (globalUIState != newState && globalUIState != UISTATE_EXIT) {
@@ -80,13 +83,9 @@ void SCREEN_UpdateUIState(GlobalUIState newState) {
 }
 
 void UIBackgroundInit(SCREEN_UIContext &dc) {
-	const std::string bgPng = gBaseDir + "screen_manager/beach.png";
-	if (SCREEN_PFile::Exists(bgPng)) {
-		const std::string &bgFile = bgPng;
-		bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgFile.c_str(), DETECT, true);
-	}
+    UISetBackground(dc,gBaseDir + "screen_manager/beach.png");
 }
-void DrawBackground(SCREEN_UIContext &dc, float alpha);
+
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng) {
     static std::string last_bgPng;
     if (last_bgPng!=bgPng)
@@ -97,12 +96,31 @@ void UISetBackground(SCREEN_UIContext &dc,std::string bgPng) {
             bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgFile.c_str(), DETECT, true);
         }
     }
-    DrawBackground(dc,1.0f);
 }
 
 void SCREEN_UIBackgroundShutdown() {
 	bgTexture.reset(nullptr);
 	backgroundInited = false;
+}
+
+void DrawBackgroundSimple(SCREEN_UIContext &dc) {
+    
+    if (!backgroundInited) {
+		UIBackgroundInit(dc);
+		backgroundInited = true;
+	}
+	
+	uint32_t bgColor = whiteAlpha(1.0f);
+
+	if (bgTexture != nullptr) {
+		dc.Flush();
+		dc.GetSCREEN_DrawContext()->BindTexture(0, bgTexture->GetTexture());
+		dc.Draw()->DrawTexRect(dc.GetBounds(), 0, 0, 1, 1, bgColor);
+
+		dc.Flush();
+		dc.RebindTexture();
+	}
+
 }
 
 void DrawBackground(SCREEN_UIContext &dc, float alpha) {

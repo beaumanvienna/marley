@@ -42,6 +42,20 @@
 #include "UI/MiscScreens.h"
 #include <SDL.h>
 
+#define BIOS_NA 10
+#define BIOS_JP 11
+#define BIOS_EU 12
+#define EMPTY   0 
+
+#define BACKEND_OPENGL_HARDWARE 0
+#define BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE 1
+
+bool addSearchPathToConfigFile(std::string searchPath);
+bool searchAllFolders(void);
+void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
+void DrawBackground(SCREEN_UIContext &dc, float alpha);
+void DrawBackgroundSimple(SCREEN_UIContext &dc);
+
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
 extern bool found_jp_ps1;
@@ -58,20 +72,11 @@ extern bool gPS1_firmware;
 extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
 
-bool addSearchPathToConfigFile(std::string searchPath);
-bool searchAllFolders(void);
-#define BIOS_NA 10
-#define BIOS_JP 11
-#define BIOS_EU 12
-#define EMPTY   0 
-
-#define BACKEND_OPENGL_HARDWARE 0
-#define BACKEND_OPENGL_HARDWARE_PLUS_SOFTWARE 1
-
 bool bGridView1;
 bool bGridView2=true;
 bool searchDirAdded;
 std::string currentSearchPath;
+
 int calcExtraThreadsPCSX2()
 {
     int cnt = SDL_GetCPUCount() -2;
@@ -812,29 +817,39 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
         }
     }
 }
-#define PCSX2       2
-#define DOLPHIN     1
-#define GENERAL     0
-void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
+
+enum settings_tabs { 
+    SETTINGS_SEARCH=0,
+    SETTINGS_DOLPHIN,
+    SETTINGS_PCSX2,
+    SETTINGS_GENERAL,
+    SETTINGS_INFO,
+};
+
 void SCREEN_SettingsScreen::DrawBackground(SCREEN_UIContext &dc) {
     std::string bgPng; 
     int tab = tabHolder->GetCurrentTab();
     switch(tab)
     {
-        case PCSX2:
+        case SETTINGS_PCSX2:
             bgPng = gBaseDir + "screen_manager/settings_pcsx2.png";
+            UISetBackground(dc,bgPng);
+            ::DrawBackground(dc,1.0f);
             break;
-        case DOLPHIN:
+        case SETTINGS_DOLPHIN:
             bgPng = gBaseDir + "screen_manager/settings_dolphin.png";
+            UISetBackground(dc,bgPng);
+            ::DrawBackgroundSimple(dc);
             break;
-        case GENERAL:
+        case SETTINGS_SEARCH:
+        case SETTINGS_GENERAL:
+        case SETTINGS_INFO:
         default:
             bgPng = gBaseDir + "screen_manager/settings_general.png";
+            UISetBackground(dc,bgPng);
+            ::DrawBackgroundSimple(dc);
             break;
-            
     }
-    
-    UISetBackground(dc,bgPng);
 }
 
 void SCREEN_SettingsScreen::CreateViews() {
@@ -842,7 +857,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     printf("jc: void SCREEN_SettingsScreen::CreateViews() {\n");
 
-	auto ge = GetI18NCategory("General");
+	auto ge = GetI18NCategory("Search");
 	auto ps2 = GetI18NCategory("PCSX2");
     auto dol = GetI18NCategory("Dolphin");
 
@@ -863,22 +878,22 @@ void SCREEN_SettingsScreen::CreateViews() {
 	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingInfo_);
 
-	// -------- general --------
-    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-	generalSettingsScroll->SetTag("GameSettingsGeneral");
-	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
-	generalSettings->SetSpacing(0);
-	generalSettingsScroll->Add(generalSettings);
-	tabHolder->AddTab(ge->T("Search Path"), generalSettingsScroll);
+	// -------- search --------
+    ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	searchSettingsScroll->SetTag("GameSettingsSearch");
+	LinearLayout *searchSettings = new LinearLayout(ORIENT_VERTICAL);
+	searchSettings->SetSpacing(0);
+	searchSettingsScroll->Add(searchSettings);
+	tabHolder->AddTab(ge->T("Search Path"), searchSettingsScroll);
     
-    generalSettings->Add(new ItemHeader(ge->T("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.")));
+    searchSettings->Add(new ItemHeader(ge->T("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.")));
 
     // game browser
     
     searchDirBrowser = new SCREEN_DirBrowser(getenv("HOME"), SCREEN_BrowseFlags::STANDARD, &bGridView2, screenManager(),
         ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
         new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-    generalSettings->Add(searchDirBrowser);
+    searchSettings->Add(searchDirBrowser);
     
     searchDirBrowser->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
     searchDirBrowser->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
@@ -887,51 +902,51 @@ void SCREEN_SettingsScreen::CreateViews() {
     // bios info
     uint32_t warningColor = 0xFF000000;
     uint32_t okColor = 0xFF006400;
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_eu_ps1) 
-      generalSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
 
     if (found_eu_ps2) 
-      generalSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    generalSettings->Add(new SCREEN_UI::Spacer(32.0f));
+      searchSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (gSegaSaturn_firmware)
-      generalSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      generalSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
 
     // -------- delete search path entry --------
-    generalSettings->Add(new ItemHeader(ge->T("")));
+    searchSettings->Add(new ItemHeader(ge->T("")));
     static const char *selectSearchDirectories[128];
     int numChoices=gSearchDirectoriesGames.size();
     static const char *emptyStr="";
@@ -949,7 +964,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         selectSearchDirectories[0]=emptyStr;
     }
 
-    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Remove search path entry from settings"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
+    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = searchSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Remove search path entry from settings"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
 
     // -------- Dolphin --------
@@ -1346,6 +1361,30 @@ void SCREEN_SettingsScreen::CreateViews() {
     {
         graphicsSettings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
     }
+    
+    
+    // -------- general --------
+    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	generalSettingsScroll->SetTag("GameSettingsGeneral");
+	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
+	generalSettings->SetSpacing(0);
+	generalSettingsScroll->Add(generalSettings);
+	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
+
+    generalSettings->Add(new ItemHeader(ge->T("Sound ON/OFF, Retro theme ON/OFF")));
+
+    // -------- info --------
+    ViewGroup *infoSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	infoSettingsScroll->SetTag("GameSettingsInfo");
+	LinearLayout *infoSettings = new LinearLayout(ORIENT_VERTICAL);
+	infoSettings->SetSpacing(0);
+	infoSettingsScroll->Add(infoSettings);
+	tabHolder->AddTab(ge->T("Info"), infoSettingsScroll);
+    
+    infoSettings->Add(new ItemHeader(ge->T("Marley is a bundle of console emulators for x86_64 Linux systems.")));
+
+    
+    
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
 }

@@ -42,9 +42,12 @@
 #include "UI/MiscScreens.h"
 #include <SDL.h>
 
+void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
+void DrawBackgroundSimple(SCREEN_UIContext &dc);
+
 extern bool launch_request_from_screen_manager;
 extern std::string game_screen_manager;
-
+extern std::string gBaseDir;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
@@ -58,6 +61,13 @@ bool createDir(std::string name);
 SCREEN_MainScreen::~SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::~SCREEN_MainScreen() \n");
+}
+
+void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
+    std::string bgPng = gBaseDir + "screen_manager/beach.png";
+    
+    UISetBackground(dc,bgPng);
+    DrawBackgroundSimple(dc);
 }
 
 void SCREEN_MainScreen::CreateViews() {
@@ -93,8 +103,6 @@ void SCREEN_MainScreen::CreateViews() {
 	generalSettings->SetSpacing(0);
 	generalSettingsScroll->Add(generalSettings);
 	tabHolder->AddTab(ma->T("Play"), generalSettingsScroll);
-    
-    generalSettings->Add(new ItemHeader(ma->T("Welcome to Marley")));
 
     // game browser
     
