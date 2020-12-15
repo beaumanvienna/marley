@@ -76,6 +76,7 @@ bool bGridView1;
 bool bGridView2=true;
 bool searchDirAdded;
 std::string currentSearchPath;
+bool playSystemSounds;
 
 int calcExtraThreadsPCSX2()
 {
@@ -90,13 +91,32 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
 {
     searchDirAdded=false;
     printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
+    
+    // General
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::string line,str_dec;
+    std::string::size_type sz;   // alias of size_t
+
+    //if marley.cfg exists get value from there
+    std::ifstream marley_cfg_filehandle(marley_cfg);
+    if (marley_cfg_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_filehandle,line))
+        {
+            if(line.find("system_sounds") != std::string::npos)
+            {
+                playSystemSounds = (line.find("true") != std::string::npos);
+            }
+            marley_cfg_entries.push_back(line);
+        }
+        marley_cfg_filehandle.close();
+    }
+    
     // Dolphin
     inputVSyncDolphin = true;
     inputResDolphin = 1; // UI starts with 0, dolphin has 1 = native, 2 = 2x native
     
     std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
-    std::string line,str_dec;
-    std::string::size_type sz;   // alias of size_t
 
     //if GFX.ini exists get value from there
     std::ifstream GFX_ini_filehandle(GFX_ini);
@@ -580,6 +600,59 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
 {
     printf("jc: SCREEN_SettingsScreen::~SCREEN_SettingsScreen() \n");
     std::string str, line;
+    
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::ofstream marley_cfg_filehandle;
+    bool found_system_sounds = false;
+    // output marley.cfg
+    marley_cfg_filehandle.open(marley_cfg.c_str(), std::ios_base::out); 
+    if(marley_cfg_filehandle)
+    {
+        if (marley_cfg_entries.size())
+        {
+            for(int i=0; i<marley_cfg_entries.size(); i++)
+            {
+                line = marley_cfg_entries[i];
+                
+                if(line.find("system_sounds") != std::string::npos)
+                {
+                    found_system_sounds = true;
+                    if (playSystemSounds)
+                    {
+                        marley_cfg_filehandle << "system_sounds=true\n";
+                    }
+                    else
+                    {
+                        marley_cfg_filehandle << "system_sounds=false\n";
+                    }
+                } else
+                {
+                    if (line.find("search_dir_games=") == std::string::npos)
+                    {
+                        marley_cfg_filehandle << marley_cfg_entries[i] << "\n";
+                    }
+                }
+            }
+        }
+        if (!found_system_sounds)
+        {
+            if (playSystemSounds)
+            {
+                marley_cfg_filehandle << "system_sounds=true\n";
+            }
+            else
+            {
+                marley_cfg_filehandle << "system_sounds=false\n";
+            }
+        }
+        for (int i=0;i<gSearchDirectoriesGames.size();i++)
+        {
+            marley_cfg_filehandle << "search_dir_games=" << gSearchDirectoriesGames[i] << "\n";
+        }
+        
+        marley_cfg_filehandle.close();
+    }
+    
     std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
     std::ofstream GFX_ini_filehandle;
     
@@ -1371,7 +1444,13 @@ void SCREEN_SettingsScreen::CreateViews() {
 	generalSettingsScroll->Add(generalSettings);
 	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
 
-    generalSettings->Add(new ItemHeader(ge->T("Sound ON/OFF, Retro theme ON/OFF")));
+    generalSettings->Add(new ItemHeader(ge->T("General settings for Marley")));
+    
+    // -------- system sounds --------
+    CheckBox *vSystemSounds = generalSettings->Add(new CheckBox(&playSystemSounds, ge->T("Enable system sounds", "Enable system sounds")));
+    vSystemSounds->OnClick.Add([=](EventParams &e) {
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
 
     // -------- info --------
     ViewGroup *infoSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -1397,51 +1476,30 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnRenderingBackend(SCREEN_UI::Even
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_UI::EventParams &e) {
     
     std::string str, line;
-    std::vector<std::string> marley_cfg_entries;
-    std::string marley_cfg = gBaseDir + "marley.cfg";
-    std::ifstream marley_cfg_in_filehandle(marley_cfg);
-    std::ofstream marley_cfg_out_filehandle;
 
-    if (marley_cfg_in_filehandle.is_open())
+    for (int i=0;i<marley_cfg_entries.size();i++)
     {
-        while ( getline (marley_cfg_in_filehandle,line))
+        line = marley_cfg_entries[i];
+        std::string subStr, slash;
+        if (line.find("search_dir_games=") != std::string::npos)
         {
-            bool found = false;
-            std::string subStr, slash;
-            if (line.find("search_dir_games=") != std::string::npos)
-            {
-                subStr = line.substr(line.find("=")+1,line.length());
-                
-                // add slash to end if necessary
-                slash = subStr.substr(subStr.length()-1,1);
-                if (slash != "/")
-                {
-                    subStr += "/";
-                }
-                
-                found = (subStr == gSearchDirectoriesGames[inputSearchDirectories]);
-            }
-            printf("jc: subStr=%s, toDelete=%s, %d\n",subStr.c_str(),gSearchDirectoriesGames[inputSearchDirectories].c_str(),found);
+            subStr = line.substr(line.find("=")+1,line.length());
             
-            if (!found)
+            // add slash to end if necessary
+            slash = subStr.substr(subStr.length()-1,1);
+            if (slash != "/")
             {
-                marley_cfg_entries.push_back(line);
+                subStr += "/";
+            }
+            
+            if(subStr == gSearchDirectoriesGames[inputSearchDirectories])
+            {
+                marley_cfg_entries.erase(marley_cfg_entries.begin()+i);
+                break;
             }
         }
-        marley_cfg_in_filehandle.close();
     }
     
-    // output marley.cfg
-    marley_cfg_out_filehandle.open(marley_cfg.c_str(), std::ios_base::out); 
-    if(marley_cfg_out_filehandle)
-    {
-        for(int i=0; i<marley_cfg_entries.size(); i++)
-        {
-            marley_cfg_out_filehandle << marley_cfg_entries[i] << "\n";
-        }
-        
-        marley_cfg_out_filehandle.close();
-    }
     gSearchDirectoriesGames.erase(gSearchDirectoriesGames.begin()+inputSearchDirectories);
     searchAllFolders();
     RecreateViews();

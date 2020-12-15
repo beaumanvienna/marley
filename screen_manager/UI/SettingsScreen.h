@@ -60,11 +60,12 @@ private:
     // search
     int inputSearchDirectories;
     
-    // dolphin
+    // Dolphin
     int inputResDolphin;
     bool inputVSyncDolphin;
     std::vector<std::string> GFX_entries;
     
+    // PCSX2
     int inputBackend;
     int inputBios;
     int inputResPCSX2;
@@ -105,9 +106,9 @@ private:
     int  inputExtrathreads_sw;
     bool inputAnti_aliasing_sw;
     bool inputInterpreter;
-
-
-	void TriggerRestart(const char *why);
+    
+    // General
+    std::vector<std::string> marley_cfg_entries;
 
 	bool lastVertical_;
 	SCREEN_SettingInfoMessage *settingInfo_;

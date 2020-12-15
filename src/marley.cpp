@@ -69,6 +69,7 @@ extern int findAllFiles_counter;
 extern bool stopSearching;
 extern bool stopSearchingDuringSplash;
 extern SDL_TimerID splashTimer;
+extern bool playSystemSounds;
 bool gStartUp=true;
 
 //initializes SDL and creates main window
@@ -780,6 +781,7 @@ void loadConfig(ifstream* configFile)
     
     while (( getline (configFile[0],line)) && !stopSearching)
     {
+        printf("jc: line = %s\n",line.c_str());
         if (line.find("search_dir_firmware_PSX=") == 0)
         {
             pos=23;
@@ -792,7 +794,7 @@ void loadConfig(ifstream* configFile)
             {
                 printf("Could not find firmware path for PSX %s\n",entry.c_str());
             }
-        }
+        } else
         if (line.find("search_dir_games=") == 0)
         {
             pos=16;
@@ -802,9 +804,38 @@ void loadConfig(ifstream* configFile)
                 checkFirmwarePSX();
                 buildGameList();
             }
+        } else
+        if(line.find("system_sounds") != std::string::npos)
+        {
+            playSystemSounds = (line.find("true") != std::string::npos);
         }
     }
     configFile[0].close();
+}
+
+void loadConfigEarly(void)
+{
+    printf("jc: void loadConfigEarly(ifstream* configFile)\n");
+    bool found_system_sounds = false;
+    string line;
+
+    string marley_cfg = gBaseDir + "marley.cfg";
+
+    //if marley.cfg exists get value from there
+    ifstream marley_cfg_filehandle(marley_cfg);
+    if (marley_cfg_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_filehandle,line))
+        {
+            if(line.find("system_sounds") != std::string::npos)
+            {
+                found_system_sounds = true;
+                playSystemSounds = (line.find("true") != std::string::npos);
+            }
+        }
+        marley_cfg_filehandle.close();
+    }
+    if (!found_system_sounds) playSystemSounds = true;
 }
 
 bool setBaseDir(void)

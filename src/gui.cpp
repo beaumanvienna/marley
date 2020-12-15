@@ -36,8 +36,12 @@
 #include "SDL_mixer.h"
 
 #define SPLASHSCREEN_DURATION 5000
+
+void loadConfigEarly(void);
+
 bool splashScreenRunning = true;
 extern bool gStartUp;
+extern bool playSystemSounds;
 
 //rendering window 
 SDL_Window* gWindow = nullptr;
@@ -625,7 +629,8 @@ bool initGUI(void)
         render_splash("");
         init_audio();
         splashTimer =SDL_AddTimer(SPLASHSCREEN_DURATION,splash_callbackfunc,nullptr);
-        Mix_PlayChannel(-1, soundFile[0], 0);
+        loadConfigEarly();
+        if (playSystemSounds) Mix_PlayChannel(-1, soundFile[0], 0);
         SDL_DisableScreenSaver();
         setAppIcon();
     }
