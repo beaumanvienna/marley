@@ -83,7 +83,12 @@ void SCREEN_UpdateUIState(GlobalUIState newState) {
 }
 
 void UIBackgroundInit(SCREEN_UIContext &dc) {
-    UISetBackground(dc,gBaseDir + "screen_manager/beach.png");
+    std::string bgPng = gBaseDir + "screen_manager/beach.png";
+
+    if (SCREEN_PFile::Exists(bgPng)) {
+        const std::string &bgFile = bgPng;
+        bgTexture = CreateTextureFromFile(dc.GetSCREEN_DrawContext(), bgFile.c_str(), DETECT, true);
+    }
 }
 
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng) {

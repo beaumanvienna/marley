@@ -1063,7 +1063,7 @@ bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
     return file_exists;
 }
 
-void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved)
+void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved, bool recursiveSearch=true)
 {
     if (stopSearching) return;
     printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
@@ -1091,7 +1091,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
             str_with_path = directory;
             str_with_path +=ent->d_name;
             
-            if (isDirectory(str_with_path.c_str()))
+            if (isDirectory(str_with_path.c_str()) && (recursiveSearch))
             {
                 str_without_path =ent->d_name;
                 if ((str_without_path != ".") && (str_without_path != ".."))

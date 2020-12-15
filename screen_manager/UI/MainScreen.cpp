@@ -19,6 +19,7 @@
 #include "ppsspp_config.h"
 
 #include <algorithm>
+#include <list>
 
 #include "Common/KeyMap.h"
 #include "Common/GPU/OpenGL/GLFeatures.h"
@@ -44,10 +45,14 @@
 
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackgroundSimple(SCREEN_UIContext &dc);
+void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
+void stripList(std::list<std::string> *tmpList,std::list<std::string> *toBeRemoved);
+void finalizeList(std::list<std::string> *tmpList);
 
 extern bool launch_request_from_screen_manager;
 extern std::string game_screen_manager;
 extern std::string gBaseDir;
+extern bool stopSearching;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
@@ -568,20 +573,35 @@ void SCREEN_GameBrowser::Refresh() {
 
 	std::vector<std::string> filenames;
 	if (!listingPending_) {
-        printf("jc: if (!listingPending_)\n");
+        
+        std::list<std::string> tmpList;
+        std::list<std::string> toBeRemoved;
+        std::string pathToBeSearched;
+        std::string strList;
+        std::list<std::string>::iterator iteratorTmpList;
+        
+        pathToBeSearched = path_.GetPath();
+        stopSearching=false;
+        findAllFiles(pathToBeSearched.c_str(),&tmpList,&toBeRemoved,false);
+        stripList(&tmpList,&toBeRemoved); // strip cue file entries
+        finalizeList(&tmpList);
+        
+        iteratorTmpList = tmpList.begin();
+        for (int i=0;i<tmpList.size();i++)
+        {
+            strList = *iteratorTmpList;
+            iteratorTmpList++;
+            gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
+        }
+        
 		std::vector<FileInfo> fileInfo;
-		path_.GetListing(fileInfo, "iso:smc:iso:smd:bin:cue:z64:v64:nes:sfc:gba:gbc:wbfs:mdf");
+		path_.GetListing(fileInfo, "");
 		for (size_t i = 0; i < fileInfo.size(); i++) {
 			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
 					dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
 				}
-			} else
-            {
-                std::string str=fileInfo[i].fullName;
-                printf("jc: fileInfo[i].name=%s\n",str.c_str());
-                gameButtons.push_back(new SCREEN_GameButton(fileInfo[i].fullName, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
-            }
+			}
 		}
 	}
 
