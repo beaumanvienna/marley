@@ -1733,12 +1733,6 @@ bool SCREEN_DirBrowser::DisplayTopBar() {
     return true;
 }
 
-bool SCREEN_DirBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
-    printf("jc: bool SCREEN_DirBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
-
-	return false;
-}
-
 void SCREEN_DirBrowser::Update() {
 	LinearLayout::Update();
 	if (listingPending_ && path_.IsListingReady()) {

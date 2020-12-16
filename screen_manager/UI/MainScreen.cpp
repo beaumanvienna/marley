@@ -56,16 +56,78 @@ extern bool stopSearching;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
+std::string lastGamePath;
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
     launch_request_from_screen_manager=false;
+    
+    std::string str, line;
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::ifstream marley_cfg_in_filehandle(marley_cfg);
+    
+    if (marley_cfg_in_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_in_filehandle,line))
+        {
+            std::string subStr;
+            if (line.find("last_game_path=") != std::string::npos)
+            {
+                lastGamePath = line.substr(line.find_last_of("=") + 1);
+                if (!SCREEN_PFile::IsDirectory(lastGamePath))
+                  lastGamePath = getenv("HOME");
+            }
+        }
+        marley_cfg_in_filehandle.close();
+    }
 }
 bool createDir(std::string name);
 SCREEN_MainScreen::~SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::~SCREEN_MainScreen() \n");
+    
+    std::string str, line;
+    std::vector<std::string> marley_cfg_entries;
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::ifstream marley_cfg_in_filehandle(marley_cfg);
+    std::ofstream marley_cfg_out_filehandle;
+    bool found_last_game_path = false;
+    
+    if (marley_cfg_in_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_in_filehandle,line))
+        {
+            if (line.find("last_game_path=") != std::string::npos)
+            {
+                found_last_game_path = true;
+                str = "last_game_path=" + lastGamePath;
+                marley_cfg_entries.push_back(str);
+            }else
+            {
+                marley_cfg_entries.push_back(line);
+            }
+        }
+        if (!found_last_game_path)
+        {
+            str = "last_game_path=" + lastGamePath;
+            marley_cfg_entries.push_back(str);
+        }
+        marley_cfg_in_filehandle.close();
+    }
+    
+    // output marley.cfg
+    marley_cfg_out_filehandle.open(marley_cfg.c_str(), std::ios_base::out); 
+    if(marley_cfg_out_filehandle)
+    {
+        for(int i=0; i<marley_cfg_entries.size(); i++)
+        {
+            marley_cfg_out_filehandle << marley_cfg_entries[i] << "\n";
+        }
+        
+        marley_cfg_out_filehandle.close();
+    }
+    
 }
 
 void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
@@ -111,7 +173,7 @@ void SCREEN_MainScreen::CreateViews() {
 
     // game browser
     
-    searchDirBrowser = new SCREEN_GameBrowser(getenv("HOME"), SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
+    searchDirBrowser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
         ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
         new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
     generalSettings->Add(searchDirBrowser);
@@ -486,12 +548,6 @@ bool SCREEN_GameBrowser::DisplayTopBar() {
     return true;
 }
 
-bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) {
-    printf("jc: bool SCREEN_GameBrowser::HasSpecialFiles(std::vector<std::string> &filenames) %ld\n",filenames.size());
-
-	return false;
-}
-
 void SCREEN_GameBrowser::Update() {
 	LinearLayout::Update();
 	if (listingPending_ && path_.IsListingReady()) {
@@ -573,6 +629,7 @@ void SCREEN_GameBrowser::Refresh() {
 
 	std::vector<std::string> filenames;
 	if (!listingPending_) {
+        lastGamePath = path_.GetPath();
         
         std::list<std::string> tmpList;
         std::list<std::string> toBeRemoved;

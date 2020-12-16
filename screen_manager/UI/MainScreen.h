@@ -102,7 +102,6 @@ public:
 
 protected:
 	virtual bool DisplayTopBar();
-	virtual bool HasSpecialFiles(std::vector<std::string> &filenames);
 
 	void Refresh();
 
