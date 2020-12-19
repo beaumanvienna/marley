@@ -57,7 +57,7 @@ extern bool stopSearching;
 bool bGridViewMain1;
 bool bGridViewMain2=false;
 std::string lastGamePath;
-
+SCREEN_UI::TextView* gamesPathView;
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
@@ -166,8 +166,8 @@ void SCREEN_MainScreen::CreateViews() {
     topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
     topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
     topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
-    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-    topline->Add(new Choice(ma->T("Off"),    new LayoutParams(64, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
+    topline->Add(new Choice(ma->T("Off"),    new LayoutParams(64, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     
     verticalLayout->Add(new Spacer(200.0f));
   
@@ -187,8 +187,9 @@ void SCREEN_MainScreen::CreateViews() {
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     gameLauncherColumn->Add(topBar);
     topBar->SetTag("topBar");
-    topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-    topBar->Add(new TextView("here goes the current path", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT)));
+    topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
+    gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    topBar->Add(gamesPathView);
 
     // frame for scolling
     ViewGroup *gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -243,6 +244,20 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::Event
     printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
+
+SCREEN_UI::EventReturn SCREEN_MainScreen::HomeClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::HomeClick(SCREEN_UI::EventParams &e)\n");
+	ROM_browser->SetPath(getenv("HOME"));
+
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &e)\n");
+	screenManager()->push(new SCREEN_SettingsScreen());
+	return SCREEN_UI::EVENT_DONE;
+}
+
 
 SCREEN_MainInfoMessage::SCREEN_MainInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
@@ -565,13 +580,6 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
-	SetPath(getenv("HOME"));
-
-	return SCREEN_UI::EVENT_DONE;
-}
-
 bool SCREEN_GameBrowser::DisplayTopBar() {
     printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
     return true;
@@ -651,6 +659,7 @@ void SCREEN_GameBrowser::Refresh() {
 	std::vector<std::string> filenames;
 	if (!listingPending_) {
         lastGamePath = path_.GetPath();
+        gamesPathView->SetText(lastGamePath);
         
         std::list<std::string> tmpList;
         std::list<std::string> toBeRemoved;
@@ -747,12 +756,6 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParam
 
     SCREEN_System_SendMessage("finish", "");
 
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
-	screenManager_->push(new SCREEN_SettingsScreen());
 	return SCREEN_UI::EVENT_DONE;
 }
 

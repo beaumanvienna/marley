@@ -54,7 +54,8 @@ protected:
    	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
-
+    SCREEN_UI::EventReturn settingsClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
 
 private:
     
