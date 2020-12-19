@@ -145,42 +145,59 @@ void SCREEN_MainScreen::CreateViews() {
 	auto ma = GetI18NCategory("Main");
 
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
-
-	TabHolder *tabHolder;
+    root_->SetTag("root_");
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
-    tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
-    verticalLayout->Add(tabHolder);
-    verticalLayout->Add(new Choice(ma->T("Off"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    verticalLayout->SetTag("verticalLayout");
     root_->Add(verticalLayout);
-
-	tabHolder->SetTag("Main");
-	root_->SetDefaultFocusView(tabHolder);
-
-	float leftSide = 40.0f;
+    
+   	float leftSide = 40.0f;
 
 	settingInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
 	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingInfo_);
 
-	// -------- Main --------
-    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-	generalSettingsScroll->SetTag("MainScroll");
-	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
-	generalSettings->SetSpacing(0);
-	generalSettingsScroll->Add(generalSettings);
-	tabHolder->AddTab(ma->T("Play"), generalSettingsScroll);
+    verticalLayout->Add(new Spacer(10.0f));
+
+    LinearLayout *topline = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+    topline->SetTag("topLine");
+    verticalLayout->Add(topline);
+    
+    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
+    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
+    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
+    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    topline->Add(new Choice(ma->T("Off"),    new LayoutParams(64, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    
+    verticalLayout->Add(new Spacer(300.0f));
+  
+    // -------- Main Launcher --------
+    LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
+    verticalLayout->Add(gameLauncherMainFrame);
+    gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
+    gameLauncherMainFrame->Add(new Spacer((dp_xres - 20 - 900)/2));
+
+    ViewGroup *gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+	gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
+	LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
+    gameLauncherFrame->SetTag("gameLauncherFrame");
+	gameLauncherFrame->SetSpacing(0);
+	gameLauncherFrameScroll->Add(gameLauncherFrame);
+	gameLauncherMainFrame->Add(gameLauncherFrameScroll);
 
     // game browser
     
-    searchDirBrowser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
+    ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
         ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-        new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-    generalSettings->Add(searchDirBrowser);
+        new LinearLayoutParams(900, FILL_PARENT));
+    ROM_browser->SetTag("ROM_browser");
+    gameLauncherFrame->Add(ROM_browser);
     
-    searchDirBrowser->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-    searchDirBrowser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
-    searchDirBrowser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
+    ROM_browser->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    ROM_browser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
+    ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
+    
+    verticalLayout->Add(new Spacer(40.0f));
     
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
@@ -602,11 +619,10 @@ void SCREEN_GameBrowser::Refresh() {
 	auto mm = GetI18NCategory("MainMenu");
 	
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-
+    topBar->SetTag("topBar");
     topBar->Add(new Spacer(2.0f));
     topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
     topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-    topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::GridSettingsClick);
     Add(topBar);
 
     if (*gridStyle_) {

@@ -50,7 +50,7 @@ protected:
 	bool UseVerticalLayout() const;
     
     // game browser
-    SCREEN_GameBrowser *searchDirBrowser;
+    SCREEN_GameBrowser *ROM_browser;
    	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);

@@ -8,12 +8,16 @@
 #include <dirent.h>
 #include <algorithm>
 #include <vector>
+#include <list>
 
 using namespace std;
 
 int screen_manager_main(int argc, char* argv[]);
 bool isDirectory(const char *filename);
-
+vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs","mdf"};
+bool launch_request_from_screen_manager;
+string game_screen_manager;
+bool stopSearching;
 bool gSegaSaturn_firmware;
 bool found_jp_ps1;
 bool found_na_ps1;
@@ -34,6 +38,184 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 SDL_Window* gWindow = nullptr;
+
+void finalizeList(std::list<string> *tmpList)
+{
+    printf("jc: void finalizeList(std::list<string> *tmpList)\n");
+    list<string>::iterator iteratorTmpList;
+    string strList;
+    
+    iteratorTmpList = tmpList[0].begin();
+    
+    for (int i=0;i<tmpList[0].size();i++)
+    {
+        strList = *iteratorTmpList;
+        iteratorTmpList++;
+    }
+}
+
+
+void stripList(list<string> *tmpList,list<string> *toBeRemoved)
+{
+    printf("jc: void stripList(list<string> *tmpList,list<string> *toBeRemoved)\n");
+    list<string>::iterator iteratorTmpList;
+    list<string>::iterator iteratorToBeRemoved;
+    
+    string strRemove, strRemove_no_path, strList, strList_no_path;
+    int i,j;
+    
+    iteratorToBeRemoved = toBeRemoved[0].begin();
+    
+    for (i=0;i<toBeRemoved[0].size();i++)
+    {
+        strRemove = *iteratorToBeRemoved;
+        iteratorToBeRemoved++;
+        iteratorTmpList = tmpList[0].begin();
+        
+        strRemove_no_path = strRemove;
+        if(strRemove_no_path.find("/") != string::npos)
+        {
+            strRemove_no_path = strRemove.substr(strRemove_no_path.find_last_of("/") + 1);
+        }
+        
+        for (j=0;j<tmpList[0].size();j++)
+        {
+            strList = *iteratorTmpList;
+            
+            strList_no_path = strList;
+            if(strList_no_path.find("/") != string::npos)
+            {
+                strList_no_path = strList_no_path.substr(strList_no_path.find_last_of("/") + 1);
+            }
+
+            if ( strRemove_no_path == strList_no_path )
+            {
+                tmpList[0].erase(iteratorTmpList++);
+            }
+            else
+            {
+                iteratorTmpList++;
+            }
+        }
+    }
+}
+
+bool exists(const char *filename)
+{
+    printf("jc: bool exists(const char *fileName=%s)\n",filename);
+    ifstream infile(filename);
+    return infile.good();
+}
+
+bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
+{
+    printf("jc: bool checkForCueFiles(string str_with_path=%s,std::list<string> *toBeRemoved)\n",str_with_path.c_str());
+    string line, name;
+    bool file_exists = false;
+
+    ifstream cueFile (str_with_path.c_str());
+    if (!cueFile.is_open())
+    {
+        printf("Could not open cue file: %s\n",str_with_path.c_str());
+    }
+    else 
+    {
+        while ( getline (cueFile,line))
+        {
+            if (line.find("FILE") != string::npos)
+            {
+                str_with_path.substr(str_with_path.find_last_of(".") + 1);
+                
+                int start  = line.find("\"")+1;
+                int length = line.find_last_of("\"")-start;
+                name = line.substr(start,length);
+                
+                string name_with_path = name;
+                if (str_with_path.find("/") != string::npos)
+                {
+                    name_with_path = str_with_path.substr(0,str_with_path.find_last_of("/")+1) + name;
+                }
+
+                if (exists(name.c_str()) || (exists(name_with_path.c_str())))
+                {
+                    toBeRemoved[0].push_back(name);
+                    file_exists = true;
+                } else return false;
+            }
+        }
+    }
+    return file_exists;
+}
+
+void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved, bool recursiveSearch=true)
+{
+    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
+ 
+    string str_with_path, str_without_path;
+    string ext, str_with_path_lower_case;
+    DIR *dir;
+    
+    struct dirent *ent;
+    if ((dir = opendir (directory)) != NULL) 
+    {
+        // search all files and directories in directory
+        while (((ent = readdir (dir)) != NULL))
+        {
+            str_with_path = directory;
+            str_with_path +=ent->d_name;
+            
+            if (isDirectory(str_with_path.c_str()) && (recursiveSearch))
+            {
+                str_without_path =ent->d_name;
+                if ((str_without_path != ".") && (str_without_path != ".."))
+                {
+                    str_with_path +="/";
+                    findAllFiles(str_with_path.c_str(),tmpList,toBeRemoved);
+                }
+            }
+            else
+            {
+                ext = str_with_path.substr(str_with_path.find_last_of(".") + 1);
+                
+                std::transform(ext.begin(), ext.end(), ext.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                str_with_path_lower_case=str_with_path;
+                std::transform(str_with_path_lower_case.begin(), str_with_path_lower_case.end(), str_with_path_lower_case.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+                
+                for (int i=0;i<gFileTypes.size();i++)
+                {
+                    if ((ext == gFileTypes[i])  && \
+                        (str_with_path_lower_case.find("battlenet") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("ps3") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("ps4") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("xbox") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("bios") ==  string::npos) &&\
+                        (str_with_path_lower_case.find("firmware") ==  string::npos))
+                    {
+                        if (ext == "mdf")
+                        {
+                            string bin_file;
+                            bin_file = str_with_path.substr(0,str_with_path.find_last_of(".")) + ".bin";
+                            if (!exists(bin_file.c_str())) tmpList[0].push_back(str_with_path);
+                        }
+                        else if (ext == "cue")
+                        {
+                            if(checkForCueFiles(str_with_path,toBeRemoved)) 
+                              tmpList[0].push_back(str_with_path);
+                        }
+                        else
+                        {
+                            tmpList[0].push_back(str_with_path);
+                        }
+                    }
+                }
+            }
+        }
+        closedir (dir);
+    } 
+}
 
 bool setPathToGames(string str)
 {
