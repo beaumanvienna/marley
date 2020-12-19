@@ -169,21 +169,35 @@ void SCREEN_MainScreen::CreateViews() {
     topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
     topline->Add(new Choice(ma->T("Off"),    new LayoutParams(64, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
     
-    verticalLayout->Add(new Spacer(300.0f));
+    verticalLayout->Add(new Spacer(200.0f));
   
-    // -------- Main Launcher --------
+    // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
     gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
     gameLauncherMainFrame->Add(new Spacer((dp_xres - 20 - 900)/2));
+    
+    // vetical layout for the game browser's top bar and the scroll view
+    Margins mgn(0,0,0,75);
+    LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 300, 0.0f,G_TOPLEFT, mgn));
+    gameLauncherMainFrame->Add(gameLauncherColumn);
+    gameLauncherColumn->SetTag("gameLauncherColumn");
+    
+    // game browser's top bar
+    LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+    gameLauncherColumn->Add(topBar);
+    topBar->SetTag("topBar");
+    topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+    topBar->Add(new TextView("here goes the current path", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT)));
 
+    // frame for scolling
     ViewGroup *gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
 	gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
 	LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
     gameLauncherFrame->SetTag("gameLauncherFrame");
 	gameLauncherFrame->SetSpacing(0);
 	gameLauncherFrameScroll->Add(gameLauncherFrame);
-	gameLauncherMainFrame->Add(gameLauncherFrameScroll);
+	gameLauncherColumn->Add(gameLauncherFrameScroll);
 
     // game browser
     
@@ -196,8 +210,6 @@ void SCREEN_MainScreen::CreateViews() {
     ROM_browser->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
     ROM_browser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
     ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
-    
-    verticalLayout->Add(new Spacer(40.0f));
     
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
@@ -618,13 +630,6 @@ void SCREEN_GameBrowser::Refresh() {
 	Add(new Spacer(1.0f));
 	auto mm = GetI18NCategory("MainMenu");
 	
-    LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-    topBar->SetTag("topBar");
-    topBar->Add(new Spacer(2.0f));
-    topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
-    topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_GameBrowser::HomeClick);
-    Add(topBar);
-
     if (*gridStyle_) {
         gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
         Add(gameList_);
