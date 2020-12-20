@@ -42,7 +42,7 @@
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include <SDL.h>
-
+#define FILE_BROWSER_WIDTH 900.0f
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackgroundSimple(SCREEN_UIContext &dc);
 void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
@@ -163,22 +163,23 @@ void SCREEN_MainScreen::CreateViews() {
     topline->SetTag("topLine");
     verticalLayout->Add(topline);
     
-    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
-    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
-    topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));topline->Add(new Spacer(64.0f));
-    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
-    topline->Add(new Choice(ma->T("Off"),    new LayoutParams(64, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
     
-    verticalLayout->Add(new Spacer(200.0f));
+    topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-138.0f,0.0f));
+    
+    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
+    topline->Add(new Choice(ImageID("I_OFF"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    
+    verticalLayout->Add(new Spacer(235.0f));
   
     // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
     gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
-    gameLauncherMainFrame->Add(new Spacer((dp_xres - 20 - 900)/2));
+    gameLauncherMainFrame->Add(new Spacer(leftMargin));
     
     // vetical layout for the game browser's top bar and the scroll view
-    Margins mgn(0,0,0,75);
+    Margins mgn(0,0,0,94);
     LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 300, 0.0f,G_TOPLEFT, mgn));
     gameLauncherMainFrame->Add(gameLauncherColumn);
     gameLauncherColumn->SetTag("gameLauncherColumn");
@@ -187,8 +188,9 @@ void SCREEN_MainScreen::CreateViews() {
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     gameLauncherColumn->Add(topBar);
     topBar->SetTag("topBar");
-    topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
-    gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    //topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
+    topBar->Add(new Choice(ImageID("I_HOME"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
+    gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
     topBar->Add(gamesPathView);
 
     // frame for scolling
@@ -204,7 +206,7 @@ void SCREEN_MainScreen::CreateViews() {
     
     ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
         ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-        new LinearLayoutParams(900, FILL_PARENT));
+        new LinearLayoutParams(FILE_BROWSER_WIDTH, FILL_PARENT));
     ROM_browser->SetTag("ROM_browser");
     gameLauncherFrame->Add(ROM_browser);
     
@@ -667,6 +669,7 @@ void SCREEN_GameBrowser::Refresh() {
         {
             strList = *iteratorTmpList;
             iteratorTmpList++;
+            strList = strList.substr(0,strList.find_last_of("."));
             gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
         }
         

@@ -19,33 +19,35 @@ appicon_DATA = resources/marley.ico
 
 #additional make clean targets
 clean-local:
-	-rm -rf confdefs.h
-	-rm -rf tests/.debug_build
-	-rm -rf resources/dolphin_data_sys.zip
-	-rm -rf resources/pcsx2
-	-rm -rf resources/*.cpp
-	-rm -rf resources/*.h
-	-rm -rf resources/ppsspp_assets.zip
-	-rm -rf ppsspp/ffmpeg/libavutil/*.o
-	-rm -rf ppsspp/ffmpeg/libswscale/*.o
-	-rm -rf ppsspp/ffmpeg/libavcodec/*.o
-	-rm -rf ppsspp/ffmpeg/libavformat/*.o
-	-rm -rf ppsspp/ffmpeg/libswresample/*.o
-	-rm -rf ppsspp/ffmpeg/libavutil/*.a
-	-rm -rf ppsspp/ffmpeg/libswscale/*.a
-	-rm -rf ppsspp/ffmpeg/libavcodec/*.a
-	-rm -rf ppsspp/ffmpeg/libavformat/*.a
-	-rm -rf ppsspp/ffmpeg/libswresample/*.a
-	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavutil.a
-	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavformat.a
-	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswscale.a
-	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswresample.a
-	-rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavcodec.a
-	-rm -rf ppsspp/ffmpeg/libavutil/x86/*.o
-	-rm -rf ppsspp/ffmpeg/libswscale/x86/*.o
-	-rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
-	-rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
-	-rm -rf ppsspp/ffmpeg/libswresample/x86/*.o
+	rm -rf confdefs.h
+	rm -rf tests/.debug_build
+	rm -rf resources/dolphin_data_sys.zip
+	rm -rf resources/pcsx2
+	rm -rf resources/*.cpp
+	rm -rf resources/*.h
+	rm -rf resources/ppsspp_assets.zip
+	rm -rf ppsspp/ffmpeg/libavutil/*.o
+	rm -rf ppsspp/ffmpeg/libswscale/*.o
+	rm -rf ppsspp/ffmpeg/libavcodec/*.o
+	rm -rf ppsspp/ffmpeg/libavformat/*.o
+	rm -rf ppsspp/ffmpeg/libswresample/*.o
+	rm -rf ppsspp/ffmpeg/libavutil/*.a
+	rm -rf ppsspp/ffmpeg/libswscale/*.a
+	rm -rf ppsspp/ffmpeg/libavcodec/*.a
+	rm -rf ppsspp/ffmpeg/libavformat/*.a
+	rm -rf ppsspp/ffmpeg/libswresample/*.a
+	rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavutil.a
+	rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavformat.a
+	rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswscale.a
+	rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libswresample.a
+	rm -rf ppsspp/ffmpeg/linux/x86_64/lib/libavcodec.a
+	rm -rf ppsspp/ffmpeg/libavutil/x86/*.o
+	rm -rf ppsspp/ffmpeg/libswscale/x86/*.o
+	rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
+	rm -rf ppsspp/ffmpeg/libavcodec/x86/*.o
+	rm -rf ppsspp/ffmpeg/libswresample/x86/*.o
+	rm -rf ppsspp/assets/ui_atlas.meta ppsspp/assets/ui_atlas.zim
+	rm -rf ppsspp/ext/native/tools/build
 
 #front end compiler settings
 if DEBUG
@@ -69,12 +71,26 @@ resources/res.cpp: resources/res.xml resources/res.h @RESOURCE_LIST@
 resources/res.h: resources/res.xml @RESOURCE_LIST@ resources/ppsspp_assets.zip resources/dolphin_data_sys.zip
 	glib-compile-resources resources/res.xml --target=resources/res.h --sourcedir=resources/ --generate-header
 
-resources/ppsspp_assets.zip: 
+ppsspp/assets/ui_atlas.zim: atlas
+ppsspp/assets/ui_atlas.meta: atlas
+ppsspp/ext/native/tools/build/atlastool: atlas
+
+atlas: ppsspp
+	$(info   ++++++++++++++++ atlas ++++++++++++++++)
+	cd ppsspp && ./buildatlas.sh
+
+resources/ppsspp_assets.zip: ppsspp/ext/native/tools/build/atlastool ppsspp/assets/ui_atlas.meta ppsspp/assets/ui_atlas.zim
 	cd ppsspp && zip -r ../resources/ppsspp_assets.zip assets && cd ..
 
 resources/dolphin_data_sys.zip: 
 	cd dolphin && zip -r ../resources/dolphin_data_sys.zip Data/sys && cd ..
-	
+
+#ppsspp
+
+ppsspp:
+	$(info   ++++++++++++++++ pppsspp ++++++++++++++++)
+	$(MAKE) -C ppsspp all
+
 #pcsx2
 
 pcsx2/build/pcsx2/libPCSX2.a: pcsx2
@@ -322,3 +338,4 @@ marley_LDADD 	+= -lxcb
 marley_LDADD 	+= -lX11-xcb
 marley_LDADD 	+= -lSoundTouch
 
+.PHONY: atlas

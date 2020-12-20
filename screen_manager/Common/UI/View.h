@@ -792,15 +792,18 @@ private:
 class Spacer : public InertView {
 public:
 	Spacer(LayoutParams *layoutParams = 0)
-		: InertView(layoutParams), size_(0.0f) {}
+		: InertView(layoutParams), w_(0.0f), h_(0.0f) {}
 	Spacer(float size, LayoutParams *layoutParams = 0)
-		: InertView(layoutParams), size_(size) {}
+		: InertView(layoutParams), w_(size), h_(size) {}
+	Spacer(float w, float h, LayoutParams *layoutParams = 0)
+		: InertView(layoutParams), w_(w), h_(h) {}
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override {
-		w = size_; h = size_;
+		w = w_; h = h_;
 	}
 	void Draw(SCREEN_UIContext &dc) override {}
 private:
-	float size_;
+	float w_;
+    float h_;
 };
 
 class TextView : public InertView {

@@ -404,3 +404,11 @@ confdefs.h
 GSdx_opengl_debug_sw.txt
 screen_manager/build
 tests/screen_manager/SCREEN_MAN
+ppsspp/ext/native/tools/build/
+ppsspp/ui_atlas.zim 
+ppsspp/ui_atlas.meta
+ppsspp/ui_atlas.cpp 
+ppsspp/ui_atlas.h
+ppsspp/ui_atlas.zim.png
+ppsspp/assets/ui_atlas.meta 
+ppsspp/assets/ui_atlas.zim
