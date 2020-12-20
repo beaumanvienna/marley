@@ -95,14 +95,12 @@ public:
 	SCREEN_UI::Event OnHoldChoice;
 	SCREEN_UI::Event OnHighlight;
 
-	void FocusGame(const std::string &gamePath);
 	void SetPath(const std::string &path);
     std::string GetPath();
 	void Draw(SCREEN_UIContext &dc) override;
 	void Update() override;
 
 protected:
-	virtual bool DisplayTopBar();
 
 	void Refresh();
 

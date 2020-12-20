@@ -212,6 +212,8 @@ void SCREEN_MainScreen::CreateViews() {
     ROM_browser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
     ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
     
+    root_->SetDefaultFocusView(ROM_browser);
+    
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
 }
@@ -554,13 +556,6 @@ SCREEN_GameBrowser::~SCREEN_GameBrowser() {
     printf("jc: SCREEN_GameBrowser::~SCREEN_GameBrowser()\n");
 }
 
-void SCREEN_GameBrowser::FocusGame(const std::string &gamePath) {
-    printf("jc: void SCREEN_GameBrowser::FocusGame(const std::string &gamePath)\n");
-	focusGamePath_ = gamePath;
-	Refresh();
-	focusGamePath_.clear();
-}
-
 void SCREEN_GameBrowser::SetPath(const std::string &path) {
     printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
@@ -578,11 +573,6 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &
 	*gridStyle_ = e.a == 0 ? true : false;
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
-}
-
-bool SCREEN_GameBrowser::DisplayTopBar() {
-    printf("jc: bool SCREEN_GameBrowser::DisplayTopBar()\n");
-    return true;
 }
 
 void SCREEN_GameBrowser::Update() {
@@ -640,14 +630,13 @@ void SCREEN_GameBrowser::Refresh() {
 	
     if (*gridStyle_) {
         gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-        Add(gameList_);
     } else {
         SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
         gl->SetSpacing(4.0f);
         gameList_ = gl;
-        Add(gameList_);
     }
-
+    Add(gameList_);
+    
     // Show games in the current directory
 	std::vector<SCREEN_GameButton *> gameButtons;
 
@@ -693,9 +682,12 @@ void SCREEN_GameBrowser::Refresh() {
 	}
 
 	if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
-		gameList_->Add(new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
-			OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
-
+        if (lastGamePath != "/")
+        {
+            SCREEN_DirButtonMain* UP_button = new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT));
+            UP_button->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
+            gameList_->Add(UP_button);
+        }
 	}
 
 	if (listingPending_) {
@@ -705,7 +697,7 @@ void SCREEN_GameBrowser::Refresh() {
    	for (size_t i = 0; i < gameButtons.size(); i++) {
 		gameList_->Add(gameButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::GameButtonClick);
 	}
-
+    
 	for (size_t i = 0; i < dirButtons.size(); i++) {
         std::string str = dirButtons[i]->GetPath();
 		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
@@ -739,7 +731,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams 
 	std::string text = button->GetPath();
 	if (button->PathAbsolute()) {
 		path_.SetPath(text);
-	} else {
+	} else { // cd ..
 		path_.Navigate(text);
 	}
 	Refresh();
