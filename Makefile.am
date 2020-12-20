@@ -75,7 +75,7 @@ ppsspp/assets/ui_atlas.zim: atlas
 ppsspp/assets/ui_atlas.meta: atlas
 ppsspp/ext/native/tools/build/atlastool: atlas
 
-atlas: ppsspp
+atlas: ppsspp/build/lib/libCommon.a
 	$(info   ++++++++++++++++ atlas ++++++++++++++++)
 	cd ppsspp && ./buildatlas.sh
 
@@ -87,7 +87,7 @@ resources/dolphin_data_sys.zip:
 
 #ppsspp
 
-ppsspp:
+ppsspp/build/lib/libCommon.a:
 	$(info   ++++++++++++++++ pppsspp ++++++++++++++++)
 	$(MAKE) -C ppsspp all
 
