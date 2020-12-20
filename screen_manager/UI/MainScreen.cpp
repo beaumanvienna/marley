@@ -425,8 +425,10 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
 	if (!IsEnabled()) style = dc.theme->buttonDisabledStyle;
 
 	dc.FillRect(style.background, bounds_);
-
-	const std::string text = gamePath_.substr(gamePath_.find_last_of("/") + 1);
+    
+    int startChar = gamePath_.find_last_of("/") + 1;  //show only file name
+    int endChar = gamePath_.find_last_of("."); // remove extension
+	const std::string text = gamePath_.substr(startChar,endChar-startChar);
 
 	ImageID image = ImageID("I_CIRCLE");
 
@@ -669,7 +671,6 @@ void SCREEN_GameBrowser::Refresh() {
         {
             strList = *iteratorTmpList;
             iteratorTmpList++;
-            strList = strList.substr(0,strList.find_last_of("."));
             gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
         }
         
