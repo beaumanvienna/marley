@@ -772,7 +772,7 @@ void TextView::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpe
 		bounds.h = vert.size == 0 ? MAX_ITEM_SIZE : vert.size;
 	}
 	ApplyBoundsBySpec(bounds, horiz, vert);
-	dc.MeasureTextRect(small_ ? dc.theme->uiFontSmall : dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
+	dc.MeasureTextRect(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller, 1.0f, 1.0f, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
 }
 
 void TextView::Draw(SCREEN_UIContext &dc) {
@@ -798,10 +798,10 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 		style.background.color &= 0x7fffffff;
 		dc.FillRect(style.background, bounds_);
 	}
-	dc.SetFontStyle(small_ ? dc.theme->uiFontSmall : dc.theme->uiFont);
+	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
 	if (shadow_) {
-		uint32_t shadowColor = 0x80000000;
-		dc.DrawTextRect(text_.c_str(), bounds_.Offset(1.0f, 1.0f), shadowColor, textAlign_);
+		uint32_t shadowColor = 0xFF000000;
+		dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f, 2.0f), shadowColor, textAlign_);
 	}
 	dc.DrawTextRect(text_.c_str(), bounds_, textColor, textAlign_);
 	if (clip) {

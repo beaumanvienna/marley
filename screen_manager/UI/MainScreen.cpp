@@ -42,7 +42,7 @@
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include <SDL.h>
-#define FILE_BROWSER_WIDTH 900.0f
+#define FILE_BROWSER_WIDTH 1006.0f
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackgroundSimple(SCREEN_UIContext &dc);
 void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
@@ -53,6 +53,7 @@ extern bool launch_request_from_screen_manager;
 extern std::string game_screen_manager;
 extern std::string gBaseDir;
 extern bool stopSearching;
+extern int gTheme;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
@@ -166,11 +167,13 @@ void SCREEN_MainScreen::CreateViews() {
     float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
     
     topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-138.0f,0.0f));
+    ImageID icon;
+    if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
+    topline->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
+    if (gTheme == THEME_RETRO) icon = ImageID("I_OFF_R"); else icon = ImageID("I_OFF");
+    topline->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     
-    topline->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
-    topline->Add(new Choice(ImageID("I_OFF"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
-    
-    verticalLayout->Add(new Spacer(235.0f));
+    verticalLayout->Add(new Spacer(233.0f));
   
     // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
@@ -188,9 +191,15 @@ void SCREEN_MainScreen::CreateViews() {
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     gameLauncherColumn->Add(topBar);
     topBar->SetTag("topBar");
-    //topBar->Add(new Choice(ma->T("Home"), new LayoutParams(WRAP_CONTENT, 40.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
-    topBar->Add(new Choice(ImageID("I_HOME"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
+    if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
+    topBar->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
     gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
+    
+    if (gTheme == THEME_RETRO) 
+    {
+        gamesPathView->SetTextColor(0xFFde51e0);
+        gamesPathView->SetShadow(true);
+    }
     topBar->Add(gamesPathView);
 
     // frame for scolling
@@ -429,8 +438,8 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
     int startChar = gamePath_.find_last_of("/") + 1;  //show only file name
     int endChar = gamePath_.find_last_of("."); // remove extension
 	const std::string text = gamePath_.substr(startChar,endChar-startChar);
-
-	ImageID image = ImageID("I_CIRCLE");
+    
+	ImageID image = ImageID("I_BARREL");
 
 	float tw, th;
 	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
@@ -451,6 +460,8 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
 			scissor = true;
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        if (gTheme == THEME_RETRO)
+            dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {
@@ -508,10 +519,13 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 	dc.FillRect(style.background, bounds_);
 
 	const std::string text = GetText();
-
-	ImageID image = ImageID("I_FOLDER");
+    
+    bool isRegularFolder = true;
+	ImageID image;
+    if (gTheme == THEME_RETRO) image = ImageID("I_FOLDER_R"); else image = ImageID("I_FOLDER");
 	if (text == "..") {
-		image = ImageID("I_UP_DIRECTORY");
+        isRegularFolder = false;
+        if (gTheme == THEME_RETRO) image = ImageID("I_UP_DIRECTORY_R"); else image = ImageID("I_UP_DIRECTORY");
 	}
 
 	float tw, th;
@@ -525,8 +539,9 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 	if (compact) {
 		// No icon, except "up"
 		dc.PushScissor(bounds_);
-		if (image == ImageID("I_FOLDER")) {
-			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+		if (isRegularFolder) {
+			dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+            dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 		} else {
 			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
 		}
@@ -538,6 +553,8 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 			scissor = true;
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        if (gTheme == THEME_RETRO)
+          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {
@@ -671,7 +688,7 @@ void SCREEN_GameBrowser::Refresh() {
         {
             strList = *iteratorTmpList;
             iteratorTmpList++;
-            gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, SCREEN_UI::WRAP_CONTENT)));
+            gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, 50.0f)));
         }
         
 		std::vector<FileInfo> fileInfo;
@@ -679,7 +696,7 @@ void SCREEN_GameBrowser::Refresh() {
 		for (size_t i = 0; i < fileInfo.size(); i++) {
 			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
-					dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+					dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 50.0f)));
 				}
 			}
 		}
@@ -688,7 +705,7 @@ void SCREEN_GameBrowser::Refresh() {
 	if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
         if (lastGamePath != "/")
         {
-            SCREEN_DirButtonMain* UP_button = new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT));
+            SCREEN_DirButtonMain* UP_button = new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 50.0f));
             UP_button->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
             gameList_->Add(UP_button);
         }

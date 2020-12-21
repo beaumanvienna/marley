@@ -26,7 +26,7 @@ mednafen/po/remove-potcdate.sed
 mednafen/ar-lib
 src/emu.o
 src/*.o
-dolphin/build/
+build
 mupen64plus/Source/audio-sdl/_obj/
 mupen64plus/Source/audio-sdl/mupen64plus-audio-sdl.a
 mupen64plus/Source/core/_obj/
@@ -43,11 +43,9 @@ mupen64plus/Source/mupen.a
 mupen64plus/Source/core/asm_defines/asm_defines_gas.h
 mupen64plus/Source/core/asm_defines/asm_defines_nasm.h
 mupen64plus/Source/ui-console/mupen64plus.a
-ppsspp/build/
-assets
+./assets
 save
 GSdx_opengl_debug_hw.txt
-pcsx2/build/
 tests/pcsx2/PCSX2
 tests/ppsspp/PPSSPP
 tests/mednafen/MEDNAFEN
@@ -402,9 +400,7 @@ ppsspp/ffmpeg/linux/x86_64/include/libavutil/ffversion.h
 tests/.debug_build
 confdefs.h
 GSdx_opengl_debug_sw.txt
-screen_manager/build
 tests/screen_manager/SCREEN_MAN
-ppsspp/ext/native/tools/build/
 ppsspp/ui_atlas.zim 
 ppsspp/ui_atlas.meta
 ppsspp/ui_atlas.cpp 

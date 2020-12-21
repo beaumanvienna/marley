@@ -77,6 +77,7 @@ bool bGridView2=true;
 bool searchDirAdded;
 std::string currentSearchPath;
 bool playSystemSounds;
+int gTheme = THEME_RETRO;
 
 int calcExtraThreadsPCSX2()
 {
@@ -106,6 +107,16 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
             if(line.find("system_sounds") != std::string::npos)
             {
                 playSystemSounds = (line.find("true") != std::string::npos);
+            } 
+            else if(line.find("ui_theme") != std::string::npos)
+            {
+                if (line.find("PC") != std::string::npos)
+                {
+                    gTheme = THEME_PC;
+                } else
+                {
+                    gTheme = THEME_RETRO;
+                }
             }
             marley_cfg_entries.push_back(line);
         }
@@ -604,6 +615,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
     std::string marley_cfg = gBaseDir + "marley.cfg";
     std::ofstream marley_cfg_filehandle;
     bool found_system_sounds = false;
+    bool found_ui_theme = false;
     // output marley.cfg
     marley_cfg_filehandle.open(marley_cfg.c_str(), std::ios_base::out); 
     if(marley_cfg_filehandle)
@@ -625,6 +637,18 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
                     {
                         marley_cfg_filehandle << "system_sounds=false\n";
                     }
+                } 
+                else if(line.find("ui_theme") != std::string::npos)
+                {
+                    found_ui_theme = true;
+                    if (gTheme == THEME_PC)
+                    {
+                        marley_cfg_filehandle << "ui_theme=PC\n";
+                    }
+                    else
+                    {
+                        marley_cfg_filehandle << "ui_theme=Retro\n";
+                    }
                 } else
                 {
                     if (line.find("search_dir_games=") == std::string::npos)
@@ -643,6 +667,17 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
             else
             {
                 marley_cfg_filehandle << "system_sounds=false\n";
+            }
+        }
+        if (!found_ui_theme)
+        {
+            if (gTheme == THEME_PC)
+            {
+                marley_cfg_filehandle << "ui_theme=PC\n";
+            }
+            else
+            {
+                marley_cfg_filehandle << "ui_theme=Retro\n";
             }
         }
         for (int i=0;i<gSearchDirectoriesGames.size();i++)
@@ -939,7 +974,11 @@ void SCREEN_SettingsScreen::CreateViews() {
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
     verticalLayout->Add(tabHolder);
-    verticalLayout->Add(new Choice(ge->T("Back"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    
+    ImageID icon;
+    if (gTheme == THEME_RETRO) icon = ImageID("I_BACK_R"); else icon = ImageID("I_BACK");
+    verticalLayout->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);;
+
     root_->Add(verticalLayout);
 
 	tabHolder->SetTag("GameSettings");
@@ -958,8 +997,6 @@ void SCREEN_SettingsScreen::CreateViews() {
 	searchSettings->SetSpacing(0);
 	searchSettingsScroll->Add(searchSettings);
 	tabHolder->AddTab(ge->T("Search Path"), searchSettingsScroll);
-    
-    searchSettings->Add(new ItemHeader(ge->T("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.")));
 
     // game browser
     
@@ -978,45 +1015,45 @@ void SCREEN_SettingsScreen::CreateViews() {
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps1) 
-      searchSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps1) 
-      searchSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_eu_ps1) 
-      searchSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_na_ps2) 
-      searchSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (found_jp_ps2) 
-      searchSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
 
     if (found_eu_ps2) 
-      searchSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
     searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
     
     if (gSegaSaturn_firmware)
-      searchSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
+      searchSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
-      searchSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
+      searchSettings->Add(new TextView("            Sega Saturn bios file: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
 
     // -------- delete search path entry --------
     searchSettings->Add(new ItemHeader(ge->T("")));
@@ -1451,6 +1488,15 @@ void SCREEN_SettingsScreen::CreateViews() {
     vSystemSounds->OnClick.Add([=](EventParams &e) {
         return SCREEN_UI::EVENT_CONTINUE;
     });
+    
+    // -------- theme --------
+    static const char *ui_theme[] = {
+        "Retro",
+        "PC"};
+                        
+    SCREEN_PopupMultiChoice *ui_themeChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&gTheme, ge->T("User interface theme"), ui_theme, 0, ARRAY_SIZE(ui_theme), ge->GetName(), screenManager()));
+    ui_themeChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
+
 
     // -------- info --------
     ViewGroup *infoSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
@@ -1643,12 +1689,17 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 	dc.FillRect(style.background, bounds_);
 
 	const std::string text = GetText();
-
-	ImageID image = ImageID("I_FOLDER");
+    
+    bool isRegularFolder = true;
+	ImageID image;
+    if (gTheme == THEME_RETRO) image = ImageID("I_FOLDER_R"); else image = ImageID("I_FOLDER");
 	if (text == "..") {
-		image = ImageID("I_UP_DIRECTORY");
+        isRegularFolder = false;
+        if (gTheme == THEME_RETRO) image = ImageID("I_UP_DIRECTORY_R"); else image = ImageID("I_UP_DIRECTORY");
 	}
-
+    
+    dc.SetFontStyle(dc.theme->uiFontSmall);
+    
 	float tw, th;
 	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
 
@@ -1660,7 +1711,9 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 	if (compact) {
 		// No icon, except "up"
 		dc.PushScissor(bounds_);
-		if (image == ImageID("I_FOLDER")) {
+		if (isRegularFolder) {
+            if (gTheme == THEME_RETRO)
+              dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
 			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 		} else {
 			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
@@ -1673,6 +1726,8 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 			scissor = true;
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        if (gTheme == THEME_RETRO)
+          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {
@@ -1789,17 +1844,47 @@ void SCREEN_DirBrowser::Refresh() {
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 
     topBar->Add(new Spacer(2.0f));
-    topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+    
+    // display working directory
+    uint32_t textColor;
+    if (gTheme == THEME_RETRO) textColor = 0xFFde51e0; else textColor = 0xFFFFFFFF;
+    TextView* workingDirectory;
+    workingDirectory = new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f));
+    
+    if (gTheme == THEME_RETRO) 
+    {
+        workingDirectory->SetTextColor(textColor);
+        workingDirectory->SetShadow(true);
+    }
+    topBar->Add(workingDirectory);
+    
     currentSearchPath=path_.GetPath();
-    topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
+    ImageID icon;
+    if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
+    topBar->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
 
     ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
-    layoutChoice->AddChoice(ImageID("I_GRID"));
-    layoutChoice->AddChoice(ImageID("I_LINES"));
+    
+    if (gTheme == THEME_RETRO) icon = ImageID("I_GRID_R"); else icon = ImageID("I_GRID");
+    layoutChoice->AddChoice(icon);
+    if (gTheme == THEME_RETRO) icon = ImageID("I_LINES_R"); else icon = ImageID("I_LINES");
+    layoutChoice->AddChoice(icon);
     layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
     layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
     
     Add(topBar);
+    
+    // info text
+    TextView* infoText;
+    infoText = new TextView("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.", \
+                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    if (gTheme == THEME_RETRO) 
+    {
+        infoText->SetTextColor(textColor);
+        infoText->SetShadow(true);
+    }
+    
+    Add(infoText);
 
     if (*gridStyle_) {
         gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));

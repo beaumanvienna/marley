@@ -26,6 +26,7 @@
 #include "../include/statemachine.h"
 #include "../include/emu.h"
 #include "../include/wii.h"
+#include "../include/global.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
@@ -70,6 +71,7 @@ extern bool stopSearching;
 extern bool stopSearchingDuringSplash;
 extern SDL_TimerID splashTimer;
 extern bool playSystemSounds;
+extern int gTheme;
 bool gStartUp=true;
 
 //initializes SDL and creates main window
@@ -803,6 +805,16 @@ void loadConfig(ifstream* configFile)
             {
                 checkFirmwarePSX();
                 buildGameList();
+            }
+        } else
+        if(line.find("ui_theme") != std::string::npos)
+        {
+            if (line.find("PC") != std::string::npos)
+            {
+                gTheme = THEME_PC;
+            } else
+            {
+                gTheme = THEME_RETRO;
             }
         } else
         if(line.find("system_sounds") != std::string::npos)

@@ -68,9 +68,11 @@
 #include "UI/TextureUtil.h"
 
 #include "../../include/emu.h"
+#include "../../include/global.h"
 
 static SCREEN_UI::Theme ui_theme;
 extern GlobalUIState globalUIState;
+extern int gTheme;
 static SCREEN_GPUBackend SCREEN_gpuBackend;
 static std::string SCREEN_gpuBackendDevice;
 
@@ -170,34 +172,59 @@ static SCREEN_UI::Style MakeStyle(uint32_t fg, uint32_t bg) {
 }
 
 static void UIThemeInit() {
+    if (gTheme == THEME_RETRO)
+    {
+        ui_theme.uiFont = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 15); // only used for tab headers
+        ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 13); // used for file browser
+        ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 10);
+    
+        ui_theme.itemStyle = MakeStyle(0xFFDE51E0, 0x55000000);
+        ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0x70000000);
+        ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
+        ui_theme.itemDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
+        ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
 
-	ui_theme.uiFont = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 20);
-	ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 14);
-	ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 11);
+        ui_theme.buttonStyle = MakeStyle(0xFFDE51E0, 0x55000000);
+        ui_theme.buttonFocusedStyle = MakeStyle(0xFFFFFFFF, 0x70000000);
+        ui_theme.buttonDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
+        ui_theme.buttonDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
+        ui_theme.buttonHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
 
-	ui_theme.checkOn = ImageID("I_CHECKEDBOX");
+        ui_theme.headerStyle.fgColor = 0xFFFFFFFF;
+        ui_theme.infoStyle = MakeStyle(0xFFFFFFFF, 0x00000000U);
+
+        ui_theme.popupTitle.fgColor = 0xFFE3BE59;
+        ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
+    } else
+    {
+        ui_theme.uiFont = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 20);
+        ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 14);
+        ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 11);
+        
+        ui_theme.itemStyle = MakeStyle(0xFFFFFFFF, 0x55000000);
+        ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0x70000000);
+        ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
+        ui_theme.itemDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
+        ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
+
+        ui_theme.buttonStyle = MakeStyle(0xFFFFFFFF, 0x55000000);
+        ui_theme.buttonFocusedStyle = MakeStyle(0xFFFFFFFF, 0x70000000);
+        ui_theme.buttonDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
+        ui_theme.buttonDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
+        ui_theme.buttonHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
+
+        ui_theme.headerStyle.fgColor = 0xFFFFFFFF;
+        ui_theme.infoStyle = MakeStyle(0xFFFFFFFF, 0x00000000U);
+
+        ui_theme.popupTitle.fgColor = 0xFFE3BE59;
+        ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
+    }
+    
+    ui_theme.checkOn = ImageID("I_CHECKEDBOX");
 	ui_theme.checkOff = ImageID("I_SQUARE");
 	ui_theme.whiteImage = ImageID("I_SOLIDWHITE");
 	ui_theme.sliderKnob = ImageID("I_CIRCLE");
 	ui_theme.dropShadow4Grid = ImageID("I_DROP_SHADOW");
-
-	ui_theme.itemStyle = MakeStyle(0xFFFFFFFF, 0x55000000);
-	ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0xFFEDC24C);
-	ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
-	ui_theme.itemDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
-	ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
-
-	ui_theme.buttonStyle = MakeStyle(0xFFFFFFFF, 0x55000000);
-	ui_theme.buttonFocusedStyle = MakeStyle(0xFFFFFFFF, 0xFFEDC24C);
-	ui_theme.buttonDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
-	ui_theme.buttonDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
-	ui_theme.buttonHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
-
-	ui_theme.headerStyle.fgColor = 0xFFFFFFFF;
-	ui_theme.infoStyle = MakeStyle(0xFFFFFFFF, 0x00000000U);
-
-	ui_theme.popupTitle.fgColor = 0xFFE3BE59;
-	ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
 }
 
 void RenderOverlays(SCREEN_UIContext *dc, void *userdata);
