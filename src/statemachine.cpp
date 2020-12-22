@@ -72,6 +72,7 @@ extern Window Xwindow;
 extern int delay_after_shutdown;
 extern bool marley_wiimote;
 extern bool stopSearching;
+extern bool shutdown_now;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -693,6 +694,10 @@ void statemachine(int cmd)
                             screen_man_argc = 1;
                         
                             screen_manager_main(screen_man_argc,screen_man_argv);
+                            if (shutdown_now)
+                            {
+                                shutdown_computer();
+                            } else
                             if (launch_request_from_screen_manager)
                             {
                                 launch_emulator();

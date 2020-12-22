@@ -422,6 +422,47 @@ void ClickableItem::Draw(SCREEN_UIContext &dc) {
 
 	DrawBG(dc, style);
 }
+#define HOLD_TIME 1.5f
+bool Choice::Key(const KeyInput &key) {
+    if ((hasHoldFeature_) && (HasFocus() || (heldDown_)))
+    {
+        double timeDiff = time_now_d() - holdStart_;
+        
+        if (heldDown_ && (timeDiff >= HOLD_TIME))
+        {
+            holdStart_ = 0.0f;
+            heldDown_ = false;
+            return false;
+        } 
+        if (key.flags & KEY_DOWN) {
+            if (IsAcceptKey(key)) {
+                holdStart_ = time_now_d();
+                heldDown_ = true;
+            }
+        }
+        if (key.flags & KEY_UP) {
+            if (IsAcceptKey(key)) {
+                holdStart_ = 0.0f;
+                heldDown_ = false;
+            }
+        }
+    }
+    return ClickableItem::Key(key);
+}
+
+void Choice::Update() {
+    if (heldDown_)
+    {
+        double timeDiff = time_now_d() - holdStart_;
+        if (timeDiff >= HOLD_TIME) 
+        {
+            SCREEN_UI::EventParams e{};
+            e.v = this;
+            OnHold.Trigger(e);
+        }
+    }
+	ClickableItem::Update();
+}
 
 void Choice::Click() {
 	ClickableItem::Click();

@@ -977,7 +977,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     ImageID icon;
     if (gTheme == THEME_RETRO) icon = ImageID("I_BACK_R"); else icon = ImageID("I_BACK");
-    verticalLayout->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);;
+    verticalLayout->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
 
     root_->Add(verticalLayout);
 

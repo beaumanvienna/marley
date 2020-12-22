@@ -59,6 +59,7 @@ bool bGridViewMain1;
 bool bGridViewMain2=false;
 std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
+bool shutdown_now;
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
@@ -171,7 +172,10 @@ void SCREEN_MainScreen::CreateViews() {
     if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
     topline->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
     if (gTheme == THEME_RETRO) icon = ImageID("I_OFF_R"); else icon = ImageID("I_OFF");
-    topline->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    Choice* offButton = new Choice(icon, new LayoutParams(64.0f, 64.0f),true);
+    offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
+    offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
+    topline->Add(offButton);
     
     verticalLayout->Add(new Spacer(233.0f));
   
@@ -271,6 +275,25 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &
 	return SCREEN_UI::EVENT_DONE;
 }
 
+SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e)\n");
+    shutdown_now = false;
+	OnBack(e);
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e)\n");
+    
+    auto ma = GetI18NCategory("System");
+	auto offDiag = new SCREEN_OffDiagScreen(ma->T("switch off computer"));
+	if (e.v)
+		offDiag->SetPopupOrigin(e.v);
+
+	screenManager()->push(offDiag);
+    
+	return SCREEN_UI::EVENT_DONE;
+}
 
 SCREEN_MainInfoMessage::SCREEN_MainInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
@@ -777,36 +800,24 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams 
 	screenManager_->RecreateAllViews();
 	return SCREEN_UI::EVENT_DONE;
 }
-void SCREEN_GridMainScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
+
+void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 	using namespace SCREEN_UI;
 
-	auto di = GetI18NCategory("Dialog");
-	auto sy = GetI18NCategory("System");
+	auto ma = GetI18NCategory("Main");
 
-	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 50, 1.0f));
-	LinearLayout *items = new LinearLayout(ORIENT_VERTICAL);
+	LinearLayout *items = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
-	items->Add(new CheckBox(&bGridViewMain1, sy->T("Display Recent on a grid")));
-	items->Add(new CheckBox(&bGridViewMain2, sy->T("Display Games on a grid")));
+	items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+	items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
 
-	items->Add(new ItemHeader(sy->T("Grid icon size")));
-	items->Add(new Choice(sy->T("Increase size")))->OnClick.Handle(this, &SCREEN_GridMainScreen::GridPlusClick);
-	items->Add(new Choice(sy->T("Decrease size")))->OnClick.Handle(this, &SCREEN_GridMainScreen::GridMinusClick);
-
-	items->Add(new ItemHeader(sy->T("Display Extra Info")));
-	
-	scroll->Add(items);
-	parent->Add(scroll);
+	parent->Add(items);
 }
 
-SCREEN_UI::EventReturn SCREEN_GridMainScreen::GridPlusClick(SCREEN_UI::EventParams &e) {
-	return SCREEN_UI::EVENT_DONE;
-}
+SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) \n");
+    shutdown_now = true;
+	SCREEN_System_SendMessage("finish", "");
 
-SCREEN_UI::EventReturn SCREEN_GridMainScreen::GridMinusClick(SCREEN_UI::EventParams &e) {
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_GridMainScreen::OnRecentClearClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }

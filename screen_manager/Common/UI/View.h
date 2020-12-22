@@ -651,9 +651,13 @@ public:
 		: Choice(text, std::string(), false, layoutParams) {}
 	Choice(const std::string &text, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
 		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) {}
-	Choice(ImageID image, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(false) {}
-
+	Choice(ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+                        centered_(false), highlighted_(false), selected_(false), 
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false) {}
+    Event OnHold;
+    bool Key(const KeyInput &input) override;
+    void Update() override;
 	void Click() override;
 	virtual void HighlightChanged(bool highlighted);
 	void GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const override;
@@ -677,6 +681,9 @@ protected:
 	Padding textPadding_;
 	bool centered_;
 	bool highlighted_;
+    double holdStart_ = 0.0f;
+    bool heldDown_ = false;
+    bool hasHoldFeature_;
 
 private:
 	bool selected_;

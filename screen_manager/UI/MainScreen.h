@@ -55,6 +55,8 @@ protected:
 	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn settingsClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn offClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn offHold(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
 
 private:
@@ -65,8 +67,6 @@ private:
 	SCREEN_MainInfoMessage *settingInfo_;
 
 	// Event handlers
-    
-    
 
 };
 
@@ -131,17 +131,12 @@ private:
 	SCREEN_ScreenManager *screenManager_;
 };
 
-
-class SCREEN_GridMainScreen : public SCREEN_PopupScreen {
+class SCREEN_OffDiagScreen : public SCREEN_PopupScreen {
 public:
-	SCREEN_GridMainScreen(std::string label) : SCREEN_PopupScreen(label) {}
+	SCREEN_OffDiagScreen(std::string label) : SCREEN_PopupScreen(label) {}
 	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
-	SCREEN_UI::Event OnRecentChanged;
 
 private:
-	SCREEN_UI::EventReturn GridPlusClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn GridMinusClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRecentClearClick(SCREEN_UI::EventParams &e);
-	const float MAX_GAME_GRID_SCALE = 3.0f;
-	const float MIN_GAME_GRID_SCALE = 0.8f;
+	SCREEN_UI::EventReturn SwitchOff(SCREEN_UI::EventParams &e);
 };
+
