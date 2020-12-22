@@ -984,19 +984,26 @@ void SCREEN_SettingsScreen::CreateViews() {
 	tabHolder->SetTag("GameSettings");
 	root_->SetDefaultFocusView(tabHolder);
 
+    // info message
 	float leftSide = 40.0f;
 
 	settingInfo_ = new SCREEN_SettingInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
 	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingInfo_);
 
+    // horizontal layout for margins
+    LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("Search Path"), horizontalLayoutSearch);
+    horizontalLayoutSearch->Add(new Spacer(10.0f));
+    
 	// -------- search --------
-    ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutSearch->Add(searchSettingsScroll);
 	searchSettingsScroll->SetTag("GameSettingsSearch");
 	LinearLayout *searchSettings = new LinearLayout(ORIENT_VERTICAL);
 	searchSettings->SetSpacing(0);
 	searchSettingsScroll->Add(searchSettings);
-	tabHolder->AddTab(ge->T("Search Path"), searchSettingsScroll);
+	
 
     // game browser
     
@@ -1012,43 +1019,43 @@ void SCREEN_SettingsScreen::CreateViews() {
     // bios info
     uint32_t warningColor = 0xFF000000;
     uint32_t okColor = 0xFF006400;
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (found_na_ps1) 
       searchSettings->Add(new TextView("            PS1 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS1 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (found_jp_ps1) 
       searchSettings->Add(new TextView("            PS1 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS1 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (found_eu_ps1) 
       searchSettings->Add(new TextView("            PS1 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS1 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (found_na_ps2) 
       searchSettings->Add(new TextView("            PS2 bios file for North America: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS2 bios file for North America: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (found_jp_ps2) 
       searchSettings->Add(new TextView("            PS2 bios file for Japan: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS2 bios file for Japan: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
 
     if (found_eu_ps2) 
       searchSettings->Add(new TextView("            PS2 bios file for Europe: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
     else
       searchSettings->Add(new TextView("            PS2 bios file for Europe: not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(warningColor);
-    searchSettings->Add(new SCREEN_UI::Spacer(32.0f));
+    searchSettings->Add(new Spacer(32.0f));
     
     if (gSegaSaturn_firmware)
       searchSettings->Add(new TextView("            Sega Saturn bios file: found", ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f, 1.0f)))->SetTextColor(okColor);
@@ -1078,14 +1085,19 @@ void SCREEN_SettingsScreen::CreateViews() {
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
 
     // -------- Dolphin --------
-	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    
+    // horizontal layout for margins
+    LinearLayout *horizontalLayoutDolphin = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("Dolphin"), horizontalLayoutDolphin);
+    horizontalLayoutDolphin->Add(new Spacer(10.0f));
+    
+	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutDolphin->Add(dolphinSettingsScroll);
 	dolphinSettingsScroll->SetTag("GameSettingsDolphin");
 	LinearLayout *dolphinSettings = new LinearLayout(ORIENT_VERTICAL);
 	dolphinSettings->SetSpacing(0);
+    dolphinSettings->Add(new Spacer(10.0f));
 	dolphinSettingsScroll->Add(dolphinSettings);
-	tabHolder->AddTab(dol->T("Dolphin"), dolphinSettingsScroll);
-
-	dolphinSettings->Add(new ItemHeader(dol->T("")));
     
     // -------- resolution --------
     static const char *selectResolutionDolphin[] = { "Native Wii", "2x Native (720p)", "3x Native (1080p)", "4x Native (1440p)", "5x Native ", "6x Native (4K)", "7x Native ", "8x Native (5K)" };
@@ -1100,14 +1112,19 @@ void SCREEN_SettingsScreen::CreateViews() {
     });
 
     // -------- PCSX2 --------
-    ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    
+    // horizontal layout for margins
+    LinearLayout *horizontalLayoutPCSX2 = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("PCSX2"), horizontalLayoutPCSX2);
+    horizontalLayoutPCSX2->Add(new Spacer(10.0f));
+    
+    ViewGroup *graphicsSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutPCSX2->Add(graphicsSettingsScroll);
 	graphicsSettingsScroll->SetTag("GameSettingsPCSX2");
 	LinearLayout *graphicsSettings = new LinearLayout(ORIENT_VERTICAL);
 	graphicsSettings->SetSpacing(0);
 	graphicsSettingsScroll->Add(graphicsSettings);
     std::string header = "";
-    
-	tabHolder->AddTab(ps2->T("PCSX2"), graphicsSettingsScroll);
 
     // -------- PCSX2 --------
     if (found_bios_ps2)
@@ -1469,17 +1486,23 @@ void SCREEN_SettingsScreen::CreateViews() {
         
     } else
     {
-        graphicsSettings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path to a PS2 bios under 'Main screen/Setup'.")));
+        graphicsSettings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path to a PS2 bios in tab 'Search Path'.")));
     }
     
     
     // -------- general --------
-    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    
+    // horizontal layout for margins
+    LinearLayout *horizontalLayoutGeneral = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("General"), horizontalLayoutGeneral);
+    horizontalLayoutGeneral->Add(new Spacer(10.0f));
+    
+    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutGeneral->Add(generalSettingsScroll);
 	generalSettingsScroll->SetTag("GameSettingsGeneral");
 	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
 	generalSettings->SetSpacing(0);
 	generalSettingsScroll->Add(generalSettings);
-	tabHolder->AddTab(ge->T("General"), generalSettingsScroll);
 
     generalSettings->Add(new ItemHeader(ge->T("General settings for Marley")));
     
@@ -1498,17 +1521,25 @@ void SCREEN_SettingsScreen::CreateViews() {
     ui_themeChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
 
 
-    // -------- info --------
-    ViewGroup *infoSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
-	infoSettingsScroll->SetTag("GameSettingsInfo");
-	LinearLayout *infoSettings = new LinearLayout(ORIENT_VERTICAL);
-	infoSettings->SetSpacing(0);
-	infoSettingsScroll->Add(infoSettings);
-	tabHolder->AddTab(ge->T("Info"), infoSettingsScroll);
+    // -------- credits --------
     
-    infoSettings->Add(new ItemHeader(ge->T("Marley is a bundle of console emulators for x86_64 Linux systems.")));
+        // horizontal layout for margins
+    LinearLayout *horizontalLayoutCredits = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("Credits"), horizontalLayoutCredits);
+    horizontalLayoutCredits->Add(new Spacer(10.0f));
+    
+    ViewGroup *creditsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutCredits->Add(creditsScroll);
+	creditsScroll->SetTag("Credits");
+	LinearLayout *credits = new LinearLayout(ORIENT_VERTICAL);
+	credits->SetSpacing(0);
+	creditsScroll->Add(credits);
 
-    
+    credits->Add(new ItemHeader(ge->T("Mednafen: https://mednafen.github.io, License: GNU GPLv2")));
+    credits->Add(new ItemHeader(ge->T("Mupen64Plus: https://mupen64plus.org, License: GNU GPL")));
+    credits->Add(new ItemHeader(ge->T("PPSSPP: https://www.ppsspp.org, License: GNU GPLv2")));
+    credits->Add(new ItemHeader(ge->T("Dolphin: https://dolphin-emu.org/, License: GNU GPLv2")));
+    credits->Add(new ItemHeader(ge->T("PCSX2: https://pcsx2.net, License: GNU GPLv2")));
     
 	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
@@ -1591,9 +1622,9 @@ SCREEN_SettingInfoMessage::SCREEN_SettingInfoMessage(int align, SCREEN_UI::Ancho
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
 	using namespace SCREEN_UI;
 	SetSpacing(0.0f);
-	Add(new SCREEN_UI::Spacer(10.0f));
+	Add(new Spacer(10.0f));
 	text_ = Add(new SCREEN_UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
-	Add(new SCREEN_UI::Spacer(10.0f));
+	Add(new Spacer(10.0f));
 }
 
 void SCREEN_SettingInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
@@ -1838,13 +1869,10 @@ void SCREEN_DirBrowser::Refresh() {
 	// Reset content
 	Clear();
 
-	Add(new Spacer(1.0f));
+	Add(new Spacer(10.0f));
 	auto mm = GetI18NCategory("MainMenu");
 	
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-
-    topBar->Add(new Spacer(2.0f));
-    
     // display working directory
     uint32_t textColor;
     if (gTheme == THEME_RETRO) textColor = 0xFFde51e0; else textColor = 0xFFFFFFFF;
@@ -1873,19 +1901,26 @@ void SCREEN_DirBrowser::Refresh() {
     layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
     
     Add(topBar);
-    
+    Add(new Spacer(5.0f));
+    SetSpacing(0.0f);
     // info text
-    TextView* infoText;
-    infoText = new TextView("To add a search path, highlight a folder and use the start button or space. To remove a search path, scroll all the way down.", \
-                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    TextView* infoText1;
+    TextView* infoText2;
+    infoText1 = new TextView("To add a search path, highlight a folder and use the start button or space. ", 
+                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f));
+    infoText2 = new TextView("To remove a search path, scroll all the way down.", 
+                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f));
     if (gTheme == THEME_RETRO) 
     {
-        infoText->SetTextColor(textColor);
-        infoText->SetShadow(true);
+        infoText1->SetTextColor(textColor);
+        infoText1->SetShadow(true);
+        infoText2->SetTextColor(textColor);
+        infoText2->SetShadow(true);
     }
     
-    Add(infoText);
-
+    Add(infoText1);
+    Add(infoText2);
+    Add(new Spacer(5.0f));
     if (*gridStyle_) {
         gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
         Add(gameList_);

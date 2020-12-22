@@ -839,6 +839,13 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 		style.background.color &= 0x7fffffff;
 		dc.FillRect(style.background, bounds_);
 	}
+    
+    if (true) {
+		SCREEN_UI::Style style = dc.theme->itemFocusedStyle;
+		style.background.color &= 0x7fffffff;
+		dc.FillRect(style.background, bounds_);
+	}
+    
 	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
 	if (shadow_) {
 		uint32_t shadowColor = 0xFF000000;
