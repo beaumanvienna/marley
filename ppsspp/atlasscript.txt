@@ -46,6 +46,7 @@ image I_OFF_R source_assets/image/off_r.png copy
 image I_HOME_R source_assets/image/home_r.png copy
 image I_BACK_R source_assets/image/back_r.png copy
 image I_BARREL source_assets/image/barrel.png copy
+image I_DOLPHIN source_assets/image/dolphin.png copy
 image I_1 source_assets/image/1.png copy
 image I_2 source_assets/image/2.png copy
 image I_3 source_assets/image/3.png copy

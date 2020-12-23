@@ -53,6 +53,14 @@ static const ImageID symbols[4] = {
 	ImageID("I_TRIANGLE"),
 };
 
+static const ImageID dolhin_symbols[1] = {
+	ImageID("I_DOLPHIN")
+};
+
+static const ImageID marley_symbols[1] = {
+	ImageID("I_BARREL")
+};
+
 static const uint32_t colors[4] = {
 	0xC0FFFFFF,
 	0xC0FFFFFF,
@@ -111,15 +119,15 @@ void SCREEN_UIBackgroundShutdown() {
 	bgTexture.reset(nullptr);
 	backgroundInited = false;
 }
-
-void DrawBackgroundSimple(SCREEN_UIContext &dc) {
+#define QUANTITY_SYMBOLS 5
+void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
     
     if (!backgroundInited) {
 		UIBackgroundInit(dc);
 		backgroundInited = true;
 	}
-	
-	uint32_t bgColor = whiteAlpha(1.0f);
+    
+    uint32_t bgColor = whiteAlpha(1.0f);
 
 	if (bgTexture != nullptr) {
 		dc.Flush();
@@ -129,7 +137,54 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc) {
 		dc.Flush();
 		dc.RebindTexture();
 	}
+    
+    static float xbase[QUANTITY_SYMBOLS] = {0};
+	static float ybase[QUANTITY_SYMBOLS] = {0};
+	float xres = dc.GetBounds().w;
+	float yres = dc.GetBounds().h;
+	static int last_xres = 0;
+	static int last_yres = 0;
 
+	if (xbase[0] == 0.0f || last_xres != xres || last_yres != yres) {
+		SCREEN_GMRng rng;
+		for (int i = 0; i < QUANTITY_SYMBOLS; i++) {
+			xbase[i] = rng.F() * xres;
+			ybase[i] = (rng.F() * yres) * 0.5;
+		}
+		last_xres = xres;
+		last_yres = yres;
+	}
+    
+    if (gTheme == THEME_RETRO)
+    {
+        double t = time_now_d();
+        switch(page)
+        {
+            case SCREEN_DOLPHIN:
+                for (int i = 0; i < QUANTITY_SYMBOLS; i++) {
+                    float x = xbase[i] + dc.GetBounds().x;
+                    float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
+                    float angle = (float)sin(i + t);
+                    SCREEN_ui_draw2d.DrawImageRotated(dolhin_symbols[0], x, y + dp_yres*0.35, 1.0f, angle, colorAlpha(colors[0], 1.0f));
+                }
+
+                break;
+            case SCREEN_GENERAL:
+                for (int i = 0; i < QUANTITY_SYMBOLS; i++) {
+                    float x = xbase[i] + dc.GetBounds().x;
+                    float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
+                    float angle = (float)sin(i + t);
+                    SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y + dp_yres*0.41, 1.0f, angle, colorAlpha(colors[0], 1.0f));
+                }
+                
+                break;
+
+            case SCREEN_GENERIC:
+            default:
+
+                break;
+        }
+    }    
 }
 
 void DrawBackground(SCREEN_UIContext &dc, float alpha) {
@@ -165,16 +220,18 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha) {
 		dc.Flush();
 		dc.RebindTexture();
 	}
-
-	double t = time_now_d();
-	for (int i = 0; i < 100; i++) {
-		float x = xbase[i] + dc.GetBounds().x;
-		float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
-		float angle = (float)sin(i + t);
-		int n = i & 3;
-		SCREEN_ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
-	}
-
+    
+    if (gTheme == THEME_RETRO)
+    {
+        double t = time_now_d();
+        for (int i = 0; i < 100; i++) {
+            float x = xbase[i] + dc.GetBounds().x;
+            float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
+            float angle = (float)sin(i + t);
+            int n = i & 3;
+            SCREEN_ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
+        }
+    }
 }
 
 void DrawGameBackground(SCREEN_UIContext &dc, const std::string &gamePath) {

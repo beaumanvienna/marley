@@ -37,4 +37,10 @@ enum SCREEN_UI_colors {           //0xAABBGGRR
     RETRO_COLOR_YELLOW            = 0xFF00FFFF
 };
 
+enum SCREEN_page {
+    SCREEN_GENERIC,
+    SCREEN_DOLPHIN,
+    SCREEN_GENERAL
+};
+
 #endif

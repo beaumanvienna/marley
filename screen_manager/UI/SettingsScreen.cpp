@@ -56,7 +56,7 @@ bool addSearchPathToConfigFile(std::string searchPath);
 bool searchAllFolders(void);
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
-void DrawBackgroundSimple(SCREEN_UIContext &dc);
+void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -949,15 +949,19 @@ void SCREEN_SettingsScreen::DrawBackground(SCREEN_UIContext &dc) {
         case SETTINGS_DOLPHIN:
             bgPng = gBaseDir + "screen_manager/settings_dolphin.png";
             UISetBackground(dc,bgPng);
-            ::DrawBackgroundSimple(dc);
+            ::DrawBackgroundSimple(dc, SCREEN_DOLPHIN);
+            break;
+        case SETTINGS_GENERAL:
+            bgPng = gBaseDir + "screen_manager/settings_general.png";
+            UISetBackground(dc,bgPng);
+            ::DrawBackgroundSimple(dc, SCREEN_GENERAL);
             break;
         case SETTINGS_SEARCH:
-        case SETTINGS_GENERAL:
         case SETTINGS_INFO:
         default:
             bgPng = gBaseDir + "screen_manager/settings_general.png";
             UISetBackground(dc,bgPng);
-            ::DrawBackgroundSimple(dc);
+            ::DrawBackgroundSimple(dc, SCREEN_GENERIC);
             break;
     }
 }

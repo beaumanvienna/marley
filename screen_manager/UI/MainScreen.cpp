@@ -42,9 +42,9 @@
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include <SDL.h>
-#define FILE_BROWSER_WIDTH 1006.0f
+double FILE_BROWSER_WIDTH;
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
-void DrawBackgroundSimple(SCREEN_UIContext &dc);
+void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
 void stripList(std::list<std::string> *tmpList,std::list<std::string> *toBeRemoved);
 void finalizeList(std::list<std::string> *tmpList);
@@ -62,6 +62,7 @@ SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
+    FILE_BROWSER_WIDTH = dp_xres*0.8;
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
     launch_request_from_screen_manager=false;
     
@@ -140,7 +141,7 @@ void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
       bgPng = gBaseDir + "screen_manager/settings_general.png";
     
     UISetBackground(dc,bgPng);
-    DrawBackgroundSimple(dc);
+    DrawBackgroundSimple(dc,SCREEN_GENERIC);
 }
 
 void SCREEN_MainScreen::CreateViews() {
@@ -696,7 +697,7 @@ void SCREEN_GameBrowser::Refresh() {
 	std::vector<std::string> filenames;
 	if (!listingPending_) {
         lastGamePath = path_.GetPath();
-        gamesPathView->SetText(lastGamePath);
+        gamesPathView->SetText(path_.GetFriendlyPath().c_str());
         
         std::list<std::string> tmpList;
         std::list<std::string> toBeRemoved;
