@@ -133,7 +133,11 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
 }
 
 void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
-    std::string bgPng = gBaseDir + "screen_manager/beach.png";
+    std::string bgPng;
+    if (gTheme == THEME_RETRO)
+      bgPng = gBaseDir + "screen_manager/beach.png";
+    else
+      bgPng = gBaseDir + "screen_manager/settings_general.png";
     
     UISetBackground(dc,bgPng);
     DrawBackgroundSimple(dc);
@@ -240,10 +244,10 @@ void SCREEN_MainScreen::onFinish(DialogResult result) {
 void SCREEN_MainScreen::update() {
 	SCREEN_UIScreen::update();
 
-	bool vertical = true;
-	if (vertical != lastVertical_) {
+	bool theme = (gTheme == THEME_RETRO);
+	if (theme != lasttheme_) {
 		RecreateViews();
-		lastVertical_ = vertical;
+		lasttheme_ = theme;
 	}
 }
 

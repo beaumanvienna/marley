@@ -63,7 +63,7 @@ private:
     
 	void TriggerRestart(const char *why);
 
-	bool lastVertical_;
+	bool lasttheme_;
 	SCREEN_MainInfoMessage *settingInfo_;
 
 	// Event handlers

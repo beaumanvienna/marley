@@ -25,7 +25,7 @@
 
 enum SCREEN_UI_theme {
     THEME_RETRO,
-    THEME_PC
+    THEME_PLAIN
 };
 
 enum SCREEN_UI_colors {           //0xAABBGGRR

@@ -171,7 +171,7 @@ static SCREEN_UI::Style MakeStyle(uint32_t fg, uint32_t bg) {
 	return s;
 }
 
-static void UIThemeInit() {
+void SCREEN_UIThemeInit() {
     if (gTheme == THEME_RETRO)
     {
         ui_theme.uiFont = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 15); // only used for tab headers
@@ -191,15 +191,15 @@ static void UIThemeInit() {
         ui_theme.buttonHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
 
         ui_theme.headerStyle.fgColor = 0xFFFFFFFF;
-        ui_theme.infoStyle = MakeStyle(0xFFFFFFFF, 0x00000000U);
+        ui_theme.infoStyle = MakeStyle(RETRO_COLOR_FONT_NOT_FOCUSED, 0x00000000U);
 
         ui_theme.popupTitle.fgColor = 0xFFE3BE59;
         ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
     } else
     {
         ui_theme.uiFont = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 20);
-        ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 14);
-        ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 11);
+        ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 18);
+        ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("UBUNTU24"), "", 14);
         
         ui_theme.itemStyle = MakeStyle(0xFFFFFFFF, 0x55000000);
         ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0x70000000);
@@ -254,7 +254,7 @@ bool SCREEN_NativeInitGraphics(SCREEN_GraphicsContext *graphicsContext) {
 	SCREEN_ui_draw2d.SetAtlas(&SCREEN_g_ui_atlas);
 	SCREEN_ui_draw2d_front.SetAtlas(&SCREEN_g_ui_atlas);
 
-	UIThemeInit();
+	SCREEN_UIThemeInit();
 
 	uiContext = new SCREEN_UIContext();
 	uiContext->theme = &ui_theme;

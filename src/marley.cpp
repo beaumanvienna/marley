@@ -811,7 +811,7 @@ void loadConfig(ifstream* configFile)
         {
             if (line.find("PC") != std::string::npos)
             {
-                gTheme = THEME_PC;
+                gTheme = THEME_PLAIN;
             } else
             {
                 gTheme = THEME_RETRO;

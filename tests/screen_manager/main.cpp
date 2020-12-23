@@ -4,6 +4,7 @@
 #include <iostream>
 #include <SDL.h>
 #include "../../include/controller.h"
+#include "../../include/global.h"
 #include <sys/stat.h>
 #include <dirent.h>
 #include <algorithm>
@@ -11,7 +12,7 @@
 #include <list>
 
 using namespace std;
-
+extern int gTheme;
 int screen_manager_main(int argc, char* argv[]);
 bool isDirectory(const char *filename);
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs","mdf"};
@@ -331,7 +332,31 @@ bool addSearchPathToConfigFile(string searchPath)
     return searchDirAdded;
 }
 
+void setTheme(void)
+{
+    std::string marley_cfg = gBaseDir + "marley.cfg";
+    std::string line;
 
+    //if marley.cfg exists get value from there
+    std::ifstream marley_cfg_filehandle(marley_cfg);
+    if (marley_cfg_filehandle.is_open())
+    {
+        while ( getline (marley_cfg_filehandle,line))
+        {
+            if(line.find("ui_theme") != std::string::npos)
+            {
+                if (line.find("PC") != std::string::npos)
+                {
+                    gTheme = THEME_PLAIN;
+                } else
+                {
+                    gTheme = THEME_RETRO;
+                }
+            }
+        }
+        marley_cfg_filehandle.close();
+    }
+}
 bool setBaseDir(void)
 {
     const char *homedir;
@@ -783,6 +808,7 @@ int main(int argc, char* argv[])
     SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
     
     setBaseDir();
+    setTheme();
     initJoy();
     initGUI();
     SDL_ShowCursor(SDL_DISABLE);

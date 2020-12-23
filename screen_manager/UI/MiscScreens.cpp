@@ -45,7 +45,7 @@ void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
 
 extern std::string gBaseDir;
-
+extern int gTheme;
 static const ImageID symbols[4] = {
 	ImageID("I_CROSS"),
 	ImageID("I_CIRCLE"),
@@ -83,7 +83,11 @@ void SCREEN_UpdateUIState(GlobalUIState newState) {
 }
 
 void UIBackgroundInit(SCREEN_UIContext &dc) {
-    std::string bgPng = gBaseDir + "screen_manager/beach.png";
+    std::string bgPng;
+    if (gTheme == THEME_RETRO)
+      bgPng = gBaseDir + "screen_manager/beach.png";
+    else
+      bgPng = gBaseDir + "screen_manager/settings_general.png";
 
     if (SCREEN_PFile::Exists(bgPng)) {
         const std::string &bgFile = bgPng;
