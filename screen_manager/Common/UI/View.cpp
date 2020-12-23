@@ -15,7 +15,7 @@
 #include "Common/System/System.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
-
+extern int gTheme;
 namespace SCREEN_UI {
 
 const float ITEM_HEIGHT = 64.f;
@@ -541,8 +541,10 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 			if (iconImage_.isValid()) {
 				dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
 			}
-
-			Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
+            
+            Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
+            if (gTheme == THEME_RETRO)
+              dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 			dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 		}
 		dc.SetFontScale(1.0f, 1.0f);
@@ -678,7 +680,10 @@ void CheckBox::Draw(SCREEN_UIContext &dc) {
 	float scale = CalculateTextScale(dc, availWidth);
 
 	dc.SetFontScale(scale, scale);
+    
 	Bounds textBounds(bounds_.x + paddingX, bounds_.y, availWidth, bounds_.h);
+    if (gTheme == THEME_RETRO)
+      dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f), 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 	dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
 	dc.SetFontScale(1.0f, 1.0f);
@@ -841,8 +846,7 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 	}
     
     if (true) {
-		SCREEN_UI::Style style = dc.theme->itemFocusedStyle;
-		style.background.color &= 0x7fffffff;
+		SCREEN_UI::Style style = dc.theme->itemStyle;
 		dc.FillRect(style.background, bounds_);
 	}
     

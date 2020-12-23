@@ -15,7 +15,7 @@
 
 #include "Common/Log.h"
 #include "Common/StringUtils.h"
-
+extern int gTheme;
 static const bool ClickDebug = false;
 
 SCREEN_UIScreen::SCREEN_UIScreen()
@@ -463,6 +463,8 @@ void SCREEN_PopupMultiChoice::Draw(SCREEN_UIContext &dc) {
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);
+    if (gTheme == THEME_RETRO)
+      dc.DrawText(valueText_.c_str(), bounds_.x2() - paddingX+2, bounds_.centerY()+2, 0xFF000000, ALIGN_RIGHT | ALIGN_VCENTER);
 	dc.DrawText(valueText_.c_str(), bounds_.x2() - paddingX, bounds_.centerY(), style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
 }
 

@@ -1517,7 +1517,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         "Retro",
         "PC"};
                         
-    SCREEN_PopupMultiChoice *ui_themeChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&gTheme, ge->T("User interface theme"), ui_theme, 0, ARRAY_SIZE(ui_theme), ge->GetName(), screenManager()));
+    SCREEN_PopupMultiChoice *ui_themeChoice = generalSettings->Add(new SCREEN_PopupMultiChoice(&gTheme, ge->T("Theme"), ui_theme, 0, ARRAY_SIZE(ui_theme), ge->GetName(), screenManager()));
     ui_themeChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnRenderingBackend);
 
 

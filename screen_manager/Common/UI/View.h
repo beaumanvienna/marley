@@ -40,7 +40,6 @@ namespace SCREEN_Draw {
 	class SCREEN_Texture;
 }
 
-
 namespace SCREEN_UI {
 
 class View;
