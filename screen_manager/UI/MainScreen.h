@@ -64,7 +64,7 @@ private:
 	void TriggerRestart(const char *why);
 
 	bool lasttheme_;
-	SCREEN_MainInfoMessage *settingInfo_;
+	SCREEN_MainInfoMessage *mainInfo_;
 
 	// Event handlers
 

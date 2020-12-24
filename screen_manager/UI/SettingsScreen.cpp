@@ -80,7 +80,8 @@ bool searchDirAdded;
 std::string currentSearchPath;
 bool playSystemSounds;
 int gTheme = THEME_RETRO;
-
+SCREEN_SettingsInfoMessage *settingsInfo_;
+std::string tooltipFileBrowser;
 int calcExtraThreadsPCSX2()
 {
     int cnt = SDL_GetCPUCount() -2;
@@ -1014,9 +1015,9 @@ void SCREEN_SettingsScreen::CreateViews() {
     // info message
 	float leftSide = 40.0f;
 
-	settingInfo_ = new SCREEN_SettingInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
-	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
-	root_->Add(settingInfo_);
+	settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
+	settingsInfo_->SetBottomCutoff(dp_yres - 200.0f);
+	root_->Add(settingsInfo_);
 
     // horizontal layout for margins
     LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
@@ -1032,7 +1033,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 	searchSettingsScroll->Add(searchSettings);
 	
 
-    // game browser
+    // bios file browser
     
     searchDirBrowser = new SCREEN_DirBrowser(getenv("HOME"), SCREEN_BrowseFlags::STANDARD, &bGridView2, screenManager(),
         ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
@@ -1631,7 +1632,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::E
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_SettingInfoMessage::SCREEN_SettingInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
+SCREEN_SettingsInfoMessage::SCREEN_SettingsInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
 	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
 	using namespace SCREEN_UI;
 	SetSpacing(0.0f);
@@ -1640,7 +1641,7 @@ SCREEN_SettingInfoMessage::SCREEN_SettingInfoMessage(int align, SCREEN_UI::Ancho
 	Add(new Spacer(10.0f));
 }
 
-void SCREEN_SettingInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
+void SCREEN_SettingsInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
 	if (refView) {
 		Bounds b = refView->GetBounds();
 		const SCREEN_UI::AnchorLayoutParams *lp = GetLayoutParams()->As<SCREEN_UI::AnchorLayoutParams>();
@@ -1654,12 +1655,11 @@ void SCREEN_SettingInfoMessage::Show(const std::string &text, SCREEN_UI::View *r
 	timeShown_ = time_now_d();
 }
 
-void SCREEN_SettingInfoMessage::Draw(SCREEN_UIContext &dc) {
+void SCREEN_SettingsInfoMessage::Draw(SCREEN_UIContext &dc) {
 	static const double FADE_TIME = 1.0;
 	static const float MAX_ALPHA = 0.9f;
 
-	// Let's show longer messages for more time (guesstimate at reading speed.)
-	// Note: this will give multibyte characters more time, but they often have shorter words anyway.
+	// Show for a variable time based on length and estimated reading speed
 	double timeToShow = std::max(1.5, text_->GetText().size() * 0.05);
 
 	double sinceShow = time_now_d() - timeShown_;
@@ -1709,6 +1709,7 @@ public:
                 {
                     searchPath = path_;
                 }
+                tooltipFileBrowser = "Search path for bios files added: " + searchPath;
                 searchDirAdded = addSearchPathToConfigFile(searchPath);
             }
         } 
@@ -1787,6 +1788,13 @@ SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browse
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
     printf("jc: SCREEN_DirBrowser::SCREEN_DirBrowser\n");
+    if (tooltipFileBrowser != "")
+    {
+        SCREEN_UI::EventParams e{};
+		e.v = this;
+        settingsInfo_->Show(tooltipFileBrowser, e.v);
+        tooltipFileBrowser = "";
+    }
 	Refresh();
 }
 
@@ -1825,11 +1833,6 @@ SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e) {
 	SetPath(getenv("HOME"));
 
 	return SCREEN_UI::EVENT_DONE;
-}
-
-bool SCREEN_DirBrowser::DisplayTopBar() {
-    printf("jc: bool SCREEN_DirBrowser::DisplayTopBar()\n");
-    return true;
 }
 
 void SCREEN_DirBrowser::Update() {
@@ -1893,15 +1896,23 @@ void SCREEN_DirBrowser::Refresh() {
     
     currentSearchPath=path_.GetPath();
     ImageID icon;
+    
+        // home button
     if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
-    topBar->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
+    Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+    homeButton->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
+    homeButton->OnHighlight.Add([=](EventParams &e) {
+        settingsInfo_->Show(mm->T("Home", "Home: jump in file browser to home directory"), e.v);
+		return SCREEN_UI::EVENT_CONTINUE;
+	});
+    topBar->Add(homeButton);
 
     ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
     
     if (gTheme == THEME_RETRO) icon = ImageID("I_GRID_R"); else icon = ImageID("I_GRID");
-    layoutChoice->AddChoice(icon);
+    layoutChoice->AddChoice(icon,"show file browser in a grid");
     if (gTheme == THEME_RETRO) icon = ImageID("I_LINES_R"); else icon = ImageID("I_LINES");
-    layoutChoice->AddChoice(icon);
+    layoutChoice->AddChoice(icon,"show file browser with lines");
     layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
     layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
     

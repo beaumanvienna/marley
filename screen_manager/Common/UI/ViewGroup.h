@@ -272,7 +272,7 @@ public:
 	ChoiceStrip(Orientation orientation, LayoutParams *layoutParams = 0);
 
 	void AddChoice(const std::string &title);
-	void AddChoice(ImageID buttonImage);
+	void AddChoice(ImageID buttonImage, std::string tooltip = "");
 
 	int GetSelection() const { return selected_; }
 	void SetSelection(int sel);
@@ -291,7 +291,6 @@ public:
 private:
 	StickyChoice *Choice(int index);
 	EventReturn OnChoiceClick(EventParams &e);
-
 	int selected_;
 	bool topTabs_;  // Can be controlled with L/R.
 };

@@ -26,7 +26,7 @@
 #include "Common/File/PathBrowser.h"
 #include "UI/MiscScreens.h"
 
-class SCREEN_SettingInfoMessage;
+class SCREEN_SettingsInfoMessage;
 class SCREEN_DirBrowser;
 
 // Per-game settings screen - enables you to configure graphic options, control options, etc
@@ -39,6 +39,7 @@ public:
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
     void DrawBackground(SCREEN_UIContext &dc) override;
+    void showToolTip(std::string text);
 
 protected:
 	void CreateViews() override;
@@ -111,7 +112,6 @@ private:
     std::vector<std::string> marley_cfg_entries;
 
 	bool lastVertical_;
-	SCREEN_SettingInfoMessage *settingInfo_;
 
 	// Event handlers
     
@@ -122,9 +122,9 @@ private:
 
 };
 
-class SCREEN_SettingInfoMessage : public SCREEN_UI::LinearLayout {
+class SCREEN_SettingsInfoMessage : public SCREEN_UI::LinearLayout {
 public:
-	SCREEN_SettingInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
+	SCREEN_SettingsInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
 
 	void SetBottomCutoff(float y) {
 		cutOffY_ = y;
@@ -165,7 +165,6 @@ public:
 	void Update() override;
 
 protected:
-	virtual bool DisplayTopBar();
 
 	void Refresh();
 

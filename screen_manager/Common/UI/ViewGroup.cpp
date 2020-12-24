@@ -16,6 +16,8 @@
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
 
+#include "UI/SettingsScreen.h"
+extern SCREEN_SettingsInfoMessage *settingsInfo_;
 namespace SCREEN_UI {
 
 const float ITEM_HEIGHT = 64.f;
@@ -1270,15 +1272,22 @@ void ChoiceStrip::AddChoice(const std::string &title) {
 		c->Press();
 }
 
-void ChoiceStrip::AddChoice(ImageID buttonImage) {
+void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip) {
 	StickyChoice *c = new StickyChoice(buttonImage,
 			orientation_ == ORIENT_HORIZONTAL ?
 			nullptr :
 			new LinearLayoutParams(FILL_PARENT, ITEM_HEIGHT));
 	c->OnClick.Handle(this, &ChoiceStrip::OnChoiceClick);
+    
+    c->OnHighlight.Add([=](EventParams &e) {
+        settingsInfo_->Show(tooltip, e.v);
+		return SCREEN_UI::EVENT_CONTINUE;
+	});
+    
 	Add(c);
 	if (selected_ == (int)views_.size() - 1)
 		c->Press();
+
 }
 
 EventReturn ChoiceStrip::OnChoiceClick(EventParams &e) {

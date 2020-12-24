@@ -451,6 +451,13 @@ bool Choice::Key(const KeyInput &key) {
 }
 
 void Choice::Update() {
+    if ((!toolTipShown_) && (HasFocus()))
+    {
+        toolTipShown_ = true;
+        SCREEN_UI::EventParams e{};
+        e.v = this;
+        OnHighlight.Trigger(e);
+    }
     if (heldDown_)
     {
         double timeDiff = time_now_d() - holdStart_;

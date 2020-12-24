@@ -653,8 +653,9 @@ public:
 	Choice(ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
-                        hasHoldFeature_(hasHoldFeature), heldDown_(false) {}
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false), toolTipShown_(false) {}
     Event OnHold;
+    Event OnHighlight;
     bool Key(const KeyInput &input) override;
     void Update() override;
 	void Click() override;
@@ -683,6 +684,7 @@ protected:
     double holdStart_ = 0.0f;
     bool heldDown_ = false;
     bool hasHoldFeature_;
+    bool toolTipShown_ = false;
 
 private:
 	bool selected_;
