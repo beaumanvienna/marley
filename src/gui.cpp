@@ -955,7 +955,7 @@ bool createRenderer(void)
         SDL_RenderClear(gRenderer);
         
         //draw background to main window
-        SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
+        //SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
         SDL_RenderPresent(gRenderer);
     }
     
@@ -997,7 +997,7 @@ void renderScreen(void)
     //Clear screen
     SDL_RenderClear( gRenderer );
     //background
-    SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
+    //SDL_RenderCopy(gRenderer,gTextures[TEX_BACKGROUND],nullptr,nullptr);
     
     int ctrlTex, height;
     //designated controller 0: Load image and render to screen

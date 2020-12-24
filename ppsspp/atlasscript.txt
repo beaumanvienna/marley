@@ -23,7 +23,6 @@ image I_STICK_LINE source_assets/image/stick_line.png copy
 image I_STICK_BG_LINE source_assets/image/stick_bg_line.png copy
 image I_CHECKEDBOX source_assets/image/checkedbox.png copy
 image I_BG source_assets/image/background2.png copy
-image I_BG_GOLD source_assets/image/background_gold.png copy
 image I_L source_assets/image/L.png copy
 image I_R source_assets/image/R.png copy
 image I_DROP_SHADOW source_assets/image/dropshadow.png copy
@@ -47,6 +46,8 @@ image I_HOME_R source_assets/image/home_r.png copy
 image I_BACK_R source_assets/image/back_r.png copy
 image I_BARREL source_assets/image/barrel.png copy
 image I_DOLPHIN source_assets/image/dolphin.png copy
+image I_CLOUDS source_assets/image/clouds.png copy
+image I_BEACH source_assets/image/beach.png copy
 image I_1 source_assets/image/1.png copy
 image I_2 source_assets/image/2.png copy
 image I_3 source_assets/image/3.png copy

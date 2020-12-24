@@ -135,13 +135,13 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
 
 void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
     std::string bgPng;
-    if (gTheme == THEME_RETRO)
-      bgPng = gBaseDir + "screen_manager/beach.png";
-    else
+    if (gTheme != THEME_RETRO)
+    {
       bgPng = gBaseDir + "screen_manager/settings_general.png";
+      UISetBackground(dc,bgPng);
+    }
     
-    UISetBackground(dc,bgPng);
-    DrawBackgroundSimple(dc,SCREEN_GENERIC);
+    DrawBackgroundSimple(dc,SCREEN_MAIN);
 }
 
 void SCREEN_MainScreen::CreateViews() {

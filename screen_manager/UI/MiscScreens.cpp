@@ -61,6 +61,11 @@ static const ImageID marley_symbols[1] = {
 	ImageID("I_BARREL")
 };
 
+static const ImageID main_symbols[2] = {
+	ImageID("I_CLOUDS"),
+    ImageID("I_BEACH")
+};
+
 static const uint32_t colors[4] = {
 	0xC0FFFFFF,
 	0xC0FFFFFF,
@@ -140,16 +145,20 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
     
     static float xbase[QUANTITY_SYMBOLS] = {0};
 	static float ybase[QUANTITY_SYMBOLS] = {0};
+    static int cnt[QUANTITY_SYMBOLS];
+    static int cnt_clouds = 0;
 	float xres = dc.GetBounds().w;
 	float yres = dc.GetBounds().h;
 	static int last_xres = 0;
 	static int last_yres = 0;
+    
 
 	if (xbase[0] == 0.0f || last_xres != xres || last_yres != yres) {
 		SCREEN_GMRng rng;
 		for (int i = 0; i < QUANTITY_SYMBOLS; i++) {
 			xbase[i] = rng.F() * xres;
 			ybase[i] = (rng.F() * yres) * 0.5;
+            cnt[i] = 0;
 		}
 		last_xres = xres;
 		last_yres = yres;
@@ -177,6 +186,39 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
                     SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y + dp_yres*0.41, 1.0f, angle, colorAlpha(colors[0], 1.0f));
                 }
                 
+                break;
+
+            case SCREEN_MAIN:
+                {
+                    Bounds bounds(0, 0, dp_xres, dp_yres);
+                    
+                    //moving clouds
+                    float x_clouds = + t*5 - dp_xres*cnt_clouds;
+                    if (x_clouds > dp_xres) 
+                    {
+                        x_clouds = 0.0f;
+                        cnt_clouds++;
+                    }
+                    SCREEN_ui_draw2d.DrawImageStretch(main_symbols[0],bounds.Offset(x_clouds,0));
+                    SCREEN_ui_draw2d.DrawImageStretch(main_symbols[0],bounds.Offset(x_clouds-dp_xres,0));
+                    
+                    //moving barrels
+                    
+                    for (int i = 0; i < QUANTITY_SYMBOLS; i++) {
+                        
+                        float x = xbase[i] - t*100 + dp_xres*cnt[i];
+                        if (x < 0.0f) 
+                        {
+                            x = dp_xres;
+                            cnt[i]++;
+                        }
+                        float y = ybase[i] + dc.GetBounds().y -50;
+                        float angle = t;
+                        bool sign = i & 1;
+                        SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y, 1.0f, (sign ? t : -t)+i, colorAlpha(colors[0], 1.0f));
+                    }
+                    SCREEN_ui_draw2d.DrawImageStretch(main_symbols[1],bounds);
+                }
                 break;
 
             case SCREEN_GENERIC:

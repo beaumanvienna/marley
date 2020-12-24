@@ -40,7 +40,8 @@ enum SCREEN_UI_colors {           //0xAABBGGRR
 enum SCREEN_page {
     SCREEN_GENERIC,
     SCREEN_DOLPHIN,
-    SCREEN_GENERAL
+    SCREEN_GENERAL,
+    SCREEN_MAIN
 };
 
 #endif
