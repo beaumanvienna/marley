@@ -182,7 +182,7 @@ void SCREEN_MainScreen::CreateViews() {
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
     topline->Add(offButton);
     
-    verticalLayout->Add(new Spacer(233.0f));
+    verticalLayout->Add(new Spacer(dp_yres-84.0f-264.0f-20.0f));
   
     // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
