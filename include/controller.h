@@ -27,8 +27,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-using namespace std;
-
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
@@ -59,8 +57,8 @@ using namespace std;
         pSDL_GameController gameCtrl[MAX_DEVICES_PER_CONTROLLER];
         int instance[MAX_DEVICES_PER_CONTROLLER];
         int index[MAX_DEVICES_PER_CONTROLLER];
-        string name[MAX_DEVICES_PER_CONTROLLER];
-        string nameDB[MAX_DEVICES_PER_CONTROLLER];
+        std::string name[MAX_DEVICES_PER_CONTROLLER];
+        std::string nameDB[MAX_DEVICES_PER_CONTROLLER];
         bool mappingOKDevice[MAX_DEVICES_PER_CONTROLLER];
         bool mappingOK;
         int controllerType;
@@ -70,13 +68,13 @@ using namespace std;
     bool initJoy(void);
     bool openJoy(int i);
     bool checkControllerIsSupported(int i);
-    bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK,string name);
+    bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK,std::string name);
     bool printJoyInfo(int i);
     bool closeJoy(int instance_id);
     bool closeAllJoy(void);
     void restoreController(void);
     void setMapping(void);
-    int checkType(string name, string nameDB);
+    int checkType(std::string name, std::string nameDB);
     void openWiimote(int nb);
     void closeWiimote(int nb);
 

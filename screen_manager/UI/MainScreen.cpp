@@ -42,7 +42,9 @@
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include <SDL.h>
-double FILE_BROWSER_WIDTH;
+
+#include "../include/controller.h"
+
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
@@ -54,6 +56,12 @@ extern std::string game_screen_manager;
 extern std::string gBaseDir;
 extern bool stopSearching;
 extern int gTheme;
+
+
+SCREEN_UI::ScrollView *gameLauncherFrameScroll;
+
+ImageID checkControllerType(std::string name, std::string nameDB);
+double FILE_BROWSER_WIDTH;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
@@ -156,6 +164,7 @@ void SCREEN_MainScreen::CreateViews() {
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     verticalLayout->SetTag("verticalLayout");
+    verticalLayout->SetSpacing(0.0f);
     root_->Add(verticalLayout);
     
    	float leftSide = 40.0f;
@@ -196,19 +205,55 @@ void SCREEN_MainScreen::CreateViews() {
 	});
     topline->Add(offButton);
     
-    verticalLayout->Add(new Spacer(dp_yres-84.0f-264.0f-20.0f));
+    double verticalSpace = (dp_yres-348.0f)/2;
+    
+    if (gDesignatedControllers[0].numberOfDevices != 0)
+    {
+        
+        LinearLayout *controller_horizontal = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
+        verticalLayout->Add(controller_horizontal);
+        std::string name = gDesignatedControllers[0].name[0];
+        std::string nameDB = gDesignatedControllers[0].nameDB[0];
+        ImageID controllerImageID = checkControllerType(name,nameDB);
+        
+        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
+        controller_horizontal->Add(controllerImage);
+        
+    } else
+    {
+        verticalLayout->Add(new Spacer(verticalSpace));
+    }
+    if (gDesignatedControllers[1].numberOfDevices != 0)
+    {
+        
+        LinearLayout *controller_horizontal = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
+        verticalLayout->Add(controller_horizontal);
+        std::string name = gDesignatedControllers[1].name[0];
+        std::string nameDB = gDesignatedControllers[1].nameDB[0];
+        ImageID controllerImageID = checkControllerType(name,nameDB);
+        
+        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
+        controller_horizontal->Add(controllerImage);
+    }
+    else
+    {
+        verticalLayout->Add(new Spacer(verticalSpace));
+    }
   
     // -------- horizontal main launcher frame --------
-    LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
+    LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, 273,1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
     gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
     gameLauncherMainFrame->Add(new Spacer(leftMargin));
     
-    // vetical layout for the game browser's top bar and the scroll view
-    Margins mgn(0,0,0,94);
-    LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 300, 0.0f,G_TOPLEFT, mgn));
+    // vertical layout for the game browser's top bar and the scroll view
+    Margins mgn(0,0,0,0);
+    LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILE_BROWSER_WIDTH, 243, 0.0f,G_TOPLEFT, mgn));
     gameLauncherMainFrame->Add(gameLauncherColumn);
     gameLauncherColumn->SetTag("gameLauncherColumn");
+    gameLauncherColumn->SetSpacing(0.0f);
     
     // game browser's top bar
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
@@ -233,9 +278,12 @@ void SCREEN_MainScreen::CreateViews() {
         gamesPathView->SetShadow(true);
     }
     topBar->Add(gamesPathView);
+    
+    gameLauncherColumn->Add(new Spacer(10.0f));
 
-    // frame for scolling
-    ViewGroup *gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
+    // frame for scolling 
+printf("jc: // frame for scolling \n");
+    gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
 	gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
 	LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
     gameLauncherFrame->SetTag("gameLauncherFrame");
@@ -247,7 +295,7 @@ void SCREEN_MainScreen::CreateViews() {
     
     ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
         ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-        new LinearLayoutParams(FILE_BROWSER_WIDTH, FILL_PARENT));
+        new LinearLayoutParams(FILE_BROWSER_WIDTH, WRAP_CONTENT));
     ROM_browser->SetTag("ROM_browser");
     gameLauncherFrame->Add(ROM_browser);
     
@@ -848,4 +896,57 @@ SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e
 	SCREEN_System_SendMessage("finish", "");
 
 	return SCREEN_UI::EVENT_DONE;
+}
+
+ImageID checkControllerType(std::string name, std::string nameDB)
+{
+    
+    size_t str_pos1;
+    size_t str_pos2;
+    size_t str_pos3;
+    size_t str_pos4;
+    
+    //check if SNES
+    str_pos1  =   name.find("snes");
+    str_pos2 = nameDB.find("snes");
+    if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
+    {
+        return ImageID("I_CTRL_SNES");
+    } 
+
+    //check if PS2 or PS3
+    str_pos1  =   name.find("sony playstation(r)2");
+    str_pos2 = nameDB.find("ps2");
+    str_pos3 =   name.find("sony playstation(r)3");
+    str_pos4 = nameDB.find("ps3");
+    if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) || ((str_pos3 != std::string::npos)) || ((str_pos4 != std::string::npos)))
+    {
+        return ImageID("I_CTRL_PS3");
+    } 
+    
+    //check if XBOX
+    str_pos1  =   name.find("box");
+    str_pos2 = nameDB.find("box");
+    if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
+    {
+        return ImageID("I_CTRL_XB");
+    }
+    
+    //check if PS4
+    str_pos1  =   name.find("ps4");
+    str_pos2 = nameDB.find("ps4");
+    if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
+    {
+        return ImageID("I_CTRL_PS4");
+    }
+    
+    //check if Wiimote
+    str_pos1  =   name.find("wiimote");
+    str_pos2 = nameDB.find("wiimote");
+    if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
+    {
+        return ImageID("I_CTRL_WII");
+    }
+    
+    return ImageID("I_CTRL_GENERIC");
 }

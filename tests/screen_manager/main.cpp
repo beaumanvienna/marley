@@ -42,7 +42,7 @@ SDL_Window* gWindow = nullptr;
 
 void finalizeList(std::list<string> *tmpList)
 {
-    printf("jc: void finalizeList(std::list<string> *tmpList)\n");
+//    printf("jc: void finalizeList(std::list<string> *tmpList)\n");
     list<string>::iterator iteratorTmpList;
     string strList;
     
@@ -58,7 +58,7 @@ void finalizeList(std::list<string> *tmpList)
 
 void stripList(list<string> *tmpList,list<string> *toBeRemoved)
 {
-    printf("jc: void stripList(list<string> *tmpList,list<string> *toBeRemoved)\n");
+//    printf("jc: void stripList(list<string> *tmpList,list<string> *toBeRemoved)\n");
     list<string>::iterator iteratorTmpList;
     list<string>::iterator iteratorToBeRemoved;
     
@@ -150,7 +150,7 @@ bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 
 void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved, bool recursiveSearch=true)
 {
-    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
+//    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
  
     string str_with_path, str_without_path;
     string ext, str_with_path_lower_case;
@@ -256,7 +256,7 @@ bool setPathToGames(string str)
 
 bool isDirectory(const char *filename)
 {
-    printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
+    //printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
     struct stat p_lstatbuf;
     struct stat p_statbuf;
     bool ok = false;

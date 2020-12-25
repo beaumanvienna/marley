@@ -123,7 +123,7 @@ bool IsBIOS_PCSX2(const char * filename);
 void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, std::list<string> *tmpList_ps2 = nullptr)
 {
     if (stopSearching) return;
-    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
+    //printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
     findAllFiles_counter++;
     if (!(findAllFiles_counter % intervalOSD))
     {
@@ -1066,7 +1066,7 @@ bool checkForCueFiles(string str_with_path,std::list<string> *toBeRemoved)
 void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<string> *toBeRemoved, bool recursiveSearch=true)
 {
     if (stopSearching) return;
-    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
+//    printf("jc: void findAllFiles(const char * directory=%s, std::list<string> *tmpList, std::list<string> *toBeRemoved)\n",directory);
     findAllFiles_counter++;
     if (!(findAllFiles_counter % intervalOSD))
     {

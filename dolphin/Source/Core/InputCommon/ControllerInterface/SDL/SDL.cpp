@@ -15,7 +15,7 @@
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "../../../../../../include/controller.h"
-
+using namespace std;
 
 bool requestShutdownGUIDE;
 namespace ciface::SDL

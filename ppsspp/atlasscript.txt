@@ -48,6 +48,12 @@ image I_BARREL source_assets/image/barrel.png copy
 image I_DOLPHIN source_assets/image/dolphin.png copy
 image I_CLOUDS source_assets/image/clouds.png copy
 image I_BEACH source_assets/image/beach.png copy
+image I_CTRL_PS3 source_assets/image/PS3-DualShock.png copy
+image I_CTRL_PS4 source_assets/image/PS4-DualShock.png copy
+image I_CTRL_SNES source_assets/image/SNES-controller.png copy
+image I_CTRL_WII source_assets/image/Wiimote.png copy
+image I_CTRL_XB	source_assets/image/Xbox-360-S-Controller.png copy
+image I_CTRL_GENERIC source_assets/image/generic-controller.png copy
 image I_1 source_assets/image/1.png copy
 image I_2 source_assets/image/2.png copy
 image I_3 source_assets/image/3.png copy

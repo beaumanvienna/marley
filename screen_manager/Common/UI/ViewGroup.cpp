@@ -647,7 +647,7 @@ void ScrollView::Measure(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureS
 			views_[0]->Measure(dc, h, MeasureSpec(UNSPECIFIED, measuredHeight_));
 			MeasureBySpec(layoutParams_->width, views_[0]->GetMeasuredWidth(), horiz, &measuredWidth_);
 		}
-		if (orientation_ == ORIENT_VERTICAL && vert.type != EXACTLY) {
+		if (orientation_ == ORIENT_VERTICAL && !vert_type_exactly_) {
 			if (measuredHeight_ < views_[0]->GetMeasuredHeight()) {
 				measuredHeight_ = views_[0]->GetMeasuredHeight();
 			}
@@ -781,7 +781,7 @@ void ScrollView::Draw(SCREEN_UIContext &dc) {
 
 	dc.PushScissor(bounds_);
 	// For debugging layout issues, this can be useful.
-	// dc.FillRect(Drawable(0x60FF00FF), bounds_);
+	//dc.FillRect(Drawable(0xffffffff), bounds_);
 	views_[0]->Draw(dc);
 	dc.PopScissor();
 
@@ -801,6 +801,7 @@ void ScrollView::Draw(SCREEN_UIContext &dc) {
 }
 
 bool ScrollView::SubviewFocused(View *view) {
+
 	if (!ViewGroup::SubviewFocused(view))
 		return false;
 
@@ -887,6 +888,7 @@ void ScrollView::ScrollRelative(float distance) {
 }
 
 float ScrollView::ClampedScrollPos(float pos) {
+
 	if (!views_.size()) {
 		return 0.0f;
 	}
@@ -1078,7 +1080,6 @@ void AnchorLayout::Layout() {
 			if (center)
 				vBounds.y += vBounds.h * 0.5f;
 		}
-
 		views_[i]->SetBounds(vBounds);
 		views_[i]->Layout();
 	}
