@@ -17,6 +17,7 @@ int screen_manager_main(int argc, char* argv[]);
 bool isDirectory(const char *filename);
 vector<string> gFileTypes = {"smc","iso","smd","bin","cue","z64","v64","nes", "sfc", "gba", "gbc", "wbfs","mdf"};
 bool launch_request_from_screen_manager;
+bool restart_screen_manager;
 string game_screen_manager;
 bool stopSearching;
 bool gSegaSaturn_firmware;

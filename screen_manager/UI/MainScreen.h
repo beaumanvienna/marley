@@ -60,8 +60,6 @@ protected:
     SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
 
 private:
-    
-	void TriggerRestart(const char *why);
 
 	bool lasttheme_;
 	SCREEN_MainInfoMessage *mainInfo_;

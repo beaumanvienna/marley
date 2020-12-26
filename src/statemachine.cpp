@@ -65,6 +65,7 @@ int secondRun;
 int secondRunHat;
 int secondRunValue;
 bool launch_request_from_screen_manager;
+bool restart_screen_manager;
 string game_screen_manager;
 
 extern Display* XDisplay;
@@ -692,7 +693,10 @@ void statemachine(int cmd)
 
                             screen_man_argv[0] = arg1;
                             screen_man_argc = 1;
-                        
+                            
+                            launch_request_from_screen_manager = false;
+                            restart_screen_manager = false;
+                            
                             screen_manager_main(screen_man_argc,screen_man_argv);
                             if (shutdown_now)
                             {
@@ -702,7 +706,7 @@ void statemachine(int cmd)
                             {
                                 launch_emulator();
                             }
-                        } while (launch_request_from_screen_manager);
+                        } while (launch_request_from_screen_manager || restart_screen_manager);
                         break;
                     case STATE_OFF:
                         gQuit=true;

@@ -49,6 +49,11 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "../../include/gui.h"
 #include "../../include/controller.h"
 
+
+void SCREEN_ToggleFullScreen(void);
+extern bool restart_screen_manager;
+extern bool shutdown_now;
+extern bool launch_request_from_screen_manager;
 extern bool gUpdateMain;
 
 GlobalUIState SCREEN_lastUIState = UISTATE_MENU;
@@ -62,6 +67,14 @@ static int SCREEN_g_QuitRequested = 0;
 static int SCREEN_g_DesktopWidth = 0;
 static int SCREEN_g_DesktopHeight = 0;
 static float SCREEN_g_RefreshRate = 60.f;
+
+void toggleFS(void)
+{
+    printf("jc: void toggleFS(void)\n");
+    SCREEN_ToggleFullScreen();
+    restart_screen_manager = SCREEN_g_QuitRequested = true;
+    shutdown_now = launch_request_from_screen_manager = false;
+}
 
 int SCREEN_getDisplayNumber(void) {
 	int displayNumber = 0;
@@ -220,6 +233,20 @@ static float parseFloat(const char *str) {
 	}
 }
 
+void SCREEN_ToggleFullScreen(void) {
+    Uint32 window_flags = SDL_GetWindowFlags(gWindow);
+    window_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    SDL_SetWindowFullscreen(gWindow, window_flags);
+    
+	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+		dp_xres = SCREEN_g_DesktopWidth;
+		dp_yres = SCREEN_g_DesktopHeight;
+	} else {
+        dp_xres = WINDOW_WIDTH;
+        dp_yres = WINDOW_HEIGHT;
+	}
+}
+
 void SCREEN_ToggleFullScreenIfFlagSet(SDL_Window *window) {
 	if (SCREEN_g_ToggleFullScreenNextFrame) {
 		SCREEN_g_ToggleFullScreenNextFrame = false;
@@ -252,7 +279,6 @@ int screen_manager_main(int argc, char *argv[]) {
 	int set_yres = -1;
 	int w = 0, h = 0;
 	bool portrait = false;
-	bool set_ipad = false;
 	float set_dpi = 1.0f;
 	float set_scale = 1.0f;
 
@@ -295,11 +321,6 @@ int screen_manager_main(int argc, char *argv[]) {
 	}
 
 	set_dpi = 1.0f / set_dpi;
-
-	if (set_ipad) {
-		pixel_xres = 1024;
-		pixel_yres = 768;
-	}
 
 	if (set_xres > 0) {
 		pixel_xres = set_xres;
@@ -386,6 +407,7 @@ int screen_manager_main(int argc, char *argv[]) {
 			case SDL_KEYUP:
 				{
 					if (event.key.repeat > 0) { break;}
+                    if (event.key.keysym.sym == SDLK_f) toggleFS();
 					int k = event.key.keysym.sym;
 					KeyInput key;
 					key.flags = KEY_UP;

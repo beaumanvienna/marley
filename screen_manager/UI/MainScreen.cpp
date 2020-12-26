@@ -50,13 +50,13 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 void findAllFiles(const char * directory, std::list<std::string> *tmpList, std::list<std::string> *toBeRemoved, bool recursiveSearch=true);
 void stripList(std::list<std::string> *tmpList,std::list<std::string> *toBeRemoved);
 void finalizeList(std::list<std::string> *tmpList);
-
 extern bool launch_request_from_screen_manager;
+extern bool restart_screen_manager;
 extern std::string game_screen_manager;
 extern std::string gBaseDir;
 extern bool stopSearching;
 extern int gTheme;
-
+extern SCREEN_ScreenManager *SCREEN_screenManager;
 
 SCREEN_UI::ScrollView *gameLauncherFrameScroll;
 
@@ -283,7 +283,6 @@ void SCREEN_MainScreen::CreateViews() {
     gameLauncherColumn->Add(new Spacer(10.0f));
 
     // frame for scolling 
-printf("jc: // frame for scolling \n");
     gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
 	gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
 	LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
@@ -305,9 +304,6 @@ printf("jc: // frame for scolling \n");
     ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
     
     root_->SetDefaultFocusView(ROM_browser);
-    
-	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
-
 }
 
 void SCREEN_MainScreen::onFinish(DialogResult result) {
@@ -358,8 +354,8 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e)\n");
-    shutdown_now = false;
-	OnBack(e);
+    shutdown_now = restart_screen_manager = launch_request_from_screen_manager = false;
+    OnBack(e);
 	return SCREEN_UI::EVENT_DONE;
 }
 
