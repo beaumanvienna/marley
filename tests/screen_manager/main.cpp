@@ -39,6 +39,66 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 SDL_Window* gWindow = nullptr;
+bool closeJoy(int instance_id)
+{
+    printf("jc: bool closeJoy(int instance_id = %d)\n",instance_id);
+    int designation, instance, n, num_controller, ctrlType, devPerType;
+    
+    //Close gamepad
+    SDL_JoystickClose( gGamepad[instance_id] );
+    
+    // remove designated controller / from designated controller
+    if (instance_id < MAX_GAMEPADS_PLUGGED)
+    {
+        gGamepad[instance_id] = NULL;
+    
+        for (designation=0;designation<MAX_GAMEPADS;designation++)
+        {   
+            ctrlType = gDesignatedControllers[designation].controllerType;
+            devPerType = devicesPerType[ctrlType];
+            for (int j=0; j < devPerType; j++)
+            {
+                instance= gDesignatedControllers[designation].instance[j];
+                
+                if ((instance == instance_id) && (instance != -1))
+                {
+                    printf("removing from designated controller %i (instance %i)",designation,gDesignatedControllers[designation].instance[j]);
+                    gDesignatedControllers[designation].instance[j] = -1;
+                    gDesignatedControllers[designation].index[j] = -1;
+                    gDesignatedControllers[designation].name[j] = "";
+                    gDesignatedControllers[designation].nameDB[j] = "";
+                    gDesignatedControllers[designation].joy[j] = NULL;
+                    gDesignatedControllers[designation].mappingOKDevice[j] = false;
+                    gDesignatedControllers[designation].gameCtrl[j] = NULL;
+                    gDesignatedControllers[designation].numberOfDevices--;
+                    
+                    printf(" number of devices on this controller remaining: %i\n",gDesignatedControllers[designation].numberOfDevices);
+                    
+                    if (gDesignatedControllers[designation].numberOfDevices == 0) 
+                    {
+                        gDesignatedControllers[designation].mappingOK = false;
+                        gDesignatedControllers[designation].controllerType = -1;
+                        gNumDesignatedControllers--;
+                    }
+                }
+            }
+        }
+           
+        printf("remaining devices: %i, remaining designated controllers: %i\n",SDL_NumJoysticks(),gNumDesignatedControllers);
+        for (designation=0;designation<MAX_GAMEPADS;designation++)
+        {
+            for (int j=0;j<devPerType;j++)
+            {
+                instance= gDesignatedControllers[designation].instance[j];
+                if (instance != -1)
+                {
+                   printf("remaining: instance %i on designated controller %i\n",gDesignatedControllers[designation].instance[j],designation);
+                }
+            }
+        }
+    }
+    return true;
+}
 
 void finalizeList(std::list<string> *tmpList)
 {
