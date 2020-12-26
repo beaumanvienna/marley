@@ -68,6 +68,7 @@ bool bGridViewMain2=false;
 std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
+bool gUpdateMain;
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     FILE_BROWSER_WIDTH = dp_xres*0.8;
@@ -321,6 +322,10 @@ void SCREEN_MainScreen::update() {
 		RecreateViews();
 		lasttheme_ = theme;
 	}
+    if (gUpdateMain) {
+        RecreateViews();
+        gUpdateMain = false;
+    }
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e) {

@@ -20,12 +20,8 @@
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include <iostream>
-#include <stdio.h>
-#include <string>
-#include <cmath>
 #include <SDL.h>
-#include <SDL_image.h>
+#include <string>
 
 #ifndef CONTROLLER_H
 #define CONTROLLER_H

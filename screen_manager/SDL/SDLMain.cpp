@@ -47,6 +47,9 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "Common/KeyMap.h"
 #include "SDLGLGraphicsContext.h"
 #include "../../include/gui.h"
+#include "../../include/controller.h"
+
+extern bool gUpdateMain;
 
 GlobalUIState SCREEN_lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
@@ -395,6 +398,16 @@ int screen_manager_main(int argc, char *argv[]) {
 					SCREEN_NativeKey(key);
 					break;
 				}
+            case SDL_JOYDEVICEADDED: 
+                printf("\n+++ Found new controller ");
+                openJoy(event.jdevice.which);
+                gUpdateMain = true;
+                break;
+            case SDL_JOYDEVICEREMOVED: 
+                printf("+++ controller removed\n");
+                closeJoy(event.jdevice.which);
+                gUpdateMain = true;
+                break;
 			default:
 				if (SCREEN_joystick) {
 					SCREEN_joystick->ProcessInput(event);

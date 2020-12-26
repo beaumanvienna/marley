@@ -55,6 +55,7 @@ SDLJoystick *joystick = NULL;
 #include "SDLGLGraphicsContext.h"
 #include "SDLVulkanGraphicsContext.h"
 #include "../../include/gui.h"
+#include "../../include/controller.h"
 
 GlobalUIState lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
@@ -1050,7 +1051,16 @@ int ppsspp_main(int argc, char *argv[]) {
 				}
 				break;
 #endif
-
+            case SDL_JOYDEVICEADDED: 
+                printf("\n+++ Found new controller ");
+                openJoy(event.jdevice.which);
+                joystick->setUpControllers();
+                break;
+            case SDL_JOYDEVICEREMOVED: 
+                printf("+++ controller removed\n");
+                closeJoy(event.jdevice.which);
+                joystick->setUpControllers();
+                break;
 			default:
 				if (joystick) {
 					joystick->ProcessInput(event);

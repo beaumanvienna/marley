@@ -18,10 +18,10 @@ public:
 
 	void registerEventHandler();
 	void ProcessInput(SDL_Event &event);
+    void setUpControllers();
 
 private:
 	void setUpController(int deviceIndex);
-	void setUpControllers();
 	keycode_t getKeycodeForButton(SDL_GameControllerButton button);
 	int getDeviceIndex(int instanceId);
 	bool registeredAsEventHandler;
