@@ -1273,17 +1273,24 @@ void ChoiceStrip::AddChoice(const std::string &title) {
 		c->Press();
 }
 
-void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip) {
+void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip,bool* toolTipShown) {
 	StickyChoice *c = new StickyChoice(buttonImage,
 			orientation_ == ORIENT_HORIZONTAL ?
 			nullptr :
 			new LinearLayoutParams(FILL_PARENT, ITEM_HEIGHT));
 	c->OnClick.Handle(this, &ChoiceStrip::OnChoiceClick);
     
-    c->OnHighlight.Add([=](EventParams &e) {
-        settingsInfo_->Show(tooltip, e.v);
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
+    if (toolTipShown) // check if valid pointer
+    {
+        c->OnHighlight.Add([=](EventParams &e) {
+            if (!toolTipShown[0])
+            {
+                toolTipShown[0] = true;
+                settingsInfo_->Show(tooltip, e.v);
+            }
+            return SCREEN_UI::EVENT_CONTINUE;
+        });
+    }
     
 	Add(c);
 	if (selected_ == (int)views_.size() - 1)

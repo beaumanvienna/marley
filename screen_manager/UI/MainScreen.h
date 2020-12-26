@@ -30,6 +30,16 @@
 class SCREEN_MainInfoMessage;
 class SCREEN_GameBrowser;
 
+enum toolTipID {
+    MAIN_HOME = 0,
+    MAIN_SETTINGS,
+    MAIN_OFF,
+    SETTINGS_HOME,
+    SETTINGS_GRID,
+    SETTINGS_LINES,
+    MAX_TOOLTIP_IDs
+};
+extern bool toolTipsShown[MAX_TOOLTIP_IDs];
 // Per-game settings screen - enables you to configure graphic options, control options, etc
 // per game.
 class SCREEN_MainScreen : public SCREEN_UIDialogScreenWithBackground {

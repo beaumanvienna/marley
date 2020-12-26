@@ -69,6 +69,9 @@ std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
 bool gUpdateMain;
+
+bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
+
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
     FILE_BROWSER_WIDTH = dp_xres*0.8;
@@ -190,7 +193,11 @@ void SCREEN_MainScreen::CreateViews() {
     Choice* settingsButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
     settingsButton->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
     settingsButton->OnHighlight.Add([=](EventParams &e) {
-        mainInfo_->Show(ma->T("Settings", "Settings for Marley, PCSX2, and Dolphin. PPSSPP has in-game settings (use the guide button)."), e.v);
+        if (!toolTipsShown[MAIN_SETTINGS])
+        {
+            toolTipsShown[MAIN_SETTINGS] = true;
+            mainInfo_->Show(ma->T("Settings", "Settings for Marley, PCSX2, and Dolphin. PPSSPP has in-game settings (use the guide button)."), e.v);
+        }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topline->Add(settingsButton);
@@ -201,7 +208,11 @@ void SCREEN_MainScreen::CreateViews() {
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
     offButton->OnHighlight.Add([=](EventParams &e) {
-        mainInfo_->Show(ma->T("Shut down computer", "Off: exit Marley; hold for 1.5 s to switch the computer off"), e.v);
+        if (!toolTipsShown[MAIN_OFF])
+        {
+            toolTipsShown[MAIN_OFF] = true;
+            mainInfo_->Show(ma->T("Shut down computer", "Off: exit Marley; hold for 1.5 s to switch the computer off"), e.v);
+        }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topline->Add(offButton);
@@ -266,7 +277,11 @@ void SCREEN_MainScreen::CreateViews() {
     Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
     homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
     homeButton->OnHighlight.Add([=](EventParams &e) {
-        mainInfo_->Show(ma->T("Home", "Home: jump in file browser to home directory"), e.v);
+        if (!toolTipsShown[MAIN_HOME])
+        {
+            toolTipsShown[MAIN_HOME] = true;
+            mainInfo_->Show(ma->T("Home", "Home: jump in file browser to home directory"), e.v);
+        }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topBar->Add(homeButton);

@@ -273,7 +273,7 @@ public:
 	ChoiceStrip(Orientation orientation, LayoutParams *layoutParams = 0);
 
 	void AddChoice(const std::string &title);
-	void AddChoice(ImageID buttonImage, std::string tooltip = "");
+	void AddChoice(ImageID buttonImage, std::string tooltip = "", bool * toolTipShown = nullptr);
 
 	int GetSelection() const { return selected_; }
 	void SetSelection(int sel);

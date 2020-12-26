@@ -40,6 +40,7 @@
 #include "Common/StringUtils.h"
 #include "UI/SettingsScreen.h"
 #include "UI/MiscScreens.h"
+#include "UI/MainScreen.h"
 #include <SDL.h>
 
 #define BIOS_NA 10
@@ -1902,7 +1903,11 @@ void SCREEN_DirBrowser::Refresh() {
     Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
     homeButton->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
     homeButton->OnHighlight.Add([=](EventParams &e) {
-        settingsInfo_->Show(mm->T("Home", "Home: jump in file browser to home directory"), e.v);
+        if (!toolTipsShown[SETTINGS_HOME])
+        {
+            toolTipsShown[SETTINGS_HOME] = true;
+            settingsInfo_->Show(mm->T("Home", "Home: jump in file browser to home directory"), e.v);
+        }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topBar->Add(homeButton);
@@ -1910,9 +1915,9 @@ void SCREEN_DirBrowser::Refresh() {
     ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
     
     if (gTheme == THEME_RETRO) icon = ImageID("I_GRID_R"); else icon = ImageID("I_GRID");
-    layoutChoice->AddChoice(icon,"show file browser in a grid");
+    layoutChoice->AddChoice(icon,"show file browser in a grid",&toolTipsShown[SETTINGS_GRID]);
     if (gTheme == THEME_RETRO) icon = ImageID("I_LINES_R"); else icon = ImageID("I_LINES");
-    layoutChoice->AddChoice(icon,"show file browser with lines");
+    layoutChoice->AddChoice(icon,"show file browser with lines",&toolTipsShown[SETTINGS_LINES]);
     layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
     layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
     

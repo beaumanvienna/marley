@@ -451,9 +451,8 @@ bool Choice::Key(const KeyInput &key) {
 }
 
 void Choice::Update() {
-    if ((!toolTipShown_) && (HasFocus()))
+    if (HasFocus())
     {
-        toolTipShown_ = true;
         SCREEN_UI::EventParams e{};
         e.v = this;
         OnHighlight.Trigger(e);
