@@ -46,6 +46,7 @@ class SCREEN_MainScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
     SCREEN_MainScreen();
     virtual ~SCREEN_MainScreen();
+    bool key(const KeyInput &key) override;
 	void update() override;
 	void onFinish(DialogResult result) override;
 	std::string tag() const override { return "settings"; }
@@ -73,8 +74,7 @@ private:
 
 	bool lasttheme_;
 	SCREEN_MainInfoMessage *mainInfo_;
-
-	// Event handlers
+    SCREEN_UI::Choice* offButton;
 
 };
 

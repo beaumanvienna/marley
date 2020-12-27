@@ -69,7 +69,6 @@ std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
 bool gUpdateMain;
-
 bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
@@ -145,6 +144,22 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
     
 }
 
+bool SCREEN_MainScreen::key(const KeyInput &key)
+{
+    if ( !(offButton->HasFocus()) && (key.flags & KEY_DOWN) && ((key.keyCode==NKCODE_BACK) || (key.keyCode==NKCODE_ESCAPE))) {
+        printf("jc: key.keyCode=%d\n",key.keyCode);
+        SCREEN_UI::SetFocusedView(offButton);
+        return true;       
+    }
+    if ( (offButton->HasFocus()) && (key.flags & KEY_DOWN) && ((key.keyCode==NKCODE_BACK) || (key.keyCode==NKCODE_ESCAPE))) {
+        SCREEN_UI::EventParams e{};
+		e.v = offButton;
+        SCREEN_UIScreen::OnBack(e);
+        return true;       
+    } 
+    return SCREEN_UIDialogScreenWithBackground::key(key);
+}
+
 void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
     std::string bgPng;
     if (gTheme != THEME_RETRO)
@@ -204,7 +219,7 @@ void SCREEN_MainScreen::CreateViews() {
     
     // off button
     if (gTheme == THEME_RETRO) icon = ImageID("I_OFF_R"); else icon = ImageID("I_OFF");
-    Choice* offButton = new Choice(icon, new LayoutParams(64.0f, 64.0f),true);
+    offButton = new Choice(icon, new LayoutParams(64.0f, 64.0f),true);
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
     offButton->OnHighlight.Add([=](EventParams &e) {
