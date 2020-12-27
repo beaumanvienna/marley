@@ -74,6 +74,7 @@ using namespace std;
     void setFullscreen(void);
     void setWindowed(void);
     bool restoreGUI();
+    void restartGUI(void);
     bool createRenderer(void);
     void hide_or_show_cursor_X11(bool hide);
     SDL_Texture* loadTextureFromFile(string str);
@@ -97,6 +98,5 @@ using namespace std;
     extern int WINDOW_WIDTH;
     extern int WINDOW_HEIGHT;
     extern int window_width, window_height, window_x, window_y;
-    extern Uint32 window_flags;
     
 #endif

@@ -19,7 +19,7 @@
 #include "ConsoleLogger.h"
 #include "MSWstuff.h"
 #include "MTVU.h" // for thread cancellation on shutdown
-
+#include "GS.h"
 #include "Utilities/IniInterface.h"
 #include "DebugTools/Debug.h"
 #include "Dialogs/ModalPopups.h"
@@ -782,6 +782,16 @@ Pcsx2App::~Pcsx2App()
 	pxDoAssert = pxAssertImpl_LogIt;	
 	try {
 		vu1Thread.Cancel();
+	}
+	DESTRUCTOR_CATCHALL
+    
+    try {
+		CoreThread.Cancel();
+	}
+	DESTRUCTOR_CATCHALL
+    
+    try {
+        mtgsThread.Cancel();
 	}
 	DESTRUCTOR_CATCHALL
 }

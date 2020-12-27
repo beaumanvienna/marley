@@ -47,6 +47,7 @@ void tx_put(NetPacket* pkt)
 
 void InitNet(NetAdapter* ad)
 {
+    return;
     nif=ad;
     RxRunning=true;
 

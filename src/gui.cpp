@@ -62,7 +62,6 @@ int WINDOW_WIDTH;
 int WINDOW_HEIGHT;
 
 int window_width, window_height, window_x, window_y;
-Uint32 window_flags;
 SDL_TimerID splashTimer;
 
 int x_offset_1150;
@@ -626,11 +625,14 @@ bool initGUI(void)
             ok =false;
         }
         SDL_ShowCursor(SDL_DISABLE);
-        render_splash("");
-        init_audio();
-        splashTimer =SDL_AddTimer(SPLASHSCREEN_DURATION,splash_callbackfunc,nullptr);
-        loadConfigEarly();
-        if (playSystemSounds) Mix_PlayChannel(-1, soundFile[0], 0);
+        if (gStartUp)
+        {
+            render_splash("");
+            init_audio();
+            splashTimer =SDL_AddTimer(SPLASHSCREEN_DURATION,splash_callbackfunc,nullptr);
+            loadConfigEarly();
+            if (playSystemSounds) Mix_PlayChannel(-1, soundFile[0], 0);
+        }
         SDL_DisableScreenSaver();
         setAppIcon();
     }
@@ -891,6 +893,7 @@ void renderIcons(void)
 
 void setFullscreen(void)
 {
+    Uint32 window_flags;
     printf("jc: void setFullscreen(void)\n");
     window_flags=SDL_GetWindowFlags(gWindow);
     if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
@@ -1113,4 +1116,17 @@ void renderScreen(void)
     renderIcons();
     SDL_RenderPresent( gRenderer );
 
+}
+void restartGUI(void)
+{
+    bool fs;
+    Uint32 window_flags;
+    window_flags=SDL_GetWindowFlags(gWindow);
+    fs = ((window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (window_flags & SDL_WINDOW_FULLSCREEN));
+    
+    freeTextures();
+    SDL_DestroyRenderer( gRenderer );
+    SDL_DestroyWindow( gWindow );
+    initGUI();
+    if (fs) setFullscreen();
 }

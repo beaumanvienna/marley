@@ -51,7 +51,6 @@ static const uint32 g_ps_cb_index         = 21;
 bool  GSDeviceOGL::m_debug_gl_call = false;
 int   GSDeviceOGL::m_shader_inst = 0;
 int   GSDeviceOGL::m_shader_reg  = 0;
-FILE* GSDeviceOGL::m_debug_gl_file = NULL;
 
 GSDeviceOGL::GSDeviceOGL()
 	: m_force_texture_clear(0)
@@ -81,14 +80,6 @@ GSDeviceOGL::GSDeviceOGL()
 	else
 		m_filter = TriFiltering::None;
 
-	// Reset the debug file
-	#ifdef ENABLE_OGL_DEBUG
-	if (theApp.GetCurrentRendererType() == GSRendererType::OGL_SW)
-		m_debug_gl_file = fopen("GSdx_opengl_debug_sw.txt","w");
-	else
-		m_debug_gl_file = fopen("GSdx_opengl_debug_hw.txt","w");
-	#endif
-
 	m_debug_gl_call =  theApp.GetConfigB("debug_opengl");
 
 	m_disable_hw_gl_draw = theApp.GetConfigB("disable_hw_gl_draw");
@@ -96,10 +87,6 @@ GSDeviceOGL::GSDeviceOGL()
 
 GSDeviceOGL::~GSDeviceOGL()
 {
-	if (m_debug_gl_file) {
-		fclose(m_debug_gl_file);
-		m_debug_gl_file = NULL;
-	}
 
 	// If the create function wasn't called nothing to do.
 	if (m_shader == NULL)
@@ -1974,19 +1961,6 @@ void GSDeviceOGL::DebugOutputToFile(GLenum gl_source, GLenum gl_type, GLuint id,
 	}
 #endif
 
-	if (m_debug_gl_file)
-		fprintf(m_debug_gl_file,"T:%s\tID:%d\tS:%s\t=> %s\n", type.c_str(), GSState::s_n, severity.c_str(), message.c_str());
-
-#ifdef _DEBUG
-	if (sev_counter >= 5) {
-		// Close the file to flush the content on disk before exiting.
-		if (m_debug_gl_file) {
-			fclose(m_debug_gl_file);
-			m_debug_gl_file = NULL;
-		}
-		ASSERT(0);
-	}
-#endif
 }
 
 uint16 GSDeviceOGL::ConvertBlendEnum(uint16 generic)

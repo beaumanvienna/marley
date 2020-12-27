@@ -309,7 +309,7 @@ void launch_emulator(void)
 		
 		int n;
 		string str;
-		
+        Uint32 window_flags;
 		window_flags=SDL_GetWindowFlags(gWindow);
 		if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
 		{
@@ -349,9 +349,6 @@ void launch_emulator(void)
 
 				argc = 4;
 
-                freeTextures();
-				SDL_DestroyRenderer( gRenderer );
-
                 SDL_SysWMinfo sdlWindowInfo;
                 SDL_VERSION(&sdlWindowInfo.version);
                 if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
@@ -363,12 +360,13 @@ void launch_emulator(void)
 
                     }
                     pcsx2_main(argc,argv);
-                    restoreSDL();
+                    restartGUI();
                 } 
                 else
                 {
                     printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
                 }
+                
 
 				break;
 #endif
@@ -685,6 +683,8 @@ void statemachine(int cmd)
                         gSetupIsRunning=true;
                         break;
                     case STATE_CONFIG:
+                        freeTextures();
+                        SDL_DestroyRenderer( gRenderer );
                         do
                         {
                             str = "screen_manager";
@@ -707,6 +707,7 @@ void statemachine(int cmd)
                                 launch_emulator();
                             }
                         } while (launch_request_from_screen_manager || restart_screen_manager);
+                        gQuit=true;
                         break;
                     case STATE_OFF:
                         gQuit=true;
