@@ -42,6 +42,7 @@
 #include "UI/MiscScreens.h"
 #include "UI/MainScreen.h"
 #include <SDL.h>
+#include "../include/controller.h"
 
 #define BIOS_NA 10
 #define BIOS_JP 11
@@ -58,6 +59,7 @@ bool searchAllFolders(void);
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
+ImageID checkControllerType(std::string name, std::string nameDB);
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -74,6 +76,7 @@ extern bool gGamesFound;
 extern bool gPS1_firmware;
 extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
+extern double FILE_BROWSER_WIDTH;
 
 bool bGridView1;
 bool bGridView2=true;
@@ -932,6 +935,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
 
 enum settings_tabs { 
     SETTINGS_SEARCH=0,
+    SETTINGS_CONTROLLER,
     SETTINGS_DOLPHIN,
     SETTINGS_PCSX2,
     SETTINGS_GENERAL,
@@ -1022,7 +1026,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     // horizontal layout for margins
     LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
-    tabHolder->AddTab(ge->T("Search Path"), horizontalLayoutSearch);
+    tabHolder->AddTab(ge->T("Search"), horizontalLayoutSearch);
     horizontalLayoutSearch->Add(new Spacer(10.0f));
     
 	// -------- search --------
@@ -1040,10 +1044,6 @@ void SCREEN_SettingsScreen::CreateViews() {
         ge->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
         new LinearLayoutParams(FILL_PARENT, FILL_PARENT));
     searchSettings->Add(searchDirBrowser);
-    
-    searchDirBrowser->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelectedInstant);
-    searchDirBrowser->OnHoldChoice.Handle(this, &SCREEN_SettingsScreen::OnGameSelected);
-    searchDirBrowser->OnHighlight.Handle(this, &SCREEN_SettingsScreen::OnGameHighlight);
     
     // bios info
     searchSettings->Add(new Spacer(32.0f));
@@ -1092,6 +1092,110 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = searchSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, ge->T("Remove search path entry from settings"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager()));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
+    
+    //controller setup
+    
+    // horizontal layout for margins
+    LinearLayout *horizontalLayoutController = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    tabHolder->AddTab(ge->T("Controller"), horizontalLayoutController);
+    float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
+    horizontalLayoutController->Add(new Spacer(leftMargin));
+    
+	// -------- controller setup --------
+    ViewGroup *controllerSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    horizontalLayoutController->Add(controllerSettingsScroll);
+	controllerSettingsScroll->SetTag("ControllerSettings");
+	LinearLayout *controllerSettings = new LinearLayout(ORIENT_VERTICAL);
+	controllerSettings->SetSpacing(0);
+	controllerSettingsScroll->Add(controllerSettings);
+    controllerSettings->Add(new Spacer(64.0f));
+    
+    bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
+    double verticalSpace = (dp_yres-256.0f)/2;
+    std::string text_setup_1 = "Start controller setup (1)";
+    std::string text_setup_2 = "Start controller setup (2)";
+    
+    if (gDesignatedControllers[0].numberOfDevices != 0)
+    {
+        
+        LinearLayout *controller_horizontal = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT,verticalSpace));
+        controllerSettings->Add(controller_horizontal);
+        
+        // setup button
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(64.0f,verticalSpace));
+        controller_horizontal->Add(v);
+        ImageID icon;
+        if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
+        Choice* setupButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup1);
+        v->Add(new Spacer(64.0f,(verticalSpace-64.0f)/2));
+        v->Add(setupButton);
+        controller_horizontal->Add(new Spacer(44.0f));
+        
+        // text view
+        TextView* text_setup = new TextView(text_setup_1, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
+        if (gTheme == THEME_RETRO) 
+        {
+            text_setup->SetTextColor(0xFFde51e0);
+            text_setup->SetShadow(true);
+        }
+        controller_horizontal->Add(text_setup);
+        controller_horizontal->Add(new Spacer(44.0f));
+        
+        // controller pic
+        std::string name = gDesignatedControllers[0].name[0];
+        std::string nameDB = gDesignatedControllers[0].nameDB[0];
+        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        controller_horizontal->Add(controllerImage);
+        
+    } else
+    {
+        controllerSettings->Add(new Spacer(verticalSpace));
+    }
+    
+    controllerSettings->Add(new Spacer(20.0f));
+    
+    if (gDesignatedControllers[1].numberOfDevices != 0)
+    {
+        
+        LinearLayout *controller_horizontal = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT,verticalSpace));
+        controllerSettings->Add(controller_horizontal);
+        
+        // setup button
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(64.0f,verticalSpace));
+        controller_horizontal->Add(v);
+        ImageID icon;
+        if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
+        Choice* setupButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup2);
+        v->Add(new Spacer(64.0f,(verticalSpace-64.0f)/2));
+        v->Add(setupButton);
+        controller_horizontal->Add(new Spacer(44.0f));
+        
+        // text view
+        TextView* text_setup = new TextView(text_setup_2, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
+        if (gTheme == THEME_RETRO) 
+        {
+            text_setup->SetTextColor(0xFFde51e0);
+            text_setup->SetShadow(true);
+        }
+        controller_horizontal->Add(text_setup);
+        controller_horizontal->Add(new Spacer(44.0f));
+        
+        // controller pic
+        std::string name = gDesignatedControllers[1].name[0];
+        std::string nameDB = gDesignatedControllers[1].nameDB[0];
+        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        controller_horizontal->Add(controllerImage);
+    }
+    else
+    {
+        controllerSettings->Add(new Spacer(verticalSpace));
+    }
 
     // -------- Dolphin --------
     
@@ -1618,18 +1722,13 @@ void SCREEN_SettingsScreen::update() {
     }
 }
 
-SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e) {
+    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 

@@ -51,9 +51,8 @@ protected:
     
     // game browser
     SCREEN_DirBrowser *searchDirBrowser;
-   	SCREEN_UI::EventReturn OnGameSelected(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnGameSelectedInstant(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnGameHighlight(SCREEN_UI::EventParams &e);
+   	SCREEN_UI::EventReturn OnStartSetup1(SCREEN_UI::EventParams &e);
+	SCREEN_UI::EventReturn OnStartSetup2(SCREEN_UI::EventParams &e);
 
 
 private:
