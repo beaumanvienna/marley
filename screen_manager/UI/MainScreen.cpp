@@ -193,16 +193,18 @@ void SCREEN_MainScreen::CreateViews() {
 	root_->Add(mainInfo_);
 
     verticalLayout->Add(new Spacer(10.0f));
-
+    
+    // top line
     LinearLayout *topline = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     topline->SetTag("topLine");
     verticalLayout->Add(topline);
     
     float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
+    bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     
     topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-138.0f,0.0f));
-    ImageID icon;
     
+    ImageID icon;
     // settings button
     if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
     Choice* settingsButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
@@ -268,72 +270,86 @@ void SCREEN_MainScreen::CreateViews() {
     {
         verticalLayout->Add(new Spacer(verticalSpace));
     }
-  
+    
     // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, 273,1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
     gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
     gameLauncherMainFrame->Add(new Spacer(leftMargin));
     
-    // vertical layout for the game browser's top bar and the scroll view
-    Margins mgn(0,0,0,0);
-    LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILE_BROWSER_WIDTH, 243, 0.0f,G_TOPLEFT, mgn));
-    gameLauncherMainFrame->Add(gameLauncherColumn);
-    gameLauncherColumn->SetTag("gameLauncherColumn");
-    gameLauncherColumn->SetSpacing(0.0f);
-    
-    // game browser's top bar
-    LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-    gameLauncherColumn->Add(topBar);
-    topBar->SetTag("topBar");
-    
-    // home button
-    if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
-    Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
-    homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
-    homeButton->OnHighlight.Add([=](EventParams &e) {
-        if (!toolTipsShown[MAIN_HOME])
-        {
-            toolTipsShown[MAIN_HOME] = true;
-            mainInfo_->Show(ma->T("Home", "Home: jump in file browser to home directory"), e.v);
-        }
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
-    topBar->Add(homeButton);
-    
-    gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
-    
-    if (gTheme == THEME_RETRO) 
+    if (controllerPlugged)
     {
-        gamesPathView->SetTextColor(0xFFde51e0);
-        gamesPathView->SetShadow(true);
+        
+        // vertical layout for the game browser's top bar and the scroll view
+        Margins mgn(0,0,0,0);
+        LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILE_BROWSER_WIDTH, 243, 0.0f,G_TOPLEFT, mgn));
+        gameLauncherMainFrame->Add(gameLauncherColumn);
+        gameLauncherColumn->SetTag("gameLauncherColumn");
+        gameLauncherColumn->SetSpacing(0.0f);
+        
+        // game browser's top bar
+        LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+        gameLauncherColumn->Add(topBar);
+        topBar->SetTag("topBar");
+        
+        // home button
+        if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
+        Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
+        homeButton->OnHighlight.Add([=](EventParams &e) {
+            if (!toolTipsShown[MAIN_HOME])
+            {
+                toolTipsShown[MAIN_HOME] = true;
+                mainInfo_->Show(ma->T("Home", "Home: jump in file browser to home directory"), e.v);
+            }
+            return SCREEN_UI::EVENT_CONTINUE;
+        });
+        topBar->Add(homeButton);
+        
+        gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
+        
+        if (gTheme == THEME_RETRO) 
+        {
+            gamesPathView->SetTextColor(0xFFde51e0);
+            gamesPathView->SetShadow(true);
+        }
+        topBar->Add(gamesPathView);
+        
+        gameLauncherColumn->Add(new Spacer(10.0f));
+
+        // frame for scolling 
+        gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
+        gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
+        LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
+        gameLauncherFrame->SetTag("gameLauncherFrame");
+        gameLauncherFrame->SetSpacing(0);
+        gameLauncherFrameScroll->Add(gameLauncherFrame);
+        gameLauncherColumn->Add(gameLauncherFrameScroll);
+
+        // game browser
+        
+        ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
+            ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
+            new LinearLayoutParams(FILE_BROWSER_WIDTH, WRAP_CONTENT));
+        ROM_browser->SetTag("ROM_browser");
+        gameLauncherFrame->Add(ROM_browser);
+        
+        ROM_browser->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
+        ROM_browser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
+        ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
+        
+        root_->SetDefaultFocusView(ROM_browser);
+    } else    
+    {
+        TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(FILE_BROWSER_WIDTH, 64.0f));
+        if (gTheme == THEME_RETRO) 
+        {
+            noController->SetTextColor(0xFFde51e0);
+            noController->SetShadow(true);
+        }
+        gameLauncherMainFrame->Add(noController);
     }
-    topBar->Add(gamesPathView);
-    
-    gameLauncherColumn->Add(new Spacer(10.0f));
-
-    // frame for scolling 
-    gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
-	gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
-	LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
-    gameLauncherFrame->SetTag("gameLauncherFrame");
-	gameLauncherFrame->SetSpacing(0);
-	gameLauncherFrameScroll->Add(gameLauncherFrame);
-	gameLauncherColumn->Add(gameLauncherFrameScroll);
-
-    // game browser
-    
-    ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
-        ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-        new LinearLayoutParams(FILE_BROWSER_WIDTH, WRAP_CONTENT));
-    ROM_browser->SetTag("ROM_browser");
-    gameLauncherFrame->Add(ROM_browser);
-    
-    ROM_browser->OnChoice.Handle(this, &SCREEN_MainScreen::OnGameSelectedInstant);
-    ROM_browser->OnHoldChoice.Handle(this, &SCREEN_MainScreen::OnGameSelected);
-    ROM_browser->OnHighlight.Handle(this, &SCREEN_MainScreen::OnGameHighlight);
-    
-    root_->SetDefaultFocusView(ROM_browser);
 }
 
 void SCREEN_MainScreen::onFinish(DialogResult result) {
