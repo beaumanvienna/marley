@@ -48,6 +48,7 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "SDLGLGraphicsContext.h"
 #include "../../include/gui.h"
 #include "../../include/controller.h"
+#include "../include/statemachine.h"
 
 
 void SCREEN_ToggleFullScreen(void);
@@ -429,6 +430,70 @@ int screen_manager_main(int argc, char *argv[]) {
                 printf("+++ controller removed\n");
                 closeJoy(event.jdevice.which);
                 gUpdateMain = true;
+                break;
+            case SDL_JOYHATMOTION: 
+                if (gControllerConf)
+                {
+                    if ( (event.jhat.value == SDL_HAT_UP) || (event.jhat.value == SDL_HAT_DOWN) || \
+                            (event.jhat.value == SDL_HAT_LEFT) || (event.jhat.value == SDL_HAT_RIGHT) )
+                    {
+                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                        {
+                            gActiveController=0;  
+                            statemachineConfHat(event.jhat.hat,event.jhat.value);
+                        }
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                        {
+                            gActiveController=1;  
+                            statemachineConfHat(event.jhat.hat,event.jhat.value);
+                        }
+                    }
+                    break;
+                }
+				if (SCREEN_joystick) {
+					SCREEN_joystick->ProcessInput(event);
+				}
+                break;
+            case SDL_JOYAXISMOTION: 
+                if (gControllerConf)
+                {
+                    if (abs(event.jaxis.value) > 16384)
+                    {
+                        if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                        {
+                            gActiveController=0; 
+                            statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
+                        }
+                        else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                        {
+                            gActiveController=1;  
+                            statemachineConfAxis(event.jaxis.axis,(event.jaxis.value < 0));
+                        }
+                    }
+                    break;
+                }
+				if (SCREEN_joystick) {
+					SCREEN_joystick->ProcessInput(event);
+				}
+                break;
+            case SDL_JOYBUTTONDOWN: 
+                if (gControllerConf)
+                {
+                    if (event.jdevice.which == gDesignatedControllers[0].instance[0])
+                    {
+                        gActiveController=0;  
+                        statemachineConf(event.jbutton.button);
+                    }
+                    else if (event.jdevice.which == gDesignatedControllers[1].instance[0])
+                    {
+                        gActiveController=1;  
+                        statemachineConf(event.jbutton.button);
+                    }
+                    break;
+                }
+				if (SCREEN_joystick) {
+					SCREEN_joystick->ProcessInput(event);
+				}
                 break;
 			default:
 				if (SCREEN_joystick) {

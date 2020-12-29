@@ -147,7 +147,6 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
 bool SCREEN_MainScreen::key(const KeyInput &key)
 {
     if ( !(offButton->HasFocus()) && (key.flags & KEY_DOWN) && ((key.keyCode==NKCODE_BACK) || (key.keyCode==NKCODE_ESCAPE))) {
-        printf("jc: key.keyCode=%d\n",key.keyCode);
         SCREEN_UI::SetFocusedView(offButton);
         return true;       
     }

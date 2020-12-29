@@ -37,6 +37,7 @@ public:
     virtual ~SCREEN_SettingsScreen();
 	void update() override;
 	void onFinish(DialogResult result) override;
+    bool key(const KeyInput &key) override;
 	std::string tag() const override { return "settings"; }
     void DrawBackground(SCREEN_UIContext &dc) override;
     void showToolTip(std::string text);
@@ -59,6 +60,10 @@ private:
     SCREEN_UI::TabHolder *tabHolder = nullptr;
     // search
     int inputSearchDirectories;
+    
+    // controller
+    SCREEN_UI::TextView* text_setup1;
+    SCREEN_UI::TextView* text_setup2;
     
     // Dolphin
     int inputResDolphin;
@@ -175,7 +180,6 @@ private:
 	SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn GridSettingsClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
 	
 
@@ -190,19 +194,4 @@ private:
 	float lastScale_ = 1.0f;
 	bool lastLayoutWasGrid_ = true;
 	SCREEN_ScreenManager *screenManager_;
-};
-
-
-class SCREEN_GridSettingsScreen : public SCREEN_PopupScreen {
-public:
-	SCREEN_GridSettingsScreen(std::string label) : SCREEN_PopupScreen(label) {}
-	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
-	SCREEN_UI::Event OnRecentChanged;
-
-private:
-	SCREEN_UI::EventReturn GridPlusClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn GridMinusClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRecentClearClick(SCREEN_UI::EventParams &e);
-	const float MAX_GAME_GRID_SCALE = 3.0f;
-	const float MIN_GAME_GRID_SCALE = 0.8f;
 };

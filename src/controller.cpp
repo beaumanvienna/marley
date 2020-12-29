@@ -631,6 +631,11 @@ void setMapping(void)
     {
         entry += ",lefttrigger:a";
         entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]);
+    }    
+    if (gControllerButton[STATE_CONF_BUTTON_LEFTTRIGGER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",lefttrigger:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_LEFTTRIGGER]);
     }
     if (gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X] != STATE_CONF_SKIP_ITEM)
     {
@@ -657,17 +662,22 @@ void setMapping(void)
     if (gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER] != STATE_CONF_SKIP_ITEM)
     {
         entry += ",righttrigger:a";
-        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]);
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_RIGHTTRIGGER]);
+    }
+    if (gControllerButton[STATE_CONF_BUTTON_RIGHTTRIGGER] != STATE_CONF_SKIP_ITEM)
+    {
+        entry += ",righttrigger:b";
+        entry += to_string(gControllerButton[STATE_CONF_BUTTON_RIGHTTRIGGER]);
     }
     if (gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X] != STATE_CONF_SKIP_ITEM)
     {
         entry += ",rightx:a";
-        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]);
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]);
     }
     if (gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y] != STATE_CONF_SKIP_ITEM)
     {
         entry += ",righty:a";
-        entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
+        entry += to_string(gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]);
     }
     
     
@@ -694,13 +704,13 @@ void setMapping(void)
     }
     
     removeDuplicatesInDB();
-    
+    internal_db = gBaseDir + "internaldb.txt";
     if ( SDL_GameControllerAddMappingsFromFile(internal_db.c_str()) == -1 )
     {
-        printf( "Warning: Unable to open internaldb.txt\n");
+        printf( "Warning: Unable to open '%s' (should be ~/.marley/internaldb.txt)\n",internal_db.c_str());
     }
-    gControllerConf = 0;
-    gControllerConfNum = -1;
+    gControllerConf = false;
+    gControllerConfNum = NO_CONTROLLER;
 }
 
 //this function should only be called on a new controller instance

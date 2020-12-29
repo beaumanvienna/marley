@@ -21,7 +21,6 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include <vector>
-using namespace std;
 
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
@@ -37,12 +36,12 @@ using namespace std;
     #define STATE_FLR_FW    8
     #define STATE_SHUTDOWN  9
     #define STATE_CONFIG    10
-    
+
     typedef enum
     {
         STATE_CONF_BUTTON_DPAD_UP=0,
-        STATE_CONF_BUTTON_DPAD_DOWN,
-        STATE_CONF_BUTTON_DPAD_LEFT,
+        STATE_CONF_BUTTON_DPAD_DOWN, //1
+        STATE_CONF_BUTTON_DPAD_LEFT, //2
         STATE_CONF_BUTTON_DPAD_RIGHT,
         STATE_CONF_BUTTON_A,
         STATE_CONF_BUTTON_B,
@@ -50,7 +49,7 @@ using namespace std;
         STATE_CONF_BUTTON_Y,
         STATE_CONF_BUTTON_BACK,
         STATE_CONF_BUTTON_GUIDE,
-        STATE_CONF_BUTTON_START,
+        STATE_CONF_BUTTON_START,  //10
         STATE_CONF_BUTTON_LEFTSTICK,
         STATE_CONF_BUTTON_RIGHTSTICK,
         STATE_CONF_BUTTON_LEFTSHOULDER,
@@ -59,39 +58,50 @@ using namespace std;
         STATE_CONF_AXIS_LEFTSTICK_Y,
         STATE_CONF_AXIS_RIGHTSTICK_X,
         STATE_CONF_AXIS_RIGHTSTICK_Y,
-        STATE_CONF_AXIS_LEFTTRIGGER,
-        STATE_CONF_AXIS_RIGHTTRIGGER,
+        STATE_CONF_AXIS_LEFTTRIGGER,  //19
+        STATE_CONF_AXIS_RIGHTTRIGGER,  //20
+        STATE_CONF_BUTTON_LEFTTRIGGER,
+        STATE_CONF_BUTTON_RIGHTTRIGGER,
         STATE_CONF_SKIP_ITEM,
         STATE_CONF_MAX
     } configStates;
+    
+    enum controller_numbers
+    {
+        NO_CONTROLLER = -1,
+        CONTROLLER_1,
+        CONTROLLER_2,
+    };
 
     void statemachine(int cmd);
     void statemachineConf(int cmd);
     void statemachineConfAxis(int cmd, bool negative);
     void statemachineConfHat(int hat, int value);
     void resetStatemachine(void);
-    
+    void startControllerConf(int controllerNum);
+    void setControllerConfText(std::string text);
+
      // statemachine
     extern int gState;
-    
+
     extern int gCurrentGame;
-    extern std::vector<string> gGame;
-    
+    extern std::vector<std::string> gGame;
+
     extern bool gQuit;
     extern bool gSetupIsRunning;
     extern bool gTextInput;
-    extern string gText;
+    extern std::string gText;
     extern bool gTextInputForGamingFolder;
-    extern string gTextForGamingFolder;
+    extern std::string gTextForGamingFolder;
     extern bool gTextInputForFirmwareFolder;
-    extern string gTextForFirmwareFolder;
+    extern std::string gTextForFirmwareFolder;
     extern int gControllerButton[STATE_CONF_MAX];
     extern int gHat[4],gHatValue[4];
     extern int gAxis[4];
     extern bool gAxisValue[4];
-    
+
     extern bool gControllerConf;
     extern int gControllerConfNum;
-    extern string gConfText;
-    
+    extern std::string gConfText;
+
 #endif

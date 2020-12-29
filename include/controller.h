@@ -80,5 +80,6 @@
     //designated controllers
     extern T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
     extern int gNumDesignatedControllers;
+    extern int gActiveController;
 
 #endif

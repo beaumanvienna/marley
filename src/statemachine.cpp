@@ -51,7 +51,7 @@ string gText;
 string gTextForGamingFolder;
 string gTextForFirmwareFolder;
 bool gControllerConf = false;
-int gControllerConfNum=-1;
+int gControllerConfNum=NO_CONTROLLER;
 int confState;
 string gConfText;
 int gControllerButton[STATE_CONF_MAX];
@@ -80,13 +80,36 @@ void initOpenGL(void);
 void setAppIcon(void);
 void hide_or_show_cursor_X11(bool hide);
 std::ifstream::pos_type filesize(const char* filename);
+
+void startControllerConf(int controllerNum)
+{
+    for (int i=0;i<STATE_CONF_MAX;i++)
+    {
+        gControllerButton[i]=STATE_CONF_SKIP_ITEM;
+    }
+
+    for (int i = 0; i < 4;i++)
+    {
+        gHat[i] = -1;
+        gHatValue[i] = -1;
+        gAxis[i] = -1;
+        gAxisValue[i] = false;
+    }
+    hatIterator = 0;
+    axisIterator = 0;
+    secondRun = -1;
+    secondRunHat = -1;
+    secondRunValue = -1;
+
+    gControllerConf=true;
+    gControllerConfNum=controllerNum;
+    confState = STATE_CONF_BUTTON_DPAD_UP;
+}
+
 void resetStatemachine(void)
 {
-    gState = STATE_OFF;
-    gSetupIsRunning = false;
-    gTextInput = false;
     gControllerConf = false;
-    gControllerConfNum=-1;
+    gControllerConfNum=NO_CONTROLLER;
 }
 
 bool exists(const char *fileName);
@@ -718,35 +741,7 @@ void statemachine(int cmd)
                         break;
                      case STATE_CONF0:
                      case STATE_CONF1:
-                        for (int i=0;i<STATE_CONF_MAX;i++)
-                        {
-                            gControllerButton[i]=STATE_CONF_SKIP_ITEM;
-                        }
                         
-                        for (int i = 0; i < 4;i++)
-                        {
-                            gHat[i] = -1;
-                            gHatValue[i] = -1;
-                            gAxis[i] = -1;
-                            gAxisValue[i] = false;
-                        }
-                        hatIterator = 0;
-                        axisIterator = 0;
-                        secondRun = -1;
-                        secondRunHat = -1;
-                        secondRunValue = -1;
-                        
-                        gControllerConf=true;
-                        if (gState==STATE_CONF0)
-                        {
-                            gControllerConfNum=0;
-                        }
-                        else
-                        {
-                            gControllerConfNum=1;
-                        }
-                        confState = STATE_CONF_BUTTON_DPAD_UP;
-                        gConfText = "press dpad up";
                         break;
                     case STATE_FLR_GAMES:
                         if (!gTextInputForGamingFolder)
@@ -874,105 +869,114 @@ void statemachine(int cmd)
 
 void statemachineConf(int cmd)
 {
+    printf("jc: void statemachineConf(int cmd = %d), confState = %d, gActiveController = %d, gControllerConfNum = %d\n",cmd,confState,gActiveController,gControllerConfNum);
     if ((cmd==STATE_CONF_SKIP_ITEM) && (confState > STATE_CONF_BUTTON_RIGHTSHOULDER)) statemachineConfAxis(STATE_CONF_SKIP_ITEM,false);
-    if ( (gControllerConf) && (confState <= STATE_CONF_BUTTON_RIGHTSHOULDER) )
+    
+    if ((gActiveController == gControllerConfNum) || (cmd==STATE_CONF_SKIP_ITEM))
     {
-        if ((gActiveController == gControllerConfNum) || (cmd==STATE_CONF_SKIP_ITEM))
+        switch (confState)
         {
-            switch (confState)
-            {
-                case STATE_CONF_BUTTON_DPAD_UP:
-                    if (secondRun == -1)
-                    {
-                        gConfText = "press dpad up";
-                        secondRun = cmd;
-                    }
-                    else if (secondRun == cmd)
-                    {
-                        gControllerButton[confState]=cmd;
-                        confState = STATE_CONF_BUTTON_DPAD_DOWN;
-                        gConfText = "press dpad down";
-                        secondRun = -1;
-                    }
-                    break;
-                case STATE_CONF_BUTTON_DPAD_DOWN:
+            case STATE_CONF_BUTTON_DPAD_UP:
+                if (secondRun == -1)
+                {
+                    setControllerConfText("press dpad up");
+                    secondRun = cmd;
+                }
+                else if (secondRun == cmd)
+                {
                     gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_DPAD_LEFT;
-                    gConfText = "press dpad left";
-                    break;
-                case STATE_CONF_BUTTON_DPAD_LEFT:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_DPAD_RIGHT;
-                    gConfText = "press dpad right";
-                    break;
-                case STATE_CONF_BUTTON_DPAD_RIGHT:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_A;
-                    gConfText = "press button A (lower)";
-                    break;
-                case STATE_CONF_BUTTON_A:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_B;
-                    gConfText = "press button B (right)";
-                    break;
-                case STATE_CONF_BUTTON_B:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_X;
-                    gConfText = "press button X (left)";
-                    break;
-                case STATE_CONF_BUTTON_X:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_Y;
-                    gConfText = "press button Y (upper)";
-                    break;
-                case STATE_CONF_BUTTON_Y:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_LEFTSTICK;
-                    gConfText = "press left stick button";
-                    break;
-                case STATE_CONF_BUTTON_LEFTSTICK:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_RIGHTSTICK;
-                    gConfText = "press right stick button";
-                    break;
-                case STATE_CONF_BUTTON_RIGHTSTICK:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_LEFTSHOULDER;
-                    gConfText = "press left front shoulder";
-                    break;
-                case STATE_CONF_BUTTON_LEFTSHOULDER:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_RIGHTSHOULDER;
-                    gConfText = "press right front shoulder";
-                    break;
-                case STATE_CONF_BUTTON_RIGHTSHOULDER:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_BACK;
-                    gConfText = "press select/back button";
-                    break;
-                case STATE_CONF_BUTTON_BACK:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_START;
-                    gConfText = "press start button";
-                    break;
-                case STATE_CONF_BUTTON_START:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_BUTTON_GUIDE;
-                    gConfText = "press guide button";
-                    break;
-                case STATE_CONF_BUTTON_GUIDE:
-                    gControllerButton[confState]=cmd;
-                    confState = STATE_CONF_AXIS_LEFTSTICK_X;
-                    gConfText = "twirl left stick";
-                    xCount=0;
-                    yCount=0;
-                    xValue=-1;
-                    yValue=-1;
-                    break;
-                default:
-                    (void) 0;
-                    break;
-            }
+                    confState = STATE_CONF_BUTTON_DPAD_DOWN;
+                    setControllerConfText("press dpad down");
+                    secondRun = -1;
+                }
+                break;
+            case STATE_CONF_BUTTON_DPAD_DOWN:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_DPAD_LEFT;
+                setControllerConfText("press dpad left");
+                break;
+            case STATE_CONF_BUTTON_DPAD_LEFT:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_DPAD_RIGHT;
+                setControllerConfText("press dpad right");
+                break;
+            case STATE_CONF_BUTTON_DPAD_RIGHT:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_A;
+                setControllerConfText("press button A (lower)");
+                break;
+            case STATE_CONF_BUTTON_A:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_B;
+                setControllerConfText("press button B (right)");
+                break;
+            case STATE_CONF_BUTTON_B:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_X;
+                setControllerConfText("press button X (left)");
+                break;
+            case STATE_CONF_BUTTON_X:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_Y;
+                setControllerConfText("press button Y (upper)");
+                break;
+            case STATE_CONF_BUTTON_Y:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_LEFTSTICK;
+                setControllerConfText("press left stick button");
+                break;
+            case STATE_CONF_BUTTON_LEFTSTICK:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_RIGHTSTICK;
+                setControllerConfText("press right stick button");
+                break;
+            case STATE_CONF_BUTTON_RIGHTSTICK:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_LEFTSHOULDER;
+                setControllerConfText("press left front shoulder");
+                break;
+            case STATE_CONF_BUTTON_LEFTSHOULDER:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_RIGHTSHOULDER;
+                setControllerConfText("press right front shoulder");
+                break;
+            case STATE_CONF_BUTTON_RIGHTSHOULDER:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_BACK;
+                setControllerConfText("press select/back button");
+                break;
+            case STATE_CONF_BUTTON_BACK:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_START;
+                setControllerConfText("press start button");
+                break;
+            case STATE_CONF_BUTTON_START:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_BUTTON_GUIDE;
+                setControllerConfText("press guide button");
+                break;
+            case STATE_CONF_BUTTON_GUIDE:
+                gControllerButton[confState]=cmd;
+                confState = STATE_CONF_AXIS_LEFTSTICK_X;
+                setControllerConfText("twirl left stick");
+                xCount=0;
+                yCount=0;
+                xValue=-1;
+                yValue=-1;
+                break;
+            case STATE_CONF_AXIS_LEFTTRIGGER:
+                gControllerButton[STATE_CONF_BUTTON_LEFTTRIGGER]=cmd;
+                confState = STATE_CONF_AXIS_RIGHTTRIGGER;
+                setControllerConfText("press right rear shoulder");
+                break;
+            case STATE_CONF_AXIS_RIGHTTRIGGER:
+                gControllerButton[STATE_CONF_BUTTON_RIGHTTRIGGER]=cmd;
+                setControllerConfText("Start controller setup ("+ to_string(gControllerConfNum+1) + ")");
+                setMapping();
+                break;
+            default:
+                (void) 0;
+                break;
         }
     }
 }
@@ -996,7 +1000,7 @@ void statemachineConfAxis(int cmd, bool negative)
                         yValue=-1;
 
                         confState = STATE_CONF_AXIS_RIGHTSTICK_X;
-                        gConfText = "twirl right stick";
+                        setControllerConfText("twirl right stick");
                     }
                     break;
                 case STATE_CONF_AXIS_RIGHTSTICK_X:
@@ -1009,7 +1013,7 @@ void statemachineConfAxis(int cmd, bool negative)
                         yValue=-1;
                         
                         confState = STATE_CONF_AXIS_LEFTTRIGGER;
-                        gConfText = "press left rear shoulder";
+                        setControllerConfText("press left rear shoulder");
                     }
                     else if ( (cmd != gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]) &&\
                             (cmd != gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]))
@@ -1024,7 +1028,7 @@ void statemachineConfAxis(int cmd, bool negative)
                             yValue=-1;
                             
                             confState = STATE_CONF_AXIS_LEFTTRIGGER;
-                            gConfText = "press left rear shoulder";
+                            setControllerConfText("press left rear shoulder");
                         }
                     }
                     break;
@@ -1035,7 +1039,7 @@ void statemachineConfAxis(int cmd, bool negative)
                         xValue=-1;
                           
                         confState = STATE_CONF_AXIS_RIGHTTRIGGER;
-                        gConfText = "press right rear shoulder";
+                        setControllerConfText("press right rear shoulder");
                     }
                     else if ( (cmd != gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_X]) &&\
                             (cmd != gControllerButton[STATE_CONF_AXIS_RIGHTSTICK_Y]))
@@ -1047,7 +1051,7 @@ void statemachineConfAxis(int cmd, bool negative)
                             xValue=-1;
                             
                             confState = STATE_CONF_AXIS_RIGHTTRIGGER;
-                            gConfText = "press right rear shoulder";
+                            setControllerConfText("press right rear shoulder");
                         }
                     }
                     
@@ -1058,7 +1062,7 @@ void statemachineConfAxis(int cmd, bool negative)
                         xCount=0;
                         xValue=-1;
                           
-                        gConfText = "configuration done";
+                        setControllerConfText("configuration done");
                         setMapping();
                     }
                     else if (cmd != gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) 
@@ -1068,7 +1072,7 @@ void statemachineConfAxis(int cmd, bool negative)
                             printf("***** trigger: %i\n",xValue);
                             xCount=0;
                             xValue=-1;
-                            gConfText = "configuration done";
+                            setControllerConfText("configuration done");
                             setMapping();
                         }
                     }
@@ -1087,16 +1091,16 @@ void statemachineConfAxis(int cmd, bool negative)
             switch (confState)
             {
                 case STATE_CONF_BUTTON_DPAD_UP:
-                    gConfText = "press dpad down";
+                    setControllerConfText("press dpad down");
                     break;
                 case STATE_CONF_BUTTON_DPAD_DOWN:
-                    gConfText = "press dpad left";
+                    setControllerConfText("press dpad left");
                     break;
                 case STATE_CONF_BUTTON_DPAD_LEFT:
-                    gConfText = "press dpad right";
+                    setControllerConfText("press dpad right");
                     break;
                 case STATE_CONF_BUTTON_DPAD_RIGHT:
-                    gConfText = "press button A (lower)";
+                    setControllerConfText("press button A (lower)");
                     break;
                 default:
                     (void) 0;
@@ -1190,7 +1194,7 @@ void statemachineConfHat(int hat, int value)
             case STATE_CONF_BUTTON_DPAD_UP:            
                 if ( (secondRunHat == -1) && (secondRunValue == -1) )
                 {
-                    gConfText = "press dpad up again";
+                    setControllerConfText("press dpad up again");
                     secondRunHat = hat;
                     secondRunValue = value;
                 }
@@ -1198,24 +1202,24 @@ void statemachineConfHat(int hat, int value)
                 {
                     hatIterator++;
                     confState = STATE_CONF_BUTTON_DPAD_DOWN;
-                    gConfText = "press dpad down";
+                    setControllerConfText("press dpad down");
                     secondRunHat = -1;
                     secondRunValue = -1;
                 }
                 break;
             case STATE_CONF_BUTTON_DPAD_DOWN:
                 confState = STATE_CONF_BUTTON_DPAD_LEFT;
-                gConfText = "press dpad left";
+                setControllerConfText("press dpad left");
                 hatIterator++;
                 break;
             case STATE_CONF_BUTTON_DPAD_LEFT: 
                 confState = STATE_CONF_BUTTON_DPAD_RIGHT;
-                gConfText = "press dpad right";
+                setControllerConfText("press dpad right");
                 hatIterator++;
                 break;
             case STATE_CONF_BUTTON_DPAD_RIGHT: 
                 confState = STATE_CONF_BUTTON_A;
-                gConfText = "press button A (lower)";
+                setControllerConfText("press button A (lower)");
                 hatIterator++;
                 break;
             default:

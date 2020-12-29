@@ -43,6 +43,7 @@
 #include "UI/MainScreen.h"
 #include <SDL.h>
 #include "../include/controller.h"
+#include "../include/statemachine.h"
 
 #define BIOS_NA 10
 #define BIOS_JP 11
@@ -77,6 +78,7 @@ extern bool gPS1_firmware;
 extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
 extern double FILE_BROWSER_WIDTH;
+extern bool gControllerConf;
 
 bool bGridView1;
 bool bGridView2=true;
@@ -86,6 +88,14 @@ bool playSystemSounds;
 int gTheme = THEME_RETRO;
 SCREEN_SettingsInfoMessage *settingsInfo_;
 std::string tooltipFileBrowser;
+bool updateControllerText;
+
+void setControllerConfText(std::string text)
+{
+    updateControllerText = true;
+    gConfText = text;
+}
+
 int calcExtraThreadsPCSX2()
 {
     int cnt = SDL_GetCPUCount() -2;
@@ -95,8 +105,24 @@ int calcExtraThreadsPCSX2()
     return cnt;
 }
 
+bool SCREEN_SettingsScreen::key(const KeyInput &key)
+{
+    if (gControllerConf)
+    {
+        // skip button
+        if ((key.flags & KEY_DOWN) && (key.keyCode==NKCODE_ENTER))
+        {
+            statemachineConf(STATE_CONF_SKIP_ITEM);
+        }
+        
+        return true;
+    } 
+    return SCREEN_UIDialogScreenWithBackground::key(key);
+}
+
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
 {
+    resetStatemachine();
     searchDirAdded=false;
     printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     
@@ -1112,6 +1138,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     double verticalSpace = (dp_yres-256.0f)/2;
+    updateControllerText = false;
     std::string text_setup_1 = "Start controller setup (1)";
     std::string text_setup_2 = "Start controller setup (2)";
     
@@ -1133,14 +1160,14 @@ void SCREEN_SettingsScreen::CreateViews() {
         controller_horizontal->Add(new Spacer(44.0f));
         
         // text view
-        TextView* text_setup = new TextView(text_setup_1, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+        text_setup1 = new TextView(text_setup_1, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
                                     true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
         if (gTheme == THEME_RETRO) 
         {
-            text_setup->SetTextColor(0xFFde51e0);
-            text_setup->SetShadow(true);
+            text_setup1->SetTextColor(0xFFde51e0);
+            text_setup1->SetShadow(true);
         }
-        controller_horizontal->Add(text_setup);
+        controller_horizontal->Add(text_setup1);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // controller pic
@@ -1175,14 +1202,14 @@ void SCREEN_SettingsScreen::CreateViews() {
         controller_horizontal->Add(new Spacer(44.0f));
         
         // text view
-        TextView* text_setup = new TextView(text_setup_2, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+        text_setup2 = new TextView(text_setup_2, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
                                     true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
         if (gTheme == THEME_RETRO) 
         {
-            text_setup->SetTextColor(0xFFde51e0);
-            text_setup->SetShadow(true);
+            text_setup2->SetTextColor(0xFFde51e0);
+            text_setup2->SetShadow(true);
         }
-        controller_horizontal->Add(text_setup);
+        controller_horizontal->Add(text_setup2);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // controller pic
@@ -1710,25 +1737,47 @@ void SCREEN_SettingsScreen::onFinish(DialogResult result) {
 void SCREEN_SettingsScreen::update() {
 	SCREEN_UIScreen::update();
 
-	bool vertical = true;
+    bool vertical = true;
 	if (vertical != lastVertical_) {
 		RecreateViews();
 		lastVertical_ = vertical;
 	}
+    
     if (searchDirAdded)
     {
         searchDirAdded=false;
         RecreateViews();
     }
+    
+    if (updateControllerText)
+    {
+        if (gControllerConfNum == CONTROLLER_1)
+        {
+            text_setup1->SetText(gConfText);
+        } else 
+        if (gControllerConfNum == CONTROLLER_2)
+        {
+            text_setup2->SetText(gConfText);
+        }
+        updateControllerText = false;
+    }
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e)\n");
+    
+    startControllerConf(CONTROLLER_1);
+    setControllerConfText("press dpad up");
+
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e)\n");
+    
+    startControllerConf(CONTROLLER_2);
+    setControllerConfText("press dpad up");
+    
 	return SCREEN_UI::EVENT_DONE;
 }
 
@@ -2117,53 +2166,8 @@ SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_UI::EventReturn SCREEN_DirBrowser::GridSettingsClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::GridSettingsClick(SCREEN_UI::EventParams &e)\n");
-	auto sy = GetI18NCategory("System");
-	auto gridSettings = new SCREEN_GridSettingsScreen(sy->T("Games list settings"));
-	gridSettings->OnRecentChanged.Handle(this, &SCREEN_DirBrowser::OnRecentClear);
-	if (e.v)
-		gridSettings->SetPopupOrigin(e.v);
-
-	screenManager_->push(gridSettings);
-	return SCREEN_UI::EVENT_DONE;
-}
-
 SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
     printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
 	screenManager_->RecreateAllViews();
-	return SCREEN_UI::EVENT_DONE;
-}
-void SCREEN_GridSettingsScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
-	using namespace SCREEN_UI;
-
-	auto di = GetI18NCategory("Dialog");
-	auto sy = GetI18NCategory("System");
-
-	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 50, 1.0f));
-	LinearLayout *items = new LinearLayout(ORIENT_VERTICAL);
-
-	items->Add(new CheckBox(&bGridView1, sy->T("Display Recent on a grid")));
-	items->Add(new CheckBox(&bGridView2, sy->T("Display Games on a grid")));
-
-	items->Add(new ItemHeader(sy->T("Grid icon size")));
-	items->Add(new Choice(sy->T("Increase size")))->OnClick.Handle(this, &SCREEN_GridSettingsScreen::GridPlusClick);
-	items->Add(new Choice(sy->T("Decrease size")))->OnClick.Handle(this, &SCREEN_GridSettingsScreen::GridMinusClick);
-
-	items->Add(new ItemHeader(sy->T("Display Extra Info")));
-	
-	scroll->Add(items);
-	parent->Add(scroll);
-}
-
-SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::GridPlusClick(SCREEN_UI::EventParams &e) {
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::GridMinusClick(SCREEN_UI::EventParams &e) {
-	return SCREEN_UI::EVENT_DONE;
-}
-
-SCREEN_UI::EventReturn SCREEN_GridSettingsScreen::OnRecentClearClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }
