@@ -60,7 +60,7 @@ extern SCREEN_ScreenManager *SCREEN_screenManager;
 
 SCREEN_UI::ScrollView *gameLauncherFrameScroll;
 
-ImageID checkControllerType(std::string name, std::string nameDB);
+ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
 double FILE_BROWSER_WIDTH;
 
 bool bGridViewMain1;
@@ -242,7 +242,7 @@ void SCREEN_MainScreen::CreateViews() {
         verticalLayout->Add(controller_horizontal);
         std::string name = gDesignatedControllers[0].name[0];
         std::string nameDB = gDesignatedControllers[0].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
         
         ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
@@ -259,7 +259,7 @@ void SCREEN_MainScreen::CreateViews() {
         verticalLayout->Add(controller_horizontal);
         std::string name = gDesignatedControllers[1].name[0];
         std::string nameDB = gDesignatedControllers[1].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
         
         ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
@@ -944,9 +944,12 @@ SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e
 	return SCREEN_UI::EVENT_DONE;
 }
 
-ImageID checkControllerType(std::string name, std::string nameDB)
+ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK)
 {
-    
+    if (!mappingOK)
+    {
+        return ImageID("I_CTRL_NOT_FOUND");
+    }
     size_t str_pos1;
     size_t str_pos2;
     size_t str_pos3;

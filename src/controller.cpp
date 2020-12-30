@@ -42,17 +42,18 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string sdl_db, internal_db;
-
+extern bool updateSettingsScreen;
+extern std::string showTooltipSettingsScreen;
 bool initJoy(void)
 {
     printf("jc: bool initJoy(void)\n");
     bool ok = true;
     int i;
     
-    SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_EVENTS);
+    SDL_Init(SDL_INIT_GAMECONTROLLER);
     
-    string internal_db = gBaseDir;
-    internal_db += "internaldb.txt";
+    internal_db = gBaseDir + "internaldb.txt";
+
     SDL_GameControllerAddMappingsFromFile(internal_db.c_str());
     
     sdl_db = gBaseDir;
@@ -385,12 +386,12 @@ bool openJoy(int i)
 
 bool findGuidInFile(string filename, string text2match, int length, string* lineRet)
 {
-    printf("jc: bool findGuidInFile(string filename=%s, string text2match=%s, int length=%d, string* lineRet)\n",filename.c_str(),text2match.c_str(),length);
+    
     const char* file = filename.c_str();
     bool ok = false;
     string line;
     string text = text2match.substr(0,length);
-    
+    printf("jc: bool findGuidInFile(string filename=%s, string text2match=%s, int length=%d, string* lineRet)\n",filename.c_str(),text.c_str(),length);
     lineRet[0] = "";
     
     ifstream fileHandle (file);
@@ -446,44 +447,57 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
         else
         {
             string lineOriginal;
-            printf("GUID %s not found in public db", guidStr);
-            for (int i=27;i>18;i--)
+            printf("GUID %s not found in public db\n", guidStr);
+            for (int i=27;i>16;i--)
             {
                 
-                //check in public db
+                //search in public db for similar
                 mappingOK[0] = findGuidInFile(sdl_db.c_str(),guidStr,i,&line);
                 
                 if (mappingOK[0])
                 {
+                    mappingOK[0]=false; // found but loading could fail
                     // initialize controller with this line
                     lineOriginal = line;
+                    
+                    // mapping string after 2nd comma
                     int pos = line.find(",");
                     append = line.substr(pos+1,line.length()-pos-1);
-                    
                     pos = append.find(",");
                     append = append.substr(pos+1,append.length()-pos-1);
                     
-                    line = guidStr;
-                    append=line+","+name+","+append;
+                    if (name.length()>45) name = name.substr(0,45);
                     
+                    //assemble final entry
+                    string entry=guidStr;
+                    entry += "," + name + "," + append;
                     
-                    std::ofstream outfile;
-                    filename = gBaseDir + "tmpdb.txt";
-
-                    outfile.open(filename.c_str(), std::ios_base::app); 
-                    if(outfile) 
+                    if (addControllerToInternalDB(entry)) 
                     {
-                        outfile << append + "\n"; 
-                        outfile.close();
-                        SDL_GameControllerAddMappingsFromFile(filename.c_str());
-                        mappingOK[0]=true;
+                        printf("added to internal db: %s\n",entry.c_str());
+                        removeDuplicatesInDB();
+
+                        int ret = SDL_GameControllerAddMappingsFromFile(internal_db.c_str());
+                        if ( ret == -1 )
+                        {
+                            printf( "Warning: Unable to open '%s' (should be ~/.marley/internaldb.txt)\n",internal_db.c_str());
+                        } else
+                        {
+                            mappingOK[0]=true; // now actually ok
+                            // reset SDL 
+                            closeAllJoy();
+                            SDL_QuitSubSystem(SDL_INIT_JOYSTICK|SDL_INIT_GAMECONTROLLER);
+                            initJoy();
+                        }
                     }
                     
                     break;
                 }
             }
-            if (mappingOK[0]) printf("\n%s: trying to load mapping from closest match\n%s\n",guidStr, lineOriginal.c_str());
-            printf("\n");
+            if (mappingOK[0])
+            { 
+                printf("\n%s: trying to load mapping from closest match\n%s\n",guidStr, lineOriginal.c_str());
+            }
         }    
     }
     return mappingOK[0];
@@ -507,7 +521,12 @@ void setMapping(void)
     SDL_Joystick *joy;
     
     name = gDesignatedControllers[gControllerConfNum].name[0];
-    if (name.length() > 80) name = "marley controller";
+    int pos;
+    while ((pos = name.find(",")) != string::npos)
+    {
+        name = name.erase(pos,1);
+    }
+    if (name.length() > 45) name = name.substr(0,45);
     joy = gDesignatedControllers[gControllerConfNum].joy[0];
     guid = SDL_JoystickGetGUID(joy);
     SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
@@ -704,13 +723,20 @@ void setMapping(void)
     }
     
     removeDuplicatesInDB();
-    internal_db = gBaseDir + "internaldb.txt";
-    if ( SDL_GameControllerAddMappingsFromFile(internal_db.c_str()) == -1 )
+
+    int ret = SDL_GameControllerAddMappingsFromFile(internal_db.c_str());
+    if ( ret == -1 )
     {
         printf( "Warning: Unable to open '%s' (should be ~/.marley/internaldb.txt)\n",internal_db.c_str());
     }
-    gControllerConf = false;
-    gControllerConfNum = NO_CONTROLLER;
+    showTooltipSettingsScreen = "Added as '" + name + "'";
+    updateSettingsScreen = true;
+    
+    // we're done here: reset everything
+    resetStatemachine();
+    closeAllJoy();
+    SDL_QuitSubSystem(SDL_INIT_JOYSTICK|SDL_INIT_GAMECONTROLLER);
+    initJoy();
 }
 
 //this function should only be called on a new controller instance

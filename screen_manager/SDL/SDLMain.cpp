@@ -385,7 +385,6 @@ int screen_manager_main(int argc, char *argv[]) {
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
-
 			switch (event.type) {
 			case SDL_QUIT:
 				SCREEN_g_QuitRequested = 1;
@@ -421,12 +420,14 @@ int screen_manager_main(int argc, char *argv[]) {
 					SCREEN_NativeKey(key);
 					break;
 				}
-            case SDL_JOYDEVICEADDED: 
+            case SDL_JOYDEVICEADDED:
+            case SDL_CONTROLLERDEVICEADDED: 
                 printf("\n+++ Found new controller ");
                 openJoy(event.jdevice.which);
                 gUpdateMain = true;
                 break;
             case SDL_JOYDEVICEREMOVED: 
+            case SDL_CONTROLLERDEVICEREMOVED:
                 printf("+++ controller removed\n");
                 closeJoy(event.jdevice.which);
                 gUpdateMain = true;

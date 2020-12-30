@@ -54,6 +54,7 @@ image I_CTRL_SNES source_assets/image/SNES-controller.png copy
 image I_CTRL_WII source_assets/image/Wiimote.png copy
 image I_CTRL_XB	source_assets/image/Xbox-360-S-Controller.png copy
 image I_CTRL_GENERIC source_assets/image/generic-controller.png copy
+image I_CTRL_NOT_FOUND source_assets/image/controller_not_found.png copy
 image I_1 source_assets/image/1.png copy
 image I_2 source_assets/image/2.png copy
 image I_3 source_assets/image/3.png copy

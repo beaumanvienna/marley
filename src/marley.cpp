@@ -534,10 +534,12 @@ void event_loop(void)
                 }
                 break;
             case SDL_JOYDEVICEADDED: 
+            case SDL_CONTROLLERDEVICEADDED:
                 printf("\n+++ Found new controller ");
                 openJoy(event.jdevice.which);
                 break;
             case SDL_JOYDEVICEREMOVED: 
+            case SDL_CONTROLLERDEVICEREMOVED:
                 printf("+++ controller removed\n");
                 closeJoy(event.jdevice.which);
                 break;

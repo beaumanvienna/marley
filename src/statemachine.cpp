@@ -53,7 +53,7 @@ string gTextForFirmwareFolder;
 bool gControllerConf = false;
 int gControllerConfNum=NO_CONTROLLER;
 int confState;
-string gConfText;
+string gConfText,gConfText2;
 int gControllerButton[STATE_CONF_MAX];
 int xCount,yCount,xValue,yValue;
 int gHat[4],gHatValue[4];
@@ -879,7 +879,7 @@ void statemachineConf(int cmd)
             case STATE_CONF_BUTTON_DPAD_UP:
                 if (secondRun == -1)
                 {
-                    setControllerConfText("press dpad up");
+                    setControllerConfText("press dpad up","(or use ENTER to skip this button)");
                     secondRun = cmd;
                 }
                 else if (secondRun == cmd)
@@ -903,22 +903,22 @@ void statemachineConf(int cmd)
             case STATE_CONF_BUTTON_DPAD_RIGHT:
                 gControllerButton[confState]=cmd;
                 confState = STATE_CONF_BUTTON_A;
-                setControllerConfText("press button A (lower)");
+                setControllerConfText("press south button (lower)");
                 break;
             case STATE_CONF_BUTTON_A:
                 gControllerButton[confState]=cmd;
                 confState = STATE_CONF_BUTTON_B;
-                setControllerConfText("press button B (right)");
+                setControllerConfText("press east button (right)");
                 break;
             case STATE_CONF_BUTTON_B:
                 gControllerButton[confState]=cmd;
                 confState = STATE_CONF_BUTTON_X;
-                setControllerConfText("press button X (left)");
+                setControllerConfText("press west button (left)");
                 break;
             case STATE_CONF_BUTTON_X:
                 gControllerButton[confState]=cmd;
                 confState = STATE_CONF_BUTTON_Y;
-                setControllerConfText("press button Y (upper)");
+                setControllerConfText("press north button (upper)");
                 break;
             case STATE_CONF_BUTTON_Y:
                 gControllerButton[confState]=cmd;
@@ -943,7 +943,7 @@ void statemachineConf(int cmd)
             case STATE_CONF_BUTTON_RIGHTSHOULDER:
                 gControllerButton[confState]=cmd;
                 confState = STATE_CONF_BUTTON_BACK;
-                setControllerConfText("press select/back button");
+                setControllerConfText("press select button");
                 break;
             case STATE_CONF_BUTTON_BACK:
                 gControllerButton[confState]=cmd;
@@ -971,7 +971,6 @@ void statemachineConf(int cmd)
                 break;
             case STATE_CONF_AXIS_RIGHTTRIGGER:
                 gControllerButton[STATE_CONF_BUTTON_RIGHTTRIGGER]=cmd;
-                setControllerConfText("Start controller setup ("+ to_string(gControllerConfNum+1) + ")");
                 setMapping();
                 break;
             default:
@@ -1061,8 +1060,6 @@ void statemachineConfAxis(int cmd, bool negative)
                     {
                         xCount=0;
                         xValue=-1;
-                          
-                        setControllerConfText("configuration done");
                         setMapping();
                     }
                     else if (cmd != gControllerButton[STATE_CONF_AXIS_LEFTTRIGGER]) 
@@ -1072,7 +1069,6 @@ void statemachineConfAxis(int cmd, bool negative)
                             printf("***** trigger: %i\n",xValue);
                             xCount=0;
                             xValue=-1;
-                            setControllerConfText("configuration done");
                             setMapping();
                         }
                     }
@@ -1100,7 +1096,7 @@ void statemachineConfAxis(int cmd, bool negative)
                     setControllerConfText("press dpad right");
                     break;
                 case STATE_CONF_BUTTON_DPAD_RIGHT:
-                    setControllerConfText("press button A (lower)");
+                    setControllerConfText("press south button (lower)");
                     break;
                 default:
                     (void) 0;
@@ -1219,7 +1215,7 @@ void statemachineConfHat(int hat, int value)
                 break;
             case STATE_CONF_BUTTON_DPAD_RIGHT: 
                 confState = STATE_CONF_BUTTON_A;
-                setControllerConfText("press button A (lower)");
+                setControllerConfText("press south button (lower)");
                 hatIterator++;
                 break;
             default:

@@ -60,7 +60,7 @@ bool searchAllFolders(void);
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
-ImageID checkControllerType(std::string name, std::string nameDB);
+ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -82,18 +82,19 @@ extern bool gControllerConf;
 
 bool bGridView1;
 bool bGridView2=true;
-bool searchDirAdded;
+bool updateSettingsScreen;
 std::string currentSearchPath;
 bool playSystemSounds;
 int gTheme = THEME_RETRO;
 SCREEN_SettingsInfoMessage *settingsInfo_;
-std::string tooltipFileBrowser;
+std::string showTooltipSettingsScreen;
 bool updateControllerText;
 
-void setControllerConfText(std::string text)
+void setControllerConfText(std::string text, std::string text2)
 {
     updateControllerText = true;
     gConfText = text;
+    if (text2 != "") gConfText2 = text2;
 }
 
 int calcExtraThreadsPCSX2()
@@ -110,6 +111,13 @@ bool SCREEN_SettingsScreen::key(const KeyInput &key)
     if (gControllerConf)
     {
         // skip button
+        if ((key.flags & KEY_UP) && (key.keyCode==NKCODE_ESCAPE))
+        {
+            resetStatemachine();
+            RecreateViews();
+        }
+        
+        // skip button
         if ((key.flags & KEY_DOWN) && (key.keyCode==NKCODE_ENTER))
         {
             statemachineConf(STATE_CONF_SKIP_ITEM);
@@ -123,7 +131,7 @@ bool SCREEN_SettingsScreen::key(const KeyInput &key)
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
 {
     resetStatemachine();
-    searchDirAdded=false;
+    updateSettingsScreen=false;
     printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     
     // General
@@ -1139,8 +1147,6 @@ void SCREEN_SettingsScreen::CreateViews() {
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     double verticalSpace = (dp_yres-256.0f)/2;
     updateControllerText = false;
-    std::string text_setup_1 = "Start controller setup (1)";
-    std::string text_setup_2 = "Start controller setup (2)";
     
     if (gDesignatedControllers[0].numberOfDevices != 0)
     {
@@ -1159,21 +1165,32 @@ void SCREEN_SettingsScreen::CreateViews() {
         v->Add(setupButton);
         controller_horizontal->Add(new Spacer(44.0f));
         
-        // text view
-        text_setup1 = new TextView(text_setup_1, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
+        // text view 'instruction'
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20,verticalSpace));
+        controller_horizontal->Add(vt);
+        vt->SetSpacing(0.0f);
+        double offset = 0.0f;
+        if (gControllerConf) offset = 30.0f;
+        text_setup1 = new TextView((gControllerConfNum==CONTROLLER_1) ? "press dpad up" : "Start controller setup (1)", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace-offset));
+        // text view 'skip button with return'
+        text_setup1b = new TextView((gControllerConfNum==CONTROLLER_1) ? "(or use ENTER to skip this button)" : "", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
         if (gTheme == THEME_RETRO) 
         {
             text_setup1->SetTextColor(0xFFde51e0);
             text_setup1->SetShadow(true);
+            text_setup1b->SetTextColor(0xFFde51e0);
+            text_setup1b->SetShadow(true);
         }
-        controller_horizontal->Add(text_setup1);
+        vt->Add(text_setup1);
+        if (gControllerConf) vt->Add(text_setup1b);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // controller pic
         std::string name = gDesignatedControllers[0].name[0];
         std::string nameDB = gDesignatedControllers[0].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
         ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(controllerImage);
         
@@ -1182,7 +1199,8 @@ void SCREEN_SettingsScreen::CreateViews() {
         controllerSettings->Add(new Spacer(verticalSpace));
     }
     
-    controllerSettings->Add(new Spacer(20.0f));
+    
+    controllerSettings->Add(new Spacer(10));
     
     if (gDesignatedControllers[1].numberOfDevices != 0)
     {
@@ -1201,21 +1219,32 @@ void SCREEN_SettingsScreen::CreateViews() {
         v->Add(setupButton);
         controller_horizontal->Add(new Spacer(44.0f));
         
-        // text view
-        text_setup2 = new TextView(text_setup_2, ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace));
+        // text view 'instruction'
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20,verticalSpace));
+        controller_horizontal->Add(vt);
+        vt->SetSpacing(0.0f);
+        double offset = 0.0f;
+        if (gControllerConf) offset = 30.0f;
+        text_setup2 = new TextView((gControllerConfNum==CONTROLLER_2) ? "press dpad up" : "Start controller setup (2)", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace-offset));
+        // text view 'skip button with return'
+        text_setup2b = new TextView((gControllerConfNum==CONTROLLER_2) ? "(or use ENTER to skip this button)" : "", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
         if (gTheme == THEME_RETRO) 
         {
             text_setup2->SetTextColor(0xFFde51e0);
             text_setup2->SetShadow(true);
+            text_setup2b->SetTextColor(0xFFde51e0);
+            text_setup2b->SetShadow(true);
         }
-        controller_horizontal->Add(text_setup2);
+        vt->Add(text_setup2);
+        if (gControllerConf) vt->Add(text_setup2b);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // controller pic
         std::string name = gDesignatedControllers[1].name[0];
         std::string nameDB = gDesignatedControllers[1].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB);
+        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
         ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(controllerImage);
     }
@@ -1743,9 +1772,9 @@ void SCREEN_SettingsScreen::update() {
 		lastVertical_ = vertical;
 	}
     
-    if (searchDirAdded)
+    if (updateSettingsScreen)
     {
-        searchDirAdded=false;
+        updateSettingsScreen=false;
         RecreateViews();
     }
     
@@ -1754,10 +1783,12 @@ void SCREEN_SettingsScreen::update() {
         if (gControllerConfNum == CONTROLLER_1)
         {
             text_setup1->SetText(gConfText);
+            text_setup1b->SetText(gConfText2);
         } else 
         if (gControllerConfNum == CONTROLLER_2)
         {
             text_setup2->SetText(gConfText);
+            text_setup2b->SetText(gConfText2);
         }
         updateControllerText = false;
     }
@@ -1767,7 +1798,8 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventPara
     printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e)\n");
     
     startControllerConf(CONTROLLER_1);
-    setControllerConfText("press dpad up");
+    RecreateViews();
+    setControllerConfText("press dpad up", "(or use ENTER to skip this button)");
 
 	return SCREEN_UI::EVENT_DONE;
 }
@@ -1776,7 +1808,8 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventPara
     printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e)\n");
     
     startControllerConf(CONTROLLER_2);
-    setControllerConfText("press dpad up");
+    RecreateViews();
+    setControllerConfText("press dpad up", "(or use ENTER to skip this button)");
     
 	return SCREEN_UI::EVENT_DONE;
 }
@@ -1858,8 +1891,8 @@ public:
                 {
                     searchPath = path_;
                 }
-                tooltipFileBrowser = "Search path for bios files added: " + searchPath;
-                searchDirAdded = addSearchPathToConfigFile(searchPath);
+                showTooltipSettingsScreen = "Search path for bios files added: " + searchPath;
+                updateSettingsScreen = addSearchPathToConfigFile(searchPath);
             }
         } 
 
@@ -1937,12 +1970,12 @@ SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browse
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
     printf("jc: SCREEN_DirBrowser::SCREEN_DirBrowser\n");
-    if (tooltipFileBrowser != "")
+    if (showTooltipSettingsScreen != "")
     {
         SCREEN_UI::EventParams e{};
 		e.v = this;
-        settingsInfo_->Show(tooltipFileBrowser, e.v);
-        tooltipFileBrowser = "";
+        settingsInfo_->Show(showTooltipSettingsScreen, e.v);
+        showTooltipSettingsScreen = "";
     }
 	Refresh();
 }

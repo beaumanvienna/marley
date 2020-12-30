@@ -63,7 +63,9 @@ private:
     
     // controller
     SCREEN_UI::TextView* text_setup1;
+    SCREEN_UI::TextView* text_setup1b;
     SCREEN_UI::TextView* text_setup2;
+    SCREEN_UI::TextView* text_setup2b;
     
     // Dolphin
     int inputResDolphin;

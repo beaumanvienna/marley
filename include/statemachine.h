@@ -79,7 +79,7 @@
     void statemachineConfHat(int hat, int value);
     void resetStatemachine(void);
     void startControllerConf(int controllerNum);
-    void setControllerConfText(std::string text);
+    void setControllerConfText(std::string text, std::string text2 = "");
 
      // statemachine
     extern int gState;
@@ -103,5 +103,6 @@
     extern bool gControllerConf;
     extern int gControllerConfNum;
     extern std::string gConfText;
+    extern std::string gConfText2;
 
 #endif
