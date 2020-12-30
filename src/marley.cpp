@@ -416,20 +416,7 @@ void event_loop(void)
                             }
                             break;
                         case SDLK_p:
-                            
-                            for (l=0; l < MAX_GAMEPADS;l++)
-                            {
-                                if ( gDesignatedControllers[l].numberOfDevices != 0 )
-                                {
-                                    char *mapping;
-                                    for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
-                                    {
-                                        mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
-                                        printf("\n\n%s\n\n",mapping);
-                                        SDL_free(mapping);
-                                    }
-                                }
-                            }
+                            printJoyInfoAll();
                             break;
                         case SDLK_ESCAPE:
                             printf("jc: ++++++++++++++++++++++++++++++++++++++++++ case SDLK_ESCAPE: ++++++++++++++++++++++++++++++++++++++++++ \n");

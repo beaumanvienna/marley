@@ -68,7 +68,7 @@ bool bGridViewMain2=false;
 std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
-bool gUpdateMain;
+bool gUpdateCurrentScreen;
 bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
@@ -269,7 +269,7 @@ void SCREEN_MainScreen::CreateViews() {
     {
         verticalLayout->Add(new Spacer(verticalSpace));
     }
-    
+    if (!controllerPlugged) verticalLayout->Add(new Spacer(40.0f));
     // -------- horizontal main launcher frame --------
     LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, 273,1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
@@ -363,9 +363,9 @@ void SCREEN_MainScreen::update() {
 		RecreateViews();
 		lasttheme_ = theme;
 	}
-    if (gUpdateMain) {
+    if (gUpdateCurrentScreen) {
         RecreateViews();
-        gUpdateMain = false;
+        gUpdateCurrentScreen = false;
     }
 }
 

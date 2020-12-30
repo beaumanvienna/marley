@@ -55,7 +55,7 @@ void SCREEN_ToggleFullScreen(void);
 extern bool restart_screen_manager;
 extern bool shutdown_now;
 extern bool launch_request_from_screen_manager;
-extern bool gUpdateMain;
+extern bool gUpdateCurrentScreen;
 
 GlobalUIState SCREEN_lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
@@ -391,46 +391,65 @@ int screen_manager_main(int argc, char *argv[]) {
 				break;
 			case SDL_KEYDOWN:
 				{
-					if (event.key.repeat > 0) { break;}
-					int k = event.key.keysym.sym;
-					KeyInput key;
-					key.flags = KEY_DOWN;
-					auto mapped = KeyMapRawSDLtoNative.find(k);
-					if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {
-						break;
-					}
-					key.keyCode = mapped->second;
-					key.deviceId = DEVICE_ID_KEYBOARD;
-					SCREEN_NativeKey(key);
+					if (event.key.repeat > 0) 
+                    { 
+                        break;
+                    } else
+                    if (event.key.keysym.sym == SDLK_p) 
+                    {
+                        printJoyInfoAll();
+                        break;
+                    } else
+                    {
+                        int k = event.key.keysym.sym;
+                        KeyInput key;
+                        key.flags = KEY_DOWN;
+                        auto mapped = KeyMapRawSDLtoNative.find(k);
+                        if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {
+                            break;
+                        }
+                        key.keyCode = mapped->second;
+                        key.deviceId = DEVICE_ID_KEYBOARD;
+                        SCREEN_NativeKey(key);
+                    }
 					break;
 				}
 			case SDL_KEYUP:
 				{
-					if (event.key.repeat > 0) { break;}
-                    if (event.key.keysym.sym == SDLK_f) toggleFS();
-					int k = event.key.keysym.sym;
-					KeyInput key;
-					key.flags = KEY_UP;
-					auto mapped = KeyMapRawSDLtoNative.find(k);
-					if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {
-						break;
-					}
-					key.keyCode = mapped->second;
-					key.deviceId = DEVICE_ID_KEYBOARD;
-					SCREEN_NativeKey(key);
+					if (event.key.repeat > 0) 
+                    {
+                        break;
+                    } else
+                    if (event.key.keysym.sym == SDLK_f) 
+                    {
+                        toggleFS();
+                        break;
+                    } else
+                    {
+                        int k = event.key.keysym.sym;
+                        KeyInput key;
+                        key.flags = KEY_UP;
+                        auto mapped = KeyMapRawSDLtoNative.find(k);
+                        if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {
+                            break;
+                        }
+                        key.keyCode = mapped->second;
+                        key.deviceId = DEVICE_ID_KEYBOARD;
+                        SCREEN_NativeKey(key);
+                    }
 					break;
 				}
             case SDL_JOYDEVICEADDED:
             case SDL_CONTROLLERDEVICEADDED: 
                 printf("\n+++ Found new controller ");
                 openJoy(event.jdevice.which);
-                gUpdateMain = true;
+                gUpdateCurrentScreen = true;
                 break;
             case SDL_JOYDEVICEREMOVED: 
             case SDL_CONTROLLERDEVICEREMOVED:
                 printf("+++ controller removed\n");
                 closeJoy(event.jdevice.which);
-                gUpdateMain = true;
+                gUpdateCurrentScreen = true;
                 break;
             case SDL_JOYHATMOTION: 
                 if (gControllerConf)

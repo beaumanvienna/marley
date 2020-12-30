@@ -79,10 +79,10 @@ extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
 extern double FILE_BROWSER_WIDTH;
 extern bool gControllerConf;
+extern bool gUpdateCurrentScreen;
 
 bool bGridView1;
 bool bGridView2=true;
-bool updateSettingsScreen;
 std::string currentSearchPath;
 bool playSystemSounds;
 int gTheme = THEME_RETRO;
@@ -131,7 +131,7 @@ bool SCREEN_SettingsScreen::key(const KeyInput &key)
 SCREEN_SettingsScreen::SCREEN_SettingsScreen() 
 {
     resetStatemachine();
-    updateSettingsScreen=false;
+    gUpdateCurrentScreen=false;
     printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     
     // General
@@ -1148,6 +1148,19 @@ void SCREEN_SettingsScreen::CreateViews() {
     double verticalSpace = (dp_yres-256.0f)/2;
     updateControllerText = false;
     
+    if (!controllerPlugged)
+    {
+        controllerSettings->Add(new Spacer(verticalSpace+64.0f));
+        TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
+                                    true, new LinearLayoutParams(FILE_BROWSER_WIDTH, 64.0f));
+        if (gTheme == THEME_RETRO) 
+        {
+            noController->SetTextColor(0xFFde51e0);
+            noController->SetShadow(true);
+        }
+        controllerSettings->Add(noController);
+    }
+    
     if (gDesignatedControllers[0].numberOfDevices != 0)
     {
         
@@ -1772,10 +1785,9 @@ void SCREEN_SettingsScreen::update() {
 		lastVertical_ = vertical;
 	}
     
-    if (updateSettingsScreen)
-    {
-        updateSettingsScreen=false;
+    if (gUpdateCurrentScreen) {
         RecreateViews();
+        gUpdateCurrentScreen = false;
     }
     
     if (updateControllerText)
@@ -1892,7 +1904,7 @@ public:
                     searchPath = path_;
                 }
                 showTooltipSettingsScreen = "Search path for bios files added: " + searchPath;
-                updateSettingsScreen = addSearchPathToConfigFile(searchPath);
+                gUpdateCurrentScreen = addSearchPathToConfigFile(searchPath);
             }
         } 
 

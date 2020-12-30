@@ -66,6 +66,7 @@
     bool checkControllerIsSupported(int i);
     bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK,std::string name);
     bool printJoyInfo(int i);
+    void printJoyInfoAll(void);
     bool closeJoy(int instance_id);
     bool closeAllJoy(void);
     void restoreController(void);

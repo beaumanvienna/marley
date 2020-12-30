@@ -42,7 +42,7 @@ int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
 T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string sdl_db, internal_db;
-extern bool updateSettingsScreen;
+extern bool gUpdateCurrentScreen;
 extern std::string showTooltipSettingsScreen;
 bool initJoy(void)
 {
@@ -184,6 +184,23 @@ bool closeJoy(int instance_id)
     return true;
 }
 
+void printJoyInfoAll(void)
+{
+    for (int l=0; l < MAX_GAMEPADS;l++)
+    {
+        if ( gDesignatedControllers[l].numberOfDevices != 0 )
+        {
+            char *mapping;
+            for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
+            {
+                mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
+                printf("\n\n%s\n\n",mapping);
+                SDL_free(mapping);
+            }
+        }
+    }
+}
+
 bool printJoyInfo(int i)
 {
     printf("jc: bool printJoyInfo(int i=%d)\n",i);
@@ -272,6 +289,10 @@ bool openJoy(int i)
             if( gGamepad[i] == NULL )
             {
                 printf( "Warning: Unable to open game gamepad! SDL Error: %s\n", SDL_GetError() );
+            } else
+            if( gDesignatedControllers[0].index[0] == i )
+            {
+                
             }
             else
             {
@@ -448,7 +469,7 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
         {
             string lineOriginal;
             printf("GUID %s not found in public db\n", guidStr);
-            for (int i=27;i>16;i--)
+            for (int i=27;i>18;i--)
             {
                 
                 //search in public db for similar
@@ -730,7 +751,7 @@ void setMapping(void)
         printf( "Warning: Unable to open '%s' (should be ~/.marley/internaldb.txt)\n",internal_db.c_str());
     }
     showTooltipSettingsScreen = "Added as '" + name + "'";
-    updateSettingsScreen = true;
+    gUpdateCurrentScreen = true;
     
     // we're done here: reset everything
     resetStatemachine();
