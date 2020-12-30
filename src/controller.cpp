@@ -682,7 +682,7 @@ void setMapping(void)
         entry += ",leftx:a";
         entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_X]);
     }
-    if (gControllerButton[STATE_CONF_BUTTON_LEFTSTICK] != STATE_CONF_SKIP_ITEM)
+    if (gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y] != STATE_CONF_SKIP_ITEM)
     {
         entry += ",lefty:a";
         entry += to_string(gControllerButton[STATE_CONF_AXIS_LEFTSTICK_Y]);
