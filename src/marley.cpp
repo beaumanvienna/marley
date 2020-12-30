@@ -1015,6 +1015,10 @@ bool searchAllFolders(void)
 void removeDuplicatesInDB(void)
 {
     printf("jc: void removeDuplicatesInDB(void)\n");
+    // If duplicate GUIDs are found,
+    // this function keeps only the 1st encounter.
+    // This is why addControllerToInternalDB()
+    // is inserting new entries at the beginning.
     string line, guidStr;
     long guid;
     vector<string> entryVec;
@@ -1022,8 +1026,7 @@ void removeDuplicatesInDB(void)
     string filename;
     bool found;
     
-    filename = gBaseDir;
-    filename += "internaldb.txt";
+    filename = gBaseDir + "internaldb.txt";
     
     ifstream internalDB(filename);
     if (!internalDB.is_open())
@@ -1034,15 +1037,17 @@ void removeDuplicatesInDB(void)
     {
         while ( getline (internalDB,line))
         {
-            guidStr = line.substr(0,line.find(","));
             found = false;
-            for (int i = 0;i < guidVec.size();i++)
+            if (line.find(",") != std::string::npos)
             {
-                if (guidVec[i]==guidStr)
+                guidStr = line.substr(0,line.find(","));
+                for (int i = 0;i < guidVec.size();i++)
                 {
-                    entryVec[i]=line;
-                    found=true;
-                    break;
+                    if (guidVec[i]==guidStr)
+                    {
+                        found=true;
+                        break;
+                    }
                 }
             }
             if (!found)
@@ -1053,10 +1058,20 @@ void removeDuplicatesInDB(void)
         }
         
         internalDB.close();
-        remove(filename.c_str());
-        for (int i=0;i < entryVec.size();i++)
+
+        ofstream internal_db_output_filehandle;
+        internal_db_output_filehandle.open(filename.c_str(), ios_base::out);
+        if (internal_db_output_filehandle.fail())
         {
-            addControllerToInternalDB(entryVec[i].c_str());
+            printf("Could not write internal game controller database: %s, no entry added\n",filename.c_str());
+        }
+        else 
+        {
+            for (int i=0;i < entryVec.size();i++)
+            {
+                internal_db_output_filehandle << entryVec[i] << + "\n";
+            }
+            internal_db_output_filehandle.close();
         }
     }
 }
@@ -1065,23 +1080,39 @@ bool addControllerToInternalDB(string entry)
 {
     printf("jc: bool addControllerToInternalDB(string entry=%s)\n",entry.c_str());
     bool ok = false;
-    string filename = gBaseDir;
-
-    filename += "internaldb.txt";
-
-    std::ofstream db;
-    db.open (filename.c_str(), std::ofstream::app);    
-    if (db.fail())
+    string line;
+    string filename = gBaseDir + "internaldb.txt";
+    vector<string> internal_db_entries;
+    
+    ifstream internal_db_input_filehandle(filename);
+    
+    if (internal_db_input_filehandle.is_open())
     {
-        printf("Could not open config file: %s, no entry added\n",filename.c_str());
+        while ( getline (internal_db_input_filehandle,line))
+        {
+            internal_db_entries.push_back(line);
+        }
+        internal_db_input_filehandle.close();
+    } else
+    {
+        printf("Creating internal game controller database %s\n",filename.c_str());
+    }
+    
+    ofstream internal_db_output_filehandle;
+    internal_db_output_filehandle.open(filename.c_str(), ios_base::out);
+    if (internal_db_output_filehandle.fail())
+    {
+        printf("Could not write internal game controller database: %s, no entry added\n",filename.c_str());
     }
     else 
     {
-        db << entry; 
-        db << "\n"; 
-        db.close();
+        internal_db_output_filehandle << entry << + "\n"; 
+        for (int i = 0; i < internal_db_entries.size(); i++)
+        {
+            internal_db_output_filehandle << internal_db_entries[i] << + "\n"; 
+        }
+        internal_db_output_filehandle.close();
         ok = true;
     }
-    
     return ok;
 }
