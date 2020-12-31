@@ -167,10 +167,9 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
     // Dolphin
     inputVSyncDolphin = true;
     inputResDolphin = 1; // UI starts with 0, dolphin has 1 = native, 2 = 2x native
-    
     std::string GFX_ini = gBaseDir + "dolphin-emu/Config/GFX.ini";
 
-    //if GFX.ini exists get value from there
+    //if GFX.ini exists get values from there
     std::ifstream GFX_ini_filehandle(GFX_ini);
     if (GFX_ini_filehandle.is_open())
     {
@@ -188,6 +187,30 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
             GFX_entries.push_back(line);
         }
         GFX_ini_filehandle.close();
+    }
+    
+    inputEnable2ndWiimote = false;
+    std::string WiimoteNew_ini = gBaseDir + "dolphin-emu/Config/WiimoteNew.ini";
+    
+    //if WiimoteNew.ini exists get value from there
+    std::ifstream WiimoteNew_ini_filehandle(WiimoteNew_ini);
+    if (WiimoteNew_ini_filehandle.is_open())
+    {
+        bool section_Wiimote2 = false;
+        while ( getline (WiimoteNew_ini_filehandle,line))
+        {
+            if(line.find("Wiimote2") != std::string::npos)
+            {
+                section_Wiimote2 = true;
+            } else 
+            if ( (line.find("Source =") != std::string::npos) && section_Wiimote2)
+            {
+                section_Wiimote2 = false;
+                inputEnable2ndWiimote = (line.find("2") != std::string::npos);
+            }
+            WiimoteNew_entries.push_back(line);
+        }
+        WiimoteNew_ini_filehandle.close();
     }
     
     // PCSX2
@@ -651,6 +674,7 @@ bool createDir(std::string name);
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() 
 {
     printf("jc: SCREEN_SettingsScreen::~SCREEN_SettingsScreen() \n");
+    
     std::string str, line;
     
     std::string marley_cfg = gBaseDir + "marley.cfg";
@@ -802,7 +826,72 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
         }
         GFX_ini_filehandle.close();
     }
-
+    
+    std::string WiimoteNew_ini = gBaseDir + "dolphin-emu/Config/WiimoteNew.ini";
+    std::ofstream WiimoteNew_ini_filehandle;
+    
+    // output GFX.ini
+    WiimoteNew_ini_filehandle.open(WiimoteNew_ini.c_str(), std::ios_base::out); 
+    if(WiimoteNew_ini_filehandle)
+    {
+        
+        
+        
+        for(int i=0; i<WiimoteNew_entries.size(); i++)
+        {
+            line = WiimoteNew_entries[i];
+        }
+        
+        
+        bool section_Wiimote2 = false;
+        if (WiimoteNew_entries.size())
+        {
+            for(int i=0; i<WiimoteNew_entries.size(); i++)
+            {
+                line = WiimoteNew_entries[i];
+                if(line.find("Wiimote2") != std::string::npos)
+                {
+                    section_Wiimote2 = true;
+                }
+                
+                if ( (line.find("Source =") != std::string::npos) && section_Wiimote2)
+                {
+                    section_Wiimote2 = false;
+                    if (!inputEnable2ndWiimote)
+                    {
+                        WiimoteNew_ini_filehandle << "Source = 0\n";
+                    } else
+                    {
+                        WiimoteNew_ini_filehandle << "Source = 2\n";
+                    }
+                } else
+                {
+                    WiimoteNew_ini_filehandle << line << "\n";
+                }
+            }
+        }
+        else
+        {
+            WiimoteNew_ini_filehandle << "[Enhancements]\n";
+            WiimoteNew_ini_filehandle << "[Wiimote1]\n";
+            WiimoteNew_ini_filehandle << "Source = 2\n";
+            WiimoteNew_ini_filehandle << "[Wiimote2]\n";
+            if (!inputEnable2ndWiimote)
+            {
+                WiimoteNew_ini_filehandle << "Source = 0\n";
+            } else
+            {
+                WiimoteNew_ini_filehandle << "Source = 2\n";
+            }
+            WiimoteNew_ini_filehandle << "[Wiimote3]\n";
+            WiimoteNew_ini_filehandle << "Source = 0\n";
+            WiimoteNew_ini_filehandle << "[Wiimote4]\n";
+            WiimoteNew_ini_filehandle << "Source = 0\n";
+            WiimoteNew_ini_filehandle << "[BalanceBoard]\n";
+            WiimoteNew_ini_filehandle << "Source = 0\n";
+        }
+        WiimoteNew_ini_filehandle.close();
+    }
 
     if (found_bios_ps2)
     {
@@ -1290,6 +1379,12 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- vsync --------
     CheckBox *vSyncDolphin = dolphinSettings->Add(new CheckBox(&inputVSyncDolphin, dol->T("Supress screen tearing", "Supress screen tearing (VSync)")));
     vSyncDolphin->OnClick.Add([=](EventParams &e) {
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
+    
+    // -------- single/multi-player (enable 2nd Wiimote) --------
+    CheckBox *enable2ndWiimote = dolphinSettings->Add(new CheckBox(&inputEnable2ndWiimote, dol->T("Enable 2nd Wiimote", "Enable 2nd Wiimote")));
+    enable2ndWiimote->OnClick.Add([=](EventParams &e) {
         return SCREEN_UI::EVENT_CONTINUE;
     });
 

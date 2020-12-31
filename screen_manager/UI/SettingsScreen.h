@@ -71,6 +71,8 @@ private:
     int inputResDolphin;
     bool inputVSyncDolphin;
     std::vector<std::string> GFX_entries;
+    std::vector<std::string> WiimoteNew_entries;
+    bool inputEnable2ndWiimote;
     
     // PCSX2
     int inputBackend;

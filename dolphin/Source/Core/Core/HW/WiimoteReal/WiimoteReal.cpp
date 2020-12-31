@@ -909,9 +909,9 @@ void LoadSettings()
     secname += static_cast<char>('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    #define MAX_GAMEPADS_MARLEY 1
+    #define MAX_NUMBER_OF_WIIMOTES 2
     unsigned int source = 0;
-    if (i<MAX_GAMEPADS_MARLEY)
+    if (i<MAX_NUMBER_OF_WIIMOTES)
     {
         sec.Get("Source", &source, int(WiimoteSource::Real));
     }
