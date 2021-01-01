@@ -79,7 +79,7 @@ void mainLoopWii(void)
     if (g_wiimotes[0]) 
     {   
         wiimoteOnline = true;
-        buttons = g_wiimotes[0]->buttons_hex;
+        //buttons = g_wiimotes[0]->buttons_hex;
         
         up      = (buttons & 0x0008);
         down    = (buttons & 0x0004);

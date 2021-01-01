@@ -15,6 +15,9 @@
 
 namespace WiimoteReal
 {
+constexpr u16 L2CAP_PSM_HID_CNTL = 0x0011;
+constexpr u16 L2CAP_PSM_HID_INTR = 0x0013;
+
 WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 {
   // Get the id of the first Bluetooth device.
@@ -139,8 +142,8 @@ bool WiimoteLinux::ConnectInternal()
   addr.l2_bdaddr = m_bdaddr;
   addr.l2_cid = 0;
 
-  // Output channel
-  addr.l2_psm = htobs(WC_OUTPUT);
+  // Control channel
+  addr.l2_psm = htobs(L2CAP_PSM_HID_CNTL);
   if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
@@ -164,8 +167,8 @@ bool WiimoteLinux::ConnectInternal()
     return false;
   }
 
-  // Input channel
-  addr.l2_psm = htobs(WC_INPUT);
+  // Interrupt channel
+  addr.l2_psm = htobs(L2CAP_PSM_HID_INTR);
   if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
@@ -223,7 +226,6 @@ void WiimoteLinux::IOWakeup()
 // zero = error
 int WiimoteLinux::IORead(u8* buf)
 {
-
   std::array<pollfd, 2> pollfds = {};
 
   auto& poll_wakeup = pollfds[0];

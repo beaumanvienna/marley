@@ -23,7 +23,7 @@ namespace ciface::SDL
 {
 static std::string GetJoystickName(int index)
 {
-    #warning "JC modified"
+    // Marley
     std::string s = "0xbaadf00dbeefbabe - ";
     s+=to_string(index);
   return s;
@@ -31,7 +31,7 @@ static std::string GetJoystickName(int index)
 
 static void OpenAndAddDevice(int slot)
 {
-    #warning "JC modified"
+    // Marley
     if (gDesignatedControllers[slot].gameCtrl[0] != NULL)
     {
         SDL_GameController* const dev = gDesignatedControllers[slot].gameCtrl[0];
@@ -55,7 +55,7 @@ static std::thread s_hotplug_thread;
 void Init()
 {
     requestShutdownGUIDE = false;
-    #warning "jc: modified"
+    // Marley
     if (SDL_Init(SDL_INIT_JOYSTICK) != 0)
     {
       ERROR_LOG(SERIALINTERFACE, "SDL failed to initialize");
@@ -88,7 +88,7 @@ void Init()
 void DeInit()
 {
 
-#warning "jc: modified"
+  // Marley
 
   if (!s_hotplug_thread.joinable())
     return;
@@ -180,7 +180,7 @@ Joystick::~Joystick()
 #endif
 
   // close joystick
-  #warning "jc: modfied"
+  
   // keep the controller for marley
   //SDL_JoystickClose(m_joystick);
 }
