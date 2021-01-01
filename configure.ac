@@ -2,7 +2,6 @@
 # then "./configure --enable-debug" or simply "./configure"
 # and "make"
 
-
 AC_INIT([marley], 0.2.4)
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE

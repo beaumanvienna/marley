@@ -18,6 +18,8 @@
 
 #pragma once
 
+//#define DOLPHIN_SETTING_FOR_SECOND_WIIMOTE
+
 #include "ppsspp_config.h"
 #include <condition_variable>
 #include <mutex>
@@ -71,9 +73,10 @@ private:
     int inputResDolphin;
     bool inputVSyncDolphin;
     std::vector<std::string> GFX_entries;
+#ifdef DOLPHIN_SETTING_FOR_SECOND_WIIMOTE
     std::vector<std::string> WiimoteNew_entries;
     bool inputEnable2ndWiimote;
-    
+#endif
     // PCSX2
     int inputBackend;
     int inputBios;

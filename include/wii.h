@@ -59,8 +59,6 @@
 
 #endif
 
-using namespace std;
-
 #ifndef MARLEY_WII_H
 #define MARLEY_WII_H
 

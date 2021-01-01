@@ -790,8 +790,8 @@ void LoadSettings()
     secname += static_cast<char>('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    unsigned int source = 0;
-    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
+    unsigned int source = 0; // Marley enable two real wiimotes by default
+    sec.Get("Source", &source, (i < 2) ? int(WiimoteSource::Real) : int(WiimoteSource::None));
     WiimoteCommon::SetSource(i, WiimoteSource(source));
   }
 

@@ -144,16 +144,6 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface, int n)
   #warning "jc: modified"
   const std::string& default_device_string = "SDL/0/0xbaadf00dbeefbabe - " + std::to_string(n);
   SetDefaultDevice(default_device_string);
-  /*
-  const std::string& default_device_string = ciface.GetDefaultDeviceString();
-  if (!default_device_string.empty())
-  {
-    SetDefaultDevice(default_device_string);
-  }
-  else
-  {
-    SetDefaultDevice("SDL/0/0xbaadf00dbeefbabe - 0");
-  }
-  */
+
 }
 }  // namespace ControllerEmu

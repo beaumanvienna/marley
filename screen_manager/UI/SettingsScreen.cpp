@@ -44,6 +44,7 @@
 #include <SDL.h>
 #include "../include/controller.h"
 #include "../include/statemachine.h"
+#include "../include/wii.h"
 
 #define BIOS_NA 10
 #define BIOS_JP 11
@@ -188,8 +189,8 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
         }
         GFX_ini_filehandle.close();
     }
-    
-    inputEnable2ndWiimote = false;
+#ifdef DOLPHIN_SETTING_FOR_SECOND_WIIMOTE
+    inputEnable2ndWiimote = true; // this default here is never used because iniWii creates all folders already
     std::string WiimoteNew_ini = gBaseDir + "dolphin-emu/Config/WiimoteNew.ini";
     
     //if WiimoteNew.ini exists get value from there
@@ -212,7 +213,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
         }
         WiimoteNew_ini_filehandle.close();
     }
-    
+#endif
     // PCSX2
     found_bios_ps2 = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
     
@@ -826,23 +827,19 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
         }
         GFX_ini_filehandle.close();
     }
-    
+#ifdef DOLPHIN_SETTING_FOR_SECOND_WIIMOTE
     std::string WiimoteNew_ini = gBaseDir + "dolphin-emu/Config/WiimoteNew.ini";
     std::ofstream WiimoteNew_ini_filehandle;
     
-    // output GFX.ini
+    // output WiimoteNew.ini
     WiimoteNew_ini_filehandle.open(WiimoteNew_ini.c_str(), std::ios_base::out); 
     if(WiimoteNew_ini_filehandle)
     {
-        
-        
-        
         for(int i=0; i<WiimoteNew_entries.size(); i++)
         {
             line = WiimoteNew_entries[i];
         }
-        
-        
+
         bool section_Wiimote2 = false;
         if (WiimoteNew_entries.size())
         {
@@ -892,7 +889,7 @@ SCREEN_SettingsScreen::~SCREEN_SettingsScreen()
         }
         WiimoteNew_ini_filehandle.close();
     }
-
+#endif
     if (found_bios_ps2)
     {
         std::string GSdx_ini = gBaseDir + "PCSX2/inis/GSdx.ini";
@@ -1381,12 +1378,15 @@ void SCREEN_SettingsScreen::CreateViews() {
     vSyncDolphin->OnClick.Add([=](EventParams &e) {
         return SCREEN_UI::EVENT_CONTINUE;
     });
-    
+#ifdef DOLPHIN_SETTING_FOR_SECOND_WIIMOTE
     // -------- single/multi-player (enable 2nd Wiimote) --------
     CheckBox *enable2ndWiimote = dolphinSettings->Add(new CheckBox(&inputEnable2ndWiimote, dol->T("Enable 2nd Wiimote", "Enable 2nd Wiimote")));
     enable2ndWiimote->OnClick.Add([=](EventParams &e) {
+        shutdownWii();
+        initWii();
         return SCREEN_UI::EVENT_CONTINUE;
     });
+#endif
 
     // -------- PCSX2 --------
     
