@@ -52,6 +52,7 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 
 
 void SCREEN_ToggleFullScreen(void);
+void mainLoopWii(void);
 extern bool restart_screen_manager;
 extern bool shutdown_now;
 extern bool launch_request_from_screen_manager;
@@ -532,7 +533,7 @@ int screen_manager_main(int argc, char *argv[]) {
 
         if (SCREEN_g_QuitRequested) break;
 		SDL_Delay(10);
-
+        mainLoopWii();
 	}
 
     SCREEN_NativeShutdownGraphics();

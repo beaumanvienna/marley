@@ -87,7 +87,8 @@ public:
   }
 
   int GetIndex() const;
-
+  u16 buttons_hex;
+  
 protected:
   Wiimote();
 

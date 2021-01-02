@@ -30,7 +30,7 @@
 #include "InputCommon/InputConfig.h"
 
 #include "SFML/Network.hpp"
-
+extern bool marley_wiimote;
 namespace WiimoteReal
 {
 using namespace WiimoteCommon;
@@ -293,7 +293,7 @@ void Wiimote::Read()
   }
   else if (0 == result)
   {
-    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
+    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
     DisconnectInternal();
   }
 }
@@ -452,7 +452,6 @@ bool Wiimote::IsButtonPressed()
   {
     const auto mode = InputReportID(rpt[1]);
 
-    // TODO: Button data could also be pulled out of non-data reports if really wanted.
     if (DataReportBuilder::IsValidMode(mode))
     {
       auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
