@@ -200,6 +200,8 @@ bool WiimoteLinux::ConnectInternal()
 
 void WiimoteLinux::DisconnectInternal()
 {
+    // keep Wiimote for Marley
+    return;
   close(m_cmd_sock);
   close(m_int_sock);
 

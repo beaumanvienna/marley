@@ -271,31 +271,54 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
 
 void Wiimote::Read()
 {
-  Report rpt(MAX_PAYLOAD);
-  auto const result = IORead(rpt.data());
+    Report rpt(MAX_PAYLOAD);
+    auto const result = IORead(rpt.data());
 
-  // Drop the report if not connected.
-  if (!m_is_linked)
-    return;
-
-  if (result > 0)
-  {
-    if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+    if(marley_wiimote)
     {
-      static sf::UdpSocket Socket;
-      Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                  SConfig::GetInstance().iBBDumpPort);
+        if (result > 0 )
+        {
+            // Add it to queue
+            rpt.resize(result);
+            m_read_reports.Push(std::move(rpt));
+        }
+        else if (0 == result)
+        {
+            ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
+            DisconnectInternal();
+        }
+        
+        Report& rpt_in = ProcessReadQueue(false);
+        bool buttonPressed = IsButtonPressed();
+        
+        if (buttonPressed) printf("jc: IsButtonPressed buttons_hex = %d \n",buttons_hex);
+        
     }
+    else // we are in dolphin, not marley
+    {
+        // Drop the report if not connected.
+        if (!m_is_linked)
+          return;
+    
+        if (result > 0)
+        {
+            if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+            {
+                static sf::UdpSocket Socket;
+                Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
+                            SConfig::GetInstance().iBBDumpPort);
+            }
 
-    // Add it to queue
-    rpt.resize(result);
-    m_read_reports.Push(std::move(rpt));
-  }
-  else if (0 == result)
-  {
-    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
-    DisconnectInternal();
-  }
+            // Add it to queue
+            rpt.resize(result);
+            m_read_reports.Push(std::move(rpt));
+        }
+        else if (0 == result)
+        {
+            ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
+            DisconnectInternal();
+        }
+    }
 }
 
 bool Wiimote::Write()
@@ -457,6 +480,7 @@ bool Wiimote::IsButtonPressed()
       auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
+      buttons_hex =  buttons.hex;
 
       return buttons.hex != 0;
     }
