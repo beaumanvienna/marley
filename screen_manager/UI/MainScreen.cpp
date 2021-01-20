@@ -69,6 +69,7 @@ std::string lastGamePath;
 SCREEN_UI::TextView* gamesPathView;
 bool shutdown_now;
 bool gUpdateCurrentScreen;
+bool gUpdateMainScreen;
 bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
@@ -254,7 +255,6 @@ void SCREEN_MainScreen::CreateViews() {
     }
     if (gDesignatedControllers[1].numberOfDevices != 0)
     {
-        
         LinearLayout *controller_horizontal = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(1.0f));
         verticalLayout->Add(controller_horizontal);
         std::string name = gDesignatedControllers[1].name[0];
@@ -366,6 +366,11 @@ void SCREEN_MainScreen::update() {
     if (gUpdateCurrentScreen) {
         RecreateViews();
         gUpdateCurrentScreen = false;
+    }
+    
+    if (gUpdateMainScreen) {
+        RecreateViews();
+        gUpdateMainScreen = false;
     }
 }
 

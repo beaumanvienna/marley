@@ -43,6 +43,7 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string sdl_db, internal_db;
 extern bool gUpdateCurrentScreen;
+extern bool gUpdateMainScreen;
 extern std::string showTooltipSettingsScreen;
 bool initJoy(void)
 {
@@ -834,6 +835,8 @@ void openWiimote(int nb)
             
             gNumDesignatedControllers++;
             
+            gUpdateMainScreen = true;
+            
             break;
         }
     }
@@ -858,6 +861,8 @@ void closeWiimote(int nb)
             gDesignatedControllers[designation].mappingOK = false;
             
             gNumDesignatedControllers--;
+            
+            gUpdateMainScreen = true;
             
             break;
         }
