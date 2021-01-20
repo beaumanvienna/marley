@@ -421,6 +421,43 @@ bool SCREEN_NativeKey(const KeyInput &key) {
 		retval = SCREEN_screenManager->key(key);
 	return retval;
 }
+KeyInput key;
+void SCREEN_wiimoteInput(int button)
+{
+    key.deviceId = DEVICE_ID_KEYBOARD;
+    if (button)
+    {
+        key.flags = KEY_DOWN;
+        switch(button)
+        {
+            case BUTTON_DPAD_UP:
+                key.keyCode = 19;
+                break;
+            case BUTTON_DPAD_DOWN:
+                key.keyCode = 20;
+                break;
+            case BUTTON_DPAD_LEFT:
+                key.keyCode = 21;
+                break;
+            case BUTTON_DPAD_RIGHT:
+                key.keyCode = 22;
+                break;
+            case BUTTON_A:
+                key.keyCode = 66;
+                break;
+            case BUTTON_GUIDE:
+            case BUTTON_B:
+                key.keyCode = 111;
+                break;
+            default:
+                break;
+        }
+    } else
+    {
+        key.flags = KEY_UP;
+    }
+    SCREEN_NativeKey(key);
+}
 
 bool SCREEN_NativeAxis(const AxisInput &axis) {
 	

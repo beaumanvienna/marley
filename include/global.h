@@ -44,4 +44,15 @@ enum SCREEN_page {
     SCREEN_MAIN
 };
 
+enum SCREEN_buttons {
+    BUTTON_NO_BUTTON = 0,
+    BUTTON_DPAD_UP,
+    BUTTON_DPAD_DOWN,
+    BUTTON_DPAD_LEFT,
+    BUTTON_DPAD_RIGHT,
+    BUTTON_A,
+    BUTTON_B,
+    BUTTON_GUIDE
+};
+
 #endif

@@ -26,10 +26,12 @@
 #include "../include/controller.h"
 #include "../include/statemachine.h"
 #include "../include/emu.h"
+#include "../include/global.h"
 
 #define DOLPHIN_HEADRES_FOR_WIIMOTE 1
 #include "../include/wii.h"
-
+void SCREEN_wiimoteInput(int button);
+u16 buttons, buttons_prev;
 bool up, up_prev;
 bool down, down_prev;
 bool lft, lft_prev;
@@ -67,8 +69,6 @@ using namespace WiimoteReal;
 int delay_after_shutdown;
 void mainLoopWii(void)
 {
-    u16 buttons;
-    
     if (delay_after_shutdown)
     {
         delay_after_shutdown--;
@@ -79,34 +79,37 @@ void mainLoopWii(void)
     if (g_wiimotes[0]) 
     {   
         wiimoteOnline = true;
-        //buttons = g_wiimotes[0]->buttons_hex;
+        buttons = g_wiimotes[0]->buttons_hex;
         
         up      = (buttons & 0x0008);
         down    = (buttons & 0x0004);
         lft     = (buttons & 0x0001);
         rght    = (buttons & 0x0002);
         a       = (buttons & 0x0800);
-        bbutton       = (buttons & 0x0400);
+        bbutton = (buttons & 0x0400);
         guide   = (buttons & 0x8000);
         
-        if ((up != up_prev) && (up))            statemachine(SDL_CONTROLLER_BUTTON_DPAD_UP);
-        if ((down != down_prev) && (down))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-        if ((lft != lft_prev) && (lft))         statemachine(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-        if ((rght != rght_prev) && (rght))      statemachine(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-        if ((a != a_prev) && (a))               statemachine(SDL_CONTROLLER_BUTTON_A);
-        if ((bbutton != b_prev) && (bbutton))   statemachine(SDL_CONTROLLER_BUTTON_A);
-        if ((guide != guide_prev) && (guide))   statemachine(SDL_CONTROLLER_BUTTON_GUIDE);
+        if ((up != up_prev) && (up))                 SCREEN_wiimoteInput(BUTTON_DPAD_UP);
+        if ((down != down_prev) && (down))           SCREEN_wiimoteInput(BUTTON_DPAD_DOWN);
+        if ((lft != lft_prev) && (lft))              SCREEN_wiimoteInput(BUTTON_DPAD_LEFT);
+        if ((rght != rght_prev) && (rght))           SCREEN_wiimoteInput(BUTTON_DPAD_RIGHT);
+        if ((a != a_prev) && (a))                    SCREEN_wiimoteInput(BUTTON_A);
+        if ((bbutton != b_prev) && (bbutton))        SCREEN_wiimoteInput(BUTTON_B);
+        if ((guide != guide_prev) && (guide))        SCREEN_wiimoteInput(BUTTON_GUIDE);
+        if ((buttons != buttons_prev) && (!buttons)) SCREEN_wiimoteInput(BUTTON_NO_BUTTON);
         
-        up_prev     = up;
-        down_prev   = down;
-        lft_prev    = lft;
-        rght_prev   = rght;
-        a_prev      = a;
-        b_prev      = bbutton;
-        guide_prev  = guide;
+        up_prev      = up;
+        down_prev    = down;
+        lft_prev     = lft;
+        rght_prev    = rght;
+        a_prev       = a;
+        b_prev       = bbutton;
+        guide_prev   = guide;
+        buttons_prev = buttons;
     }
     else
     {
+        buttons = 0;
         up = up_prev = down, down_prev = false;
         lft = lft_prev = rght = rght_prev = false;
         a = a_prev = bbutton = b_prev = guide = guide_prev = false;
