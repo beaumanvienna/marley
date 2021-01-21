@@ -12,7 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
-
+extern bool requestShutdown_;
 namespace WiimoteReal
 {
 constexpr u16 L2CAP_PSM_HID_CNTL = 0x0011;
@@ -201,7 +201,8 @@ bool WiimoteLinux::ConnectInternal()
 void WiimoteLinux::DisconnectInternal()
 {
     // keep Wiimote for Marley
-    return;
+  if (requestShutdown_) return;
+  
   close(m_cmd_sock);
   close(m_int_sock);
 

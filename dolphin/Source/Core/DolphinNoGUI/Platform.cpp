@@ -6,7 +6,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/State.h"
-
+bool requestShutdown_;
 namespace ProcessorInterface
 {
 void PowerButton_Tap();
@@ -49,5 +49,6 @@ void Platform::Stop()
 
 void Platform::RequestShutdown()
 {
+  requestShutdown_=true;
   m_shutdown_requested.Set();
 }

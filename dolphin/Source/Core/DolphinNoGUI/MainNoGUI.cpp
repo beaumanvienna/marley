@@ -131,9 +131,10 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
   return nullptr;
 }
 #warning "JC: modfied"
-//int main(int argc, char* argv[])
+extern bool requestShutdown_;
 int dolphin_main(int argc, char* argv[])
 {
+  requestShutdown_ = false;
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
       .action("store")
