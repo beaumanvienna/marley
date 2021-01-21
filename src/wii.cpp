@@ -94,9 +94,9 @@ void mainLoopWii(void)
         if ((lft != lft_prev) && (lft))              SCREEN_wiimoteInput(BUTTON_DPAD_LEFT);
         if ((rght != rght_prev) && (rght))           SCREEN_wiimoteInput(BUTTON_DPAD_RIGHT);
         if ((a != a_prev) && (a))                    SCREEN_wiimoteInput(BUTTON_A);
-        if ((bbutton != b_prev) && (bbutton))        SCREEN_wiimoteInput(BUTTON_B);
-        if ((guide != guide_prev) && (guide))        SCREEN_wiimoteInput(BUTTON_GUIDE);
-        if ((buttons != buttons_prev) && (!buttons)) SCREEN_wiimoteInput(BUTTON_NO_BUTTON);
+        //if ((bbutton != b_prev) && (bbutton))        SCREEN_wiimoteInput(BUTTON_B);
+        //if ((guide != guide_prev) && (guide))        SCREEN_wiimoteInput(BUTTON_GUIDE);
+        if (!buttons)                                SCREEN_wiimoteInput(BUTTON_NO_BUTTON);
         
         up_prev      = up;
         down_prev    = down;

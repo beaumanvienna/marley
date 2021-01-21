@@ -26,7 +26,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
 #include "Core/IOS/USB/Bluetooth/l2cap.h"
-
+extern bool marley_wiimote;
 namespace IOS::HLE
 {
 class CBigEndianBuffer
@@ -149,7 +149,9 @@ void WiimoteDevice::SetBasebandState(BasebandState new_state)
   if (IsConnected() && !was_connected)
     m_hid_source->EventLinked();
   else if (!IsConnected() && was_connected)
-    m_hid_source->EventUnlinked();
+  {
+    if (marley_wiimote) m_hid_source->EventUnlinked(); 
+  }
 }
 
 const WiimoteDevice::SChannel* WiimoteDevice::FindChannelWithPSM(u16 psm) const

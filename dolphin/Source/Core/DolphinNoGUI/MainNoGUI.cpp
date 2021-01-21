@@ -252,6 +252,6 @@ int dolphin_main(int argc, char* argv[])
   Core::Shutdown();
   s_platform.reset();
   //UICommon::Shutdown();
-
+  requestShutdown_ = false;
   return 0;
 }
