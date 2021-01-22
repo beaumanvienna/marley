@@ -824,7 +824,7 @@ void openWiimote(int nb)
         {
             
             gDesignatedControllers[designation].numberOfDevices=1;
-            gDesignatedControllers[designation].instance[0] = -1;
+            gDesignatedControllers[designation].instance[0] = nb;
             gDesignatedControllers[designation].index[0] = -1;
             gDesignatedControllers[designation].name[0] = "wiimote";
             gDesignatedControllers[designation].nameDB[0] = "wiimote";
@@ -847,7 +847,7 @@ void closeWiimote(int nb)
     //search for 1st empty slot
     for (int designation=0;designation< MAX_GAMEPADS; designation++)
     {
-        if (gDesignatedControllers[designation].controllerType == CTRL_TYPE_WIIMOTE)
+        if ((gDesignatedControllers[designation].controllerType == CTRL_TYPE_WIIMOTE) && (gDesignatedControllers[designation].instance[0] == nb))
         {
             
             gDesignatedControllers[designation].numberOfDevices=0;

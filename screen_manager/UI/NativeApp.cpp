@@ -443,10 +443,10 @@ void SCREEN_wiimoteInput(int button)
                 key.keyCode = 22;
                 break;
             case BUTTON_A:
+            case BUTTON_B:
                 key.keyCode = 66;
                 break;
             case BUTTON_GUIDE:
-            case BUTTON_B:
                 key.keyCode = 111;
                 break;
             default:
