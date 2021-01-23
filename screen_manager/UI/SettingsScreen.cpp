@@ -1404,6 +1404,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     std::string header = "";
 
     // -------- PCSX2 --------
+    found_bios_ps2 = found_jp_ps2 || found_na_ps2 || found_eu_ps2;
     if (found_bios_ps2)
     {
         int cnt = 0;
@@ -1763,7 +1764,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         
     } else
     {
-        PCSX2Settings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path to a PS2 bios in tab 'Search Path'.")));
+        PCSX2Settings->Add(new ItemHeader(ps2->T("PCSX2: No bios files found. Set up a path in the search tab.")));
     }
     
     
