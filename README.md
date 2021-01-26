@@ -4,8 +4,9 @@
 
 # Marley: Many Awesome Retro Linux Emulators, Yay!
 
+
+http://marley.designprospect.com/
 https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
-https://github.com/beaumanvienna/marley 
 
 - [User Manual](#user-manual)
 - [Controls](#controls)
