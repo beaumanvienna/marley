@@ -3,11 +3,12 @@
 </p>
 
 # Marley: Many Awesome Retro Linux Emulators, Yay!
-
-
-http://marley.designprospect.com/
+<br />
+<br />
+http://marley.designprospect.com/<br />
+<br />
 https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
-
+<br />
 - [User Manual](#user-manual)
 - [Controls](#controls)
 - [System Requirements](#system-requirements)
