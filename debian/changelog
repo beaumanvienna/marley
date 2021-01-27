@@ -1,3 +1,9 @@
+marley (0.2.5) focal; urgency=medium
+
+  * UI changed to screen manager (derived from ppsspp)
+   
+ -- JC <beaumanvienna@gmail.com>  Tue, 26 Jan 2021 20:00:00 -0800
+
 marley (0.2.4.10) focal; urgency=medium
 
   * Interpreter added to PCSX2 settings screen
