@@ -58,6 +58,7 @@ extern bool stopSearching;
 extern int gTheme;
 extern SCREEN_ScreenManager *SCREEN_screenManager;
 
+extern std::string gPackageVersion;
 SCREEN_UI::ScrollView *gameLauncherFrameScroll;
 
 ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
@@ -113,12 +114,17 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
     {
         while ( getline (marley_cfg_in_filehandle,line))
         {
+            if (line.find("# marley") != std::string::npos)
+            {
+                str = "# marley " + gPackageVersion;
+                marley_cfg_entries.push_back(str);
+            } else
             if (line.find("last_game_path=") != std::string::npos)
             {
                 found_last_game_path = true;
                 str = "last_game_path=" + lastGamePath;
                 marley_cfg_entries.push_back(str);
-            }else
+            } else
             {
                 marley_cfg_entries.push_back(line);
             }

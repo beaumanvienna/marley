@@ -73,7 +73,8 @@ extern SDL_TimerID splashTimer;
 extern bool playSystemSounds;
 extern int gTheme;
 bool gStartUp=true;
-
+bool gForceResourceUpdate = false;
+string gPackageVersion;
 //initializes SDL and creates main window
 bool init(void)
 {
@@ -149,7 +150,7 @@ bool init(void)
     render_splash("");
     while (splashScreenRunning) 
     {
-        printf("jc: waiting for splash screen to finish  ");
+        //printf("jc: waiting for splash screen to finish  ");
         event_loop();
         render_splash("");
         SDL_Delay(100);
@@ -195,9 +196,9 @@ void initApp(void)
         closedir(dir);
         
         app_starter = app_dir + "marley.desktop";
-        if (( access( app_starter.c_str(), F_OK ) == -1 ))
+        if (( access( app_starter.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
         {
-            //file does not exist
+            //file does not exist or forced update
             uri = "resource:///app/marley.desktop";
             error = nullptr;
             out_file = g_file_new_for_path(app_starter.c_str());
@@ -228,9 +229,9 @@ void initApp(void)
         }
 
         app_icon = icon_dir + "marley.ico";
-        if (( access( app_icon.c_str(), F_OK ) == -1 ))
+        if (( access( app_icon.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
         {
-            //file does not exist
+            //file does not exist or forced update
             uri = "resource:///app/marley.ico";
         
             error = nullptr;
@@ -308,7 +309,13 @@ int main( int argc, char* argv[] )
         if ((str.find("--killX11pointer") == 0) || (str.find("-k") == 0))
         {
             keepX11pointer=false;
-        } 
+        }
+        
+        if ((str.find("--update-resources") == 0) || (str.find("-u") == 0))
+        {
+            gForceResourceUpdate=true;
+            printf("Updating resources\n");
+        }
                     
         if (( access( str.c_str(), F_OK ) != -1 ))
         {
@@ -804,6 +811,17 @@ void loadConfig(ifstream* configFile)
             } else
             {
                 gTheme = THEME_RETRO;
+            }
+        } else
+        if(line.find("# marley") != std::string::npos)
+        {
+            pos=8;
+            entry = line.substr(pos+1,line.length()-pos);
+            gPackageVersion = PACKAGE_VERSION;
+            if (entry != gPackageVersion) 
+            {
+                printf("Updating resources\n");
+                gForceResourceUpdate = true;
             }
         } else
         if(line.find("system_sounds") != std::string::npos)

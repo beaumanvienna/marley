@@ -167,7 +167,7 @@ extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
     if (!gStartUp) return;
-    printf("jc: void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
+    //printf("jc: void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
     SDL_Surface* surfaceMessage = nullptr; 
@@ -459,7 +459,7 @@ void setAppIcon(void)
 
 SDL_Texture* loadTextureFromFile(string str)
 {
-    printf("jc: SDL_Texture* loadTextureFromFile(string str=%s)\n",str.c_str());
+    //printf("jc: SDL_Texture* loadTextureFromFile(string str=%s)\n",str.c_str());
     SDL_Surface* surf = nullptr;
     SDL_Texture* texture = nullptr;
     

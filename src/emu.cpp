@@ -128,7 +128,8 @@ void findAllBiosFiles(const char * directory, std::list<string> *tmpList_ps1, st
     if (!(findAllFiles_counter % intervalOSD))
     {
         if (!splashScreenRunning) intervalOSD = SHOW_OSD_DURING_SPLASH_INFREQUENTLY;
-        string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
+        string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: "; 
+        str += directory;
         printf("jc: %s\n",str.c_str());
         str += directory;
         render_splash(str.c_str());
@@ -650,6 +651,7 @@ void initMUPEN64PLUS(void)
 		else
 		{
 			printf("(failed)\n");
+            return;
 		}
 	}
 	
@@ -660,15 +662,15 @@ void initMUPEN64PLUS(void)
 		string font = gBaseDir;
 		font += "fonts/font.ttf";
 		
-		if (( access( font.c_str(), F_OK ) == -1 ))
+		if (( access( font.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
 		{
-			//file does not exist
+			//file does not exist or forced update
 			string uri = "resource:///fonts/";
 			uri += fonts[i].c_str();
 			GError *error;
 			GFile* out_file = g_file_new_for_path(font.c_str());
 			GFile* src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+			g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
 		}
 	}	
 }
@@ -707,6 +709,7 @@ void initPPSSPP(void)
 	string ppsspp_dir = gBaseDir + "ppsspp";
 	string assets_dir = gBaseDir + "ppsspp/assets";
 	string command;
+    bool resourceUpdate = gForceResourceUpdate;
 	
 	DIR* dir;        
 	dir = opendir(ppsspp_dir.c_str());
@@ -726,6 +729,7 @@ void initPPSSPP(void)
 		else
 		{
 			printf("(failed)\n");
+            return;
 		}
 	}
 	
@@ -737,15 +741,20 @@ void initPPSSPP(void)
 	} 
 	else if (ENOENT == errno) 
 	{
-		string zip_file = gBaseDir + "ppsspp/ppsspp_assets.zip";
-		if (( access( zip_file.c_str(), F_OK ) == -1 ))
+		resourceUpdate = true;
+	}
+    
+    if (resourceUpdate)
+    {
+        string zip_file = gBaseDir + "ppsspp/ppsspp_assets.zip";
+		if (( access( zip_file.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
 		{
-			//file does not exist
+			//file does not exist or forced updated
 			string uri = "resource:///assets/ppsspp/ppsspp_assets.zip";
 			GError *error;
 			GFile* out_file = g_file_new_for_path(zip_file.c_str());
 			GFile* src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+			g_file_copy(src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
 		}
 		
 		char cwd[1024];
@@ -753,11 +762,11 @@ void initPPSSPP(void)
 		
 		chdir(ppsspp_dir.c_str());
 		
-		command = "unzip ppsspp_assets.zip";
+		command = "unzip -u -f -o ppsspp_assets.zip";
 		system(command.c_str());
 		
 		chdir(cwd);
-	}
+    }
 }
 
 void initDOLPHIN(void)
@@ -766,6 +775,7 @@ void initDOLPHIN(void)
 	string dolphin_dir = gBaseDir + "dolphin-emu";
 	string assets_dir = gBaseDir + "dolphin-emu/Data";
 	string command;
+    bool resourceUpdate = gForceResourceUpdate;
 	
 	DIR* dir;        
 	dir = opendir(dolphin_dir.c_str());
@@ -785,6 +795,7 @@ void initDOLPHIN(void)
 		else
 		{
 			printf("(failed)\n");
+            return;
 		}
 	}
 	
@@ -796,15 +807,20 @@ void initDOLPHIN(void)
 	} 
 	else if (ENOENT == errno) 
 	{
-		string zip_file = gBaseDir + "dolphin-emu/dolphin_data_sys.zip";
-		if (( access( zip_file.c_str(), F_OK ) == -1 ))
+        resourceUpdate = true;
+	}
+    
+    if (resourceUpdate)
+    {
+        string zip_file = gBaseDir + "dolphin-emu/dolphin_data_sys.zip";
+		if (( access( zip_file.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
 		{
-			//file does not exist
+			//file does not exist or forced update
 			string uri = "resource:///assets/dolphin/dolphin_data_sys.zip";
 			GError *error;
 			GFile* out_file = g_file_new_for_path(zip_file.c_str());
 			GFile* src_file = g_file_new_for_uri(uri.c_str());
-			g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+			g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
 		}
 		
 		char cwd[1024];
@@ -812,11 +828,11 @@ void initDOLPHIN(void)
 		
 		chdir(dolphin_dir.c_str());
 		
-		command = "unzip dolphin_data_sys.zip";
+		command = "unzip -u -f -o dolphin_data_sys.zip";
 		system(command.c_str());
 		
 		chdir(cwd);
-	}
+    }
 }
 
 void initScreen_manager(void)
@@ -842,51 +858,52 @@ void initScreen_manager(void)
 		else
 		{
 			printf("(failed)\n");
+            return;
 		}
 	}
 
 	string background_pic = screen_manager_dir + "/settings_pcsx2.png";
-    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    if (( access( background_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
     {
-        //file does not exist
+        //file does not exist or forced update
         string uri = "resource:///pictures/settings_pcsx2.png";
         GError *error;
         GFile* out_file = g_file_new_for_path(background_pic.c_str());
         GFile* src_file = g_file_new_for_uri(uri.c_str());
-        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
     }
     
     background_pic = screen_manager_dir + "/settings_general.png";
-    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    if (( access( background_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
     {
-        //file does not exist
+        //file does not exist or forced update
         string uri = "resource:///pictures/settings_general.png";
         GError *error;
         GFile* out_file = g_file_new_for_path(background_pic.c_str());
         GFile* src_file = g_file_new_for_uri(uri.c_str());
-        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
     }
     
     background_pic = screen_manager_dir + "/settings_dolphin.png";
-    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    if (( access( background_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
     {
-        //file does not exist
+        //file does not exist or forced update
         string uri = "resource:///pictures/settings_dolphin.png";
         GError *error;
         GFile* out_file = g_file_new_for_path(background_pic.c_str());
         GFile* src_file = g_file_new_for_uri(uri.c_str());
-        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
     }
     
     background_pic = screen_manager_dir + "/beach.png";
-    if (( access( background_pic.c_str(), F_OK ) == -1 ))
+    if (( access( background_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
     {
-        //file does not exist
+        //file does not exist or forced update
         string uri = "resource:///pictures/beach.png";
         GError *error;
         GFile* out_file = g_file_new_for_path(background_pic.c_str());
         GFile* src_file = g_file_new_for_uri(uri.c_str());
-        g_file_copy (src_file, out_file, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &error);
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
     }
 }
 
@@ -937,14 +954,14 @@ void initEMU(void)
 
 bool exists(const char *filename)
 {
-    printf("jc: bool exists(const char *fileName=%s)\n",filename);
+    //printf("jc: bool exists(const char *fileName=%s)\n",filename);
     ifstream infile(filename);
     return infile.good();
 }
 
 bool isDirectory(const char *filename)
 {
-    printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
+    //printf("jc: bool isDirectory(const char *filename=%s)\n",filename);
     struct stat p_lstatbuf;
     struct stat p_statbuf;
     bool ok = false;
@@ -1072,6 +1089,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
     {
         if (!splashScreenRunning) intervalOSD = SHOW_OSD_DURING_SPLASH_INFREQUENTLY;
         string str = "Searching... Folder count: " + to_string(findAllFiles_counter) + ", folder name: ";
+        str += directory;
         printf("jc: %s\n",str.c_str());
         str += directory;
         render_splash(str.c_str());
@@ -1146,7 +1164,7 @@ void findAllFiles(const char * directory, std::list<string> *tmpList, std::list<
 
 bool findInVector(vector<string>* vec, string str)
 {
-    printf("jc: bool findInVector(vector<string>* vec, string str=%s)\n",str.c_str());
+    //printf("jc: bool findInVector(vector<string>* vec, string str=%s)\n",str.c_str());
     bool ok = false;
     string element;
     

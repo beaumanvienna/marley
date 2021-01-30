@@ -78,6 +78,6 @@ using namespace std;
     extern double amplitude1L;
     extern double amplitude0R;
     extern double amplitude1R;
-
+    extern bool gForceResourceUpdate;
 
 #endif

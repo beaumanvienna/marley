@@ -72,6 +72,7 @@ command line options: <br />
   --version             : print version <br />
   --fullscreen, -f      : start in fullscreen mode<br />
   --killX11pointer, -k  : switch off the mouse pointer for the entire desktop<br />
+  --update-resources, -u: update fonts, pictures, etc.<br />
 <br />
 
 ## System requirements
