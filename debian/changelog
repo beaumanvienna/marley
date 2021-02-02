@@ -1,3 +1,10 @@
+marley (0.2.6) focal; urgency=medium
+
+  * splash creen revised
+  * forced updated of assets for new Marley version (or -u)
+   
+ -- JC <beaumanvienna@gmail.com>  Mon, 01 Feb 2021 21:45:00 -0800
+
 marley (0.2.5) focal; urgency=medium
 
   * UI changed to screen manager (derived from ppsspp)
