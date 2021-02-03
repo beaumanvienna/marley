@@ -91,12 +91,11 @@ SCREEN_MainScreen::SCREEN_MainScreen()
             if (line.find("last_game_path=") != std::string::npos)
             {
                 lastGamePath = line.substr(line.find_last_of("=") + 1);
-                if (!SCREEN_PFile::IsDirectory(lastGamePath))
-                  lastGamePath = getenv("HOME");
             }
         }
         marley_cfg_in_filehandle.close();
     }
+    if (!SCREEN_PFile::IsDirectory(lastGamePath)) lastGamePath = getenv("HOME");
 }
 bool createDir(std::string name);
 SCREEN_MainScreen::~SCREEN_MainScreen() 
