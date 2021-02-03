@@ -762,7 +762,7 @@ void initPPSSPP(void)
 		
 		chdir(ppsspp_dir.c_str());
 		
-		command = "unzip -u -f -o ppsspp_assets.zip";
+		command = "unzip -u -o ppsspp_assets.zip";
 		system(command.c_str());
 		
 		chdir(cwd);
@@ -828,7 +828,7 @@ void initDOLPHIN(void)
 		
 		chdir(dolphin_dir.c_str());
 		
-		command = "unzip -u -f -o dolphin_data_sys.zip";
+		command = "unzip -u -o dolphin_data_sys.zip";
 		system(command.c_str());
 		
 		chdir(cwd);
