@@ -75,6 +75,7 @@ extern int gTheme;
 bool gStartUp=true;
 bool gForceResourceUpdate = false;
 string gPackageVersion;
+bool pcsx2_window_tear_down = false;
 //initializes SDL and creates main window
 bool init(void)
 {
@@ -316,6 +317,12 @@ int main( int argc, char* argv[] )
             gForceResourceUpdate=true;
             printf("Updating resources\n");
         }
+        
+        if (str.find("-t") == 0)
+        {
+            pcsx2_window_tear_down=true;
+        }
+        
                     
         if (( access( str.c_str(), F_OK ) != -1 ))
         {

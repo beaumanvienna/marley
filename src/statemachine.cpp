@@ -74,6 +74,7 @@ extern int delay_after_shutdown;
 extern bool marley_wiimote;
 extern bool stopSearching;
 extern bool shutdown_now;
+extern bool pcsx2_window_tear_down;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -312,6 +313,36 @@ void shutdown_computer(void)
     }
 }
 
+void tear_down_and_create_new_window(void)
+{
+	Uint32 window_flags = SDL_GetWindowFlags(gWindow);
+	SDL_GetWindowSize(gWindow,&window_width,&window_height);
+	SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+	
+	freeTextures();
+	SDL_DestroyRenderer( gRenderer );
+	SDL_DestroyWindow(gWindow);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+    }
+    
+    string str = "marley ";
+    str += PACKAGE_VERSION;
+
+    gWindow = SDL_CreateWindow( str.c_str(), 
+                            window_x,
+                            window_y,
+                            window_width, 
+                            window_height, 
+                            window_flags );
+
+    setAppIcon(); 
+    SDL_ShowCursor(SDL_DISABLE);
+}
+
 void launch_emulator(void)
 {
 	if (gGame[gCurrentGame] != "")
@@ -350,6 +381,8 @@ void launch_emulator(void)
 		{
 #ifdef PCSX2
 			case pcsx2:
+			
+				if (pcsx2_window_tear_down) tear_down_and_create_new_window();
 				str = "pcsx2";
 				strcpy(arg1, str.c_str()); 
                 
