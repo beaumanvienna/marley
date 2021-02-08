@@ -14,6 +14,6 @@ check: build
 
 clean:
 	$(info   *************** dolhpin clean ***************)
-	$(MAKE) -C build $@
+	rm -rf build
 
 .PHONY: all build

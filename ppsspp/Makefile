@@ -23,7 +23,7 @@ clean:
 	rm -rf ffmpeg/libavutil/libavutil.a
 	rm -rf ffmpeg/libavcodec/libavcodec.a
 	rm -rf ffmpeg/libavformat/libavformat.a
-		rm -rf ffmpeg/libswscale/options.o
+	rm -rf ffmpeg/libswscale/options.o
 	rm -rf ffmpeg/libswscale/slice.o
 	rm -rf ffmpeg/libswscale/gamma.o
 	rm -rf ffmpeg/libswscale/alphablend.o

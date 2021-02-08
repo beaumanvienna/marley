@@ -11,7 +11,7 @@ build:
 
 clean:
 	$(info   *************** pcsx2 clean ***************)
-	$(MAKE) -C build $@
+	rm -rf build
 
 check: build
 	$(info   *************** pcsx2 check ***************)
