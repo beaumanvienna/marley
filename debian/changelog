@@ -1,7 +1,7 @@
-marley (0.2.7) focal; urgency=medium
+marley (0.2.7.1) hirsute; urgency=medium
 
   * bug fix forced updated of assets for new Marley version
-  * bug fix inital directory=HOME for very first start
+  * bug fix initial directory=HOME for very first start
    
  -- JC <beaumanvienna@gmail.com>  Wed, 03 Feb 2021 06:00:00 -0800
 
