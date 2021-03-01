@@ -1,3 +1,9 @@
+marley (0.2.8) focal; urgency=medium
+
+  * animated splash screen with pixel art
+   
+ -- JC <beaumanvienna@gmail.com>  Mon, 28 Feb 2021 21:45:00 -0800
+
 marley (0.2.7.1) hirsute; urgency=medium
 
   * bug fix forced updated of assets for new Marley version
