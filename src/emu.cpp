@@ -904,7 +904,38 @@ void initScreen_manager(void)
         GFile* out_file = g_file_new_for_path(background_pic.c_str());
         GFile* src_file = g_file_new_for_uri(uri.c_str());
         g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
+    }    
+    
+    // splash (animation)
+    string splash_pic = screen_manager_dir + "/splash_spritesheet.png";
+    if (( access( splash_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
+    {
+        //file does not exist or forced update
+        string uri = "resource:///pictures/splash_spritesheet.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(splash_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        // copy file to .marley
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
     }
+    // create texture
+    gTextures[TEX_SPLASH] = loadTextureFromFile_disk(splash_pic);
+    
+    // splash (overlay)
+    splash_pic = screen_manager_dir + "/splash_overlay.png";
+    if (( access( splash_pic.c_str(), F_OK ) == -1 ) || gForceResourceUpdate)
+    {
+        //file does not exist or forced update
+        string uri = "resource:///pictures/splash_overlay.png";
+        GError *error;
+        GFile* out_file = g_file_new_for_path(splash_pic.c_str());
+        GFile* src_file = g_file_new_for_uri(uri.c_str());
+        // copy file to .marley
+        g_file_copy (src_file, out_file, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, &error);
+    }
+    //create texture
+    gTextures[TEX_SPLASH_OVERLAY] = loadTextureFromFile_disk(splash_pic);
+
 }
 
 void initEMU(void)

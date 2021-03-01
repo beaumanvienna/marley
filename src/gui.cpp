@@ -35,7 +35,7 @@
 #include <fstream>
 #include "SDL_mixer.h"
 
-#define SPLASHSCREEN_DURATION 5000
+
 
 void loadConfigEarly(void);
 
@@ -63,6 +63,9 @@ int WINDOW_HEIGHT;
 
 int window_width, window_height, window_x, window_y;
 SDL_TimerID splashTimer;
+int gSplashFrame;
+const int SPLASHSCREEN_FRAMES = 20;
+const int SPLASHSCREEN_DURATION = 5000;
 
 int x_offset_1150;
 int x_offset_1068;
@@ -176,8 +179,19 @@ void render_splash(string onScreenDisplay)
     SDL_RenderClear(gRenderer);
     
     //draw splash screen to main window
-    SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH],nullptr,nullptr);
-
+    
+    //render animation
+    const int SRC_WIDTH_ANIMATION = 416;
+    const int SRC_HEIGHT_ANIMATION = 225;
+    int x1 = gSplashFrame*SRC_WIDTH_ANIMATION; // x offset in sprite sheet
+    
+    SDL_Rect srcrect={x1,0,SRC_WIDTH_ANIMATION,SRC_HEIGHT_ANIMATION}; // rectangle: x,y, WIDTH, HEIGHT
+    SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH],&srcrect,nullptr); // destination not defined= entire window
+    
+    //render overlay
+    SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH_OVERLAY],nullptr,nullptr);
+    
+    // render on screen display (osd)
     if(osd_short.length()>130)
     {
         osd_short = osd_short.substr(osd_short.length()-130,osd_short.length());
@@ -188,8 +202,9 @@ void render_splash(string onScreenDisplay)
     int strLength = osd_short.length();
     destination = { 1, 1, strLength*x_offset_20*0.5, y_offset_36*0.5 };
     message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage); 
-    SDL_RenderCopyEx( gRenderer, message, nullptr, &destination, 0, nullptr, SDL_FLIP_NONE );    
+    SDL_RenderCopy( gRenderer, message, nullptr, &destination );    
     
+    // draw it to the main window
     SDL_RenderPresent(gRenderer);
 }
 
@@ -216,12 +231,6 @@ bool loadMedia(void)
     printf("jc: bool loadMedia(void)\n");
     bool ok = true;
     
-    // splash
-    gTextures[TEX_SPLASH] = loadTextureFromFile("/pictures/../pictures/splash.bmp");
-    if (!gTextures[TEX_SPLASH])
-    {
-        ok = false;
-    }
     // background
     gTextures[TEX_BACKGROUND] = loadTextureFromFile("/pictures/../pictures/beach.bmp");
     if (!gTextures[TEX_BACKGROUND])
@@ -492,6 +501,28 @@ SDL_Texture* loadTextureFromFile(string str)
 		printf("Failed to retrieve resource data for %s\n",str.c_str());
 	}
 	return texture;
+}
+
+SDL_Texture* loadTextureFromFile_disk(string str)
+{
+    SDL_Surface* surf = NULL;
+    SDL_Texture* texture = NULL;
+    
+    surf = IMG_Load(str.c_str());
+    if (!surf)
+    {
+        printf("File %s could not be loaded\n",str.c_str());
+    }
+    else
+    {
+        texture =SDL_CreateTextureFromSurface(gRenderer,surf);
+        if (!texture)
+        {
+            printf("texture for background could not be created.\n");
+        }
+        SDL_FreeSurface(surf);
+    }
+    return texture;
 }
 
 

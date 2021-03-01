@@ -148,13 +148,14 @@ bool init(void)
     initWii();
 #endif
     initEMU();
+    gSplashFrame=0;
     render_splash("");
     while (splashScreenRunning) 
     {
-        //printf("jc: waiting for splash screen to finish  ");
         event_loop();
         render_splash("");
-        SDL_Delay(100);
+        SDL_Delay(SPLASHSCREEN_DURATION/SPLASHSCREEN_FRAMES);
+        if (gSplashFrame < SPLASHSCREEN_FRAMES) ++gSplashFrame;
     }
     return ok;
 }

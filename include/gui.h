@@ -33,7 +33,7 @@ using namespace std;
 #ifndef GUI_H
 #define GUI_H
 
-    #define NUM_TEXTURES    28
+    #define NUM_TEXTURES    29
         #define TEX_BACKGROUND          0
         #define TEX_BARREL              1
         #define TEX_PS3                 2
@@ -62,6 +62,7 @@ using namespace std;
         #define TEX_SPLASH              25
         #define TEX_ICON_CONF           26
         #define TEX_ICON_CONF_IN        27
+        #define TEX_SPLASH_OVERLAY      28
     
     #define CURSOR_HIDE true
     #define CURSOR_SHOW false
@@ -78,6 +79,8 @@ using namespace std;
     bool createRenderer(void);
     void hide_or_show_cursor_X11(bool hide);
     SDL_Texture* loadTextureFromFile(string str);
+    SDL_Texture* loadTextureFromFile_disk(string str);
+    
     
     //rendering window 
     extern SDL_Window* gWindow;
@@ -98,5 +101,8 @@ using namespace std;
     extern int WINDOW_WIDTH;
     extern int WINDOW_HEIGHT;
     extern int window_width, window_height, window_x, window_y;
+    extern int gSplashFrame;
+    extern const int SPLASHSCREEN_FRAMES;
+    extern const int SPLASHSCREEN_DURATION;
     
 #endif
