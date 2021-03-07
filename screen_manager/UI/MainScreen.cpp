@@ -207,12 +207,12 @@ void SCREEN_MainScreen::CreateViews() {
     float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     
-    topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-138.0f,0.0f));
+    topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-266.0f,0.0f));
     
     ImageID icon;
     // settings button
     if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
-    Choice* settingsButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+    Choice* settingsButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
     settingsButton->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
     settingsButton->OnHighlight.Add([=](EventParams &e) {
         if (!toolTipsShown[MAIN_SETTINGS])
@@ -226,7 +226,7 @@ void SCREEN_MainScreen::CreateViews() {
     
     // off button
     if (gTheme == THEME_RETRO) icon = ImageID("I_OFF_R"); else icon = ImageID("I_OFF");
-    offButton = new Choice(icon, new LayoutParams(64.0f, 64.0f),true);
+    offButton = new Choice(icon, new LayoutParams(128.0f, 128.0f),true);
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
     offButton->OnHighlight.Add([=](EventParams &e) {
@@ -239,7 +239,7 @@ void SCREEN_MainScreen::CreateViews() {
 	});
     topline->Add(offButton);
     
-    double verticalSpace = (dp_yres-348.0f)/2;
+    double verticalSpace = (dp_yres-476.0f)/2;
     
     if (gDesignatedControllers[0].numberOfDevices != 0)
     {
@@ -298,7 +298,7 @@ void SCREEN_MainScreen::CreateViews() {
         
         // home button
         if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
-        Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        Choice* homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
         homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
         homeButton->OnHighlight.Add([=](EventParams &e) {
             if (!toolTipsShown[MAIN_HOME])
@@ -310,14 +310,18 @@ void SCREEN_MainScreen::CreateViews() {
         });
         topBar->Add(homeButton);
         
-        gamesPathView = new TextView(lastGamePath, ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
+        LinearLayout *gamesPathViewFrame = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 128.0f));
+        gamesPathViewFrame->Add(new Spacer(54.0f));
+        
+        gamesPathView = new TextView(lastGamePath, ALIGN_BOTTOMLEFT | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
+        gamesPathViewFrame->Add(gamesPathView);
         
         if (gTheme == THEME_RETRO) 
         {
             gamesPathView->SetTextColor(0xFFde51e0);
             gamesPathView->SetShadow(true);
         }
-        topBar->Add(gamesPathView);
+        topBar->Add(gamesPathViewFrame);
         
         gameLauncherColumn->Add(new Spacer(10.0f));
 

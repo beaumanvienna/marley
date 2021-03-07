@@ -179,8 +179,8 @@ void SCREEN_UIThemeInit() {
         ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 10);
     
         ui_theme.itemStyle = MakeStyle(RETRO_COLOR_FONT_NOT_FOCUSED, 0x80000000);
-        ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0xA0000000); // active icons
-        ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xB0000000);
+        ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, RETRO_COLOR_BUTTON_ACTIVE); // active icons
+        ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xBFFFFFF);
         ui_theme.itemDisabledStyle = MakeStyle(0xffEEEEEE, 0x55E0D4AF);
         ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
 
