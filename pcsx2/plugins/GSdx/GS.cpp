@@ -59,6 +59,7 @@ static int s_vsync = 0;
 static bool s_exclusive = true;
 static std::string s_renderer_name;
 bool gsopen_done = false; // crash guard for GSgetTitleInfo2 and GSKeyEvent (replace with lock?)
+extern int pcsx2_window_tear_down_auto_request;
 
 EXPORT_C_(uint32) PS2EgetLibType()
 {
@@ -295,6 +296,7 @@ static int _GSopen(void** dsp, const char* title, GSRendererType renderer, int t
 				}
 				catch (GSDXRecoverableError)
 				{
+                    ++pcsx2_window_tear_down_auto_request;
 					wnd->Detach();
 				}
 			}

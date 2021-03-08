@@ -76,6 +76,7 @@ bool gStartUp=true;
 bool gForceResourceUpdate = false;
 string gPackageVersion;
 bool pcsx2_window_tear_down = false;
+int pcsx2_window_tear_down_auto_request;
 //initializes SDL and creates main window
 bool init(void)
 {

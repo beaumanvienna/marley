@@ -75,6 +75,7 @@ extern bool marley_wiimote;
 extern bool stopSearching;
 extern bool shutdown_now;
 extern bool pcsx2_window_tear_down;
+extern int pcsx2_window_tear_down_auto_request;
 bool checkAxis(int cmd);
 bool checkTrigger(int cmd);
 void initOpenGL(void);
@@ -383,6 +384,7 @@ void launch_emulator(void)
 			case pcsx2:
 			
 				if (pcsx2_window_tear_down) tear_down_and_create_new_window();
+                pcsx2_window_tear_down_auto_request = 0;
 				str = "pcsx2";
 				strcpy(arg1, str.c_str()); 
                 
@@ -416,6 +418,55 @@ void launch_emulator(void)
 
                     }
                     pcsx2_main(argc,argv);
+                    if (pcsx2_window_tear_down_auto_request == 1)
+                    {
+                        // try again with window tear down
+                        pcsx2_window_tear_down = true;
+                        tear_down_and_create_new_window();
+                        str = "pcsx2";
+                        strcpy(arg1, str.c_str()); 
+                        
+                        str = "--nogui";
+                        strcpy(arg2, str.c_str());
+
+                        str = "--fullboot";
+                        strcpy(arg3, str.c_str());
+                        
+                        if (launch_request_from_screen_manager)
+                          str = game_screen_manager;
+                        else
+                          str = gGame[gCurrentGame];
+                        strcpy(arg4, str.c_str());
+
+                        argv[0] = arg1;
+                        argv[1] = arg2;
+                        argv[2] = arg3;
+                        argv[3] = arg4;
+
+                        argc = 4;
+
+                        SDL_SysWMinfo sdlWindowInfo;
+                        SDL_VERSION(&sdlWindowInfo.version);
+                        if(SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo))
+                        {
+                            if(sdlWindowInfo.subsystem == SDL_SYSWM_X11) 
+                            {
+                                Xwindow      = sdlWindowInfo.info.x11.window;
+                                XDisplay     = sdlWindowInfo.info.x11.display;
+
+                            }
+                            pcsx2_main(argc,argv);
+                            restartGUI();
+                        } 
+                        else
+                        {
+                            printf("jc SDL_GetWindowWMInfo(gWindow, &sdlWindowInfo) failed\n");
+                        }
+                        
+                        
+                        
+                        
+                    }
                     restartGUI();
                 } 
                 else
