@@ -653,7 +653,11 @@ public:
 	Choice(ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
-                        hasHoldFeature_(hasHoldFeature), heldDown_(false) {}
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false) {numIcons_=1;}
+    	Choice(ImageID image, ImageID image_active, ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+                        centered_(false), highlighted_(false), selected_(false), 
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false), image_active_(image_active), image_depressed_(image_depressed) {numIcons_=3;}
     Event OnHold;
     Event OnHighlight;
     bool Key(const KeyInput &input) override;
@@ -676,7 +680,8 @@ protected:
 
 	std::string text_;
 	std::string smallText_;
-	ImageID atlasImage_;
+	ImageID atlasImage_, image_active_, image_depressed_;
+    int numIcons_;
 	ImageID iconImage_;  // Only applies for text, non-centered
 	Padding textPadding_;
 	bool centered_;

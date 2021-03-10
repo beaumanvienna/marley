@@ -193,8 +193,7 @@ void SCREEN_MainScreen::CreateViews() {
     
    	float leftSide = 40.0f;
 
-	mainInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
-	mainInfo_->SetBottomCutoff(dp_yres - 200.0f);
+	mainInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 500.0f, WRAP_CONTENT, leftSide, 20.0f, NONE, NONE));
 	root_->Add(mainInfo_);
 
     verticalLayout->Add(new Spacer(10.0f));
@@ -209,31 +208,50 @@ void SCREEN_MainScreen::CreateViews() {
     
     topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-266.0f,0.0f));
     
-    ImageID icon;
+    ImageID icon, icon_active, icon_depressed;
     // settings button
-    if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
-    Choice* settingsButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+    Choice* settingsButton;
+    if (gTheme == THEME_RETRO) 
+    {
+        icon = ImageID("I_GEAR_R"); 
+        icon_active = ImageID("I_GEAR_R_A"); 
+        icon_depressed = ImageID("I_GEAR_R_D");
+        settingsButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    } else 
+    {
+        icon = ImageID("I_GEAR");
+        settingsButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+    }
     settingsButton->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
     settingsButton->OnHighlight.Add([=](EventParams &e) {
         if (!toolTipsShown[MAIN_SETTINGS])
         {
             toolTipsShown[MAIN_SETTINGS] = true;
-            mainInfo_->Show(ma->T("Settings", "Settings for Marley, PCSX2, and Dolphin. PPSSPP has in-game settings (use the guide button)."), e.v);
+            mainInfo_->Show(ma->T("Settings", "Settings"), e.v);
         }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topline->Add(settingsButton);
     
     // off button
-    if (gTheme == THEME_RETRO) icon = ImageID("I_OFF_R"); else icon = ImageID("I_OFF");
-    offButton = new Choice(icon, new LayoutParams(128.0f, 128.0f),true);
+    if (gTheme == THEME_RETRO) 
+    {
+        icon = ImageID("I_OFF_R"); 
+        icon_active = ImageID("I_OFF_R_A"); 
+        icon_depressed = ImageID("I_OFF_R_D"); 
+        offButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f),true);
+    } else 
+    {
+        icon = ImageID("I_OFF");
+        offButton = new Choice(icon, new LayoutParams(128.0f, 128.0f),true);
+    }
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
     offButton->OnHighlight.Add([=](EventParams &e) {
         if (!toolTipsShown[MAIN_OFF])
         {
             toolTipsShown[MAIN_OFF] = true;
-            mainInfo_->Show(ma->T("Shut down computer", "Off: exit Marley; hold for 1.5 s to switch the computer off"), e.v);
+            mainInfo_->Show(ma->T("Shut down computer", "Off: exit Marley; keep this button pressed to switch the computer off"), e.v);
         }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
@@ -297,14 +315,25 @@ void SCREEN_MainScreen::CreateViews() {
         topBar->SetTag("topBar");
         
         // home button
-        if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
-        Choice* homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+        Choice* homeButton;
+        if (gTheme == THEME_RETRO) 
+        {
+            icon = ImageID("I_HOME_R"); 
+            icon_active = ImageID("I_HOME_R_A"); 
+            icon_depressed = ImageID("I_HOME_R_D");
+            homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        }
+        else
+        {
+            icon = ImageID("I_HOME");
+            homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));    
+        }        
         homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
         homeButton->OnHighlight.Add([=](EventParams &e) {
             if (!toolTipsShown[MAIN_HOME])
             {
                 toolTipsShown[MAIN_HOME] = true;
-                mainInfo_->Show(ma->T("Home", "Home: jump in file browser to home directory"), e.v);
+                mainInfo_->Show(ma->T("Home", "jump in the file browser to the home directory"), e.v);
             }
             return SCREEN_UI::EVENT_CONTINUE;
         });

@@ -426,6 +426,7 @@ void ClickableItem::Draw(SCREEN_UIContext &dc) {
 bool Choice::Key(const KeyInput &key) {
     if ((hasHoldFeature_) && (HasFocus() || (heldDown_)))
     {
+        
         double timeDiff = time_now_d() - holdStart_;
         
         if (heldDown_ && (timeDiff >= HOLD_TIME))
@@ -509,9 +510,11 @@ void Choice::HighlightChanged(bool highlighted){
 }
 
 void Choice::Draw(SCREEN_UIContext &dc) {
-	if (!IsSticky()) {
+	if (!IsSticky() && (numIcons_!=3)) {
 		ClickableItem::Draw(dc);
-	} else {
+	} else 
+    if (numIcons_!=3)
+    {
 		Style style = dc.theme->itemStyle;
 		if (highlighted_) {
 			style = dc.theme->itemHighlightedStyle;
@@ -522,7 +525,6 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 		if (HasFocus()) {
 			style = dc.theme->itemFocusedStyle;
 		}
-
 		DrawBG(dc, style);
 	}
 
@@ -532,7 +534,25 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 	}
 
 	if (atlasImage_.isValid()) {
-		dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+        if (numIcons_==3)
+        {
+            if (HasFocus()) 
+            {
+                if (down_) 
+                {
+                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                } else
+                {
+                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                }
+            } else
+            {
+                dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+            }
+        } else
+        {
+            dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+        }
 	} else {
 		dc.SetFontStyle(dc.theme->uiFont);
 
