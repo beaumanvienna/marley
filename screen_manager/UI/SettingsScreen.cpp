@@ -1128,10 +1128,18 @@ void SCREEN_SettingsScreen::CreateViews() {
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
     verticalLayout->Add(tabHolder);
     
-    ImageID icon;
-    if (gTheme == THEME_RETRO) icon = ImageID("I_BACK_R"); else icon = ImageID("I_BACK");
-    verticalLayout->Add(new Choice(icon, new LayoutParams(64.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
-
+    ImageID icon, icon_active, icon_depressed;
+    if (gTheme == THEME_RETRO)
+    { 
+        icon = ImageID("I_BACK_R");
+        icon_active = ImageID("I_BACK_R_A");
+        icon_depressed = ImageID("I_BACK_R_D");
+        verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    } else
+    {
+        icon = ImageID("I_BACK");
+        verticalLayout->Add(new Choice(icon, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    }
     root_->Add(verticalLayout);
 
 	tabHolder->SetTag("Settings");
@@ -1139,9 +1147,8 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     // info message
 	float leftSide = 40.0f;
-
-	settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
-	settingsInfo_->SetBottomCutoff(dp_yres - 200.0f);
+    settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - 160.0f, WRAP_CONTENT, 140.0f, dp_yres - 80.0f - 40.0f, NONE, NONE));
+    settingsInfo_->SetBottomCutoff(dp_yres - 200.0f);
 	root_->Add(settingsInfo_);
 
     // horizontal layout for margins
@@ -1218,7 +1225,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     // horizontal layout for margins
     LinearLayout *horizontalLayoutController = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
     tabHolder->AddTab(ge->T("Controller"), horizontalLayoutController);
-    float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
+    float leftMargin = dp_xres/8;
     horizontalLayoutController->Add(new Spacer(leftMargin));
     
 	// -------- controller setup --------
@@ -1228,7 +1235,7 @@ void SCREEN_SettingsScreen::CreateViews() {
 	LinearLayout *controllerSettings = new LinearLayout(ORIENT_VERTICAL);
 	controllerSettings->SetSpacing(0);
 	controllerSettingsScroll->Add(controllerSettings);
-    controllerSettings->Add(new Spacer(64.0f));
+    controllerSettings->Add(new Spacer(0.0f,10.0f));
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     double verticalSpace = (dp_yres-256.0f)/2;
@@ -1254,18 +1261,28 @@ void SCREEN_SettingsScreen::CreateViews() {
         controllerSettings->Add(controller_horizontal);
         
         // setup button
-        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(64.0f,verticalSpace));
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
         controller_horizontal->Add(v);
-        ImageID icon;
-        if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
-        Choice* setupButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        ImageID icon, icon_active, icon_depressed;
+        Choice* setupButton;
+        if (gTheme == THEME_RETRO)
+        {
+            icon = ImageID("I_GEAR_R");
+            icon_active = ImageID("I_GEAR_R_A");
+            icon_depressed = ImageID("I_GEAR_R_D"); 
+            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        } else
+        {
+            icon = ImageID("I_GEAR");
+            setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+        }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup1);
-        v->Add(new Spacer(64.0f,(verticalSpace-64.0f)/2));
+        v->Add(new Spacer(20.0f,(verticalSpace-128.0f)/2));
         v->Add(setupButton);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // text view 'instruction'
-        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20,verticalSpace));
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-44.0f,verticalSpace));
         controller_horizontal->Add(vt);
         vt->SetSpacing(0.0f);
         double offset = 0.0f;
@@ -1308,18 +1325,28 @@ void SCREEN_SettingsScreen::CreateViews() {
         controllerSettings->Add(controller_horizontal);
         
         // setup button
-        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(64.0f,verticalSpace));
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
         controller_horizontal->Add(v);
-        ImageID icon;
-        if (gTheme == THEME_RETRO) icon = ImageID("I_GEAR_R"); else icon = ImageID("I_GEAR");
-        Choice* setupButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+        ImageID icon, icon_active, icon_depressed;
+        Choice* setupButton;
+        if (gTheme == THEME_RETRO)
+        { 
+            icon = ImageID("I_GEAR_R");
+            icon_active = ImageID("I_GEAR_R_A");
+            icon_depressed = ImageID("I_GEAR_R_D");
+            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        } else
+        { 
+            icon = ImageID("I_GEAR");
+            setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+        }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup2);
-        v->Add(new Spacer(64.0f,(verticalSpace-64.0f)/2));
+        v->Add(new Spacer(20.0f,(verticalSpace-128.0f)/2));
         v->Add(setupButton);
         controller_horizontal->Add(new Spacer(44.0f));
         
         // text view 'instruction'
-        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20,verticalSpace));
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-44.0f,verticalSpace));
         controller_horizontal->Add(vt);
         vt->SetSpacing(0.0f);
         double offset = 0.0f;
@@ -2125,6 +2152,20 @@ SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }
 
+
+SCREEN_UI::EventReturn SCREEN_DirBrowser::GridClick(SCREEN_UI::EventParams &e) {
+    *gridStyle_  = true;
+    Refresh();
+	return SCREEN_UI::EVENT_DONE;
+}
+
+
+SCREEN_UI::EventReturn SCREEN_DirBrowser::LinesClick(SCREEN_UI::EventParams &e) {
+    *gridStyle_  = false;
+    Refresh();
+	return SCREEN_UI::EVENT_DONE;
+}
+
 void SCREEN_DirBrowser::Update() {
 	LinearLayout::Update();
 	if (listingPending_ && path_.IsListingReady()) {
@@ -2185,30 +2226,80 @@ void SCREEN_DirBrowser::Refresh() {
     topBar->Add(workingDirectory);
     
     currentSearchPath=path_.GetPath();
-    ImageID icon;
+    ImageID icon, icon_active, icon_depressed;
     
-        // home button
-    if (gTheme == THEME_RETRO) icon = ImageID("I_HOME_R"); else icon = ImageID("I_HOME");
-    Choice* homeButton = new Choice(icon, new LayoutParams(64.0f, 64.0f));
+    // home button
+    Choice* homeButton;
+    if (gTheme == THEME_RETRO)
+    { 
+        icon = ImageID("I_HOME_R"); 
+        icon_active = ImageID("I_HOME_R_A"); 
+        icon_depressed = ImageID("I_HOME_R_D"); 
+        homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    } else
+    {
+        icon = ImageID("I_HOME");
+        homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+    }
     homeButton->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
     homeButton->OnHighlight.Add([=](EventParams &e) {
         if (!toolTipsShown[SETTINGS_HOME])
         {
             toolTipsShown[SETTINGS_HOME] = true;
-            settingsInfo_->Show(mm->T("Home", "Home: jump in file browser to home directory"), e.v);
+            settingsInfo_->Show(mm->T("Home", "Jump in file browser to home directory"), e.v);
         }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
     topBar->Add(homeButton);
-
-    ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
     
-    if (gTheme == THEME_RETRO) icon = ImageID("I_GRID_R"); else icon = ImageID("I_GRID");
-    layoutChoice->AddChoice(icon,"show file browser in a grid",&toolTipsShown[SETTINGS_GRID]);
-    if (gTheme == THEME_RETRO) icon = ImageID("I_LINES_R"); else icon = ImageID("I_LINES");
-    layoutChoice->AddChoice(icon,"show file browser with lines",&toolTipsShown[SETTINGS_LINES]);
-    layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
-    layoutChoice->OnChoice.Handle(this, &SCREEN_DirBrowser::LayoutChange);
+    // grid button
+    Choice* gridButton;
+    
+    if (gTheme == THEME_RETRO)
+    { 
+        icon = ImageID("I_GRID_R");
+        icon_active = ImageID("I_GRID_R_A");
+        icon_depressed = ImageID("I_GRID_R_D");
+        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    } else
+    { 
+        icon = ImageID("I_GRID");
+        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    }
+    gridButton->OnClick.Handle(this, &SCREEN_DirBrowser::GridClick);
+    gridButton->OnHighlight.Add([=](EventParams &e) {
+        if (!toolTipsShown[SETTINGS_GRID])
+        {
+            toolTipsShown[SETTINGS_GRID] = true;
+            settingsInfo_->Show(mm->T("Grid", "Show file browser in a grid"), e.v);
+        }
+		return SCREEN_UI::EVENT_CONTINUE;
+	});
+    topBar->Add(gridButton);
+    
+    // lines button
+    Choice* linesButton;
+    if (gTheme == THEME_RETRO)
+    { 
+        icon = ImageID("I_LINES_R");
+        icon_active = ImageID("I_LINES_R_A");
+        icon_depressed = ImageID("I_LINES_R_D"); 
+        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    } else
+    { 
+        icon = ImageID("I_LINES");
+        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+    }
+    linesButton->OnClick.Handle(this, &SCREEN_DirBrowser::LinesClick);
+    linesButton->OnHighlight.Add([=](EventParams &e) {
+        if (!toolTipsShown[SETTINGS_LINES])
+        {
+            toolTipsShown[SETTINGS_LINES] = true;
+            settingsInfo_->Show(mm->T("Lines", "Show file browser in lines"), e.v);
+        }
+		return SCREEN_UI::EVENT_CONTINUE;
+	});
+    topBar->Add(linesButton);
     
     Add(topBar);
     Add(new Spacer(5.0f));

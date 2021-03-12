@@ -333,7 +333,7 @@ void SCREEN_MainScreen::CreateViews() {
             if (!toolTipsShown[MAIN_HOME])
             {
                 toolTipsShown[MAIN_HOME] = true;
-                mainInfo_->Show(ma->T("Home", "jump in the file browser to the home directory"), e.v);
+                mainInfo_->Show(ma->T("Home", "Jump in file browser to home directory"), e.v);
             }
             return SCREEN_UI::EVENT_CONTINUE;
         });

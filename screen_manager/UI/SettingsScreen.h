@@ -187,6 +187,8 @@ private:
 	SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn GridClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn LinesClick(SCREEN_UI::EventParams &e);
 	SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
 	
 

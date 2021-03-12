@@ -37,7 +37,11 @@ image I_OFF source_assets/image/off.png copy
 image I_HOME source_assets/image/home.png copy
 image I_BACK source_assets/image/back.png copy
 image I_LINES_R source_assets/image/lines_r.png copy
+image I_LINES_R_A source_assets/image/lines_r_active.png copy
+image I_LINES_R_D source_assets/image/lines_r_depressed.png copy
 image I_GRID_R source_assets/image/grid_r.png copy
+image I_GRID_R_A source_assets/image/grid_r_active.png copy
+image I_GRID_R_D source_assets/image/grid_r_depressed.png copy
 image I_UP_DIRECTORY_R source_assets/image/up_line_r.png copy
 image I_FOLDER_R source_assets/image/folder_line_r.png copy
 image I_GEAR_R source_assets/image/gear_r.png copy
@@ -50,6 +54,8 @@ image I_HOME_R source_assets/image/home_r.png copy
 image I_HOME_R_A source_assets/image/home_r_active.png copy
 image I_HOME_R_D source_assets/image/home_r_depressed.png copy
 image I_BACK_R source_assets/image/back_r.png copy
+image I_BACK_R_A source_assets/image/back_r_active.png copy
+image I_BACK_R_D source_assets/image/back_r_depressed.png copy
 image I_BARREL source_assets/image/barrel.png copy
 image I_DOLPHIN source_assets/image/dolphin.png copy
 image I_CLOUDS source_assets/image/clouds.png copy
