@@ -62,6 +62,7 @@ void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
+void SCREEN_ToggleFullScreen(void);
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -78,10 +79,11 @@ extern bool gGamesFound;
 extern bool gPS1_firmware;
 extern bool gPS2_firmware;
 extern std::vector<std::string> gSearchDirectoriesGames;
-extern double FILE_BROWSER_WIDTH;
+extern float gFileBrowserWidth;
 extern bool gControllerConf;
 extern bool gUpdateCurrentScreen;
-
+extern bool gUpdateMainScreen;
+extern bool gFullscreen;
 bool bGridView1;
 bool bGridView2=true;
 std::string currentSearchPath;
@@ -1245,7 +1247,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     {
         controllerSettings->Add(new Spacer(verticalSpace+64.0f));
         TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(FILE_BROWSER_WIDTH, 64.0f));
+                                    true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
         if (gTheme == THEME_RETRO) 
         {
             noController->SetTextColor(0xFFde51e0);
@@ -1811,6 +1813,10 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     generalSettings->Add(new ItemHeader(ge->T("General settings for Marley")));
     
+    // -------- toggle fullscreen --------
+    CheckBox *vToggleFullscreen = generalSettings->Add(new CheckBox(&gFullscreen, ge->T("Fullscreen", "Fullscreen")));
+    vToggleFullscreen->OnClick.Handle(this, &SCREEN_SettingsScreen::OnFullscreenToggle);
+    
     // -------- system sounds --------
     CheckBox *vSystemSounds = generalSettings->Add(new CheckBox(&playSystemSounds, ge->T("Enable system sounds", "Enable system sounds")));
     vSystemSounds->OnClick.Add([=](EventParams &e) {
@@ -1855,6 +1861,11 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnRenderingBackend(SCREEN_UI::Even
 	return SCREEN_UI::EVENT_DONE;
 }
 
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnFullscreenToggle(SCREEN_UI::EventParams &e) {
+    SCREEN_ToggleFullScreen();
+    return SCREEN_UI::EVENT_DONE;
+}
+
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnThemeChanged(SCREEN_UI::EventParams &e) {
     SCREEN_UIThemeInit();
     RecreateViews();
@@ -1896,7 +1907,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_U
 
 void SCREEN_SettingsScreen::onFinish(DialogResult result) {
     printf("jc: void SCREEN_SettingsScreen::onFinish(DialogResult result)\n");
-    //SCREEN_System_SendMessage("finish", "");
+    gUpdateMainScreen = true;
 }
 
 void SCREEN_SettingsScreen::update() {
@@ -2332,13 +2343,10 @@ void SCREEN_DirBrowser::Refresh() {
 
 	std::vector<std::string> filenames;
 	if (!listingPending_) {
-        printf("jc: if (!listingPending_)\n");
 		std::vector<FileInfo> fileInfo;
 		path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
-        printf("jc: fileInfo.size()=%ld\n",fileInfo.size());
 		for (size_t i = 0; i < fileInfo.size(); i++) {
             std::string str=fileInfo[i].name;
-            printf("jc: fileInfo[i].name=%s\n",str.c_str());
 			
 			if (fileInfo[i].isDirectory) {
 				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
@@ -2360,7 +2368,6 @@ void SCREEN_DirBrowser::Refresh() {
 
 	for (size_t i = 0; i < dirButtons.size(); i++) {
         std::string str = dirButtons[i]->GetPath();
-        printf("jc: for (size_t i = 0; i < dirButtons.size(); i++)  %s\n",str.c_str());
 		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
 	}
 }

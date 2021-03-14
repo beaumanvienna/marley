@@ -50,17 +50,19 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "../../include/controller.h"
 #include "../include/statemachine.h"
 
-
-void SCREEN_ToggleFullScreen(void);
 void mainLoopWii(void);
+void SCREEN_NativeResized(void);
 extern bool restart_screen_manager;
 extern bool shutdown_now;
 extern bool launch_request_from_screen_manager;
 extern bool gUpdateCurrentScreen;
+extern int window_x,window_y;
 
 GlobalUIState SCREEN_lastUIState = UISTATE_MENU;
 GlobalUIState GetUIState();
 GlobalUIState globalUIState;
+
+extern bool gFullscreen;
 
 static bool SCREEN_g_ToggleFullScreenNextFrame = false;
 static int SCREEN_g_ToggleFullScreenType;
@@ -69,14 +71,6 @@ static int SCREEN_g_QuitRequested = 0;
 static int SCREEN_g_DesktopWidth = 0;
 static int SCREEN_g_DesktopHeight = 0;
 static float SCREEN_g_RefreshRate = 60.f;
-
-void toggleFS(void)
-{
-    printf("jc: void toggleFS(void)\n");
-    SCREEN_ToggleFullScreen();
-    restart_screen_manager = SCREEN_g_QuitRequested = true;
-    shutdown_now = launch_request_from_screen_manager = false;
-}
 
 int SCREEN_getDisplayNumber(void) {
 	int displayNumber = 0;
@@ -235,18 +229,38 @@ static float parseFloat(const char *str) {
 	}
 }
 
+void SCREEN_UpdateScreenScale(int width, int height) {
+    dp_xres = width;
+    dp_yres = height;
+    pixel_xres = width;
+    pixel_yres = height;
+}
+
+
 void SCREEN_ToggleFullScreen(void) {
+    printf("jc: void SCREEN_ToggleFullScreen(void)\n");
+
     Uint32 window_flags = SDL_GetWindowFlags(gWindow);
-    window_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
-    SDL_SetWindowFullscreen(gWindow, window_flags);
     
-	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-		dp_xres = SCREEN_g_DesktopWidth;
-		dp_yres = SCREEN_g_DesktopHeight;
-	} else {
-        dp_xres = WINDOW_WIDTH;
-        dp_yres = WINDOW_HEIGHT;
-	}
+    // save position if not in fullscreen
+    if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+    {
+        SDL_GetWindowSize(gWindow,&window_width,&window_height);
+        SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+    }
+    // toggle
+    window_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    
+    SDL_SetWindowFullscreen(gWindow, window_flags);
+    if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) 
+    {
+        SCREEN_UpdateScreenScale(SCREEN_g_DesktopWidth,SCREEN_g_DesktopHeight);
+    } else 
+    {
+        SDL_SetWindowPosition(gWindow,window_x,window_y-37);
+        SCREEN_UpdateScreenScale(WINDOW_WIDTH,WINDOW_HEIGHT);
+    }
+    SCREEN_NativeResized();
 }
 
 void SCREEN_ToggleFullScreenIfFlagSet(SDL_Window *window) {
@@ -423,7 +437,8 @@ int screen_manager_main(int argc, char *argv[]) {
                     } else
                     if (event.key.keysym.sym == SDLK_f) 
                     {
-                        toggleFS();
+                        gFullscreen = !gFullscreen;
+                        SCREEN_ToggleFullScreen();
                         break;
                     } else
                     {

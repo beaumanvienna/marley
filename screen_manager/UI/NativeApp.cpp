@@ -73,6 +73,7 @@
 static SCREEN_UI::Theme ui_theme;
 extern GlobalUIState globalUIState;
 extern int gTheme;
+extern bool gUpdateCurrentScreen;
 static SCREEN_GPUBackend SCREEN_gpuBackend;
 static std::string SCREEN_gpuBackendDevice;
 
@@ -351,6 +352,20 @@ void SCREEN_NativeRender(SCREEN_GraphicsContext *graphicsContext) {
 	if (SCREEN_screenManager->getUIContext()->Text()) {
 		SCREEN_screenManager->getUIContext()->Text()->OncePerFrame();
 	}
+    
+	if (SCREEN_resized) {
+        printf("jc: if (SCREEN_resized)  \n");
+		SCREEN_resized = false;
+
+		if (uiContext) {
+			// Modifying the bounds here can be used to "inset" the whole image to gain borders for TV overscan etc.
+			// The UI now supports any offset but not the EmuScreen yet.
+			uiContext->SetBounds(Bounds(0, 0, dp_xres, dp_yres));
+		}
+		graphicsContext->Resize();
+		SCREEN_screenManager->resized();
+        gUpdateCurrentScreen = true;
+	}
 
 	SCREEN_ui_draw2d.PopDrawMatrix();
 	SCREEN_ui_draw2d_front.PopDrawMatrix();
@@ -482,9 +497,8 @@ void SCREEN_NativeInputBoxReceived(std::function<void(bool, const std::string &)
 	pendingInputBoxes.push_back(pendingMessage);
 }
 
-void SCREEN_NativeResized() {
-	// SCREEN_NativeResized can come from any thread so we just set a flag, then process it later.
-	printf("SCREEN_NativeResized - setting flag");
+void SCREEN_NativeResized(void) {
+	printf("jc: void SCREEN_NativeResized(void) \n");
 	SCREEN_resized = true;
 }
 

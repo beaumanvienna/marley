@@ -62,7 +62,7 @@ extern std::string gPackageVersion;
 SCREEN_UI::ScrollView *gameLauncherFrameScroll;
 
 ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
-double FILE_BROWSER_WIDTH;
+float gFileBrowserWidth;
 
 bool bGridViewMain1;
 bool bGridViewMain2=false;
@@ -75,7 +75,6 @@ bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
-    FILE_BROWSER_WIDTH = dp_xres*0.8;
     printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
     launch_request_from_screen_manager=false;
     
@@ -203,10 +202,12 @@ void SCREEN_MainScreen::CreateViews() {
     topline->SetTag("topLine");
     verticalLayout->Add(topline);
     
-    float leftMargin = (dp_xres - FILE_BROWSER_WIDTH)/2-10;
+    gFileBrowserWidth = dp_xres*0.8;   
+    float leftMargin = (dp_xres - gFileBrowserWidth)/2-10;
+    
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     
-    topline->Add(new Spacer(leftMargin+FILE_BROWSER_WIDTH-266.0f,0.0f));
+    topline->Add(new Spacer(leftMargin+gFileBrowserWidth-266.0f,0.0f));
     
     ImageID icon, icon_active, icon_depressed;
     // settings button
@@ -304,7 +305,7 @@ void SCREEN_MainScreen::CreateViews() {
         
         // vertical layout for the game browser's top bar and the scroll view
         Margins mgn(0,0,0,0);
-        LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILE_BROWSER_WIDTH, 243, 0.0f,G_TOPLEFT, mgn));
+        LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(gFileBrowserWidth, 243, 0.0f,G_TOPLEFT, mgn));
         gameLauncherMainFrame->Add(gameLauncherColumn);
         gameLauncherColumn->SetTag("gameLauncherColumn");
         gameLauncherColumn->SetSpacing(0.0f);
@@ -367,7 +368,7 @@ void SCREEN_MainScreen::CreateViews() {
         
         ROM_browser = new SCREEN_GameBrowser(lastGamePath, SCREEN_BrowseFlags::STANDARD, &bGridViewMain2, screenManager(),
             ma->T("Use the Start button to confirm"), "https://github.com/beaumanvienna/marley",
-            new LinearLayoutParams(FILE_BROWSER_WIDTH, WRAP_CONTENT));
+            new LinearLayoutParams(gFileBrowserWidth, WRAP_CONTENT));
         ROM_browser->SetTag("ROM_browser");
         gameLauncherFrame->Add(ROM_browser);
         
@@ -379,7 +380,7 @@ void SCREEN_MainScreen::CreateViews() {
     } else    
     {
         TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(FILE_BROWSER_WIDTH, 64.0f));
+                                    true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
         if (gTheme == THEME_RETRO) 
         {
             noController->SetTextColor(0xFFde51e0);
@@ -401,13 +402,10 @@ void SCREEN_MainScreen::update() {
 		RecreateViews();
 		lasttheme_ = theme;
 	}
-    if (gUpdateCurrentScreen) {
+    if ((gUpdateCurrentScreen) || (gUpdateMainScreen)) {
+        printf("jc: void SCREEN_MainScreen::update() if ((gUpdateCurrentScreen) || (gUpdateMainScreen))\n");
         RecreateViews();
         gUpdateCurrentScreen = false;
-    }
-    
-    if (gUpdateMainScreen) {
-        RecreateViews();
         gUpdateMainScreen = false;
     }
 }

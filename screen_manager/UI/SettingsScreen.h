@@ -129,7 +129,7 @@ private:
     SCREEN_UI::EventReturn OnRenderingBackend(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnThemeChanged(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnDeleteSearchDirectories(SCREEN_UI::EventParams &e);
-    
+    SCREEN_UI::EventReturn OnFullscreenToggle(SCREEN_UI::EventParams &e);
 
 };
 
