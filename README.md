@@ -6,8 +6,8 @@
 <br />
 <br />
 Landing page: http://marley.designprospect.com/<br />
-Intro video: https://streamable.com/r215t0
-Discord: https://discord.gg/fYPKPU4DpM
+Intro video: https://streamable.com/r215t0<br />
+Discord: https://discord.gg/fYPKPU4DpM<br />
 Ubuntu PPA: https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 <br />
 
