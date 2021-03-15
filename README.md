@@ -5,8 +5,10 @@
 # Marley: Many Awesome Retro Linux Emulators, Yay!
 <br />
 <br />
-http://marley.designprospect.com/<br />
-https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
+Landing page: http://marley.designprospect.com/<br />
+Intro video: https://streamable.com/r215t0
+Discord: https://discord.gg/fYPKPU4DpM
+Ubuntu PPA: https://launchpad.net/~beauman/+archive/ubuntu/marley <br />
 <br />
 
 - [User Manual](#user-manual)
