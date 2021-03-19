@@ -39,6 +39,9 @@ image I_BACK source_assets/image/back.png copy
 image I_LINES_R source_assets/image/lines_r.png copy
 image I_LINES_R_A source_assets/image/lines_r_active.png copy
 image I_LINES_R_D source_assets/image/lines_r_depressed.png copy
+image I_TAB_R source_assets/image/tab_r.png copy
+image I_TAB_R_A source_assets/image/tab_r_active.png copy
+image I_TAB_R_D source_assets/image/tab_r_depressed.png copy
 image I_GRID_R source_assets/image/grid_r.png copy
 image I_GRID_R_A source_assets/image/grid_r_active.png copy
 image I_GRID_R_D source_assets/image/grid_r_depressed.png copy
