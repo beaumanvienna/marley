@@ -1140,15 +1140,19 @@ void GridLayout::Layout() {
 	}
 }
 
-TabHolder::TabHolder(Orientation orientation, float stripSize, LayoutParams *layoutParams)
+TabHolder::TabHolder(Orientation orientation, float stripSize, LayoutParams *layoutParams, float leftMargin)
 	: LinearLayout(Opposite(orientation), layoutParams), stripSize_(stripSize) {
 	SetSpacing(0.0f);
 	if (orientation == ORIENT_HORIZONTAL) {
+        LinearLayout *horizontalSpacer = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
+        horizontalSpacer->SetSpacing(0.0f);
+        horizontalSpacer->Add(new Spacer(leftMargin,0.0f));
 		tabStrip_ = new ChoiceStrip(orientation, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 		tabStrip_->SetTopTabs(true);
 		tabScroll_ = new ScrollView(orientation, new LayoutParams(FILL_PARENT, WRAP_CONTENT));
 		tabScroll_->Add(tabStrip_);
-		Add(tabScroll_);
+		horizontalSpacer->Add(tabScroll_);
+		Add(horizontalSpacer);
 	} else {
 		tabStrip_ = new ChoiceStrip(orientation, new LayoutParams(stripSize, WRAP_CONTENT));
 		tabStrip_->SetTopTabs(true);
@@ -1163,7 +1167,13 @@ TabHolder::TabHolder(Orientation orientation, float stripSize, LayoutParams *lay
 void TabHolder::AddTabContents(const std::string &title, View *tabContents) {
 	tabContents->ReplaceLayoutParams(new AnchorLayoutParams(FILL_PARENT, FILL_PARENT));
 	tabs_.push_back(tabContents);
-	tabStrip_->AddChoice(title);
+	
+    if (useIcons_) {
+        tabStrip_->AddChoice(title, icon_, icon_active_, icon_depressed_, icon_depressed_inactive_,title);
+    } else {
+        tabStrip_->AddChoice(title);
+    }
+    
 	contents_->Add(tabContents);
 	if (tabs_.size() > 1)
 		tabContents->SetVisibility(V_GONE);
@@ -1291,6 +1301,19 @@ void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip,bool* toolTi
             return SCREEN_UI::EVENT_CONTINUE;
         });
     }
+    
+	Add(c);
+	if (selected_ == (int)views_.size() - 1)
+		c->Press();
+
+}
+
+void ChoiceStrip::AddChoice(const std::string &title, ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text) {
+	StickyChoice *c = new StickyChoice(icon, icon_active, icon_depressed, icon_depressed_inactive, text,
+			orientation_ == ORIENT_HORIZONTAL ?
+			nullptr :
+			new LinearLayoutParams(FILL_PARENT, ITEM_HEIGHT));
+	c->OnClick.Handle(this, &ChoiceStrip::OnChoiceClick);
     
 	Add(c);
 	if (selected_ == (int)views_.size() - 1)

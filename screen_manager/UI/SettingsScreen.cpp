@@ -1127,10 +1127,31 @@ void SCREEN_SettingsScreen::CreateViews() {
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
-    tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
+    const float stripSize = 204.0f; // the tab icon has a width of 204
+    
+    // calculate left margin
+    const float xres = static_cast< float > (dp_xres);
+    const float barSize = (stripSize + 24)*6;
+    float tabLeftMargin = 0.0f;
+    
+    if (xres > barSize) { // if a margin fits on the screen
+        tabLeftMargin = (xres - barSize)/2; // equal margin on the left and right 
+    }
+    
+    tabHolder = new TabHolder(ORIENT_HORIZONTAL, stripSize, new LinearLayoutParams(1.0f), tabLeftMargin);
     verticalLayout->Add(tabHolder);
     
-    ImageID icon, icon_active, icon_depressed;
+    
+    ImageID icon, icon_active, icon_depressed, icon_depressed_inactive;
+    if (gTheme == THEME_RETRO)
+    { 
+        icon = ImageID("I_TAB_R");
+        icon_active = ImageID("I_TAB_R_A");
+        icon_depressed = ImageID("I_TAB_R_D");
+        icon_depressed_inactive = ImageID("I_TAB_R_D_I");
+        tabHolder->SetIcon(icon,icon_active,icon_depressed,icon_depressed_inactive);
+    }
+
     if (gTheme == THEME_RETRO)
     { 
         icon = ImageID("I_BACK_R");

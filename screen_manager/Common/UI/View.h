@@ -654,10 +654,15 @@ public:
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false) {numIcons_=1;}
-    	Choice(ImageID image, ImageID image_active, ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+    Choice(ImageID image, ImageID image_active, ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false), image_active_(image_active), image_depressed_(image_depressed) {numIcons_=3;}
+    Choice(ImageID image, ImageID image_active, ImageID image_depressed, ImageID image_depressed_inactive, const std::string &text, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+                        centered_(true), highlighted_(false), selected_(false), 
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false), text_(text),
+                        image_active_(image_active), image_depressed_(image_depressed), image_depressed_inactive_(image_depressed_inactive) {numIcons_=4;}
     Event OnHold;
     Event OnHighlight;
     bool Key(const KeyInput &input) override;
@@ -680,7 +685,7 @@ protected:
 
 	std::string text_;
 	std::string smallText_;
-	ImageID atlasImage_, image_active_, image_depressed_;
+	ImageID atlasImage_, image_active_, image_depressed_, image_depressed_inactive_;
     int numIcons_;
 	ImageID iconImage_;  // Only applies for text, non-centered
 	Padding textPadding_;
@@ -701,6 +706,8 @@ public:
 		: Choice(text, smallText, false, layoutParams) {}
 	StickyChoice(ImageID buttonImage, LayoutParams *layoutParams = 0)
 		: Choice(buttonImage, layoutParams) {}
+    StickyChoice(ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text, LayoutParams *layoutParams = 0)
+		: Choice(icon, icon_active, icon_depressed, icon_depressed_inactive, text, layoutParams) {}
 
 	bool Key(const KeyInput &key) override;
 	void Touch(const TouchInput &touch) override;

@@ -274,6 +274,7 @@ public:
 
 	void AddChoice(const std::string &title);
 	void AddChoice(ImageID buttonImage, std::string tooltip = "", bool * toolTipShown = nullptr);
+    void AddChoice(const std::string &title, ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text);
 
 	int GetSelection() const { return selected_; }
 	void SetSelection(int sel);
@@ -299,7 +300,7 @@ private:
 
 class TabHolder : public LinearLayout {
 public:
-	TabHolder(Orientation orientation, float stripSize, LayoutParams *layoutParams = 0);
+	TabHolder(Orientation orientation, float stripSize, LayoutParams *layoutParams = 0, float leftMargin = 0.0f);
 
 	template <class T>
 	T *AddTab(const std::string &title, T *tabContents) {
@@ -313,8 +314,17 @@ public:
 	std::string Describe() const override { return "TabHolder: " + View::Describe(); }
 
 	void PersistData(PersistStatus status, std::string anonId, PersistMap &storage) override;
+    void SetIcon(ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive) {
+        icon_ = icon; 
+        icon_active_ = icon_active; 
+        icon_depressed_ = icon_depressed;
+        icon_depressed_inactive_ = icon_depressed_inactive;
+        useIcons_ = true;
+    }
 
 private:
+    bool useIcons_ = false;
+    ImageID icon_, icon_active_, icon_depressed_, icon_depressed_inactive_;
 	void AddTabContents(const std::string &title, View *tabContents);
 	EventReturn OnTabClick(EventParams &e);
 

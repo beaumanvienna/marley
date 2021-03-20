@@ -534,8 +534,20 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 	}
 
 	if (atlasImage_.isValid()) {
-        if (numIcons_==3)
-        {
+        if (numIcons_==3) {
+            if (HasFocus()) {
+                if (down_) 
+                {
+                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                } else
+                {
+                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                }
+            } else {
+                dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+            }
+        } else
+        if (numIcons_==4) {
             if (HasFocus()) 
             {
                 if (down_) 
@@ -547,36 +559,56 @@ void Choice::Draw(SCREEN_UIContext &dc) {
                 }
             } else
             {
-                dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                if (down_) {
+                    dc.Draw()->DrawImage(image_depressed_inactive_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                } else
+                {
+                    dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                }
             }
-        } else
-        {
+        } else {
             dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
         }
-	} else {
-		dc.SetFontStyle(dc.theme->uiFont);
+    }
+	
+    dc.SetFontStyle(dc.theme->uiFont);
 
-		const int paddingX = 12;
-		const float availWidth = bounds_.w - paddingX * 2 - textPadding_.horiz();
-		float scale = CalculateTextScale(dc, availWidth);
+    const int paddingX = 12;
+    const float availWidth = bounds_.w - paddingX * 2 - textPadding_.horiz();
+    float scale = CalculateTextScale(dc, availWidth);
 
-		dc.SetFontScale(scale, scale);
-		if (centered_) {
-			dc.DrawTextRect(text_.c_str(), bounds_, style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
-		} else {
-			if (iconImage_.isValid()) {
-				dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
-			}
-            
-            Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
-            if (gTheme == THEME_RETRO)
-              dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
-			dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
-		}
-		dc.SetFontScale(1.0f, 1.0f);
-	}
+    dc.SetFontScale(scale, scale);
+    if (centered_) {
+        
+        float offset_down_x = 0.0f; // apply if button is pressed
+        float offset_down_y = 0.0f;         
+        
+        if (down_) {
+            offset_down_x = 4.0f;
+            offset_down_y = 4.0f;
+        }
+        
+        if (gTheme == THEME_RETRO)
+          dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f+offset_down_x, 2.0f+offset_down_y)  , 0xFF000000, ALIGN_CENTER | FLAG_WRAP_TEXT);
+          
+        dc.DrawTextRect(text_.c_str(), bounds_.Offset(offset_down_x, offset_down_y), style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
+        
+    } else {
+
+        if (iconImage_.isValid()) {
+            dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
+        }
+        
+        Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
+        if (gTheme == THEME_RETRO)
+          dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+        dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+    }
+    dc.SetFontScale(1.0f, 1.0f);
+
 
 	if (selected_) {
+        printf("jc: void Choice::Draw(SCREEN_UIContext &dc) if (selected_)\n");
 		dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
 	}
 }
