@@ -1,3 +1,9 @@
+marley (0.2.12) focal; urgency=medium
+
+  * top bar for settings tabs changed to maintained buttons
+
+ -- JC <beaumanvienna@gmail.com>  Sat, 20 Mar 2021 09:30:00 -0700
+
 marley (0.2.11) focal; urgency=medium
 
   * toggle fullscreen added under settings/general
