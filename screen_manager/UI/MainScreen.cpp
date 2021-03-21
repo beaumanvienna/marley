@@ -39,6 +39,7 @@
 #include "Common/OSVersion.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
+#include "Common/Render/Sprite_Sheet.h"
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 #include <SDL.h>
@@ -319,9 +320,9 @@ void SCREEN_MainScreen::CreateViews() {
         Choice* homeButton;
         if (gTheme == THEME_RETRO) 
         {
-            icon = ImageID("I_HOME_R"); 
-            icon_active = ImageID("I_HOME_R_A"); 
-            icon_depressed = ImageID("I_HOME_R_D");
+            icon = ImageID("I_HOME_R", BUTTON_STATE_INACTIVE); 
+            icon_active = ImageID("I_HOME_R", BUTTON_STATE_ACTIVE); 
+            icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_ACTIVE_DEPRESSED);
             homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         }
         else

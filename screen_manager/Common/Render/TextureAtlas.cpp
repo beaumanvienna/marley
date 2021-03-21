@@ -1,5 +1,7 @@
 #include <cstring>
 #include <cstdint>
+#include <cstdio>
+#include <string>
 
 #include "Common/Render/TextureAtlas.h"
 
@@ -35,6 +37,63 @@ private:
 	size_t size_;
 };
 
+bool SCREEN_Atlas::registerSpriteSheet(std::string id, int numberOfFrames)
+{
+    // check if sprite sheet already exists 
+    // search in sprite sheet array
+    
+    SpriteSheetArray::iterator it;
+    
+    for ( it = sprite_sheets.begin(); it != sprite_sheets.end(); it++)
+    {
+        SpriteSheet element = *it;
+        
+        if (element.id == id) 
+        {
+            // sprite sheet found in map
+            return true;
+        }
+    }
+    
+    // search the atlas image
+    for (int i = 0; i < num_images; i++) {
+        std::string name = images[i].name;
+        if (id == name)
+        {
+            // id tag found in atlas image
+            AtlasImage * ptr = &images[i];
+            
+            SpriteSheet newSpriteSheet;
+            
+            newSpriteSheet.id = id;
+            newSpriteSheet.numberOfFrames = numberOfFrames;
+            
+            float width = ptr->u2 - ptr->u1;
+            float width_per_frame = width / numberOfFrames;
+            float framestart;
+            
+            for (int frame_n = 0; frame_n < numberOfFrames; frame_n++)
+            {
+                framestart = ptr->u1 + width_per_frame * frame_n;
+            
+                AtlasImage frame;
+                frame.u1 = framestart; 
+                frame.v1 = ptr->v1;
+                frame.u2 = framestart + width_per_frame;
+                frame.v2 = ptr->v2;
+                frame.w = images[i].w/numberOfFrames;
+                frame.h = images[i].h;
+                
+                newSpriteSheet.frames.push_back(frame);
+                    
+            }
+            sprite_sheets.push_back(newSpriteSheet);
+            return true;
+        }
+    } 
+    return false;
+}
+
 bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
 	SCREEN_ByteReader reader(data, data_size);
 
@@ -59,6 +118,9 @@ bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
 		fonts[i].charData = reader.ReadMultipleAlloc<AtlasChar>(font_header.numChars);
 		memcpy(fonts[i].name, font_header.name, sizeof(font_header.name));
 	}
+    
+    registerSpriteSheet("I_HOME_R", 3); // sprite sheet with three frames
+    
 	return true;
 }
 
@@ -73,28 +135,55 @@ const SCREEN_AtlasFont *SCREEN_Atlas::getFont(FontID id) const {
 	return nullptr;
 }
 
-const AtlasImage *SCREEN_Atlas::getImage(ImageID name) const {
-	if (name.isInvalid())
-		return nullptr;
+const AtlasImage *SCREEN_Atlas::getImage(ImageID name) const 
+{
 
-	for (int i = 0; i < num_images; i++) {
-		if (!strcmp(name.id, images[i].name))
-			return &images[i];
-	}
-	return nullptr;
+    if (name.isInvalid())
+      return nullptr;
+
+    // if the image is a sprite sheet
+    if (name.isSpriteSheet)
+    {
+        // search in sprite sheet array for the id tag
+        std::string id(name.id);
+        SpriteSheetArray::const_iterator it;
+        int i = 0;
+
+        for (it = sprite_sheets.begin(); it != sprite_sheets.end(); it++, i++)
+        {
+            SpriteSheet element = *it;
+            
+            if (element.id == id)
+            {
+                // sprite sheet found in map
+                return &sprite_sheets[i].frames[name.currentFrame_];
+            }
+        } 
+    }
+
+    for (int i = 0; i < num_images; i++) 
+    {
+        if (!strcmp(name.id, images[i].name))
+        {
+            return &images[i];
+        }
+    }
+    return nullptr;
 }
 
+
 bool SCREEN_Atlas::measureImage(ImageID id, float *w, float *h) const {
-	const AtlasImage *image = getImage(id);
-	if (image) {
-		*w = (float)image->w;
-		*h = (float)image->h;
-		return true;
-	} else {
-		*w = 0.0f;
-		*h = 0.0f;
-		return false;
-	}
+    bool ok = false;
+    const AtlasImage *image = getImage(id);
+    if (image) {
+        *w = (float)image->w;
+        *h = (float)image->h;
+        ok = true;
+    } else {
+        *w = 0.0f;
+        *h = 0.0f;
+    }
+    return ok;
 }
 
 const AtlasChar *SCREEN_AtlasFont::getChar(int utf32) const {

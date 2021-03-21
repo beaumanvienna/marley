@@ -2,6 +2,10 @@
 
 #include <cstdint>
 #include <cstring>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include "Common/Render/Sprite_Sheet.h"
 
 #define ATLAS_MAGIC ('A' + ('T' << 8) + ('L' << 16) | ('A' << 24))
 
@@ -18,11 +22,21 @@
 //     AtlasChar
 
 struct SCREEN_Atlas;
+struct AtlasImage {
+	float u1, v1, u2, v2;
+	int w, h;
+	char name[32];
+};
 
 struct ImageID {
 public:
 	ImageID() : id(nullptr) {}
+    ~ImageID() {}
 	explicit ImageID(const char *_id) : id(_id) {}
+    explicit ImageID(const char *_id, int currentFrame) : id(_id), currentFrame_(currentFrame)
+    {
+        isSpriteSheet = true;
+    }
 
 	static inline ImageID invalid() {
 		return ImageID{ nullptr };
@@ -47,8 +61,12 @@ public:
 		return strcmp(id, other.id) != 0;
 	}
 
+    bool isSpriteSheet = false;
+    int currentFrame_ = 0; // requested frame
+    
 private:
 	const char *id;
+
 	friend struct SCREEN_Atlas;
 };
 
@@ -113,12 +131,6 @@ struct SCREEN_AtlasFont {
 	const AtlasChar *getChar(int utf32) const ;
 };
 
-struct AtlasImage {
-	float u1, v1, u2, v2;
-	int w, h;
-	char name[32];
-};
-
 struct AtlasHeader {
 	int magic;
 	int version;
@@ -126,7 +138,17 @@ struct AtlasHeader {
 	int numImages;
 };
 
+typedef std::vector<AtlasImage> SpriteSheetAllFrames;
+struct SpriteSheet 
+{
+    std::string id;
+    int numberOfFrames;
+    SpriteSheetAllFrames frames;
+};
+typedef std::vector<SpriteSheet> SpriteSheetArray;
+
 struct SCREEN_Atlas {
+    SCREEN_Atlas() {}
 	~SCREEN_Atlas();
 	bool Load(const uint8_t *data, size_t data_size);
 	bool IsMetadataLoaded() {
@@ -141,6 +163,9 @@ struct SCREEN_Atlas {
 	// These are inefficient linear searches, try not to call every frame.
 	const SCREEN_AtlasFont *getFont(FontID id) const;
 	const AtlasImage *getImage(ImageID id) const;
+    bool registerSpriteSheet(std::string id, int numberOfFrames);
 
 	bool measureImage(ImageID id, float *w, float *h) const;
+    
+    SpriteSheetArray sprite_sheets;
 };
