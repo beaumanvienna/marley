@@ -1389,7 +1389,7 @@ bool ChoiceStrip::Key(const KeyInput &input) {
 
 void ChoiceStrip::Draw(SCREEN_UIContext &dc) {
 	ViewGroup::Draw(dc);
-	if (topTabs_) {
+	if (topTabs_ && gTheme != THEME_RETRO) {
 		if (orientation_ == ORIENT_HORIZONTAL)
 			dc.Draw()->DrawImageStretch(dc.theme->whiteImage, bounds_.x, bounds_.y2() - 4, bounds_.x2(), bounds_.y2(), dc.theme->itemDownStyle.background.color );
 		else if (orientation_ == ORIENT_VERTICAL)

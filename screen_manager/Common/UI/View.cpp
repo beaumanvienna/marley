@@ -510,12 +510,14 @@ void Choice::HighlightChanged(bool highlighted){
 }
 
 void Choice::Draw(SCREEN_UIContext &dc) {
+    
+    Style style;
+    
 	if (!IsSticky() && (numIcons_!=3)) {
 		ClickableItem::Draw(dc);
 	} else 
-    if (numIcons_!=3)
-    {
-		Style style = dc.theme->itemStyle;
+    if (numIcons_<3) {
+		style = dc.theme->itemStyle;
 		if (highlighted_) {
 			style = dc.theme->itemHighlightedStyle;
 		}
@@ -526,9 +528,19 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 			style = dc.theme->itemFocusedStyle;
 		}
 		DrawBG(dc, style);
-	}
-
-	Style style = dc.theme->itemStyle;
+	} else 
+    if (numIcons_ == 4) {
+        SCREEN_UI::Style s;
+        
+        // color format: 0xFF: transparency from 0 (=0%) to 255 (=100%), then 0xFF for color Blue Green Red
+        s.fgColor    = 0xFFFFFFFF; // white, 100% transparency
+	    //s.background = SCREEN_UI::Drawable(0x80000000); // black, 50% transparency 
+        s.background = SCREEN_UI::Drawable(0x00000000); // black, 0% transparency 
+		DrawBG(dc, s);
+    } 
+    
+    style = dc.theme->itemStyle;
+    
 	if (!IsEnabled()) {
 		style = dc.theme->itemDisabledStyle;
 	}
@@ -608,7 +620,6 @@ void Choice::Draw(SCREEN_UIContext &dc) {
 
 
 	if (selected_) {
-        printf("jc: void Choice::Draw(SCREEN_UIContext &dc) if (selected_)\n");
 		dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
 	}
 }
