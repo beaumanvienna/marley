@@ -490,7 +490,7 @@ void Choice::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec 
 		Bounds availBounds(0, 0, availWidth, vert.size);
 		dc.MeasureTextRect(dc.theme->uiFont, scale, scale, text_.c_str(), (int)text_.size(), availBounds, &w, &h, FLAG_WRAP_TEXT);
 	}
-	w += 24;
+	w += 0;
 	h += 16;
 	h = std::max(h, ITEM_HEIGHT);
 }
@@ -510,30 +510,41 @@ void Choice::HighlightChanged(bool highlighted){
 }
 
 void Choice::Draw(SCREEN_UIContext &dc) {
-	if (!IsSticky() && (numIcons_!=3)) {
-		ClickableItem::Draw(dc);
-	} else 
-    if (numIcons_!=3)
-    {
-		Style style = dc.theme->itemStyle;
-		if (highlighted_) {
-			style = dc.theme->itemHighlightedStyle;
-		}
-		if (down_) {
-			style = dc.theme->itemDownStyle;
-		}
-		if (HasFocus()) {
-			style = dc.theme->itemFocusedStyle;
-		}
-		DrawBG(dc, style);
-	}
+    
+    Style style;
+    
+    if (!IsSticky() && (numIcons_!=3)) {
+        ClickableItem::Draw(dc);
+    } else 
+    if (numIcons_<3) {
+        style = dc.theme->itemStyle;
+        if (highlighted_) {
+            style = dc.theme->itemHighlightedStyle;
+        }
+        if (down_) {
+            style = dc.theme->itemDownStyle;
+        }
+        if (HasFocus()) {
+            style = dc.theme->itemFocusedStyle;
+        }
+        DrawBG(dc, style);
+    } else 
+    if (numIcons_ == 4) {
+        SCREEN_UI::Style s;
+        // color format: 0xFF: transparency from 0 (=0%) to 255 (=100%), then 0xFF for color Blue Green Red
+        s.fgColor    = 0xFFFFFFFF; // white, 100% transparency
+        //s.background = SCREEN_UI::Drawable(0x80000000); // black, 50% transparency 
+        s.background = SCREEN_UI::Drawable(0x00000000); // black, 0% transparency (invinsible in other words)
+        DrawBG(dc, s);
+    } 
+    
+    style = dc.theme->itemStyle;
+    
+    if (!IsEnabled()) {
+        style = dc.theme->itemDisabledStyle;
+    }
 
-	Style style = dc.theme->itemStyle;
-	if (!IsEnabled()) {
-		style = dc.theme->itemDisabledStyle;
-	}
-
-	if (atlasImage_.isValid()) {
+    if (atlasImage_.isValid()) {
         if (numIcons_==3) {
             if (HasFocus()) {
                 if (down_) 
@@ -570,7 +581,7 @@ void Choice::Draw(SCREEN_UIContext &dc) {
             dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
         }
     }
-	
+    
     dc.SetFontStyle(dc.theme->uiFont);
 
     const int paddingX = 12;
@@ -607,10 +618,9 @@ void Choice::Draw(SCREEN_UIContext &dc) {
     dc.SetFontScale(1.0f, 1.0f);
 
 
-	if (selected_) {
-        printf("jc: void Choice::Draw(SCREEN_UIContext &dc) if (selected_)\n");
-		dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
-	}
+    if (selected_) {
+        dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+    }
 }
 
 InfoItem::InfoItem(const std::string &text, const std::string &rightText, LayoutParams *layoutParams)

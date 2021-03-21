@@ -1131,11 +1131,11 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     // calculate left margin
     const float xres = static_cast< float > (dp_xres);
-    const float barSize = (stripSize + 24)*6;
+    const float barSize = stripSize*6;
     float tabLeftMargin = 0.0f;
     
-    if (xres > barSize) { // if a margin fits on the screen
-        tabLeftMargin = (xres - barSize)/2; // equal margin on the left and right 
+    if (xres > (barSize+4)) { // if a margin fits on the screen
+        tabLeftMargin = (xres - barSize -4)/2; // equal margin on the left and right 
     }
     
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, stripSize, new LinearLayoutParams(1.0f), tabLeftMargin);
