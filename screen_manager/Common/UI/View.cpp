@@ -531,11 +531,13 @@ void Choice::Draw(SCREEN_UIContext &dc) {
     } else 
     if (numIcons_ == 4) {
         SCREEN_UI::Style s;
+        
         // color format: 0xFF: transparency from 0 (=0%) to 255 (=100%), then 0xFF for color Blue Green Red
         s.fgColor    = 0xFFFFFFFF; // white, 100% transparency
         //s.background = SCREEN_UI::Drawable(0x80000000); // black, 50% transparency 
         s.background = SCREEN_UI::Drawable(0x00000000); // black, 0% transparency (invinsible in other words)
         DrawBG(dc, s);
+
     } 
     
     style = dc.theme->itemStyle;
@@ -616,7 +618,6 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
     }
     dc.SetFontScale(1.0f, 1.0f);
-
 
     if (selected_) {
         dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
