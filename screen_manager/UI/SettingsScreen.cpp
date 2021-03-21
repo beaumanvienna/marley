@@ -1145,10 +1145,10 @@ void SCREEN_SettingsScreen::CreateViews() {
     ImageID icon, icon_active, icon_depressed, icon_depressed_inactive;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_TAB_R");
-        icon_active = ImageID("I_TAB_R_A");
-        icon_depressed = ImageID("I_TAB_R_D");
-        icon_depressed_inactive = ImageID("I_TAB_R_D_I");
+        icon = ImageID("I_TAB_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_TAB_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_TAB_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+        icon_depressed_inactive = ImageID("I_TAB_R",BUTTON_STATE_NOT_FOCUSED_DEPRESSED);
         tabHolder->SetIcon(icon,icon_active,icon_depressed,icon_depressed_inactive);
     }
 

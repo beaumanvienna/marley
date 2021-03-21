@@ -21,6 +21,10 @@ Files: configure.ac pictures/* resources/marley.6 resources/marley.desktop tests
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
 
+Files: resources/aseprite
+Copyright: 2021 Arthur <arthur_paul@github.com>
+License: GPL-2+
+
 Files: include/* src/controller.cpp  src/emu.cpp  src/gui.cpp  src/marley.cpp
 Copyright: 2020 JC <beaumanvienna@gmail.com>
 License: GPL-2+
