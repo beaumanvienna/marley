@@ -1154,9 +1154,9 @@ void SCREEN_SettingsScreen::CreateViews() {
 
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_BACK_R");
-        icon_active = ImageID("I_BACK_R_A");
-        icon_depressed = ImageID("I_BACK_R_D");
+        icon = ImageID("I_BACK_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_BACK_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_BACK_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     } else
     {
@@ -1290,9 +1290,9 @@ void SCREEN_SettingsScreen::CreateViews() {
         Choice* setupButton;
         if (gTheme == THEME_RETRO)
         {
-            icon = ImageID("I_GEAR_R");
-            icon_active = ImageID("I_GEAR_R_A");
-            icon_depressed = ImageID("I_GEAR_R_D"); 
+            icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
             setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         } else
         {
@@ -1354,9 +1354,9 @@ void SCREEN_SettingsScreen::CreateViews() {
         Choice* setupButton;
         if (gTheme == THEME_RETRO)
         { 
-            icon = ImageID("I_GEAR_R");
-            icon_active = ImageID("I_GEAR_R_A");
-            icon_depressed = ImageID("I_GEAR_R_D");
+            icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
             setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         } else
         { 
@@ -2264,9 +2264,9 @@ void SCREEN_DirBrowser::Refresh() {
     Choice* homeButton;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_HOME_R"); 
-        icon_active = ImageID("I_HOME_R_A"); 
-        icon_depressed = ImageID("I_HOME_R_D"); 
+        icon = ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     {
@@ -2289,9 +2289,9 @@ void SCREEN_DirBrowser::Refresh() {
     
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_GRID_R");
-        icon_active = ImageID("I_GRID_R_A");
-        icon_depressed = ImageID("I_GRID_R_D");
+        icon = ImageID("I_GRID_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_GRID_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_GRID_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     { 
@@ -2313,9 +2313,9 @@ void SCREEN_DirBrowser::Refresh() {
     Choice* linesButton;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_LINES_R");
-        icon_active = ImageID("I_LINES_R_A");
-        icon_depressed = ImageID("I_LINES_R_D"); 
+        icon = ImageID("I_LINES_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_LINES_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_LINES_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
         linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     { 

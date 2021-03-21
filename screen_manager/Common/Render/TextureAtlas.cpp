@@ -119,7 +119,12 @@ bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
 		memcpy(fonts[i].name, font_header.name, sizeof(font_header.name));
 	}
     
-    registerSpriteSheet("I_HOME_R", 3); // sprite sheet with three frames
+    registerSpriteSheet("I_BACK_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_GEAR_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_GRID_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_HOME_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_LINES_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_OFF_R", 4); // sprite sheet with four frames
     
 	return true;
 }

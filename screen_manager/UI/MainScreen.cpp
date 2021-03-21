@@ -215,9 +215,9 @@ void SCREEN_MainScreen::CreateViews() {
     Choice* settingsButton;
     if (gTheme == THEME_RETRO) 
     {
-        icon = ImageID("I_GEAR_R"); 
-        icon_active = ImageID("I_GEAR_R_A"); 
-        icon_depressed = ImageID("I_GEAR_R_D");
+        icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         settingsButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else 
     {
@@ -238,9 +238,9 @@ void SCREEN_MainScreen::CreateViews() {
     // off button
     if (gTheme == THEME_RETRO) 
     {
-        icon = ImageID("I_OFF_R"); 
-        icon_active = ImageID("I_OFF_R_A"); 
-        icon_depressed = ImageID("I_OFF_R_D"); 
+        icon = ImageID("I_OFF_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_OFF_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_OFF_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
         offButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f),true);
     } else 
     {
@@ -320,9 +320,9 @@ void SCREEN_MainScreen::CreateViews() {
         Choice* homeButton;
         if (gTheme == THEME_RETRO) 
         {
-            icon = ImageID("I_HOME_R", BUTTON_STATE_INACTIVE); 
-            icon_active = ImageID("I_HOME_R", BUTTON_STATE_ACTIVE); 
-            icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_ACTIVE_DEPRESSED);
+            icon = ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
             homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         }
         else
