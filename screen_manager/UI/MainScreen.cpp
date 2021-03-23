@@ -727,7 +727,7 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 		// No icon, except "up"
 		dc.PushScissor(bounds_);
 		if (isRegularFolder) {
-			dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+			dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
             dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 		} else {
 			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);

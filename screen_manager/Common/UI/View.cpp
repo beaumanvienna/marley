@@ -752,7 +752,7 @@ void CheckBox::Draw(SCREEN_UIContext &dc) {
     
 	Bounds textBounds(bounds_.x + paddingX, bounds_.y, availWidth, bounds_.h);
     if (gTheme == THEME_RETRO)
-      dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f), 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+      dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f), RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 	dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
 	dc.SetFontScale(1.0f, 1.0f);

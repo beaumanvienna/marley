@@ -1271,7 +1271,7 @@ void SCREEN_SettingsScreen::CreateViews() {
                                     true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
         if (gTheme == THEME_RETRO) 
         {
-            noController->SetTextColor(0xFFde51e0);
+            noController->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             noController->SetShadow(true);
         }
         controllerSettings->Add(noController);
@@ -1381,9 +1381,9 @@ void SCREEN_SettingsScreen::CreateViews() {
                                     true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
         if (gTheme == THEME_RETRO) 
         {
-            text_setup2->SetTextColor(0xFFde51e0);
+            text_setup2->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             text_setup2->SetShadow(true);
-            text_setup2b->SetTextColor(0xFFde51e0);
+            text_setup2b->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             text_setup2b->SetShadow(true);
         }
         vt->Add(text_setup2);
@@ -2107,7 +2107,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 		dc.PushScissor(bounds_);
 		if (isRegularFolder) {
             if (gTheme == THEME_RETRO)
-              dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+              dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
 			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 		} else {
 			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
@@ -2121,7 +2121,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
-          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {

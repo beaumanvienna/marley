@@ -194,7 +194,7 @@ void SCREEN_UIThemeInit() {
         ui_theme.headerStyle.fgColor = RETRO_COLOR_FONT_FOREGROUND;
         ui_theme.infoStyle = MakeStyle(RETRO_COLOR_FONT_FOREGROUND, 0x00000000U);
 
-        ui_theme.popupTitle.fgColor = 0xFFE3BE59;
+        ui_theme.popupTitle.fgColor = RETRO_COLOR_FONT_FOREGROUND;
         ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
     } else
     {
