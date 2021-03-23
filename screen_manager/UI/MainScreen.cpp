@@ -349,7 +349,7 @@ void SCREEN_MainScreen::CreateViews() {
         
         if (gTheme == THEME_RETRO) 
         {
-            gamesPathView->SetTextColor(0xFFde51e0);
+            gamesPathView->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             gamesPathView->SetShadow(true);
         }
         topBar->Add(gamesPathViewFrame);
@@ -384,7 +384,7 @@ void SCREEN_MainScreen::CreateViews() {
                                     true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
         if (gTheme == THEME_RETRO) 
         {
-            noController->SetTextColor(0xFFde51e0);
+            noController->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             noController->SetShadow(true);
         }
         gameLauncherMainFrame->Add(noController);
@@ -648,7 +648,7 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
-            dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+            dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {
@@ -741,7 +741,7 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 		}
 		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
-          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, 0xFF000000, ALIGN_VCENTER);
+          dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {

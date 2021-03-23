@@ -1145,10 +1145,10 @@ void SCREEN_SettingsScreen::CreateViews() {
     ImageID icon, icon_active, icon_depressed, icon_depressed_inactive;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_TAB_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_TAB_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_TAB_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        icon_depressed_inactive = ImageID("I_TAB_R",BUTTON_STATE_NOT_FOCUSED_DEPRESSED);
+        icon = ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_FOCUSED); 
+        icon_depressed = ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_FOCUSED);
+        icon_depressed_inactive = ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_NOT_FOCUSED);
         tabHolder->SetIcon(icon,icon_active,icon_depressed,icon_depressed_inactive);
     }
 
@@ -1317,9 +1317,9 @@ void SCREEN_SettingsScreen::CreateViews() {
                                     true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
         if (gTheme == THEME_RETRO) 
         {
-            text_setup1->SetTextColor(0xFFde51e0);
+            text_setup1->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             text_setup1->SetShadow(true);
-            text_setup1b->SetTextColor(0xFFde51e0);
+            text_setup1b->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
             text_setup1b->SetShadow(true);
         }
         vt->Add(text_setup1);

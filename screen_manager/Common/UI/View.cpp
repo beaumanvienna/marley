@@ -602,7 +602,7 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         }
         
         if (gTheme == THEME_RETRO)
-          dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f+offset_down_x, 2.0f+offset_down_y)  , 0xFF000000, ALIGN_CENTER | FLAG_WRAP_TEXT);
+          dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f+offset_down_x, 2.0f+offset_down_y)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_CENTER | FLAG_WRAP_TEXT);
           
         dc.DrawTextRect(text_.c_str(), bounds_.Offset(offset_down_x, offset_down_y), style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
         
@@ -614,7 +614,7 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         
         Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
         if (gTheme == THEME_RETRO)
-          dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , 0xFF000000, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+          dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
         dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
     }
     dc.SetFontScale(1.0f, 1.0f);
@@ -921,7 +921,7 @@ void TextView::Draw(SCREEN_UIContext &dc) {
     
 	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
 	if (shadow_) {
-		uint32_t shadowColor = 0xFF000000;
+		uint32_t shadowColor = RETRO_COLOR_FONT_BACKGROUND;
 		dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f, 2.0f), shadowColor, textAlign_);
 	}
 	dc.DrawTextRect(text_.c_str(), bounds_, textColor, textAlign_);

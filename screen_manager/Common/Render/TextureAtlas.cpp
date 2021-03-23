@@ -125,7 +125,7 @@ bool SCREEN_Atlas::Load(const uint8_t *data, size_t data_size) {
     registerSpriteSheet("I_HOME_R", 4); // sprite sheet with four frames
     registerSpriteSheet("I_LINES_R", 4); // sprite sheet with four frames
     registerSpriteSheet("I_OFF_R", 4); // sprite sheet with four frames
-    registerSpriteSheet("I_TAB_R", 4); // sprite sheet with four frames
+    registerSpriteSheet("I_TAB_R", 2); // sprite sheet with four frames
     
 	return true;
 }

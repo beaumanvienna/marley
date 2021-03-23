@@ -179,20 +179,20 @@ void SCREEN_UIThemeInit() {
         ui_theme.uiFontSmall = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 13); // used for file browser
         ui_theme.uiFontSmaller = SCREEN_UI::FontStyle(FontID("RETRO24"), "", 10);
     
-        ui_theme.itemStyle = MakeStyle(RETRO_COLOR_FONT_NOT_FOCUSED, 0x80000000);
+        ui_theme.itemStyle = MakeStyle(RETRO_COLOR_FONT_FOREGROUND, 0x80000000);
         ui_theme.itemFocusedStyle = MakeStyle(0xFFFFFFFF, 0xA0000000); // active icons
         ui_theme.itemDownStyle = MakeStyle(0xFFFFFFFF, 0xB0000000);
         ui_theme.itemDisabledStyle = MakeStyle(0xffEEEEEE, 0x55E0D4AF);
-        ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
+        ui_theme.itemHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55ffffff); //
 
-        ui_theme.buttonStyle = MakeStyle(RETRO_COLOR_FONT_NOT_FOCUSED, 0x70000000); // inactive button
-        ui_theme.buttonFocusedStyle = MakeStyle(RETRO_COLOR_FONT_FOCUSED, 0xA0000000); // active button
+        ui_theme.buttonStyle = MakeStyle(RETRO_COLOR_FONT_FOREGROUND, 0x70000000); // inactive button
+        ui_theme.buttonFocusedStyle = MakeStyle(RETRO_COLOR_FONT_FOREGROUND, 0xA0000000); // active button
         ui_theme.buttonDownStyle = MakeStyle(0xFFFFFFFF, 0xFFBD9939);
         ui_theme.buttonDisabledStyle = MakeStyle(0x80EEEEEE, 0x55E0D4AF);
         ui_theme.buttonHighlightedStyle = MakeStyle(0xFFFFFFFF, 0x55BDBB39);
 
-        ui_theme.headerStyle.fgColor = 0xFFFFFFFF;
-        ui_theme.infoStyle = MakeStyle(RETRO_COLOR_FONT_NOT_FOCUSED, 0x00000000U);
+        ui_theme.headerStyle.fgColor = RETRO_COLOR_FONT_FOREGROUND;
+        ui_theme.infoStyle = MakeStyle(RETRO_COLOR_FONT_FOREGROUND, 0x00000000U);
 
         ui_theme.popupTitle.fgColor = 0xFFE3BE59;
         ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
