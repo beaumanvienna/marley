@@ -181,8 +181,8 @@ void render_splash(string onScreenDisplay)
     //draw splash screen to main window
     
     //render animation
-    const int SRC_WIDTH_ANIMATION = 416;
-    const int SRC_HEIGHT_ANIMATION = 225;
+    const int SRC_WIDTH_ANIMATION = 432;
+    const int SRC_HEIGHT_ANIMATION = 243;
     int x1 = gSplashFrame*SRC_WIDTH_ANIMATION; // x offset in sprite sheet
     
     SDL_Rect srcrect={x1,0,SRC_WIDTH_ANIMATION,SRC_HEIGHT_ANIMATION}; // rectangle: x,y, WIDTH, HEIGHT
