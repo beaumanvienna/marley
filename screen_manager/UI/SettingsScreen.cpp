@@ -2026,6 +2026,7 @@ void SCREEN_SettingsInfoMessage::Draw(SCREEN_UIContext &dc) {
 	}
 
 	text_->SetTextColor(whiteAlpha(alpha));
+	text_->SetShadow(false);
 	ViewGroup::Draw(dc);
 }
 

@@ -505,6 +505,7 @@ void SCREEN_MainInfoMessage::Draw(SCREEN_UIContext &dc) {
 	}
 
 	text_->SetTextColor(whiteAlpha(alpha));
+	text_->SetShadow(false);
 	ViewGroup::Draw(dc);
 }
 
