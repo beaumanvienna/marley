@@ -637,19 +637,26 @@ public:
 class ClickableItem : public Clickable {
 public:
 	ClickableItem(LayoutParams *layoutParams);
+	ClickableItem(LayoutParams *layoutParams, bool transparentBackground);
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 
 	// Draws the item background.
 	void Draw(SCREEN_UIContext &dc) override;
+private:
+    bool transparentBackground_ = false;
 };
 
 // Use to trigger something or open a submenu screen.
 class Choice : public ClickableItem {
 public:
 	Choice(const std::string &text, LayoutParams *layoutParams = nullptr)
-		: Choice(text, std::string(), false, layoutParams) {}
+		: Choice(text, std::string(), false, layoutParams) { }
+	Choice(const std::string &text, bool transparentBackground, LayoutParams *layoutParams = nullptr)
+		: Choice(text, transparentBackground, std::string(), false, layoutParams) { }
 	Choice(const std::string &text, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) {}
+		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
+	Choice(const std::string &text, bool transparentBackground, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
+		: ClickableItem(layoutParams, transparentBackground), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
 	Choice(ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 

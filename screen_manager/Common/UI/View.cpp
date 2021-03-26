@@ -198,6 +198,7 @@ Clickable::Clickable(LayoutParams *layoutParams)
 }
 
 void Clickable::DrawBG(SCREEN_UIContext &dc, const Style &style) {
+
 	if (style.background.type == DRAW_SOLID_COLOR) {
 		if (time_now_d() - bgColorLast_ >= 0.25f) {
 			bgColor_->Reset(style.background.color);
@@ -410,15 +411,42 @@ ClickableItem::ClickableItem(LayoutParams *layoutParams) : Clickable(layoutParam
 	}
 }
 
-void ClickableItem::Draw(SCREEN_UIContext &dc) {
-	Style style = dc.theme->itemStyle;
+ClickableItem::ClickableItem(LayoutParams *layoutParams, bool transparentBackground) : Clickable(layoutParams), transparentBackground_(transparentBackground) {
+	if (!layoutParams) {
+		if (layoutParams_->width == WRAP_CONTENT)
+			layoutParams_->width = FILL_PARENT;
+	}
+}
 
-	if (HasFocus()) {
-		style = dc.theme->itemFocusedStyle;
-	}
-	if (down_) {
-		style = dc.theme->itemDownStyle;
-	}
+void ClickableItem::Draw(SCREEN_UIContext &dc) {
+	Style style  = dc.theme->itemStyle;
+    
+    if (gTheme == THEME_RETRO)
+    {
+        if (transparentBackground_)
+          style.background = SCREEN_UI::Drawable(0x00000000);
+        
+        if (HasFocus()) 
+        {
+            style.background = SCREEN_UI::Drawable(RETRO_COLOR_FONT_BACKGROUND2);
+	    }
+        if (down_) 
+        {
+            style.background = SCREEN_UI::Drawable(RETRO_COLOR_FONT_BACKGROUND);
+        }
+        
+    } else
+    {
+
+        if (HasFocus()) 
+        {
+            style = dc.theme->itemFocusedStyle;
+        }
+        if (down_) 
+        {
+            style = dc.theme->itemDownStyle;
+        }
+    }
 
 	DrawBG(dc, style);
 }
@@ -510,7 +538,6 @@ void Choice::HighlightChanged(bool highlighted){
 }
 
 void Choice::Draw(SCREEN_UIContext &dc) {
-    
     Style style;
     
     if (!IsSticky() && (numIcons_!=3)) {
@@ -914,10 +941,8 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 		dc.FillRect(style.background, bounds_);
 	}
     
-    if (true) {
-		SCREEN_UI::Style style = dc.theme->itemStyle;
-		dc.FillRect(style.background, bounds_);
-	}
+    SCREEN_UI::Style style = dc.theme->itemStyle;
+    dc.FillRect(style.background, bounds_);
     
 	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
 	if (shadow_) {

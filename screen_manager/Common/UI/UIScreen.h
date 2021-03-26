@@ -114,11 +114,9 @@ class ListSCREEN_PopupScreen : public SCREEN_PopupScreen {
 public:
 	ListSCREEN_PopupScreen(std::string title) : SCREEN_PopupScreen(title) {}
 	ListSCREEN_PopupScreen(std::string title, const std::vector<std::string> &items, int selected, std::function<void(int)> callback, bool showButtons = false)
-		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), callback_(callback), showButtons_(showButtons) {
-	}
+		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), callback_(callback), showButtons_(showButtons) { }
 	ListSCREEN_PopupScreen(std::string title, const std::vector<std::string> &items, int selected, bool showButtons = false)
-		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), showButtons_(showButtons) {
-	}
+		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), showButtons_(showButtons) { }
 
 	int GetChoice() const {
 		return listView_->GetSelected();

@@ -965,6 +965,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams 
 	return SCREEN_UI::EVENT_DONE;
 }
 
+#define TRANSPARENT_BACKGROUND true
 void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 	using namespace SCREEN_UI;
 
@@ -972,8 +973,15 @@ void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 
 	LinearLayout *items = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
-	items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
-	items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    if (gTheme == THEME_RETRO)
+    {
+        items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+        items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    } else
+    {
+        items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+        items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+    }
 
 	parent->Add(items);
 }

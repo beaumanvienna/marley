@@ -1449,9 +1449,15 @@ bool ChoiceListAdaptor::AddEventCallback(View *view, std::function<EventReturn(E
 	return EVENT_DONE;
 }
 
-
+#define TRANSPARENT_BACKGROUND true
 View *StringVectorListAdaptor::CreateItemView(int index) {
-	return new Choice(items_[index], "", index == selected_);
+    if (gTheme == THEME_RETRO) 
+    {
+	    return new Choice(items_[index], TRANSPARENT_BACKGROUND, "", index == selected_);
+    } else
+    {
+        return new Choice(items_[index], "", index == selected_);
+    }
 }
 
 bool StringVectorListAdaptor::AddEventCallback(View *view, std::function<EventReturn(EventParams&)> callback) {
