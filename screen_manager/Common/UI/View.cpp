@@ -624,13 +624,15 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         float offset_down_y = 0.0f;         
         
         if (down_) {
-            offset_down_x = 4.0f;
+            style.fgColor = RETRO_COLOR_FONT_ALMOST_WHITE;
+            offset_down_x = 0.0f;
             offset_down_y = 4.0f;
         }
         
-        if (gTheme == THEME_RETRO)
+        //draw shadow
+        if ( (gTheme == THEME_RETRO) && (!down_) )
           dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f+offset_down_x, 2.0f+offset_down_y)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_CENTER | FLAG_WRAP_TEXT);
-          
+
         dc.DrawTextRect(text_.c_str(), bounds_.Offset(offset_down_x, offset_down_y), style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
         
     } else {
