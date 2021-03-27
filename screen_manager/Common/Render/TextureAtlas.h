@@ -28,18 +28,18 @@ struct AtlasImage {
 	char name[32];
 };
 
-struct ImageID {
+struct SCREEN_ImageID {
 public:
-	ImageID() : id(nullptr) {}
-    ~ImageID() {}
-	explicit ImageID(const char *_id) : id(_id) {}
-    explicit ImageID(const char *_id, int currentFrame) : id(_id), currentFrame_(currentFrame)
+	SCREEN_ImageID() : id(nullptr) {}
+    ~SCREEN_ImageID() {}
+	explicit SCREEN_ImageID(const char *_id) : id(_id) {}
+    explicit SCREEN_ImageID(const char *_id, int currentFrame) : id(_id), currentFrame_(currentFrame)
     {
         isSpriteSheet = true;
     }
 
-	static inline ImageID invalid() {
-		return ImageID{ nullptr };
+	static inline SCREEN_ImageID invalid() {
+		return SCREEN_ImageID{ nullptr };
 	}
 
 	bool isValid() const {
@@ -50,11 +50,11 @@ public:
 		return id == nullptr;
 	}
 
-	bool operator ==(const ImageID &other) {
+	bool operator ==(const SCREEN_ImageID &other) {
 		return (id == other.id) || !strcmp(id, other.id);
 	}
 
-	bool operator !=(const ImageID &other) {
+	bool operator !=(const SCREEN_ImageID &other) {
 		if (id == other.id) {
 			return false;
 		}
@@ -162,10 +162,10 @@ struct SCREEN_Atlas {
 
 	// These are inefficient linear searches, try not to call every frame.
 	const SCREEN_AtlasFont *getFont(FontID id) const;
-	const AtlasImage *getImage(ImageID id) const;
+	const AtlasImage *getImage(SCREEN_ImageID id) const;
     bool registerSpriteSheet(std::string id, int numberOfFrames);
 
-	bool measureImage(ImageID id, float *w, float *h) const;
+	bool measureImage(SCREEN_ImageID id, float *w, float *h) const;
     
     SpriteSheetArray sprite_sheets;
 };

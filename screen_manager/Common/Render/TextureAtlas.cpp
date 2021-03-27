@@ -141,7 +141,7 @@ const SCREEN_AtlasFont *SCREEN_Atlas::getFont(FontID id) const {
 	return nullptr;
 }
 
-const AtlasImage *SCREEN_Atlas::getImage(ImageID name) const 
+const AtlasImage *SCREEN_Atlas::getImage(SCREEN_ImageID name) const 
 {
 
     if (name.isInvalid())
@@ -178,7 +178,7 @@ const AtlasImage *SCREEN_Atlas::getImage(ImageID name) const
 }
 
 
-bool SCREEN_Atlas::measureImage(ImageID id, float *w, float *h) const {
+bool SCREEN_Atlas::measureImage(SCREEN_ImageID id, float *w, float *h) const {
     bool ok = false;
     const AtlasImage *image = getImage(id);
     if (image) {

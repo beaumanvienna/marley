@@ -1283,7 +1283,7 @@ void ChoiceStrip::AddChoice(const std::string &title) {
 		c->Press();
 }
 
-void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip,bool* toolTipShown) {
+void ChoiceStrip::AddChoice(SCREEN_ImageID buttonImage,std::string tooltip,bool* toolTipShown) {
 	StickyChoice *c = new StickyChoice(buttonImage,
 			orientation_ == ORIENT_HORIZONTAL ?
 			nullptr :
@@ -1308,7 +1308,7 @@ void ChoiceStrip::AddChoice(ImageID buttonImage,std::string tooltip,bool* toolTi
 
 }
 
-void ChoiceStrip::AddChoice(const std::string &title, ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text) {
+void ChoiceStrip::AddChoice(const std::string &title, SCREEN_ImageID icon, SCREEN_ImageID icon_active, SCREEN_ImageID icon_depressed, SCREEN_ImageID icon_depressed_inactive, const std::string &text) {
 	StickyChoice *c = new StickyChoice(icon, icon_active, icon_depressed, icon_depressed_inactive, text,
 			orientation_ == ORIENT_HORIZONTAL ?
 			nullptr :

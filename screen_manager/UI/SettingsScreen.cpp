@@ -61,7 +61,7 @@ bool searchAllFolders(void);
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackground(SCREEN_UIContext &dc, float alpha);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
-ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
+SCREEN_ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
 void SCREEN_ToggleFullScreen(void);
 
 extern std::string gBaseDir;
@@ -1142,25 +1142,25 @@ void SCREEN_SettingsScreen::CreateViews() {
     verticalLayout->Add(tabHolder);
     
     
-    ImageID icon, icon_active, icon_depressed, icon_depressed_inactive;
+    SCREEN_ImageID icon, icon_active, icon_depressed, icon_depressed_inactive;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_FOCUSED);
-        icon_depressed_inactive = ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_NOT_FOCUSED);
+        icon = SCREEN_ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_TAB_R", NO_ICON_BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_FOCUSED);
+        icon_depressed_inactive = SCREEN_ImageID("I_TAB_R",NO_ICON_BUTTON_STATE_NOT_FOCUSED);
         tabHolder->SetIcon(icon,icon_active,icon_depressed,icon_depressed_inactive);
     }
 
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_BACK_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_BACK_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_BACK_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+        icon = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_BACK_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     } else
     {
-        icon = ImageID("I_BACK");
+        icon = SCREEN_ImageID("I_BACK");
         verticalLayout->Add(new Choice(icon, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     }
     root_->Add(verticalLayout);
@@ -1286,17 +1286,17 @@ void SCREEN_SettingsScreen::CreateViews() {
         // setup button
         LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
         controller_horizontal->Add(v);
-        ImageID icon, icon_active, icon_depressed;
+        SCREEN_ImageID icon, icon_active, icon_depressed;
         Choice* setupButton;
         if (gTheme == THEME_RETRO)
         {
-            icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
-            icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
-            icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
+            icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
             setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         } else
         {
-            icon = ImageID("I_GEAR");
+            icon = SCREEN_ImageID("I_GEAR");
             setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
         }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup1);
@@ -1329,8 +1329,8 @@ void SCREEN_SettingsScreen::CreateViews() {
         // controller pic
         std::string name = gDesignatedControllers[0].name[0];
         std::string nameDB = gDesignatedControllers[0].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
-        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        SCREEN_ImageID controllerSCREEN_ImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
+        ImageView* controllerImage = new ImageView(controllerSCREEN_ImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(controllerImage);
         
     } else
@@ -1350,17 +1350,17 @@ void SCREEN_SettingsScreen::CreateViews() {
         // setup button
         LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
         controller_horizontal->Add(v);
-        ImageID icon, icon_active, icon_depressed;
+        SCREEN_ImageID icon, icon_active, icon_depressed;
         Choice* setupButton;
         if (gTheme == THEME_RETRO)
         { 
-            icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
-            icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
-            icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+            icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
             setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         } else
         { 
-            icon = ImageID("I_GEAR");
+            icon = SCREEN_ImageID("I_GEAR");
             setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
         }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup2);
@@ -1393,8 +1393,8 @@ void SCREEN_SettingsScreen::CreateViews() {
         // controller pic
         std::string name = gDesignatedControllers[1].name[0];
         std::string nameDB = gDesignatedControllers[1].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
-        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        SCREEN_ImageID controllerSCREEN_ImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
+        ImageView* controllerImage = new ImageView(controllerSCREEN_ImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(controllerImage);
     }
     else
@@ -2086,11 +2086,11 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 	const std::string text = GetText();
     
     bool isRegularFolder = true;
-	ImageID image;
-    if (gTheme == THEME_RETRO) image = ImageID("I_FOLDER_R"); else image = ImageID("I_FOLDER");
+	SCREEN_ImageID image;
+    if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_FOLDER_R"); else image = SCREEN_ImageID("I_FOLDER");
 	if (text == "..") {
         isRegularFolder = false;
-        if (gTheme == THEME_RETRO) image = ImageID("I_UP_DIRECTORY_R"); else image = ImageID("I_UP_DIRECTORY");
+        if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_UP_DIRECTORY_R"); else image = SCREEN_ImageID("I_UP_DIRECTORY");
 	}
     
     dc.SetFontStyle(dc.theme->uiFontSmall);
@@ -2259,19 +2259,19 @@ void SCREEN_DirBrowser::Refresh() {
     topBar->Add(workingDirectory);
     
     currentSearchPath=path_.GetPath();
-    ImageID icon, icon_active, icon_depressed;
+    SCREEN_ImageID icon, icon_active, icon_depressed;
     
     // home button
     Choice* homeButton;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+        icon = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     {
-        icon = ImageID("I_HOME");
+        icon = SCREEN_ImageID("I_HOME");
         homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
     }
     homeButton->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
@@ -2290,13 +2290,13 @@ void SCREEN_DirBrowser::Refresh() {
     
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_GRID_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_GRID_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_GRID_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+        icon = SCREEN_ImageID("I_GRID_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_GRID_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_GRID_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     { 
-        icon = ImageID("I_GRID");
+        icon = SCREEN_ImageID("I_GRID");
         gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     }
     gridButton->OnClick.Handle(this, &SCREEN_DirBrowser::GridClick);
@@ -2314,13 +2314,13 @@ void SCREEN_DirBrowser::Refresh() {
     Choice* linesButton;
     if (gTheme == THEME_RETRO)
     { 
-        icon = ImageID("I_LINES_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_LINES_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_LINES_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
+        icon = SCREEN_ImageID("I_LINES_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_LINES_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_LINES_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
         linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else
     { 
-        icon = ImageID("I_LINES");
+        icon = SCREEN_ImageID("I_LINES");
         linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     }
     linesButton->OnClick.Handle(this, &SCREEN_DirBrowser::LinesClick);

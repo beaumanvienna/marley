@@ -75,7 +75,7 @@ public:
 	void vLine(float x, float y1, float y2, uint32_t color);
 	void vLineAlpha50(float x, float y1, float y2, uint32_t color);
 
-	void Line(ImageID atlas_image, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
+	void Line(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
 
 	void RectOutline(float x, float y, float w, float h, uint32_t color, int align = ALIGN_TOPLEFT);
 
@@ -105,21 +105,21 @@ public:
 		atlas = _atlas;
 	}
 	const SCREEN_Atlas *GetAtlas() const { return atlas; }
-	bool MeasureImage(ImageID atlas_image, float *w, float *h);
-	void DrawImage(ImageID atlas_image, float x, float y, float scale, Color color = COLOR(0xFFFFFF), int align = ALIGN_TOPLEFT);
-	void DrawImageStretch(ImageID atlas_image, float x1, float y1, float x2, float y2, Color color = COLOR(0xFFFFFF));
-	void DrawImageStretch(ImageID atlas_image, const Bounds &bounds, Color color = COLOR(0xFFFFFF)) {
+	bool MeasureImage(SCREEN_ImageID atlas_image, float *w, float *h);
+	void DrawImage(SCREEN_ImageID atlas_image, float x, float y, float scale, Color color = COLOR(0xFFFFFF), int align = ALIGN_TOPLEFT);
+	void DrawImageStretch(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, Color color = COLOR(0xFFFFFF));
+	void DrawImageStretch(SCREEN_ImageID atlas_image, const Bounds &bounds, Color color = COLOR(0xFFFFFF)) {
 		DrawImageStretch(atlas_image, bounds.x, bounds.y, bounds.x2(), bounds.y2(), color);
 	}
-	void DrawImageRotated(ImageID atlas_image, float x, float y, float scale, float angle, Color color = COLOR(0xFFFFFF), bool mirror_h = false);	// Always centers
+	void DrawImageRotated(SCREEN_ImageID atlas_image, float x, float y, float scale, float angle, Color color = COLOR(0xFFFFFF), bool mirror_h = false);	// Always centers
 	void DrawTexRect(float x1, float y1, float x2, float y2, float u1, float v1, float u2, float v2, Color color);
 	void DrawTexRect(const Bounds &bounds, float u1, float v1, float u2, float v2, Color color) {
 		DrawTexRect(bounds.x, bounds.y, bounds.x2(), bounds.y2(), u1, v1, u2, v2, color);
 	}
 	// Results in 18 triangles. Kind of expensive for a button.
-	void DrawImage4Grid(ImageID atlas_image, float x1, float y1, float x2, float y2, Color color = COLOR(0xFFFFFF), float corner_scale = 1.0);
+	void DrawImage4Grid(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, Color color = COLOR(0xFFFFFF), float corner_scale = 1.0);
 	// This is only 6 triangles, much cheaper.
-	void DrawImage2GridH(ImageID atlas_image, float x1, float y1, float x2, Color color = COLOR(0xFFFFFF), float scale = 1.0);
+	void DrawImage2GridH(SCREEN_ImageID atlas_image, float x1, float y1, float x2, Color color = COLOR(0xFFFFFF), float scale = 1.0);
 
 	void MeasureText(FontID font, const char *text, float *w, float *h);
 

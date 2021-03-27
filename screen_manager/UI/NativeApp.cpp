@@ -221,11 +221,11 @@ void SCREEN_UIThemeInit() {
         ui_theme.popupStyle = MakeStyle(0xFFFFFFFF, 0xFF303030);
     }
     
-    ui_theme.checkOn = ImageID("I_CHECKEDBOX");
-	ui_theme.checkOff = ImageID("I_SQUARE");
-	ui_theme.whiteImage = ImageID("I_SOLIDWHITE");
-	ui_theme.sliderKnob = ImageID("I_CIRCLE");
-	ui_theme.dropShadow4Grid = ImageID("I_DROP_SHADOW");
+    ui_theme.checkOn = SCREEN_ImageID("I_CHECKEDBOX");
+	ui_theme.checkOff = SCREEN_ImageID("I_SQUARE");
+	ui_theme.whiteImage = SCREEN_ImageID("I_SOLIDWHITE");
+	ui_theme.sliderKnob = SCREEN_ImageID("I_CIRCLE");
+	ui_theme.dropShadow4Grid = SCREEN_ImageID("I_DROP_SHADOW");
 }
 
 void RenderOverlays(SCREEN_UIContext *dc, void *userdata);

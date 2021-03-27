@@ -62,7 +62,7 @@ extern SCREEN_ScreenManager *SCREEN_screenManager;
 extern std::string gPackageVersion;
 SCREEN_UI::ScrollView *gameLauncherFrameScroll;
 
-ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
+SCREEN_ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
 float gFileBrowserWidth;
 
 bool bGridViewMain1;
@@ -210,18 +210,18 @@ void SCREEN_MainScreen::CreateViews() {
     
     topline->Add(new Spacer(leftMargin+gFileBrowserWidth-266.0f,0.0f));
     
-    ImageID icon, icon_active, icon_depressed;
+    SCREEN_ImageID icon, icon_active, icon_depressed;
     // settings button
     Choice* settingsButton;
     if (gTheme == THEME_RETRO) 
     {
-        icon = ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+        icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
         settingsButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
     } else 
     {
-        icon = ImageID("I_GEAR");
+        icon = SCREEN_ImageID("I_GEAR");
         settingsButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
     }
     settingsButton->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
@@ -238,13 +238,13 @@ void SCREEN_MainScreen::CreateViews() {
     // off button
     if (gTheme == THEME_RETRO) 
     {
-        icon = ImageID("I_OFF_R", BUTTON_STATE_NOT_FOCUSED); 
-        icon_active = ImageID("I_OFF_R", BUTTON_STATE_FOCUSED); 
-        icon_depressed = ImageID("I_OFF_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
+        icon = SCREEN_ImageID("I_OFF_R", BUTTON_STATE_NOT_FOCUSED); 
+        icon_active = SCREEN_ImageID("I_OFF_R", BUTTON_STATE_FOCUSED); 
+        icon_depressed = SCREEN_ImageID("I_OFF_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
         offButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f),true);
     } else 
     {
-        icon = ImageID("I_OFF");
+        icon = SCREEN_ImageID("I_OFF");
         offButton = new Choice(icon, new LayoutParams(128.0f, 128.0f),true);
     }
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
@@ -268,9 +268,9 @@ void SCREEN_MainScreen::CreateViews() {
         verticalLayout->Add(controller_horizontal);
         std::string name = gDesignatedControllers[0].name[0];
         std::string nameDB = gDesignatedControllers[0].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
+        SCREEN_ImageID controllerSCREEN_ImageID = checkControllerType(name,nameDB,gDesignatedControllers[0].mappingOK);
         
-        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        ImageView* controllerImage = new ImageView(controllerSCREEN_ImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
         controller_horizontal->Add(controllerImage);
         
@@ -284,9 +284,9 @@ void SCREEN_MainScreen::CreateViews() {
         verticalLayout->Add(controller_horizontal);
         std::string name = gDesignatedControllers[1].name[0];
         std::string nameDB = gDesignatedControllers[1].nameDB[0];
-        ImageID controllerImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
+        SCREEN_ImageID controllerSCREEN_ImageID = checkControllerType(name,nameDB,gDesignatedControllers[1].mappingOK);
         
-        ImageView* controllerImage = new ImageView(controllerImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
+        ImageView* controllerImage = new ImageView(controllerSCREEN_ImageID, IS_DEFAULT, new AnchorLayoutParams(verticalSpace, verticalSpace, 1.0f, 1.0f, NONE, NONE, false));
         controller_horizontal->Add(new Spacer(dp_xres-leftMargin-verticalSpace,1));
         controller_horizontal->Add(controllerImage);
     }
@@ -320,14 +320,14 @@ void SCREEN_MainScreen::CreateViews() {
         Choice* homeButton;
         if (gTheme == THEME_RETRO) 
         {
-            icon = ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
-            icon_active = ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
-            icon_depressed = ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
+            icon = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
+            icon_active = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
+            icon_depressed = SCREEN_ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
             homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
         }
         else
         {
-            icon = ImageID("I_HOME");
+            icon = SCREEN_ImageID("I_HOME");
             homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));    
         }        
         homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
@@ -627,7 +627,7 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
     int endChar = gamePath_.find_last_of("."); // remove extension
 	const std::string text = gamePath_.substr(startChar,endChar-startChar);
     
-	ImageID image = ImageID("I_BARREL");
+	SCREEN_ImageID image = SCREEN_ImageID("I_BARREL");
 
 	float tw, th;
 	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
@@ -709,11 +709,11 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 	const std::string text = GetText();
     
     bool isRegularFolder = true;
-	ImageID image;
-    if (gTheme == THEME_RETRO) image = ImageID("I_FOLDER_R"); else image = ImageID("I_FOLDER");
+	SCREEN_ImageID image;
+    if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_FOLDER_R"); else image = SCREEN_ImageID("I_FOLDER");
 	if (text == "..") {
         isRegularFolder = false;
-        if (gTheme == THEME_RETRO) image = ImageID("I_UP_DIRECTORY_R"); else image = ImageID("I_UP_DIRECTORY");
+        if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_UP_DIRECTORY_R"); else image = SCREEN_ImageID("I_UP_DIRECTORY");
 	}
 
 	float tw, th;
@@ -995,11 +995,11 @@ SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e
 	return SCREEN_UI::EVENT_DONE;
 }
 
-ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK)
+SCREEN_ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK)
 {
     if (!mappingOK)
     {
-        return ImageID("I_CTRL_NOT_FOUND");
+        return SCREEN_ImageID("I_CTRL_NOT_FOUND");
     }
     size_t str_pos1;
     size_t str_pos2;
@@ -1011,7 +1011,7 @@ ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK
     str_pos2 = nameDB.find("snes");
     if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
     {
-        return ImageID("I_CTRL_SNES");
+        return SCREEN_ImageID("I_CTRL_SNES");
     } 
 
     //check if PS2 or PS3
@@ -1021,7 +1021,7 @@ ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK
     str_pos4 = nameDB.find("ps3");
     if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) || ((str_pos3 != std::string::npos)) || ((str_pos4 != std::string::npos)))
     {
-        return ImageID("I_CTRL_PS3");
+        return SCREEN_ImageID("I_CTRL_PS3");
     } 
     
     //check if XBOX
@@ -1029,7 +1029,7 @@ ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK
     str_pos2 = nameDB.find("box");
     if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
     {
-        return ImageID("I_CTRL_XB");
+        return SCREEN_ImageID("I_CTRL_XB");
     }
     
     //check if PS4
@@ -1037,7 +1037,7 @@ ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK
     str_pos2 = nameDB.find("ps4");
     if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
     {
-        return ImageID("I_CTRL_PS4");
+        return SCREEN_ImageID("I_CTRL_PS4");
     }
     
     //check if Wiimote
@@ -1045,8 +1045,8 @@ ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK
     str_pos2 = nameDB.find("wiimote");
     if ( (str_pos1 != std::string::npos) || ((str_pos2 != std::string::npos)) )
     {
-        return ImageID("I_CTRL_WII");
+        return SCREEN_ImageID("I_CTRL_WII");
     }
     
-    return ImageID("I_CTRL_GENERIC");
+    return SCREEN_ImageID("I_CTRL_GENERIC");
 }

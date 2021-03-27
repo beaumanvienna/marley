@@ -273,8 +273,8 @@ public:
 	ChoiceStrip(Orientation orientation, LayoutParams *layoutParams = 0);
 
 	void AddChoice(const std::string &title);
-	void AddChoice(ImageID buttonImage, std::string tooltip = "", bool * toolTipShown = nullptr);
-    void AddChoice(const std::string &title, ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text);
+	void AddChoice(SCREEN_ImageID buttonImage, std::string tooltip = "", bool * toolTipShown = nullptr);
+    void AddChoice(const std::string &title, SCREEN_ImageID icon, SCREEN_ImageID icon_active, SCREEN_ImageID icon_depressed, SCREEN_ImageID icon_depressed_inactive, const std::string &text);
 
 	int GetSelection() const { return selected_; }
 	void SetSelection(int sel);
@@ -314,7 +314,7 @@ public:
 	std::string Describe() const override { return "TabHolder: " + View::Describe(); }
 
 	void PersistData(PersistStatus status, std::string anonId, PersistMap &storage) override;
-    void SetIcon(ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive) {
+    void SetIcon(SCREEN_ImageID icon, SCREEN_ImageID icon_active, SCREEN_ImageID icon_depressed, SCREEN_ImageID icon_depressed_inactive) {
         icon_ = icon; 
         icon_active_ = icon_active; 
         icon_depressed_ = icon_depressed;
@@ -324,7 +324,7 @@ public:
 
 private:
     bool useIcons_ = false;
-    ImageID icon_, icon_active_, icon_depressed_, icon_depressed_inactive_;
+    SCREEN_ImageID icon_, icon_active_, icon_depressed_, icon_depressed_inactive_;
 	void AddTabContents(const std::string &title, View *tabContents);
 	EventReturn OnTabClick(EventParams &e);
 

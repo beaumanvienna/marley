@@ -768,7 +768,7 @@ void CheckBox::Draw(SCREEN_UIContext &dc) {
 
 	ClickableItem::Draw(dc);
 
-	ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
+	SCREEN_ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
@@ -798,7 +798,7 @@ float CheckBox::CalculateTextScale(const SCREEN_UIContext &dc, float availWidth)
 }
 
 void CheckBox::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
-	ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
+	SCREEN_ImageID image = Toggled() ? dc.theme->checkOn : dc.theme->checkOff;
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
@@ -837,8 +837,8 @@ bool BitCheckBox::Toggled() const {
 }
 
 void Button::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
-	if (imageID_.isValid()) {
-		dc.Draw()->GetAtlas()->measureImage(imageID_, &w, &h);
+	if (SCREEN_ImageID_.isValid()) {
+		dc.Draw()->GetAtlas()->measureImage(SCREEN_ImageID_, &w, &h);
 	} else {
 		dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), &w, &h);
 	}
@@ -869,25 +869,25 @@ void Button::Draw(SCREEN_UIContext &dc) {
 	tw *= scale_;
 	th *= scale_;
 
-	if (tw > bounds_.w || imageID_.isValid()) {
+	if (tw > bounds_.w || SCREEN_ImageID_.isValid()) {
 		dc.PushScissor(bounds_);
 	}
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.SetFontScale(scale_, scale_);
-	if (imageID_.isValid() && text_.empty()) {
-		dc.Draw()->DrawImage(imageID_, bounds_.centerX(), bounds_.centerY(), scale_, 0xFFFFFFFF, ALIGN_CENTER);
+	if (SCREEN_ImageID_.isValid() && text_.empty()) {
+		dc.Draw()->DrawImage(SCREEN_ImageID_, bounds_.centerX(), bounds_.centerY(), scale_, 0xFFFFFFFF, ALIGN_CENTER);
 	} else if (!text_.empty()) {
 		dc.DrawText(text_.c_str(), bounds_.centerX(), bounds_.centerY(), style.fgColor, ALIGN_CENTER);
-		if (imageID_.isValid()) {
-			const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(imageID_);
+		if (SCREEN_ImageID_.isValid()) {
+			const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(SCREEN_ImageID_);
 			if (img) {
-				dc.Draw()->DrawImage(imageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+				dc.Draw()->DrawImage(SCREEN_ImageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
 			}
 		}
 	}
 	dc.SetFontScale(1.0f, 1.0f);
 
-	if (tw > bounds_.w || imageID_.isValid()) {
+	if (tw > bounds_.w || SCREEN_ImageID_.isValid()) {
 		dc.PopScissor();
 	}
 }

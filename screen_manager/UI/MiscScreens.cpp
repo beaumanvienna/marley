@@ -46,24 +46,24 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha);
 
 extern std::string gBaseDir;
 extern int gTheme;
-static const ImageID symbols[4] = {
-	ImageID("I_CROSS"),
-	ImageID("I_CIRCLE"),
-	ImageID("I_SQUARE"),
-	ImageID("I_TRIANGLE"),
+static const SCREEN_ImageID symbols[4] = {
+	SCREEN_ImageID("I_CROSS"),
+	SCREEN_ImageID("I_CIRCLE"),
+	SCREEN_ImageID("I_SQUARE"),
+	SCREEN_ImageID("I_TRIANGLE"),
 };
 
-static const ImageID dolhin_symbols[1] = {
-	ImageID("I_DOLPHIN")
+static const SCREEN_ImageID dolhin_symbols[1] = {
+	SCREEN_ImageID("I_DOLPHIN")
 };
 
-static const ImageID marley_symbols[1] = {
-	ImageID("I_BARREL")
+static const SCREEN_ImageID marley_symbols[1] = {
+	SCREEN_ImageID("I_BARREL")
 };
 
-static const ImageID main_symbols[2] = {
-	ImageID("I_CLOUDS"),
-    ImageID("I_BEACH")
+static const SCREEN_ImageID main_symbols[2] = {
+	SCREEN_ImageID("I_CLOUDS"),
+    SCREEN_ImageID("I_BEACH")
 };
 
 static const uint32_t colors[4] = {
@@ -678,11 +678,11 @@ void SCREEN_LogoScreen::render() {
 	// Manually formatting UTF-8 is fun.  \xXX doesn't work everywhere.
 	snprintf(temp, sizeof(temp), "%s Henrik Rydg%c%crd", cr->T("created", "Created by"), 0xC3, 0xA5);
 	if (SCREEN_System_GetPropertyBool(SYSPROP_APP_GOLD)) {
-		dc.Draw()->DrawImage(ImageID("I_ICONGOLD"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(SCREEN_ImageID("I_ICONGOLD"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
 	} else {
-		dc.Draw()->DrawImage(ImageID("I_ICON"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(SCREEN_ImageID("I_ICON"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
 	}
-	dc.Draw()->DrawImage(ImageID("I_LOGO"), bounds.centerX() + 40, bounds.centerY() - 30, 1.5f, textColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(SCREEN_ImageID("I_LOGO"), bounds.centerX() + 40, bounds.centerY() - 30, 1.5f, textColor, ALIGN_CENTER);
 	//dc.Draw()->DrawTextShadow(UBUNTU48, "PPSSPP", xres / 2, yres / 2 - 30, textColor, ALIGN_CENTER);
 	dc.SetFontScale(1.0f, 1.0f);
 	dc.SetFontStyle(dc.theme->uiFont);

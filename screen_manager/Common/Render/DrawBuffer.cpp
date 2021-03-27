@@ -170,7 +170,7 @@ void SCREEN_DrawBuffer::Rect(float x, float y, float w, float h,
 		V(x,	   y + h, 0, color, u, v + uh);
 }
 
-void SCREEN_DrawBuffer::Line(ImageID atlas_image, float x1, float y1, float x2, float y2, float thickness, uint32_t color) {
+void SCREEN_DrawBuffer::Line(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, float thickness, uint32_t color) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	if (!image)
 		return;
@@ -197,7 +197,7 @@ void SCREEN_DrawBuffer::Line(ImageID atlas_image, float x1, float y1, float x2, 
 	V(x[3],	y[3], color, image->u2, image->v2);
 }
 
-bool SCREEN_DrawBuffer::MeasureImage(ImageID atlas_image, float *w, float *h) {
+bool SCREEN_DrawBuffer::MeasureImage(SCREEN_ImageID atlas_image, float *w, float *h) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	if (image) {
 		*w = (float)image->w;
@@ -210,7 +210,7 @@ bool SCREEN_DrawBuffer::MeasureImage(ImageID atlas_image, float *w, float *h) {
 	}
 }
 
-void SCREEN_DrawBuffer::DrawImage(ImageID atlas_image, float x, float y, float scale, Color color, int align) {
+void SCREEN_DrawBuffer::DrawImage(SCREEN_ImageID atlas_image, float x, float y, float scale, Color color, int align) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	if (!image)
 		return;
@@ -224,7 +224,7 @@ void SCREEN_DrawBuffer::DrawImage(ImageID atlas_image, float x, float y, float s
 	DrawImageStretch(atlas_image, x, y, x + w, y + h, color);
 }
 
-void SCREEN_DrawBuffer::DrawImageStretch(ImageID atlas_image, float x1, float y1, float x2, float y2, Color color) {
+void SCREEN_DrawBuffer::DrawImageStretch(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, Color color) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	if (!image)
 		return;
@@ -245,7 +245,7 @@ inline void rot(float *v, float angle, float xc, float yc) {
 	v[1] = x * sa + y *  ca + yc;
 }
 
-void SCREEN_DrawBuffer::DrawImageRotated(ImageID atlas_image, float x, float y, float scale, float angle, Color color, bool mirror_h) {
+void SCREEN_DrawBuffer::DrawImageRotated(SCREEN_ImageID atlas_image, float x, float y, float scale, float angle, Color color, bool mirror_h) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	if (!image)
 		return;
@@ -319,7 +319,7 @@ void SCREEN_DrawBuffer::DrawTexRect(float x1, float y1, float x2, float y2, floa
 	V(x1,	y2, color, u1, v2);
 }
 
-void SCREEN_DrawBuffer::DrawImage4Grid(ImageID atlas_image, float x1, float y1, float x2, float y2, Color color, float corner_scale) {
+void SCREEN_DrawBuffer::DrawImage4Grid(SCREEN_ImageID atlas_image, float x1, float y1, float x2, float y2, Color color, float corner_scale) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 
 	if (!image) {
@@ -349,7 +349,7 @@ void SCREEN_DrawBuffer::DrawImage4Grid(ImageID atlas_image, float x1, float y1, 
 	DrawTexRect(xb, yb, x2, y2, um, vm, u2, v2, color);
 }
 
-void SCREEN_DrawBuffer::DrawImage2GridH(ImageID atlas_image, float x1, float y1, float x2, Color color, float corner_scale) {
+void SCREEN_DrawBuffer::DrawImage2GridH(SCREEN_ImageID atlas_image, float x1, float y1, float x2, Color color, float corner_scale) {
 	const AtlasImage *image = atlas->getImage(atlas_image);
 	float um = (image->u1 + image->u2) * 0.5f;
 	float iw2 = (image->w * 0.5f) * corner_scale;

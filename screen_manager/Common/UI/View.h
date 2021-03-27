@@ -29,7 +29,7 @@ struct KeyInput;
 struct TouchInput;
 struct AxisInput;
 
-struct ImageID;
+struct SCREEN_ImageID;
 
 class SCREEN_DrawBuffer;
 class SCREEN_Texture;
@@ -58,21 +58,21 @@ enum Visibility {
 };
 
 struct Drawable {
-	Drawable() : type(DRAW_NOTHING), image(ImageID::invalid()), color(0xFFFFFFFF) {}
-	explicit Drawable(uint32_t col) : type(DRAW_SOLID_COLOR), image(ImageID::invalid()), color(col) {}
-	Drawable(DrawableType t, ImageID img, uint32_t col = 0xFFFFFFFF) : type(t), image(img), color(col) {}
+	Drawable() : type(DRAW_NOTHING), image(SCREEN_ImageID::invalid()), color(0xFFFFFFFF) {}
+	explicit Drawable(uint32_t col) : type(DRAW_SOLID_COLOR), image(SCREEN_ImageID::invalid()), color(col) {}
+	Drawable(DrawableType t, SCREEN_ImageID img, uint32_t col = 0xFFFFFFFF) : type(t), image(img), color(col) {}
 
 	DrawableType type;
-	ImageID image;
+	SCREEN_ImageID image;
 	uint32_t color;
 };
 
 struct Style {
-	Style() : fgColor(0xFFFFFFFF), background(0xFF303030), image(ImageID::invalid()) {}
+	Style() : fgColor(0xFFFFFFFF), background(0xFF303030), image(SCREEN_ImageID::invalid()) {}
 
 	uint32_t fgColor;
 	Drawable background;
-	ImageID image;  // where applicable.
+	SCREEN_ImageID image;  // where applicable.
 };
 
 struct FontStyle {
@@ -94,11 +94,11 @@ struct Theme {
 	FontStyle uiFontSmall;
 	FontStyle uiFontSmaller;
 
-	ImageID checkOn;
-	ImageID checkOff;
-	ImageID sliderKnob;
-	ImageID whiteImage;
-	ImageID dropShadow4Grid;
+	SCREEN_ImageID checkOn;
+	SCREEN_ImageID checkOff;
+	SCREEN_ImageID sliderKnob;
+	SCREEN_ImageID whiteImage;
+	SCREEN_ImageID dropShadow4Grid;
 
 	Style buttonStyle;
 	Style buttonFocusedStyle;
@@ -512,11 +512,11 @@ protected:
 class Button : public Clickable {
 public:
 	Button(const std::string &text, LayoutParams *layoutParams = 0)
-		: Clickable(layoutParams), text_(text), imageID_(ImageID::invalid()) {}
-	Button(ImageID imageID, LayoutParams *layoutParams = 0)
-		: Clickable(layoutParams), imageID_(imageID) {}
-	Button(const std::string &text, ImageID imageID, LayoutParams *layoutParams = 0)
-		: Clickable(layoutParams), text_(text), imageID_(imageID) {}
+		: Clickable(layoutParams), text_(text), SCREEN_ImageID_(SCREEN_ImageID::invalid()) {}
+	Button(SCREEN_ImageID SCREEN_ImageID, LayoutParams *layoutParams = 0)
+		: Clickable(layoutParams), SCREEN_ImageID_(SCREEN_ImageID) {}
+	Button(const std::string &text, SCREEN_ImageID SCREEN_ImageID, LayoutParams *layoutParams = 0)
+		: Clickable(layoutParams), text_(text), SCREEN_ImageID_(SCREEN_ImageID) {}
 
 	void Click() override;
 	void Draw(SCREEN_UIContext &dc) override;
@@ -535,7 +535,7 @@ public:
 private:
 	Style style_;
 	std::string text_;
-	ImageID imageID_;
+	SCREEN_ImageID SCREEN_ImageID_;
 	int paddingW_ = 16;
 	int paddingH_ = 8;
 	float scale_ = 1.0f;
@@ -607,7 +607,7 @@ private:
 // Suitable for controller simulation (ABXY etc).
 class TriggerButton : public View {
 public:
-	TriggerButton(uint32_t *bitField, uint32_t bit, ImageID imageBackground, ImageID imageForeground, LayoutParams *layoutParams)
+	TriggerButton(uint32_t *bitField, uint32_t bit, SCREEN_ImageID imageBackground, SCREEN_ImageID imageForeground, LayoutParams *layoutParams)
 		: View(layoutParams), down_(0.0), bitField_(bitField), bit_(bit), imageBackground_(imageBackground), imageForeground_(imageForeground) {}
 
 	void Touch(const TouchInput &input) override;
@@ -620,8 +620,8 @@ private:
 	uint32_t *bitField_;
 	uint32_t bit_;
 
-	ImageID imageBackground_;
-	ImageID imageForeground_;
+	SCREEN_ImageID imageBackground_;
+	SCREEN_ImageID imageForeground_;
 };
 
 
@@ -654,19 +654,19 @@ public:
 	Choice(const std::string &text, bool transparentBackground, LayoutParams *layoutParams = nullptr)
 		: Choice(text, transparentBackground, std::string(), false, layoutParams) { }
 	Choice(const std::string &text, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
+		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
 	Choice(const std::string &text, bool transparentBackground, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams, transparentBackground), text_(text), smallText_(smallText), atlasImage_(ImageID::invalid()), iconImage_(ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
-	Choice(ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
-		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+		: ClickableItem(layoutParams, transparentBackground), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
+	Choice(SCREEN_ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false) {numIcons_=1;}
-    Choice(ImageID image, ImageID image_active, ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
-		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+    Choice(SCREEN_ImageID image, SCREEN_ImageID image_active, SCREEN_ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false), image_active_(image_active), image_depressed_(image_depressed) {numIcons_=3;}
-    Choice(ImageID image, ImageID image_active, ImageID image_depressed, ImageID image_depressed_inactive, const std::string &text, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
-		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(ImageID::invalid()), 
+    Choice(SCREEN_ImageID image, SCREEN_ImageID image_active, SCREEN_ImageID image_depressed, SCREEN_ImageID image_depressed_inactive, const std::string &text, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
+		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(true), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false), text_(text),
                         image_active_(image_active), image_depressed_(image_depressed), image_depressed_inactive_(image_depressed_inactive) {numIcons_=4;}
@@ -681,7 +681,7 @@ public:
 	virtual void SetCentered(bool c) {
 		centered_ = c;
 	}
-	virtual void SetIcon(ImageID iconImage) {
+	virtual void SetIcon(SCREEN_ImageID iconImage) {
 		iconImage_ = iconImage;
 	}
 
@@ -692,9 +692,9 @@ protected:
 
 	std::string text_;
 	std::string smallText_;
-	ImageID atlasImage_, image_active_, image_depressed_, image_depressed_inactive_;
+	SCREEN_ImageID atlasImage_, image_active_, image_depressed_, image_depressed_inactive_;
     int numIcons_;
-	ImageID iconImage_;  // Only applies for text, non-centered
+	SCREEN_ImageID iconImage_;  // Only applies for text, non-centered
 	Padding textPadding_;
 	bool centered_;
 	bool highlighted_;
@@ -711,9 +711,9 @@ class StickyChoice : public Choice {
 public:
 	StickyChoice(const std::string &text, const std::string &smallText = "", LayoutParams *layoutParams = 0)
 		: Choice(text, smallText, false, layoutParams) {}
-	StickyChoice(ImageID buttonImage, LayoutParams *layoutParams = 0)
+	StickyChoice(SCREEN_ImageID buttonImage, LayoutParams *layoutParams = 0)
 		: Choice(buttonImage, layoutParams) {}
-    StickyChoice(ImageID icon, ImageID icon_active, ImageID icon_depressed, ImageID icon_depressed_inactive, const std::string &text, LayoutParams *layoutParams = 0)
+    StickyChoice(SCREEN_ImageID icon, SCREEN_ImageID icon_active, SCREEN_ImageID icon_depressed, SCREEN_ImageID icon_depressed_inactive, const std::string &text, LayoutParams *layoutParams = 0)
 		: Choice(icon, icon_active, icon_depressed, icon_depressed_inactive, text, layoutParams) {}
 
 	bool Key(const KeyInput &key) override;
@@ -906,14 +906,14 @@ enum ImageSizeMode {
 
 class ImageView : public InertView {
 public:
-	ImageView(ImageID atlasImage, ImageSizeMode sizeMode, LayoutParams *layoutParams = 0)
+	ImageView(SCREEN_ImageID atlasImage, ImageSizeMode sizeMode, LayoutParams *layoutParams = 0)
 		: InertView(layoutParams), atlasImage_(atlasImage), sizeMode_(sizeMode) {}
 
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 	void Draw(SCREEN_UIContext &dc) override;
 
 private:
-	ImageID atlasImage_;
+	SCREEN_ImageID atlasImage_;
 	ImageSizeMode sizeMode_;
 };
 
@@ -942,7 +942,7 @@ private:
 
 class Spinner : public InertView {
 public:
-	Spinner(const ImageID *images, int numImages, LayoutParams *layoutParams = 0)
+	Spinner(const SCREEN_ImageID *images, int numImages, LayoutParams *layoutParams = 0)
 		: InertView(layoutParams), images_(images), numImages_(numImages) {
 	}
 
@@ -951,7 +951,7 @@ public:
 	void SetColor(uint32_t color) { color_ = color; }
 
 private:
-	const ImageID *images_;
+	const SCREEN_ImageID *images_;
 	int numImages_;
 	uint32_t color_ = 0xFFFFFFFF;
 };
