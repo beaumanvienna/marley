@@ -27,6 +27,18 @@ esac],
 [debug=false])
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
+#debug option "--enable-debug-output"
+AC_ARG_ENABLE(debug-output,
+AS_HELP_STRING([--enable-debug-output],
+               [enable debug output, default: no]),
+[case "${enableval}" in
+             yes) debugoutput=true ;;
+             no)  debugoutput=false ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug-output]) ;;
+esac],
+[debugoutput=false])
+AM_CONDITIONAL(DEBUGOUTPUT, test x"$debugoutput" = x"true")
+
 if test x"$debug" = x"true"
 then
 CMAKE_BUILD_TYPE=-DCMAKE_BUILD_TYPE=Debug

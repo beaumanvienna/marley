@@ -69,6 +69,7 @@
 
 #include "../../include/emu.h"
 #include "../../include/global.h"
+#include "../include/log.h"
 
 static SCREEN_UI::Theme ui_theme;
 extern GlobalUIState globalUIState;
@@ -132,7 +133,7 @@ static void PostLoadConfig() {
 }
 
 void SCREEN_NativeInit(int argc, const char *argv[], const char *savegame_dir, const char *external_dir, const char *cache_dir) {
-    printf("jc: void SCREEN_NativeInit\n");
+    DEBUG_PRINTF("   void SCREEN_NativeInit\n");
 	globalUIState = UISTATE_MENU;
     
 	pendingMessages.clear();
@@ -354,7 +355,7 @@ void SCREEN_NativeRender(SCREEN_GraphicsContext *graphicsContext) {
 	}
     
 	if (SCREEN_resized) {
-        printf("jc: if (SCREEN_resized)  \n");
+        DEBUG_PRINTF("   if (SCREEN_resized)  \n");
 		SCREEN_resized = false;
 
 		if (uiContext) {
@@ -498,7 +499,7 @@ void SCREEN_NativeInputBoxReceived(std::function<void(bool, const std::string &)
 }
 
 void SCREEN_NativeResized(void) {
-	printf("jc: void SCREEN_NativeResized(void) \n");
+	DEBUG_PRINTF("   void SCREEN_NativeResized(void) \n");
 	SCREEN_resized = true;
 }
 

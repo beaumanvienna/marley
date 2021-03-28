@@ -953,7 +953,7 @@ void statemachine(int cmd)
 
 void statemachineConf(int cmd)
 {
-    printf("jc: void statemachineConf(int cmd = %d), confState = %d, gActiveController = %d, gControllerConfNum = %d\n",cmd,confState,gActiveController,gControllerConfNum);
+    DEBUG_PRINTF("   void statemachineConf(int cmd = %d), confState = %d, gActiveController = %d, gControllerConfNum = %d\n",cmd,confState,gActiveController,gControllerConfNum);
     if ((cmd==STATE_CONF_SKIP_ITEM) && (confState > STATE_CONF_BUTTON_RIGHTSHOULDER))
     {
         statemachineConfAxis(STATE_CONF_SKIP_ITEM,false);

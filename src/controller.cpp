@@ -47,7 +47,7 @@ extern bool gUpdateMainScreen;
 extern std::string showTooltipSettingsScreen;
 bool initJoy(void)
 {
-    printf("jc: bool initJoy(void)\n");
+    DEBUG_PRINTF("   bool initJoy(void)\n");
     bool ok = true;
     int i;
     
@@ -102,7 +102,7 @@ bool initJoy(void)
 
 bool closeAllJoy(void)
 {
-    printf("jc: bool closeAllJoy(void)\n");
+    DEBUG_PRINTF("   bool closeAllJoy(void)\n");
     int j = SDL_NumJoysticks();
     string filename;
     
@@ -120,7 +120,7 @@ bool closeAllJoy(void)
 
 bool closeJoy(int instance_id)
 {
-    printf("jc: bool closeJoy(int instance_id = %d)\n",instance_id);
+    DEBUG_PRINTF("   bool closeJoy(int instance_id = %d)\n",instance_id);
     int designation, instance, n, num_controller, ctrlType, devPerType;
     
     //Close gamepad
@@ -204,7 +204,7 @@ void printJoyInfoAll(void)
 
 bool printJoyInfo(int i)
 {
-    printf("jc: bool printJoyInfo(int i=%d)\n",i);
+    DEBUG_PRINTF("   bool printJoyInfo(int i=%d)\n",i);
     SDL_Joystick *joy = SDL_JoystickOpen(i);
     char guidStr[1024];
     const char* name = SDL_JoystickName(joy);
@@ -247,7 +247,7 @@ bool printJoyInfo(int i)
 }
 bool checkControllerIsSupported(int i)
 {
-    printf("jc: bool checkControllerIsSupported(int i=%d)\n",i);
+    DEBUG_PRINTF("   bool checkControllerIsSupported(int i=%d)\n",i);
     // This function is rough draft.
     // There might be controllers that SDL allows but Marley not
     
@@ -273,7 +273,7 @@ bool checkControllerIsSupported(int i)
 
 bool openJoy(int i)
 {
-    printf("jc: bool openJoy(int i=%d)\n",i);
+    DEBUG_PRINTF("   bool openJoy(int i=%d)\n",i);
     int designation, instance, devPerType;
     int device, numberOfDevices, ctrlType;
     bool mappingOK;
@@ -413,7 +413,7 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
     bool ok = false;
     string line;
     string text = text2match.substr(0,length);
-    printf("jc: bool findGuidInFile(string filename=%s, string text2match=%s, int length=%d, string* lineRet)\n",filename.c_str(),text.c_str(),length);
+    DEBUG_PRINTF("   bool findGuidInFile(string filename=%s, string text2match=%s, int length=%d, string* lineRet)\n",filename.c_str(),text.c_str(),length);
     lineRet[0] = "";
     
     ifstream fileHandle (file);
@@ -441,7 +441,7 @@ bool findGuidInFile(string filename, string text2match, int length, string* line
 
 bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 {
-    printf("jc: bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name=%s)\n",name.c_str());
+    DEBUG_PRINTF("   bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name=%s)\n",name.c_str());
     char guidStr[1024];
     string line, append, filename;
     
@@ -528,14 +528,14 @@ bool checkMapping(SDL_JoystickGUID guid, bool* mappingOK, string name)
 
 void restoreController(void)
 {
-    printf("jc: void restoreController(void)\n");
+    DEBUG_PRINTF("   void restoreController(void)\n");
     SDL_JoystickEventState(SDL_ENABLE);
 }
 
 
 void setMapping(void)
 {
-    printf("jc: void setMapping(void)\n");
+    DEBUG_PRINTF("   void setMapping(void)\n");
 
     char guidStr[1024];
     SDL_JoystickGUID guid;
@@ -815,7 +815,7 @@ int checkType(string name, string nameDB)
 
 void openWiimote(int nb)
 {
-    printf("jc: void openWiimote(int nb)\n");
+    DEBUG_PRINTF("   void openWiimote(int nb)\n");
     //search for 1st empty slot
     for (int designation=0;designation< MAX_GAMEPADS; designation++)
     {
@@ -843,7 +843,7 @@ void openWiimote(int nb)
 }
 void closeWiimote(int nb)
 {
-    printf("jc: void closeWiimote(int nb)\n");
+    DEBUG_PRINTF("   void closeWiimote(int nb)\n");
     //search for 1st empty slot
     for (int designation=0;designation< MAX_GAMEPADS; designation++)
     {

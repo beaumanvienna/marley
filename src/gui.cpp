@@ -114,7 +114,7 @@ Mix_Chunk* soundFile[2];
 
 bool init_audio(void) 
 {
-    printf("jc: bool init_audio(void) \n");
+    DEBUG_PRINTF("   bool init_audio(void) \n");
     SDL_InitSubSystem(SDL_INIT_AUDIO);
     for (int i = 0; i < soundFileName.size(); i++)
     {	
@@ -170,7 +170,7 @@ extern bool searchingForGames;
 void render_splash(string onScreenDisplay)
 {
     if (!gStartUp) return;
-    //printf("jc: void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
+    //DEBUG_PRINTF("   void render_splash(string onScreenDisplay=%s)\n",onScreenDisplay.c_str());
     string osd_short = onScreenDisplay;
     SDL_Rect destination;
     SDL_Surface* surfaceMessage = nullptr; 
@@ -210,7 +210,7 @@ void render_splash(string onScreenDisplay)
 
 void hide_or_show_cursor_X11(bool hide) 
 {
-    printf("jc: void hide_or_show_cursor_X11(bool hide) \n");
+    DEBUG_PRINTF("   void hide_or_show_cursor_X11(bool hide) \n");
     Display *display   = XOpenDisplay(NULL);
     int active_screen  = DefaultScreen(display);
     Window active_root = RootWindow(display, active_screen);
@@ -228,7 +228,7 @@ void hide_or_show_cursor_X11(bool hide)
 
 bool loadMedia(void)
 {
-    printf("jc: bool loadMedia(void)\n");
+    DEBUG_PRINTF("   bool loadMedia(void)\n");
     bool ok = true;
     
     // background
@@ -426,7 +426,7 @@ bool loadMedia(void)
 
 bool freeTextures(void)
 {
-    printf("jc: bool freeTextures(void)\n");
+    DEBUG_PRINTF("   bool freeTextures(void)\n");
     for (int i;i<NUM_TEXTURES;i++)
     {
         SDL_DestroyTexture(gTextures[i]);
@@ -437,7 +437,7 @@ bool freeTextures(void)
 
 void setAppIcon(void)
 {
-    printf("jc: void setAppIcon(void)\n");
+    DEBUG_PRINTF("   void setAppIcon(void)\n");
     SDL_Surface* surf = nullptr;
     
     size_t file_size = 0;
@@ -468,7 +468,7 @@ void setAppIcon(void)
 
 SDL_Texture* loadTextureFromFile(string str)
 {
-    //printf("jc: SDL_Texture* loadTextureFromFile(string str=%s)\n",str.c_str());
+    //DEBUG_PRINTF("   SDL_Texture* loadTextureFromFile(string str=%s)\n",str.c_str());
     SDL_Surface* surf = nullptr;
     SDL_Texture* texture = nullptr;
     
@@ -528,7 +528,7 @@ SDL_Texture* loadTextureFromFile_disk(string str)
 
 void initOpenGL(void)
 {	
-    printf("jc: void initOpenGL(void)\n");
+    DEBUG_PRINTF("   void initOpenGL(void)\n");
     SDL_GL_ResetAttributes();
   
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
@@ -545,7 +545,7 @@ void initOpenGL(void)
 
 Uint32 splash_callbackfunc(Uint32 interval, void *param)
 {
-    printf("jc: Uint32 splash_callbackfunc(Uint32 interval, void *param)\n");
+    DEBUG_PRINTF("   Uint32 splash_callbackfunc(Uint32 interval, void *param)\n");
     splashScreenRunning = false;
     
     for( int i = 0; i < soundFileName.size(); i++ )
@@ -561,7 +561,7 @@ Uint32 splash_callbackfunc(Uint32 interval, void *param)
 
 bool initGUI(void)
 {
-    printf("jc: bool initGUI(void)\n");
+    DEBUG_PRINTF("   bool initGUI(void)\n");
     bool ok = true;
     Uint32 windowFlags;
     int imgFlags;
@@ -672,7 +672,7 @@ bool initGUI(void)
 
 void closeGUI(void)
 {
-    printf("jc: void closeGUI(void)\n");
+    DEBUG_PRINTF("   void closeGUI(void)\n");
     //Destroy main window    
     SDL_DestroyRenderer( gRenderer );
     SDL_DestroyWindow( gWindow );
@@ -925,7 +925,7 @@ void renderIcons(void)
 void setFullscreen(void)
 {
     Uint32 window_flags;
-    printf("jc: void setFullscreen(void)\n");
+    DEBUG_PRINTF("   void setFullscreen(void)\n");
     window_flags=SDL_GetWindowFlags(gWindow);
     if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
     {
@@ -940,7 +940,7 @@ void setFullscreen(void)
 }
 void setWindowed(void)
 {
-    printf("jc: void setWindowed(void)\n");
+    DEBUG_PRINTF("   void setWindowed(void)\n");
     SDL_SetWindowFullscreen(gWindow, 0);
     SDL_SetWindowSize(gWindow,window_width,window_height);
     SDL_SetWindowPosition(gWindow,window_x,window_y);
@@ -951,7 +951,7 @@ void setWindowed(void)
 
 bool createRenderer(void)
 {
-    printf("jc: bool createRenderer(void)\n");
+    DEBUG_PRINTF("   bool createRenderer(void)\n");
     bool ok = true;
     SDL_GL_ResetAttributes();
     //Create renderer for main window
@@ -999,7 +999,7 @@ bool createRenderer(void)
                                     
 bool restoreGUI(void)
 {
-    printf("jc: bool restoreGUI(void)\n");
+    DEBUG_PRINTF("   bool restoreGUI(void)\n");
     bool ok = true;
     string str;
     

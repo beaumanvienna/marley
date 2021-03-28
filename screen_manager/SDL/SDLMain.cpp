@@ -49,6 +49,7 @@ SCREEN_SDLJoystick *SCREEN_joystick = NULL;
 #include "../../include/gui.h"
 #include "../../include/controller.h"
 #include "../include/statemachine.h"
+#include "../include/log.h"
 
 void mainLoopWii(void);
 void SCREEN_NativeResized(void);
@@ -238,7 +239,7 @@ void SCREEN_UpdateScreenScale(int width, int height) {
 
 
 void SCREEN_ToggleFullScreen(void) {
-    printf("jc: void SCREEN_ToggleFullScreen(void)\n");
+    DEBUG_PRINTF("   void SCREEN_ToggleFullScreen(void)\n");
 
     Uint32 window_flags = SDL_GetWindowFlags(gWindow);
     

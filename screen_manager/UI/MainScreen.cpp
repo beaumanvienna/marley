@@ -45,6 +45,7 @@
 #include <SDL.h>
 
 #include "../include/controller.h"
+#include "../include/log.h"
 
 void UISetBackground(SCREEN_UIContext &dc,std::string bgPng);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
@@ -76,7 +77,7 @@ bool toolTipsShown[MAX_TOOLTIP_IDs] = {0,0,0,0,0,0};
 
 SCREEN_MainScreen::SCREEN_MainScreen() 
 {
-    printf("jc: SCREEN_MainScreen::SCREEN_MainScreen() \n");
+    DEBUG_PRINTF("   SCREEN_MainScreen::SCREEN_MainScreen() \n");
     launch_request_from_screen_manager=false;
     
     std::string str, line;
@@ -100,7 +101,7 @@ SCREEN_MainScreen::SCREEN_MainScreen()
 bool createDir(std::string name);
 SCREEN_MainScreen::~SCREEN_MainScreen() 
 {
-    printf("jc: SCREEN_MainScreen::~SCREEN_MainScreen() \n");
+    DEBUG_PRINTF("   SCREEN_MainScreen::~SCREEN_MainScreen() \n");
     
     std::string str, line;
     std::vector<std::string> marley_cfg_entries;
@@ -179,7 +180,7 @@ void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
 void SCREEN_MainScreen::CreateViews() {
 	using namespace SCREEN_UI;
     
-    printf("jc: void SCREEN_MainScreen::CreateViews() {\n");
+    DEBUG_PRINTF("   void SCREEN_MainScreen::CreateViews() {\n");
 
 	auto ma = GetI18NCategory("Main");
 
@@ -404,7 +405,7 @@ void SCREEN_MainScreen::update() {
 		lasttheme_ = theme;
 	}
     if ((gUpdateCurrentScreen) || (gUpdateMainScreen)) {
-        printf("jc: void SCREEN_MainScreen::update() if ((gUpdateCurrentScreen) || (gUpdateMainScreen))\n");
+        DEBUG_PRINTF("   void SCREEN_MainScreen::update() if ((gUpdateCurrentScreen) || (gUpdateMainScreen))\n");
         RecreateViews();
         gUpdateCurrentScreen = false;
         gUpdateMainScreen = false;
@@ -412,42 +413,42 @@ void SCREEN_MainScreen::update() {
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelected(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameHighlight(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::OnGameSelectedInstant(SCREEN_UI::EventParams &e)\n");
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::HomeClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::HomeClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::HomeClick(SCREEN_UI::EventParams &e)\n");
 	ROM_browser->SetPath(getenv("HOME"));
 
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &e)\n");
 	screenManager()->push(new SCREEN_SettingsScreen());
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e)\n");
     shutdown_now = restart_screen_manager = launch_request_from_screen_manager = false;
     OnBack(e);
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e)\n");
     
     auto ma = GetI18NCategory("System");
 	auto offDiag = new SCREEN_OffDiagScreen(ma->T("switch off computer"));
@@ -683,7 +684,7 @@ public:
         std::string searchPath;
         if (key.flags & KEY_DOWN) {
             if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {
-                printf("jc: if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE)))\n");
+                DEBUG_PRINTF("   if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE)))\n");
             }
         } 
 
@@ -757,28 +758,28 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
 SCREEN_GameBrowser::SCREEN_GameBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
-    printf("jc: SCREEN_GameBrowser::SCREEN_GameBrowser\n");
+    DEBUG_PRINTF("   SCREEN_GameBrowser::SCREEN_GameBrowser\n");
 	Refresh();
 }
 
 SCREEN_GameBrowser::~SCREEN_GameBrowser() {
-    printf("jc: SCREEN_GameBrowser::~SCREEN_GameBrowser()\n");
+    DEBUG_PRINTF("   SCREEN_GameBrowser::~SCREEN_GameBrowser()\n");
 }
 
 void SCREEN_GameBrowser::SetPath(const std::string &path) {
-    printf("jc: void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
+    DEBUG_PRINTF("   void SCREEN_GameBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
 	Refresh();
 }
 
 std::string SCREEN_GameBrowser::GetPath() {
-    printf("jc: std::string SCREEN_GameBrowser::GetPath() \n");
+    DEBUG_PRINTF("   std::string SCREEN_GameBrowser::GetPath() \n");
     std::string str = path_.GetPath();
 	return str;
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_GameBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
 	*gridStyle_ = e.a == 0 ? true : false;
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
@@ -826,7 +827,7 @@ void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
 
 void SCREEN_GameBrowser::Refresh() {
 	using namespace SCREEN_UI;
-    printf("jc: void SCREEN_GameBrowser::Refresh()\n");
+    DEBUG_PRINTF("   void SCREEN_GameBrowser::Refresh()\n");
     
 	lastScale_ = 1.0f;
 	lastLayoutWasGrid_ = *gridStyle_;
@@ -914,7 +915,7 @@ void SCREEN_GameBrowser::Refresh() {
 }
 
 const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path) {
-printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
+DEBUG_PRINTF("   const std::string SCREEN_GameBrowser::GetBaseName(const std::string &path)\n");
 	static const std::string sepChars = "/";
 
 	auto trailing = path.find_last_not_of(sepChars);
@@ -934,7 +935,7 @@ printf("jc: const std::string SCREEN_GameBrowser::GetBaseName(const std::string 
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_GameBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
     
 	SCREEN_DirButtonMain *button = static_cast<SCREEN_DirButtonMain *>(e.v);
 	std::string text = button->GetPath();
@@ -951,7 +952,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParam
 	SCREEN_GameButton *button = static_cast<SCREEN_GameButton *>(e.v);
 	std::string text = button->GetPath();
     
-    printf("jc: ###############  launching %s ############### \n",text.c_str());
+    DEBUG_PRINTF("   ###############  launching %s ############### \n",text.c_str());
     launch_request_from_screen_manager = true;
     game_screen_manager = text;
 
@@ -961,7 +962,7 @@ SCREEN_UI::EventReturn SCREEN_GameBrowser::GameButtonClick(SCREEN_UI::EventParam
 }
 
 SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_GameBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
 	screenManager_->RecreateAllViews();
 	return SCREEN_UI::EVENT_DONE;
 }
@@ -988,7 +989,7 @@ void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 }
 
 SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) \n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) \n");
     shutdown_now = true;
 	SCREEN_System_SendMessage("finish", "");
 

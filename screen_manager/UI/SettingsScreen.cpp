@@ -45,6 +45,7 @@
 #include "../include/controller.h"
 #include "../include/statemachine.h"
 #include "../include/wii.h"
+#include "../include/log.h"
 
 #define BIOS_NA 10
 #define BIOS_JP 11
@@ -135,7 +136,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
 {
     resetStatemachine();
     gUpdateCurrentScreen=false;
-    printf("jc: SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
+    DEBUG_PRINTF("   SCREEN_SettingsScreen::SCREEN_SettingsScreen() \n");
     
     // General
     std::string marley_cfg = gBaseDir + "marley.cfg";
@@ -676,7 +677,7 @@ SCREEN_SettingsScreen::SCREEN_SettingsScreen()
 bool createDir(std::string name);
 SCREEN_SettingsScreen::~SCREEN_SettingsScreen() 
 {
-    printf("jc: SCREEN_SettingsScreen::~SCREEN_SettingsScreen() \n");
+    DEBUG_PRINTF("   SCREEN_SettingsScreen::~SCREEN_SettingsScreen() \n");
     
     std::string str, line;
     
@@ -1118,7 +1119,7 @@ SCREEN_UI::TextView* biosInfo(std::string infoText, bool biosFound)
 void SCREEN_SettingsScreen::CreateViews() {
 	using namespace SCREEN_UI;
     
-    printf("jc: void SCREEN_SettingsScreen::CreateViews() {\n");
+    DEBUG_PRINTF("   void SCREEN_SettingsScreen::CreateViews() {\n");
 
 	auto ge = GetI18NCategory("Search");
 	auto ps2 = GetI18NCategory("PCSX2");
@@ -1927,7 +1928,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_U
 }
 
 void SCREEN_SettingsScreen::onFinish(DialogResult result) {
-    printf("jc: void SCREEN_SettingsScreen::onFinish(DialogResult result)\n");
+    DEBUG_PRINTF("   void SCREEN_SettingsScreen::onFinish(DialogResult result)\n");
     gUpdateMainScreen = true;
 }
 
@@ -1962,7 +1963,7 @@ void SCREEN_SettingsScreen::update() {
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventParams &e)\n");
     
     startControllerConf(CONTROLLER_1);
     RecreateViews();
@@ -1972,7 +1973,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventPara
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e)\n");
     
     startControllerConf(CONTROLLER_2);
     RecreateViews();
@@ -2137,7 +2138,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
 	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
 	using namespace SCREEN_UI;
-    printf("jc: SCREEN_DirBrowser::SCREEN_DirBrowser\n");
+    DEBUG_PRINTF("   SCREEN_DirBrowser::SCREEN_DirBrowser\n");
     if (showTooltipSettingsScreen != "")
     {
         SCREEN_UI::EventParams e{};
@@ -2149,37 +2150,37 @@ SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browse
 }
 
 SCREEN_DirBrowser::~SCREEN_DirBrowser() {
-    printf("jc: SCREEN_DirBrowser::~SCREEN_DirBrowser()\n");
+    DEBUG_PRINTF("   SCREEN_DirBrowser::~SCREEN_DirBrowser()\n");
 }
 
 void SCREEN_DirBrowser::FocusGame(const std::string &gamePath) {
-    printf("jc: void SCREEN_DirBrowser::FocusGame(const std::string &gamePath)\n");
+    DEBUG_PRINTF("   void SCREEN_DirBrowser::FocusGame(const std::string &gamePath)\n");
 	focusGamePath_ = gamePath;
 	Refresh();
 	focusGamePath_.clear();
 }
 
 void SCREEN_DirBrowser::SetPath(const std::string &path) {
-    printf("jc: void SCREEN_DirBrowser::SetPath(const std::string &path) %s\n",path.c_str());
+    DEBUG_PRINTF("   void SCREEN_DirBrowser::SetPath(const std::string &path) %s\n",path.c_str());
 	path_.SetPath(path);
 	Refresh();
 }
 
 std::string SCREEN_DirBrowser::GetPath() {
-    printf("jc: std::string SCREEN_DirBrowser::GetPath() \n");
+    DEBUG_PRINTF("   std::string SCREEN_DirBrowser::GetPath() \n");
     std::string str = path_.GetPath();
 	return str;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
 	*gridStyle_ = e.a == 0 ? true : false;
 	Refresh();
 	return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
 	SetPath(getenv("HOME"));
 
 	return SCREEN_UI::EVENT_DONE;
@@ -2241,7 +2242,7 @@ void SCREEN_DirBrowser::Draw(SCREEN_UIContext &dc) {
 
 void SCREEN_DirBrowser::Refresh() {
 	using namespace SCREEN_UI;
-    printf("jc: void SCREEN_DirBrowser::Refresh()\n");
+    DEBUG_PRINTF("   void SCREEN_DirBrowser::Refresh()\n");
     
 	lastScale_ = 1.0f;
 	lastLayoutWasGrid_ = *gridStyle_;
@@ -2395,7 +2396,7 @@ void SCREEN_DirBrowser::Refresh() {
 }
 
 const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path) {
-printf("jc: const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path)\n");
+DEBUG_PRINTF("   const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path)\n");
 	static const std::string sepChars = "/";
 
 	auto trailing = path.find_last_not_of(sepChars);
@@ -2415,7 +2416,7 @@ printf("jc: const std::string SCREEN_DirBrowser::GetBaseName(const std::string &
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
 	SCREEN_DirButton *button = static_cast<SCREEN_DirButton *>(e.v);
 	std::string text = button->GetPath();
 	if (button->PathAbsolute()) {
@@ -2428,7 +2429,7 @@ SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
-    printf("jc: SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
 	screenManager_->RecreateAllViews();
 	return SCREEN_UI::EVENT_DONE;
 }

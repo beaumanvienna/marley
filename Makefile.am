@@ -58,6 +58,10 @@ AM_CXXFLAGS		= --std=c++17 -O2 -fno-pie -no-pie -I/usr/include/SDL2/ -I../mednaf
 AM_LDFLAGS		= --std=c++17 -O2 -fno-pie -no-pie -s -L/usr/lib/x86_64-linux-gnu
 endif
 
+if DEBUGOUTPUT
+AM_CXXFLAGS		+= -DDEBUG_OUTPUT
+endif
+
 #project target
 
 bin_PROGRAMS 	= marley		

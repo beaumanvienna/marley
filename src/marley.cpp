@@ -80,7 +80,7 @@ int pcsx2_window_tear_down_auto_request;
 //initializes SDL and creates main window
 bool init(void)
 {
-    printf("jc: bool init(void)\n");
+    DEBUG_PRINTF("   bool init(void)\n");
     //Initialization flag
     bool ok = true;
     int i,j;
@@ -163,7 +163,7 @@ bool init(void)
 
 void initApp(void)
 {
-    printf("jc: void initApp(void)\n");
+    DEBUG_PRINTF("   void initApp(void)\n");
     const char *homedir;
     string home_folder, slash, uri;
     string app_dir, app_starter;
@@ -250,7 +250,7 @@ void initApp(void)
 //Free media and shut down SDL
 void closeAll(void)
 {
-    printf("jc: void closeAll(void)\n");
+    DEBUG_PRINTF("   void closeAll(void)\n");
     //Free loaded textures
     freeTextures();
     
@@ -267,7 +267,7 @@ void closeAll(void)
 
 int main( int argc, char* argv[] )
 {
-    printf("jc: int main( int argc, char* argv[] )\n");
+    DEBUG_PRINTF("   int main( int argc, char* argv[] )\n");
     bool keepX11pointer=true;
     gFullscreen=false;
     gCurrentGame=0;
@@ -435,18 +435,18 @@ void event_loop(void)
                             printJoyInfoAll();
                             break;
                         case SDLK_ESCAPE:
-                            printf("jc: ++++++++++++++++++++++++++++++++++++++++++ case SDLK_ESCAPE: ++++++++++++++++++++++++++++++++++++++++++ \n");
+                            DEBUG_PRINTF("   ++++++++++++++++++++++++++++++++++++++++++ case SDLK_ESCAPE: ++++++++++++++++++++++++++++++++++++++++++ \n");
                             stopSearching=true;
                             if (splashScreenRunning) 
                             {
                                 if (!stopSearchingDuringSplash) // ESC hit once
                                 {
                                     stopSearchingDuringSplash=true;
-                                    printf("jc: ############ ESC hit once ########## stop search ########################################### s\n");
+                                    DEBUG_PRINTF("   ############ ESC hit once ########## stop search ########################################### s\n");
                                 }
                                 else // ESC hit twice
                                 {
-                                    printf("jc: ############ ESC hit twice ########## stop splash screen ########################################### s\n");
+                                    DEBUG_PRINTF("   ############ ESC hit twice ########## stop splash screen ########################################### s\n");
                                     SDL_RemoveTimer(splashTimer);
                                     splash_callbackfunc(0,nullptr);
                                 }
@@ -651,7 +651,7 @@ void event_loop(void)
 
 void restoreSDL(void)
 {
-    printf("jc: void restoreSDL(void)\n");
+    DEBUG_PRINTF("   void restoreSDL(void)\n");
     restoreController();
     restoreGUI();
 }
@@ -659,7 +659,7 @@ void restoreSDL(void)
 //Motion on gamepad x
 void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 {
-    printf("jc: void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)\n");
+    DEBUG_PRINTF("   void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)\n");
     if((event.jaxis.axis == 0) || (event.jaxis.axis == 3))
     {
         //X axis motion
@@ -675,7 +675,7 @@ void joyMotion(SDL_Event event, int designatedCtrl, double* x, double* y)
 
 bool createTemplate(string name)
 {
-    printf("jc: bool createTemplate(string name=%s)\n",name.c_str());
+    DEBUG_PRINTF("   bool createTemplate(string name=%s)\n",name.c_str());
     bool ok=false;
     std::ofstream outfile;
 
@@ -703,7 +703,7 @@ bool createTemplate(string name)
 
 bool setPathToFirmware(string str)
 {
-    printf("jc: bool setPathToFirmware(string str=%s)\n",str.c_str());
+    DEBUG_PRINTF("   bool setPathToFirmware(string str=%s)\n",str.c_str());
     DIR* dir;
     string filename=str;
     string slash;
@@ -739,7 +739,7 @@ bool setPathToFirmware(string str)
 
 bool setPathToGames(string str)
 {
-    printf("jc: bool setPathToGames(string str=%s)\n",str.c_str());
+    DEBUG_PRINTF("   bool setPathToGames(string str=%s)\n",str.c_str());
     DIR* dir;
     string filename=str;
     string slash;
@@ -776,7 +776,7 @@ bool setPathToGames(string str)
 
 void loadConfig(ifstream* configFile)
 {
-    printf("jc: void loadConfig(ifstream* configFile)\n");
+    DEBUG_PRINTF("   void loadConfig(ifstream* configFile)\n");
     string entry, line, slash;
     int pos;
     DIR* dir;
@@ -788,7 +788,7 @@ void loadConfig(ifstream* configFile)
     
     while (( getline (configFile[0],line)) && !stopSearching)
     {
-        printf("jc: line = %s\n",line.c_str());
+        DEBUG_PRINTF("   line = %s\n",line.c_str());
         if (line.find("search_dir_firmware_PSX=") == 0)
         {
             pos=23;
@@ -843,7 +843,7 @@ void loadConfig(ifstream* configFile)
 
 void loadConfigEarly(void)
 {
-    printf("jc: void loadConfigEarly(ifstream* configFile)\n");
+    DEBUG_PRINTF("   void loadConfigEarly(ifstream* configFile)\n");
     bool found_system_sounds = false;
     string line;
 
@@ -868,7 +868,7 @@ void loadConfigEarly(void)
 
 bool setBaseDir(void)
 {
-    printf("jc: bool setBaseDir(void)\n");
+    DEBUG_PRINTF("   bool setBaseDir(void)\n");
     const char *homedir;
     string filename, slash;
     DIR* dir;
@@ -922,7 +922,7 @@ bool setBaseDir(void)
 
 bool checkConf(void)
 {
-    printf("jc: bool checkConf(void)\n");
+    DEBUG_PRINTF("   bool checkConf(void)\n");
     string filename;
     int pos;
     DIR* dir;
@@ -955,7 +955,7 @@ bool checkConf(void)
 
 bool addSettingToConfigFile(string setting)
 {
-    printf("jc: bool addSettingToConfigFile(string setting=%s)\n",setting.c_str());
+    DEBUG_PRINTF("   bool addSettingToConfigFile(string setting=%s)\n",setting.c_str());
     bool ok = false;
     std::string str, line;
     std::vector<std::string> marley_cfg_entries;
@@ -1041,7 +1041,7 @@ bool searchAllFolders(void)
 
 void removeDuplicatesInDB(void)
 {
-    printf("jc: void removeDuplicatesInDB(void)\n");
+    DEBUG_PRINTF("   void removeDuplicatesInDB(void)\n");
     // If duplicate GUIDs are found,
     // this function keeps only the 1st encounter.
     // This is why addControllerToInternalDB()
@@ -1105,7 +1105,7 @@ void removeDuplicatesInDB(void)
 
 bool addControllerToInternalDB(string entry)
 {
-    printf("jc: bool addControllerToInternalDB(string entry=%s)\n",entry.c_str());
+    DEBUG_PRINTF("   bool addControllerToInternalDB(string entry=%s)\n",entry.c_str());
     bool ok = false;
     string line;
     string filename = gBaseDir + "internaldb.txt";
