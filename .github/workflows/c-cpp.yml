@@ -27,7 +27,7 @@ jobs:
     
     - name: configure
       run: ./configure
-    - name: make
+    - name: export MAKEFLAGS=-j8 && make
       run: make
     
       
