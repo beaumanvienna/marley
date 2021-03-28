@@ -1,3 +1,9 @@
+marley (0.2.15) focal; urgency=medium
+
+  * new color theme for GUI
+
+ -- JC <beaumanvienna@gmail.com>  Sat, 27 Mar 2021 19:00:00 -0700
+
 marley (0.2.14) focal; urgency=medium
 
   * buttons changed to sprite sheets
