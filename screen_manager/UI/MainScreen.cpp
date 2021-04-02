@@ -254,7 +254,7 @@ void SCREEN_MainScreen::CreateViews() {
         if (!toolTipsShown[MAIN_OFF])
         {
             toolTipsShown[MAIN_OFF] = true;
-            mainInfo_->Show(ma->T("Shut down computer", "Off: exit Marley; keep this button pressed to switch the computer off"), e.v);
+            mainInfo_->Show(ma->T("Off", "Off: exit Marley; keep this button pressed to switch the computer off"), e.v);
         }
 		return SCREEN_UI::EVENT_CONTINUE;
 	});
@@ -442,8 +442,14 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::settingsClick(SCREEN_UI::EventParams &
 
 SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::offClick(SCREEN_UI::EventParams &e)\n");
-    shutdown_now = restart_screen_manager = launch_request_from_screen_manager = false;
-    OnBack(e);
+    
+    auto ma = GetI18NCategory("System");
+	auto offClick = new SCREEN_OffDiagScreen(ma->T("Exit Marley?"),OFFDIAG_QUIT);
+	if (e.v)
+		offClick->SetPopupOrigin(e.v);
+
+	screenManager()->push(offClick);
+    
 	return SCREEN_UI::EVENT_DONE;
 }
 
@@ -451,7 +457,7 @@ SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_MainScreen::offHold(SCREEN_UI::EventParams &e)\n");
     
     auto ma = GetI18NCategory("System");
-	auto offDiag = new SCREEN_OffDiagScreen(ma->T("switch off computer"));
+	auto offDiag = new SCREEN_OffDiagScreen(ma->T("Switch off computer?"),OFFDIAG_SHUTDOWN);
 	if (e.v)
 		offDiag->SetPopupOrigin(e.v);
 
@@ -977,12 +983,28 @@ void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 
     if (gTheme == THEME_RETRO)
     {
-        items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
-        items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        if (m_offDiagEvent == OFFDIAG_QUIT)
+        {
+            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
+            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        }
+        else
+        {
+            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        }
     } else
     {
-        items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
-        items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        if (m_offDiagEvent == OFFDIAG_QUIT)
+        {
+            items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
+            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        }
+        else
+        {    
+            items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        }
     }
 
 	parent->Add(items);
@@ -991,6 +1013,14 @@ void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_OffDiagScreen::SwitchOff(SCREEN_UI::EventParams &e) \n");
     shutdown_now = true;
+	SCREEN_System_SendMessage("finish", "");
+
+	return SCREEN_UI::EVENT_DONE;
+}
+
+SCREEN_UI::EventReturn SCREEN_OffDiagScreen::QuitMarley(SCREEN_UI::EventParams &e) {
+    DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_OffDiagScreen::QuitMarley(SCREEN_UI::EventParams &e) \n");
+    shutdown_now = false;
 	SCREEN_System_SendMessage("finish", "");
 
 	return SCREEN_UI::EVENT_DONE;

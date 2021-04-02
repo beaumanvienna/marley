@@ -30,6 +30,12 @@
 class SCREEN_MainInfoMessage;
 class SCREEN_GameBrowser;
 
+enum OffDiagEvent
+{
+    OFFDIAG_QUIT,
+    OFFDIAG_SHUTDOWN,
+};
+
 enum toolTipID {
     MAIN_HOME = 0,
     MAIN_SETTINGS,
@@ -141,10 +147,12 @@ private:
 
 class SCREEN_OffDiagScreen : public SCREEN_PopupScreen {
 public:
-	SCREEN_OffDiagScreen(std::string label) : SCREEN_PopupScreen(label) {}
+	SCREEN_OffDiagScreen(std::string label, OffDiagEvent offDiagEvent) : SCREEN_PopupScreen(label), m_offDiagEvent(offDiagEvent) {}
 	void CreatePopupContents(SCREEN_UI::ViewGroup *parent) override;
 
 private:
+    OffDiagEvent m_offDiagEvent;
 	SCREEN_UI::EventReturn SwitchOff(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn QuitMarley(SCREEN_UI::EventParams &e);
 };
 
