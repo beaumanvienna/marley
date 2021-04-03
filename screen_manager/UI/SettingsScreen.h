@@ -1,5 +1,5 @@
 // Copyright (c) 2013-2020 PPSSPP project
-// Copyright (c) 2020 Marley project
+// Copyright (c) 2020 - 2021 Marley project
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,25 +37,25 @@ class SCREEN_SettingsScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
     SCREEN_SettingsScreen();
     virtual ~SCREEN_SettingsScreen();
-	void update() override;
-	void onFinish(DialogResult result) override;
+    void update() override;
+    void onFinish(DialogResult result) override;
     bool key(const KeyInput &key) override;
-	std::string tag() const override { return "settings"; }
+    std::string tag() const override { return "settings"; }
     void DrawBackground(SCREEN_UIContext &dc) override;
     void showToolTip(std::string text);
 
 protected:
-	void CreateViews() override;
-	void CallbackRestoreDefaults(bool yes);
-	void CallbackRenderingBackend(bool yes);
-	void CallbackRenderingDevice(bool yes);
-	void CallbackInflightFrames(bool yes);
-	bool UseVerticalLayout() const;
+    void CreateViews() override;
+    void CallbackRestoreDefaults(bool yes);
+    void CallbackRenderingBackend(bool yes);
+    void CallbackRenderingDevice(bool yes);
+    void CallbackInflightFrames(bool yes);
+    bool UseVerticalLayout() const;
     
     // game browser
     SCREEN_DirBrowser *searchDirBrowser;
-   	SCREEN_UI::EventReturn OnStartSetup1(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnStartSetup2(SCREEN_UI::EventParams &e);
+       SCREEN_UI::EventReturn OnStartSetup1(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn OnStartSetup2(SCREEN_UI::EventParams &e);
 
 
 private:
@@ -122,9 +122,9 @@ private:
     // General
     std::vector<std::string> marley_cfg_entries;
 
-	bool lastVertical_;
+    bool lastVertical_;
 
-	// Event handlers
+    // Event handlers
     
     SCREEN_UI::EventReturn OnRenderingBackend(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnThemeChanged(SCREEN_UI::EventParams &e);
@@ -135,72 +135,72 @@ private:
 
 class SCREEN_SettingsInfoMessage : public SCREEN_UI::LinearLayout {
 public:
-	SCREEN_SettingsInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
+    SCREEN_SettingsInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp);
 
-	void SetBottomCutoff(float y) {
-		cutOffY_ = y;
-	}
-	void Show(const std::string &text, SCREEN_UI::View *refView = nullptr);
+    void SetBottomCutoff(float y) {
+        cutOffY_ = y;
+    }
+    void Show(const std::string &text, SCREEN_UI::View *refView = nullptr);
 
-	void Draw(SCREEN_UIContext &dc);
+    void Draw(SCREEN_UIContext &dc);
 
 private:
-	SCREEN_UI::TextView *text_ = nullptr;
-	double timeShown_ = 0.0;
-	float cutOffY_;
+    SCREEN_UI::TextView *text_ = nullptr;
+    double timeShown_ = 0.0;
+    float cutOffY_;
 };
 
 
 enum class SCREEN_BrowseFlags {
-	NONE = 0,
-	NAVIGATE = 1,
-	ARCHIVES = 2,
-	PIN = 4,
-	HOMEBREW_STORE = 8,
-	STANDARD = 1 | 2 | 4,
+    NONE = 0,
+    NAVIGATE = 1,
+    ARCHIVES = 2,
+    PIN = 4,
+    HOMEBREW_STORE = 8,
+    STANDARD = 1 | 2 | 4,
 };
 ENUM_CLASS_BITOPS(SCREEN_BrowseFlags);
 
 class SCREEN_DirBrowser : public SCREEN_UI::LinearLayout {
 public:
-	SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
+    SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams = nullptr);
     ~SCREEN_DirBrowser();
-	SCREEN_UI::Event OnChoice;
-	SCREEN_UI::Event OnHoldChoice;
-	SCREEN_UI::Event OnHighlight;
+    SCREEN_UI::Event OnChoice;
+    SCREEN_UI::Event OnHoldChoice;
+    SCREEN_UI::Event OnHighlight;
 
-	void FocusGame(const std::string &gamePath);
-	void SetPath(const std::string &path);
+    void FocusGame(const std::string &gamePath);
+    void SetPath(const std::string &path);
     std::string GetPath();
-	void Draw(SCREEN_UIContext &dc) override;
-	void Update() override;
+    void Draw(SCREEN_UIContext &dc) override;
+    void Update() override;
 
 protected:
 
-	void Refresh();
+    void Refresh();
 
 private:
-	bool IsCurrentPathPinned();
-	const std::vector<std::string> GetPinnedPaths();
-	const std::string GetBaseName(const std::string &path);
+    bool IsCurrentPathPinned();
+    const std::vector<std::string> GetPinnedPaths();
+    const std::string GetBaseName(const std::string &path);
 
-	SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn NavigateClick(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn LayoutChange(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn HomeClick(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn GridClick(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn LinesClick(SCREEN_UI::EventParams &e);
-	SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
-	
+    SCREEN_UI::EventReturn OnRecentClear(SCREEN_UI::EventParams &e);
+    
 
-	SCREEN_UI::ViewGroup *gameList_ = nullptr;
-	SCREEN_PathBrowser path_;
-	bool *gridStyle_ = nullptr;
-	SCREEN_BrowseFlags browseFlags_;
-	std::string lastText_;
-	std::string lastLink_;
-	std::string focusGamePath_;
-	bool listingPending_ = false;
-	float lastScale_ = 1.0f;
-	bool lastLayoutWasGrid_ = true;
-	SCREEN_ScreenManager *screenManager_;
+    SCREEN_UI::ViewGroup *gameList_ = nullptr;
+    SCREEN_PathBrowser path_;
+    bool *gridStyle_ = nullptr;
+    SCREEN_BrowseFlags browseFlags_;
+    std::string lastText_;
+    std::string lastLink_;
+    std::string focusGamePath_;
+    bool listingPending_ = false;
+    float lastScale_ = 1.0f;
+    bool lastLayoutWasGrid_ = true;
+    SCREEN_ScreenManager *screenManager_;
 };

@@ -1,5 +1,5 @@
 // Copyright (c) 2013-2020 PPSSPP project
-// Copyright (c) 2020 Marley project
+// Copyright (c) 2020 - 2021 Marley project
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
 
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
-
 #include "ppsspp_config.h"
 
 #include <algorithm>
@@ -1117,15 +1116,15 @@ SCREEN_UI::TextView* biosInfo(std::string infoText, bool biosFound)
 }
 
 void SCREEN_SettingsScreen::CreateViews() {
-	using namespace SCREEN_UI;
+    using namespace SCREEN_UI;
     
     DEBUG_PRINTF("   void SCREEN_SettingsScreen::CreateViews() {\n");
 
-	auto ge = GetI18NCategory("Search");
-	auto ps2 = GetI18NCategory("PCSX2");
+    auto ge = GetI18NCategory("Search");
+    auto ps2 = GetI18NCategory("PCSX2");
     auto dol = GetI18NCategory("Dolphin");
 
-	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
+    root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
     const float stripSize = 204.0f; // the tab icon has a width of 204
@@ -1166,28 +1165,28 @@ void SCREEN_SettingsScreen::CreateViews() {
     }
     root_->Add(verticalLayout);
 
-	tabHolder->SetTag("Settings");
-	root_->SetDefaultFocusView(tabHolder);
+    tabHolder->SetTag("Settings");
+    root_->SetDefaultFocusView(tabHolder);
 
     // info message
-	float leftSide = 40.0f;
+    float leftSide = 40.0f;
     settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - 160.0f, WRAP_CONTENT, 140.0f, dp_yres - 80.0f - 40.0f, NONE, NONE));
     settingsInfo_->SetBottomCutoff(dp_yres - 200.0f);
-	root_->Add(settingsInfo_);
+    root_->Add(settingsInfo_);
 
     // horizontal layout for margins
     LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
     tabHolder->AddTab(ge->T("Search"), horizontalLayoutSearch);
     horizontalLayoutSearch->Add(new Spacer(10.0f));
     
-	// -------- search --------
+    // -------- search --------
     ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutSearch->Add(searchSettingsScroll);
-	searchSettingsScroll->SetTag("SearchSettings");
-	LinearLayout *searchSettings = new LinearLayout(ORIENT_VERTICAL);
-	searchSettings->SetSpacing(0);
-	searchSettingsScroll->Add(searchSettings);
-	
+    searchSettingsScroll->SetTag("SearchSettings");
+    LinearLayout *searchSettings = new LinearLayout(ORIENT_VERTICAL);
+    searchSettings->SetSpacing(0);
+    searchSettingsScroll->Add(searchSettings);
+    
 
     // bios file browser
     
@@ -1252,13 +1251,13 @@ void SCREEN_SettingsScreen::CreateViews() {
     float leftMargin = dp_xres/8;
     horizontalLayoutController->Add(new Spacer(leftMargin));
     
-	// -------- controller setup --------
+    // -------- controller setup --------
     ViewGroup *controllerSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutController->Add(controllerSettingsScroll);
-	controllerSettingsScroll->SetTag("ControllerSettings");
-	LinearLayout *controllerSettings = new LinearLayout(ORIENT_VERTICAL);
-	controllerSettings->SetSpacing(0);
-	controllerSettingsScroll->Add(controllerSettings);
+    controllerSettingsScroll->SetTag("ControllerSettings");
+    LinearLayout *controllerSettings = new LinearLayout(ORIENT_VERTICAL);
+    controllerSettings->SetSpacing(0);
+    controllerSettingsScroll->Add(controllerSettings);
     controllerSettings->Add(new Spacer(0.0f,10.0f));
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
@@ -1410,13 +1409,13 @@ void SCREEN_SettingsScreen::CreateViews() {
     tabHolder->AddTab(ge->T("Dolphin"), horizontalLayoutDolphin);
     horizontalLayoutDolphin->Add(new Spacer(10.0f));
     
-	ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutDolphin->Add(dolphinSettingsScroll);
-	dolphinSettingsScroll->SetTag("DolphinSettings");
-	LinearLayout *dolphinSettings = new LinearLayout(ORIENT_VERTICAL);
-	dolphinSettings->SetSpacing(0);
+    dolphinSettingsScroll->SetTag("DolphinSettings");
+    LinearLayout *dolphinSettings = new LinearLayout(ORIENT_VERTICAL);
+    dolphinSettings->SetSpacing(0);
     dolphinSettings->Add(new Spacer(10.0f));
-	dolphinSettingsScroll->Add(dolphinSettings);
+    dolphinSettingsScroll->Add(dolphinSettings);
     
     // -------- resolution --------
     static const char *selectResolutionDolphin[] = { "Native Wii", "2x Native (720p)", "3x Native (1080p)", "4x Native (1440p)", "5x Native ", "6x Native (4K)", "7x Native ", "8x Native (5K)" };
@@ -1448,10 +1447,10 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     ViewGroup *PCSX2SettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutPCSX2->Add(PCSX2SettingsScroll);
-	PCSX2SettingsScroll->SetTag("PCSX2Settings");
-	LinearLayout *PCSX2Settings = new LinearLayout(ORIENT_VERTICAL);
-	PCSX2Settings->SetSpacing(0);
-	PCSX2SettingsScroll->Add(PCSX2Settings);
+    PCSX2SettingsScroll->SetTag("PCSX2Settings");
+    LinearLayout *PCSX2Settings = new LinearLayout(ORIENT_VERTICAL);
+    PCSX2Settings->SetSpacing(0);
+    PCSX2SettingsScroll->Add(PCSX2Settings);
     std::string header = "";
 
     // -------- PCSX2 --------
@@ -1828,10 +1827,10 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutGeneral->Add(generalSettingsScroll);
-	generalSettingsScroll->SetTag("GeneralSettings");
-	LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
-	generalSettings->SetSpacing(0);
-	generalSettingsScroll->Add(generalSettings);
+    generalSettingsScroll->SetTag("GeneralSettings");
+    LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
+    generalSettings->SetSpacing(0);
+    generalSettingsScroll->Add(generalSettings);
 
     generalSettings->Add(new ItemHeader(ge->T("General settings for Marley")));
     
@@ -1863,10 +1862,10 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     ViewGroup *creditsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
     horizontalLayoutCredits->Add(creditsScroll);
-	creditsScroll->SetTag("Credits");
-	LinearLayout *credits = new LinearLayout(ORIENT_VERTICAL);
-	credits->SetSpacing(0);
-	creditsScroll->Add(credits);
+    creditsScroll->SetTag("Credits");
+    LinearLayout *credits = new LinearLayout(ORIENT_VERTICAL);
+    credits->SetSpacing(0);
+    creditsScroll->Add(credits);
 
     credits->Add(new ItemHeader(ge->T("Mednafen: https://mednafen.github.io, License: GNU GPLv2")));
     credits->Add(new ItemHeader(ge->T("Mupen64Plus: https://mupen64plus.org, License: GNU GPL")));
@@ -1874,13 +1873,13 @@ void SCREEN_SettingsScreen::CreateViews() {
     credits->Add(new ItemHeader(ge->T("Dolphin: https://dolphin-emu.org/, License: GNU GPLv2")));
     credits->Add(new ItemHeader(ge->T("PCSX2: https://pcsx2.net, License: GNU GPLv2")));
     
-	SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
+    SCREEN_Draw::SCREEN_DrawContext *draw = screenManager()->getSCREEN_DrawContext();
 
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnRenderingBackend(SCREEN_UI::EventParams &e) {
     RecreateViews();
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnFullscreenToggle(SCREEN_UI::EventParams &e) {
@@ -1891,7 +1890,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnFullscreenToggle(SCREEN_UI::Even
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnThemeChanged(SCREEN_UI::EventParams &e) {
     SCREEN_UIThemeInit();
     RecreateViews();
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_UI::EventParams &e) {
@@ -1924,7 +1923,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnDeleteSearchDirectories(SCREEN_U
     gSearchDirectoriesGames.erase(gSearchDirectoriesGames.begin()+inputSearchDirectories);
     searchAllFolders();
     RecreateViews();
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 void SCREEN_SettingsScreen::onFinish(DialogResult result) {
@@ -1933,13 +1932,13 @@ void SCREEN_SettingsScreen::onFinish(DialogResult result) {
 }
 
 void SCREEN_SettingsScreen::update() {
-	SCREEN_UIScreen::update();
+    SCREEN_UIScreen::update();
 
     bool vertical = true;
-	if (vertical != lastVertical_) {
-		RecreateViews();
-		lastVertical_ = vertical;
-	}
+    if (vertical != lastVertical_) {
+        RecreateViews();
+        lastVertical_ = vertical;
+    }
     
     if (gUpdateCurrentScreen) {
         RecreateViews();
@@ -1969,7 +1968,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup1(SCREEN_UI::EventPara
     RecreateViews();
     setControllerConfText("press dpad up", "(or use ENTER to skip this button)");
 
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventParams &e) {
@@ -1979,74 +1978,74 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnStartSetup2(SCREEN_UI::EventPara
     RecreateViews();
     setControllerConfText("press dpad up", "(or use ENTER to skip this button)");
     
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_SettingsInfoMessage::SCREEN_SettingsInfoMessage(int align, SCREEN_UI::AnchorLayoutParams *lp)
-	: SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
-	using namespace SCREEN_UI;
-	SetSpacing(0.0f);
-	Add(new Spacer(10.0f));
-	text_ = Add(new SCREEN_UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
-	Add(new Spacer(10.0f));
+    : SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
+    using namespace SCREEN_UI;
+    SetSpacing(0.0f);
+    Add(new Spacer(10.0f));
+    text_ = Add(new SCREEN_UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
+    Add(new Spacer(10.0f));
 }
 
 void SCREEN_SettingsInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
-	if (refView) {
-		Bounds b = refView->GetBounds();
-		const SCREEN_UI::AnchorLayoutParams *lp = GetLayoutParams()->As<SCREEN_UI::AnchorLayoutParams>();
-		if (b.y >= cutOffY_) {
-			ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
-		} else {
-			ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
-		}
-	}
-	text_->SetText(text);
-	timeShown_ = time_now_d();
+    if (refView) {
+        Bounds b = refView->GetBounds();
+        const SCREEN_UI::AnchorLayoutParams *lp = GetLayoutParams()->As<SCREEN_UI::AnchorLayoutParams>();
+        if (b.y >= cutOffY_) {
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
+        } else {
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
+        }
+    }
+    text_->SetText(text);
+    timeShown_ = time_now_d();
 }
 
 void SCREEN_SettingsInfoMessage::Draw(SCREEN_UIContext &dc) {
-	static const double FADE_TIME = 1.0;
-	static const float MAX_ALPHA = 0.9f;
+    static const double FADE_TIME = 1.0;
+    static const float MAX_ALPHA = 0.9f;
 
-	// Show for a variable time based on length and estimated reading speed
-	double timeToShow = std::max(1.5, text_->GetText().size() * 0.05);
+    // Show for a variable time based on length and estimated reading speed
+    double timeToShow = std::max(1.5, text_->GetText().size() * 0.05);
 
-	double sinceShow = time_now_d() - timeShown_;
-	float alpha = MAX_ALPHA;
-	if (timeShown_ == 0.0 || sinceShow > timeToShow + FADE_TIME) {
-		alpha = 0.0f;
-	} else if (sinceShow > timeToShow) {
-		alpha = MAX_ALPHA - MAX_ALPHA * (float)((sinceShow - timeToShow) / FADE_TIME);
-	}
+    double sinceShow = time_now_d() - timeShown_;
+    float alpha = MAX_ALPHA;
+    if (timeShown_ == 0.0 || sinceShow > timeToShow + FADE_TIME) {
+        alpha = 0.0f;
+    } else if (sinceShow > timeToShow) {
+        alpha = MAX_ALPHA - MAX_ALPHA * (float)((sinceShow - timeToShow) / FADE_TIME);
+    }
 
-	if (alpha >= 0.1f) {
-		SCREEN_UI::Style style = dc.theme->popupTitle;
-		style.background.color = colorAlpha(style.background.color, alpha - 0.1f);
-		dc.FillRect(style.background, bounds_);
-	}
+    if (alpha >= 0.1f) {
+        SCREEN_UI::Style style = dc.theme->popupTitle;
+        style.background.color = colorAlpha(style.background.color, alpha - 0.1f);
+        dc.FillRect(style.background, bounds_);
+    }
 
-	text_->SetTextColor(whiteAlpha(alpha));
-	text_->SetShadow(false);
-	ViewGroup::Draw(dc);
+    text_->SetTextColor(whiteAlpha(alpha));
+    text_->SetShadow(false);
+    ViewGroup::Draw(dc);
 }
 
 class SCREEN_DirButton : public SCREEN_UI::Button {
 public:
-	SCREEN_DirButton(const std::string &path, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams)
-		: SCREEN_UI::Button(path, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(false) {}
-	SCREEN_DirButton(const std::string &path, const std::string &text, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
-		: SCREEN_UI::Button(text, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(true) {}
+    SCREEN_DirButton(const std::string &path, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams)
+        : SCREEN_UI::Button(path, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(false) {}
+    SCREEN_DirButton(const std::string &path, const std::string &text, bool gridStyle, SCREEN_UI::LayoutParams *layoutParams = 0)
+        : SCREEN_UI::Button(text, layoutParams), path_(path), gridStyle_(gridStyle), absolute_(true) {}
 
-	virtual void Draw(SCREEN_UIContext &dc);
+    virtual void Draw(SCREEN_UIContext &dc);
 
-	const std::string GetPath() const {
-		return path_;
-	}
+    const std::string GetPath() const {
+        return path_;
+    }
 
-	bool PathAbsolute() const {
-		return absolute_;
-	}
+    bool PathAbsolute() const {
+        return absolute_;
+    }
     
     bool Key(const KeyInput &key) override {
         std::string searchPath;
@@ -2065,88 +2064,88 @@ public:
             }
         } 
 
-		return Clickable::Key(key);
-	}
+        return Clickable::Key(key);
+    }
 
 private:
-	std::string path_;
-	bool absolute_;
-	bool gridStyle_;
+    std::string path_;
+    bool absolute_;
+    bool gridStyle_;
 };
 
 void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
-	using namespace SCREEN_UI;
-	Style style = dc.theme->buttonStyle;
+    using namespace SCREEN_UI;
+    Style style = dc.theme->buttonStyle;
 
-	if (HasFocus()) style = dc.theme->buttonFocusedStyle;
-	if (down_) style = dc.theme->buttonDownStyle;
-	if (!IsEnabled()) style = dc.theme->buttonDisabledStyle;
+    if (HasFocus()) style = dc.theme->buttonFocusedStyle;
+    if (down_) style = dc.theme->buttonDownStyle;
+    if (!IsEnabled()) style = dc.theme->buttonDisabledStyle;
 
-	dc.FillRect(style.background, bounds_);
+    dc.FillRect(style.background, bounds_);
 
-	const std::string text = GetText();
+    const std::string text = GetText();
     
     bool isRegularFolder = true;
-	SCREEN_ImageID image;
+    SCREEN_ImageID image;
     if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_FOLDER_R"); else image = SCREEN_ImageID("I_FOLDER");
-	if (text == "..") {
+    if (text == "..") {
         isRegularFolder = false;
         if (gTheme == THEME_RETRO) image = SCREEN_ImageID("I_UP_DIRECTORY_R"); else image = SCREEN_ImageID("I_UP_DIRECTORY");
-	}
+    }
     
     dc.SetFontStyle(dc.theme->uiFontSmall);
     
-	float tw, th;
-	dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+    float tw, th;
+    dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
 
-	bool compact = bounds_.w < 180;
+    bool compact = bounds_.w < 180;
 
-	if (gridStyle_) {
-		dc.SetFontScale(1.0f, 1.0f);
-	}
-	if (compact) {
-		// No icon, except "up"
-		dc.PushScissor(bounds_);
-		if (isRegularFolder) {
+    if (gridStyle_) {
+        dc.SetFontScale(1.0f, 1.0f);
+    }
+    if (compact) {
+        // No icon, except "up"
+        dc.PushScissor(bounds_);
+        if (isRegularFolder) {
             if (gTheme == THEME_RETRO)
               dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
-			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
-		} else {
-			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
-		}
-		dc.PopScissor();
-	} else {
-		bool scissor = false;
-		if (tw + 150 > bounds_.w) {
-			dc.PushScissor(bounds_);
-			scissor = true;
-		}
-		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+            dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+        } else {
+            dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
+        }
+        dc.PopScissor();
+    } else {
+        bool scissor = false;
+        if (tw + 150 > bounds_.w) {
+            dc.PushScissor(bounds_);
+            scissor = true;
+        }
+        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
           dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
-		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
+        dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
-		if (scissor) {
-			dc.PopScissor();
-		}
-	}
-	if (gridStyle_) {
-		dc.SetFontScale(1.0, 1.0);
-	}
+        if (scissor) {
+            dc.PopScissor();
+        }
+    }
+    if (gridStyle_) {
+        dc.SetFontScale(1.0, 1.0);
+    }
 }
 
 SCREEN_DirBrowser::SCREEN_DirBrowser(std::string path, SCREEN_BrowseFlags browseFlags, bool *gridStyle, SCREEN_ScreenManager *screenManager, std::string lastText, std::string lastLink, SCREEN_UI::LayoutParams *layoutParams)
-	: LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
-	using namespace SCREEN_UI;
+    : LinearLayout(SCREEN_UI::ORIENT_VERTICAL, layoutParams), path_(path), gridStyle_(gridStyle), screenManager_(screenManager), browseFlags_(browseFlags), lastText_(lastText), lastLink_(lastLink) {
+    using namespace SCREEN_UI;
     DEBUG_PRINTF("   SCREEN_DirBrowser::SCREEN_DirBrowser\n");
     if (showTooltipSettingsScreen != "")
     {
         SCREEN_UI::EventParams e{};
-		e.v = this;
+        e.v = this;
         settingsInfo_->Show(showTooltipSettingsScreen, e.v);
         showTooltipSettingsScreen = "";
     }
-	Refresh();
+    Refresh();
 }
 
 SCREEN_DirBrowser::~SCREEN_DirBrowser() {
@@ -2155,104 +2154,104 @@ SCREEN_DirBrowser::~SCREEN_DirBrowser() {
 
 void SCREEN_DirBrowser::FocusGame(const std::string &gamePath) {
     DEBUG_PRINTF("   void SCREEN_DirBrowser::FocusGame(const std::string &gamePath)\n");
-	focusGamePath_ = gamePath;
-	Refresh();
-	focusGamePath_.clear();
+    focusGamePath_ = gamePath;
+    Refresh();
+    focusGamePath_.clear();
 }
 
 void SCREEN_DirBrowser::SetPath(const std::string &path) {
     DEBUG_PRINTF("   void SCREEN_DirBrowser::SetPath(const std::string &path) %s\n",path.c_str());
-	path_.SetPath(path);
-	Refresh();
+    path_.SetPath(path);
+    Refresh();
 }
 
 std::string SCREEN_DirBrowser::GetPath() {
     DEBUG_PRINTF("   std::string SCREEN_DirBrowser::GetPath() \n");
     std::string str = path_.GetPath();
-	return str;
+    return str;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::LayoutChange(SCREEN_UI::EventParams &e)\n");
-	*gridStyle_ = e.a == 0 ? true : false;
-	Refresh();
-	return SCREEN_UI::EVENT_DONE;
+    *gridStyle_ = e.a == 0 ? true : false;
+    Refresh();
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::HomeClick(SCREEN_UI::EventParams &e)\n");
-	SetPath(getenv("HOME"));
+    SetPath(getenv("HOME"));
 
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::GridClick(SCREEN_UI::EventParams &e) {
     *gridStyle_  = true;
     Refresh();
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::LinesClick(SCREEN_UI::EventParams &e) {
     *gridStyle_  = false;
     Refresh();
-	return SCREEN_UI::EVENT_DONE;
+    return SCREEN_UI::EVENT_DONE;
 }
 
 void SCREEN_DirBrowser::Update() {
-	LinearLayout::Update();
-	if (listingPending_ && path_.IsListingReady()) {
-		Refresh();
-	}
+    LinearLayout::Update();
+    if (listingPending_ && path_.IsListingReady()) {
+        Refresh();
+    }
 }
 
 void SCREEN_DirBrowser::Draw(SCREEN_UIContext &dc) {
-	using namespace SCREEN_UI;
+    using namespace SCREEN_UI;
 
-	if (lastScale_ != 1.0f || lastLayoutWasGrid_ != *gridStyle_) {
-		Refresh();
-	}
+    if (lastScale_ != 1.0f || lastLayoutWasGrid_ != *gridStyle_) {
+        Refresh();
+    }
 
-	if (hasDropShadow_) {
-		// Darken things behind.
-		dc.FillRect(SCREEN_UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
-		float dropsize = 30.0f;
-		dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
-			bounds_.x - dropsize, bounds_.y,
-			bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
-	}
+    if (hasDropShadow_) {
+        // Darken things behind.
+        dc.FillRect(SCREEN_UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
+        float dropsize = 30.0f;
+        dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
+            bounds_.x - dropsize, bounds_.y,
+            bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
+    }
 
-	if (clip_) {
-		dc.PushScissor(bounds_);
-	}
+    if (clip_) {
+        dc.PushScissor(bounds_);
+    }
 
-	dc.FillRect(bg_, bounds_);
-	for (View *view : views_) {
-		if (view->GetVisibility() == V_VISIBLE) {
-			// Check if bounds are in current scissor rectangle.
-			if (dc.GetScissorBounds().Intersects(dc.TransformBounds(view->GetBounds())))
-				view->Draw(dc);
-		}
-	}
-	if (clip_) {
-		dc.PopScissor();
-	}
+    dc.FillRect(bg_, bounds_);
+    for (View *view : views_) {
+        if (view->GetVisibility() == V_VISIBLE) {
+            // Check if bounds are in current scissor rectangle.
+            if (dc.GetScissorBounds().Intersects(dc.TransformBounds(view->GetBounds())))
+                view->Draw(dc);
+        }
+    }
+    if (clip_) {
+        dc.PopScissor();
+    }
 }
 
 void SCREEN_DirBrowser::Refresh() {
-	using namespace SCREEN_UI;
+    using namespace SCREEN_UI;
     DEBUG_PRINTF("   void SCREEN_DirBrowser::Refresh()\n");
     
-	lastScale_ = 1.0f;
-	lastLayoutWasGrid_ = *gridStyle_;
+    lastScale_ = 1.0f;
+    lastLayoutWasGrid_ = *gridStyle_;
 
-	// Reset content
-	Clear();
+    // Reset content
+    Clear();
 
-	Add(new Spacer(10.0f));
-	auto mm = GetI18NCategory("MainMenu");
-	
+    Add(new Spacer(10.0f));
+    auto mm = GetI18NCategory("MainMenu");
+    
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     // display working directory
     TextView* workingDirectory;
@@ -2282,8 +2281,8 @@ void SCREEN_DirBrowser::Refresh() {
             toolTipsShown[SETTINGS_HOME] = true;
             settingsInfo_->Show(mm->T("Home", "Jump in file browser to home directory"), e.v);
         }
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
     topBar->Add(homeButton);
     
     // grid button
@@ -2307,8 +2306,8 @@ void SCREEN_DirBrowser::Refresh() {
             toolTipsShown[SETTINGS_GRID] = true;
             settingsInfo_->Show(mm->T("Grid", "Show file browser in a grid"), e.v);
         }
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
     topBar->Add(gridButton);
     
     // lines button
@@ -2331,8 +2330,8 @@ void SCREEN_DirBrowser::Refresh() {
             toolTipsShown[SETTINGS_LINES] = true;
             settingsInfo_->Show(mm->T("Lines", "Show file browser in lines"), e.v);
         }
-		return SCREEN_UI::EVENT_CONTINUE;
-	});
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
     topBar->Add(linesButton);
     
     Add(topBar);
@@ -2359,77 +2358,77 @@ void SCREEN_DirBrowser::Refresh() {
         Add(gameList_);
     }
 
-	// Show folders in the current directory
-	std::vector<SCREEN_DirButton *> dirButtons;
+    // Show folders in the current directory
+    std::vector<SCREEN_DirButton *> dirButtons;
 
-	listingPending_ = !path_.IsListingReady();
+    listingPending_ = !path_.IsListingReady();
 
-	std::vector<std::string> filenames;
-	if (!listingPending_) {
-		std::vector<FileInfo> fileInfo;
-		path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
-		for (size_t i = 0; i < fileInfo.size(); i++) {
+    std::vector<std::string> filenames;
+    if (!listingPending_) {
+        std::vector<FileInfo> fileInfo;
+        path_.GetListing(fileInfo, "iso:cso:pbp:elf:prx:ppdmp:");
+        for (size_t i = 0; i < fileInfo.size(); i++) {
             std::string str=fileInfo[i].name;
-			
-			if (fileInfo[i].isDirectory) {
-				if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
-					dirButtons.push_back(new SCREEN_DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
-				}
-			} 
-		}
-	}
+            
+            if (fileInfo[i].isDirectory) {
+                if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
+                    dirButtons.push_back(new SCREEN_DirButton(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+                }
+            } 
+        }
+    }
 
-	if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
-		gameList_->Add(new SCREEN_DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
-			OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
+    if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
+        gameList_->Add(new SCREEN_DirButton("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)))->
+            OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
 
-	}
+    }
 
-	if (listingPending_) {
-		gameList_->Add(new SCREEN_UI::TextView(mm->T("Loading..."), ALIGN_CENTER, false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
-	}
+    if (listingPending_) {
+        gameList_->Add(new SCREEN_UI::TextView(mm->T("Loading..."), ALIGN_CENTER, false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
+    }
 
-	for (size_t i = 0; i < dirButtons.size(); i++) {
+    for (size_t i = 0; i < dirButtons.size(); i++) {
         std::string str = dirButtons[i]->GetPath();
-		gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
-	}
+        gameList_->Add(dirButtons[i])->OnClick.Handle(this, &SCREEN_DirBrowser::NavigateClick);
+    }
 }
 
 const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path) {
 DEBUG_PRINTF("   const std::string SCREEN_DirBrowser::GetBaseName(const std::string &path)\n");
-	static const std::string sepChars = "/";
+    static const std::string sepChars = "/";
 
-	auto trailing = path.find_last_not_of(sepChars);
-	if (trailing != path.npos) {
-		size_t start = path.find_last_of(sepChars, trailing);
-		if (start != path.npos) {
-			return path.substr(start + 1, trailing - start);
-		}
-		return path.substr(0, trailing);
-	}
+    auto trailing = path.find_last_not_of(sepChars);
+    if (trailing != path.npos) {
+        size_t start = path.find_last_of(sepChars, trailing);
+        if (start != path.npos) {
+            return path.substr(start + 1, trailing - start);
+        }
+        return path.substr(0, trailing);
+    }
 
-	size_t start = path.find_last_of(sepChars);
-	if (start != path.npos) {
-		return path.substr(start + 1);
-	}
-	return path;
+    size_t start = path.find_last_of(sepChars);
+    if (start != path.npos) {
+        return path.substr(start + 1);
+    }
+    return path;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::NavigateClick(SCREEN_UI::EventParams &e)\n");
-	SCREEN_DirButton *button = static_cast<SCREEN_DirButton *>(e.v);
-	std::string text = button->GetPath();
-	if (button->PathAbsolute()) {
-		path_.SetPath(text);
-	} else {
-		path_.Navigate(text);
-	}
-	Refresh();
-	return SCREEN_UI::EVENT_DONE;
+    SCREEN_DirButton *button = static_cast<SCREEN_DirButton *>(e.v);
+    std::string text = button->GetPath();
+    if (button->PathAbsolute()) {
+        path_.SetPath(text);
+    } else {
+        path_.Navigate(text);
+    }
+    Refresh();
+    return SCREEN_UI::EVENT_DONE;
 }
 
 SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e) {
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
-	screenManager_->RecreateAllViews();
-	return SCREEN_UI::EVENT_DONE;
+    screenManager_->RecreateAllViews();
+    return SCREEN_UI::EVENT_DONE;
 }

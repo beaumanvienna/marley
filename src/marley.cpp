@@ -1,4 +1,4 @@
-/* Marley Copyright (c) 2020 Marley Development Team 
+/* Marley Copyright (c) 2020 - 2021 Marley Development Team 
    https://github.com/beaumanvienna/marley
 
    Permission is hereby granted, free of charge, to any person

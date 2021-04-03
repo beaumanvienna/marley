@@ -1,4 +1,4 @@
-/* Marley Copyright (c) 2020 Marley Development Team 
+/* Marley Copyright (c) 2020-2021 Marley Development Team 
    https://github.com/beaumanvienna/marley
 
    Permission is hereby granted, free of charge, to any person
@@ -177,9 +177,9 @@ void create_cue_file(string filename)
             bin_filename_no_path = bin_filename.substr(bin_filename.find_last_of("/") + 1);
         }
         char *argv[4]; 
-		char arg1[10] = "mdf2iso"; 
-		char arg2[10] = "--cue";
-		char arg3[1024];
+        char arg1[10] = "mdf2iso"; 
+        char arg2[10] = "--cue";
+        char arg3[1024];
         char arg4[1024];
         strcpy(arg3, filename.c_str());  
         strcpy(arg4, bin_filename_no_path.c_str());
@@ -197,12 +197,12 @@ void create_cue_file(string filename)
 #define BUFSIZE 1024
 enum emulator_target
 {
-	unknown,
-	mednafen,
-	dolphin,
-	mupen64plus,
-	ppsspp,
-	pcsx2
+    unknown,
+    mednafen,
+    dolphin,
+    mupen64plus,
+    ppsspp,
+    pcsx2
 };
 emulator_target getEmulatorTarget(string filename)
 {
@@ -212,7 +212,7 @@ emulator_target getEmulatorTarget(string filename)
     FILE *fp;
     bool ok = false;
     emulator_target emu = unknown;
-	
+    
     if ((fp = popen(cmd.c_str(), "r")) == nullptr) 
     {
         printf("Error opening pipe for command %s\n",cmd.c_str());
@@ -227,78 +227,78 @@ emulator_target getEmulatorTarget(string filename)
         
         if(pclose(fp))  
         {
-			printf("Command '%s' not found or exited with error status\n",cmd.c_str());
-			ok = false;
-		}
+            printf("Command '%s' not found or exited with error status\n",cmd.c_str());
+            ok = false;
+        }
     }
     
     if (ok)
     {
-		
-		std::transform(file_type.begin(), file_type.end(), file_type.begin(),
-			[](unsigned char c){ return std::tolower(c); });
-		
-		if ((file_type.find("nintendo wii") != string::npos) || (file_type.find("nintendo gamecube") != string::npos))
-		{
-			emu = dolphin; 
-			printf("dolphin ");
-		}
-		else if (file_type.find("game boy") != string::npos)
-		{
-			emu = mednafen;
-			printf("mednafen ");
-		}
-		else if ((file_type.find("sega mega drive") != string::npos) || (file_type.find("genesis") != string::npos))
-		{
-			emu = mednafen;
-			printf("mednafen ");
-		}
-		else if (file_type.find("sega saturn") != string::npos)
-		{
+        
+        std::transform(file_type.begin(), file_type.end(), file_type.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+        
+        if ((file_type.find("nintendo wii") != string::npos) || (file_type.find("nintendo gamecube") != string::npos))
+        {
+            emu = dolphin; 
+            printf("dolphin ");
+        }
+        else if (file_type.find("game boy") != string::npos)
+        {
+            emu = mednafen;
+            printf("mednafen ");
+        }
+        else if ((file_type.find("sega mega drive") != string::npos) || (file_type.find("genesis") != string::npos))
+        {
+            emu = mednafen;
+            printf("mednafen ");
+        }
+        else if (file_type.find("sega saturn") != string::npos)
+        {
             create_cue_file(filename);
-			emu = mednafen;
-			printf("mednafen ");
-		}
-		else if (file_type.find("nes rom") != string::npos)
-		{
-			emu = mednafen;
-			printf("mednafen ");
-		}
-		else if (file_type.find("nintendo 64") != string::npos)
-		{
-			emu = mupen64plus;
-			printf("mupen64plus ");
-		}
-		else
-		{
-			long fsize = filesize(filename.c_str());
-			if (fsize < 52428800) // less than 50MB must be either mednafen or mupen64plus
-			{
-				string ext = filename.substr(filename.find_last_of(".") + 1);
-				if (ext.find("64") != string::npos) 
-				{
-					emu = mupen64plus;
-				}
-				else
-				{
-					emu = mednafen;
-				}
-			}
-			else
-			{
-				if (file_type.find("iso 9660 cd-rom filesystem data") != string::npos)
-				{
-					emu = ppsspp;
-					printf("ppsspp ");
-				}
-				else 
-				{
-					emu = pcsx2;
-					printf("pcsx2 ");
-				}
-			}
-		}
-	}
+            emu = mednafen;
+            printf("mednafen ");
+        }
+        else if (file_type.find("nes rom") != string::npos)
+        {
+            emu = mednafen;
+            printf("mednafen ");
+        }
+        else if (file_type.find("nintendo 64") != string::npos)
+        {
+            emu = mupen64plus;
+            printf("mupen64plus ");
+        }
+        else
+        {
+            long fsize = filesize(filename.c_str());
+            if (fsize < 52428800) // less than 50MB must be either mednafen or mupen64plus
+            {
+                string ext = filename.substr(filename.find_last_of(".") + 1);
+                if (ext.find("64") != string::npos) 
+                {
+                    emu = mupen64plus;
+                }
+                else
+                {
+                    emu = mednafen;
+                }
+            }
+            else
+            {
+                if (file_type.find("iso 9660 cd-rom filesystem data") != string::npos)
+                {
+                    emu = ppsspp;
+                    printf("ppsspp ");
+                }
+                else 
+                {
+                    emu = pcsx2;
+                    printf("pcsx2 ");
+                }
+            }
+        }
+    }
 
     return emu;
 }
@@ -316,15 +316,15 @@ void shutdown_computer(void)
 
 void tear_down_and_create_new_window(void)
 {
-	Uint32 window_flags = SDL_GetWindowFlags(gWindow);
-	SDL_GetWindowSize(gWindow,&window_width,&window_height);
-	SDL_GetWindowPosition(gWindow,&window_x,&window_y);
-	
-	freeTextures();
-	SDL_DestroyRenderer( gRenderer );
-	SDL_DestroyWindow(gWindow);
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	
+    Uint32 window_flags = SDL_GetWindowFlags(gWindow);
+    SDL_GetWindowSize(gWindow,&window_width,&window_height);
+    SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+    
+    freeTextures();
+    SDL_DestroyRenderer( gRenderer );
+    SDL_DestroyWindow(gWindow);
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
@@ -346,66 +346,66 @@ void tear_down_and_create_new_window(void)
 
 void launch_emulator(void)
 {
-	if (gGame[gCurrentGame] != "")
-	{
-		int argc;
-		char *argv[10]; 
-		
-		char arg1[1024]; 
-		char arg2[1024];
-		char arg3[1024]; 
-		char arg4[1024]; 
-		char arg5[1024]; 
-		char arg6[1024]; 
-		char arg7[1024]; 
-		char arg8[1024]; 
-		char arg9[1024]; 
-		char arg10[1024]; 
-		
-		int n;
-		string str;
+    if (gGame[gCurrentGame] != "")
+    {
+        int argc;
+        char *argv[10]; 
+        
+        char arg1[1024]; 
+        char arg2[1024];
+        char arg3[1024]; 
+        char arg4[1024]; 
+        char arg5[1024]; 
+        char arg6[1024]; 
+        char arg7[1024]; 
+        char arg8[1024]; 
+        char arg9[1024]; 
+        char arg10[1024]; 
+        
+        int n;
+        string str;
         Uint32 window_flags;
-		window_flags=SDL_GetWindowFlags(gWindow);
-		if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
-		{
-			SDL_GetWindowSize(gWindow,&window_width,&window_height);
-			SDL_GetWindowPosition(gWindow,&window_x,&window_y);
-		}
-		
-		argc = 2;
+        window_flags=SDL_GetWindowFlags(gWindow);
+        if (!(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+        {
+            SDL_GetWindowSize(gWindow,&window_width,&window_height);
+            SDL_GetWindowPosition(gWindow,&window_x,&window_y);
+        }
+        
+        argc = 2;
         emulator_target emulatorTarget;
         if (launch_request_from_screen_manager)
           emulatorTarget = getEmulatorTarget(game_screen_manager);
         else
           emulatorTarget = getEmulatorTarget(gGame[gCurrentGame]);
-		switch((int)emulatorTarget)
-		{
+        switch((int)emulatorTarget)
+        {
 #ifdef PCSX2
-			case pcsx2:
-			
-				if (pcsx2_window_tear_down) tear_down_and_create_new_window();
+            case pcsx2:
+            
+                if (pcsx2_window_tear_down) tear_down_and_create_new_window();
                 pcsx2_window_tear_down_auto_request = 0;
-				str = "pcsx2";
-				strcpy(arg1, str.c_str()); 
+                str = "pcsx2";
+                strcpy(arg1, str.c_str()); 
                 
-   				str = "--nogui";
-				strcpy(arg2, str.c_str());
+                   str = "--nogui";
+                strcpy(arg2, str.c_str());
 
-				str = "--fullboot";
-				strcpy(arg3, str.c_str());
+                str = "--fullboot";
+                strcpy(arg3, str.c_str());
                 
                 if (launch_request_from_screen_manager)
                   str = game_screen_manager;
                 else
                   str = gGame[gCurrentGame];
-				strcpy(arg4, str.c_str());
+                strcpy(arg4, str.c_str());
 
-				argv[0] = arg1;
-				argv[1] = arg2;
-				argv[2] = arg3;
-				argv[3] = arg4;
+                argv[0] = arg1;
+                argv[1] = arg2;
+                argv[2] = arg3;
+                argv[3] = arg4;
 
-				argc = 4;
+                argc = 4;
 
                 SDL_SysWMinfo sdlWindowInfo;
                 SDL_VERSION(&sdlWindowInfo.version);
@@ -475,99 +475,99 @@ void launch_emulator(void)
                 }
                 
 
-				break;
+                break;
 #endif
 
 
 #ifdef MUPEN64PLUS
-			case mupen64plus:
-				
-				str = "mupen64plus";
-				strcpy(arg1, str.c_str()); 
-				
+            case mupen64plus:
+                
+                str = "mupen64plus";
+                strcpy(arg1, str.c_str()); 
+                
                 if (launch_request_from_screen_manager)
                   str = game_screen_manager;
                 else
                   str = gGame[gCurrentGame];
-				strcpy(arg2, str.c_str()); 
-				
-				argv[0] = arg1;
-				argv[1] = arg2;
-				printf("arg1: %s arg2: %s \n",arg1,arg2);
-				mupen64plus_main(argc,argv);
-				restoreSDL();
-				break;
+                strcpy(arg2, str.c_str()); 
+                
+                argv[0] = arg1;
+                argv[1] = arg2;
+                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                mupen64plus_main(argc,argv);
+                restoreSDL();
+                break;
 #endif
 
 #ifdef PPSSPP
-		
-			case ppsspp:
-			
-				str = "ppsspp";
-				strcpy(arg1, str.c_str()); 
-				
-				if (launch_request_from_screen_manager)
+        
+            case ppsspp:
+            
+                str = "ppsspp";
+                strcpy(arg1, str.c_str()); 
+                
+                if (launch_request_from_screen_manager)
                   str = game_screen_manager;
                 else
                   str = gGame[gCurrentGame];
-				strcpy(arg2, str.c_str()); 
-				
-				argv[0] = arg1;
-				argv[1] = arg2;
-				printf("arg1: %s arg2: %s \n",arg1,arg2);
-				ppsspp_main(argc,argv);
-				
-				restoreSDL();
-				break;
+                strcpy(arg2, str.c_str()); 
+                
+                argv[0] = arg1;
+                argv[1] = arg2;
+                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                ppsspp_main(argc,argv);
+                
+                restoreSDL();
+                break;
 #endif
 
 #ifdef DOLPHIN
-		
-			case dolphin:
-				str = "dolphin-emu";
-				strcpy(arg1, str.c_str()); 
-				
-				if (launch_request_from_screen_manager)
+        
+            case dolphin:
+                str = "dolphin-emu";
+                strcpy(arg1, str.c_str()); 
+                
+                if (launch_request_from_screen_manager)
                   str = game_screen_manager;
                 else
                   str = gGame[gCurrentGame];
-				strcpy(arg2, str.c_str()); 
-				
-				argv[0] = arg1;
-				argv[1] = arg2;
-				printf("arg1: %s arg2: %s \n",arg1,arg2);
-				marley_wiimote = false;
-				dolphin_main(argc,argv);
-				marley_wiimote = true;
-				delay_after_shutdown = 10;
-				restoreSDL();
-				break;
+                strcpy(arg2, str.c_str()); 
+                
+                argv[0] = arg1;
+                argv[1] = arg2;
+                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                marley_wiimote = false;
+                dolphin_main(argc,argv);
+                marley_wiimote = true;
+                delay_after_shutdown = 10;
+                restoreSDL();
+                break;
 #endif
-		
-		
+        
+        
 #ifdef MEDNAFEN
-			case mednafen:
-				str = "mednafen"; 
-				strcpy(arg1, str.c_str()); 
-				
-				if (launch_request_from_screen_manager)
+            case mednafen:
+                str = "mednafen"; 
+                strcpy(arg1, str.c_str()); 
+                
+                if (launch_request_from_screen_manager)
                   str = game_screen_manager;
                 else
                   str = gGame[gCurrentGame];
-				strcpy(arg2, str.c_str()); 
-				
-				argv[0] = arg1;
-				argv[1] = arg2;
-				printf("arg1: %s arg2: %s \n",arg1,arg2);
-				mednafen_main(argc,argv);
-				restoreSDL();
-				break;
+                strcpy(arg2, str.c_str()); 
+                
+                argv[0] = arg1;
+                argv[1] = arg2;
+                printf("arg1: %s arg2: %s \n",arg1,arg2);
+                mednafen_main(argc,argv);
+                restoreSDL();
+                break;
 #endif
-			default:
-				(void) 0;
-				break;
-		}
-	}
+            default:
+                (void) 0;
+                break;
+        }
+    }
 }
 
 void statemachine(int cmd)
@@ -932,7 +932,7 @@ void statemachine(int cmd)
                         }
                         break;
                     case STATE_LAUNCH:
-						launch_emulator();
+                        launch_emulator();
                         break;
                     default:
                         (void) 0;
