@@ -150,7 +150,8 @@ Depends: ${shlibs:Depends},
         locales,
         zip,
         libx11-xcb1,
-        libzstd1
+        libzstd1,
+        pulseaudio-utils
 Homepage: https://launchpad.net/~beauman, https://github.com/beaumanvienna/marley
 Description: Many Awesome Retro Linux Emulators, Yay!
  This package contains a bundle of console emulators and a launcher front-end.

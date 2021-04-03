@@ -121,6 +121,8 @@ private:
     
     // General
     std::vector<std::string> marley_cfg_entries;
+    int globalVolume;
+    bool globalVolumeEnabled = true;
 
     bool lastVertical_;
 

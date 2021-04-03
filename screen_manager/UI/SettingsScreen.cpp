@@ -18,7 +18,9 @@
 #include "ppsspp_config.h"
 
 #include <algorithm>
-
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include "Common/KeyMap.h"
 #include "Common/GPU/OpenGL/GLFeatures.h"
 #include "Common/Render/DrawBuffer.h"
@@ -63,6 +65,7 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha);
 void DrawBackgroundSimple(SCREEN_UIContext &dc, int page);
 SCREEN_ImageID checkControllerType(std::string name, std::string nameDB, bool mappingOK);
 void SCREEN_ToggleFullScreen(void);
+bool getDesktopVolume(int& desktopVolume);
 
 extern std::string gBaseDir;
 extern std::string gPathToFirmwarePS2;
@@ -1844,6 +1847,23 @@ void SCREEN_SettingsScreen::CreateViews() {
         return SCREEN_UI::EVENT_CONTINUE;
     });
     
+    getDesktopVolume(globalVolume);
+    const int VOLUME_OFF = 0;
+    const int VOLUME_MAX = 100;
+    
+    SCREEN_PopupSliderChoice *volume = generalSettings->Add(new SCREEN_PopupSliderChoice(&globalVolume, VOLUME_OFF, VOLUME_MAX, ge->T("Global volume"), screenManager()));
+    volume->SetEnabledPtr(&globalVolumeEnabled);
+    volume->SetZeroLabel(ge->T("Mute"));
+    
+    volume->OnChange.Add([=](EventParams &e) 
+    {
+        std::string command = "pactl -- set-sink-volume @DEFAULT_SINK@ " + std::to_string(globalVolume) +"%";
+        if (system(command.c_str()) == 0)
+          DEBUG_PRINTF("############################### executing command \" %s \" ####################",command.c_str());
+        
+        return SCREEN_UI::EVENT_CONTINUE;
+    });
+    
     // -------- theme --------
     static const char *ui_theme[] = {
         "Retro",
@@ -2431,4 +2451,43 @@ SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &
     DEBUG_PRINTF("   SCREEN_UI::EventReturn SCREEN_DirBrowser::OnRecentClear(SCREEN_UI::EventParams &e)\n");
     screenManager_->RecreateAllViews();
     return SCREEN_UI::EVENT_DONE;
+}
+
+bool getDesktopVolume(int& desktopVolume)
+{
+    bool ok = true;
+    std::string command = "pactl list sinks "; 
+    std::string data;
+    FILE * stream;
+    const int MAX_BUFFER = 8192;
+    char buffer[MAX_BUFFER];
+
+    stream = popen(command.c_str(), "r");
+    if (stream) {
+        while (!feof(stream))
+            if (fgets(buffer, MAX_BUFFER, stream) != nullptr) data.append(buffer);
+        pclose(stream);
+        size_t position = data.find("Volume");
+        if (position != std::string::npos)
+        {
+            data = data.substr(position, 50);
+
+            position = data.find("%");
+            if (position != std::string::npos)
+            {
+                data = data.substr(position-3, 3);
+                int volume;
+                ok = true;
+                try {
+                  volume = stoi(data);
+                }
+                catch(...){
+                  // if no conversion could be performed
+                  ok = false;
+                }
+                if (ok) desktopVolume = volume;
+            }
+        }
+    }
+    return ok;
 }
