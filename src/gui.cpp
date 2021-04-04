@@ -64,7 +64,7 @@ int WINDOW_HEIGHT;
 int window_width, window_height, window_x, window_y;
 SDL_TimerID splashTimer;
 int gSplashFrame;
-const int SPLASHSCREEN_FRAMES = 20;
+const int SPLASHSCREEN_FRAMES = 5;
 const int SPLASHSCREEN_DURATION = 5000;
 
 int x_offset_1150;
@@ -189,7 +189,7 @@ void render_splash(string onScreenDisplay)
     SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH],&srcrect,nullptr); // destination not defined= entire window
     
     //render overlay
-    SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH_OVERLAY],nullptr,nullptr);
+    //SDL_RenderCopy(gRenderer,gTextures[TEX_SPLASH_OVERLAY],nullptr,nullptr);
     
     // render on screen display (osd)
     if(osd_short.length()>130)
