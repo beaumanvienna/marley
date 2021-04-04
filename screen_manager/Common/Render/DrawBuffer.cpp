@@ -503,7 +503,7 @@ void SCREEN_DrawBuffer::DrawTextRect(FontID font, const char *text, float x, flo
 	MeasureTextRect(font, toDraw.c_str(), (int)toDraw.size(), Bounds(x, y, w, h), &totalWidth, &totalHeight, align);
 
 	std::vector<std::string> lines;
-	PSplitString(toDraw, '\n', lines);
+	SCREEN_PSplitString(toDraw, '\n', lines);
 
 	float baseY = y;
 	if (align & ALIGN_VCENTER) {

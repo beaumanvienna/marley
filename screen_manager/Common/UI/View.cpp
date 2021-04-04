@@ -136,7 +136,7 @@ void View::Query(float x, float y, std::vector<View *> &list) {
 }
 
 std::string View::Describe() const {
-	return PStringFromFormat("%0.1f,%0.1f %0.1fx%0.1f", bounds_.x, bounds_.y, bounds_.w, bounds_.h);
+	return SCREEN_PStringFromFormat("%0.1f,%0.1f %0.1fx%0.1f", bounds_.x, bounds_.y, bounds_.w, bounds_.h);
 }
 
 
@@ -162,7 +162,7 @@ void View::PersistData(PersistStatus status, std::string anonId, PersistMap &sto
 	}
 
 	for (int i = 0; i < (int)tweens_.size(); ++i) {
-		tweens_[i]->PersistData(status, tag + "/" + StringFromInt(i), storage);
+		tweens_[i]->PersistData(status, tag + "/" + SCREEN_StringFromInt(i), storage);
 	}
 }
 

@@ -31,7 +31,7 @@
 #endif
 
 // Useful for shaders with error messages..
-std::string LineNumberString(const std::string &str);
+std::string SCREEN_LineNumberString(const std::string &str);
 
 // Other simple string utilities.
 
@@ -61,45 +61,45 @@ inline bool endsWithNoCase(const std::string &str, const std::string &what) {
 	return strncasecmp(str.c_str() + offset, what.c_str(), what.size()) == 0;
 }
 
-void DataToHexString(const uint8_t *data, size_t size, std::string *output);
-void DataToHexString(const char* prefix, uint32_t startAddr, const uint8_t* data, size_t size, std::string* output);
+void SCREEN_DataToHexString(const uint8_t *data, size_t size, std::string *output);
+void SCREEN_DataToHexString(const char* prefix, uint32_t startAddr, const uint8_t* data, size_t size, std::string* output);
 
-std::string PStringFromFormat(const char* format, ...);
-std::string StringFromInt(int value);
+std::string SCREEN_PStringFromFormat(const char* format, ...);
+std::string SCREEN_StringFromInt(int value);
 
-std::string StripSpaces(const std::string &s);
-std::string StripQuotes(const std::string &s);
+std::string SCREEN_StripSpaces(const std::string &s);
+std::string SCREEN_StripQuotes(const std::string &s);
 
-void PSplitString(const std::string& str, const char delim, std::vector<std::string>& output);
+void SCREEN_PSplitString(const std::string& str, const char delim, std::vector<std::string>& output);
 
-void GetQuotedStrings(const std::string& str, std::vector<std::string>& output);
+void SCREEN_GetQuotedStrings(const std::string& str, std::vector<std::string>& output);
 
-std::string ReplaceAll(std::string input, const std::string& src, const std::string& dest);
+std::string SCREEN_ReplaceAll(std::string input, const std::string& src, const std::string& dest);
 
-void SkipSpace(const char **ptr);
+void SCREEN_SkipSpace(const char **ptr);
 
-void truncate_cpy(char *dest, size_t destSize, const char *src);
+void SCREEN_truncate_cpy(char *dest, size_t destSize, const char *src);
 template<size_t Count>
-inline void truncate_cpy(char(&out)[Count], const char *src) {
-	truncate_cpy(out, Count, src);
+inline void SCREEN_truncate_cpy(char(&out)[Count], const char *src) {
+	SCREEN_truncate_cpy(out, Count, src);
 }
 
-long parseHexLong(std::string s);
-long parseLong(std::string s);
-std::string PStringFromFormat(const char* format, ...);
+long SCREEN_parseHexLong(std::string s);
+long SCREEN_parseLong(std::string s);
+std::string SCREEN_PStringFromFormat(const char* format, ...);
 // Cheap!
-bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
+bool SCREEN_PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 
 template<size_t Count>
 inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	PCharArrayFromFormatV(out, Count, format, args);
+	SCREEN_PCharArrayFromFormatV(out, Count, format, args);
 	va_end(args);
 }
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
-bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
+bool SCREEN_PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
 
-std::string GetFilenameFromPath(std::string full_path);
+std::string SCREEN_GetFilenameFromPath(std::string full_path);

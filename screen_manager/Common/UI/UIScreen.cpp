@@ -356,7 +356,7 @@ void MessageSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent
 	SCREEN_UIContext &dc = *screenManager()->getUIContext();
 
 	std::vector<std::string> messageLines;
-	PSplitString(message_, '\n', messageLines);
+	SCREEN_PSplitString(message_, '\n', messageLines);
 	for (const auto& lineOfText : messageLines)
 		parent->Add(new SCREEN_UI::TextView(lineOfText, ALIGN_LEFT | ALIGN_VCENTER, false))->SetTextColor(dc.theme->popupStyle.fgColor);
 }
@@ -826,7 +826,7 @@ void TextEditSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *paren
 
 void TextEditSCREEN_PopupScreen::OnCompleted(DialogResult result) {
 	if (result == DR_OK) {
-		*value_ = StripSpaces(edit_->GetText());
+		*value_ = SCREEN_StripSpaces(edit_->GetText());
 		EventParams e{};
 		e.v = edit_;
 		OnChange.Trigger(e);

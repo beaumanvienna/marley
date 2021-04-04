@@ -28,7 +28,7 @@ const char *SCREEN_I18NCategory::T(const char *key, const char *def) {
 	}
 	// Replace the \n's with \\n's so that key values with newlines will be found correctly.
 	std::string modifiedKey = key;
-	modifiedKey = ReplaceAll(modifiedKey, "\n", "\\n");
+	modifiedKey = SCREEN_ReplaceAll(modifiedKey, "\n", "\\n");
 
 	auto iter = map_.find(modifiedKey);
 	if (iter != map_.end()) {
@@ -48,7 +48,7 @@ const char *SCREEN_I18NCategory::T(const char *key, const char *def) {
 void SCREEN_I18NCategory::SetMap(const std::map<std::string, std::string> &m) {
 	for (auto iter = m.begin(); iter != m.end(); ++iter) {
 		if (map_.find(iter->first) == map_.end()) {
-			std::string text = ReplaceAll(iter->second, "\\n", "\n");
+			std::string text = SCREEN_ReplaceAll(iter->second, "\\n", "\n");
 			map_[iter->first] = I18NEntry(text);
 //			INFO_LOG(SYSTEM, "Language entry: %s -> %s", iter->first.c_str(), text.c_str());
 		}
@@ -135,14 +135,14 @@ void SCREEN_I18NRepo::SaveSection(SCREEN_IniFile &ini, SCREEN_Section *section, 
 
 	for (auto iter = missed.begin(); iter != missed.end(); ++iter) {
 		if (!section->Exists(iter->first.c_str())) {
-			std::string text = ReplaceAll(iter->second, "\n", "\\n");
+			std::string text = SCREEN_ReplaceAll(iter->second, "\n", "\\n");
 			section->Set(iter->first, text);
 		}
 	}
 
 	const std::map<std::string, I18NEntry> &entries = cat->GetMap();
 	for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-		std::string text = ReplaceAll(iter->second.text, "\n", "\\n");
+		std::string text = SCREEN_ReplaceAll(iter->second.text, "\n", "\\n");
 		section->Set(iter->first, text);
 	}
 

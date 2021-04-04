@@ -73,7 +73,7 @@ void ViewGroup::PersistData(PersistStatus status, std::string anonId, PersistMap
 	}
 
 	for (size_t i = 0; i < views_.size(); i++) {
-		views_[i]->PersistData(status, tag + "/" + StringFromInt((int)i), storage);
+		views_[i]->PersistData(status, tag + "/" + SCREEN_StringFromInt((int)i), storage);
 	}
 }
 

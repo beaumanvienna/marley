@@ -224,9 +224,9 @@ void SCREEN_GLQueueRunner::RunInitSteps(const std::vector<GLRInitStep> &steps, b
 #ifdef _WIN32
 				OutputDebugStringUTF8(infoLog.c_str());
 				if (vsCode)
-					OutputDebugStringUTF8(LineNumberString(vsCode).c_str());
+					OutputDebugStringUTF8(SCREEN_LineNumberString(vsCode).c_str());
 				if (fsCode)
-					OutputDebugStringUTF8(LineNumberString(fsCode).c_str());
+					OutputDebugStringUTF8(SCREEN_LineNumberString(fsCode).c_str());
 #endif
 				CHECK_GL_ERROR_IF_DEBUG();
 				break;

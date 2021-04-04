@@ -44,7 +44,7 @@ static bool ParseLineKey(const std::string &line, size_t &pos, std::string *keyO
 	}
 
 	if (keyOut) {
-		*keyOut = StripSpaces(key);
+		*keyOut = SCREEN_StripSpaces(key);
 	}
 	return true;
 }
@@ -72,7 +72,7 @@ static bool ParseLineValue(const std::string &line, size_t &pos, std::string *va
 	}
 
 	if (valueOut) {
-		*valueOut = StripQuotes(StripSpaces(value));
+		*valueOut = SCREEN_StripQuotes(SCREEN_StripSpaces(value));
 	}
 
 	return true;
@@ -157,19 +157,19 @@ std::string* SCREEN_Section::GetLine(const char* key, std::string* valueOut, std
 }
 
 void SCREEN_Section::Set(const char* key, uint32_t newValue) {
-	Set(key, PStringFromFormat("0x%08x", newValue).c_str());
+	Set(key, SCREEN_PStringFromFormat("0x%08x", newValue).c_str());
 }
 
 void SCREEN_Section::Set(const char* key, float newValue) {
-	Set(key, PStringFromFormat("%f", newValue).c_str());
+	Set(key, SCREEN_PStringFromFormat("%f", newValue).c_str());
 }
 
 void SCREEN_Section::Set(const char* key, double newValue) {
-	Set(key, PStringFromFormat("%f", newValue).c_str());
+	Set(key, SCREEN_PStringFromFormat("%f", newValue).c_str());
 }
 
 void SCREEN_Section::Set(const char* key, int newValue) {
-	Set(key, StringFromInt(newValue).c_str());
+	Set(key, SCREEN_StringFromInt(newValue).c_str());
 }
 
 void SCREEN_Section::Set(const char* key, const char* newValue)
@@ -179,7 +179,7 @@ void SCREEN_Section::Set(const char* key, const char* newValue)
 	if (line)
 	{
 		// Change the value - keep the key and comment
-		*line = StripSpaces(key) + " = " + EscapeComments(newValue) + commented;
+		*line = SCREEN_StripSpaces(key) + " = " + EscapeComments(newValue) + commented;
 	}
 	else
 	{
@@ -272,7 +272,7 @@ bool SCREEN_Section::Get(const char* key, std::vector<std::string>& values)
 		subEnd = temp.find_first_of(",", subStart);
 		if (subStart != subEnd) 
 			// take from first char until next , 
-			values.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
+			values.push_back(SCREEN_StripSpaces(temp.substr(subStart, subEnd - subStart)));
 	
 		// Find the next non , char
 		subStart = temp.find_first_not_of(",", subEnd);
@@ -478,7 +478,7 @@ bool SCREEN_IniFile::GetLines(const char* sectionName, std::vector<std::string>&
 	lines.clear();
 	for (std::vector<std::string>::const_iterator iter = section->lines.begin(); iter != section->lines.end(); ++iter)
 	{
-		std::string line = StripSpaces(*iter);
+		std::string line = SCREEN_StripSpaces(*iter);
 
 		if (remove_comments)
 		{
@@ -490,7 +490,7 @@ bool SCREEN_IniFile::GetLines(const char* sectionName, std::vector<std::string>&
 
 			if (commentPos != (int)std::string::npos)
 			{
-				line = StripSpaces(line.substr(0, commentPos));
+				line = SCREEN_StripSpaces(line.substr(0, commentPos));
 			}
 		}
 

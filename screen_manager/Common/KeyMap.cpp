@@ -660,7 +660,7 @@ static std::string FindName(int key, const KeyMap_IntStrPair list[], size_t size
 	for (size_t i = 0; i < size; i++)
 		if (list[i].key == key)
 			return list[i].name;
-	return PStringFromFormat("%02x?", key);
+	return SCREEN_PStringFromFormat("%02x?", key);
 }
 
 std::string GetKeyName(int keyCode) {
@@ -842,11 +842,11 @@ void LoadFromIni(SCREEN_IniFile &file) {
 			continue;
 
 		std::vector<std::string> mappings;
-		PSplitString(value, ',', mappings);
+		SCREEN_PSplitString(value, ',', mappings);
 
 		for (size_t j = 0; j < mappings.size(); j++) {
 			std::vector<std::string> parts;
-			PSplitString(mappings[j], '-', parts);
+			SCREEN_PSplitString(mappings[j], '-', parts);
 			int deviceId = atoi(parts[0].c_str());
 			int keyCode = atoi(parts[1].c_str());
 

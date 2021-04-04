@@ -29,7 +29,7 @@
 #include "Common/Buffer.h"
 #include "Common/StringUtils.h"
 
-void truncate_cpy(char *dest, size_t destSize, const char *src) {
+void SCREEN_truncate_cpy(char *dest, size_t destSize, const char *src) {
 	size_t len = strlen(src);
 	if (len >= destSize - 1) {
 		memcpy(dest, src, destSize - 1);
@@ -40,7 +40,7 @@ void truncate_cpy(char *dest, size_t destSize, const char *src) {
 	}
 }
 
-long parseHexLong(std::string s) {
+long SCREEN_parseHexLong(std::string s) {
 	long value = 0;
 
 	if (s.substr(0,2) == "0x") {
@@ -50,7 +50,7 @@ long parseHexLong(std::string s) {
 	return value;
 }
 
-long parseLong(std::string s) {
+long SCREEN_parseLong(std::string s) {
 	long value = 0;
 	if (s.substr(0,2) == "0x") {
 		s = s.substr(2);
@@ -61,7 +61,7 @@ long parseLong(std::string s) {
 	return value;
 }
 
-bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
+bool SCREEN_PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
 	int writtenCount = vsnprintf(out, outsize, format, args);
 
@@ -77,7 +77,7 @@ bool PCharArrayFromFormatV(char* out, int outsize, const char* format, va_list a
 	}
 }
 
-bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
+bool SCREEN_PSplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
 {
 	if (full_path.empty())
 		return false;
@@ -104,7 +104,7 @@ bool PSplitPath(const std::string& full_path, std::string* _pPath, std::string* 
 	return true;
 }
 
-std::string GetFilenameFromPath(std::string full_path) {
+std::string SCREEN_GetFilenameFromPath(std::string full_path) {
 	size_t pos;
 #ifdef _WIN32
 	pos = full_path.rfind('\\');
@@ -120,7 +120,7 @@ std::string GetFilenameFromPath(std::string full_path) {
 	return full_path;
 }
 
-std::string LineNumberString(const std::string &str) {
+std::string SCREEN_LineNumberString(const std::string &str) {
 	std::stringstream input(str);
 	std::stringstream output;
 	std::string line;
@@ -133,13 +133,13 @@ std::string LineNumberString(const std::string &str) {
 	return output.str();
 }
 
-void SkipSpace(const char **ptr) {
+void SCREEN_SkipSpace(const char **ptr) {
 	while (**ptr && isspace(**ptr)) {
 		(*ptr)++;
 	}
 }
 
-void DataToHexString(const uint8_t *data, size_t size, std::string *output) {
+void SCREEN_DataToHexString(const uint8_t *data, size_t size, std::string *output) {
 	Buffer buffer;
 	for (size_t i = 0; i < size; i++) {
 		if (i && !(i & 15))
@@ -149,7 +149,7 @@ void DataToHexString(const uint8_t *data, size_t size, std::string *output) {
 	buffer.TakeAll(output);
 }
 
-void DataToHexString(const char* prefix, uint32_t startAddr, const uint8_t* data, size_t size, std::string* output) {
+void SCREEN_DataToHexString(const char* prefix, uint32_t startAddr, const uint8_t* data, size_t size, std::string* output) {
 	Buffer buffer;
 	size_t i = 0;
 	for (; i < size; i++) {
@@ -177,7 +177,7 @@ void DataToHexString(const char* prefix, uint32_t startAddr, const uint8_t* data
 	buffer.TakeAll(output);
 }
 
-std::string PStringFromFormat(const char* format, ...)
+std::string SCREEN_PStringFromFormat(const char* format, ...)
 {
 	va_list args;
 	std::string temp = "";
@@ -197,14 +197,14 @@ std::string PStringFromFormat(const char* format, ...)
 	return temp;
 }
 
-std::string StringFromInt(int value)
+std::string SCREEN_StringFromInt(int value)
 {
 	char temp[16];
 	sprintf(temp, "%i", value);
 	return temp;
 }
 
-std::string StripSpaces(const std::string &str)
+std::string SCREEN_StripSpaces(const std::string &str)
 {
 	const size_t s = str.find_first_not_of(" \t\r\n");
 
@@ -214,7 +214,7 @@ std::string StripSpaces(const std::string &str)
 		return "";
 }
 
-std::string StripQuotes(const std::string& s)
+std::string SCREEN_StripQuotes(const std::string& s)
 {
 	if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
 		return s.substr(1, s.size() - 2);
@@ -222,7 +222,7 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-void PSplitString(const std::string& str, const char delim, std::vector<std::string>& output)
+void SCREEN_PSplitString(const std::string& str, const char delim, std::vector<std::string>& output)
 {
 	size_t next = 0;
 	for (size_t pos = 0, len = str.length(); pos < len; ++pos) {
@@ -240,7 +240,7 @@ void PSplitString(const std::string& str, const char delim, std::vector<std::str
 	}
 }
 
-void GetQuotedStrings(const std::string& str, std::vector<std::string>& output)
+void SCREEN_GetQuotedStrings(const std::string& str, std::vector<std::string>& output)
 {
 	size_t next = 0;
 	bool even = 0;
@@ -260,7 +260,7 @@ void GetQuotedStrings(const std::string& str, std::vector<std::string>& output)
 	}
 }
 
-std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest)
+std::string SCREEN_ReplaceAll(std::string result, const std::string& src, const std::string& dest)
 {
 	size_t pos = 0;
 
@@ -277,3 +277,4 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 	}
 	return result;
 }
+

@@ -1868,7 +1868,7 @@ void SCREEN_SettingsScreen::CreateViews() {
     // audio device
     
     std::vector<std::string> audioDeviceList;
-    PSplitString(SCREEN_System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
+    SCREEN_PSplitString(SCREEN_System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
 
     auto tmp = new SCREEN_PopupMultiChoiceDynamic(&audioDevice, ge->T("Device"), audioDeviceList, nullptr, screenManager());
     SCREEN_PopupMultiChoiceDynamic *audioDevice = generalSettings->Add(tmp);

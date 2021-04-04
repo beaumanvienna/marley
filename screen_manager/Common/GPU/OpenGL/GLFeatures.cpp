@@ -123,7 +123,7 @@ void CheckGLExtensions() {
 	const char *cvendor = (char *)glGetString(GL_VENDOR);
 	// TODO: move this stuff to gpu_features.cpp
 	if (cvendor) {
-		const std::string vendor = StripSpaces(std::string(cvendor));
+		const std::string vendor = SCREEN_StripSpaces(std::string(cvendor));
 		if (vendor == "NVIDIA Corporation"
 			|| vendor == "Nouveau"
 			|| vendor == "nouveau") {
@@ -533,7 +533,7 @@ std::string ApplyGLSLPrelude(const std::string &source, uint32_t stage) {
 	std::string version = "";
 	if (!gl_extensions.IsGLES && gl_extensions.IsCoreContext) {
 		// We need to add a corresponding #version.  Apple drivers fail without an exact match.
-		version = PStringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
+		version = SCREEN_PStringFromFormat("#version %d\n", gl_extensions.GLSLVersion());
 	}
 	if (stage == GL_FRAGMENT_SHADER) {
 		temp = version + glsl_fragment_prelude + source;
