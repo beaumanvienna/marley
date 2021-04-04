@@ -1,3 +1,9 @@
+marley (0.2.16) focal; urgency=medium
+
+  * desktop sound volume and device selection
+
+ -- JC <beaumanvienna@gmail.com>  Sat, 04 Apr 2021 15:40:00 -0700
+
 marley (0.2.15) focal; urgency=medium
 
   * new color theme for GUI
