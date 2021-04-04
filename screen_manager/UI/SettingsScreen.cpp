@@ -1868,9 +1868,14 @@ void SCREEN_SettingsScreen::CreateViews() {
     // audio device
     
     std::vector<std::string> audioDeviceList;
+    std::vector<std::string> audioDeviceListStripped;
     SCREEN_PSplitString(SCREEN_System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
-
-    auto tmp = new SCREEN_PopupMultiChoiceDynamic(&audioDevice, ge->T("Device"), audioDeviceList, nullptr, screenManager());
+    for (auto entry : audioDeviceList)
+    {
+        entry = entry.substr(0,entry.find("{"));
+        audioDeviceListStripped.push_back(entry);
+    }
+    auto tmp = new SCREEN_PopupMultiChoiceDynamic(&audioDevice, ge->T("Device"), audioDeviceListStripped, nullptr, screenManager());
     SCREEN_PopupMultiChoiceDynamic *audioDevice = generalSettings->Add(tmp);
 
     audioDevice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnAudioDevice);
@@ -1920,17 +1925,35 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnFullscreenToggle(SCREEN_UI::Even
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnAudioDevice(SCREEN_UI::EventParams &e) 
 {
+    std::string defaultSink, entry;
     std::string audioDeviceProfile;
+    std::string command;
+    int returnVal;
     
-    auto begin = audioDevice.find_last_of("(") +1;
-    auto end   = audioDevice.find_last_of(")");
-    audioDeviceProfile = std::string("output:") + audioDevice.substr(begin,end-begin);
+    // find the entry from audioDeviceList based on the entry # in audioDevice
+    std::vector<std::string> audioDeviceList;
+    SCREEN_PSplitString(SCREEN_System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
+    entry = audioDeviceList[stoi(audioDevice.substr(0,audioDevice.find(":")))-1];
     
-    std::string command = "pactl set-card-profile 0 " + audioDeviceProfile;
+    size_t begin  = entry.find_last_of("[") +1;
+    size_t end    = entry.find_last_of("]");
+    defaultSink = entry.substr(begin,end-begin);
+/*
+    // set default sink
+    command = "pacmd set-default-sink " + defaultSink;
+    
+    DEBUG_PRINTF("############################### executing command \"%s\" ####################\n",command.c_str());
+    returnVal = system(command.c_str());
+*/
+    // set card profile
+    begin = entry.find_last_of("{") +1;
+    end   = entry.find_last_of("}");
+    audioDeviceProfile = std::string("output:") + entry.substr(begin,end-begin);
+    command = "pactl set-card-profile " + defaultSink + " " + audioDeviceProfile;
+    DEBUG_PRINTF("############################### executing command \"%s\" ####################\n",command.c_str());
+    returnVal = system(command.c_str());
 
-    if (system(command.c_str()) == 0)
-      DEBUG_PRINTF("############################### executing command \"%s\" ####################\n",command.c_str());
-
+    // reset audio
     SCREEN_System_SendMessage("audio_resetDevice", "");
     return SCREEN_UI::EVENT_DONE;
 }

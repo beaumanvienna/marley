@@ -235,15 +235,13 @@ std::string SCREEN_System_GetProperty(SystemProperty prop) {
         {
             std::string result;
             int availableDevices = 0;
+            int defaultSink = 0;
 
-            for (int i = 0; i < SDL_GetNumAudioDevices(0); ++i) {
-                const char *name = SDL_GetAudioDeviceName(i, 0);
-
-                if (!name) {
-                    continue;
-                }
+            if (SDL_GetNumAudioDevices(0) > 0) 
+            {                
 
                 std::string command = "pacmd list-cards"; 
+                std::string card_name, additionalInfo;
                 std::string data;
                 FILE * stream;
                 const int MAX_BUFFER = 65535;
@@ -260,18 +258,27 @@ std::string SCREEN_System_GetProperty(SystemProperty prop) {
 
                 for (std::string line; std::getline(iss, line); )
                 {
-                    
-                    if (line.find("output:") != std::string::npos) 
+                    if (line.find(".card_name") != std::string::npos) 
+                    {
+                        card_name = line.substr(line.find("\"")+1);
+                        card_name = card_name.substr(0, card_name.size()-1);
+                        defaultSink++;
+                    }
+                    else if (line.find("output:") != std::string::npos) 
                     {
 
                         line = line.substr(line.find_first_not_of(" \t"));
-                        if ( (line.find("output:") == 0) && (line.find("input") == std::string::npos) && (line.find("extra") == std::string::npos) )
+                        if ( (line.find("output:") == 0) && (line.find("input") == std::string::npos) )
                         {
+                            additionalInfo = line.substr(line.find_first_of(":")+1);
+                            additionalInfo = additionalInfo.substr(additionalInfo.find_first_of(":")+1);
+                            additionalInfo = additionalInfo.substr(0,additionalInfo.find_first_of("(")-1);
+                            additionalInfo = additionalInfo.substr(0,25);
                             line = line.substr(7);
                             line = line.substr(0,line.find(":"));
-                            
+
                             availableDevices++;
-                            line = std::string(name) + " (" + line + ")";
+                            line = std::to_string(availableDevices) + ": " + card_name + additionalInfo + " {" + line + "}" + "[" + std::to_string(defaultSink-1) + "]";
                             if (availableDevices == 1) {
                                 result = line;
                             } else {
