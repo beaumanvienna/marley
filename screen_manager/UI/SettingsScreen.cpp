@@ -1938,13 +1938,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnAudioDevice(SCREEN_UI::EventPara
     size_t begin  = entry.find_last_of("[") +1;
     size_t end    = entry.find_last_of("]");
     defaultSink = entry.substr(begin,end-begin);
-/*
-    // set default sink
-    command = "pacmd set-default-sink " + defaultSink;
-    
-    DEBUG_PRINTF("############################### executing command \"%s\" ####################\n",command.c_str());
-    returnVal = system(command.c_str());
-*/
+
     // set card profile
     begin = entry.find_last_of("{") +1;
     end   = entry.find_last_of("}");
@@ -1955,6 +1949,7 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnAudioDevice(SCREEN_UI::EventPara
 
     // reset audio
     SCREEN_System_SendMessage("audio_resetDevice", "");
+    RecreateViews();
     return SCREEN_UI::EVENT_DONE;
 }
 
