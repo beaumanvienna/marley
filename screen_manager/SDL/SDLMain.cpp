@@ -1,5 +1,6 @@
 // SDL/EGL implementation of the framework.
-
+#include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -73,6 +74,8 @@ static int SCREEN_g_DesktopWidth = 0;
 static int SCREEN_g_DesktopHeight = 0;
 static float SCREEN_g_RefreshRate = 60.f;
 
+static SDL_AudioSpec g_retFmt;
+
 int SCREEN_getDisplayNumber(void) {
 	int displayNumber = 0;
 	char * displayNumberStr;
@@ -85,6 +88,63 @@ int SCREEN_getDisplayNumber(void) {
 	}
 
 	return displayNumber;
+}
+
+void SCREEN_sdl_mixaudio_callback(void *userdata, Uint8 *stream, int len) {
+	NativeMix((short *)stream, len / (2 * 2));
+}
+
+static SDL_AudioDeviceID SCREEN_audioDev = 0;
+
+// Must be called after NativeInit().
+static void SCREEN_InitSDLAudioDevice(const std::string &name = "") {
+	SDL_AudioSpec fmt;
+	memset(&fmt, 0, sizeof(fmt));
+	fmt.freq = 44100;
+	fmt.format = AUDIO_S16;
+	fmt.channels = 2;
+	fmt.samples = 1024;
+	fmt.callback = &SCREEN_sdl_mixaudio_callback;
+	fmt.userdata = nullptr;
+
+	std::string startDevice = name;
+
+	SCREEN_audioDev = 0;
+
+	SDL_Init( SDL_INIT_AUDIO );
+
+	if (!startDevice.empty()) {
+		SCREEN_audioDev = SDL_OpenAudioDevice(startDevice.c_str(), 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+		if (SCREEN_audioDev <= 0) {
+			printf("Failed to open audio device: %s\n", startDevice.c_str());
+		}
+	}
+	if (SCREEN_audioDev <= 0) {
+		if (SCREEN_audioDev < 0) printf("SDL: Trying a different audio device\n");
+		SCREEN_audioDev = SDL_OpenAudioDevice(nullptr, 0, &fmt, &g_retFmt, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+	}
+	if (SCREEN_audioDev <= 0) {
+		printf("Failed to open audio device: %s\n", SDL_GetError());
+	} else {
+		if (g_retFmt.samples != fmt.samples) // Notify, but still use it
+			printf("Output audio samples: %d (requested: %d)\n", g_retFmt.samples, fmt.samples);
+		if (g_retFmt.format != fmt.format || g_retFmt.channels != fmt.channels) {
+			printf("Sound buffer format does not match requested format.\n");
+			printf("Output audio freq: %d (requested: %d)\n", g_retFmt.freq, fmt.freq);
+			printf("Output audio format: %d (requested: %d)\n", g_retFmt.format, fmt.format);
+			printf("Output audio channels: %d (requested: %d)\n", g_retFmt.channels, fmt.channels);
+			printf("Provided output format does not match requirement, turning audio off\n");
+			SDL_CloseAudioDevice(SCREEN_audioDev);
+		}
+		SDL_PauseAudioDevice(SCREEN_audioDev, 0);
+	}
+}
+
+static void SCREEN_StopSDLAudioDevice() {
+	if (SCREEN_audioDev > 0) {
+		SDL_PauseAudioDevice(SCREEN_audioDev, 1);
+		SDL_CloseAudioDevice(SCREEN_audioDev);
+	}
 }
 
 void SCREEN_SystemToast(const char *text) {
@@ -118,7 +178,10 @@ void SCREEN_System_SendMessage(const char *command, const char *parameter) {
 		SCREEN_g_QuitRequested = true;
 	} else if (!strcmp(command, "setclipboardtext")) {
 		SDL_SetClipboardText(parameter);
-	} 
+	} else if (!strcmp(command, "audio_resetDevice")) {
+		SCREEN_StopSDLAudioDevice();
+		SCREEN_InitSDLAudioDevice();
+	}
 }
 
 void SCREEN_System_AskForPermission(SystemPermission permission) {}
@@ -168,6 +231,59 @@ std::string SCREEN_System_GetProperty(SystemProperty prop) {
 	}
 	case SYSPROP_CLIPBOARD_TEXT:
 		return SDL_HasClipboardText() ? SDL_GetClipboardText() : "";
+	case SYSPROP_AUDIO_DEVICE_LIST:
+		{
+			std::string result;
+			int availableDevices = 0;
+
+			for (int i = 0; i < SDL_GetNumAudioDevices(0); ++i) {
+				const char *name = SDL_GetAudioDeviceName(i, 0);
+
+				if (!name) {
+					continue;
+				}
+
+				std::string command = "pacmd list-cards"; 
+				std::string data;
+				FILE * stream;
+				const int MAX_BUFFER = 65535;
+				char buffer[MAX_BUFFER];
+
+				stream = popen(command.c_str(), "r");
+				if (stream) {
+					while (!feof(stream))
+						if (fgets(buffer, MAX_BUFFER, stream) != nullptr) data.append(buffer);
+					pclose(stream);
+				}
+				
+				std::istringstream iss(data);
+
+				for (std::string line; std::getline(iss, line); )
+				{
+					
+					if (line.find("output:") != std::string::npos) 
+					{
+
+						line = line.substr(line.find_first_not_of(" \t"));
+						if ( (line.find("output:") == 0) && (line.find("input") == std::string::npos) && (line.find("extra") == std::string::npos) )
+						{
+							line = line.substr(7);
+							line = line.substr(0,line.find(":"));
+							
+							availableDevices++;
+							line = std::string(name) + " (" + line + ")";
+							if (availableDevices == 1) {
+								result = line;
+							} else {
+								result.append(1, '\0');
+								result.append(line);
+							}
+						}
+					}
+				}
+			}
+			return result;
+		}
 	default:
 		return "";
 	}
@@ -175,6 +291,10 @@ std::string SCREEN_System_GetProperty(SystemProperty prop) {
 
 int SCREEN_System_GetPropertyInt(SystemProperty prop) {
 	switch (prop) {
+	case SYSPROP_AUDIO_SAMPLE_RATE:
+		return g_retFmt.freq;
+	case SYSPROP_AUDIO_FRAMES_PER_BUFFER:
+		return g_retFmt.samples;
 	case SYSPROP_DEVICE_TYPE:
 		return DEVICE_TYPE_DESKTOP;
 	case SYSPROP_DISPLAY_COUNT:
@@ -392,6 +512,8 @@ int screen_manager_main(int argc, char *argv[]) {
 	SCREEN_joystick = new SCREEN_SDLJoystick();
     //SCREEN_KeyMap::UpdateNativeMenuKeys();
     SCREEN_KeyMap::RestoreDefault();
+    
+    SCREEN_InitSDLAudioDevice();
 
 	SCREEN_NativeInitGraphics(graphicsContext);
     	
@@ -552,6 +674,9 @@ int screen_manager_main(int argc, char *argv[]) {
         mainLoopWii();
 	}
 
+	SCREEN_StopSDLAudioDevice();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    
     SCREEN_NativeShutdownGraphics();
 
 	delete SCREEN_joystick;

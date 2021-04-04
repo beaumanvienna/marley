@@ -123,7 +123,7 @@ private:
     std::vector<std::string> marley_cfg_entries;
     int globalVolume;
     bool globalVolumeEnabled = true;
-
+    std::string audioDevice;
     bool lastVertical_;
 
     // Event handlers
@@ -132,6 +132,7 @@ private:
     SCREEN_UI::EventReturn OnThemeChanged(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnDeleteSearchDirectories(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnFullscreenToggle(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn OnAudioDevice(SCREEN_UI::EventParams &e);
 
 };
 

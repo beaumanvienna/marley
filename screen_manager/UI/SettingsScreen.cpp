@@ -1847,6 +1847,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         return SCREEN_UI::EVENT_CONTINUE;
     });
     
+    // desktop volume
     getDesktopVolume(globalVolume);
     const int VOLUME_OFF = 0;
     const int VOLUME_MAX = 100;
@@ -1864,6 +1865,16 @@ void SCREEN_SettingsScreen::CreateViews() {
         return SCREEN_UI::EVENT_CONTINUE;
     });
     
+    // audio device
+    
+    std::vector<std::string> audioDeviceList;
+    PSplitString(SCREEN_System_GetProperty(SYSPROP_AUDIO_DEVICE_LIST), '\0', audioDeviceList);
+
+    auto tmp = new SCREEN_PopupMultiChoiceDynamic(&audioDevice, ge->T("Device"), audioDeviceList, nullptr, screenManager());
+    SCREEN_PopupMultiChoiceDynamic *audioDevice = generalSettings->Add(tmp);
+
+    audioDevice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnAudioDevice);
+
     // -------- theme --------
     static const char *ui_theme[] = {
         "Retro",
@@ -1906,6 +1917,24 @@ SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnFullscreenToggle(SCREEN_UI::Even
     SCREEN_ToggleFullScreen();
     return SCREEN_UI::EVENT_DONE;
 }
+
+SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnAudioDevice(SCREEN_UI::EventParams &e) 
+{
+    std::string audioDeviceProfile;
+    
+    auto begin = audioDevice.find_last_of("(") +1;
+    auto end   = audioDevice.find_last_of(")");
+    audioDeviceProfile = std::string("output:") + audioDevice.substr(begin,end-begin);
+    
+    std::string command = "pactl set-card-profile 0 " + audioDeviceProfile;
+
+    if (system(command.c_str()) == 0)
+      DEBUG_PRINTF("############################### executing command \"%s\" ####################\n",command.c_str());
+
+    SCREEN_System_SendMessage("audio_resetDevice", "");
+    return SCREEN_UI::EVENT_DONE;
+}
+
 
 SCREEN_UI::EventReturn SCREEN_SettingsScreen::OnThemeChanged(SCREEN_UI::EventParams &e) {
     SCREEN_UIThemeInit();
