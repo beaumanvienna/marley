@@ -77,7 +77,7 @@ void ViewGroup::PersistData(PersistStatus status, std::string anonId, PersistMap
 	}
 }
 
-void ViewGroup::Touch(const TouchInput &input) {
+void ViewGroup::Touch(const SCREEN_TouchInput &input) {
 	std::lock_guard<std::mutex> guard(modifyLock_);
 	for (auto iter = views_.begin(); iter != views_.end(); ++iter) {
 		// TODO: If there is a transformation active, transform input coordinates accordingly.
@@ -95,7 +95,7 @@ void ViewGroup::Query(float x, float y, std::vector<View *> &list) {
 	}
 }
 
-bool ViewGroup::Key(const KeyInput &input) {
+bool ViewGroup::Key(const SCREEN_KeyInput &input) {
 	std::lock_guard<std::mutex> guard(modifyLock_);
 	bool ret = false;
 	for (auto iter = views_.begin(); iter != views_.end(); ++iter) {
@@ -108,7 +108,7 @@ bool ViewGroup::Key(const KeyInput &input) {
 	return ret;
 }
 
-void ViewGroup::Axis(const AxisInput &input) {
+void ViewGroup::Axis(const SCREEN_AxisInput &input) {
 	std::lock_guard<std::mutex> guard(modifyLock_);
 	for (auto iter = views_.begin(); iter != views_.end(); ++iter) {
 		// TODO: If there is a transformation active, transform input coordinates accordingly.
@@ -701,7 +701,7 @@ void ScrollView::Layout() {
 	views_[0]->Layout();
 }
 
-bool ScrollView::Key(const KeyInput &input) {
+bool ScrollView::Key(const SCREEN_KeyInput &input) {
 	if (visibility_ != V_VISIBLE)
 		return ViewGroup::Key(input);
 
@@ -734,7 +734,7 @@ bool ScrollView::Key(const KeyInput &input) {
 const float friction = 0.92f;
 const float stop_threshold = 0.1f;
 
-void ScrollView::Touch(const TouchInput &input) {
+void ScrollView::Touch(const SCREEN_TouchInput &input) {
     /*
 	if ((input.flags & TOUCH_DOWN) && scrollTouchId_ == -1) {
 		scrollStart_ = scrollPos_;
@@ -752,7 +752,7 @@ void ScrollView::Touch(const TouchInput &input) {
 		scrollTouchId_ = -1;
 	}
 
-	TouchInput input2;
+	SCREEN_TouchInput input2;
 	if (CanScroll()) {
 		input2 = gesture_.Update(input, bounds_);
 		float info[4];
@@ -1367,7 +1367,7 @@ void ChoiceStrip::HighlightChoice(unsigned int choice){
 	}
 };
 
-bool ChoiceStrip::Key(const KeyInput &input) {
+bool ChoiceStrip::Key(const SCREEN_KeyInput &input) {
 	bool ret = false;
 	if (input.flags & KEY_DOWN) {
 		if (IsTabLeftKey(input)) {

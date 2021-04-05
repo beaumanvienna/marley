@@ -39,7 +39,7 @@ public:
     virtual ~SCREEN_SettingsScreen();
     void update() override;
     void onFinish(DialogResult result) override;
-    bool key(const KeyInput &key) override;
+    bool key(const SCREEN_KeyInput &key) override;
     std::string tag() const override { return "settings"; }
     void DrawBackground(SCREEN_UIContext &dc) override;
     void showToolTip(std::string text);

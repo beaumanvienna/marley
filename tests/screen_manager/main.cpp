@@ -31,6 +31,16 @@ vector<string> gSearchDirectoriesGames;
 string gPathToFirmwarePS2;
 string gPathToGames;
 
+int gControllerConfNum;
+bool gControllerConf;
+bool gFullscreen;
+string gPackageVersion;
+int window_width = 1280;
+int window_height = 750;
+int window_x=200; 
+int window_y=200;
+int gActiveController=-1;
+string gConfText,gConfText2;
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
 
@@ -40,6 +50,26 @@ T_DesignatedControllers gDesignatedControllers[MAX_GAMEPADS];
 int gNumDesignatedControllers;
 string gBaseDir;
 SDL_Window* gWindow = nullptr;
+
+void printJoyInfoAll(void)
+{
+    for (int l=0; l < MAX_GAMEPADS;l++)
+    {
+        if ( gDesignatedControllers[l].numberOfDevices != 0 )
+        {
+            char *mapping;
+            for (int j=0;j<gDesignatedControllers[l].numberOfDevices;j++)
+            {
+                mapping = SDL_GameControllerMapping(gDesignatedControllers[l].gameCtrl[j]);
+                printf("\n\n%s\n\n",mapping);
+                SDL_free(mapping);
+            }
+        }
+    }
+}
+
+void mainLoopWii(void) {}
+
 bool closeJoy(int instance_id)
 {
     printf("jc: bool closeJoy(int instance_id = %d)\n",instance_id);
@@ -917,3 +947,40 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+void statemachineConf(int cmd)
+{
+ 
+}
+
+void statemachineConfAxis(int cmd, bool negative)
+{
+ 
+}
+
+bool checkAxis(int cmd)
+{
+    
+    bool ok = false;
+
+    return ok;
+}
+
+bool checkTrigger(int cmd)
+{
+    bool ok = false;
+    
+    return ok;
+}
+
+
+void statemachineConfHat(int hat, int value)
+{    
+    
+}
+
+void resetStatemachine(void)
+{
+    
+}
+
+void startControllerConf(int controllerNum) {}

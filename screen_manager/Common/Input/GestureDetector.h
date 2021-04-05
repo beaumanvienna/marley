@@ -17,7 +17,7 @@ enum Gesture {
 class SCREEN_GestureDetector {
 public:
 	SCREEN_GestureDetector();
-	TouchInput Update(const TouchInput &touch, const Bounds &bounds);
+	SCREEN_TouchInput Update(const SCREEN_TouchInput &touch, const Bounds &bounds);
 	void UpdateFrame();
 	bool IsGestureActive(Gesture gesture, int touchId) const;
 	bool GetGestureInfo(Gesture gesture, int touchId, float info[4]) const;

@@ -122,6 +122,18 @@ std::string SCREEN_NativeQueryConfig(std::string query) {
     return "";
 }
 
+int SCREEN_AudioMix(short *outstereo, int numFrames, int sampleRate) {
+    return 1024;
+}
+
+int SCREEN_NativeMix(short *audio, int num_samples) {
+
+    int sample_rate = SCREEN_System_GetPropertyInt(SYSPROP_AUDIO_SAMPLE_RATE);
+    num_samples = SCREEN_AudioMix(audio, num_samples, sample_rate > 0 ? sample_rate : 44100);
+
+    return num_samples;
+}
+
 // This is called before NativeInit so we do a little bit of initialization here.
 void SCREEN_NativeGetAppInfo(std::string *app_dir_name, std::string *app_nice_name, bool *landscape, std::string *version) {
     *app_nice_name = "MARLEY";
@@ -419,7 +431,7 @@ bool SCREEN_NativeIsAtTopLevel() {
     }
 }
 
-bool SCREEN_NativeTouch(const TouchInput &touch) {
+bool SCREEN_NativeTouch(const SCREEN_TouchInput &touch) {
     if (SCREEN_screenManager) {
         // Brute force prevent NaNs from getting into the UI system
         if (my_isnan(touch.x) || my_isnan(touch.y)) {
@@ -432,13 +444,13 @@ bool SCREEN_NativeTouch(const TouchInput &touch) {
     }
 }
 
-bool SCREEN_NativeKey(const KeyInput &key) {
+bool SCREEN_NativeKey(const SCREEN_KeyInput &key) {
     bool retval = false;
     if (SCREEN_screenManager)
         retval = SCREEN_screenManager->key(key);
     return retval;
 }
-KeyInput key;
+SCREEN_KeyInput key;
 void SCREEN_wiimoteInput(int button)
 {
     key.deviceId = DEVICE_ID_KEYBOARD;
@@ -476,7 +488,7 @@ void SCREEN_wiimoteInput(int button)
     SCREEN_NativeKey(key);
 }
 
-bool SCREEN_NativeAxis(const AxisInput &axis) {
+bool SCREEN_NativeAxis(const SCREEN_AxisInput &axis) {
     
     return false;
 }

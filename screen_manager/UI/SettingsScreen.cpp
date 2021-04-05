@@ -112,7 +112,7 @@ int calcExtraThreadsPCSX2()
     return cnt;
 }
 
-bool SCREEN_SettingsScreen::key(const KeyInput &key)
+bool SCREEN_SettingsScreen::key(const SCREEN_KeyInput &key)
 {
     if (gControllerConf)
     {
@@ -2114,7 +2114,7 @@ public:
         return absolute_;
     }
     
-    bool Key(const KeyInput &key) override {
+    bool Key(const SCREEN_KeyInput &key) override {
         std::string searchPath;
         if (key.flags & KEY_DOWN) {
             if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {

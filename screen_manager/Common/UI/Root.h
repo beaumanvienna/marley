@@ -24,9 +24,9 @@ class ViewGroup;
 void LayoutViewHierarchy(const SCREEN_UIContext &dc, ViewGroup *root, bool ignoreInsets);
 void UpdateViewHierarchy(ViewGroup *root);
 // Hooks arrow keys for navigation
-bool KeyEvent(const KeyInput &key, ViewGroup *root);
-bool TouchEvent(const TouchInput &touch, ViewGroup *root);
-bool AxisEvent(const AxisInput &axis, ViewGroup *root);
+bool KeyEvent(const SCREEN_KeyInput &key, ViewGroup *root);
+bool TouchEvent(const SCREEN_TouchInput &touch, ViewGroup *root);
+bool AxisEvent(const SCREEN_AxisInput &axis, ViewGroup *root);
 
 enum class SCREEN_UISound {
 	SELECT = 0,

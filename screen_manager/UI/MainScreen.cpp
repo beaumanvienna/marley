@@ -151,7 +151,7 @@ SCREEN_MainScreen::~SCREEN_MainScreen()
     
 }
 
-bool SCREEN_MainScreen::key(const KeyInput &key)
+bool SCREEN_MainScreen::key(const SCREEN_KeyInput &key)
 {
     if ( !(offButton->HasFocus()) && (key.flags & KEY_DOWN) && ((key.keyCode==NKCODE_BACK) || (key.keyCode==NKCODE_ESCAPE))) {
         SCREEN_UI::SetFocusedView(offButton);
@@ -537,7 +537,7 @@ public:
     void SetHoldEnabled(bool hold) {
         holdEnabled_ = hold;
     }
-    void Touch(const TouchInput &input) override {
+    void Touch(const SCREEN_TouchInput &input) override {
         SCREEN_UI::Clickable::Touch(input);
         hovering_ = bounds_.Contains(input.x, input.y);
         if (hovering_ && (input.flags & TOUCH_DOWN)) {
@@ -548,7 +548,7 @@ public:
         }
     }
 
-    bool Key(const KeyInput &key) override {
+    bool Key(const SCREEN_KeyInput &key) override {
         std::vector<int> pspKeys;
         bool showInfo = false;
 
@@ -686,7 +686,7 @@ public:
         return absolute_;
     }
     
-    bool Key(const KeyInput &key) override {
+    bool Key(const SCREEN_KeyInput &key) override {
         std::string searchPath;
         if (key.flags & KEY_DOWN) {
             if (HasFocus() && ((key.keyCode==NKCODE_BUTTON_STRT) || (key.keyCode==NKCODE_SPACE))) {

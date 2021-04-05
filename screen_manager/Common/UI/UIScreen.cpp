@@ -126,8 +126,8 @@ void SCREEN_UIScreen::render() {
 	}
 }
 
-TouchInput SCREEN_UIScreen::transformTouch(const TouchInput &touch) {
-	TouchInput updated = touch;
+SCREEN_TouchInput SCREEN_UIScreen::transformTouch(const SCREEN_TouchInput &touch) {
+	SCREEN_TouchInput updated = touch;
 
 	float x = touch.x - translation_.x;
 	float y = touch.y - translation_.y;
@@ -138,7 +138,7 @@ TouchInput SCREEN_UIScreen::transformTouch(const TouchInput &touch) {
 	return updated;
 }
 
-bool SCREEN_UIScreen::touch(const TouchInput &touch) {
+bool SCREEN_UIScreen::touch(const SCREEN_TouchInput &touch) {
 	if (root_) {
 		if (ClickDebug && (touch.flags & TOUCH_DOWN)) {
 			printf("Touch down!");
@@ -155,7 +155,7 @@ bool SCREEN_UIScreen::touch(const TouchInput &touch) {
 	return false;
 }
 
-bool SCREEN_UIScreen::key(const KeyInput &key) {
+bool SCREEN_UIScreen::key(const SCREEN_KeyInput &key) {
 	if (root_) {
 		return SCREEN_UI::KeyEvent(key, root_);
 	}
@@ -166,7 +166,7 @@ void SCREEN_UIScreen::TriggerFinish(DialogResult result) {
 	screenManager()->finishDialog(this, result);
 }
 
-bool SCREEN_UIDialogScreen::key(const KeyInput &key) {
+bool SCREEN_UIDialogScreen::key(const SCREEN_KeyInput &key) {
 	bool retval = SCREEN_UIScreen::key(key);
 	if (!retval && (key.flags & KEY_DOWN) && SCREEN_UI::IsEscapeKey(key)) {
 		if (finished_) {
@@ -188,7 +188,7 @@ void SCREEN_UIDialogScreen::sendMessage(const char *msg, const char *value) {
 	}
 }
 
-bool SCREEN_UIScreen::axis(const AxisInput &axis) {
+bool SCREEN_UIScreen::axis(const SCREEN_AxisInput &axis) {
 	if (root_) {
 		SCREEN_UI::AxisEvent(axis, root_);
 		return true;
@@ -222,7 +222,7 @@ SCREEN_PopupScreen::SCREEN_PopupScreen(std::string title, std::string button1, s
 	alpha_ = 0.0f;
 }
 
-bool SCREEN_PopupScreen::touch(const TouchInput &touch) {
+bool SCREEN_PopupScreen::touch(const SCREEN_TouchInput &touch) {
 	if (!box_ || (touch.flags & TOUCH_DOWN) == 0 || touch.id != 0) {
 		return SCREEN_UIDialogScreen::touch(touch);
 	}
@@ -233,7 +233,7 @@ bool SCREEN_PopupScreen::touch(const TouchInput &touch) {
 	return SCREEN_UIDialogScreen::touch(touch);
 }
 
-bool SCREEN_PopupScreen::key(const KeyInput &key) {
+bool SCREEN_PopupScreen::key(const SCREEN_KeyInput &key) {
 	if (key.flags & KEY_DOWN) {
 		if (key.keyCode == NKCODE_ENTER && defaultButton_) {
 			SCREEN_UI::EventParams e{};

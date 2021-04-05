@@ -25,11 +25,11 @@ public:
 	void deviceLost() override;
 	void deviceRestored() override;
 
-	bool touch(const TouchInput &touch) override;
-	bool key(const KeyInput &touch) override;
-	bool axis(const AxisInput &touch) override;
+	bool touch(const SCREEN_TouchInput &touch) override;
+	bool key(const SCREEN_KeyInput &touch) override;
+	bool axis(const SCREEN_AxisInput &touch) override;
 
-	TouchInput transformTouch(const TouchInput &touch) override;
+	SCREEN_TouchInput transformTouch(const SCREEN_TouchInput &touch) override;
 
 	virtual void TriggerFinish(DialogResult result);
 
@@ -59,7 +59,7 @@ private:
 class SCREEN_UIDialogScreen : public SCREEN_UIScreen {
 public:
 	SCREEN_UIDialogScreen() : SCREEN_UIScreen(), finished_(false) {}
-	bool key(const KeyInput &key) override;
+	bool key(const SCREEN_KeyInput &key) override;
 	void sendMessage(const char *msg, const char *value) override;
 
 private:
@@ -74,8 +74,8 @@ public:
 	virtual void CreatePopupContents(SCREEN_UI::ViewGroup *parent) = 0;
 	virtual void CreateViews() override;
 	virtual bool isTransparent() const override { return true; }
-	virtual bool touch(const TouchInput &touch) override;
-	virtual bool key(const KeyInput &key) override;
+	virtual bool touch(const SCREEN_TouchInput &touch) override;
+	virtual bool key(const SCREEN_KeyInput &key) override;
 	virtual void resized() override;
 
 	virtual void TriggerFinish(DialogResult result) override;

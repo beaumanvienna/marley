@@ -53,9 +53,9 @@ public:
 	virtual void postRender() {}
 	virtual void resized() {}
 	virtual void dialogFinished(const SCREEN_Screen *dialog, DialogResult result) {}
-	virtual bool touch(const TouchInput &touch) { return false;  }
-	virtual bool key(const KeyInput &key) { return false; }
-	virtual bool axis(const AxisInput &touch) { return false; }
+	virtual bool touch(const SCREEN_TouchInput &touch) { return false;  }
+	virtual bool key(const SCREEN_KeyInput &key) { return false; }
+	virtual bool axis(const SCREEN_AxisInput &touch) { return false; }
 	virtual void sendMessage(const char *msg, const char *value) {}
 	virtual void deviceLost() {}
 	virtual void deviceRestored() {}
@@ -74,7 +74,7 @@ public:
 	virtual bool isTransparent() const { return false; }
 	virtual bool isTopLevel() const { return false; }
 
-	virtual TouchInput transformTouch(const TouchInput &touch) { return touch; }
+	virtual SCREEN_TouchInput transformTouch(const SCREEN_TouchInput &touch) { return touch; }
 
 private:
 	SCREEN_ScreenManager *screenManager_;
@@ -130,9 +130,9 @@ public:
 	SCREEN_Screen *dialogParent(const SCREEN_Screen *dialog) const;
 
 	// Instant touch, separate from the update() mechanism.
-	bool touch(const TouchInput &touch);
-	bool key(const KeyInput &key);
-	bool axis(const AxisInput &touch);
+	bool touch(const SCREEN_TouchInput &touch);
+	bool key(const SCREEN_KeyInput &key);
+	bool axis(const SCREEN_AxisInput &touch);
 
 	// Generic facility for gross hacks :P
 	void sendMessage(const char *msg, const char *value);

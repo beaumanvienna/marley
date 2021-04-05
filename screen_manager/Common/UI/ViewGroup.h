@@ -26,9 +26,9 @@ public:
 	virtual ~ViewGroup();
 
 	// Pass through external events to children.
-	virtual bool Key(const KeyInput &input) override;
-	virtual void Touch(const TouchInput &input) override;
-	virtual void Axis(const AxisInput &input) override;
+	virtual bool Key(const SCREEN_KeyInput &input) override;
+	virtual void Touch(const SCREEN_TouchInput &input) override;
+	virtual void Axis(const SCREEN_AxisInput &input) override;
 
 	// By default, a container will layout to its own bounds.
 	virtual void Measure(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert) override = 0;
@@ -227,8 +227,8 @@ public:
 	void Measure(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert) override;
 	void Layout() override;
 
-	bool Key(const KeyInput &input) override;
-	void Touch(const TouchInput &input) override;
+	bool Key(const SCREEN_KeyInput &input) override;
+	void Touch(const SCREEN_TouchInput &input) override;
 	void Draw(SCREEN_UIContext &dc) override;
 	std::string Describe() const override { return "ScrollView: " + View::Describe(); }
 
@@ -281,7 +281,7 @@ public:
 
 	void HighlightChoice(unsigned int choice);
 
-	bool Key(const KeyInput &input) override;
+	bool Key(const SCREEN_KeyInput &input) override;
 
 	void SetTopTabs(bool tabs) { topTabs_ = tabs; }
 	void Draw(SCREEN_UIContext &dc) override;

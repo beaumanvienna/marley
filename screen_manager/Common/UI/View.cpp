@@ -226,7 +226,7 @@ void Clickable::FocusChanged(int focusFlags) {
 	}
 }
 
-void Clickable::Touch(const TouchInput &input) {
+void Clickable::Touch(const SCREEN_TouchInput &input) {
 	if (!IsEnabled()) {
 		dragging_ = false;
 		down_ = false;
@@ -257,7 +257,7 @@ void Clickable::Touch(const TouchInput &input) {
 	}
 }
 
-static bool MatchesKeyDef(const std::vector<SCREEN_KeyDef> &defs, const KeyInput &key) {
+static bool MatchesKeyDef(const std::vector<SCREEN_KeyDef> &defs, const SCREEN_KeyInput &key) {
 	// In addition to the actual search, we need to do another search where we replace the device ID with "ANY".
 	return
 		std::find(defs.begin(), defs.end(), SCREEN_KeyDef(key.deviceId, key.keyCode)) != defs.end() ||
@@ -266,7 +266,7 @@ static bool MatchesKeyDef(const std::vector<SCREEN_KeyDef> &defs, const KeyInput
 
 // TODO: O/X confirm preference for xperia play?
 
-bool IsDPadKey(const KeyInput &key) {
+bool IsDPadKey(const SCREEN_KeyInput &key) {
 	if (SCREEN_dpadKeys.empty()) {
 		return key.keyCode >= NKCODE_DPAD_UP && key.keyCode <= NKCODE_DPAD_RIGHT;
 	} else {
@@ -274,7 +274,7 @@ bool IsDPadKey(const KeyInput &key) {
 	}
 }
 
-bool IsAcceptKey(const KeyInput &key) {    
+bool IsAcceptKey(const SCREEN_KeyInput &key) {    
 	if (SCREEN_confirmKeys.empty()) {
 		// This path is pretty much not used, SCREEN_confirmKeys should be set.
 		// TODO: Get rid of this stuff?
@@ -288,7 +288,7 @@ bool IsAcceptKey(const KeyInput &key) {
 	}
 }
 
-bool IsEscapeKey(const KeyInput &key) {
+bool IsEscapeKey(const SCREEN_KeyInput &key) {
 	if (SCREEN_cancelKeys.empty()) {
 		// This path is pretty much not used, SCREEN_cancelKeys should be set.
 		// TODO: Get rid of this stuff?
@@ -302,7 +302,7 @@ bool IsEscapeKey(const KeyInput &key) {
 	}
 }
 
-bool IsTabLeftKey(const KeyInput &key) {
+bool IsTabLeftKey(const SCREEN_KeyInput &key) {
 	if (SCREEN_tabLeftKeys.empty()) {
 		// This path is pretty much not used, SCREEN_tabLeftKeys should be set.
 		// TODO: Get rid of this stuff?
@@ -312,7 +312,7 @@ bool IsTabLeftKey(const KeyInput &key) {
 	}
 }
 
-bool IsTabRightKey(const KeyInput &key) {
+bool IsTabRightKey(const SCREEN_KeyInput &key) {
 	if (SCREEN_tabRightKeys.empty()) {
 		// This path is pretty much not used, SCREEN_tabRightKeys should be set.
 		// TODO: Get rid of this stuff?
@@ -322,7 +322,7 @@ bool IsTabRightKey(const KeyInput &key) {
 	}
 }
 
-bool Clickable::Key(const KeyInput &key) {
+bool Clickable::Key(const SCREEN_KeyInput &key) {
 	if (!HasFocus() && key.deviceId != DEVICE_ID_MOUSE) {
 		down_ = false;
 		return false;
@@ -349,7 +349,7 @@ bool Clickable::Key(const KeyInput &key) {
 	return ret;
 }
 
-void StickyChoice::Touch(const TouchInput &input) {
+void StickyChoice::Touch(const SCREEN_TouchInput &input) {
 	dragging_ = false;
 	if (!IsEnabled()) {
 		down_ = false;
@@ -366,7 +366,7 @@ void StickyChoice::Touch(const TouchInput &input) {
 	}
 }
 
-bool StickyChoice::Key(const KeyInput &key) {
+bool StickyChoice::Key(const SCREEN_KeyInput &key) {
 	if (!HasFocus()) {
 		return false;
 	}
@@ -451,7 +451,7 @@ void ClickableItem::Draw(SCREEN_UIContext &dc) {
 	DrawBG(dc, style);
 }
 #define HOLD_TIME 1.5f
-bool Choice::Key(const KeyInput &key) {
+bool Choice::Key(const SCREEN_KeyInput &key) {
     if ((hasHoldFeature_) && (HasFocus() || (heldDown_)))
     {
         
@@ -1019,7 +1019,7 @@ static std::string FirstLine(const std::string &text) {
 	return text;
 }
 
-void TextEdit::Touch(const TouchInput &touch) {
+void TextEdit::Touch(const SCREEN_TouchInput &touch) {
 	if (touch.flags & TOUCH_DOWN) {
 		if (bounds_.Contains(touch.x, touch.y)) {
 			SetFocusedView(this, true);
@@ -1027,7 +1027,7 @@ void TextEdit::Touch(const TouchInput &touch) {
 	}
 }
 
-bool TextEdit::Key(const KeyInput &input) {
+bool TextEdit::Key(const SCREEN_KeyInput &input) {
 	if (!HasFocus())
 		return false;
 	bool textChanged = false;
@@ -1202,7 +1202,7 @@ void Spinner::Draw(SCREEN_UIContext &dc) {
 	}
 }
 
-void TriggerButton::Touch(const TouchInput &input) {
+void TriggerButton::Touch(const SCREEN_TouchInput &input) {
 	if (input.flags & TOUCH_DOWN) {
 		if (bounds_.Contains(input.x, input.y)) {
 			down_ |= 1 << input.id;
@@ -1235,7 +1235,7 @@ void TriggerButton::GetContentDimensions(const SCREEN_UIContext &dc, float &w, f
 	dc.Draw()->GetAtlas()->measureImage(imageBackground_, &w, &h);
 }
 
-bool Slider::Key(const KeyInput &input) {
+bool Slider::Key(const SCREEN_KeyInput &input) {
 	if (HasFocus() && (input.flags & (KEY_DOWN | KEY_IS_REPEAT)) == KEY_DOWN) {
 		if (ApplyKey(input.keyCode)) {
 			Clamp();
@@ -1282,7 +1282,7 @@ bool Slider::ApplyKey(int keyCode) {
 	return true;
 }
 
-void Slider::Touch(const TouchInput &input) {
+void Slider::Touch(const SCREEN_TouchInput &input) {
 	// Calling it afterwards, so dragging_ hasn't been set false yet when checking it above.
 	Clickable::Touch(input);
 	if (dragging_) {
@@ -1350,7 +1350,7 @@ void Slider::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h
 	h = 50;
 }
 
-bool SliderFloat::Key(const KeyInput &input) {
+bool SliderFloat::Key(const SCREEN_KeyInput &input) {
 	if (HasFocus() && (input.flags & (KEY_DOWN | KEY_IS_REPEAT)) == KEY_DOWN) {
 		if (ApplyKey(input.keyCode)) {
 			Clamp();
@@ -1397,7 +1397,7 @@ bool SliderFloat::ApplyKey(int keyCode) {
 	return true;
 }
 
-void SliderFloat::Touch(const TouchInput &input) {
+void SliderFloat::Touch(const SCREEN_TouchInput &input) {
 	Clickable::Touch(input);
 	if (dragging_) {
 		float relativeX = (input.x - (bounds_.x + paddingLeft_)) / (bounds_.w - paddingLeft_ - paddingRight_);

@@ -91,7 +91,7 @@ int SCREEN_getDisplayNumber(void) {
 }
 
 void SCREEN_sdl_mixaudio_callback(void *userdata, Uint8 *stream, int len) {
-    NativeMix((short *)stream, len / (2 * 2));
+    SCREEN_NativeMix((short *)stream, len / (2 * 2));
 }
 
 static SDL_AudioDeviceID SCREEN_audioDev = 0;
@@ -547,7 +547,7 @@ int screen_manager_main(int argc, char *argv[]) {
                     } else
                     {
                         int k = event.key.keysym.sym;
-                        KeyInput key;
+                        SCREEN_KeyInput key;
                         key.flags = KEY_DOWN;
                         auto mapped = KeyMapRawSDLtoNative.find(k);
                         if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {
@@ -573,7 +573,7 @@ int screen_manager_main(int argc, char *argv[]) {
                     } else
                     {
                         int k = event.key.keysym.sym;
-                        KeyInput key;
+                        SCREEN_KeyInput key;
                         key.flags = KEY_UP;
                         auto mapped = KeyMapRawSDLtoNative.find(k);
                         if (mapped == KeyMapRawSDLtoNative.end() || mapped->second == NKCODE_UNKNOWN) {

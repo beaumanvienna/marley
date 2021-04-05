@@ -51,7 +51,7 @@ class SCREEN_MainScreen : public SCREEN_UIDialogScreenWithBackground {
 public:
     SCREEN_MainScreen();
     virtual ~SCREEN_MainScreen();
-    bool key(const KeyInput &key) override;
+    bool key(const SCREEN_KeyInput &key) override;
     void update() override;
     void onFinish(DialogResult result) override;
     std::string tag() const override { return "settings"; }

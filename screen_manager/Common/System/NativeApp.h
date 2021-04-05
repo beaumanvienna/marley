@@ -10,9 +10,9 @@
 // more complicated.
 
 // These are defined in Common/Input/InputState.cpp
-struct TouchInput;
-struct KeyInput;
-struct AxisInput;
+struct SCREEN_TouchInput;
+struct SCREEN_KeyInput;
+struct SCREEN_AxisInput;
 
 class SCREEN_GraphicsContext;
 
@@ -63,9 +63,9 @@ void SCREEN_NativeUpdate();
 // Useful for triggering audio events, saving a few ms.
 // If you don't care about touch latency, just do a no-op implementation of this.
 // time is not yet implemented. finger can be from 0 to 7, inclusive.
-bool SCREEN_NativeTouch(const TouchInput &touch);
-bool SCREEN_NativeKey(const KeyInput &key);
-bool SCREEN_NativeAxis(const AxisInput &axis);
+bool SCREEN_NativeTouch(const SCREEN_TouchInput &touch);
+bool SCREEN_NativeKey(const SCREEN_KeyInput &key);
+bool SCREEN_NativeAxis(const SCREEN_AxisInput &axis);
 
 // Called when it's time to render. If the device can keep up, this
 // will also be called sixty times per second. Main thread.
@@ -78,8 +78,8 @@ void SCREEN_NativeRender(SCREEN_GraphicsContext *graphicsContext);
 // the rest of the game, so be careful with synchronization.
 // Returns the number of samples actually output. The app should do everything it can
 // to fill the buffer completely.
-int NativeMix(short *audio, int num_samples);
-void NativeSetMixer(void* mixer);
+int SCREEN_NativeMix(short *audio, int num_samples);
+void SCREEN_NativeSetMixer(void* mixer);
 
 // Called when it's time to shutdown. After this has been called,
 // no more calls to any other function will be made from the framework

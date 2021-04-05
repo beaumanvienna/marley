@@ -633,7 +633,7 @@ void SCREEN_LogoScreen::sendMessage(const char *message, const char *value) {
 */
 }
 
-bool SCREEN_LogoScreen::key(const KeyInput &key) {
+bool SCREEN_LogoScreen::key(const SCREEN_KeyInput &key) {
     if (key.deviceId != DEVICE_ID_MOUSE) {
         Next();
         return true;
@@ -641,7 +641,7 @@ bool SCREEN_LogoScreen::key(const KeyInput &key) {
     return false;
 }
 
-bool SCREEN_LogoScreen::touch(const TouchInput &touch) {
+bool SCREEN_LogoScreen::touch(const SCREEN_TouchInput &touch) {
     if (touch.flags & TOUCH_DOWN) {
         Next();
         return true;

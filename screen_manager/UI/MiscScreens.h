@@ -180,8 +180,8 @@ class SCREEN_LogoScreen : public SCREEN_UIScreen {
 public:
     SCREEN_LogoScreen(bool gotoGameSettings = false)
         : gotoGameSettings_(gotoGameSettings) {}
-    bool key(const KeyInput &key) override;
-    bool touch(const TouchInput &touch) override;
+    bool key(const SCREEN_KeyInput &key) override;
+    bool touch(const SCREEN_TouchInput &touch) override;
     void update() override;
     void render() override;
     void sendMessage(const char *message, const char *value) override;

@@ -163,7 +163,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 		if (event.cbutton.state == SDL_PRESSED) {
 			auto code = getKeycodeForButton((SDL_GameControllerButton)event.cbutton.button);
 			if (code != NKCODE_UNKNOWN) {
-				KeyInput key;
+				SCREEN_KeyInput key;
 				key.flags = KEY_DOWN;
 				key.keyCode = code;
 				key.deviceId = DEVICE_ID_PAD_0 + getDeviceIndex(event.cbutton.which);
@@ -175,7 +175,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 		if (event.cbutton.state == SDL_RELEASED) {
 			auto code = getKeycodeForButton((SDL_GameControllerButton)event.cbutton.button);
 			if (code != NKCODE_UNKNOWN) {
-				KeyInput key;
+				SCREEN_KeyInput key;
 				key.flags = KEY_UP;
 				key.keyCode = code;
 				key.deviceId = DEVICE_ID_PAD_0 + getDeviceIndex(event.cbutton.which);
@@ -184,7 +184,7 @@ void SCREEN_SDLJoystick::ProcessInput(SDL_Event &event){
 		}
 		break;
 	case SDL_CONTROLLERAXISMOTION:
-		AxisInput axis;
+		SCREEN_AxisInput axis;
 		axis.axisId = event.caxis.axis;
 		// 1.2 to try to approximate the PSP's clamped rectangular range.
 		axis.value = 1.2 * event.caxis.value * 1.0f / 32767.0f;

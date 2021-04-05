@@ -186,7 +186,7 @@ static std::set<HeldKey> heldKeys;
 const double repeatDelay = 15 * (1.0 / 60.0f);  // 15 frames like before.
 const double repeatInterval = 5 * (1.0 / 60.0f);  // 5 frames like before.
 
-bool KeyEvent(const KeyInput &key, ViewGroup *root) {
+bool KeyEvent(const SCREEN_KeyInput &key, ViewGroup *root) {
 	bool retval = false;
 	// Ignore repeats for focus moves.
 	if ((key.flags & (KEY_DOWN | KEY_IS_REPEAT)) == KEY_DOWN) {
@@ -244,7 +244,7 @@ restart:
 
 	for (std::set<HeldKey>::iterator iter = heldKeys.begin(); iter != heldKeys.end(); ++iter) {
 		if (iter->triggerTime < now) {
-			KeyInput key;
+			SCREEN_KeyInput key;
 			key.keyCode = iter->key;
 			key.deviceId = iter->deviceId;
 			key.flags = KEY_DOWN;
@@ -263,7 +263,7 @@ restart:
 	}
 }
 
-bool TouchEvent(const TouchInput &touch, ViewGroup *root) {
+bool TouchEvent(const SCREEN_TouchInput &touch, ViewGroup *root) {
 	focusForced = false;
 	root->Touch(touch);
 	if ((touch.flags & TOUCH_DOWN) && !focusForced) {
@@ -272,7 +272,7 @@ bool TouchEvent(const TouchInput &touch, ViewGroup *root) {
 	return true;
 }
 
-bool AxisEvent(const AxisInput &axis, ViewGroup *root) {
+bool AxisEvent(const SCREEN_AxisInput &axis, ViewGroup *root) {
 	enum class SCREEN_DirState {
 		NONE = 0,
 		POS = 1,
@@ -304,14 +304,14 @@ bool AxisEvent(const AxisInput &axis, ViewGroup *root) {
 		if (old == cur)
 			return;
 		if (old == SCREEN_DirState::POS) {
-			KeyEvent(KeyInput{ DEVICE_ID_KEYBOARD, pos_key, KEY_UP }, root);
+			KeyEvent(SCREEN_KeyInput{ DEVICE_ID_KEYBOARD, pos_key, KEY_UP }, root);
 		} else if (old == SCREEN_DirState::NEG) {
-			KeyEvent(KeyInput{ DEVICE_ID_KEYBOARD, neg_key, KEY_UP }, root);
+			KeyEvent(SCREEN_KeyInput{ DEVICE_ID_KEYBOARD, neg_key, KEY_UP }, root);
 		}
 		if (cur == SCREEN_DirState::POS) {
-			KeyEvent(KeyInput{ DEVICE_ID_KEYBOARD, pos_key, KEY_DOWN }, root);
+			KeyEvent(SCREEN_KeyInput{ DEVICE_ID_KEYBOARD, pos_key, KEY_DOWN }, root);
 		} else if (cur == SCREEN_DirState::NEG) {
-			KeyEvent(KeyInput{ DEVICE_ID_KEYBOARD, neg_key, KEY_DOWN }, root);
+			KeyEvent(SCREEN_KeyInput{ DEVICE_ID_KEYBOARD, neg_key, KEY_DOWN }, root);
 		}
 	};
 

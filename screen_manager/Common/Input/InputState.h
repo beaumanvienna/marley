@@ -118,7 +118,7 @@ enum {
 // Used for asynchronous touch input.
 // DOWN is always on its own. 
 // MOVE and UP can be combined.
-struct TouchInput {
+struct SCREEN_TouchInput {
 	float x;
 	float y;
 	int id; // Needs to be <= GestureDetector::MAX_PTRS (10.)
@@ -137,15 +137,15 @@ enum {
 	KEY_CHAR = 1 << 4,  // Unicode character input. Cannot detect keyups of these so KEY_DOWN and KEY_UP are zero when this is set.
 };
 
-struct KeyInput {
-	KeyInput() {}
-	KeyInput(int devId, int code, int fl) : deviceId(devId), keyCode(code), flags(fl) {}
+struct SCREEN_KeyInput {
+	SCREEN_KeyInput() {}
+	SCREEN_KeyInput(int devId, int code, int fl) : deviceId(devId), keyCode(code), flags(fl) {}
 	int deviceId;
 	int keyCode;  // Android keycodes are the canonical keycodes, everyone else map to them.
 	int flags;
 };
 
-struct AxisInput {
+struct SCREEN_AxisInput {
 	int deviceId;
 	int axisId;  // Android axis Ids are the canonical ones.
 	float value;

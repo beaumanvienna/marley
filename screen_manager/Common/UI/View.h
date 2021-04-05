@@ -25,9 +25,9 @@
 
 #undef small
 extern int gTheme;
-struct KeyInput;
-struct TouchInput;
-struct AxisInput;
+struct SCREEN_KeyInput;
+struct SCREEN_TouchInput;
+struct SCREEN_AxisInput;
 
 struct SCREEN_ImageID;
 
@@ -354,9 +354,9 @@ public:
 	// Please note that Touch is called ENTIRELY asynchronously from drawing!
 	// Can even be called on a different thread! This is to really minimize latency, and decouple
 	// touch response from the frame rate. Same with Key and Axis.
-	virtual bool Key(const KeyInput &input) { return false; }
-	virtual void Touch(const TouchInput &input) {}
-	virtual void Axis(const AxisInput &input) {}
+	virtual bool Key(const SCREEN_KeyInput &input) { return false; }
+	virtual void Touch(const SCREEN_TouchInput &input) {}
+	virtual void Axis(const SCREEN_AxisInput &input) {}
 	virtual void Update();
 
 	virtual void DeviceLost() {}
@@ -477,8 +477,8 @@ public:
 	InertView(LayoutParams *layoutParams)
 		: View(layoutParams) {}
 
-	bool Key(const KeyInput &input) override { return false; }
-	void Touch(const TouchInput &input) override {}
+	bool Key(const SCREEN_KeyInput &input) override { return false; }
+	void Touch(const SCREEN_TouchInput &input) override {}
 	bool CanBeFocused() const override { return false; }
 };
 
@@ -488,8 +488,8 @@ class Clickable : public View {
 public:
 	Clickable(LayoutParams *layoutParams);
 
-	bool Key(const KeyInput &input) override;
-	void Touch(const TouchInput &input) override;
+	bool Key(const SCREEN_KeyInput &input) override;
+	void Touch(const SCREEN_TouchInput &input) override;
 
 	void FocusChanged(int focusFlags) override;
 
@@ -551,8 +551,8 @@ public:
 		step_ = step <= 0 ? 1 : step;
 	}
 	void Draw(SCREEN_UIContext &dc) override;
-	bool Key(const KeyInput &input) override;
-	void Touch(const TouchInput &input) override;
+	bool Key(const SCREEN_KeyInput &input) override;
+	void Touch(const SCREEN_TouchInput &input) override;
 	void Update() override;
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 	void SetShowPercent(bool s) { showPercent_ = s; }
@@ -581,8 +581,8 @@ public:
 	SliderFloat(float *value, float minValue, float maxValue, LayoutParams *layoutParams = 0)
 		: Clickable(layoutParams), value_(value), minValue_(minValue), maxValue_(maxValue), paddingLeft_(5), paddingRight_(70), repeat_(-1) {}
 	void Draw(SCREEN_UIContext &dc) override;
-	bool Key(const KeyInput &input) override;
-	void Touch(const TouchInput &input) override;
+	bool Key(const SCREEN_KeyInput &input) override;
+	void Touch(const SCREEN_TouchInput &input) override;
 	void Update() override;
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 
@@ -610,7 +610,7 @@ public:
 	TriggerButton(uint32_t *bitField, uint32_t bit, SCREEN_ImageID imageBackground, SCREEN_ImageID imageForeground, LayoutParams *layoutParams)
 		: View(layoutParams), down_(0.0), bitField_(bitField), bit_(bit), imageBackground_(imageBackground), imageForeground_(imageForeground) {}
 
-	void Touch(const TouchInput &input) override;
+	void Touch(const SCREEN_TouchInput &input) override;
 	void Draw(SCREEN_UIContext &dc) override;
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 
@@ -672,7 +672,7 @@ public:
                         image_active_(image_active), image_depressed_(image_depressed), image_depressed_inactive_(image_depressed_inactive) {numIcons_=4;}
     Event OnHold;
     Event OnHighlight;
-    bool Key(const KeyInput &input) override;
+    bool Key(const SCREEN_KeyInput &input) override;
     void Update() override;
 	void Click() override;
 	virtual void HighlightChanged(bool highlighted);
@@ -716,8 +716,8 @@ public:
     StickyChoice(SCREEN_ImageID icon, SCREEN_ImageID icon_active, SCREEN_ImageID icon_depressed, SCREEN_ImageID icon_depressed_inactive, const std::string &text, LayoutParams *layoutParams = 0)
 		: Choice(icon, icon_active, icon_depressed, icon_depressed_inactive, text, layoutParams) {}
 
-	bool Key(const KeyInput &key) override;
-	void Touch(const TouchInput &touch) override;
+	bool Key(const SCREEN_KeyInput &key) override;
+	void Touch(const SCREEN_TouchInput &touch) override;
 	void FocusChanged(int focusFlags) override;
 
 	void Press() { down_ = true; dragging_ = false;  }
@@ -876,8 +876,8 @@ public:
 
 	void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override;
 	void Draw(SCREEN_UIContext &dc) override;
-	bool Key(const KeyInput &key) override;
-	void Touch(const TouchInput &touch) override;
+	bool Key(const SCREEN_KeyInput &key) override;
+	void Touch(const SCREEN_TouchInput &touch) override;
 
 	Event OnTextChange;
 	Event OnEnter;
@@ -958,10 +958,10 @@ private:
 
 void MeasureBySpec(Size sz, float contentWidth, MeasureSpec spec, float *measured);
 
-bool IsDPadKey(const KeyInput &key);
-bool IsAcceptKey(const KeyInput &key);
-bool IsEscapeKey(const KeyInput &key);
-bool IsTabLeftKey(const KeyInput &key);
-bool IsTabRightKey(const KeyInput &key);
+bool IsDPadKey(const SCREEN_KeyInput &key);
+bool IsAcceptKey(const SCREEN_KeyInput &key);
+bool IsEscapeKey(const SCREEN_KeyInput &key);
+bool IsTabLeftKey(const SCREEN_KeyInput &key);
+bool IsTabRightKey(const SCREEN_KeyInput &key);
 
 }  // namespace

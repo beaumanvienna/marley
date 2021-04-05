@@ -74,7 +74,7 @@ void SCREEN_ScreenManager::switchToNext() {
 	nextStack_.clear();
 }
 
-bool SCREEN_ScreenManager::touch(const TouchInput &touch) {
+bool SCREEN_ScreenManager::touch(const SCREEN_TouchInput &touch) {
 	std::lock_guard<std::recursive_mutex> guard(inputLock_);
 	bool result = false;
 	// Send release all events to every screen layer.
@@ -90,7 +90,7 @@ bool SCREEN_ScreenManager::touch(const TouchInput &touch) {
 	return result;
 }
 
-bool SCREEN_ScreenManager::key(const KeyInput &key) {
+bool SCREEN_ScreenManager::key(const SCREEN_KeyInput &key) {
 	std::lock_guard<std::recursive_mutex> guard(inputLock_);
 	bool result = false;
 	// Send key up to every screen layer.
@@ -104,7 +104,7 @@ bool SCREEN_ScreenManager::key(const KeyInput &key) {
 	return result;
 }
 
-bool SCREEN_ScreenManager::axis(const AxisInput &axis) {
+bool SCREEN_ScreenManager::axis(const SCREEN_AxisInput &axis) {
 	std::lock_guard<std::recursive_mutex> guard(inputLock_);
 	bool result = false;
 	// Send center axis to every screen layer.
@@ -181,7 +181,7 @@ void SCREEN_ScreenManager::sendMessage(const char *msg, const char *value) {
 	if (!strcmp(msg, "recreateviews"))
 		RecreateAllViews();
 	if (!strcmp(msg, "lost_focus")) {
-		TouchInput input;
+		SCREEN_TouchInput input;
 		input.flags = TOUCH_RELEASE_ALL;
 		input.timestamp = time_now_d();
 		input.id = 0;
@@ -217,7 +217,7 @@ void SCREEN_ScreenManager::push(SCREEN_Screen *screen, int layerFlags) {
 
 	// Release touches and unfocus.
 	SCREEN_UI::SetFocusedView(nullptr);
-	TouchInput input;
+	SCREEN_TouchInput input;
 	input.flags = TOUCH_RELEASE_ALL;
 	input.timestamp = time_now_d();
 	input.id = 0;

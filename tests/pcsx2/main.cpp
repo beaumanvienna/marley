@@ -19,7 +19,7 @@ int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 750;
 
 int pcsx2_main(int argc, char* argv[]);
-
+int pcsx2_window_tear_down_auto_request=0;
 
 SDL_Joystick* gGamepad[MAX_GAMEPADS_PLUGGED];
 int devicesPerType[] = {CTRL_TYPE_STD_DEVICES,CTRL_TYPE_WIIMOTE_DEVICES};
