@@ -35,7 +35,7 @@ option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
-option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
+option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:

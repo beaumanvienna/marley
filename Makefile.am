@@ -145,7 +145,6 @@ dolphin/build/Source/Core/../../Externals/bzip2/libbzip2.a: dolphin
 dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a: dolphin
 dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a: dolphin
 dolphin/build/Source/Core/../../Externals/minizip/libminizip.a: dolphin
-dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a: dolphin
 
 dolphin:
 	$(info   ++++++++++++++++ dolphin ++++++++++++++++)
@@ -161,7 +160,6 @@ PPSSPP_LD = \
 	ppsspp/build/lib/liblibzip.a \
 	ppsspp/build/lib/libspirv-cross-cpp.a \
 	ppsspp/build/lib/libspirv-cross-glsl.a \
-	ppsspp/build/lib/libdiscord-rpc.a \
 	ppsspp/build/lib/libudis86.a \
 	ppsspp/build/lib/libOSDependent.a \
 	ppsspp/build/lib/libspirv-cross-core.a \
@@ -239,7 +237,6 @@ marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/bzip2/libbzip2.a
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/Bochs_disasm/libbdisasm.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/minizip/libminizip.a 
-marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/discord-rpc/src/libdiscord-rpc.a  
 marley_LDADD 	+= dolphin/build/Source/Core/DolphinNoGUI/libdolphin-emu-nogui.a
 marley_LDADD 	+= dolphin/build/Source/Core/UICommon/libuicommon.a 
 marley_LDADD 	+= dolphin/build/Source/Core/../../Externals/cpp-optparse/libcpp-optparse.a 

@@ -117,7 +117,7 @@ option(SIMULATOR "Set to ON when targeting an x86 simulator of an ARM platform" 
 option(LIBRETRO "Set to ON to generate the libretro target" OFF)
 # :: Options
 option(USE_FFMPEG "Build with FFMPEG support" ON)
-option(USE_DISCORD "Build with Discord support" ON)
+option(USE_DISCORD "Build with Discord support" OFF)
 option(USE_MINIUPNPC "Build with miniUPnPc support" ON)
 option(USE_SYSTEM_SNAPPY "Dynamically link against system snappy" ${USE_SYSTEM_SNAPPY})
 option(USE_SYSTEM_FFMPEG "Dynamically link against system FFMPEG" ${USE_SYSTEM_FFMPEG})
