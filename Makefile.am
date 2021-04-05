@@ -68,11 +68,11 @@ bin_PROGRAMS 	= marley
 marley_SOURCES 	= src/marley.cpp src/gui.cpp src/controller.cpp src/statemachine.cpp src/emu.cpp src/wii.cpp resources/res.cpp src/mdf2iso.cpp
 
 #generate built-in resources
-BUILT_SOURCES = resources/res.cpp
-resources/res.cpp: resources/res.xml resources/res.h @RESOURCE_LIST@ 
+RESOURCE_LIST= resources/../pictures/PS4-DualShock.bmp resources/marley.ico resources/mupen64plus-core/data/font.ttf resources/../pictures/Xbox-360-S-Controller.bmp resources/../pictures/shutdown_inactive.bmp resources/../pictures/Off_inactive.bmp resources/../pictures/path_to_games.bmp resources/../pictures/Setup.bmp resources/../pictures/path_to_fw.bmp resources/../pictures/PS3-DualShock.bmp resources/dolphin_data_sys.zip resources/settings_general.png resources/../pictures/Wiimote.bmp resources/../pictures/path_to_games_inactive.bmp resources/../pictures/generic-controller.bmp resources/../pictures/noController.bmp resources/../pictures/noGames.bmp resources/../pictures/beach.bmp resources/../pictures/firmware_PSX.bmp resources/../pictures/Setup_inactive.bmp resources/../pictures/config_inactive.bmp resources/splash_spritesheet.png resources/../pictures/rudder_grey.bmp resources/marley.desktop resources/../pictures/rudder.bmp resources/../pictures/shutdown.bmp resources/../pictures/barrel.bmp resources/../pictures/path_to_fw_inactive.bmp resources/../pictures/splash.bmp resources/../pictures/Play_inactive.bmp resources/dejavu-fonts-ttf/DejaVuSansMono-Bold.ttf resources/beach.png resources/wind.ogg resources/ppsspp_assets.zip resources/settings_pcsx2.png resources/../pictures/Off.bmp resources/splash_overlay.png resources/settings_dolphin.png resources/../pictures/Play.bmp resources/gamecontrollerdb.txt resources/../pictures/config.bmp resources/../pictures/SNES-controller.bmp
+resources/res.cpp: resources/res.xml resources/res.h $(RESOURCE_LIST)
 	glib-compile-resources resources/res.xml --target=resources/res.cpp --sourcedir=resources/ --generate-source
 
-resources/res.h: resources/res.xml @RESOURCE_LIST@ resources/ppsspp_assets.zip resources/dolphin_data_sys.zip
+resources/res.h: resources/res.xml $(RESOURCE_LIST) resources/ppsspp_assets.zip resources/dolphin_data_sys.zip
 	glib-compile-resources resources/res.xml --target=resources/res.h --sourcedir=resources/ --generate-header
 
 ppsspp/ext/native/tools/build/atlastool: ppsspp/assets/ui_atlas.zim

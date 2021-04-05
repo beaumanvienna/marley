@@ -92,7 +92,7 @@ PCSX2_USE_GTK3_GENTOO_FALSE=
 fi
 
 #resource system
-RESOURCE_LIST="\$(shell \$(glib-compile-resources --sourcedir= --generate-dependencies resources/res.xml))"
+# does not work because glib-compile-res outputs local paths    RESOURCE_LIST="\$(shell \$(glib-compile-resources --sourcedir= --generate-dependencies resources/res.xml))"
 AC_SUBST([RESOURCE_LIST])
 
 #run all configure scripts
