@@ -121,9 +121,11 @@ std::string SCREEN_NativeQueryConfig(std::string query) {
 
     return "";
 }
-
-int SCREEN_AudioMix(short *outstereo, int numFrames, int sampleRate) {
-    return 1024;
+int __AudioMix(short *outstereo, int numFrames, int sampleRate);
+int SCREEN_AudioMix(short *outstereo, int numFrames, int sampleRate) 
+{    
+    // tmp fix: use ppsspp
+    return __AudioMix(outstereo, numFrames, sampleRate);
 }
 
 int SCREEN_NativeMix(short *audio, int num_samples) {

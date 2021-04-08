@@ -1105,13 +1105,13 @@ SCREEN_UI::TextView* biosInfo(std::string infoText, bool biosFound)
     if (biosFound) 
     {
         bios_found_info = new SCREEN_UI::TextView("            " + infoText + ": found", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 32.0f, 1.0f));
+                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
         bios_found_info->SetTextColor(okColor);
     }
     else
     {
         bios_found_info = new SCREEN_UI::TextView("            " + infoText + ": not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 32.0f, 1.0f));
+                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
         bios_found_info->SetTextColor(warningColor);
     }
     bios_found_info->SetShadow(false);
@@ -1130,15 +1130,15 @@ void SCREEN_SettingsScreen::CreateViews() {
     root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 
     LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
-    const float stripSize = 204.0f; // the tab icon has a width of 204
+    const float stripSize = f204; // the tab icon has a width of 204
     
     // calculate left margin
     const float xres = static_cast< float > (dp_xres);
     const float barSize = stripSize*6;
     float tabLeftMargin = 0.0f;
     
-    if (xres > (barSize+4)) { // if a margin fits on the screen
-        tabLeftMargin = (xres - barSize -4)/2; // equal margin on the left and right 
+    if (xres > (barSize+f4)) { // if a margin fits on the screen
+        tabLeftMargin = (xres - barSize - f4)/2; // equal margin on the left and right 
     }
     
     tabHolder = new TabHolder(ORIENT_HORIZONTAL, stripSize, new LinearLayoutParams(1.0f), tabLeftMargin);
@@ -1160,11 +1160,11 @@ void SCREEN_SettingsScreen::CreateViews() {
         icon = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_BACK_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     } else
     {
         icon = SCREEN_ImageID("I_BACK");
-        verticalLayout->Add(new Choice(icon, new LayoutParams(128.0f, 128.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        verticalLayout->Add(new Choice(icon, new LayoutParams(f128, f128)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
     }
     root_->Add(verticalLayout);
 
@@ -1172,18 +1172,18 @@ void SCREEN_SettingsScreen::CreateViews() {
     root_->SetDefaultFocusView(tabHolder);
 
     // info message
-    float leftSide = 40.0f;
-    settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - 160.0f, WRAP_CONTENT, 140.0f, dp_yres - 80.0f - 40.0f, NONE, NONE));
-    settingsInfo_->SetBottomCutoff(dp_yres - 200.0f);
+    float leftSide = f40;
+    settingsInfo_ = new SCREEN_SettingsInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - f160, WRAP_CONTENT, f140, dp_yres - f80 - f40, NONE, NONE));
+    settingsInfo_->SetBottomCutoff(dp_yres - f200);
     root_->Add(settingsInfo_);
 
     // horizontal layout for margins
-    LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutSearch = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("Search"), horizontalLayoutSearch);
-    horizontalLayoutSearch->Add(new Spacer(10.0f));
+    horizontalLayoutSearch->Add(new Spacer(f10));
     
     // -------- search --------
-    ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *searchSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutSearch->Add(searchSettingsScroll);
     searchSettingsScroll->SetTag("SearchSettings");
     LinearLayout *searchSettings = new LinearLayout(ORIENT_VERTICAL);
@@ -1199,29 +1199,29 @@ void SCREEN_SettingsScreen::CreateViews() {
     searchSettings->Add(searchDirBrowser);
     
     // bios info
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     
     searchSettings->Add(biosInfo("PS1 bios file for North America",found_na_ps1));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("PS1 bios file for Japan",found_jp_ps1));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("PS1 bios file for Europe",found_eu_ps1));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("PS2 bios file for North America",found_na_ps2));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("PS2 bios file for Japan",found_jp_ps2));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("PS2 bios file for Europe",found_eu_ps2));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
     searchSettings->Add(biosInfo("Sega Saturn bios file",gSegaSaturn_firmware));
-    searchSettings->Add(new Spacer(32.0f));
+    searchSettings->Add(new Spacer(f32));
     
 
     // -------- delete search path entry --------
@@ -1249,29 +1249,29 @@ void SCREEN_SettingsScreen::CreateViews() {
     //controller setup
     
     // horizontal layout for margins
-    LinearLayout *horizontalLayoutController = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutController = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("Controller"), horizontalLayoutController);
     float leftMargin = dp_xres/8;
     horizontalLayoutController->Add(new Spacer(leftMargin));
     
     // -------- controller setup --------
-    ViewGroup *controllerSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *controllerSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutController->Add(controllerSettingsScroll);
     controllerSettingsScroll->SetTag("ControllerSettings");
     LinearLayout *controllerSettings = new LinearLayout(ORIENT_VERTICAL);
     controllerSettings->SetSpacing(0);
     controllerSettingsScroll->Add(controllerSettings);
-    controllerSettings->Add(new Spacer(0.0f,10.0f));
+    controllerSettings->Add(new Spacer(0.0f,f10));
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
-    double verticalSpace = (dp_yres-256.0f)/2;
+    double verticalSpace = (dp_yres-f256)/2;
     updateControllerText = false;
     
     if (!controllerPlugged)
     {
-        controllerSettings->Add(new Spacer(verticalSpace+64.0f));
+        controllerSettings->Add(new Spacer(verticalSpace+f64));
         TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
+                                    true, new LinearLayoutParams(gFileBrowserWidth, f64));
         if (gTheme == THEME_RETRO) 
         {
             noController->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
@@ -1287,7 +1287,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         controllerSettings->Add(controller_horizontal);
         
         // setup button
-        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(f128,verticalSpace));
         controller_horizontal->Add(v);
         SCREEN_ImageID icon, icon_active, icon_depressed;
         Choice* setupButton;
@@ -1296,28 +1296,28 @@ void SCREEN_SettingsScreen::CreateViews() {
             icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
             icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
             icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
-            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
         } else
         {
             icon = SCREEN_ImageID("I_GEAR");
-            setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+            setupButton = new Choice(icon, new LayoutParams(f128, f128));
         }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup1);
-        v->Add(new Spacer(20.0f,(verticalSpace-128.0f)/2));
+        v->Add(new Spacer(f20,(verticalSpace-f128)/2));
         v->Add(setupButton);
-        controller_horizontal->Add(new Spacer(44.0f));
+        controller_horizontal->Add(new Spacer(f44));
         
         // text view 'instruction'
-        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-44.0f,verticalSpace));
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f44,verticalSpace));
         controller_horizontal->Add(vt);
         vt->SetSpacing(0.0f);
         double offset = 0.0f;
-        if (gControllerConf) offset = 30.0f;
+        if (gControllerConf) offset = f30;
         text_setup1 = new TextView((gControllerConfNum==CONTROLLER_1) ? "press dpad up" : "Start controller setup (1)", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace-offset));
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f20, verticalSpace-offset));
         // text view 'skip button with return'
         text_setup1b = new TextView((gControllerConfNum==CONTROLLER_1) ? "(or use ENTER to skip this button)" : "", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f20, f30));
         if (gTheme == THEME_RETRO) 
         {
             text_setup1->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
@@ -1327,7 +1327,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         }
         vt->Add(text_setup1);
         if (gControllerConf) vt->Add(text_setup1b);
-        controller_horizontal->Add(new Spacer(44.0f));
+        controller_horizontal->Add(new Spacer(f44));
         
         // controller pic
         std::string name = gDesignatedControllers[0].name[0];
@@ -1351,7 +1351,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         controllerSettings->Add(controller_horizontal);
         
         // setup button
-        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(128.0f,verticalSpace));
+        LinearLayout *v = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(f128,verticalSpace));
         controller_horizontal->Add(v);
         SCREEN_ImageID icon, icon_active, icon_depressed;
         Choice* setupButton;
@@ -1360,28 +1360,28 @@ void SCREEN_SettingsScreen::CreateViews() {
             icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
             icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
             icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+            setupButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
         } else
         { 
             icon = SCREEN_ImageID("I_GEAR");
-            setupButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+            setupButton = new Choice(icon, new LayoutParams(f128, f128));
         }
         setupButton->OnClick.Handle(this, &SCREEN_SettingsScreen::OnStartSetup2);
-        v->Add(new Spacer(20.0f,(verticalSpace-128.0f)/2));
+        v->Add(new Spacer(f20,(verticalSpace-f128)/2));
         v->Add(setupButton);
-        controller_horizontal->Add(new Spacer(44.0f));
+        controller_horizontal->Add(new Spacer(f44));
         
         // text view 'instruction'
-        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-44.0f,verticalSpace));
+        LinearLayout *vt = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f44,verticalSpace));
         controller_horizontal->Add(vt);
         vt->SetSpacing(0.0f);
         double offset = 0.0f;
-        if (gControllerConf) offset = 30.0f;
+        if (gControllerConf) offset = f30;
         text_setup2 = new TextView((gControllerConfNum==CONTROLLER_2) ? "press dpad up" : "Start controller setup (2)", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, verticalSpace-offset));
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f20, verticalSpace-offset));
         // text view 'skip button with return'
         text_setup2b = new TextView((gControllerConfNum==CONTROLLER_2) ? "(or use ENTER to skip this button)" : "", ALIGN_VCENTER | ALIGN_HCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-128.0f-20, 30));
+                                    true, new LinearLayoutParams(dp_xres-leftMargin-leftMargin-verticalSpace-f128-f20, f30));
         if (gTheme == THEME_RETRO) 
         {
             text_setup2->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
@@ -1391,7 +1391,7 @@ void SCREEN_SettingsScreen::CreateViews() {
         }
         vt->Add(text_setup2);
         if (gControllerConf) vt->Add(text_setup2b);
-        controller_horizontal->Add(new Spacer(44.0f));
+        controller_horizontal->Add(new Spacer(f44));
         
         // controller pic
         std::string name = gDesignatedControllers[1].name[0];
@@ -1408,16 +1408,16 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- Dolphin --------
     
     // horizontal layout for margins
-    LinearLayout *horizontalLayoutDolphin = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutDolphin = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("Dolphin"), horizontalLayoutDolphin);
-    horizontalLayoutDolphin->Add(new Spacer(10.0f));
+    horizontalLayoutDolphin->Add(new Spacer(f10));
     
-    ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *dolphinSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutDolphin->Add(dolphinSettingsScroll);
     dolphinSettingsScroll->SetTag("DolphinSettings");
     LinearLayout *dolphinSettings = new LinearLayout(ORIENT_VERTICAL);
     dolphinSettings->SetSpacing(0);
-    dolphinSettings->Add(new Spacer(10.0f));
+    dolphinSettings->Add(new Spacer(f10));
     dolphinSettingsScroll->Add(dolphinSettings);
     
     // -------- resolution --------
@@ -1444,11 +1444,11 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- PCSX2 --------
     
     // horizontal layout for margins
-    LinearLayout *horizontalLayoutPCSX2 = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutPCSX2 = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("PCSX2"), horizontalLayoutPCSX2);
-    horizontalLayoutPCSX2->Add(new Spacer(10.0f));
+    horizontalLayoutPCSX2->Add(new Spacer(f10));
     
-    ViewGroup *PCSX2SettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *PCSX2SettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutPCSX2->Add(PCSX2SettingsScroll);
     PCSX2SettingsScroll->SetTag("PCSX2Settings");
     LinearLayout *PCSX2Settings = new LinearLayout(ORIENT_VERTICAL);
@@ -1824,11 +1824,11 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- general --------
     
     // horizontal layout for margins
-    LinearLayout *horizontalLayoutGeneral = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutGeneral = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("General"), horizontalLayoutGeneral);
-    horizontalLayoutGeneral->Add(new Spacer(10.0f));
+    horizontalLayoutGeneral->Add(new Spacer(f10));
     
-    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *generalSettingsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutGeneral->Add(generalSettingsScroll);
     generalSettingsScroll->SetTag("GeneralSettings");
     LinearLayout *generalSettings = new LinearLayout(ORIENT_VERTICAL);
@@ -1892,11 +1892,11 @@ void SCREEN_SettingsScreen::CreateViews() {
     // -------- credits --------
     
         // horizontal layout for margins
-    LinearLayout *horizontalLayoutCredits = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - 40.f, FILL_PARENT));
+    LinearLayout *horizontalLayoutCredits = new LinearLayout(ORIENT_HORIZONTAL, new LayoutParams(dp_xres - f40, FILL_PARENT));
     tabHolder->AddTab(ge->T("Credits"), horizontalLayoutCredits);
-    horizontalLayoutCredits->Add(new Spacer(10.0f));
+    horizontalLayoutCredits->Add(new Spacer(f10));
     
-    ViewGroup *creditsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - 40.f, FILL_PARENT));
+    ViewGroup *creditsScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(dp_xres - f40, FILL_PARENT));
     horizontalLayoutCredits->Add(creditsScroll);
     creditsScroll->SetTag("Credits");
     LinearLayout *credits = new LinearLayout(ORIENT_VERTICAL);
@@ -2052,9 +2052,9 @@ SCREEN_SettingsInfoMessage::SCREEN_SettingsInfoMessage(int align, SCREEN_UI::Anc
     : SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
     using namespace SCREEN_UI;
     SetSpacing(0.0f);
-    Add(new Spacer(10.0f));
+    Add(new Spacer(f10));
     text_ = Add(new SCREEN_UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
-    Add(new Spacer(10.0f));
+    Add(new Spacer(f10));
 }
 
 void SCREEN_SettingsInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
@@ -2062,9 +2062,9 @@ void SCREEN_SettingsInfoMessage::Show(const std::string &text, SCREEN_UI::View *
         Bounds b = refView->GetBounds();
         const SCREEN_UI::AnchorLayoutParams *lp = GetLayoutParams()->As<SCREEN_UI::AnchorLayoutParams>();
         if (b.y >= cutOffY_) {
-            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, f80, lp->right, lp->bottom, lp->center));
         } else {
-            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - f80 - f40, lp->right, lp->bottom, lp->center));
         }
     }
     text_->SetText(text);
@@ -2283,7 +2283,7 @@ void SCREEN_DirBrowser::Draw(SCREEN_UIContext &dc) {
     if (hasDropShadow_) {
         // Darken things behind.
         dc.FillRect(SCREEN_UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
-        float dropsize = 30.0f;
+        float dropsize = f30;
         dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
             bounds_.x - dropsize, bounds_.y,
             bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
@@ -2316,13 +2316,13 @@ void SCREEN_DirBrowser::Refresh() {
     // Reset content
     Clear();
 
-    Add(new Spacer(10.0f));
+    Add(new Spacer(f10));
     auto mm = GetI18NCategory("MainMenu");
     
     LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     // display working directory
     TextView* workingDirectory;
-    workingDirectory = new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f));
+    workingDirectory = new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, f64, 1.0f));
     topBar->Add(workingDirectory);
     
     currentSearchPath=path_.GetPath();
@@ -2335,11 +2335,11 @@ void SCREEN_DirBrowser::Refresh() {
         icon = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     } else
     {
         icon = SCREEN_ImageID("I_HOME");
-        homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+        homeButton = new Choice(icon, new LayoutParams(f128, f128));
     }
     homeButton->OnClick.Handle(this, &SCREEN_DirBrowser::HomeClick);
     homeButton->OnHighlight.Add([=](EventParams &e) {
@@ -2360,11 +2360,11 @@ void SCREEN_DirBrowser::Refresh() {
         icon = SCREEN_ImageID("I_GRID_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_GRID_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_GRID_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     } else
     { 
         icon = SCREEN_ImageID("I_GRID");
-        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     }
     gridButton->OnClick.Handle(this, &SCREEN_DirBrowser::GridClick);
     gridButton->OnHighlight.Add([=](EventParams &e) {
@@ -2384,11 +2384,11 @@ void SCREEN_DirBrowser::Refresh() {
         icon = SCREEN_ImageID("I_LINES_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_LINES_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_LINES_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
-        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     } else
     { 
         icon = SCREEN_ImageID("I_LINES");
-        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     }
     linesButton->OnClick.Handle(this, &SCREEN_DirBrowser::LinesClick);
     linesButton->OnHighlight.Add([=](EventParams &e) {
@@ -2402,25 +2402,25 @@ void SCREEN_DirBrowser::Refresh() {
     topBar->Add(linesButton);
     
     Add(topBar);
-    Add(new Spacer(5.0f));
+    Add(new Spacer(f5));
     SetSpacing(0.0f);
     // info text
     TextView* infoText1;
     TextView* infoText2;
     infoText1 = new TextView("To add a search path, highlight a folder and use the start button or space. ", 
-                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f));
+                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, f32));
     infoText2 = new TextView("To remove a search path, scroll all the way down.", 
-                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, 32.0f));
+                 ALIGN_VCENTER | FLAG_WRAP_TEXT, false, new LinearLayoutParams(FILL_PARENT, f32));
     
     Add(infoText1);
     Add(infoText2);
-    Add(new Spacer(5.0f));
+    Add(new Spacer(f5));
     if (*gridStyle_) {
-        gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+        gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(f150, f85), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
         Add(gameList_);
     } else {
         SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-        gl->SetSpacing(4.0f);
+        gl->SetSpacing(f4);
         gameList_ = gl;
         Add(gameList_);
     }

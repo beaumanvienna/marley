@@ -5,6 +5,7 @@ MiscScreens.cpp
 OnScreenDisplay.cpp
 SettingsScreen.cpp
 MainScreen.cpp
+Scale.cpp
 )
 
 target_include_directories(ui PUBLIC 

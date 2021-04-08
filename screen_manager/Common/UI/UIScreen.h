@@ -5,6 +5,7 @@
 #include "Common/Math/lin/vec3.h"
 #include "Common/UI/Screen.h"
 #include "Common/UI/ViewGroup.h"
+#include "UI/Scale.h"
 
 using namespace SCREEN_Lin;
 
@@ -84,7 +85,7 @@ public:
 
 protected:
 	virtual bool FillVertical() const { return false; }
-	virtual SCREEN_UI::Size PopupWidth() const { return 410; }
+	virtual SCREEN_UI::Size PopupWidth() const { return f410; }
 	virtual bool ShowButtons() const { return true; }
 	virtual bool CanComplete(DialogResult result) { return true; }
 	virtual void OnCompleted(DialogResult result) {}

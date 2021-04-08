@@ -320,7 +320,7 @@ void SCREEN_PopupScreen::CreateViews() {
 	float yres = screenManager()->getUIContext()->GetBounds().h;
 
 	box_ = new LinearLayout(ORIENT_VERTICAL,
-		new AnchorLayoutParams(PopupWidth(), FillVertical() ? yres - 30 : WRAP_CONTENT, dc.GetBounds().centerX(), dc.GetBounds().centerY(), NONE, NONE, true));
+		new AnchorLayoutParams(PopupWidth(), FillVertical() ? yres - f30 : WRAP_CONTENT, dc.GetBounds().centerX(), dc.GetBounds().centerY(), NONE, NONE, true));
 
 	root_->Add(box_);
 	box_->SetBG(dc.theme->popupStyle.background);
@@ -336,9 +336,9 @@ void SCREEN_PopupScreen::CreateViews() {
 
 	if (ShowButtons() && !button1_.empty()) {
 		// And the two buttons at the bottom.
-		LinearLayout *buttonRow = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(200, WRAP_CONTENT));
+		LinearLayout *buttonRow = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(f200, WRAP_CONTENT));
 		buttonRow->SetSpacing(0);
-		Margins buttonMargins(5, 5);
+		Margins buttonMargins(f5, f5);
 
 		// Adjust button order to the platform default.
 
@@ -375,7 +375,7 @@ void ListSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 	using namespace SCREEN_UI;
 
 	listView_ = parent->Add(new ListView(&adaptor_, hidden_)); //, new LinearLayoutParams(1.0)));
-	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - 140);
+	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - f140);
 	listView_->OnChoice.Handle(this, &ListSCREEN_PopupScreen::OnListChoice);
 }
 
@@ -686,7 +686,7 @@ void SliderFloatSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *pa
 
 	char temp[64];
 	sprintf(temp, "%0.3f", sliderValue_);
-	edit_ = new TextEdit(temp, "", new LinearLayoutParams(10.0f));
+	edit_ = new TextEdit(temp, "", new LinearLayoutParams(f10));
 	edit_->SetMaxLen(16);
 	edit_->SetTextColor(dc.theme->popupStyle.fgColor);
 	edit_->SetTextAlign(FLAG_DYNAMIC_ASCII);
@@ -694,7 +694,7 @@ void SliderFloatSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *pa
 	changing_ = false;
 	lin->Add(edit_);
 	if (!units_.empty())
-		lin->Add(new TextView(units_, new LinearLayoutParams(10.0f)))->SetTextColor(dc.theme->popupStyle.fgColor);
+		lin->Add(new TextView(units_, new LinearLayoutParams(f10)))->SetTextColor(dc.theme->popupStyle.fgColor);
 
 	// slider_ = parent->Add(new SliderFloat(&sliderValue_, minValue_, maxValue_, new LinearLayoutParams(SCREEN_UI::Margins(10, 5))));
 	if (IsFocusMovementEnabled())

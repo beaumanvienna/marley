@@ -19,8 +19,8 @@
 #include "Common/Math/lin/matrix4x4.h"
 #include "Common/Math/math_util.h"
 #include "Common/Math/geom2d.h"
-
 #include "Common/Common.h"
+#include "UI/Scale.h"
 #include "../include/global.h"
 
 #undef small

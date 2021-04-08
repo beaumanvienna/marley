@@ -7,6 +7,7 @@
 
 #include "Common/Math/geom2d.h"
 #include "Common/UI/View.h"
+#include "UI/Scale.h"
 
 namespace SCREEN_UI {
 
@@ -338,7 +339,6 @@ private:
 	std::vector<AnchorTranslateTween *> tabTweens_;
 };
 
-// Yes, this feels a bit Java-ish...
 class ListAdaptor {
 public:
 	virtual ~ListAdaptor() {}

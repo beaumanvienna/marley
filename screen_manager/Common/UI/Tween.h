@@ -5,6 +5,7 @@
 #include <functional>
 #include "Common/TimeUtil.h"
 #include "Common/UI/View.h"
+#include "UI/Scale.h"
 
 namespace SCREEN_UI {
 

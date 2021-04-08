@@ -42,6 +42,7 @@
 #include "Common/Render/Sprite_Sheet.h"
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
+#include "UI/Scale.h"
 #include <SDL.h>
 
 #include "../include/controller.h"
@@ -179,6 +180,7 @@ void SCREEN_MainScreen::DrawBackground(SCREEN_UIContext &dc) {
 
 void SCREEN_MainScreen::CreateViews() {
     using namespace SCREEN_UI;
+    setGlobalScaling();
     
     DEBUG_PRINTF("   void SCREEN_MainScreen::CreateViews() {\n");
 
@@ -192,12 +194,12 @@ void SCREEN_MainScreen::CreateViews() {
     verticalLayout->SetSpacing(0.0f);
     root_->Add(verticalLayout);
     
-       float leftSide = 40.0f;
+       float leftSide = f40;
 
-    mainInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 500.0f, WRAP_CONTENT, leftSide, 20.0f, NONE, NONE));
+    mainInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - f500, WRAP_CONTENT, leftSide, f20, NONE, NONE));
     root_->Add(mainInfo_);
 
-    verticalLayout->Add(new Spacer(10.0f));
+    verticalLayout->Add(new Spacer(f10));
     
     // top line
     LinearLayout *topline = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
@@ -209,7 +211,7 @@ void SCREEN_MainScreen::CreateViews() {
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     
-    topline->Add(new Spacer(leftMargin+gFileBrowserWidth-266.0f,0.0f));
+    topline->Add(new Spacer(leftMargin+gFileBrowserWidth-f266,0.0f));
     
     SCREEN_ImageID icon, icon_active, icon_depressed;
     // settings button
@@ -219,11 +221,11 @@ void SCREEN_MainScreen::CreateViews() {
         icon = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_GEAR_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_GEAR_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        settingsButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+        settingsButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
     } else 
     {
         icon = SCREEN_ImageID("I_GEAR");
-        settingsButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));
+        settingsButton = new Choice(icon, new LayoutParams(f128, f128));
     }
     settingsButton->OnClick.Handle(this, &SCREEN_MainScreen::settingsClick);
     settingsButton->OnHighlight.Add([=](EventParams &e) {
@@ -242,11 +244,11 @@ void SCREEN_MainScreen::CreateViews() {
         icon = SCREEN_ImageID("I_OFF_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_OFF_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_OFF_R",BUTTON_STATE_FOCUSED_DEPRESSED); 
-        offButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f),true);
+        offButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128),true);
     } else 
     {
         icon = SCREEN_ImageID("I_OFF");
-        offButton = new Choice(icon, new LayoutParams(128.0f, 128.0f),true);
+        offButton = new Choice(icon, new LayoutParams(f128, f128),true);
     }
     offButton->OnClick.Handle(this, &SCREEN_MainScreen::offClick);
     offButton->OnHold.Handle(this, &SCREEN_MainScreen::offHold);
@@ -260,7 +262,7 @@ void SCREEN_MainScreen::CreateViews() {
     });
     topline->Add(offButton);
     
-    double verticalSpace = (dp_yres-476.0f)/2;
+    double verticalSpace = (dp_yres-f476)/2;
     
     if (gDesignatedControllers[0].numberOfDevices != 0)
     {
@@ -295,9 +297,9 @@ void SCREEN_MainScreen::CreateViews() {
     {
         verticalLayout->Add(new Spacer(verticalSpace));
     }
-    if (!controllerPlugged) verticalLayout->Add(new Spacer(40.0f));
+    if (!controllerPlugged) verticalLayout->Add(new Spacer(f40));
     // -------- horizontal main launcher frame --------
-    LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, 273,1.0f));
+    LinearLayout *gameLauncherMainFrame = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, f273,1.0f));
     verticalLayout->Add(gameLauncherMainFrame);
     gameLauncherMainFrame->SetTag("gameLauncherMainFrame");
     gameLauncherMainFrame->Add(new Spacer(leftMargin));
@@ -307,7 +309,7 @@ void SCREEN_MainScreen::CreateViews() {
         
         // vertical layout for the game browser's top bar and the scroll view
         Margins mgn(0,0,0,0);
-        LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(gFileBrowserWidth, 243, 0.0f,G_TOPLEFT, mgn));
+        LinearLayout *gameLauncherColumn = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(gFileBrowserWidth, f243, 0.0f,G_TOPLEFT, mgn));
         gameLauncherMainFrame->Add(gameLauncherColumn);
         gameLauncherColumn->SetTag("gameLauncherColumn");
         gameLauncherColumn->SetSpacing(0.0f);
@@ -324,12 +326,12 @@ void SCREEN_MainScreen::CreateViews() {
             icon = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
             icon_active = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_FOCUSED); 
             icon_depressed = SCREEN_ImageID("I_HOME_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-            homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(128.0f, 128.0f));
+            homeButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
         }
         else
         {
             icon = SCREEN_ImageID("I_HOME");
-            homeButton = new Choice(icon, new LayoutParams(128.0f, 128.0f));    
+            homeButton = new Choice(icon, new LayoutParams(f128, f128));    
         }        
         homeButton->OnClick.Handle(this, &SCREEN_MainScreen::HomeClick);
         homeButton->OnHighlight.Add([=](EventParams &e) {
@@ -342,10 +344,10 @@ void SCREEN_MainScreen::CreateViews() {
         });
         topBar->Add(homeButton);
         
-        LinearLayout *gamesPathViewFrame = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 128.0f));
-        gamesPathViewFrame->Add(new Spacer(54.0f));
+        LinearLayout *gamesPathViewFrame = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, f128));
+        gamesPathViewFrame->Add(new Spacer(f54));
         
-        gamesPathView = new TextView(lastGamePath, ALIGN_BOTTOMLEFT | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, 64.0f));
+        gamesPathView = new TextView(lastGamePath, ALIGN_BOTTOMLEFT | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, f64));
         gamesPathViewFrame->Add(gamesPathView);
         
         if (gTheme == THEME_RETRO) 
@@ -355,7 +357,7 @@ void SCREEN_MainScreen::CreateViews() {
         }
         topBar->Add(gamesPathViewFrame);
         
-        gameLauncherColumn->Add(new Spacer(10.0f));
+        gameLauncherColumn->Add(new Spacer(f10));
 
         // frame for scolling 
         gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
@@ -382,7 +384,7 @@ void SCREEN_MainScreen::CreateViews() {
     } else    
     {
         TextView* noController = new TextView(" Please connect a controller", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                                    true, new LinearLayoutParams(gFileBrowserWidth, 64.0f));
+                                    true, new LinearLayoutParams(gFileBrowserWidth, f64));
         if (gTheme == THEME_RETRO) 
         {
             noController->SetTextColor(RETRO_COLOR_FONT_FOREGROUND);
@@ -470,9 +472,9 @@ SCREEN_MainInfoMessage::SCREEN_MainInfoMessage(int align, SCREEN_UI::AnchorLayou
     : SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_HORIZONTAL, lp) {
     using namespace SCREEN_UI;
     SetSpacing(0.0f);
-    Add(new SCREEN_UI::Spacer(10.0f));
+    Add(new SCREEN_UI::Spacer(f10));
     text_ = Add(new SCREEN_UI::TextView("", align, false, new LinearLayoutParams(1.0, Margins(0, 10))));
-    Add(new SCREEN_UI::Spacer(10.0f));
+    Add(new SCREEN_UI::Spacer(f10));
 }
 
 void SCREEN_MainInfoMessage::Show(const std::string &text, SCREEN_UI::View *refView) {
@@ -480,9 +482,9 @@ void SCREEN_MainInfoMessage::Show(const std::string &text, SCREEN_UI::View *refV
         Bounds b = refView->GetBounds();
         const SCREEN_UI::AnchorLayoutParams *lp = GetLayoutParams()->As<SCREEN_UI::AnchorLayoutParams>();
         if (b.y >= cutOffY_) {
-            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, 80.0f, lp->right, lp->bottom, lp->center));
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, f80, lp->right, lp->bottom, lp->center));
         } else {
-            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - 80.0f - 40.0f, lp->right, lp->bottom, lp->center));
+            ReplaceLayoutParams(new SCREEN_UI::AnchorLayoutParams(lp->width, lp->height, lp->left, dp_yres - f80 - f40, lp->right, lp->bottom, lp->center));
         }
     }
     text_->SetText(text);
@@ -808,7 +810,7 @@ void SCREEN_GameBrowser::Draw(SCREEN_UIContext &dc) {
     if (hasDropShadow_) {
         // Darken things behind.
         dc.FillRect(SCREEN_UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
-        float dropsize = 30.0f;
+        float dropsize = f30;
         dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
             bounds_.x - dropsize, bounds_.y,
             bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
@@ -845,10 +847,10 @@ void SCREEN_GameBrowser::Refresh() {
     auto mm = GetI18NCategory("MainMenu");
     
     if (*gridStyle_) {
-        gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(150*1.0f, 85*1.0f), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+        gameList_ = new SCREEN_UI::GridLayout(SCREEN_UI::GridLayoutSettings(f150, f85), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
     } else {
         SCREEN_UI::LinearLayout *gl = new SCREEN_UI::LinearLayout(SCREEN_UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-        gl->SetSpacing(4.0f);
+        gl->SetSpacing(f4);
         gameList_ = gl;
     }
     Add(gameList_);
@@ -883,7 +885,7 @@ void SCREEN_GameBrowser::Refresh() {
         {
             strList = *iteratorTmpList;
             iteratorTmpList++;
-            gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, 50.0f)));
+            gameButtons.push_back(new SCREEN_GameButton(strList, *gridStyle_, new SCREEN_UI::LinearLayoutParams(*gridStyle_ == true ? SCREEN_UI::WRAP_CONTENT : SCREEN_UI::FILL_PARENT, f50)));
         }
         
         std::vector<FileInfo> fileInfo;
@@ -891,7 +893,7 @@ void SCREEN_GameBrowser::Refresh() {
         for (size_t i = 0; i < fileInfo.size(); i++) {
             if (fileInfo[i].isDirectory) {
                 if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
-                    dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 50.0f)));
+                    dirButtons.push_back(new SCREEN_DirButtonMain(fileInfo[i].fullName, fileInfo[i].name, *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f50)));
                 }
             }
         }
@@ -900,7 +902,7 @@ void SCREEN_GameBrowser::Refresh() {
     if (browseFlags_ & SCREEN_BrowseFlags::NAVIGATE) {
         if (lastGamePath != "/")
         {
-            SCREEN_DirButtonMain* UP_button = new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, 50.0f));
+            SCREEN_DirButtonMain* UP_button = new SCREEN_DirButtonMain("..", *gridStyle_, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f50));
             UP_button->OnClick.Handle(this, &SCREEN_GameBrowser::NavigateClick);
             gameList_->Add(UP_button);
         }
@@ -985,25 +987,25 @@ void SCREEN_OffDiagScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
     {
         if (m_offDiagEvent == OFFDIAG_QUIT)
         {
-            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
-            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(f200, f64)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
+            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(f200, f64)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
         }
         else
         {
-            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
-            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+            items->Add(new Choice(ma->T("YES"), TRANSPARENT_BACKGROUND, new LayoutParams(f200, f64)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+            items->Add(new Choice(ma->T("CANCEL"), TRANSPARENT_BACKGROUND, new LayoutParams(f200, f64)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
         }
     } else
     {
         if (m_offDiagEvent == OFFDIAG_QUIT)
         {
-            items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
-            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+            items->Add(new Choice(ma->T("YES"), new LayoutParams(f200, f64)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::QuitMarley);
+            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(f200, f64)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
         }
         else
         {    
-            items->Add(new Choice(ma->T("YES"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
-            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(200.0f, 64.0f)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+            items->Add(new Choice(ma->T("YES"), new LayoutParams(f200, f64)))->OnClick.Handle(this, &SCREEN_OffDiagScreen::SwitchOff);
+            items->Add(new Choice(ma->T("CANCEL"), new LayoutParams(f200, f64)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
         }
     }
 

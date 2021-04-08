@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <mutex>
-
+#include <iostream>
 #include "Common/Input/InputState.h"
 #include "Common/Input/KeyCodes.h"
 #include "Common/Render/DrawBuffer.h"
@@ -18,7 +18,7 @@
 extern int gTheme;
 namespace SCREEN_UI {
 
-const float ITEM_HEIGHT = 64.f;
+const float ITEM_HEIGHT = f64;
 const float MIN_TEXT_SCALE = 0.8f;
 const float MAX_ITEM_SIZE = 65535.0f;
 
@@ -121,8 +121,8 @@ void View::Measure(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec ve
 // Default values
 
 void View::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
-	w = 10.0f;
-	h = 10.0f;
+	w = f10;
+	h = f10;
 }
 
 void View::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
@@ -507,8 +507,10 @@ void Choice::Click() {
 void Choice::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
 	if (atlasImage_.isValid()) {
 		dc.Draw()->GetAtlas()->measureImage(atlasImage_, &w, &h);
+        w = w * gScale;
+        h = h * gScale;
 	} else {
-		const int paddingX = 12;
+		const float paddingX = f12;
 		float availWidth = horiz.size - paddingX * 2 - textPadding_.horiz();
 		if (availWidth < 0.0f) {
 			// Let it have as much space as it needs.
@@ -519,7 +521,7 @@ void Choice::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec 
 		dc.MeasureTextRect(dc.theme->uiFont, scale, scale, text_.c_str(), (int)text_.size(), availBounds, &w, &h, FLAG_WRAP_TEXT);
 	}
 	w += 0;
-	h += 16;
+	h += f16;
 	h = std::max(h, ITEM_HEIGHT);
 }
 
@@ -556,15 +558,14 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         }
         DrawBG(dc, style);
     } else 
-    if (numIcons_ == 4) {
+    if (numIcons_ == 4) 
+    {
         SCREEN_UI::Style s;
         
         // color format: 0xFF: transparency from 0 (=0%) to 255 (=100%), then 0xFF for color Blue Green Red
         s.fgColor    = 0xFFFFFFFF; // white, 100% transparency
-        //s.background = SCREEN_UI::Drawable(0x80000000); // black, 50% transparency 
         s.background = SCREEN_UI::Drawable(0x00000000); // black, 0% transparency (invinsible in other words)
         DrawBG(dc, s);
-
     } 
     
     style = dc.theme->itemStyle;
@@ -578,13 +579,13 @@ void Choice::Draw(SCREEN_UIContext &dc) {
             if (HasFocus()) {
                 if (down_) 
                 {
-                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 } else
                 {
-                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 }
             } else {
-                dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
             }
         } else
         if (numIcons_==4) {
@@ -592,30 +593,30 @@ void Choice::Draw(SCREEN_UIContext &dc) {
             {
                 if (down_) 
                 {
-                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(image_depressed_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 } else
                 {
-                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(image_active_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 }
             } else
             {
                 if (down_) {
-                    dc.Draw()->DrawImage(image_depressed_inactive_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(image_depressed_inactive_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 } else
                 {
-                    dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xffffffff, ALIGN_CENTER);
+                    dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), f1, 0xffffffff, ALIGN_CENTER);
                 }
             }
         } else {
-            dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+            dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), f1, style.fgColor, ALIGN_CENTER);
         }
     }
     
     dc.SetFontStyle(dc.theme->uiFont);
 
-    const int paddingX = 12;
+    const float paddingX = 12.0f;
     const float availWidth = bounds_.w - paddingX * 2 - textPadding_.horiz();
-    float scale = CalculateTextScale(dc, availWidth);
+    float scale = CalculateTextScale(dc, availWidth) * gScale;
 
     dc.SetFontScale(scale, scale);
     if (centered_) {
@@ -626,30 +627,30 @@ void Choice::Draw(SCREEN_UIContext &dc) {
         if (down_) {
             style.fgColor = RETRO_COLOR_FONT_ALMOST_WHITE;
             offset_down_x = 0.0f;
-            offset_down_y = 4.0f;
+            offset_down_y = f4;
         }
         
         //draw shadow
         if ( (gTheme == THEME_RETRO) && (!down_) )
-          dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f+offset_down_x, 2.0f+offset_down_y)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_CENTER | FLAG_WRAP_TEXT);
+          dc.DrawTextRect(text_.c_str(), bounds_.Offset(f2+offset_down_x, f2+offset_down_y)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_CENTER | FLAG_WRAP_TEXT);
 
         dc.DrawTextRect(text_.c_str(), bounds_.Offset(offset_down_x, offset_down_y), style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
         
     } else {
 
         if (iconImage_.isValid()) {
-            dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
+            dc.Draw()->DrawImage(iconImage_, bounds_.x2() - f32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
         }
         
         Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
         if (gTheme == THEME_RETRO)
-          dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+          dc.DrawTextRect(text_.c_str(), textBounds.Offset(f2, f2)  , RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
         dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
     }
-    dc.SetFontScale(1.0f, 1.0f);
+    dc.SetFontScale(f1, f1);
 
     if (selected_) {
-        dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+        dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - f40, bounds_.centerY(), f1, style.fgColor, ALIGN_CENTER);
     }
 }
 
@@ -679,7 +680,7 @@ void InfoItem::Draw(SCREEN_UIContext &dc) {
 
 	dc.FillRect(style.background, bounds_);
 
-	int paddingX = 12;
+	float paddingX = f12;
 
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.DrawText(text_.c_str(), bounds_.x + paddingX, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
@@ -690,12 +691,12 @@ void InfoItem::Draw(SCREEN_UIContext &dc) {
 ItemHeader::ItemHeader(const std::string &text, LayoutParams *layoutParams)
 	: Item(layoutParams), text_(text) {
 	layoutParams_->width = FILL_PARENT;
-	layoutParams_->height = 40;
+	layoutParams_->height = f40;
 }
 
 void ItemHeader::Draw(SCREEN_UIContext &dc) {
 	dc.SetFontStyle(dc.theme->uiFontSmall);
-	dc.DrawText(text_.c_str(), bounds_.x + 4, bounds_.centerY(), dc.theme->headerStyle.fgColor, ALIGN_LEFT | ALIGN_VCENTER);
+	dc.DrawText(text_.c_str(), bounds_.x + f4, bounds_.centerY(), dc.theme->headerStyle.fgColor, ALIGN_LEFT | ALIGN_VCENTER);
 	dc.Draw()->DrawImageStretch(dc.theme->whiteImage, bounds_.x, bounds_.y2()-2, bounds_.x2(), bounds_.y2(), dc.theme->headerStyle.fgColor);
 }
 
@@ -713,7 +714,7 @@ void ItemHeader::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureS
 }
 
 void PopupHeader::Draw(SCREEN_UIContext &dc) {
-	const float paddingHorizontal = 12;
+	const float paddingHorizontal = f12;
 	const float availableWidth = bounds_.w - paddingHorizontal * 2;
 
 	float tw, th;
@@ -772,7 +773,7 @@ void CheckBox::Draw(SCREEN_UIContext &dc) {
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
-	const int paddingX = 12;
+	const float paddingX = f12;
 	// Padding right of the checkbox image too.
 	const float availWidth = bounds_.w - paddingX * 2 - imageW - paddingX;
 	float scale = CalculateTextScale(dc, availWidth);
@@ -781,10 +782,10 @@ void CheckBox::Draw(SCREEN_UIContext &dc) {
     
 	Bounds textBounds(bounds_.x + paddingX, bounds_.y, availWidth, bounds_.h);
     if (gTheme == THEME_RETRO)
-      dc.DrawTextRect(text_.c_str(), textBounds.Offset(2.0f, 2.0f), RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
+      dc.DrawTextRect(text_.c_str(), textBounds.Offset(f2, f2), RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 	dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
-	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
-	dc.SetFontScale(1.0f, 1.0f);
+	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), f1, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.SetFontScale(f1, f1);
 }
 
 float CheckBox::CalculateTextScale(const SCREEN_UIContext &dc, float availWidth) const {
@@ -794,7 +795,7 @@ float CheckBox::CalculateTextScale(const SCREEN_UIContext &dc, float availWidth)
 	if (actualWidth > availWidth) {
 		return std::max(MIN_TEXT_SCALE, availWidth / actualWidth);
 	}
-	return 1.0f;
+	return f1;
 }
 
 void CheckBox::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
@@ -802,7 +803,7 @@ void CheckBox::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float 
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
-	const int paddingX = 12;
+	const float paddingX = f12;
 	// Padding right of the checkbox image too.
 	float availWidth = bounds_.w - paddingX * 2 - imageW - paddingX;
 	if (availWidth < 0.0f) {
@@ -881,11 +882,11 @@ void Button::Draw(SCREEN_UIContext &dc) {
 		if (SCREEN_ImageID_.isValid()) {
 			const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(SCREEN_ImageID_);
 			if (img) {
-				dc.Draw()->DrawImage(SCREEN_ImageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+				dc.Draw()->DrawImage(SCREEN_ImageID_, bounds_.centerX() - tw / f2 - f5 - img->w / f2, bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
 			}
 		}
 	}
-	dc.SetFontScale(1.0f, 1.0f);
+	dc.SetFontScale(f1, f1);
 
 	if (tw > bounds_.w || SCREEN_ImageID_.isValid()) {
 		dc.PopScissor();
@@ -909,7 +910,7 @@ void ImageView::Draw(SCREEN_UIContext &dc) {
 void TextView::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
 	Bounds bounds(0, 0, layoutParams_->width, layoutParams_->height);
 	if (bounds.w < 0) {
-		// If there's no size, let's grow as big as we want.
+		// If there's no size, use item size
 		bounds.w = horiz.size == 0 ? MAX_ITEM_SIZE : horiz.size;
 	}
 	if (bounds.h < 0) {
@@ -927,9 +928,8 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 	bool clip = false;
 	if (measuredWidth_ > bounds_.w || measuredHeight_ > bounds_.h)
 		clip = true;
-	if (bounds_.w < 0 || bounds_.h < 0 || !clip_) {
-		// We have a layout but, but try not to screw up rendering.
-		// TODO: Fix properly.
+	if (bounds_.w < 0 || bounds_.h < 0 || !clip_) 
+    {
 		clip = false;
 	}
 	if (clip) {
@@ -949,7 +949,7 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
 	if (shadow_) {
 		uint32_t shadowColor = RETRO_COLOR_FONT_BACKGROUND;
-		dc.DrawTextRect(text_.c_str(), bounds_.Offset(2.0f, 2.0f), shadowColor, textAlign_);
+		dc.DrawTextRect(text_.c_str(), bounds_.Offset(f2, f2), shadowColor, textAlign_);
 	}
 	dc.DrawTextRect(text_.c_str(), bounds_, textColor, textAlign_);
 	if (clip) {
@@ -1176,15 +1176,15 @@ void ProgressBar::GetContentDimensions(const SCREEN_UIContext &dc, float &w, flo
 
 void ProgressBar::Draw(SCREEN_UIContext &dc) {
 	char temp[32];
-	sprintf(temp, "%i%%", (int)(progress_ * 100.0f));
+	sprintf(temp, "%i%%", (int)(progress_ * f100));
 	dc.Draw()->DrawImageStretch(dc.theme->whiteImage, bounds_.x, bounds_.y, bounds_.x + bounds_.w * progress_, bounds_.y2(), 0xc0c0c0c0);
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.DrawTextRect(temp, bounds_, 0xFFFFFFFF, ALIGN_CENTER);
 }
 
 void Spinner::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
-	w = 48;
-	h = 48;
+	w = f48;
+	h = f48;
 }
 
 void Spinner::Draw(SCREEN_UIContext &dc) {
@@ -1198,7 +1198,7 @@ void Spinner::Draw(SCREEN_UIContext &dc) {
 		double a = angle + i * da;
 		float x = (float)cos(a) * r;
 		float y = (float)sin(a) * r;
-		dc.Draw()->DrawImage(images_[i], bounds_.centerX() + x, bounds_.centerY() + y, 1.0f, color_, ALIGN_CENTER);
+		dc.Draw()->DrawImage(images_[i], bounds_.centerX() + x, bounds_.centerY() + y, f1, color_, ALIGN_CENTER);
 	}
 }
 
@@ -1227,8 +1227,8 @@ void TriggerButton::Touch(const SCREEN_TouchInput &input) {
 }
 
 void TriggerButton::Draw(SCREEN_UIContext &dc) {
-	dc.Draw()->DrawImage(imageBackground_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
-	dc.Draw()->DrawImage(imageForeground_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.Draw()->DrawImage(imageBackground_, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.Draw()->DrawImage(imageForeground_, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
 }
 
 void TriggerButton::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
@@ -1316,7 +1316,7 @@ void Slider::Draw(SCREEN_UIContext &dc) {
 	float knobX = ((float)(*value_) - minValue_) / (maxValue_ - minValue_) * (bounds_.w - paddingLeft_ - paddingRight_) + (bounds_.x + paddingLeft_);
 	dc.FillRect(Drawable(linecolor), Bounds(bounds_.x + paddingLeft_, bounds_.centerY() - 2, knobX - (bounds_.x + paddingLeft_), 4));
 	dc.FillRect(Drawable(0xFF808080), Bounds(knobX, bounds_.centerY() - 2, (bounds_.x + bounds_.w - paddingRight_ - knobX), 4));
-	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), 1.0f, knobStyle.fgColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), f1, knobStyle.fgColor, ALIGN_CENTER);
 	char temp[64];
 	if (showPercent_)
 		sprintf(temp, "%i%%", *value_);
@@ -1346,8 +1346,8 @@ void Slider::Update() {
 
 void Slider::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
 	// TODO
-	w = 100;
-	h = 50;
+	w = f100;
+	h = f50;
 }
 
 bool SliderFloat::Key(const SCREEN_KeyInput &input) {
@@ -1429,7 +1429,7 @@ void SliderFloat::Draw(SCREEN_UIContext &dc) {
 	float knobX = (*value_ - minValue_) / (maxValue_ - minValue_) * (bounds_.w - paddingLeft_ - paddingRight_) + (bounds_.x + paddingLeft_);
 	dc.FillRect(Drawable(linecolor), Bounds(bounds_.x + paddingLeft_, bounds_.centerY() - 2, knobX - (bounds_.x + paddingLeft_), 4));
 	dc.FillRect(Drawable(0xFF808080), Bounds(knobX, bounds_.centerY() - 2, (bounds_.x + bounds_.w - paddingRight_ - knobX), 4));
-	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), 1.0f, knobStyle.fgColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), f1, knobStyle.fgColor, ALIGN_CENTER);
 	char temp[64];
 	sprintf(temp, "%0.2f", *value_);
 	dc.SetFontStyle(dc.theme->uiFont);
@@ -1453,8 +1453,8 @@ void SliderFloat::Update() {
 
 void SliderFloat::GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const {
 	// TODO
-	w = 100;
-	h = 50;
+	w = f100;
+	h = f50;
 }
 
 }  // namespace
