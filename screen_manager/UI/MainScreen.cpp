@@ -20,7 +20,7 @@
 
 #include <algorithm>
 #include <list>
-
+#include <iostream>
 #include "Common/KeyMap.h"
 #include "Common/GPU/OpenGL/GLFeatures.h"
 #include "Common/Render/DrawBuffer.h"
@@ -194,7 +194,7 @@ void SCREEN_MainScreen::CreateViews() {
     verticalLayout->SetSpacing(0.0f);
     root_->Add(verticalLayout);
     
-       float leftSide = f40;
+    float leftSide = f40;
 
     mainInfo_ = new SCREEN_MainInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - f500, WRAP_CONTENT, leftSide, f20, NONE, NONE));
     root_->Add(mainInfo_);
@@ -206,8 +206,8 @@ void SCREEN_MainScreen::CreateViews() {
     topline->SetTag("topLine");
     verticalLayout->Add(topline);
     
-    gFileBrowserWidth = dp_xres*0.8;   
-    float leftMargin = (dp_xres - gFileBrowserWidth)/2-10;
+    gFileBrowserWidth = dp_xres*0.8;
+    float leftMargin = (dp_xres - gFileBrowserWidth)/2;
     
     bool controllerPlugged = (gDesignatedControllers[0].numberOfDevices != 0) || (gDesignatedControllers[1].numberOfDevices != 0);
     
@@ -345,9 +345,9 @@ void SCREEN_MainScreen::CreateViews() {
         topBar->Add(homeButton);
         
         LinearLayout *gamesPathViewFrame = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, f128));
-        gamesPathViewFrame->Add(new Spacer(f54));
+        gamesPathViewFrame->Add(new Spacer(f40));
         
-        gamesPathView = new TextView(lastGamePath, ALIGN_BOTTOMLEFT | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, f64));
+        gamesPathView = new TextView(lastGamePath, ALIGN_LEFT | ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(WRAP_CONTENT, f50));
         gamesPathViewFrame->Add(gamesPathView);
         
         if (gTheme == THEME_RETRO) 
@@ -360,7 +360,7 @@ void SCREEN_MainScreen::CreateViews() {
         gameLauncherColumn->Add(new Spacer(f10));
 
         // frame for scolling 
-        gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 169),true);
+        gameLauncherFrameScroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, f169),true);
         gameLauncherFrameScroll->SetTag("gameLauncherFrameScroll");
         LinearLayout *gameLauncherFrame = new LinearLayout(ORIENT_VERTICAL);
         gameLauncherFrame->SetTag("gameLauncherFrame");
@@ -526,11 +526,11 @@ public:
     void Draw(SCREEN_UIContext &dc) override;
     void GetContentDimensions(const SCREEN_UIContext &dc, float &w, float &h) const override {
         if (gridStyle_) {
-            w = 144;
-            h = 80;
+            w = f144;
+            h = f80;
         } else {
-            w = 500;
-            h = 50;
+            w = f500;
+            h = f50;
         }
     }
 
@@ -639,12 +639,12 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
     SCREEN_ImageID image = SCREEN_ImageID("I_BARREL");
 
     float tw, th;
-    dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+    dc.MeasureText(dc.GetFontStyle(), f1, f1, text.c_str(), &tw, &th, 0);
 
     bool compact = bounds_.w < 180;
 
     if (gridStyle_) {
-        dc.SetFontScale(1.0f, 1.0f);
+        dc.SetFontScale(f1, f1);
     }
     if (compact) {
         dc.PushScissor(bounds_);
@@ -656,7 +656,7 @@ void SCREEN_GameButton::Draw(SCREEN_UIContext &dc) {
             dc.PushScissor(bounds_);
             scissor = true;
         }
-        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), f0_88, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
             dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
         dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
@@ -726,12 +726,12 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
     }
 
     float tw, th;
-    dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+    dc.MeasureText(dc.GetFontStyle(), f1, f1, text.c_str(), &tw, &th, 0);
 
     bool compact = bounds_.w < 180;
 
     if (gridStyle_) {
-        dc.SetFontScale(1.0f, 1.0f);
+        dc.SetFontScale(f1, f1);
     }
     if (compact) {
         // No icon, except "up"
@@ -740,7 +740,7 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
             dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
             dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
         } else {
-            dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
+            dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
         }
         dc.PopScissor();
     } else {
@@ -749,7 +749,7 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
             dc.PushScissor(bounds_);
             scissor = true;
         }
-        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), f0_88, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
           dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
         dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
@@ -759,7 +759,7 @@ void SCREEN_DirButtonMain::Draw(SCREEN_UIContext &dc) {
         }
     }
     if (gridStyle_) {
-        dc.SetFontScale(1.0, 1.0);
+        dc.SetFontScale(f1, f1);
     }
 }
 
@@ -912,7 +912,7 @@ void SCREEN_GameBrowser::Refresh() {
         gameList_->Add(new SCREEN_UI::TextView(mm->T("Loading..."), ALIGN_CENTER, false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, SCREEN_UI::FILL_PARENT)));
     }
     
-       for (size_t i = 0; i < gameButtons.size(); i++) {
+    for (size_t i = 0; i < gameButtons.size(); i++) {
         gameList_->Add(gameButtons[i])->OnClick.Handle(this, &SCREEN_GameBrowser::GameButtonClick);
     }
     

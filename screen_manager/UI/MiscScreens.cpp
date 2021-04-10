@@ -175,7 +175,7 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
                     float x = xbase[i] + dc.GetBounds().x;
                     float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
                     float angle = (float)sin(i + t);
-                    SCREEN_ui_draw2d.DrawImageRotated(dolhin_symbols[0], x, y + dp_yres*0.35, 1.0f, angle, colorAlpha(colors[0], 1.0f));
+                    SCREEN_ui_draw2d.DrawImageRotated(dolhin_symbols[0], x, y + dp_yres*0.35, f1, angle, colorAlpha(colors[0], 1.0f));
                 }
 
                 break;
@@ -184,7 +184,7 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
                     float x = xbase[i] + dc.GetBounds().x;
                     float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
                     float angle = (float)sin(i + t);
-                    SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y + dp_yres*0.41, 1.0f, angle, colorAlpha(colors[0], 1.0f));
+                    SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y + dp_yres*0.41, f1, angle, colorAlpha(colors[0], 1.0f));
                 }
                 
                 break;
@@ -216,7 +216,7 @@ void DrawBackgroundSimple(SCREEN_UIContext &dc, int page) {
                         float y = ybase[i] + dc.GetBounds().y -50;
                         float angle = t;
                         bool sign = i & 1;
-                        SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y, 1.0f, (sign ? t : -t)+i, colorAlpha(colors[0], 1.0f));
+                        SCREEN_ui_draw2d.DrawImageRotated(marley_symbols[0], x, y, f1, (sign ? t : -t)+i, colorAlpha(colors[0], 1.0f));
                     }
                     SCREEN_ui_draw2d.DrawImageStretch(main_symbols[1],bounds);
                 }
@@ -272,7 +272,7 @@ void DrawBackground(SCREEN_UIContext &dc, float alpha) {
             float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
             float angle = (float)sin(i + t);
             int n = i & 3;
-            SCREEN_ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
+            SCREEN_ui_draw2d.DrawImageRotated(symbols[n], x, y, f1, angle, colorAlpha(colors[n], alpha * 0.1f));
         }
     }
 }

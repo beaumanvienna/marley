@@ -2163,12 +2163,12 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
     dc.SetFontStyle(dc.theme->uiFontSmall);
     
     float tw, th;
-    dc.MeasureText(dc.GetFontStyle(), 1.0, 1.0, text.c_str(), &tw, &th, 0);
+    dc.MeasureText(dc.GetFontStyle(), f1, f1, text.c_str(), &tw, &th, 0);
 
-    bool compact = bounds_.w < 180;
+    bool compact = true;
 
     if (gridStyle_) {
-        dc.SetFontScale(1.0f, 1.0f);
+        dc.SetFontScale(f1, f1);
     }
     if (compact) {
         // No icon, except "up"
@@ -2178,7 +2178,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
               dc.DrawText(text.c_str(), bounds_.x + 7, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
             dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
         } else {
-            dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), 1.0, 0xFFFFFFFF, ALIGN_CENTER);
+            dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
         }
         dc.PopScissor();
     } else {
@@ -2187,7 +2187,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
             dc.PushScissor(bounds_);
             scissor = true;
         }
-        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f, 0xFFFFFFFF, ALIGN_CENTER);
+        dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), f0_88, 0xFFFFFFFF, ALIGN_CENTER);
         if (gTheme == THEME_RETRO)
           dc.DrawText(text.c_str(), bounds_.x + 152, bounds_.centerY()+2, RETRO_COLOR_FONT_BACKGROUND, ALIGN_VCENTER);
         dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
