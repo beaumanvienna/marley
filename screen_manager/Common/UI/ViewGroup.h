@@ -4,7 +4,7 @@
 #include <vector>
 #include <set>
 #include <mutex>
-
+#include <iostream>
 #include "Common/Math/geom2d.h"
 #include "Common/UI/View.h"
 #include "UI/Scale.h"

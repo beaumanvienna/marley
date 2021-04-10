@@ -1104,14 +1104,12 @@ SCREEN_UI::TextView* biosInfo(std::string infoText, bool biosFound)
     SCREEN_UI::TextView* bios_found_info;
     if (biosFound) 
     {
-        bios_found_info = new SCREEN_UI::TextView("            " + infoText + ": found", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
+        bios_found_info = new SCREEN_UI::TextView(infoText + ": found", ALIGN_LEFT | ALIGN_VCENTER, true, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
         bios_found_info->SetTextColor(okColor);
     }
     else
     {
-        bios_found_info = new SCREEN_UI::TextView("            " + infoText + ": not found", ALIGN_VCENTER | FLAG_WRAP_TEXT, 
-                    false, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
+        bios_found_info = new SCREEN_UI::TextView(infoText + ": not found", ALIGN_LEFT | ALIGN_VCENTER, true, new SCREEN_UI::LinearLayoutParams(SCREEN_UI::FILL_PARENT, f32, 1.0f));
         bios_found_info->SetTextColor(warningColor);
     }
     bios_found_info->SetShadow(false);
@@ -1204,22 +1202,16 @@ void SCREEN_SettingsScreen::CreateViews() {
     
     searchSettings->Add(biosInfo("PS1 bios file for North America",found_na_ps1));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("PS1 bios file for Japan",found_jp_ps1));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("PS1 bios file for Europe",found_eu_ps1));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("PS2 bios file for North America",found_na_ps2));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("PS2 bios file for Japan",found_jp_ps2));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("PS2 bios file for Europe",found_eu_ps2));
     searchSettings->Add(new Spacer(f32));
-    
     searchSettings->Add(biosInfo("Sega Saturn bios file",gSegaSaturn_firmware));
     searchSettings->Add(new Spacer(f32));
     
@@ -2167,9 +2159,7 @@ void SCREEN_DirButton::Draw(SCREEN_UIContext &dc) {
 
     bool compact = true;
 
-    if (gridStyle_) {
-        dc.SetFontScale(f1, f1);
-    }
+    dc.SetFontScale(f1, f1);
     if (compact) {
         // No icon, except "up"
         dc.PushScissor(bounds_);

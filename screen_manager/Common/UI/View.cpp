@@ -274,7 +274,7 @@ bool IsDPadKey(const SCREEN_KeyInput &key) {
 	}
 }
 
-bool IsAcceptKey(const SCREEN_KeyInput &key) {    
+bool IsAcceptKey(const SCREEN_KeyInput &key) {
 	if (SCREEN_confirmKeys.empty()) {
 		// This path is pretty much not used, SCREEN_confirmKeys should be set.
 		// TODO: Get rid of this stuff?
@@ -685,7 +685,7 @@ void InfoItem::Draw(SCREEN_UIContext &dc) {
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.DrawText(text_.c_str(), bounds_.x + paddingX, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 	dc.DrawText(rightText_.c_str(), bounds_.x2() - paddingX, bounds_.centerY(), style.fgColor, ALIGN_VCENTER | ALIGN_RIGHT);
-// 	dc.Draw()->DrawImageStretch(dc.theme->whiteImage, bounds_.x, bounds_.y, bounds_.x2(), bounds_.y + 2, dc.theme->itemDownStyle.bgColor);
+
 }
 
 ItemHeader::ItemHeader(const std::string &text, LayoutParams *layoutParams)
@@ -917,7 +917,7 @@ void TextView::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpe
 		bounds.h = vert.size == 0 ? MAX_ITEM_SIZE : vert.size;
 	}
 	ApplyBoundsBySpec(bounds, horiz, vert);
-	dc.MeasureTextRect(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller, f1, f1, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
+	dc.MeasureTextRect(dc.theme->uiFontSmall, f1, f1, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
 }
 
 void TextView::Draw(SCREEN_UIContext &dc) {
@@ -929,30 +929,31 @@ void TextView::Draw(SCREEN_UIContext &dc) {
 	if (measuredWidth_ > bounds_.w || measuredHeight_ > bounds_.h)
 		clip = true;
 	if (bounds_.w < 0 || bounds_.h < 0 || !clip_) 
-    {
+	{
 		clip = false;
 	}
 	if (clip) {
 		dc.Flush();
 		dc.PushScissor(bounds_);
 	}
-    
+	
 	// In case it's been made focusable.
 	if (HasFocus()) {
 		SCREEN_UI::Style style = dc.theme->itemFocusedStyle;
 		style.background.color &= 0x7fffffff;
 		dc.FillRect(style.background, bounds_);
 	}
-    
-    SCREEN_UI::Style style = dc.theme->itemStyle;
-    dc.FillRect(style.background, bounds_);
-    
-	dc.SetFontStyle(big_ ? dc.theme->uiFontSmall : dc.theme->uiFontSmaller);
+	
+	SCREEN_UI::Style style = dc.theme->itemStyle;
+	dc.FillRect(style.background, bounds_);
+	dc.SetFontStyle(dc.theme->uiFontSmall);
+	dc.SetFontScale(f1, f1);
 	if (shadow_) {
 		uint32_t shadowColor = RETRO_COLOR_FONT_BACKGROUND;
 		dc.DrawTextRect(text_.c_str(), bounds_.Offset(f2, f2), shadowColor, textAlign_);
 	}
 	dc.DrawTextRect(text_.c_str(), bounds_, textColor, textAlign_);
+
 	if (clip) {
 		dc.PopScissor();
 	}

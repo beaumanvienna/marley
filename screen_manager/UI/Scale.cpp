@@ -68,9 +68,7 @@ extern int WINDOW_WIDTH;
 void setGlobalScaling(void)
 {
     float window_width = WINDOW_WIDTH; // convert to float
-    gScale =  window_width / 1365;
-    
-    std::cout << "gScale = " << gScale << std::endl;
+    gScale =  window_width / 1280;
     
     f500   = 500.0f * gScale;
     f476   = 476.0f * gScale;
