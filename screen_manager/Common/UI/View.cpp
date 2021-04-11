@@ -528,7 +528,7 @@ void Choice::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec 
 float Choice::CalculateTextScale(const SCREEN_UIContext &dc, float availWidth) const {
 	float actualWidth, actualHeight;
 	Bounds availBounds(0, 0, availWidth, bounds_.h);
-	dc.MeasureTextRect(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), (int)text_.size(), availBounds, &actualWidth, &actualHeight);
+	dc.MeasureTextRect(dc.theme->uiFont, f1, f1, text_.c_str(), (int)text_.size(), availBounds, &actualWidth, &actualHeight);
 	if (actualWidth > availWidth) {
 		return std::max(MIN_TEXT_SCALE, availWidth / actualWidth);
 	}
@@ -614,7 +614,7 @@ void Choice::Draw(SCREEN_UIContext &dc) {
     
     dc.SetFontStyle(dc.theme->uiFont);
 
-    const float paddingX = 12.0f;
+    const float paddingX = 6.0f;
     const float availWidth = bounds_.w - paddingX * 2 - textPadding_.horiz();
     float scale = CalculateTextScale(dc, availWidth) * gScale;
 
