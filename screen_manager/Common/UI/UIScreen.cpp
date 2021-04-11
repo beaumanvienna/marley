@@ -211,8 +211,8 @@ SCREEN_UI::EventReturn SCREEN_UIScreen::OnCancel(SCREEN_UI::EventParams &e) {
 	return SCREEN_UI::EVENT_DONE;
 }
 
-SCREEN_PopupScreen::SCREEN_PopupScreen(std::string title, std::string button1, std::string button2)
-	: box_(0), defaultButton_(nullptr), title_(title) {
+SCREEN_PopupScreen::SCREEN_PopupScreen(std::string title, std::string button1, std::string button2, float customWidth)
+	: box_(0), defaultButton_(nullptr), title_(title), customWidth_(customWidth) {
 	auto di = GetI18NCategory("Dialog");
 	if (!button1.empty())
 		button1_ = di->T(button1.c_str());
@@ -374,7 +374,7 @@ void MessageSCREEN_PopupScreen::OnCompleted(DialogResult result) {
 void ListSCREEN_PopupScreen::CreatePopupContents(SCREEN_UI::ViewGroup *parent) {
 	using namespace SCREEN_UI;
 
-	listView_ = parent->Add(new ListView(&adaptor_, hidden_)); //, new LinearLayoutParams(1.0)));
+	listView_ = parent->Add(new ListView(&adaptor_, hidden_));
 	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - f140);
 	listView_->OnChoice.Handle(this, &ListSCREEN_PopupScreen::OnListChoice);
 }
@@ -409,7 +409,7 @@ SCREEN_UI::EventReturn SCREEN_PopupMultiChoice::HandleClick(SCREEN_UI::EventPara
 	}
 
 	ListSCREEN_PopupScreen *popupScreen = new ListSCREEN_PopupScreen(ChopTitle(text_), choices, *value_ - minVal_,
-		std::bind(&SCREEN_PopupMultiChoice::ChoiceCallback, this, std::placeholders::_1));
+		std::bind(&SCREEN_PopupMultiChoice::ChoiceCallback, this, std::placeholders::_1),false,f800);
 	popupScreen->SetHiddenChoices(hidden_);
 	if (e.v)
 		popupScreen->SetPopupOrigin(e.v);
@@ -459,7 +459,7 @@ void SCREEN_PopupMultiChoice::Draw(SCREEN_UIContext &dc) {
 	dc.SetFontStyle(dc.theme->uiFont);
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, valueText_.c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, valueText_.c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);

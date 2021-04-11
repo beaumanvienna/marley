@@ -25,6 +25,7 @@
 
 float gScale = 1.0f;
 
+float f800   = 800.0f;
 float f500   = 500.0f;
 float f476   = 476.0f;
 float f410   = 410.0f;
@@ -70,6 +71,7 @@ void setGlobalScaling(void)
     float window_width = WINDOW_WIDTH; // convert to float
     gScale =  window_width / 1280;
     
+    f800   = 800.0f * gScale;
     f500   = 500.0f * gScale;
     f476   = 476.0f * gScale;
     f410   = 410.0f * gScale;

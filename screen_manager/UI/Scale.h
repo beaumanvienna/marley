@@ -25,6 +25,7 @@
 void setGlobalScaling(void);
 extern float gScale;
 
+extern float f800;
 extern float f500;
 extern float f476;
 extern float f410;

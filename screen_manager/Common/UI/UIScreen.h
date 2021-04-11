@@ -70,7 +70,7 @@ private:
 
 class SCREEN_PopupScreen : public SCREEN_UIDialogScreen {
 public:
-	SCREEN_PopupScreen(std::string title, std::string button1 = "", std::string button2 = "");
+	SCREEN_PopupScreen(std::string title, std::string button1 = "", std::string button2 = "", float customWidth = f410);
 
 	virtual void CreatePopupContents(SCREEN_UI::ViewGroup *parent) = 0;
 	virtual void CreateViews() override;
@@ -85,7 +85,7 @@ public:
 
 protected:
 	virtual bool FillVertical() const { return false; }
-	virtual SCREEN_UI::Size PopupWidth() const { return f410; }
+	virtual SCREEN_UI::Size PopupWidth() const { return customWidth_; }
 	virtual bool ShowButtons() const { return true; }
 	virtual bool CanComplete(DialogResult result) { return true; }
 	virtual void OnCompleted(DialogResult result) {}
@@ -98,7 +98,7 @@ private:
 	std::string title_;
 	std::string button1_;
 	std::string button2_;
-
+    float customWidth_;
 	enum {
 		FRAMES_LEAD_IN = 6,
 		FRAMES_LEAD_OUT = 4,
@@ -114,8 +114,8 @@ private:
 class ListSCREEN_PopupScreen : public SCREEN_PopupScreen {
 public:
 	ListSCREEN_PopupScreen(std::string title) : SCREEN_PopupScreen(title) {}
-	ListSCREEN_PopupScreen(std::string title, const std::vector<std::string> &items, int selected, std::function<void(int)> callback, bool showButtons = false)
-		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), callback_(callback), showButtons_(showButtons) { }
+	ListSCREEN_PopupScreen(std::string title, const std::vector<std::string> &items, int selected, std::function<void(int)> callback, bool showButtons = false, float customWidth = f410)
+		: SCREEN_PopupScreen(title, "OK", "Cancel", customWidth), adaptor_(items, selected), callback_(callback), showButtons_(showButtons) { }
 	ListSCREEN_PopupScreen(std::string title, const std::vector<std::string> &items, int selected, bool showButtons = false)
 		: SCREEN_PopupScreen(title, "OK", "Cancel"), adaptor_(items, selected), showButtons_(showButtons) { }
 

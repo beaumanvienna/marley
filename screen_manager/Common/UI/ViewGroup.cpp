@@ -1413,7 +1413,7 @@ ListView::ListView(ListAdaptor *a, std::set<int> hidden, LayoutParams *layoutPar
 
 void ListView::CreateAllItems() {
 	linLayout_->Clear();
-	// Let's not be clever yet, we'll just create them all up front and add them all in.
+	// We'll just create them all up front and add them all in
 	for (int i = 0; i < adaptor_->GetNumItems(); i++) {
 		if (hidden_.find(i) == hidden_.end()) {
 			View *v = linLayout_->Add(adaptor_->CreateItemView(i));
@@ -1453,7 +1453,7 @@ bool ChoiceListAdaptor::AddEventCallback(View *view, std::function<EventReturn(E
 View *StringVectorListAdaptor::CreateItemView(int index) {
     if (gTheme == THEME_RETRO) 
     {
-	    return new Choice(items_[index], TRANSPARENT_BACKGROUND, "", index == selected_);
+	    return new Choice(items_[index], TRANSPARENT_BACKGROUND, "", index == selected_,new LinearLayoutParams(f800, f100));
     } else
     {
         return new Choice(items_[index], "", index == selected_);
