@@ -1095,6 +1095,14 @@ void SCREEN_SettingsScreen::DrawBackground(SCREEN_UIContext &dc) {
             ::DrawBackgroundSimple(dc, SCREEN_GENERIC);
             break;
     }
+    if ((tab == SETTINGS_SEARCH) && (!selectSearchDirectoriesChoice->HasFocus()) && (!backButton->HasFocus()))
+    {
+        backButton->SetEnabled(false);
+    }
+    else
+    {
+        backButton->SetEnabled(true);
+    }
 }
 
 SCREEN_UI::TextView* biosInfo(std::string infoText, bool biosFound)
@@ -1158,11 +1166,15 @@ void SCREEN_SettingsScreen::CreateViews() {
         icon = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_NOT_FOCUSED); 
         icon_active = SCREEN_ImageID("I_BACK_R", BUTTON_STATE_FOCUSED); 
         icon_depressed = SCREEN_ImageID("I_BACK_R",BUTTON_STATE_FOCUSED_DEPRESSED);
-        verticalLayout->Add(new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        backButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
+        backButton->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        verticalLayout->Add(backButton);
     } else
     {
         icon = SCREEN_ImageID("I_BACK");
-        verticalLayout->Add(new Choice(icon, new LayoutParams(f128, f128)))->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        backButton = new Choice(icon, new LayoutParams(f128, f128));
+        backButton->OnClick.Handle<SCREEN_UIScreen>(this, &SCREEN_UIScreen::OnBack);
+        verticalLayout->Add(backButton);
     }
     root_->Add(verticalLayout);
 
@@ -1235,8 +1247,10 @@ void SCREEN_SettingsScreen::CreateViews() {
         selectSearchDirectories[0]=emptyStr;
     }
 
-    SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice = searchSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, 
-        ge->T("Remove search path entry from settings"), selectSearchDirectories, 0, numChoices, ge->GetName(), screenManager(), new LayoutParams(FILL_PARENT,f85)));
+    selectSearchDirectoriesChoice = searchSettings->Add(new SCREEN_PopupMultiChoice(&inputSearchDirectories, 
+                                                            ge->T("Remove search path entry from settings"), 
+                                                            selectSearchDirectories, 0, numChoices, ge->GetName(), 
+                                                            screenManager(), new LayoutParams(FILL_PARENT,f85)));
     selectSearchDirectoriesChoice->OnChoice.Handle(this, &SCREEN_SettingsScreen::OnDeleteSearchDirectories);
     
     //controller setup

@@ -1,6 +1,6 @@
 #include <mutex>
 #include <deque>
-
+#include <iostream>
 #include "ppsspp_config.h"
 
 #include "Common/UI/Root.h"

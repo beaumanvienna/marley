@@ -25,6 +25,8 @@
 #include <mutex>
 #include <thread>
 #include "Common/UI/UIScreen.h"
+#include "Common/UI/View.h"
+#include "Common/UI/UIScreen.h"
 #include "Common/File/PathBrowser.h"
 #include "UI/MiscScreens.h"
 
@@ -54,12 +56,14 @@ protected:
     
     // game browser
     SCREEN_DirBrowser *searchDirBrowser;
-       SCREEN_UI::EventReturn OnStartSetup1(SCREEN_UI::EventParams &e);
+    SCREEN_UI::EventReturn OnStartSetup1(SCREEN_UI::EventParams &e);
     SCREEN_UI::EventReturn OnStartSetup2(SCREEN_UI::EventParams &e);
 
 
 private:
     SCREEN_UI::TabHolder *tabHolder = nullptr;
+    SCREEN_UI::Choice* backButton;
+    SCREEN_UI::SCREEN_PopupMultiChoice *selectSearchDirectoriesChoice;
     // search
     int inputSearchDirectories;
     

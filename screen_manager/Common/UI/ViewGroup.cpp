@@ -2,7 +2,7 @@
 #include <functional>
 #include <set>
 #include <mutex>
-
+#include <iostream>
 #include "Common/Input/KeyCodes.h"
 #include "Common/Math/curves.h"
 #include "Common/UI/Context.h"
@@ -227,7 +227,7 @@ float GetDirectionScore(View *origin, View *destination, FocusDirection directio
 	Point destPos = destination->GetFocusPosition(Opposite(direction));
 
 	float dx = destPos.x - originPos.x;
-	float dy = destPos.y - originPos.y;
+	float dy = (destPos.y - originPos.y) * 10;
 
 	float distance = sqrtf(dx*dx + dy*dy);
 	float overlap = 0.0f;
