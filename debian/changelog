@@ -1,3 +1,9 @@
+marley (0.2.17) focal; urgency=medium
+
+  * scaling of GUI
+
+ -- JC <beaumanvienna@gmail.com>  Sat, 11 Apr 2021 19:40:00 -0700
+
 marley (0.2.16) focal; urgency=medium
 
   * desktop sound volume and device selection
