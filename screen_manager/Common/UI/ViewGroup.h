@@ -282,11 +282,15 @@ public:
 
 	void HighlightChoice(unsigned int choice);
 
+
 	bool Key(const SCREEN_KeyInput &input) override;
 
 	void SetTopTabs(bool tabs) { topTabs_ = tabs; }
 	void Draw(SCREEN_UIContext &dc) override;
-
+	bool AnyTabHasFocus(int& tab);
+	void SetEnabled(int tab);
+	void disableAllTabs();
+	void enableAllTabs();
 	std::string Describe() const override { return "ChoiceStrip: " + View::Describe(); }
 
 	Event OnChoice;
@@ -295,7 +299,7 @@ private:
 	StickyChoice *Choice(int index);
 	EventReturn OnChoiceClick(EventParams &e);
 	int selected_;
-	bool topTabs_;  // Can be controlled with L/R.
+	bool topTabs_;
 };
 
 
@@ -322,6 +326,13 @@ public:
         icon_depressed_inactive_ = icon_depressed_inactive;
         useIcons_ = true;
     }
+    
+    bool HasFocus(int& tab);
+    void enableAllTabs();
+    void disableAllTabs();
+    void SetEnabled(int tab);
+    
+    
 
 private:
     bool useIcons_ = false;

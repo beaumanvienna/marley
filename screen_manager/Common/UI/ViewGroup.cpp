@@ -1267,9 +1267,65 @@ void TabHolder::PersistData(PersistStatus status, std::string anonId, PersistMap
 	}
 }
 
+bool TabHolder::HasFocus(int& tab)
+{
+    return tabStrip_->AnyTabHasFocus(tab);
+}
+
+void TabHolder::enableAllTabs()
+{
+    tabStrip_->enableAllTabs();
+}
+
+void TabHolder::disableAllTabs()
+{
+    tabStrip_->disableAllTabs();
+}
+
+void TabHolder::SetEnabled(int tab)
+{
+    tabStrip_->SetEnabled(tab);
+}
+
 ChoiceStrip::ChoiceStrip(Orientation orientation, LayoutParams *layoutParams)
 		: LinearLayout(orientation, layoutParams), selected_(0), topTabs_(false) {
 	SetSpacing(0.0f);
+}
+
+void ChoiceStrip::enableAllTabs()
+{
+    for (unsigned int choice = 0; choice < (unsigned int)views_.size(); choice++)
+    {
+        Choice(choice)->SetEnabled(true);
+    }
+}
+
+void ChoiceStrip::disableAllTabs()
+{
+    for (unsigned int choice = 0; choice < (unsigned int)views_.size(); choice++)
+    {
+        Choice(choice)->SetEnabled(false);
+    }
+}
+
+void ChoiceStrip::SetEnabled(int tab)
+{
+    Choice(tab)->SetEnabled(true);
+}
+
+bool ChoiceStrip::AnyTabHasFocus(int& tab)
+{
+    bool anyTabHasFocus = false;
+    for (unsigned int choice = 0; choice < (unsigned int)views_.size(); choice++)
+    {
+        if (Choice(choice)->HasFocus())
+        {
+            tab = choice;
+            anyTabHasFocus = true;
+            break;
+        }
+    }
+    return anyTabHasFocus;
 }
 
 void ChoiceStrip::AddChoice(const std::string &title) {

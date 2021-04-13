@@ -95,7 +95,10 @@ int gTheme = THEME_RETRO;
 SCREEN_SettingsInfoMessage *settingsInfo_;
 std::string showTooltipSettingsScreen;
 bool updateControllerText;
-
+SCREEN_UI::Choice* homeButton;
+SCREEN_UI::Choice* gridButton;
+SCREEN_UI::Choice* linesButton;
+int lastTab = 0;
 void setControllerConfText(std::string text, std::string text2)
 {
     updateControllerText = true;
@@ -1095,6 +1098,32 @@ void SCREEN_SettingsScreen::DrawBackground(SCREEN_UIContext &dc) {
             ::DrawBackgroundSimple(dc, SCREEN_GENERIC);
             break;
     }
+    
+    if (tabHolder->HasFocus(lastTab))
+    {
+        tabHolder->enableAllTabs();
+    }
+    else
+    {
+        tabHolder->disableAllTabs();
+        if (tab == SETTINGS_SEARCH)
+        {
+            bool topButtonsHaveFocus =  homeButton->HasFocus() || gridButton->HasFocus() || linesButton->HasFocus();
+            if (topButtonsHaveFocus)
+            {
+                tabHolder->SetEnabled(lastTab);
+            }
+            else
+            {
+                tabHolder->disableAllTabs();
+            }
+        }
+        else
+        {
+            tabHolder->SetEnabled(lastTab);
+        }
+    }
+    
     if ((tab == SETTINGS_SEARCH) && (!selectSearchDirectoriesChoice->HasFocus()) && (!backButton->HasFocus()))
     {
         backButton->SetEnabled(false);
@@ -2353,7 +2382,6 @@ void SCREEN_DirBrowser::Refresh() {
     SCREEN_ImageID icon, icon_active, icon_depressed;
     
     // home button
-    Choice* homeButton;
     if (gTheme == THEME_RETRO)
     { 
         icon = SCREEN_ImageID("I_HOME_R", BUTTON_STATE_NOT_FOCUSED); 
@@ -2377,8 +2405,6 @@ void SCREEN_DirBrowser::Refresh() {
     topBar->Add(homeButton);
     
     // grid button
-    Choice* gridButton;
-    
     if (gTheme == THEME_RETRO)
     { 
         icon = SCREEN_ImageID("I_GRID_R", BUTTON_STATE_NOT_FOCUSED); 
@@ -2402,7 +2428,6 @@ void SCREEN_DirBrowser::Refresh() {
     topBar->Add(gridButton);
     
     // lines button
-    Choice* linesButton;
     if (gTheme == THEME_RETRO)
     { 
         icon = SCREEN_ImageID("I_LINES_R", BUTTON_STATE_NOT_FOCUSED); 

@@ -570,7 +570,7 @@ void Choice::Draw(SCREEN_UIContext &dc) {
     
     style = dc.theme->itemStyle;
     
-    if (!IsEnabled()) {
+    if ((gTheme != THEME_RETRO) && (!IsEnabled())) {
         style = dc.theme->itemDisabledStyle;
     }
 
