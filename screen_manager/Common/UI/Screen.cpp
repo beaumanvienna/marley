@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Common/System/Display.h"
 #include "Common/Input/InputState.h"
 #include "Common/UI/Root.h"
@@ -216,6 +217,7 @@ void SCREEN_ScreenManager::push(SCREEN_Screen *screen, int layerFlags) {
 	}
 
 	// Release touches and unfocus.
+	lastFocusView.push(SCREEN_UI::GetFocusedView());
 	SCREEN_UI::SetFocusedView(nullptr);
 	SCREEN_TouchInput input;
 	input.flags = TOUCH_RELEASE_ALL;
@@ -294,5 +296,8 @@ void SCREEN_ScreenManager::processFinishDialog() {
 		}
 		delete dialogFinished_;
 		dialogFinished_ = nullptr;
+
+		SCREEN_UI::SetFocusedView(lastFocusView.top());
+		lastFocusView.pop();
 	}
 }
