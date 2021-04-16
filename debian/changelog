@@ -1,3 +1,9 @@
+marley (0.2.18) focal; urgency=medium
+
+  * plain theme bug fixes
+
+ -- JC <beaumanvienna@gmail.com>  Sat, 15 Apr 2021 20:50:00 -0700
+
 marley (0.2.17) focal; urgency=medium
 
   * scaling of GUI

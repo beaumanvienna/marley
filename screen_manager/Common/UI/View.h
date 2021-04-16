@@ -650,26 +650,28 @@ private:
 class Choice : public ClickableItem {
 public:
 	Choice(const std::string &text, LayoutParams *layoutParams = nullptr)
-		: Choice(text, std::string(), false, layoutParams) { }
+		: Choice(text, std::string(), false, layoutParams) { numIcons_= 0; }
 	Choice(const std::string &text, bool transparentBackground, LayoutParams *layoutParams = nullptr)
-		: Choice(text, transparentBackground, std::string(), false, layoutParams) { }
+		: Choice(text, transparentBackground, std::string(), false, layoutParams) { numIcons_= 0; }
 	Choice(const std::string &text, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
+		: ClickableItem(layoutParams), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), 
+                        iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { numIcons_= 0; }
 	Choice(const std::string &text, bool transparentBackground, const std::string &smallText, bool selected = false, LayoutParams *layoutParams = nullptr)
-		: ClickableItem(layoutParams, transparentBackground), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { }
+		: ClickableItem(layoutParams, transparentBackground), text_(text), smallText_(smallText), atlasImage_(SCREEN_ImageID::invalid()), 
+                        iconImage_(SCREEN_ImageID::invalid()), centered_(false), highlighted_(false), selected_(selected) { numIcons_= 0; }
 	Choice(SCREEN_ImageID image, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
-                        hasHoldFeature_(hasHoldFeature), heldDown_(false) {numIcons_=1;}
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false) { numIcons_ = 1; }
     Choice(SCREEN_ImageID image, SCREEN_ImageID image_active, SCREEN_ImageID image_depressed, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(false), highlighted_(false), selected_(false), 
-                        hasHoldFeature_(hasHoldFeature), heldDown_(false), image_active_(image_active), image_depressed_(image_depressed) {numIcons_=3;}
+                        hasHoldFeature_(hasHoldFeature), heldDown_(false), image_active_(image_active), image_depressed_(image_depressed) { numIcons_ = 3;}
     Choice(SCREEN_ImageID image, SCREEN_ImageID image_active, SCREEN_ImageID image_depressed, SCREEN_ImageID image_depressed_inactive, const std::string &text, LayoutParams *layoutParams = nullptr, bool hasHoldFeature = false)
 		: ClickableItem(layoutParams), atlasImage_(image), iconImage_(SCREEN_ImageID::invalid()), 
                         centered_(true), highlighted_(false), selected_(false), 
                         hasHoldFeature_(hasHoldFeature), heldDown_(false), text_(text),
-                        image_active_(image_active), image_depressed_(image_depressed), image_depressed_inactive_(image_depressed_inactive) {numIcons_=4;}
+                        image_active_(image_active), image_depressed_(image_depressed), image_depressed_inactive_(image_depressed_inactive) { numIcons_ = 4;}
     Event OnHold;
     Event OnHighlight;
     bool Key(const SCREEN_KeyInput &input) override;

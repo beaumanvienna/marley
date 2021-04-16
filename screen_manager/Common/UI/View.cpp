@@ -440,11 +440,11 @@ void ClickableItem::Draw(SCREEN_UIContext &dc) {
 
         if (HasFocus()) 
         {
-            style = dc.theme->itemFocusedStyle;
+            style = dc.theme->itemDownStyle;
         }
         if (down_) 
         {
-            style = dc.theme->itemDownStyle;
+            style = dc.theme->itemFocusedStyle;
         }
     }
 
@@ -569,10 +569,6 @@ void Choice::Draw(SCREEN_UIContext &dc) {
     } 
     
     style = dc.theme->itemStyle;
-    
-    if ((gTheme != THEME_RETRO) && (!IsEnabled())) {
-        style = dc.theme->itemDisabledStyle;
-    }
 
     if (atlasImage_.isValid()) {
         if (numIcons_==3) {

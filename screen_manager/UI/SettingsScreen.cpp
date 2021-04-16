@@ -2414,7 +2414,7 @@ void SCREEN_DirBrowser::Refresh() {
     } else
     { 
         icon = SCREEN_ImageID("I_GRID");
-        gridButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
+        gridButton = new Choice(icon, new LayoutParams(f128, f128));
     }
     gridButton->OnClick.Handle(this, &SCREEN_DirBrowser::GridClick);
     gridButton->OnHighlight.Add([=](EventParams &e) {
@@ -2437,7 +2437,7 @@ void SCREEN_DirBrowser::Refresh() {
     } else
     { 
         icon = SCREEN_ImageID("I_LINES");
-        linesButton = new Choice(icon, icon_active, icon_depressed, new LayoutParams(f128, f128));
+        linesButton = new Choice(icon, new LayoutParams(f128, f128));
     }
     linesButton->OnClick.Handle(this, &SCREEN_DirBrowser::LinesClick);
     linesButton->OnHighlight.Add([=](EventParams &e) {
