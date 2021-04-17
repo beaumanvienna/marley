@@ -216,6 +216,7 @@ void ScreenManager::push(Screen *screen, int layerFlags) {
 	}
 
 	// Release touches and unfocus.
+	lastFocusView.push(UI::GetFocusedView());
 	UI::SetFocusedView(nullptr);
 	TouchInput input;
 	input.flags = TOUCH_RELEASE_ALL;
@@ -294,5 +295,7 @@ void ScreenManager::processFinishDialog() {
 		}
 		delete dialogFinished_;
 		dialogFinished_ = nullptr;
+		UI::SetFocusedView(lastFocusView.top());
+		lastFocusView.pop();
 	}
 }

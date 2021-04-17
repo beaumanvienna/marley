@@ -53,6 +53,8 @@
 #include "UI/MainScreen.h"
 #include "UI/MiscScreens.h"
 
+#include "../screen_manager/UI/Scale.h"
+
 #ifdef _MSC_VER
 #pragma execution_character_set("utf-8")
 #endif
@@ -132,7 +134,7 @@ void DrawBackground(UIContext &dc, float alpha) {
 		float y = ybase[i] + dc.GetBounds().y + 40 * cosf(i * 7.2f + t * 1.3f);
 		float angle = (float)sin(i + t);
 		int n = i & 3;
-		ui_draw2d.DrawImageRotated(symbols[n], x, y, 1.0f, angle, colorAlpha(colors[n], alpha * 0.1f));
+		ui_draw2d.DrawImageRotated(symbols[n], x, y, f1, angle, colorAlpha(colors[n], alpha * 0.1f));
 	}
 }
 
@@ -524,18 +526,18 @@ void LogoScreen::render() {
 	// Manually formatting UTF-8 is fun.  \xXX doesn't work everywhere.
 	snprintf(temp, sizeof(temp), "%s Henrik Rydg%c%crd", cr->T("created", "Created by"), 0xC3, 0xA5);
 	if (System_GetPropertyBool(SYSPROP_APP_GOLD)) {
-		dc.Draw()->DrawImage(ImageID("I_ICONGOLD"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(ImageID("I_ICONGOLD"), bounds.centerX() - f128, bounds.centerY() - f30, f1, textColor, ALIGN_CENTER);
 	} else {
-		dc.Draw()->DrawImage(ImageID("I_ICON"), bounds.centerX() - 120, bounds.centerY() - 30, 1.2f, textColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(ImageID("I_ICON"), bounds.centerX() - f128, bounds.centerY() - f30, f1, textColor, ALIGN_CENTER);
 	}
-	dc.Draw()->DrawImage(ImageID("I_LOGO"), bounds.centerX() + 40, bounds.centerY() - 30, 1.5f, textColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(ImageID("I_LOGO"), bounds.centerX() + f40, bounds.centerY() - f30, f1, textColor, ALIGN_CENTER);
 	//dc.Draw()->DrawTextShadow(UBUNTU48, "PPSSPP", xres / 2, yres / 2 - 30, textColor, ALIGN_CENTER);
-	dc.SetFontScale(1.0f, 1.0f);
+	dc.SetFontScale(f1, f1);
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.DrawText(temp, bounds.centerX(), bounds.centerY() + 40, textColor, ALIGN_CENTER);
-	dc.DrawText(cr->T("license", "Free Software under GPL 2.0+"), bounds.centerX(), bounds.centerY() + 70, textColor, ALIGN_CENTER);
+	dc.DrawText(temp, bounds.centerX(), bounds.centerY() + f40, textColor, ALIGN_CENTER);
+	dc.DrawText(cr->T("license", "Free Software under GPL 2.0+"), bounds.centerX(), bounds.centerY() + f80, textColor, ALIGN_CENTER);
 
-	int ppsspp_org_y = yres / 2 + 130;
+	int ppsspp_org_y = yres / 2 + f128;
 	dc.DrawText("www.ppsspp.org", bounds.centerX(), ppsspp_org_y, textColor, ALIGN_CENTER);
 
 #if (defined(_WIN32) && !PPSSPP_PLATFORM(UWP)) || PPSSPP_PLATFORM(ANDROID) || PPSSPP_PLATFORM(LINUX)
@@ -544,7 +546,7 @@ void LogoScreen::render() {
 #ifdef _DEBUG
 	apiName += ", debug build";
 #endif
-	dc.DrawText(gr->T(apiName), bounds.centerX(), ppsspp_org_y + 50, textColor, ALIGN_CENTER);
+	dc.DrawText(gr->T(apiName), bounds.centerX(), ppsspp_org_y + f50, textColor, ALIGN_CENTER);
 #endif
 
 	dc.Flush();
@@ -797,7 +799,7 @@ void CreditsScreen::render() {
 		if (alpha > 0.0f) {
 			dc.SetFontScale(ease(alpha), ease(alpha));
 			dc.DrawText(credits[i], bounds.centerX(), y, textColor, ALIGN_HCENTER);
-			dc.SetFontScale(1.0f, 1.0f);
+			dc.SetFontScale(f1, f1);
 		}
 		y += itemHeight;
 	}

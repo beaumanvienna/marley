@@ -9,6 +9,7 @@
 #include "Common/UI/Context.h"
 #include "Common/Render/DrawBuffer.h"
 #include "Common/Render/Text/draw_text.h"
+#include "../screen_manager/UI/Scale.h"
 
 #include "Common/Log.h"
 #include "UI/TextureUtil.h"
@@ -159,12 +160,12 @@ void UIContext::MeasureText(const UI::FontStyle &style, float scaleX, float scal
 
 void UIContext::MeasureTextCount(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
-		float sizeFactor = (float)style.sizePts / 24.0f;
+		float sizeFactor = gScale*(float)style.sizePts / f24;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
 		Draw()->MeasureTextCount(style.atlasFont, str, count, x, y);
 	} else {
 		textDrawer_->SetFont(style.fontName.c_str(), style.sizePts, style.flags);
-		textDrawer_->SetFontScale(scaleX, scaleY);
+		textDrawer_->SetFontScale(scaleX*gScale, scaleY*gScale);
 		textDrawer_->MeasureString(str, count, x, y);
 		textDrawer_->SetFont(fontStyle_->fontName.c_str(), fontStyle_->sizePts, fontStyle_->flags);
 	}
@@ -172,12 +173,12 @@ void UIContext::MeasureTextCount(const UI::FontStyle &style, float scaleX, float
 
 void UIContext::MeasureTextRect(const UI::FontStyle &style, float scaleX, float scaleY, const char *str, int count, const Bounds &bounds, float *x, float *y, int align) const {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
-		float sizeFactor = (float)style.sizePts / 24.0f;
+		float sizeFactor = gScale*(float)style.sizePts / f24;
 		Draw()->SetFontScale(scaleX * sizeFactor, scaleY * sizeFactor);
 		Draw()->MeasureTextRect(style.atlasFont, str, count, bounds, x, y, align);
 	} else {
 		textDrawer_->SetFont(style.fontName.c_str(), style.sizePts, style.flags);
-		textDrawer_->SetFontScale(scaleX, scaleY);
+		textDrawer_->SetFontScale(scaleX*gScale, scaleY*gScale);
 		textDrawer_->MeasureStringRect(str, count, bounds, x, y, align);
 		textDrawer_->SetFont(fontStyle_->fontName.c_str(), fontStyle_->sizePts, fontStyle_->flags);
 	}
@@ -185,11 +186,11 @@ void UIContext::MeasureTextRect(const UI::FontStyle &style, float scaleX, float 
 
 void UIContext::DrawText(const char *str, float x, float y, uint32_t color, int align) {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
-		float sizeFactor = (float)fontStyle_->sizePts / 24.0f;
+		float sizeFactor = gScale*(float)fontStyle_->sizePts / f24;
 		Draw()->SetFontScale(fontScaleX_ * sizeFactor, fontScaleY_ * sizeFactor);
 		Draw()->DrawText(fontStyle_->atlasFont, str, x, y, color, align);
 	} else {
-		textDrawer_->SetFontScale(fontScaleX_, fontScaleY_);
+		textDrawer_->SetFontScale(fontScaleX_*gScale, fontScaleY_*gScale);
 		textDrawer_->DrawString(*Draw(), str, x, y, color, align);
 		RebindTexture();
 	}
@@ -203,11 +204,11 @@ void UIContext::DrawTextShadow(const char *str, float x, float y, uint32_t color
 
 void UIContext::DrawTextRect(const char *str, const Bounds &bounds, uint32_t color, int align) {
 	if (!textDrawer_ || (align & FLAG_DYNAMIC_ASCII)) {
-		float sizeFactor = (float)fontStyle_->sizePts / 24.0f;
+		float sizeFactor = gScale * (float)fontStyle_->sizePts / f24;
 		Draw()->SetFontScale(fontScaleX_ * sizeFactor, fontScaleY_ * sizeFactor);
 		Draw()->DrawTextRect(fontStyle_->atlasFont, str, bounds.x, bounds.y, bounds.w, bounds.h, color, align);
 	} else {
-		textDrawer_->SetFontScale(fontScaleX_, fontScaleY_);
+		textDrawer_->SetFontScale(fontScaleX_*gScale, fontScaleY_*gScale);
 		Bounds rounded = bounds;
 		rounded.x = floorf(rounded.x);
 		rounded.y = floorf(rounded.y);

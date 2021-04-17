@@ -18,7 +18,8 @@
 #include "ppsspp_config.h"
 
 #include <algorithm>
-
+#include <iostream>
+#include "../screen_manager/UI/Scale.h"
 #include "Common/Net/Resolve.h"
 #include "Common/GPU/OpenGL/GLFeatures.h"
 #include "Common/Render/DrawBuffer.h"
@@ -189,16 +190,15 @@ void GameSettingsScreen::CreateViews() {
 	auto ps = GetI18NCategory("PostShaders");
 
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
-
 	TabHolder *tabHolder;
 	if (vertical) {
 		LinearLayout *verticalLayout = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, FILL_PARENT));
-		tabHolder = new TabHolder(ORIENT_HORIZONTAL, 200, new LinearLayoutParams(1.0f));
+		tabHolder = new TabHolder(ORIENT_HORIZONTAL, f200, new LinearLayoutParams(1.0f));
 		verticalLayout->Add(tabHolder);
 		verticalLayout->Add(new Choice(di->T("Back"), "", false, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 0.0f, Margins(0))))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 		root_->Add(verticalLayout);
 	} else {
-		tabHolder = new TabHolder(ORIENT_VERTICAL, 200, new AnchorLayoutParams(10, 0, 10, 0, false));
+		tabHolder = new TabHolder(ORIENT_VERTICAL, f300, new AnchorLayoutParams(10, 0, 10, 0, false));
 		root_->Add(tabHolder);
 		AddStandardBack(root_);
 	}
@@ -209,8 +209,8 @@ void GameSettingsScreen::CreateViews() {
 	if (!vertical) {
 		leftSide += 200.0f;
 	}
-	settingInfo_ = new SettingInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - 40.0f, WRAP_CONTENT, leftSide, dp_yres - 80.0f - 40.0f, NONE, NONE));
-	settingInfo_->SetBottomCutoff(dp_yres - 200.0f);
+	settingInfo_ = new SettingInfoMessage(ALIGN_CENTER | FLAG_WRAP_TEXT, new AnchorLayoutParams(dp_xres - leftSide - f40, WRAP_CONTENT, leftSide, dp_yres - f80 - f40, NONE, NONE));
+	settingInfo_->SetBottomCutoff(dp_yres - f200);
 	root_->Add(settingInfo_);
 
 	// TODO: These currently point to global settings, not game specific ones.

@@ -12,6 +12,7 @@
 #include "Common/UI/Root.h"
 #include "Common/Data/Text/I18n.h"
 #include "Common/Render/DrawBuffer.h"
+#include "../screen_manager/UI/Scale.h"
 
 #include "Common/Log.h"
 #include "Common/StringUtils.h"
@@ -319,7 +320,7 @@ void PopupScreen::CreateViews() {
 	float yres = screenManager()->getUIContext()->GetBounds().h;
 
 	box_ = new LinearLayout(ORIENT_VERTICAL,
-		new AnchorLayoutParams(PopupWidth(), FillVertical() ? yres - 30 : WRAP_CONTENT, dc.GetBounds().centerX(), dc.GetBounds().centerY(), NONE, NONE, true));
+		new AnchorLayoutParams(PopupWidth(), FillVertical() ? yres - f30 : WRAP_CONTENT, dc.GetBounds().centerX(), dc.GetBounds().centerY(), NONE, NONE, true));
 
 	root_->Add(box_);
 	box_->SetBG(dc.theme->popupStyle.background);
@@ -335,9 +336,9 @@ void PopupScreen::CreateViews() {
 
 	if (ShowButtons() && !button1_.empty()) {
 		// And the two buttons at the bottom.
-		LinearLayout *buttonRow = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(200, WRAP_CONTENT));
+		LinearLayout *buttonRow = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(f200, WRAP_CONTENT));
 		buttonRow->SetSpacing(0);
-		Margins buttonMargins(5, 5);
+		Margins buttonMargins(f5, f5);
 
 		// Adjust button order to the platform default.
 #if defined(_WIN32)
@@ -380,7 +381,7 @@ void ListPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
 	using namespace UI;
 
 	listView_ = parent->Add(new ListView(&adaptor_, hidden_)); //, new LinearLayoutParams(1.0)));
-	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - 140);
+	listView_->SetMaxHeight(screenManager()->getUIContext()->GetBounds().h - f140);
 	listView_->OnChoice.Handle(this, &ListPopupScreen::OnListChoice);
 }
 
@@ -464,7 +465,7 @@ void PopupMultiChoice::Draw(UIContext &dc) {
 	dc.SetFontStyle(dc.theme->uiFont);
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, valueText_.c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, valueText_.c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);
@@ -523,7 +524,7 @@ void PopupSliderChoice::Draw(UIContext &dc) {
 	if (!IsEnabled()) {
 		style = dc.theme->itemDisabledStyle;
 	}
-	int paddingX = 12;
+	const float paddingX = f12;
 	dc.SetFontStyle(dc.theme->uiFont);
 
 	// Always good to have space for Unicode.
@@ -537,7 +538,7 @@ void PopupSliderChoice::Draw(UIContext &dc) {
 	}
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, temp, &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, temp, &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);
@@ -581,7 +582,7 @@ void PopupSliderChoiceFloat::Draw(UIContext &dc) {
 	}
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, temp, &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, temp, &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);
@@ -689,7 +690,7 @@ void SliderFloatPopupScreen::CreatePopupContents(UI::ViewGroup *parent) {
 
 	char temp[64];
 	sprintf(temp, "%0.3f", sliderValue_);
-	edit_ = new TextEdit(temp, "", new LinearLayoutParams(10.0f));
+	edit_ = new TextEdit(temp, "", new LinearLayoutParams(f10));
 	edit_->SetMaxLen(16);
 	edit_->SetTextColor(dc.theme->popupStyle.fgColor);
 	edit_->SetTextAlign(FLAG_DYNAMIC_ASCII);
@@ -795,7 +796,7 @@ void PopupTextInputChoice::Draw(UIContext &dc) {
 	dc.SetFontStyle(dc.theme->uiFont);
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, value_->c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, value_->c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);
@@ -858,7 +859,7 @@ void ChoiceWithValueDisplay::Draw(UIContext &dc) {
 	}
 
 	float ignore;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, valueText.str().c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, valueText.str().c_str(), &textPadding_.right, &ignore, ALIGN_RIGHT | ALIGN_VCENTER);
 	textPadding_.right += paddingX;
 
 	Choice::Draw(dc);

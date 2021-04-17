@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <algorithm>
-
+#include <iostream>
 #include "ppsspp_config.h"
 
 #include "Common/System/Display.h"
@@ -74,6 +74,7 @@
 #endif
 
 #include <sstream>
+#include "../screen_manager/UI/Scale.h"
 
 bool MainScreen::showHomebrewTab = false;
 
@@ -154,11 +155,11 @@ public:
 	void Draw(UIContext &dc) override;
 	void GetContentDimensions(const UIContext &dc, float &w, float &h) const override {
 		if (gridStyle_) {
-			w = 144*g_PConfig.fGameGridScale;
-			h = 80*g_PConfig.fGameGridScale;
+			w = f144*g_PConfig.fGameGridScale;
+			h = f80*g_PConfig.fGameGridScale;
 		} else {
-			w = 500;
-			h = 50;
+			w = f500;
+			h = f50;
 		}
 	}
 
@@ -262,7 +263,7 @@ void GameButton::Draw(UIContext &dc) {
 
 	int x = bounds_.x;
 	int y = bounds_.y;
-	int w = gridStyle_ ? bounds_.w : 144;
+	int w = gridStyle_ ? bounds_.w : f144;
 	int h = bounds_.h;
 
 	UI::Style style = dc.theme->itemStyle;
@@ -270,7 +271,7 @@ void GameButton::Draw(UIContext &dc) {
 		style = dc.theme->itemDownStyle;
 
 	if (!gridStyle_ || !texture) {
-		h = 50;
+		h = f50;
 		if (HasFocus())
 			style = down_ ? dc.theme->itemDownStyle : dc.theme->itemFocusedStyle;
 
@@ -291,11 +292,11 @@ void GameButton::Draw(UIContext &dc) {
 		// Adjust position so we don't stretch the image vertically or horizontally.
 		// Make sure it's not wider than 144 (like Doom Legacy homebrew), ugly in the grid mode.
 		float nw = std::min(h * tw / th, (float)w);
-		x += (w - nw) / 2.0f;
+		x += (w - nw) / f2;
 		w = nw;
 	}
 
-	int txOffset = down_ ? 4 : 0;
+	int txOffset = down_ ? f4 : 0;
 	if (!gridStyle_) txOffset = 0;
 
 	Bounds overlayBounds = bounds_;
@@ -312,9 +313,9 @@ void GameButton::Draw(UIContext &dc) {
 			x += 4;
 		}
 		if (txOffset) {
-			dropsize = 3;
-			y += txOffset * 2;
-			overlayBounds.y += txOffset * 2;
+			dropsize = f3;
+			y += txOffset * f2;
+			overlayBounds.y += txOffset * f2;
 		}
 		if (HasFocus()) {
 			dc.Draw()->Flush();
@@ -363,24 +364,24 @@ void GameButton::Draw(UIContext &dc) {
 			title_ = ReplaceAll(title_, "\n", " ");
 		}
 
-		dc.MeasureText(dc.GetFontStyle(), 1.0f, 1.0f, title_.c_str(), &tw, &th, 0);
+		dc.MeasureText(dc.GetFontStyle(), f1, f1, title_.c_str(), &tw, &th, 0);
 
 		int availableWidth = bounds_.w - 150;
 		if (g_PConfig.bShowIDOnGameIcon) {
 			float vw, vh;
-			dc.MeasureText(dc.GetFontStyle(), 0.7f, 0.7f, ginfo->id_version.c_str(), &vw, &vh, 0);
+			dc.MeasureText(dc.GetFontStyle(), f0_88, f0_88, ginfo->id_version.c_str(), &vw, &vh, 0);
 			availableWidth -= vw + 20;
-			dc.SetFontScale(0.7f, 0.7f);
+			dc.SetFontScale(f0_88, f0_88);
 			dc.DrawText(ginfo->id_version.c_str(), availableWidth + 160, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
-			dc.SetFontScale(1.0f, 1.0f);
+			dc.SetFontScale(f1, f1);
 		}
 		float sineWidth = std::max(0.0f, (tw - availableWidth)) / 2.0f;
 
-		float tx = 150;
+		float tx = f150;
 		if (availableWidth < tw) {
 			tx -= (1.0f + sin(time_now_d() * 1.5f)) * sineWidth;
 			Bounds tb = bounds_;
-			tb.x = bounds_.x + 150;
+			tb.x = bounds_.x + f150;
 			tb.w = availableWidth;
 			dc.PushScissor(tb);
 		}
@@ -405,7 +406,7 @@ void GameButton::Draw(UIContext &dc) {
 			if (gridStyle_) {
 				dc.Draw()->DrawImage(ImageID("I_GEAR"), x, y + h - gearImage->h*g_PConfig.fGameGridScale, g_PConfig.fGameGridScale);
 			} else {
-				dc.Draw()->DrawImage(ImageID("I_GEAR"), x - gearImage->w, y, 1.0f);
+				dc.Draw()->DrawImage(ImageID("I_GEAR"), x - gearImage->w, y, f1);
 			}
 		}
 	}
@@ -422,10 +423,10 @@ void GameButton::Draw(UIContext &dc) {
 		const AtlasImage *image = dc.Draw()->GetAtlas()->getImage(regionIcons[ginfo->region]);
 		if (image) {
 			if (gridStyle_) {
-				dc.Draw()->DrawImage(regionIcons[ginfo->region], x + w - (image->w + 5)*g_PConfig.fGameGridScale,
-							y + h - (image->h + 5)*g_PConfig.fGameGridScale, g_PConfig.fGameGridScale);
+				dc.Draw()->DrawImage(regionIcons[ginfo->region], x + w - (image->w + f5)*g_PConfig.fGameGridScale,
+							y + h - (image->h + f5)*g_PConfig.fGameGridScale, g_PConfig.fGameGridScale);
 			} else {
-				dc.Draw()->DrawImage(regionIcons[ginfo->region], x - 2 - image->w - 3, y + h - image->h - 5, 1.0f);
+				dc.Draw()->DrawImage(regionIcons[ginfo->region], x - f2 - image->w - f3, y + h - image->h - f5, f1);
 			}
 		}
 	}
@@ -433,7 +434,7 @@ void GameButton::Draw(UIContext &dc) {
 		dc.SetFontScale(0.5f*g_PConfig.fGameGridScale, 0.5f*g_PConfig.fGameGridScale);
 		dc.DrawText(ginfo->id_version.c_str(), x+5, y+1, 0xFF000000, ALIGN_TOPLEFT);
 		dc.DrawText(ginfo->id_version.c_str(), x+4, y, 0xFFffFFff, ALIGN_TOPLEFT);
-		dc.SetFontScale(1.0f, 1.0f);
+		dc.SetFontScale(f1, f1);
 	}
 	if (overlayColor) {
 		dc.FillRect(Drawable(overlayColor), overlayBounds);
@@ -482,9 +483,9 @@ void DirButton::Draw(UIContext &dc) {
 	}
 
 	float tw, th;
-	dc.MeasureText(dc.GetFontStyle(), gridStyle_ ? g_PConfig.fGameGridScale : 1.0, gridStyle_ ? g_PConfig.fGameGridScale : 1.0, text.c_str(), &tw, &th, 0);
+	dc.MeasureText(dc.GetFontStyle(), gridStyle_ ? g_PConfig.fGameGridScale : f1, gridStyle_ ? g_PConfig.fGameGridScale : f1, text.c_str(), &tw, &th, 0);
 
-	bool compact = bounds_.w < 180 * (gridStyle_ ? g_PConfig.fGameGridScale : 1.0);
+	bool compact = true;
 
 	if (gridStyle_) {
 		dc.SetFontScale(g_PConfig.fGameGridScale, g_PConfig.fGameGridScale);
@@ -495,16 +496,16 @@ void DirButton::Draw(UIContext &dc) {
 		if (image == ImageID("I_FOLDER")) {
 			dc.DrawText(text.c_str(), bounds_.x + 5, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 		} else {
-			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), gridStyle_ ? g_PConfig.fGameGridScale : 1.0, 0xFFFFFFFF, ALIGN_CENTER);
+			dc.Draw()->DrawImage(image, bounds_.centerX(), bounds_.centerY(), gridStyle_ ? g_PConfig.fGameGridScale : f1, 0xFFFFFFFF, ALIGN_CENTER);
 		}
 		dc.PopScissor();
 	} else {
 		bool scissor = false;
-		if (tw + 150 > bounds_.w) {
+		if (tw + f150 > bounds_.w) {
 			dc.PushScissor(bounds_);
 			scissor = true;
 		}
-		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), 0.88f*(gridStyle_ ? g_PConfig.fGameGridScale : 1.0), 0xFFFFFFFF, ALIGN_CENTER);
+		dc.Draw()->DrawImage(image, bounds_.x + 72, bounds_.centerY(), f0_88*(gridStyle_ ? g_PConfig.fGameGridScale : f1), 0xFFFFFFFF, ALIGN_CENTER);
 		dc.DrawText(text.c_str(), bounds_.x + 150, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
 
 		if (scissor) {
@@ -512,7 +513,7 @@ void DirButton::Draw(UIContext &dc) {
 		}
 	}
 	if (gridStyle_) {
-		dc.SetFontScale(1.0, 1.0);
+		dc.SetFontScale(f1, f1);
 	}
 }
 
@@ -603,7 +604,7 @@ void GameBrowser::Draw(UIContext &dc) {
 	if (hasDropShadow_) {
 		// Darken things behind.
 		dc.FillRect(UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
-		float dropsize = 30.0f;
+		float dropsize = f30;
 		dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
 			bounds_.x - dropsize, bounds_.y,
 			bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
@@ -663,39 +664,39 @@ void GameBrowser::Refresh() {
 	if (DisplayTopBar()) {
 		LinearLayout *topBar = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 		if (browseFlags_ & BrowseFlags::NAVIGATE) {
-			topBar->Add(new Spacer(2.0f));
-			topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+			topBar->Add(new Spacer(f2));
+			topBar->Add(new TextView(path_.GetFriendlyPath().c_str(), ALIGN_VCENTER | FLAG_WRAP_TEXT, true, new LinearLayoutParams(FILL_PARENT, f64, 1.0f)));
 			if (System_GetPropertyBool(SYSPROP_HAS_FILE_BROWSER)) {
-				topBar->Add(new Choice(mm->T("Browse", "Browse..."), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &GameBrowser::HomeClick);
+				topBar->Add(new Choice(mm->T("Browse", "Browse..."), new LayoutParams(WRAP_CONTENT, f64)))->OnClick.Handle(this, &GameBrowser::HomeClick);
 			} else {
-				topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, 64.0f)))->OnClick.Handle(this, &GameBrowser::HomeClick);
+				topBar->Add(new Choice(mm->T("Home"), new LayoutParams(WRAP_CONTENT, f64)))->OnClick.Handle(this, &GameBrowser::HomeClick);
 			}
 		} else {
-			topBar->Add(new Spacer(new LinearLayoutParams(FILL_PARENT, 64.0f, 1.0f)));
+			topBar->Add(new Spacer(new LinearLayoutParams(FILL_PARENT, f64, 1.0f)));
 		}
 		ChoiceStrip *layoutChoice = topBar->Add(new ChoiceStrip(ORIENT_HORIZONTAL));
 		layoutChoice->AddChoice(ImageID("I_GRID"));
 		layoutChoice->AddChoice(ImageID("I_LINES"));
 		layoutChoice->SetSelection(*gridStyle_ ? 0 : 1);
 		layoutChoice->OnChoice.Handle(this, &GameBrowser::LayoutChange);
-		topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(64.0f, 64.0f)))->OnClick.Handle(this, &GameBrowser::GridSettingsClick);
+		topBar->Add(new Choice(ImageID("I_GEAR"), new LayoutParams(f64, f64)))->OnClick.Handle(this, &GameBrowser::GridSettingsClick);
 		Add(topBar);
 
 		if (*gridStyle_) {
-			gameList_ = new UI::GridLayout(UI::GridLayoutSettings(150*g_PConfig.fGameGridScale, 85*g_PConfig.fGameGridScale), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+			gameList_ = new UI::GridLayout(UI::GridLayoutSettings(f150*g_PConfig.fGameGridScale, f85*g_PConfig.fGameGridScale), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 			Add(gameList_);
 		} else {
 			UI::LinearLayout *gl = new UI::LinearLayout(UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-			gl->SetSpacing(4.0f);
+			gl->SetSpacing(f4);
 			gameList_ = gl;
 			Add(gameList_);
 		}
 	} else {
 		if (*gridStyle_) {
-			gameList_ = new UI::GridLayout(UI::GridLayoutSettings(150*g_PConfig.fGameGridScale, 85*g_PConfig.fGameGridScale), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+			gameList_ = new UI::GridLayout(UI::GridLayoutSettings(f150*g_PConfig.fGameGridScale, f85*g_PConfig.fGameGridScale), new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 		} else {
 			UI::LinearLayout *gl = new UI::LinearLayout(UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-			gl->SetSpacing(4.0f);
+			gl->SetSpacing(f4);
 			gameList_ = gl;
 		}
 		// Until we can come up with a better space to put it (next to the tabs?) let's get rid of the icon config
@@ -721,7 +722,8 @@ void GameBrowser::Refresh() {
 	std::vector<std::string> filenames;
 	if (HasSpecialFiles(filenames)) {
 		for (size_t i = 0; i < filenames.size(); i++) {
-			gameButtons.push_back(new GameButton(filenames[i], *gridStyle_, new UI::LinearLayoutParams(*gridStyle_ == true ? UI::WRAP_CONTENT : UI::FILL_PARENT, UI::WRAP_CONTENT)));
+			gameButtons.push_back(new GameButton(filenames[i], *gridStyle_, 
+                new UI::LinearLayoutParams(*gridStyle_ == true ? UI::WRAP_CONTENT : UI::FILL_PARENT, UI::WRAP_CONTENT)));
 		}
 	} else if (!listingPending_) {
 		std::vector<FileInfo> fileInfo;
@@ -753,7 +755,7 @@ void GameBrowser::Refresh() {
 			path_.GetListing(fileInfo, "zip:rar:r01:7z:");
 			if (!fileInfo.empty()) {
 				UI::LinearLayout *zl = new UI::LinearLayout(UI::ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
-				zl->SetSpacing(4.0f);
+				zl->SetSpacing(f4);
 				Add(zl);
 				for (size_t i = 0; i < fileInfo.size(); i++) {
 					if (!fileInfo[i].isDirectory) {
@@ -957,7 +959,7 @@ void MainScreen::CreateViews() {
 
 	Margins actionMenuMargins(0, 10, 10, 0);
 
-	tabHolder_ = new TabHolder(ORIENT_HORIZONTAL, 64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0f));
+	tabHolder_ = new TabHolder(ORIENT_HORIZONTAL, f64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0f));
 	ViewGroup *leftColumn = tabHolder_;
 	tabHolder_->SetTag("MainScreenGames");
 	gameBrowsers_.clear();
@@ -1044,7 +1046,7 @@ void MainScreen::CreateViews() {
 			leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
 			leftColumn->Add(new TextView(mm->T("SavesAreTemporary", "PPSSPP saving in temporary storage"), ALIGN_HCENTER, false));
 			leftColumn->Add(new TextView(mm->T("SavesAreTemporaryGuidance", "Extract PPSSPP somewhere to save permanently"), ALIGN_HCENTER, false));
-			leftColumn->Add(new Spacer(10.0f));
+			leftColumn->Add(new Spacer(f10));
 			leftColumn->Add(buttonHolder);
 			leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
 		}
@@ -1065,7 +1067,7 @@ void MainScreen::CreateViews() {
 
 		leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
 		leftColumn->Add(buttonHolder);
-		leftColumn->Add(new Spacer(10.0f));
+		leftColumn->Add(new Spacer(f10));
 		leftColumn->Add(new TextView(mm->T("PPSSPP can't load games or save right now"), ALIGN_HCENTER, false));
 		leftColumn->Add(new Spacer(new LinearLayoutParams(0.1f)));
 	}
@@ -1103,7 +1105,7 @@ void MainScreen::CreateViews() {
 
 #if !PPSSPP_PLATFORM(UWP)
 	// Having an exit button is against UWP guidelines.
-	rightColumnItems->Add(new Spacer(25.0));
+	rightColumnItems->Add(new Spacer(f25));
 	rightColumnItems->Add(new Choice(mm->T("Exit")))->OnClick.Handle(this, &MainScreen::OnExit);
 #endif
 
@@ -1114,7 +1116,7 @@ void MainScreen::CreateViews() {
 		root_->Add(leftColumn);
 	} else {
 		root_ = new LinearLayout(ORIENT_HORIZONTAL);
-		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
+		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(f300, FILL_PARENT, actionMenuMargins));
 		root_->Add(leftColumn);
 		root_->Add(rightColumn);
 	}
@@ -1414,11 +1416,11 @@ void UmdReplaceScreen::CreateViews() {
 	auto mm = GetI18NCategory("MainMenu");
 	auto di = GetI18NCategory("Dialog");
 
-	TabHolder *leftColumn = new TabHolder(ORIENT_HORIZONTAL, 64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0));
+	TabHolder *leftColumn = new TabHolder(ORIENT_HORIZONTAL, f64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0));
 	leftColumn->SetTag("UmdReplace");
 	leftColumn->SetClip(true);
 
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(270, FILL_PARENT, actionMenuMargins));
+	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(f270, FILL_PARENT, actionMenuMargins));
 	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	rightColumnItems->SetSpacing(0.0f);
 	rightColumn->Add(rightColumnItems);
@@ -1496,7 +1498,7 @@ void GridSettingsScreen::CreatePopupContents(UI::ViewGroup *parent) {
 	auto di = GetI18NCategory("Dialog");
 	auto sy = GetI18NCategory("System");
 
-	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, 50, 1.0f));
+	ScrollView *scroll = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, f50, 1.0f));
 	LinearLayout *items = new LinearLayout(ORIENT_VERTICAL);
 
 	items->Add(new CheckBox(&g_PConfig.bGridView1, sy->T("Display Recent on a grid")));

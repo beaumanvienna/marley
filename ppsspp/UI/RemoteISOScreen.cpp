@@ -41,7 +41,7 @@
 #include "Core/Config.h"
 #include "Core/WebServer.h"
 #include "UI/RemoteISOScreen.h"
-
+#include "../screen_manager/UI/Scale.h"
 using namespace UI;
 
 static const char *REPORT_HOSTNAME = "report.ppsspp.org";
@@ -289,7 +289,7 @@ void RemoteISOScreen::CreateViews() {
 	Margins contentMargins(0, 20, 5, 5);
 	ViewGroup *leftColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT, 0.4f, contentMargins));
 	LinearLayout *leftColumnItems = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(WRAP_CONTENT, FILL_PARENT));
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
+	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(f300, FILL_PARENT, actionMenuMargins));
 	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL);
 
 	leftColumnItems->Add(new TextView(ri->T("RemoteISODesc", "Games in your recent list will be shared"), new LinearLayoutParams(Margins(12, 5, 0, 5))));
@@ -319,7 +319,7 @@ void RemoteISOScreen::CreateViews() {
 	beforeBack->Add(rightColumn);
 	root_ = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
 	root_->Add(beforeBack);
-	root_->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
+	root_->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(f150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 
 	leftColumn->Add(leftColumnItems);
 	rightColumn->Add(rightColumnItems);
@@ -387,13 +387,13 @@ void RemoteISOConnectScreen::CreateViews() {
 	Margins contentMargins(0, 20, 5, 5);
 	ViewGroup *leftColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(WRAP_CONTENT, FILL_PARENT, 0.4f, contentMargins));
 	LinearLayout *leftColumnItems = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(WRAP_CONTENT, FILL_PARENT));
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
+	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(f300, FILL_PARENT, actionMenuMargins));
 	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL);
 
 	statusView_ = leftColumnItems->Add(new TextView(ri->T("RemoteISOScanning", "Scanning... click Share Games on your desktop"), FLAG_WRAP_TEXT, false, new LinearLayoutParams(Margins(12, 5, 0, 5))));
 
 	rightColumnItems->SetSpacing(0.0f);
-	rightColumnItems->Add(new Choice(di->T("Cancel"), "", false, new AnchorLayoutParams(150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
+	rightColumnItems->Add(new Choice(di->T("Cancel"), "", false, new AnchorLayoutParams(f150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 
 	root_ = new LinearLayout(ORIENT_HORIZONTAL, new LinearLayoutParams(FILL_PARENT, FILL_PARENT, 1.0f));
 	root_->Add(leftColumn);
@@ -528,7 +528,7 @@ void RemoteISOBrowseScreen::CreateViews() {
 
 	Margins actionMenuMargins(0, 10, 10, 0);
 
-	TabHolder *leftColumn = new TabHolder(ORIENT_HORIZONTAL, 64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
+	TabHolder *leftColumn = new TabHolder(ORIENT_HORIZONTAL, f64, new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	tabHolder_ = leftColumn;
 	tabHolder_->SetTag("RemoteGames");
 	gameBrowsers_.clear();
@@ -553,7 +553,7 @@ void RemoteISOBrowseScreen::CreateViews() {
 	rightColumnItems->SetSpacing(0.0f);
 	rightColumn->Add(rightColumnItems);
 
-	rightColumnItems->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
+	rightColumnItems->Add(new Choice(di->T("Back"), "", false, new AnchorLayoutParams(f150, WRAP_CONTENT, 10, NONE, NONE, 10)))->OnClick.Handle<UIScreen>(this, &UIScreen::OnBack);
 
 	if (vertical) {
 		root_ = new LinearLayout(ORIENT_VERTICAL);
@@ -564,7 +564,7 @@ void RemoteISOBrowseScreen::CreateViews() {
 	} else {
 		root_ = new LinearLayout(ORIENT_HORIZONTAL);
 		leftColumn->ReplaceLayoutParams(new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT, 1.0));
-		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
+		rightColumn->ReplaceLayoutParams(new LinearLayoutParams(f300, FILL_PARENT, actionMenuMargins));
 		root_->Add(leftColumn);
 		root_->Add(rightColumn);
 	}

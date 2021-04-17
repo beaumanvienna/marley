@@ -516,11 +516,11 @@ void Choice::GetContentDimensionsBySpec(const SCREEN_UIContext &dc, MeasureSpec 
 			// Let it have as much space as it needs.
 			availWidth = MAX_ITEM_SIZE;
 		}
-		float scale = CalculateTextScale(dc, availWidth);
+		float scale = CalculateTextScale(dc, availWidth) * gScale;
 		Bounds availBounds(0, 0, availWidth, vert.size);
 		dc.MeasureTextRect(dc.theme->uiFont, scale, scale, text_.c_str(), (int)text_.size(), availBounds, &w, &h, FLAG_WRAP_TEXT);
 	}
-	w += 0;
+	if (gTheme != THEME_RETRO) w += f24;
 	h += f16;
 	h = std::max(h, ITEM_HEIGHT);
 }

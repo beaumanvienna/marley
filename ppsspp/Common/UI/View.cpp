@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <mutex>
-
+#include <iostream>
 #include "Common/Input/InputState.h"
 #include "Common/Input/KeyCodes.h"
 #include "Common/Render/DrawBuffer.h"
@@ -15,11 +15,12 @@
 #include "Common/System/System.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
+#include "../screen_manager/UI/Scale.h"
 
 namespace UI {
 
-const float ITEM_HEIGHT = 64.f;
-const float MIN_TEXT_SCALE = 0.8f;
+const float ITEM_HEIGHT = f64;
+const float MIN_TEXT_SCALE = f0_88;
 const float MAX_ITEM_SIZE = 65535.0f;
 
 void MeasureBySpec(Size sz, float contentWidth, MeasureSpec spec, float *measured) {
@@ -121,8 +122,8 @@ void View::Measure(const UIContext &dc, MeasureSpec horiz, MeasureSpec vert) {
 // Default values
 
 void View::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	w = 10.0f;
-	h = 10.0f;
+	w = f10;
+	h = f10;
 }
 
 void View::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
@@ -432,8 +433,10 @@ void Choice::Click() {
 void Choice::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz, MeasureSpec vert, float &w, float &h) const {
 	if (atlasImage_.isValid()) {
 		dc.Draw()->GetAtlas()->measureImage(atlasImage_, &w, &h);
+        w = w * gScale;
+        h = h * gScale;
 	} else {
-		const int paddingX = 12;
+		const float paddingX = f12;
 		float availWidth = horiz.size - paddingX * 2 - textPadding_.horiz();
 		if (availWidth < 0.0f) {
 			// Let it have as much space as it needs.
@@ -443,8 +446,8 @@ void Choice::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz, 
 		Bounds availBounds(0, 0, availWidth, vert.size);
 		dc.MeasureTextRect(dc.theme->uiFont, scale, scale, text_.c_str(), (int)text_.size(), availBounds, &w, &h, FLAG_WRAP_TEXT);
 	}
-	w += 24;
-	h += 16;
+	w += f10;
+	h += f4;
 	h = std::max(h, ITEM_HEIGHT);
 }
 
@@ -455,7 +458,7 @@ float Choice::CalculateTextScale(const UIContext &dc, float availWidth) const {
 	if (actualWidth > availWidth) {
 		return std::max(MIN_TEXT_SCALE, availWidth / actualWidth);
 	}
-	return 1.0f;
+	return f1;
 }
 
 void Choice::HighlightChanged(bool highlighted){
@@ -486,30 +489,30 @@ void Choice::Draw(UIContext &dc) {
 	}
 
 	if (atlasImage_.isValid()) {
-		dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(atlasImage_, bounds_.centerX(), bounds_.centerY(), f1, style.fgColor, ALIGN_CENTER);
 	} else {
 		dc.SetFontStyle(dc.theme->uiFont);
 
-		const int paddingX = 12;
+		const float paddingX = f5;
 		const float availWidth = bounds_.w - paddingX * 2 - textPadding_.horiz();
 		float scale = CalculateTextScale(dc, availWidth);
 
-		dc.SetFontScale(scale, scale);
+		dc.SetFontScale(f1, f1);
 		if (centered_) {
 			dc.DrawTextRect(text_.c_str(), bounds_, style.fgColor, ALIGN_CENTER | FLAG_WRAP_TEXT);
 		} else {
 			if (iconImage_.isValid()) {
-				dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), 0.5f, style.fgColor, ALIGN_CENTER);
+				dc.Draw()->DrawImage(iconImage_, bounds_.x2() - 32 - paddingX, bounds_.centerY(), f0_5, style.fgColor, ALIGN_CENTER);
 			}
 
 			Bounds textBounds(bounds_.x + paddingX + textPadding_.left, bounds_.y, availWidth, bounds_.h);
 			dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
 		}
-		dc.SetFontScale(1.0f, 1.0f);
+		dc.SetFontScale(f1, f1);
 	}
 
 	if (selected_) {
-		dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_CENTER);
+		dc.Draw()->DrawImage(dc.theme->checkOn, bounds_.x2() - 40, bounds_.centerY(), f1, style.fgColor, ALIGN_CENTER);
 	}
 }
 
@@ -539,7 +542,7 @@ void InfoItem::Draw(UIContext &dc) {
 
 	dc.FillRect(style.background, bounds_);
 
-	int paddingX = 12;
+	const float paddingX = f12;
 
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.DrawText(text_.c_str(), bounds_.x + paddingX, bounds_.centerY(), style.fgColor, ALIGN_VCENTER);
@@ -550,7 +553,7 @@ void InfoItem::Draw(UIContext &dc) {
 ItemHeader::ItemHeader(const std::string &text, LayoutParams *layoutParams)
 	: Item(layoutParams), text_(text) {
 	layoutParams_->width = FILL_PARENT;
-	layoutParams_->height = 40;
+	layoutParams_->height = f40;
 }
 
 void ItemHeader::Draw(UIContext &dc) {
@@ -569,16 +572,16 @@ void ItemHeader::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec hor
 		bounds.h = vert.size == 0 ? MAX_ITEM_SIZE : vert.size;
 	}
 	ApplyBoundsBySpec(bounds, horiz, vert);
-	dc.MeasureTextRect(dc.theme->uiFontSmall, 1.0f, 1.0f, text_.c_str(), (int)text_.length(), bounds, &w, &h, ALIGN_LEFT | ALIGN_VCENTER);
+	dc.MeasureTextRect(dc.theme->uiFontSmall, f1, f1, text_.c_str(), (int)text_.length(), bounds, &w, &h, ALIGN_LEFT | ALIGN_VCENTER);
 }
 
 void PopupHeader::Draw(UIContext &dc) {
-	const float paddingHorizontal = 12;
+	const float paddingHorizontal = f12;
 	const float availableWidth = bounds_.w - paddingHorizontal * 2;
 
 	float tw, th;
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.MeasureText(dc.GetFontStyle(), 1.0f, 1.0f, text_.c_str(), &tw, &th, 0);
+	dc.MeasureText(dc.GetFontStyle(), f1, f1, text_.c_str(), &tw, &th, 0);
 
 	float sineWidth = std::max(0.0f, (tw - availableWidth)) / 2.0f;
 
@@ -630,7 +633,7 @@ void CheckBox::Draw(UIContext &dc) {
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
-	const int paddingX = 12;
+	const float paddingX = f12;
 	// Padding right of the checkbox image too.
 	const float availWidth = bounds_.w - paddingX * 2 - imageW - paddingX;
 	float scale = CalculateTextScale(dc, availWidth);
@@ -638,18 +641,18 @@ void CheckBox::Draw(UIContext &dc) {
 	dc.SetFontScale(scale, scale);
 	Bounds textBounds(bounds_.x + paddingX, bounds_.y, availWidth, bounds_.h);
 	dc.DrawTextRect(text_.c_str(), textBounds, style.fgColor, ALIGN_VCENTER | FLAG_WRAP_TEXT);
-	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), 1.0f, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
-	dc.SetFontScale(1.0f, 1.0f);
+	dc.Draw()->DrawImage(image, bounds_.x2() - paddingX, bounds_.centerY(), f1, style.fgColor, ALIGN_RIGHT | ALIGN_VCENTER);
+	dc.SetFontScale(f1, f1);
 }
 
 float CheckBox::CalculateTextScale(const UIContext &dc, float availWidth) const {
 	float actualWidth, actualHeight;
 	Bounds availBounds(0, 0, availWidth, bounds_.h);
-	dc.MeasureTextRect(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), (int)text_.size(), availBounds, &actualWidth, &actualHeight, ALIGN_VCENTER);
+	dc.MeasureTextRect(dc.theme->uiFont, f1, f1, text_.c_str(), (int)text_.size(), availBounds, &actualWidth, &actualHeight, ALIGN_VCENTER);
 	if (actualWidth > availWidth) {
 		return std::max(MIN_TEXT_SCALE, availWidth / actualWidth);
 	}
-	return 1.0f;
+	return f1;
 }
 
 void CheckBox::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
@@ -657,7 +660,7 @@ void CheckBox::GetContentDimensions(const UIContext &dc, float &w, float &h) con
 	float imageW, imageH;
 	dc.Draw()->MeasureImage(image, &imageW, &imageH);
 
-	const int paddingX = 12;
+	const float paddingX = f12;
 	// Padding right of the checkbox image too.
 	float availWidth = bounds_.w - paddingX * 2 - imageW - paddingX;
 	if (availWidth < 0.0f) {
@@ -695,7 +698,7 @@ void Button::GetContentDimensions(const UIContext &dc, float &w, float &h) const
 	if (imageID_.isValid()) {
 		dc.Draw()->GetAtlas()->measureImage(imageID_, &w, &h);
 	} else {
-		dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), &w, &h);
+		dc.MeasureText(dc.theme->uiFont, f1, f1, text_.c_str(), &w, &h);
 	}
 	// Add some internal padding to not look totally ugly
 	w += paddingW_;
@@ -720,7 +723,7 @@ void Button::Draw(UIContext &dc) {
 	// dc.Draw()->DrawImage4Grid(style.image, bounds_.x, bounds_.y, bounds_.x2(), bounds_.y2(), style.bgColor);
 	DrawBG(dc, style);
 	float tw, th;
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), &tw, &th);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, text_.c_str(), &tw, &th);
 	tw *= scale_;
 	th *= scale_;
 
@@ -728,7 +731,7 @@ void Button::Draw(UIContext &dc) {
 		dc.PushScissor(bounds_);
 	}
 	dc.SetFontStyle(dc.theme->uiFont);
-	dc.SetFontScale(scale_, scale_);
+	dc.SetFontScale(f1, f1);
 	if (imageID_.isValid() && text_.empty()) {
 		dc.Draw()->DrawImage(imageID_, bounds_.centerX(), bounds_.centerY(), scale_, 0xFFFFFFFF, ALIGN_CENTER);
 	} else if (!text_.empty()) {
@@ -736,11 +739,11 @@ void Button::Draw(UIContext &dc) {
 		if (imageID_.isValid()) {
 			const AtlasImage *img = dc.Draw()->GetAtlas()->getImage(imageID_);
 			if (img) {
-				dc.Draw()->DrawImage(imageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+				dc.Draw()->DrawImage(imageID_, bounds_.centerX() - tw / 2 - 5 - img->w / 2, bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
 			}
 		}
 	}
-	dc.SetFontScale(1.0f, 1.0f);
+	dc.SetFontScale(f1, f1);
 
 	if (tw > bounds_.w || imageID_.isValid()) {
 		dc.PopScissor();
@@ -771,7 +774,7 @@ void TextView::GetContentDimensionsBySpec(const UIContext &dc, MeasureSpec horiz
 		bounds.h = vert.size == 0 ? MAX_ITEM_SIZE : vert.size;
 	}
 	ApplyBoundsBySpec(bounds, horiz, vert);
-	dc.MeasureTextRect(small_ ? dc.theme->uiFontSmall : dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
+	dc.MeasureTextRect(small_ ? dc.theme->uiFontSmall : dc.theme->uiFont, f1, f1, text_.c_str(), (int)text_.length(), bounds, &w, &h, textAlign_);
 }
 
 void TextView::Draw(UIContext &dc) {
@@ -798,9 +801,10 @@ void TextView::Draw(UIContext &dc) {
 		dc.FillRect(style.background, bounds_);
 	}
 	dc.SetFontStyle(small_ ? dc.theme->uiFontSmall : dc.theme->uiFont);
+	dc.SetFontScale(f1, f1);
 	if (shadow_) {
 		uint32_t shadowColor = 0x80000000;
-		dc.DrawTextRect(text_.c_str(), bounds_.Offset(1.0f, 1.0f), shadowColor, textAlign_);
+		dc.DrawTextRect(text_.c_str(), bounds_.Offset(f1, f1), shadowColor, textAlign_);
 	}
 	dc.DrawTextRect(text_.c_str(), bounds_, textColor, textAlign_);
 	if (clip) {
@@ -837,7 +841,7 @@ void TextEdit::Draw(UIContext &dc) {
 
 	if (HasFocus()) {
 		// Hack to find the caret position. Might want to find a better way...
-		dc.MeasureTextCount(dc.theme->uiFont, 1.0f, 1.0f, text_.c_str(), caret_, &w, &h, ALIGN_VCENTER | ALIGN_LEFT | align_);
+		dc.MeasureTextCount(dc.theme->uiFont, f1, f1, text_.c_str(), caret_, &w, &h, ALIGN_VCENTER | ALIGN_LEFT | align_);
 		float caretX = w - scrollPos_;
 		if (caretX > bounds_.w) {
 			scrollPos_ += caretX - bounds_.w;
@@ -852,9 +856,9 @@ void TextEdit::Draw(UIContext &dc) {
 }
 
 void TextEdit::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, text_.size() ? text_.c_str() : "Wj", &w, &h, align_);
-	w += 2;
-	h += 2;
+	dc.MeasureText(dc.theme->uiFont, f1, f1, text_.size() ? text_.c_str() : "Wj", &w, &h, align_);
+	w += f2;
+	h += f2;
 }
 
 // Handles both windows and unix line endings.
@@ -1022,20 +1026,20 @@ void TextEdit::InsertAtCaret(const char *text) {
 }
 
 void ProgressBar::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	dc.MeasureText(dc.theme->uiFont, 1.0f, 1.0f, "  100%  ", &w, &h);
+	dc.MeasureText(dc.theme->uiFont, f1, f1, "  100%  ", &w, &h);
 }
 
 void ProgressBar::Draw(UIContext &dc) {
 	char temp[32];
-	sprintf(temp, "%i%%", (int)(progress_ * 100.0f));
+	sprintf(temp, "%i%%", (int)(progress_ * f100));
 	dc.Draw()->DrawImageStretch(dc.theme->whiteImage, bounds_.x, bounds_.y, bounds_.x + bounds_.w * progress_, bounds_.y2(), 0xc0c0c0c0);
 	dc.SetFontStyle(dc.theme->uiFont);
 	dc.DrawTextRect(temp, bounds_, 0xFFFFFFFF, ALIGN_CENTER);
 }
 
 void Spinner::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
-	w = 48;
-	h = 48;
+	w = f48;
+	h = f48;
 }
 
 void Spinner::Draw(UIContext &dc) {
@@ -1049,7 +1053,7 @@ void Spinner::Draw(UIContext &dc) {
 		double a = angle + i * da;
 		float x = (float)cos(a) * r;
 		float y = (float)sin(a) * r;
-		dc.Draw()->DrawImage(images_[i], bounds_.centerX() + x, bounds_.centerY() + y, 1.0f, color_, ALIGN_CENTER);
+		dc.Draw()->DrawImage(images_[i], bounds_.centerX() + x, bounds_.centerY() + y, f1, color_, ALIGN_CENTER);
 	}
 }
 
@@ -1078,8 +1082,8 @@ void TriggerButton::Touch(const TouchInput &input) {
 }
 
 void TriggerButton::Draw(UIContext &dc) {
-	dc.Draw()->DrawImage(imageBackground_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
-	dc.Draw()->DrawImage(imageForeground_, bounds_.centerX(), bounds_.centerY(), 1.0f, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.Draw()->DrawImage(imageBackground_, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
+	dc.Draw()->DrawImage(imageForeground_, bounds_.centerX(), bounds_.centerY(), f1, 0xFFFFFFFF, ALIGN_CENTER);
 }
 
 void TriggerButton::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
@@ -1167,7 +1171,7 @@ void Slider::Draw(UIContext &dc) {
 	float knobX = ((float)(*value_) - minValue_) / (maxValue_ - minValue_) * (bounds_.w - paddingLeft_ - paddingRight_) + (bounds_.x + paddingLeft_);
 	dc.FillRect(Drawable(linecolor), Bounds(bounds_.x + paddingLeft_, bounds_.centerY() - 2, knobX - (bounds_.x + paddingLeft_), 4));
 	dc.FillRect(Drawable(0xFF808080), Bounds(knobX, bounds_.centerY() - 2, (bounds_.x + bounds_.w - paddingRight_ - knobX), 4));
-	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), 1.0f, knobStyle.fgColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), f1, knobStyle.fgColor, ALIGN_CENTER);
 	char temp[64];
 	if (showPercent_)
 		sprintf(temp, "%i%%", *value_);
@@ -1197,8 +1201,8 @@ void Slider::Update() {
 
 void Slider::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
 	// TODO
-	w = 100;
-	h = 50;
+	w = f100;
+	h = f50;
 }
 
 bool SliderFloat::Key(const KeyInput &input) {
@@ -1280,7 +1284,7 @@ void SliderFloat::Draw(UIContext &dc) {
 	float knobX = (*value_ - minValue_) / (maxValue_ - minValue_) * (bounds_.w - paddingLeft_ - paddingRight_) + (bounds_.x + paddingLeft_);
 	dc.FillRect(Drawable(linecolor), Bounds(bounds_.x + paddingLeft_, bounds_.centerY() - 2, knobX - (bounds_.x + paddingLeft_), 4));
 	dc.FillRect(Drawable(0xFF808080), Bounds(knobX, bounds_.centerY() - 2, (bounds_.x + bounds_.w - paddingRight_ - knobX), 4));
-	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), 1.0f, knobStyle.fgColor, ALIGN_CENTER);
+	dc.Draw()->DrawImage(dc.theme->sliderKnob, knobX, bounds_.centerY(), f1, knobStyle.fgColor, ALIGN_CENTER);
 	char temp[64];
 	sprintf(temp, "%0.2f", *value_);
 	dc.SetFontStyle(dc.theme->uiFont);
@@ -1304,8 +1308,8 @@ void SliderFloat::Update() {
 
 void SliderFloat::GetContentDimensions(const UIContext &dc, float &w, float &h) const {
 	// TODO
-	w = 100;
-	h = 50;
+	w = f100;
+	h = f50;
 }
 
 }  // namespace

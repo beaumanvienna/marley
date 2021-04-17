@@ -1,5 +1,5 @@
 #standalone ppsspp test version
-COMPILER_ARTIFACTS = -I/usr/include/SDL2
+COMPILER_ARTIFACTS = -I/usr/include/SDL2 -I../../screen_manager/
 
 LINKER_OBJECTS = \
 	../../ppsspp/build/lib/libglslang.a \
@@ -7,7 +7,6 @@ LINKER_OBJECTS = \
 	../../ppsspp/build/lib/liblibzip.a \
 	../../ppsspp/build/lib/libspirv-cross-cpp.a \
 	../../ppsspp/build/lib/libspirv-cross-glsl.a \
-	../../ppsspp/build/lib/libdiscord-rpc.a \
 	../../ppsspp/build/lib/libudis86.a \
 	../../ppsspp/build/lib/libOSDependent.a \
 	../../ppsspp/build/lib/libspirv-cross-core.a \
@@ -50,7 +49,7 @@ all: PPSSPP
 PPSSPP: main.cpp
 	$(info   *************** tests make ppsspp ***************)
 	$(MAKE) -C ../../ppsspp/build all
-	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PPSSPP main.cpp $(LINKER_OBJECTS) $(LINKER_OBJECTS) $(LINKER_OBJECTS)
+	g++ $(COMPILER_ARTIFACTS) -g3 -O0 -ggdb -o PPSSPP main.cpp ../../screen_manager/UI/Scale.cpp $(LINKER_OBJECTS) $(LINKER_OBJECTS) $(LINKER_OBJECTS)
 
 clean:
 	$(info   *************** tests ppsspp clean ***************)

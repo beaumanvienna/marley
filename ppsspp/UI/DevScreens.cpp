@@ -435,7 +435,7 @@ void SystemInfoScreen::CreateViews() {
 
 	AddStandardBack(root_);
 
-	TabHolder *tabHolder = new TabHolder(ORIENT_VERTICAL, 225, new AnchorLayoutParams(10, 0, 10, 0, false));
+	TabHolder *tabHolder = new TabHolder(ORIENT_VERTICAL, f200, new AnchorLayoutParams(10, 0, 10, 0, false));
 	tabHolder->SetTag("DevSystemInfo");
 
 	root_->Add(tabHolder);

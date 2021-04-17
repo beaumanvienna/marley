@@ -29,7 +29,9 @@ float f800   = 800.0f;
 float f500   = 500.0f;
 float f476   = 476.0f;
 float f410   = 410.0f;
+float f300   = 300.0f;
 float f273   = 273.0f;
+float f270   = 270.0f;
 float f243   = 243.0f;
 float f266   = 266.0f;
 float f256   = 266.0f;
@@ -53,6 +55,7 @@ float f44    = 44.0f;
 float f40    = 40.0f;
 float f32    = 32.0f;
 float f30    = 30.0f;
+float f25    = 25.0f;
 float f24    = 24.0f;
 float f20    = 20.0f;
 float f16    = 16.0f;
@@ -60,9 +63,11 @@ float f12    = 12.0f;
 float f10    = 10.0f;
 float f5     = 5.0f;
 float f4     = 4.0f;
+float f3     = 3.0f;
 float f2     = 2.0f;
 float f1     = 1.0f;
 float f0_88  = 0.88f;
+float f0_5  = 0.5f;
 
 extern int WINDOW_WIDTH;
 
@@ -75,7 +80,9 @@ void setGlobalScaling(void)
     f500   = 500.0f * gScale;
     f476   = 476.0f * gScale;
     f410   = 410.0f * gScale;
+    f300   = 300.0f * gScale;
     f273   = 273.0f * gScale;
+    f270   = 270.0f * gScale;
     f243   = 243.0f * gScale;
     f266   = 266.0f * gScale;
     f256   = 256.0f * gScale;
@@ -99,6 +106,7 @@ void setGlobalScaling(void)
     f40    = 40.0f * gScale;
     f32    = 32.0f * gScale;
     f30    = 30.0f * gScale;
+    f25    = 25.0f * gScale;
     f24    = 24.0f * gScale;
     f20    = 20.0f * gScale;
     f16    = 16.0f * gScale;
@@ -106,7 +114,9 @@ void setGlobalScaling(void)
     f10    = 10.0f * gScale;
     f5     = 5.0f * gScale;
     f4     = 4.0f * gScale;
+    f3     = 3.0f * gScale;
     f2     = 2.0f * gScale;
     f1     = 1.0f * gScale;
     f0_88  = 0.88f* gScale;
+    f0_5  = 0.5f* gScale;
 }

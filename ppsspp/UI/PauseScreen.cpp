@@ -337,7 +337,7 @@ void GamePauseScreen::CreateViews() {
 	leftColumn->Add(leftColumnItems);
 
 	leftColumnItems->Add(new Spacer(0.0));
-	leftColumnItems->SetSpacing(10.0);
+	leftColumnItems->SetSpacing(f10);
 	for (int i = 0; i < NUM_SAVESLOTS; i++) {
 		SaveSlotView *slot = leftColumnItems->Add(new SaveSlotView(gamePath_, i, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 		slot->OnStateLoaded.Handle(this, &GamePauseScreen::OnState);
@@ -352,7 +352,7 @@ void GamePauseScreen::CreateViews() {
 		rewindButton->OnClick.Handle(this, &GamePauseScreen::OnRewind);
 	}
 
-	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(300, FILL_PARENT, actionMenuMargins));
+	ViewGroup *rightColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(f300, FILL_PARENT, actionMenuMargins));
 	root_->Add(rightColumn);
 
 	LinearLayout *rightColumnItems = new LinearLayout(ORIENT_VERTICAL);

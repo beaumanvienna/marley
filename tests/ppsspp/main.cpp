@@ -13,10 +13,11 @@
 #include <string>
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
+#include "../../screen_manager/UI/Scale.h"
 using namespace std;
 
-int WINDOW_WIDTH = 1280;
-int WINDOW_HEIGHT = 750;
+int WINDOW_WIDTH;
+int WINDOW_HEIGHT;
 
 int ppsspp_main(int argc, char* argv[]);
 
@@ -427,7 +428,12 @@ bool initGUI(void)
     
     windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
     
-
+    SDL_DisplayMode current;
+    SDL_GetCurrentDisplayMode(0, &current);
+    WINDOW_WIDTH = current.w / 1.5; 
+    WINDOW_HEIGHT = current.h / 1.5;
+    setGlobalScaling();
+        
     //Create main window
     string str = "marley ";
     gWindow = SDL_CreateWindow( str.c_str(), 

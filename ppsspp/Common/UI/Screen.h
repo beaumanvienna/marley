@@ -16,7 +16,7 @@
 #include <vector>
 #include <mutex>
 #include <string>
-
+#include <stack>
 #include "Common/Common.h"
 #include "Common/Input/InputState.h"
 
@@ -165,4 +165,5 @@ private:
 	// Used for options, in-game menus and other things you expect to be able to back out from onto something.
 	std::vector<Layer> stack_;
 	std::vector<Layer> nextStack_;
+	std::stack<UI::View*> lastFocusView;
 };

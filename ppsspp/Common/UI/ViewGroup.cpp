@@ -15,10 +15,11 @@
 #include "Common/Log.h"
 #include "Common/TimeUtil.h"
 #include "Common/StringUtils.h"
+#include "../screen_manager/UI/Scale.h"
 
 namespace UI {
 
-const float ITEM_HEIGHT = 64.f;
+const float ITEM_HEIGHT = f64;
 
 void ApplyGravity(const Bounds outer, const Margins &margins, float w, float h, int gravity, Bounds &inner) {
 	inner.w = w;
@@ -131,7 +132,7 @@ void ViewGroup::Draw(UIContext &dc) {
 	if (hasDropShadow_) {
 		// Darken things behind.
 		dc.FillRect(UI::Drawable(0x60000000), dc.GetBounds().Expand(dropShadowExpand_));
-		float dropsize = 30.0f;
+		float dropsize = f30;
 		dc.Draw()->DrawImage4Grid(dc.theme->dropShadow4Grid,
 			bounds_.x - dropsize, bounds_.y,
 			bounds_.x2() + dropsize, bounds_.y2()+dropsize*1.5f, 0xDF000000, 3.0f);
@@ -282,12 +283,12 @@ float GetDirectionScore(View *origin, View *destination, FocusDirection directio
 	if (vertical) {
 		float widthDifference = origin->GetBounds().w - destination->GetBounds().w;
 		if (widthDifference == 0) {
-			distanceBonus = 40;
+			distanceBonus = f40;
 		}
 	} else {
 		float heightDifference = origin->GetBounds().h - destination->GetBounds().h;
 		if (heightDifference == 0) {
-			distanceBonus = 40;
+			distanceBonus = f40;
 		}
 	}
 
@@ -802,7 +803,7 @@ bool ScrollView::SubviewFocused(View *view) {
 	const Bounds &vBounds = view->GetBounds();
 
 	// Scroll so that the focused view is visible, and a bit more so that headers etc gets visible too, in most cases.
-	const float overscroll = std::min(view->GetBounds().h / 1.5f, GetBounds().h / 4.0f);
+	const float overscroll = std::min(view->GetBounds().h / 1.5f, GetBounds().h / f4);
 
 	float pos = ClampedScrollPos(scrollPos_);
 	switch (orientation_) {
@@ -1260,7 +1261,7 @@ void ChoiceStrip::AddChoice(const std::string &title) {
 	StickyChoice *c = new StickyChoice(title, "",
 			orientation_ == ORIENT_HORIZONTAL ?
 			nullptr :
-			new LinearLayoutParams(FILL_PARENT, ITEM_HEIGHT));
+			new LinearLayoutParams(FILL_PARENT, WRAP_CONTENT));
 	c->OnClick.Handle(this, &ChoiceStrip::OnChoiceClick);
 	Add(c);
 	if (selected_ == (int)views_.size() - 1)
